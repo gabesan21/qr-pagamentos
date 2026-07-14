@@ -17,7 +17,7 @@ This spec defines the reproducible runtime, local identity boundary, role model,
 - The database uses separate migration and runtime roles; the runtime role cannot perform DDL or role administration.
 - The deployment seed creates the first administrator without persisting plaintext credentials in Git or image layers.
 - Authentication uses local credentials and first-party opaque sessions persisted in PostgreSQL.
-- Login identifiers are normalized email addresses; public registration is disabled and administrators create later user accounts.
+- Every user has a required unique normalized username; username and password are the only login credentials. Email is optional profile/contact data and is never accepted as a login identifier. Public registration is disabled and administrators create later user accounts.
 - Passwords accept 12 to 128 characters without composition rules; the deployment operator can securely recover the initial administrator from the server without email delivery.
 - The closed role set is `ADMIN` and `USER`.
 - Session cookies are `HttpOnly`, `Secure` in production, `SameSite=Lax`, scoped to `Path=/`, and never stored in browser storage.
