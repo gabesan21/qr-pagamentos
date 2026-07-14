@@ -1,0 +1,11 @@
+worktrees/
+
+# Local environment and credentials
+.env
+.env.*
+!.env.example
+
+# Application artifacts
+node_modules/
+.next/
+coverage/
