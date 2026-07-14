@@ -1,0 +1,104 @@
+name: qr-pagamentos
+
+services:
+  db:
+    image: postgres:18.4-bookworm@sha256:7cfd7f5e307dbd8cf5d88761b22934c042a749362c0ab7efc41805572d58b3a3
+    environment:
+      POSTGRES_DB: qr_pagamentos
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_admin_password
+    secrets:
+      - postgres_admin_password
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    networks:
+      - database
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d qr_pagamentos"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+    restart: unless-stopped
+
+  bootstrap:
+    build:
+      context: .
+      target: db-ops
+    command: ["container/bootstrap.mjs"]
+    user: "1000:1000"
+    environment:
+      POSTGRES_HOST: db
+    secrets:
+      - source: admin_password
+        target: admin_password
+      - source: migrator_password
+        target: migrator_password
+      - source: runtime_password
+        target: runtime_password
+    networks:
+      - database
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  migrate:
+    build:
+      context: .
+      target: db-ops
+    command: ["container/migrate.mjs"]
+    user: "1000:1000"
+    environment:
+      POSTGRES_HOST: db
+    secrets:
+      - source: migrator_password
+        target: migrator_password
+    networks:
+      - database
+    depends_on:
+      bootstrap:
+        condition: service_completed_successfully
+    restart: "no"
+
+  app:
+    build:
+      context: .
+      target: app
+    user: "1000:1000"
+    read_only: true
+    init: true
+    tmpfs:
+      - /app/.next/cache:uid=1000,gid=1000,mode=0700
+      - /tmp:uid=1000,gid=1000,mode=0700
+    environment:
+      POSTGRES_HOST: db
+    secrets:
+      - source: runtime_password
+        target: runtime_password
+    networks:
+      - database
+      - edge
+    ports:
+      - "127.0.0.1:${APP_PORT:-3000}:3000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+
+networks:
+  database:
+    internal: true
+  edge:
+
+secrets:
+  postgres_admin_password:
+    file: ${POSTGRES_ADMIN_PASSWORD_FILE:?set POSTGRES_ADMIN_PASSWORD_FILE}
+  admin_password:
+    file: ${STAGED_SECRETS_DIR:-.container-secrets}/admin_password
+  migrator_password:
+    file: ${STAGED_SECRETS_DIR:-.container-secrets}/migrator_password
+  runtime_password:
+    file: ${STAGED_SECRETS_DIR:-.container-secrets}/runtime_password

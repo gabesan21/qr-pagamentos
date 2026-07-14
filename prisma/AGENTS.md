@@ -11,6 +11,8 @@
 - Never commit passwords, usable URLs, generated clients, database dumps, or seed data.
 - Keep schema `app` owned by `qr_migrator`; `qr_runtime` receives only demonstrated DML and sequence use.
 - Never grant runtime schema `CREATE`, object ownership, migration-table access, role membership, `TEMPORARY`, or role-administration attributes.
+- `../container/bootstrap.mjs` must execute `prisma/bootstrap.sql` unchanged before assigning externally supplied role passwords; never duplicate role/grant SQL in a wrapper or Compose init directory.
+- `../container/migrate.mjs` is the only production migration wrapper and must use only `MIGRATION_DATABASE_URL` with `prisma migrate deploy`.
 
 ## Schema and migrations
 
@@ -25,3 +27,4 @@
 - Run `pnpm db:generate` after schema changes.
 - Run `pnpm db:test` only against its self-created disposable PostgreSQL container.
 - Run `pnpm db:contract-check` after changing this subtree or database documentation.
+- Run `pnpm container:contract-check` after changing bootstrap/migration container routing.

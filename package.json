@@ -14,9 +14,13 @@
     "db:generate": "prisma generate",
     "db:test": "node scripts/db-test.mjs",
     "db:contract-check": "node scripts/db-contract-check.mjs",
+    "container:prepare-secrets": "node scripts/container-prepare-secrets.mjs",
+    "container:contract-check": "node scripts/container-contract-check.mjs",
+    "container:test": "node scripts/container-test.mjs",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "precheck": "pnpm db:generate",
     "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm build"
   },
   "dependencies": {
