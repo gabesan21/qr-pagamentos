@@ -30,7 +30,7 @@ if (process.argv.includes("--clean-clone") && !process.env.CONTAINER_TEST_CLEAN_
   try {
     run("git", ["archive", "--format=tar", "-o", archive, "HEAD"]);
     run("tar", ["-xf", archive, "-C", clone]);
-    const child = execute(process.execPath, ["scripts/container-test.mjs", "--scenario", scenario], {
+    const child = execute(process.execPath, ["pop/scripts/container-test.mjs", "--scenario", scenario], {
       cwd: clone,
       env: { ...process.env, CONTAINER_TEST_CLEAN_CLONE: "1" },
       stdio: "inherit",
@@ -77,7 +77,7 @@ if (process.argv.includes("--clean-clone") && !process.env.CONTAINER_TEST_CLEAN_
   let captured = "";
 
   async function prepare() {
-    captured += run(process.execPath, ["scripts/container-prepare-secrets.mjs"], { env });
+    captured += run(process.execPath, ["pop/scripts/container-prepare-secrets.mjs"], { env });
   }
   async function waitForApp() {
     const id = compose(["ps", "-q", "app"]).trim();
@@ -158,7 +158,12 @@ if (process.argv.includes("--clean-clone") && !process.env.CONTAINER_TEST_CLEAN_
       console.log("PASS staged-secret-permissions");
       console.log("PASS compose-config");
     } else if (scenario === "build") {
+      assert(process.env.CONTAINER_TEST_CLEAN_CLONE === "1", "build scenario requires --clean-clone");
+      const contextProbe = path.join("pop", "worktrees", "docker-context-probe", "src", "db");
+      await mkdir(contextProbe, { recursive: true });
+      await writeFile(path.join(contextProbe, "client.ts"), "export const invalid: = true;\n");
       compose(["build", "--pull"]);
+      console.log("PASS docker-context-exclusion");
       for (const service of ["bootstrap", "migrate", "app"]) {
         const image = `${project}-${service}`;
         const user = inspectField(image, "{{.Config.User}}");

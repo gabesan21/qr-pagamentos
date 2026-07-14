@@ -12,7 +12,7 @@ divergente é violação — ver regra 9 do DOX). Exit 1 se houver violação;
 avisos não falham.
 
 Uso:
-    python3 scripts/pop_validate.py [--vault DIR]
+    python3 pop/scripts/pop_validate.py [--vault DIR]
 """
 
 import argparse

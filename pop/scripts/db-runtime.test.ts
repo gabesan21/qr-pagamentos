@@ -1,6 +1,6 @@
 import { afterAll, describe, expect, it } from "vitest";
 
-import { getDatabaseClient } from "../src/db/client";
+import { getDatabaseClient } from "../../src/db/client";
 
 const hasDatabase = Boolean(process.env.DATABASE_URL);
 const describeDatabase = hasDatabase ? describe : describe.skip;

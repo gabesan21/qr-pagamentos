@@ -18,7 +18,7 @@ for (const [name, version] of Object.entries(exactDevDependencies)) {
   assert(packageJson.devDependencies?.[name] === version, `${name} must be pinned at ${version}`);
 }
 assert(packageJson.scripts?.["db:generate"] === "prisma generate", "db:generate contract changed");
-assert(packageJson.scripts?.["db:test"] === "node scripts/db-test.mjs", "db:test contract changed");
+assert(packageJson.scripts?.["db:test"] === "node pop/scripts/db-test.mjs", "db:test contract changed");
 
 const envExample = await readFile(".env.example", "utf8");
 assert(envExample === "MIGRATION_DATABASE_URL=<postgresql-migrator-url>\nDATABASE_URL=<postgresql-runtime-url>\n", ".env.example must contain only the two non-usable placeholders");

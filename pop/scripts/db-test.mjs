@@ -175,7 +175,7 @@ try {
 
   const runtimeProbeEnv = { ...process.env, DATABASE_URL: runtimeUrl };
   delete runtimeProbeEnv.MIGRATION_DATABASE_URL;
-  const runtimeProbe = run("pnpm", ["exec", "vitest", "run", "scripts/db-runtime.test.ts", "--reporter=dot"], { env: runtimeProbeEnv });
+  const runtimeProbe = run("pnpm", ["exec", "vitest", "run", "pop/scripts/db-runtime.test.ts", "--reporter=dot"], { env: runtimeProbeEnv });
   assert(runtimeProbe.includes("PASS runtime-crud"), "Prisma runtime CRUD probe did not pass");
   console.log("PASS runtime-crud");
 
