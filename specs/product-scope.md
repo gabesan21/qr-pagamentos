@@ -13,7 +13,7 @@ This spec defines the user-visible MVP boundaries for QR Pagamentos. Detailed pr
 
 - An administrator can configure the central webhook destination, globally allowed currencies, and globally allowed payment methods.
 - An administrator can create, read, update, and disable users and inspect their orders.
-- A user can store a Nautt API key, causing the system's central webhook to be registered automatically.
+- A user can store a Nautt API key, automatically register the system's central webhook, and view the Nautt main-wallet balance on the same settings screen.
 - A user can create, update, and remove products in currencies enabled by the administrator.
 - A user can create, activate, and deactivate owned payment links.
 - A payment link contains products in exactly one currency; products with different currencies cannot coexist in one link.

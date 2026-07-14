@@ -30,7 +30,7 @@
 | `POST /orders/onramp` | Opens the fiat-to-USDT order and returns payment data, including PIX payload fields when applicable. | Epoch 2 provider adapter; consumed by Epoch 4 checkout. |
 | `GET /orders/{uuid}` | Reads an owned order for polling, reconciliation, and user/admin order views. | Epoch 2 polling/reconciliation; consumed by Epoch 4 order views. |
 | `POST /client-webhooks` | Registers the central HTTPS callback after a user saves a valid API key and returns a one-time webhook secret. | Epoch 2 credential onboarding and webhook intake. |
-| `GET /users/wallets/main/balances` | Reads the main wallet's primary-token balance in real time. No current product requirement uses it. | Outside the MVP; retain as a possible operational feature. |
+| `GET /users/wallets/main/balances` | Reads the API key owner's main-wallet primary-token balance for the credential settings screen. | Epoch 2 API-key onboarding and account status. |
 
 ## Pricing and administrative identifiers
 
@@ -39,6 +39,13 @@
 - By user decision, both UUIDs are stored in administrative configuration when the system is operating. Dynamic discovery is not required for the MVP.
 - The quote must be obtained server-side immediately before order creation; expiration during checkout and quote replacement behavior remain undefined.
 - Monetary response fields such as `final_amount`, `client_amount`, `profit`, `exchange_fee`, and `price` lack complete unit and semantic definitions.
+
+## API key onboarding and wallet balance
+
+- `GET /users/wallets/main/balances` authenticates with `X-API-Key`; omitting `user_uuid` selects the authenticated user (`raw/users/get-main-wallet-balance.md:1-28`).
+- The response provides `token_symbol`, `token_name`, `network_name`, and `balance` for the main wallet's primary token (`raw/users/get-main-wallet-balance.md:31-44`).
+- `balance` is already adjusted for token decimals and is never raw wei (`raw/users/get-main-wallet-balance.md:46-49`).
+- By user decision, this balance belongs on the API-key settings screen after the key is successfully saved; failure behavior remains a product decision.
 
 ## Order lifecycle
 
@@ -80,5 +87,5 @@
 
 - Expand the integration spec boundary to include server-side pricing as an order prerequisite.
 - Resolve documented authentication, URLs, statuses, quote lifetime, and QR fields in the spec while retaining unresolved webhook and idempotency gaps.
-- Keep wallet balance outside the MVP unless a user-visible or operational requirement is explicitly added.
+- Include main-wallet balance in Epoch 2 on the API-key settings screen, with explicit loading, unavailable, and retry behavior decided during phase planning.
 - Treat payment-link endpoints listed by Nautt as forbidden and unused; QR Pagamentos continues to own links and checkout.

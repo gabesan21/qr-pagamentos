@@ -7,15 +7,17 @@
 
 ## What it covers
 
-This spec defines the allowed boundary between QR Pagamentos and Nautt Finance. Endpoint contracts and provider-specific states remain open until the user-supplied documentation in `researches/nautt-finance/raw/` is ingested.
+This spec defines the allowed boundary between QR Pagamentos and Nautt Finance based on the ingested source in `researches/nautt-finance/raw/`; undocumented provider behavior remains open.
 
 ## Requirements
 
-- The integration uses Nautt Finance only to open orders, query orders for polling, and receive provider webhooks.
+- The integration uses Nautt Finance only to obtain onramp quotes, open and query orders, register and receive provider webhooks, and read the authenticated user's main-wallet balance.
 - The integration never creates or uses Nautt-hosted payment links.
 - Each user supplies an individual Nautt API key, and the system associates every provider operation with that owner.
 - API keys are encrypted at rest, available only to server-side integration code, redactable in logs, and replaceable without exposing the previous value.
 - Saving a valid API key automatically registers the system's central webhook URL with Nautt when the provider contract permits it.
+- After a successful API key save, the same settings screen queries `GET /users/wallets/main/balances` and displays `token_symbol`, `token_name`, `network_name`, and the decimal `balance` returned by Nautt.
+- The displayed balance is never interpreted as raw wei and is scoped to the API key owner's main wallet.
 - Order creation is idempotent from the application's perspective and records the provider identifier without trusting client-supplied ownership.
 - Polling reconciles non-final orders without overwriting a final state with an older provider response.
 - Webhooks are authenticated using the provider-supported mechanism before changing order state.
@@ -32,6 +34,7 @@ This spec defines the allowed boundary between QR Pagamentos and Nautt Finance. 
 ## Open
 
 - Whether the admin-configured webhook URL is the central Nautt callback or a downstream forwarding destination.
+- Whether a balance timeout or missing main wallet blocks API key persistence, only suppresses the balance panel, or offers an explicit retry.
 - Authentication headers, environments, base URLs, rate limits, and timeout guidance.
 - Exact order creation and query schemas, supported currencies/methods, statuses, and terminal-state rules.
 - Webhook registration endpoint, signature/authentication scheme, event schema, retry policy, and ordering guarantees.
@@ -41,4 +44,4 @@ This spec defines the allowed boundary between QR Pagamentos and Nautt Finance. 
 ## Related specs
 
 - [[categories/applications/qr-pagamentos/specs/product-scope|Product scope]] - follow when provider constraints affect user-visible payment behavior.
-- [[categories/applications/qr-pagamentos/researches/nautt-finance/README|Nautt documentation intake]] - follow before planning or implementing any provider operation.
+- [[categories/applications/qr-pagamentos/researches/nautt-finance/nautt-finance|Nautt Finance API synthesis]] - follow before planning API-key onboarding, balance, pricing, orders, or webhooks.
