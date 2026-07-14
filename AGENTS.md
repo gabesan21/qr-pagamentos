@@ -42,6 +42,22 @@ One execution continues until the next real gate. The complete state machine is 
 - **PoP workflow:** `.agents/skills/` contains `new-task`, `advance-task`, `plan-roadmap`, `write-spec`, and `sync-specs`.
 - **Project operations:** `skills/` will contain reusable build, test, run, migration, and deployment procedures as they become real.
 
+### Clean code
+
+- `clean-code-change` (`.agents/skills/`) — siga ao **planejar (002) e executar (004)** qualquer task que crie ou altere código.
+- `clean-code-review` (`.agents/skills/`) — siga ao **verificar (005)** task de código e como critério de leitura em gate de plano ou PR.
+- **Obrigatório:** em 002, toda task que cria/altera código entra com `clean-code-change` na linha **004** e `clean-code-review` na linha **005** da tabela **Skills por etapa** do card.
+
+#### Verificação do projeto
+
+| Verificação | Comando |
+|-------------|---------|
+| Formatter | — |
+| Linter | `pnpm lint` |
+| Testes | `pnpm test` |
+
+Formatter: sem script definido no `package.json` (não há script `format`/`prettier`).
+
 ## Application contract
 
 - `src/app/` owns App Router pages and endpoints; `/pt-BR` and `/en` are the only supported locale roots, while `/api/health` stays unlocalized.
