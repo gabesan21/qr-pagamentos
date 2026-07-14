@@ -1,0 +1,19 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  schemas  = ["app"]
+}
+
+model DatabaseFoundationFixture {
+  id        BigInt   @id @default(autoincrement()) @db.BigInt
+  key       String   @unique(map: "database_foundation_fixture_key_key") @db.VarChar(64)
+  quantity  Int      @db.Integer
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@map("_database_foundation_fixture")
+  @@schema("app")
+}

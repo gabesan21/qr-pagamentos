@@ -9,7 +9,9 @@ node_modules/
 out/
 build/
 coverage/
+src/generated/prisma/
 *.tsbuildinfo
+__pycache__/
 .vercel/
 .DS_Store
 *.pem
