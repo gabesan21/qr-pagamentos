@@ -25,3 +25,5 @@ __pycache__/
 !worktrees/
 worktrees/*
 !worktrees/.gitkeep
+# included-harness: bytecode dos scripts
+__pycache__/

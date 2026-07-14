@@ -43,7 +43,8 @@ def copy_tree(source: Path, dest: Path) -> None:
 
 
 def preserve_worktree_marker(target: Path) -> None:
-    """Permite versionar só o marcador, mesmo em repos que ignoram worktrees/."""
+    """Permite versionar só o marcador, mesmo em repos que ignoram worktrees/,
+    e impede que o bytecode dos scripts instalados entre no Git."""
     ignore = target / ".gitignore"
     if not ignore.exists():
         return
@@ -51,7 +52,11 @@ def preserve_worktree_marker(target: Path) -> None:
              "!worktrees/\nworktrees/*\n!worktrees/.gitkeep\n")
     text = ignore.read_text(encoding="utf-8")
     if "!worktrees/.gitkeep" not in text:
-        ignore.write_text(text.rstrip() + "\n\n" + block, encoding="utf-8")
+        text = text.rstrip() + "\n\n" + block
+    if "__pycache__/" not in text:
+        text = (text.rstrip() +
+                "\n# included-harness: bytecode dos scripts\n__pycache__/\n")
+    ignore.write_text(text, encoding="utf-8")
 
 
 def audit() -> list[str]:

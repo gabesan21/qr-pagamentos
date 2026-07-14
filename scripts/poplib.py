@@ -119,6 +119,45 @@ def discover_projects(root: Path) -> list:
     return projects
 
 
+# Pastas de harness do PoP dentro de um escopo de projeto: são as ÚNICAS que as
+# réguas de tamanho/wikilink alcançam. Whitelist positiva — o que é do projeto
+# (código, docs do repo, clones, `project/`, repo embutido, vendor) fica de fora
+# por construção, sem depender do type. Os nomes são invariantes por type
+# (ver TYPES.md): só a localização do código muda, e `discover_projects` já
+# entrega o escopo certo, inclusive cada repo embutido de full-multi-repo.
+HARNESS_DIRS = ("roadmap", "specs", "researches", "skills", "notes",
+                "memory", "open_questions", "drafts", "kanban")
+HARNESS_ROOT_FILES = ("PROJECT.md", "ROADMAP.md")  # INDEX.md tem régua própria (144/600)
+# Cinto e suspensório: nunca desce em fonte bruta de pesquisa nem em código que
+# possa estar aninhado sob uma pasta de harness.
+_HARNESS_SKIP = {"raw", "worktrees", "_templates", "__pycache__",
+                 "node_modules", "vendor", ".git", ".obsidian"}
+
+
+def iter_harness_markdown(scope: Path) -> Iterator[Path]:
+    """`.md` de harness sob um escopo de projeto (whitelist positiva)."""
+    for name in HARNESS_ROOT_FILES:
+        if (scope / name).is_file():
+            yield scope / name
+    for name in HARNESS_DIRS:
+        base = scope / name
+        if not base.is_dir():
+            continue
+        for path in sorted(base.rglob("*.md")):
+            if not (_HARNESS_SKIP & set(path.relative_to(scope).parts)):
+                yield path
+
+
+def iter_all_harness_markdown(root: Path) -> Iterator[Path]:
+    """`.md` de harness de todos os escopos descobertos, sem repetição."""
+    seen = set()
+    for scope in discover_projects(root):
+        for path in iter_harness_markdown(scope):
+            if path not in seen:
+                seen.add(path)
+                yield path
+
+
 def project_label(root: Path, project: Path) -> str:
     """Nome curto `<categoria>/<projeto>` de uma pasta de projeto — ou
     `<categoria>/<projeto>/<repo>` para repo embutido (segmento `project/` omitido).
