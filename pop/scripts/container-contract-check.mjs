@@ -39,7 +39,7 @@ assert(!/ARG\s+.*(?:PASSWORD|SECRET|DATABASE_URL)|ENV\s+.*(?:PASSWORD|SECRET)/i.
 for (const expected of ["service_healthy", "service_completed_successfully", "/var/lib/postgresql", "127.0.0.1:${APP_PORT:-3000}:3000", "read_only: true", 'user: "1000:1000"']) {
   assert(compose.includes(expected), `Compose lost ${expected}`);
 }
-for (const expected of ["identity-seed", "initial_admin_email", "initial_admin_password", "container/identity-admin.mjs", "recover-initial-admin", "INITIAL_ADMIN_RECOVERY_PASSWORD_FILE"]) {
+for (const expected of ["identity-seed", "initial_admin_username", "initial_admin_email", "initial_admin_password", "container/identity-admin.mjs", "recover-initial-admin", "INITIAL_ADMIN_RECOVERY_PASSWORD_FILE"]) {
   assert(compose.includes(expected) || recoveryCompose.includes(expected), `Identity Compose contract lost ${expected}`);
 }
 assert(!compose.includes("initial_admin_recovery_password"), "Base Compose must not require the recovery secret");

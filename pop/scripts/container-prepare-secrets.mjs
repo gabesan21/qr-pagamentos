@@ -7,6 +7,7 @@ const names = {
   POSTGRES_ADMIN_PASSWORD_FILE: "admin_password",
   MIGRATOR_PASSWORD_FILE: "migrator_password",
   RUNTIME_PASSWORD_FILE: "runtime_password",
+  INITIAL_ADMIN_USERNAME_FILE: "initial_admin_username",
   INITIAL_ADMIN_EMAIL_FILE: "initial_admin_email",
   INITIAL_ADMIN_PASSWORD_FILE: "initial_admin_password",
 };

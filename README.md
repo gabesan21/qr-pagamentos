@@ -37,7 +37,7 @@ Prisma migrations use `MIGRATION_DATABASE_URL`; application code uses the distin
 
 `pnpm db:generate` creates the ignored client in `src/generated/prisma/` without contacting a database. `pnpm db:test` creates and removes its own PostgreSQL 18.4 fixture, applies the committed migration as `qr_migrator`, and probes runtime access as `qr_runtime`. It never uses a developer database. `pnpm db:contract-check` verifies the static database and documentation contract.
 
-`prisma/migrations/` is immutable migration history: create a new migration for later schema changes and never edit a migration already applied outside a disposable test database. CI must run `pnpm check` and `pnpm db:test` as separate required steps.
+`prisma/migrations/` is immutable migration history: create a new migration for later schema changes and never edit a migration already applied outside a disposable test database. The one task-specific pre-production rewrite exception is documented in `prisma/AGENTS.md`. CI must run `pnpm check` and `pnpm db:test` as separate required steps.
 
 `GET /api/health` remains application-only liveness. PostgreSQL readiness, bootstrap completion, migration completion, and the runtime-role `SELECT 1` preflight are separate startup gating boundaries; a later liveness response makes no database-readiness claim.
 
@@ -49,19 +49,21 @@ With Docker Engine and the Compose v2 plugin already installed (see Prerequisite
 
 ```sh
 cp install/.env.example install/.env
-# Replace all password placeholders and set the real initial-admin email.
+# Replace all password placeholders, choose the initial-admin username, and optionally set its email.
 install/install.sh
 ```
 
-`install/.env` also requires the non-secret `INITIAL_ADMIN_EMAIL`. The installer canonicalizes that address, generates the initial administrator password once, and reports only its protected path: `.install-secrets/initial_admin_password`. The deployment seed creates exactly one active `ADMIN` after migrations; reruns use its immutable deployment UUID and never retarget it when the configured email changes. All generated files are ignored by Git and mounted read-only for the one-shot job.
+`install/.env` requires the non-secret `INITIAL_ADMIN_USERNAME`; `INITIAL_ADMIN_EMAIL` is optional contact data. The installer canonicalizes present values, generates the initial administrator password once, and reports only its protected path: `.install-secrets/initial_admin_password`. The deployment seed creates exactly one active `ADMIN` after migrations; reruns use its immutable deployment UUID and never rename it or fill its email from changed configuration. All generated files are ignored by Git and mounted read-only for the one-shot job.
 
-Server-side recovery is explicit and file-only. It restores the originally seeded UUID to active `ADMIN` and rotates its credential without using email, creating another user, or exposing the password in arguments, environment variables, or output:
+Username and password are the only login credentials; email is optional and never used for login.
+
+Server-side recovery is explicit and file-only. It restores the originally seeded UUID to active `ADMIN` and rotates its credential without using username/email lookup, changing either identity field, creating another user, or exposing the password in arguments, environment variables, or output:
 
 ```sh
 install/install.sh --recover-initial-admin
 ```
 
-On success the retry-stable candidate replaces `.install-secrets/initial_admin_password`; on failure it remains protected for the identical retry. Recovery aborts if the original UUID was deleted. Email delivery, public reset, login, sessions, and MFA are not part of this slice.
+On success the retry-stable candidate replaces `.install-secrets/initial_admin_password`; on failure it remains protected for the identical retry. Recovery aborts if the original UUID was deleted. Email delivery, public reset, login UI, sessions, and MFA are not part of this slice.
 
 `install/uninstall.sh` removes application containers while preserving the PostgreSQL volume. Data deletion is a separate explicit operation:
 
@@ -73,7 +75,7 @@ install/uninstall.sh --purge-data
 ```sh
 cp .env.compose.example .env.compose
 chmod 0600 /absolute/path/to/postgres-admin-password /absolute/path/to/qr-migrator-password /absolute/path/to/qr-runtime-password
-# Also prepare mode-0600 canonical-email and generated initial-password files,
+# Also prepare mode-0600 canonical-username, optional-email marker, and generated initial-password files,
 # then set their absolute paths in .env.compose.
 pnpm container:prepare-secrets -- --env-file .env.compose
 docker compose --env-file .env.compose build --pull

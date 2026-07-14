@@ -43,12 +43,12 @@ load_install_env() {
     key=${line%%=*}
     value=$(strip_quotes "${line#*=}")
     case "$key" in
-      APP_PORT|POSTGRES_ADMIN_PASSWORD|MIGRATOR_PASSWORD|RUNTIME_PASSWORD|INITIAL_ADMIN_EMAIL)
+      APP_PORT|POSTGRES_ADMIN_PASSWORD|MIGRATOR_PASSWORD|RUNTIME_PASSWORD|INITIAL_ADMIN_USERNAME|INITIAL_ADMIN_EMAIL)
         printf -v "$key" '%s' "$value" ;;
       *) die "unsupported variable in $ENV_FILE: $key" ;;
     esac
   done < "$ENV_FILE"
-  for key in APP_PORT POSTGRES_ADMIN_PASSWORD MIGRATOR_PASSWORD RUNTIME_PASSWORD INITIAL_ADMIN_EMAIL; do
+  for key in APP_PORT POSTGRES_ADMIN_PASSWORD MIGRATOR_PASSWORD RUNTIME_PASSWORD INITIAL_ADMIN_USERNAME; do
     [[ -n ${!key:-} ]] || die "required variable is missing: $key"
   done
   [[ $APP_PORT =~ ^[1-9][0-9]{0,4}$ ]] && ((10#$APP_PORT <= 65535)) || die 'APP_PORT must be between 1 and 65535'
@@ -57,12 +57,13 @@ load_install_env() {
 write_identity_sources() {
   local source_dir=$ROOT_DIR/.install-secrets
   if "$DRY_RUN"; then
-    printf 'DRY-RUN create protected identity files %s/{initial_admin_email,initial_admin_password} mode 0600\n' "$source_dir"
+    printf 'DRY-RUN create protected identity files %s/{initial_admin_username,initial_admin_email,initial_admin_password} mode 0600\n' "$source_dir"
   else
-    printf '%s' "$INITIAL_ADMIN_EMAIL" | "${DOCKER[@]}" run --rm -i --network none --read-only --tmpfs /tmp \
+    printf '%s\n%s' "$INITIAL_ADMIN_USERNAME" "${INITIAL_ADMIN_EMAIL:-}" | "${DOCKER[@]}" run --rm -i --network none --read-only --tmpfs /tmp \
       --user "$(id -u):$(id -g)" -v "$ROOT_DIR:/workspace:ro" -v "$source_dir:/secrets" \
       "$NODE_HELPER" node /workspace/container/prepare-identity-secrets.mjs /secrets
   fi
+  INITIAL_ADMIN_USERNAME_FILE=$source_dir/initial_admin_username
   INITIAL_ADMIN_EMAIL_FILE=$source_dir/initial_admin_email
   INITIAL_ADMIN_PASSWORD_FILE=$source_dir/initial_admin_password
 }
@@ -121,6 +122,7 @@ stage_secrets() {
     "POSTGRES_ADMIN_PASSWORD_FILE:admin_password" \
     "MIGRATOR_PASSWORD_FILE:migrator_password" \
     "RUNTIME_PASSWORD_FILE:runtime_password" \
+    "INITIAL_ADMIN_USERNAME_FILE:initial_admin_username" \
     "INITIAL_ADMIN_EMAIL_FILE:initial_admin_email" \
     "INITIAL_ADMIN_PASSWORD_FILE:initial_admin_password"; do
     variable=${entry%%:*}

@@ -57,10 +57,13 @@ if (process.argv.includes("--clean-clone") && !process.env.CONTAINER_TEST_CLEAN_
     await writeFile(files[name], `${values[name]}\n`, { mode: 0o600 });
     await chmod(files[name], 0o600);
   }
+  const usernameFile = path.join(sources, "initial-username");
   const emailFile = path.join(sources, "initial-email");
   const recoveryFile = path.join(sources, "recovery");
+  await writeFile(usernameFile, "admin.user\n", { mode: 0o600 });
   await writeFile(emailFile, "admin@example.com\n", { mode: 0o600 });
   await writeFile(recoveryFile, `Recovery-${token}-Password\n`, { mode: 0o600 });
+  await chmod(usernameFile, 0o600);
   await chmod(emailFile, 0o600);
   await chmod(recoveryFile, 0o600);
   const env = {
@@ -69,6 +72,7 @@ if (process.argv.includes("--clean-clone") && !process.env.CONTAINER_TEST_CLEAN_
     POSTGRES_ADMIN_PASSWORD_FILE: files.admin,
     MIGRATOR_PASSWORD_FILE: files.migrator,
     RUNTIME_PASSWORD_FILE: files.runtime,
+    INITIAL_ADMIN_USERNAME_FILE: usernameFile,
     INITIAL_ADMIN_EMAIL_FILE: emailFile,
     INITIAL_ADMIN_PASSWORD_FILE: files.initial,
     INITIAL_ADMIN_RECOVERY_PASSWORD_FILE: path.join(staged, "initial_admin_recovery_password"),
@@ -260,25 +264,40 @@ if (process.argv.includes("--clean-clone") && !process.env.CONTAINER_TEST_CLEAN_
     } else if (scenario === "identity-seed") {
       const { dbId } = await startHappy();
       const sql = (statement) => run("docker", ["exec", dbId, "psql", "-U", "postgres", "-d", "qr_pagamentos", "-Atc", statement]).trim();
-      const before = sql(`SELECT u.id || '|' || u.email || '|' || u.role || '|' || u.status FROM app.deployment_bootstrap b JOIN app."user" u ON u.id=b.initial_admin_user_id WHERE b.id=1`);
-      assert(before.split("|").slice(1).join("|") === "admin@example.com|ADMIN|ACTIVE", "seeded identity differs");
+      const before = sql(`SELECT u.id || '|' || u.username || '|' || COALESCE(u.email, '<null>') || '|' || u.role || '|' || u.status FROM app.deployment_bootstrap b JOIN app."user" u ON u.id=b.initial_admin_user_id WHERE b.id=1`);
+      assert(before.split("|").slice(1).join("|") === "admin.user|admin@example.com|ADMIN|ACTIVE", "present-email seed differs");
+      sql(`ALTER TABLE app.deployment_bootstrap DISABLE TRIGGER deployment_bootstrap_immutable; TRUNCATE app.password_credential, app.deployment_bootstrap, app."user"; ALTER TABLE app.deployment_bootstrap ENABLE TRIGGER deployment_bootstrap_immutable`);
+      await writeFile(usernameFile, "second.admin\n", { mode: 0o600 });
+      await writeFile(emailFile, "", { mode: 0o600 });
+      await chmod(usernameFile, 0o600);
+      await chmod(emailFile, 0o600);
+      await prepare();
+      const absentSeed = composeResult(["run", "--rm", "--no-deps", "identity-seed"]);
+      assert(absentSeed.status === 0, "absent-email identity seed failed");
+      const absent = sql(`SELECT u.id || '|' || u.username || '|' || COALESCE(u.email, '<null>') || '|' || u.role || '|' || u.status FROM app.deployment_bootstrap b JOIN app."user" u ON u.id=b.initial_admin_user_id WHERE b.id=1`);
+      assert(absent.split("|").slice(1).join("|") === "second.admin|<null>|ADMIN|ACTIVE", "absent-email seed differs");
+      await writeFile(usernameFile, "changed.admin\n", { mode: 0o600 });
       await writeFile(emailFile, "changed@example.com\n", { mode: 0o600 });
+      await chmod(usernameFile, 0o600);
       await chmod(emailFile, 0o600);
       await prepare();
       const rerun = composeResult(["run", "--rm", "--no-deps", "identity-seed"]);
       assert(rerun.status === 0, "identity seed rerun failed");
-      assert(sql(`SELECT u.id || '|' || u.email || '|' || u.role || '|' || u.status FROM app.deployment_bootstrap b JOIN app."user" u ON u.id=b.initial_admin_user_id WHERE b.id=1`) === before, "seed rerun mutated or retargeted identity");
+      assert(sql(`SELECT u.id || '|' || u.username || '|' || COALESCE(u.email, '<null>') || '|' || u.role || '|' || u.status FROM app.deployment_bootstrap b JOIN app."user" u ON u.id=b.initial_admin_user_id WHERE b.id=1`) === absent, "seed rerun mutated or retargeted identity");
       assert(sql(`SELECT count(*) FROM app.deployment_bootstrap`) === "1" && sql(`SELECT count(*) FROM app."user"`) === "1", "seed is not singleton/idempotent");
       assertRedacted(`${rerun.stdout ?? ""}${rerun.stderr ?? ""}`);
       console.log("PASS identity-seed-idempotence");
-      console.log("PASS identity-email-no-retarget");
+      console.log("PASS identity-seed-present-email");
+      console.log("PASS identity-seed-absent-email");
+      console.log("PASS identity-fields-no-retarget");
     } else if (scenario === "identity-recovery") {
       assert(process.env.CONTAINER_TEST_CLEAN_CLONE === "1", "identity recovery requires --clean-clone");
       const { dbId } = await startHappy();
       const sql = (statement) => run("docker", ["exec", dbId, "psql", "-U", "postgres", "-d", "qr_pagamentos", "-Atc", statement]).trim();
       const userId = sql(`SELECT initial_admin_user_id FROM app.deployment_bootstrap WHERE id=1`);
       const oldHash = sql(`SELECT password_hash FROM app.password_credential WHERE user_id='${userId}'`);
-      sql(`UPDATE app."user" SET email='renamed@example.com', role='USER', status='DISABLED' WHERE id='${userId}'`);
+      sql(`UPDATE app."user" SET username='renamed.admin', email='renamed@example.com', role='USER', status='DISABLED' WHERE id='${userId}'`);
+      const identityBeforeRecovery = sql(`SELECT username || '|' || email FROM app."user" WHERE id='${userId}'`);
 
       const shimDirectory = path.join(temporary, "docker-shim");
       const shimLog = path.join(temporary, "docker-shim.log");
@@ -310,6 +329,7 @@ exec ${realDocker} "\${rewritten[@]}"
       await chmod(path.join(shimDirectory, "docker"), 0o700);
       await writeFile(installerEnv, `APP_PORT=33013
 INITIAL_ADMIN_EMAIL=admin@example.com
+INITIAL_ADMIN_USERNAME=admin.user
 POSTGRES_ADMIN_PASSWORD=${values.admin}
 MIGRATOR_PASSWORD=${values.migrator}
 RUNTIME_PASSWORD=${values.runtime}
@@ -341,7 +361,7 @@ RUNTIME_PASSWORD=${values.runtime}
         (error) => assert(error?.code === "ENOENT", "staged recovery candidate removal was not observable"),
       );
       assert((await readFile(shimLog, "utf8")).includes("PASS helper-forwarded-base-and-recovery-paths"), "installer compose helper was not exercised");
-      assert(sql(`SELECT email || '|' || role || '|' || status FROM app."user" WHERE id='${userId}'`) === "renamed@example.com|ADMIN|ACTIVE", "recovery renamed or failed to restore target");
+      assert(sql(`SELECT username || '|' || email || '|' || role || '|' || status FROM app."user" WHERE id='${userId}'`) === `${identityBeforeRecovery}|ADMIN|ACTIVE`, "recovery renamed or failed to restore target");
       assert(sql(`SELECT password_hash FROM app.password_credential WHERE user_id='${userId}'`) !== oldHash, "recovery did not rotate credential");
       sql(`DELETE FROM app."user" WHERE id='${userId}'`);
       const missing = recover();

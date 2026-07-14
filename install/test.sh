@@ -11,6 +11,7 @@ expect_absent() { ! grep -F -- "$2" "$1" >/dev/null || fail "forbidden text pres
 
 cat > "$TMP/install.env" <<EOF
 APP_PORT=33013
+INITIAL_ADMIN_USERNAME=Admin.User
 INITIAL_ADMIN_EMAIL=Admin.Example+ops@Example.COM
 POSTGRES_ADMIN_PASSWORD=reserved-!:/?#[]@-admin
 MIGRATOR_PASSWORD=reserved-!:/?#[]@-migrator
@@ -32,6 +33,7 @@ expect_contains "$INSTALL_DIR/install.sh" '.install-secrets'
 expect_absent "$output" 'reserved-!:/?#[]@-admin'
 expect_absent "$output" 'sudo'
 expect_absent "$output" 'Admin.Example+ops@Example.COM'
+expect_absent "$output" 'Admin.User'
 expect_absent "$INSTALL_DIR/install.sh" 'curl '
 expect_absent "$INSTALL_DIR/install.sh" 'SUDO'
 expect_absent "$INSTALL_DIR/uninstall.sh" 'SUDO'
@@ -56,26 +58,32 @@ chmod 0600 "$TMP/duplicate.env"
 if "$INSTALL_DIR/install.sh" --dry-run --env-file "$TMP/duplicate.env" >/dev/null 2>&1; then fail 'duplicate passwords succeeded'; fi
 
 nul_env=$TMP/nul.env
-printf 'APP_PORT=33013\nINITIAL_ADMIN_EMAIL=admin@example.com\0ignored\nPOSTGRES_ADMIN_PASSWORD=admin-secret\nMIGRATOR_PASSWORD=migrator-secret\nRUNTIME_PASSWORD=runtime-secret\n' > "$nul_env"
+printf 'APP_PORT=33013\nINITIAL_ADMIN_USERNAME=admin\nINITIAL_ADMIN_EMAIL=admin@example.com\0ignored\nPOSTGRES_ADMIN_PASSWORD=admin-secret\nMIGRATOR_PASSWORD=migrator-secret\nRUNTIME_PASSWORD=runtime-secret\n' > "$nul_env"
 chmod 0600 "$nul_env"
 if "$INSTALL_DIR/install.sh" --dry-run --env-file "$nul_env" >/dev/null 2>&1; then fail 'NUL-bearing environment file succeeded'; fi
 
 identity_dir=$TMP/identity
-printf '%s' ' Admin.Example+ops@Example.COM ' | node "$INSTALL_DIR/../container/prepare-identity-secrets.mjs" "$identity_dir"
+printf '%s\n%s' ' Admin.User ' ' Admin.Example+ops@Example.COM ' | node "$INSTALL_DIR/../container/prepare-identity-secrets.mjs" "$identity_dir"
+[[ $(cat "$identity_dir/initial_admin_username") == 'admin.user' ]] || fail 'username was not canonicalized'
 [[ $(cat "$identity_dir/initial_admin_email") == 'admin.example+ops@example.com' ]] || fail 'email was not canonicalized'
 [[ $(wc -c < "$identity_dir/initial_admin_email") == 30 ]] || fail 'canonical email file format changed'
 [[ $(cat "$identity_dir/initial_admin_password") =~ ^[A-Za-z0-9_-]{32}$ ]] || fail 'generated initial password format changed'
-[[ $(stat -c '%a' "$identity_dir/initial_admin_email") == 600 && $(stat -c '%a' "$identity_dir/initial_admin_password") == 600 ]] || fail 'identity source mode changed'
+[[ $(stat -c '%a' "$identity_dir/initial_admin_username") == 600 && $(stat -c '%a' "$identity_dir/initial_admin_email") == 600 && $(stat -c '%a' "$identity_dir/initial_admin_password") == 600 ]] || fail 'identity source mode changed'
 initial_password=$(cat "$identity_dir/initial_admin_password")
-printf '%s' 'admin@example.com' | node "$INSTALL_DIR/../container/prepare-identity-secrets.mjs" "$identity_dir"
+printf '%s\n%s' 'admin' '' | node "$INSTALL_DIR/../container/prepare-identity-secrets.mjs" "$identity_dir"
+[[ $(wc -c < "$identity_dir/initial_admin_email") == 0 ]] || fail 'absent email marker is not zero-byte'
 [[ $(cat "$identity_dir/initial_admin_password") == "$initial_password" ]] || fail 'initial password was not reused'
 node "$INSTALL_DIR/../container/prepare-identity-secrets.mjs" "$identity_dir" --recovery
 recovery_password=$(cat "$identity_dir/initial_admin_recovery_password")
 [[ $recovery_password =~ ^[A-Za-z0-9_-]{32}$ && $recovery_password != "$initial_password" ]] || fail 'recovery candidate format/distinctness changed'
 node "$INSTALL_DIR/../container/prepare-identity-secrets.mjs" "$identity_dir" --recovery
 [[ $(cat "$identity_dir/initial_admin_recovery_password") == "$recovery_password" ]] || fail 'recovery candidate was not retry-stable'
+for invalid_username in 'ab' '.admin' 'admin..user' 'admin@example.com' 'usuário'; do
+  if printf '%s\n%s' "$invalid_username" '' | node "$INSTALL_DIR/../container/prepare-identity-secrets.mjs" "$TMP/invalid-identity" >/dev/null 2>&1; then fail "invalid username succeeded"; fi
+  rm -rf "$TMP/invalid-identity"
+done
 for invalid_email in 'a@example' 'a@@example.com' 'á@example.com' 'a @example.com'; do
-  if printf '%s' "$invalid_email" | node "$INSTALL_DIR/../container/prepare-identity-secrets.mjs" "$TMP/invalid-identity" >/dev/null 2>&1; then fail "invalid email succeeded"; fi
+  if printf '%s\n%s' 'admin' "$invalid_email" | node "$INSTALL_DIR/../container/prepare-identity-secrets.mjs" "$TMP/invalid-identity" >/dev/null 2>&1; then fail "invalid email succeeded"; fi
   rm -rf "$TMP/invalid-identity"
 done
 

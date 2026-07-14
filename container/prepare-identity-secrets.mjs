@@ -2,7 +2,7 @@ import { randomBytes } from "node:crypto";
 import { chmod, mkdir, open, readFile, rename, rm } from "node:fs/promises";
 import path from "node:path";
 
-import { normalizeEmail } from "../src/auth/identity.ts";
+import { normalizeOptionalEmail, normalizeUsername } from "../src/auth/identity.ts";
 
 const targetDirectory = process.argv[2];
 const recoveryOnly = process.argv.includes("--recovery");
@@ -42,8 +42,13 @@ if (recoveryOnly) {
 } else {
   let input = "";
   for await (const chunk of process.stdin) input += chunk;
-  if (/[\0\r\n]/.test(input)) throw new Error("invalid initial administrator email");
-  await atomicWrite("initial_admin_email", `${normalizeEmail(input)}\n`);
+  if (/[\0\r]/.test(input)) throw new Error("invalid initial administrator identity");
+  const separator = input.indexOf("\n");
+  if (separator < 0 || input.indexOf("\n", separator + 1) >= 0) throw new Error("invalid initial administrator identity");
+  const username = normalizeUsername(input.slice(0, separator));
+  const email = normalizeOptionalEmail(input.slice(separator + 1));
+  await atomicWrite("initial_admin_username", `${username}\n`);
+  await atomicWrite("initial_admin_email", email === null ? "" : `${email}\n`);
   await ensurePassword("initial_admin_password");
 }
 await rm(path.join(targetDirectory, ".identity.tmp"), { force: true });

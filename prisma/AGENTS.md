@@ -18,6 +18,7 @@
 
 - `schema.prisma` is the declared application model; database-only checks must also exist in reviewed migration SQL.
 - Treat every directory under `migrations/` as immutable after application outside a disposable test database.
+- Exception: task `1.2.2-establish-local-identities` may rewrite only `20260714190000_local_identities` after explicit human confirmation that it is unshipped and every non-disposable database with the old checksum will be purged; this does not authorize any later in-place rewrite.
 - Never use `db push`; create and review a new versioned migration instead.
 - Keep deterministic names for database constraints that verification asserts.
 - The foundation fixture is infrastructure proof only; never attach domain semantics or routes to it.

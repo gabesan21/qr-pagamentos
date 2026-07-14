@@ -60,13 +60,15 @@ Aggregate gate: `pnpm check` (lint + typecheck + test + build) — see Applicati
 
 ## Application contract
 
+Username and password are the only login credentials; email is optional and never used for login.
+
 - `src/app/` owns App Router pages and endpoints; `/pt-BR` and `/en` are the only supported locale roots, while `/api/health` stays unlocalized.
 - `src/i18n/` owns the closed locale set and server dictionary loader; never add a locale without matching dictionary keys and contract tests.
 - Use the exact Node and pnpm pins in `.node-version` and `package.json`; install with `pnpm install --frozen-lockfile`.
 - Run `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm build` independently, or `pnpm check` for the aggregate gate.
 - Run `pnpm db:test` separately for the disposable PostgreSQL contract; it is never part of the database-free `pnpm check` gate.
 - `Dockerfile` and `compose.yaml` own production image and startup ordering; never add a floating base, secret-bearing build input/environment field, public database port, or retrying one-shot job.
-- `container/` owns redacted non-shell bootstrap, migration, identity seed/recovery, runtime preflight, and liveness wrappers; preserve direct child spawning, file-only credentials, immutable UUID recovery targeting, and `SELECT 1` before application bind.
+- `container/` owns redacted non-shell bootstrap, migration, identity seed/recovery, runtime preflight, and liveness wrappers; preserve direct child spawning, required file-backed username, nullable file-backed email, immutable UUID recovery targeting, and `SELECT 1` before application bind.
 - Run `pnpm container:contract-check` for static/digest contracts and `pnpm container:test --clean-clone --scenario <name>` only with disposable secrets/resources.
 - `install/` owns operator install/uninstall and initial-admin recovery for any Linux host with Docker Engine + Compose v2 already installed and the invoking user already in the `docker` group (documented prerequisites, not installed or granted by the script — never reintroduce `sudo`/root escalation or ownership rewrites here); passwords live only in ignored source/staged files, recovery uses the existing Compose helper, and default uninstall never removes PostgreSQL data.
 - Run `install/test.sh` after changing installer commands, secret validation, Compose deployment, health waiting, or uninstall flags.
