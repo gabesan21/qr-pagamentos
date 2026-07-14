@@ -20,7 +20,7 @@ chmod 0600 "$TMP/install.env"
 output=$TMP/install.out
 "$INSTALL_DIR/install.sh" --dry-run --env-file "$TMP/install.env" > "$output"
 for expected in \
-  'command -v docker' 'docker compose version' \
+  'command -v docker' 'docker compose version' 'docker info' \
   'run --rm --network none --read-only' \
   'build --pull' 'up -d' '127.0.0.1:33013/api/health' '{"status":"ok"}' 'PASS install-complete'; do
   expect_contains "$output" "$expected"
@@ -29,6 +29,9 @@ expect_contains "$INSTALL_DIR/install.sh" 'chown 1000:1000'
 expect_contains "$INSTALL_DIR/install.sh" 'chmod 0400'
 expect_contains "$INSTALL_DIR/install.sh" '.install-secrets'
 expect_absent "$output" 'reserved-!:/?#[]@-admin'
+expect_absent "$output" 'sudo'
+expect_absent "$INSTALL_DIR/install.sh" 'SUDO'
+expect_absent "$INSTALL_DIR/uninstall.sh" 'SUDO'
 git -C "$INSTALL_DIR/.." check-ignore -q install/.env || fail 'install/.env is not ignored by Git'
 
 cp "$TMP/install.env" "$TMP/missing.env"

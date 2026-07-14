@@ -40,8 +40,11 @@ POSTGRES_ADMIN_PASSWORD_FILE=$SOURCE_SECRETS_DIR/postgres_admin_password
 MIGRATOR_PASSWORD_FILE=$SOURCE_SECRETS_DIR/migrator_password
 RUNTIME_PASSWORD_FILE=$SOURCE_SECRETS_DIR/runtime_password
 
-if ((EUID == 0)); then SUDO=(); elif "$DRY_RUN"; then SUDO=(sudo); else command -v sudo >/dev/null || die 'sudo is required'; SUDO=(sudo); fi
-if "$DRY_RUN" || docker info >/dev/null 2>&1; then DOCKER=(docker); else DOCKER=("${SUDO[@]}" docker); fi
+if ! "$DRY_RUN"; then
+  docker info >/dev/null 2>&1 \
+    || die 'the current user cannot access the Docker daemon; add it to the docker group (sudo usermod -aG docker "$USER", then log out and back in) and retry'
+fi
+DOCKER=(docker)
 
 compose=("${DOCKER[@]}" compose -f "$ROOT_DIR/compose.yaml" -p qr-pagamentos)
 compose_env=(APP_PORT="$APP_PORT" POSTGRES_ADMIN_PASSWORD_FILE="$POSTGRES_ADMIN_PASSWORD_FILE" MIGRATOR_PASSWORD_FILE="$MIGRATOR_PASSWORD_FILE" RUNTIME_PASSWORD_FILE="$RUNTIME_PASSWORD_FILE" STAGED_SECRETS_DIR="$STAGED_SECRETS_DIR")
@@ -52,7 +55,7 @@ if "$DRY_RUN"; then
 else
   env "${compose_env[@]}" "${compose[@]}" "${down_args[@]}"
 fi
-run "${SUDO[@]}" rm -rf -- "$STAGED_SECRETS_DIR"
-run "${SUDO[@]}" rm -rf -- "$SOURCE_SECRETS_DIR"
+run rm -rf -- "$STAGED_SECRETS_DIR"
+run rm -rf -- "$SOURCE_SECRETS_DIR"
 
 printf 'PASS uninstall-complete\n'

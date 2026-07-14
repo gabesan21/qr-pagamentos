@@ -6,6 +6,7 @@ ROOT_DIR=$(cd "$INSTALL_DIR/.." && pwd)
 ENV_FILE="$INSTALL_DIR/.env"
 DRY_RUN=false
 NODE_HELPER='node:24.18.0-bookworm-slim@sha256:6f7b03f7c2c8e2e784dcf9295400527b9b1270fd37b7e9a7285cf83b6951452d'
+DOCKER=(docker)
 
 die() { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
 print_command() { printf 'DRY-RUN'; printf ' %q' "$@"; printf '\n'; }
@@ -48,45 +49,34 @@ load_install_env() {
   [[ $APP_PORT =~ ^[1-9][0-9]{0,4}$ ]] && ((10#$APP_PORT <= 65535)) || die 'APP_PORT must be between 1 and 65535'
 }
 
-select_privilege() {
-  if ((EUID == 0)); then
-    SUDO=()
-  elif "$DRY_RUN"; then
-    SUDO=(sudo)
-  else
-    command -v sudo >/dev/null || die 'sudo is required when not running as root'
-    SUDO=(sudo)
-  fi
-  OPERATOR_UID=${SUDO_UID:-$(id -u)}
-  OPERATOR_GID=${SUDO_GID:-$(id -g)}
-}
-
 check_docker() {
   if "$DRY_RUN"; then
     print_command command -v docker
     print_command docker compose version
+    print_command docker info
     return
   fi
   command -v docker >/dev/null 2>&1 \
     || die 'Docker Engine is a prerequisite this installer does not manage; install it first: https://docs.docker.com/engine/install/'
   docker compose version >/dev/null 2>&1 \
     || die 'the Docker Compose v2 plugin is a prerequisite this installer does not manage; install it first: https://docs.docker.com/compose/install/linux/'
+  docker info >/dev/null 2>&1 \
+    || die 'the current user cannot access the Docker daemon; add it to the docker group (sudo usermod -aG docker "$USER", then log out and back in) and retry'
 }
 
 write_secret_sources() {
   local source_dir=$ROOT_DIR/.install-secrets variable target
-  run "${SUDO[@]}" install -d -m 0700 -o "$OPERATOR_UID" -g "$OPERATOR_GID" "$source_dir"
+  run mkdir -p -m 0700 "$source_dir"
   for entry in \
     "POSTGRES_ADMIN_PASSWORD:postgres_admin_password" \
     "MIGRATOR_PASSWORD:migrator_password" \
     "RUNTIME_PASSWORD:runtime_password"; do
     variable=${entry%%:*}; target=${entry#*:}
     if "$DRY_RUN"; then
-      printf 'DRY-RUN create protected secret %s/%s mode 0600 owner %s:%s\n' "$source_dir" "$target" "$OPERATOR_UID" "$OPERATOR_GID"
+      printf 'DRY-RUN create protected secret %s/%s mode 0600\n' "$source_dir" "$target"
     else
       (umask 077; printf '%s' "${!variable}" > "$source_dir/$target")
-      "${SUDO[@]}" chown "$OPERATOR_UID:$OPERATOR_GID" "$source_dir/$target"
-      "${SUDO[@]}" chmod 0600 "$source_dir/$target"
+      chmod 0600 "$source_dir/$target"
     fi
   done
   POSTGRES_ADMIN_PASSWORD_FILE=$source_dir/postgres_admin_password
@@ -94,21 +84,9 @@ write_secret_sources() {
   RUNTIME_PASSWORD_FILE=$source_dir/runtime_password
 }
 
-select_docker() {
-  if "$DRY_RUN" || docker info >/dev/null 2>&1; then
-    DOCKER=(docker)
-  elif "${SUDO[@]}" docker info >/dev/null 2>&1; then
-    DOCKER=("${SUDO[@]}" docker)
-  else
-    run "${SUDO[@]}" systemctl enable --now docker
-    "${SUDO[@]}" docker info >/dev/null 2>&1 || die 'Docker daemon is unavailable'
-    DOCKER=("${SUDO[@]}" docker)
-  fi
-}
-
 stage_secrets() {
   local staged=$ROOT_DIR/.container-secrets variable source target actual
-  run "${SUDO[@]}" install -d -m 0700 -o "$OPERATOR_UID" -g "$OPERATOR_GID" "$staged"
+  run mkdir -p -m 0700 "$staged"
   for entry in \
     "POSTGRES_ADMIN_PASSWORD_FILE:admin_password" \
     "MIGRATOR_PASSWORD_FILE:migrator_password" \
@@ -153,11 +131,9 @@ deploy() {
   die 'application did not return the exact health response within 120 seconds'
 }
 
-select_privilege
 check_docker
 load_install_env
 [[ $POSTGRES_ADMIN_PASSWORD != "$MIGRATOR_PASSWORD" && $POSTGRES_ADMIN_PASSWORD != "$RUNTIME_PASSWORD" && $MIGRATOR_PASSWORD != "$RUNTIME_PASSWORD" ]] || die 'passwords must be distinct'
-select_docker
 write_secret_sources
 stage_secrets
 deploy
