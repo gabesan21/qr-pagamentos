@@ -53,6 +53,12 @@ if "$INSTALL_DIR/uninstall.sh" --dry-run --env-file "$TMP/invalid-port.env" >/de
 cp "$TMP/install.env" "$TMP/missing.env"
 sed -i '/RUNTIME_PASSWORD=/d' "$TMP/missing.env"
 if "$INSTALL_DIR/install.sh" --dry-run --env-file "$TMP/missing.env" >/dev/null 2>&1; then fail 'missing variable succeeded'; fi
+sed '/INITIAL_ADMIN_USERNAME=/d' "$TMP/install.env" > "$TMP/missing-username.env"
+if "$INSTALL_DIR/install.sh" --dry-run --env-file "$TMP/missing-username.env" >/dev/null 2>&1; then fail 'missing username succeeded'; fi
+sed 's/^INITIAL_ADMIN_USERNAME=.*/INITIAL_ADMIN_USERNAME=/' "$TMP/install.env" > "$TMP/blank-username.env"
+if "$INSTALL_DIR/install.sh" --dry-run --env-file "$TMP/blank-username.env" >/dev/null 2>&1; then fail 'blank username succeeded'; fi
+sed '/INITIAL_ADMIN_EMAIL=/d' "$TMP/install.env" > "$TMP/absent-email.env"
+"$INSTALL_DIR/install.sh" --dry-run --env-file "$TMP/absent-email.env" >/dev/null || fail 'absent optional email failed'
 sed 's|RUNTIME_PASSWORD=.*|RUNTIME_PASSWORD=reserved-!:/?#[]@-admin|' "$TMP/install.env" > "$TMP/duplicate.env"
 chmod 0600 "$TMP/duplicate.env"
 if "$INSTALL_DIR/install.sh" --dry-run --env-file "$TMP/duplicate.env" >/dev/null 2>&1; then fail 'duplicate passwords succeeded'; fi

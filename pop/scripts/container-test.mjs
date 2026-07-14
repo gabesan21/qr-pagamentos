@@ -276,6 +276,12 @@ if (process.argv.includes("--clean-clone") && !process.env.CONTAINER_TEST_CLEAN_
       assert(absentSeed.status === 0, "absent-email identity seed failed");
       const absent = sql(`SELECT u.id || '|' || u.username || '|' || COALESCE(u.email, '<null>') || '|' || u.role || '|' || u.status FROM app.deployment_bootstrap b JOIN app."user" u ON u.id=b.initial_admin_user_id WHERE b.id=1`);
       assert(absent.split("|").slice(1).join("|") === "second.admin|<null>|ADMIN|ACTIVE", "absent-email seed differs");
+      await writeFile(usernameFile, "invalid..admin\n", { mode: 0o600 });
+      await chmod(usernameFile, 0o600);
+      await prepare();
+      const invalidSeed = composeResult(["run", "--rm", "--no-deps", "identity-seed"]);
+      assert(invalidSeed.status !== 0, "invalid username seed succeeded");
+      assert(sql(`SELECT u.id || '|' || u.username || '|' || COALESCE(u.email, '<null>') || '|' || u.role || '|' || u.status FROM app.deployment_bootstrap b JOIN app."user" u ON u.id=b.initial_admin_user_id WHERE b.id=1`) === absent, "invalid seed mutated identity");
       await writeFile(usernameFile, "changed.admin\n", { mode: 0o600 });
       await writeFile(emailFile, "changed@example.com\n", { mode: 0o600 });
       await chmod(usernameFile, 0o600);
@@ -289,6 +295,7 @@ if (process.argv.includes("--clean-clone") && !process.env.CONTAINER_TEST_CLEAN_
       console.log("PASS identity-seed-idempotence");
       console.log("PASS identity-seed-present-email");
       console.log("PASS identity-seed-absent-email");
+      console.log("PASS identity-seed-invalid-username-abort");
       console.log("PASS identity-fields-no-retarget");
     } else if (scenario === "identity-recovery") {
       assert(process.env.CONTAINER_TEST_CLEAN_CLONE === "1", "identity recovery requires --clean-clone");
