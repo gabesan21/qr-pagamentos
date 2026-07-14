@@ -11,22 +11,30 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "db:generate": "prisma generate",
+    "db:test": "node scripts/db-test.mjs",
+    "db:contract-check": "node scripts/db-contract-check.mjs",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm build"
   },
   "dependencies": {
+    "@prisma/adapter-pg": "7.8.0",
+    "@prisma/client": "7.8.0",
     "next": "16.2.10",
+    "pg": "8.22.0",
     "react": "19.2.7",
     "react-dom": "19.2.7"
   },
   "devDependencies": {
+    "@types/pg": "8.20.0",
     "@types/node": "24.13.3",
     "@types/react": "19.2.17",
     "@types/react-dom": "19.2.3",
     "eslint": "9.39.5",
     "eslint-config-next": "16.2.10",
+    "prisma": "7.8.0",
     "typescript": "5.9.3",
     "vitest": "4.1.10"
   }

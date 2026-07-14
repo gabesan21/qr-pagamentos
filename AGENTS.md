@@ -48,8 +48,12 @@ One execution continues until the next real gate. The complete state machine is 
 - `src/i18n/` owns the closed locale set and server dictionary loader; never add a locale without matching dictionary keys and contract tests.
 - Use the exact Node and pnpm pins in `.node-version` and `package.json`; install with `pnpm install --frozen-lockfile`.
 - Run `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm build` independently, or `pnpm check` for the aggregate gate.
+- Run `pnpm db:test` separately for the disposable PostgreSQL contract; it is never part of the database-free `pnpm check` gate.
+- `MIGRATION_DATABASE_URL` is migration-only and `DATABASE_URL` is runtime-only; never share credentials or commit usable URLs.
+- Generated Prisma code lives in ignored `src/generated/prisma/`; never edit or commit it.
 - Never edit generated `next-env.d.ts`, `.next/`, `node_modules/`, coverage output, or TypeScript build-info files by hand.
-- Do not add a child `AGENTS.md` unless its subtree meets an objective DOX trigger below.
+- [`prisma/AGENTS.md`](prisma/AGENTS.md) — follow before changing the schema, bootstrap SQL, or immutable migration history.
+- Do not add another child `AGENTS.md` unless its subtree meets an objective DOX trigger below.
 
 ## Processo DOX — contexto hierárquico de agentes no código
 
