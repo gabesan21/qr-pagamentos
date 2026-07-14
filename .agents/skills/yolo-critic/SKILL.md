@@ -21,8 +21,10 @@ Aprove **somente** se todos valerem; qualquer falha → devolva (lista objetiva 
 1. **Entregável verificável (inegociável):** toda linha da tabela "Critérios de aceite e verificação" tem **run executável** e **"Pass é" observável**. Critério subjetivo ("parece bom", "está claro") → devolve. Projeto não-código: run = leitura objetiva (checklist, contagem, presença de seção) — verificável ≠ automatizável.
 2. **Executável às cegas:** movimentos com observação esperada e falha→contra-jogada; forks com gatilho objetivo; condições de aborto definidas; RECON NEEDED com check.
 3. **Specs da mudança montadas** (spec afetada linkada ou rascunho criado) — aprovar a rodada aprova também os rascunhos (`rascunho` → `aprovada`), como no gate humano.
-4. **Red-team registrado** (ou dispensa justificada em task trivial).
+4. **Red-team registrado** (ou dispensa registrada — automática em `size: S`).
 5. **Sem item `(user)` evitável:** subtask `(user)` de ação real (conta, credencial, decisão de negócio nova) não é aprovável em yolo — devolva para replanejar sem ela, ou reporte ao orquestrador que a task deve travar (`blocked`).
+6. **Proporcional ao `size`:** plano compatível com o size do card (S = mini-plano ≤40 linhas; estourou → devolva para reclassificar ou dividir); task de código sem **preflight de ambiente** registrado → devolve.
+7. **Fontes e verificação econômicas:** recon citando fonte web fora do vault (pesquisa é **prévia** — `pop/researches/`/`pop/RESEARCHES.md`; lookup pontual via comando é ok) → devolve; tabela sem marcação `re-run | evidência` (com ≥1 `re-run` quando há superfície de runtime) ou com runs individuais redundantes ao **gate agregado** do projeto → devolve.
 
 **Teto de devoluções:** conte as rodadas do `.approval.md` com decisão `devolvida pelo crítico`. Já há **2**? Não devolva de novo: reporte ao orquestrador para marcar `blocked: true` + `blocked_reason: 3ª ida a 003 em yolo — precisa de humano` (cai no INBOX). **Intervenção humana** numa rodada ("Resposta do humano" preenchida) **zera** a contagem.
 
@@ -38,7 +40,7 @@ Aprove **somente** se todos valerem; qualquer falha → devolva (lista objetiva 
 Quando a última task do escopo yolo (phase ou epoch) concluir o 006:
 
 1. Abra **um** PR `develop` → branch de PR do projeto (multi-repo: um por repo).
-2. Crie `open_questions/AAAA-MM-DD-pr-yolo-<projeto>-<escopo>.md` ([[_templates/OPEN-QUESTION|template]], `status: aberta`) com o(s) link(s) do(s) PR(s) e um resumo de 3–5 linhas do que o escopo entregou + como testar — aparece no INBOX; o merge é **sempre do humano**, após conferir o entregável.
+2. Crie `pop/open_questions/AAAA-MM-DD-pr-yolo-<projeto>-<escopo>.md` (meta-projeto da raiz do vault e projetos ainda não migrados: harness na raiz, sem `pop/`) — [[_templates/OPEN-QUESTION|template]], `status: aberta` — com o(s) link(s) do(s) PR(s) e um resumo de 3–5 linhas do que o escopo entregou + como testar — aparece no INBOX; o merge é **sempre do humano**, após conferir o entregável.
 3. Sem git: a open_question pede a aprovação final da entrega, sem PR.
 
 ## Limites explícitos (nunca faça)

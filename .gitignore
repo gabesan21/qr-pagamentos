@@ -22,8 +22,6 @@ __pycache__/
 *.log
 
 # included-harness: preservar a anatomia standalone no Git
-!worktrees/
-worktrees/*
-!worktrees/.gitkeep
-# included-harness: bytecode dos scripts
-__pycache__/
+!pop/worktrees/
+pop/worktrees/*
+!pop/worktrees/.gitkeep

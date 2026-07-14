@@ -20,7 +20,7 @@ description: Fluxo obrigatório de atualização de specs conforme as tasks avan
 
 ## Auditoria (sob demanda ou na weekly-review)
 
-Delegue a um **subagente** (resposta ≤30 linhas): listar as tasks em `006_done` e ler as specs que seus planos linkam, apontando **(a)** specs ainda `rascunho`/`aprovada` que não refletem o que a task entregou → pendência; **(b)** specs `obsoleta` sem link para substituta, ou sem referência de task/phase → candidatas a arquivar/reescrever. O agente principal só decide o que fazer com a lista.
+Delegue a um **subagente** (resposta ≤30 linhas): listar as tasks em `pop/kanban/006_done` e ler as specs (`pop/specs/`) que seus planos linkam (meta-projeto da raiz do vault e projetos ainda não migrados: harness na raiz, sem `pop/`), apontando **(a)** specs ainda `rascunho`/`aprovada` que não refletem o que a task entregou → pendência; **(b)** specs `obsoleta` sem link para substituta, ou sem referência de task/phase → candidatas a arquivar/reescrever. O agente principal só decide o que fazer com a lista.
 
 ## Cuidados
 

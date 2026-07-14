@@ -1,6 +1,6 @@
 ---
 name: new-task
-description: Entrevista rápida que cria uma task de uma phase do roadmap como pasta em kanban/001_initial_task, com card preenchido, specs linkadas e link na epoch. Use quando o usuário pedir para iniciar/criar uma task.
+description: Entrevista rápida que cria uma task de uma phase do roadmap como pasta em pop/kanban/001_initial_task, com card preenchido, specs linkadas e link na epoch. Use quando o usuário pedir para iniciar/criar uma task.
 ---
 
 # new-task
@@ -13,20 +13,22 @@ Materializa uma task do roadmap como pasta no kanban, no estágio `001_initial_t
 
 ## Entrevista (pule o que o usuário já respondeu)
 
-1. **Onde:** qual projeto e phase? Se o usuário não souber, mostre as phases em andamento da epoch atual e proponha a próxima task natural (da tabela de candidatas da epoch, se houver). **Hotfix/ajuste pontual sem relação com o roadmap em andamento** (correção de bug em produção, ajuste de lógica já aplicada por outra epoch): proponha direto `epoch: 0 / phase: 0.1` (Epoch 0 de manutenção — ver [[AGENTS|AGENTS]]) em vez de perguntar a phase da epoch corrente.
+1. **Onde:** qual projeto e phase? Se o usuário não souber, mostre as phases em andamento da epoch atual e proponha a próxima task natural (da tabela de candidatas da epoch, se houver). **Hotfix/ajuste pontual sem relação com o roadmap em andamento** (correção de bug em produção, ajuste de lógica já aplicada por outra epoch): proponha direto `epoch: 0 / phase: 0.1` (Epoch 0 de manutenção — ver [[AGENTS|AGENTS]]) em vez de perguntar a phase da epoch corrente; `size` sugerido default `S`.
 2. **O quê e por quê:** o que a task entrega, em uma linha? Por que agora — o que ela destrava?
 3. **Dependências:** quais tasks precisam estar concluídas antes desta (`depends_on`)? Olhe as tasks da epoch e proponha; vazio = pode rodar em paralelo com as demais. (Gate: só entra em 004 com todas concluídas — ver WORKFLOW.)
 4. **Criticidade:** esta task exige aprovação humana também na verificação (`critical: true`)? Considere o padrão do projeto na ficha (PROJECT.md).
-5. **Specs:** quais specs ela afeta? Tema sem spec → ofereça criar rascunho com a skill `write-spec` (obrigatório antes do plano ir a 003 — ver `sync-specs`).
+5. **Specs e pesquisas:** quais specs ela afeta? Tema sem spec → ofereça criar rascunho com a skill `write-spec` (obrigatório antes do plano ir a 003 — ver `sync-specs`). Task de **decisão técnica sem pesquisa** em `pop/researches/` que a embase → **sugira o prompt no `RESEARCHES.md`** antes de liberar para 002 (o planejador não pesquisa na web — seção 002 do WORKFLOW).
 6. **Tamanho:** a mudança cabe em **um** plano wargame (≤200 linhas — ver WORKFLOW)? Se tem frentes demais, **proponha dividir em mais de uma task**, encadeadas por `depends_on` — melhor N boards enxutos que um plano inchado.
-7. Proponha **id e slug** (`<n>.<m>.<t>-<slug>`: `t` é o próximo número livre na phase; slug kebab-case, único no vault) e confirme.
+7. **Effort (`size`):** **proponha** `S | M | L` pela complexidade (S = via rápida: mini-plano e execução pelo orquestrador; M/L = cerimônia da Orquestração do WORKFLOW), justificando em 1 linha — o usuário confirma ou corrige, e pode ajustar depois no card em 001.
+8. Proponha **id e slug** (`<n>.<m>.<t>-<slug>`: `t` é o próximo número livre na phase; slug kebab-case, único no vault) e confirme.
 
 ## Procedimento
 
-1. Confirme que a task existe (ou adicione-a) na tabela da phase em `roadmap/<n>-<slug-da-epoch>.md`. **Epoch 0:** se `roadmap/0-manutencao.md` ainda não existir, crie-o a partir de `_templates/EPOCH.md` (Status: `contínua`; Descrição: "Correções e ajustes pontuais fora do plano — nunca conclui"; uma única Phase `0.1`) e adicione a linha da Epoch 0 no `ROADMAP.md` do projeto.
-2. Crie a pasta `kanban/001_initial_task/<id>-<slug>/` com o card `<id>-<slug>.md` copiado de `_templates/TASK.md`:
-   - Frontmatter completo (`id`, `project`, `epoch`, `phase`, `stage: 001_initial_task`, `critical`, `yolo`, `blocked: false`, `depends_on: [...]`, `awaiting_merge: false`, datas).
+1. Confirme que a task existe (ou adicione-a) na tabela da phase em `pop/roadmap/<n>-<slug-da-epoch>.md`. **Epoch 0:** se `pop/roadmap/0-manutencao.md` ainda não existir, crie-o a partir de `_templates/EPOCH.md` (Status: `contínua`; Descrição: "Correções e ajustes pontuais fora do plano — nunca conclui"; uma única Phase `0.1`) e adicione a linha da Epoch 0 no `pop/ROADMAP.md` do projeto.
+2. Crie a pasta `pop/kanban/001_initial_task/<id>-<slug>/` (meta-projeto da raiz do vault e projetos ainda não migrados: harness na raiz, sem `pop/`) com o card `<id>-<slug>.md` copiado de `_templates/TASK.md`:
+   - Frontmatter completo (`id`, `project`, `epoch`, `phase`, `stage: 001_initial_task`, `critical`, `yolo`, `size`, `blocked: false`, `depends_on: [...]`, `awaiting_merge: false`, datas).
    - **Resolva a herança yolo** (epoch → phase → marcador da task; opt-out ` · yolo: não` vence): herdou/marcou → `yolo: true` + linha no Log com a origem (`yolo herdado da phase X.Y`).
+   - **Estampe o `size`:** marcador ` · size:` da linha da task no roadmap, ou a sugestão da entrevista (modo yolo sem marcador: sugira você) — sempre com justificativa de 1 linha no Log (`size M sugerido: <motivo>`). O humano corrige à vontade em 001.
    - "O quê", "Por quê", seção "Dependências" e links de specs preenchidos com as respostas da entrevista; primeira linha do Log.
    - A seção **Liberação** fica com `- [ ] Pronto para planejar` **desmarcado** — o card nasce não liberado. **Exceção:** task `yolo: true` nasce **marcada**, com Log `liberada por yolo (marcado no roadmap)`.
 3. Na tabela da epoch, transforme o id da task em wikilink `[[<id>-<slug>]]` e atualize o status para `001_initial_task`.
@@ -35,6 +37,6 @@ Materializa uma task do roadmap como pasta no kanban, no estágio `001_initial_t
 
 ## Cuidados
 
-- **Leia o AGENTS.md do projeto antes de criar:** restrições declaradas lá valem — p.ex. o gate de organização de projeto importado (Epoch 1 aberta → só tasks de harness: specs, skills, researches, notes).
+- **Leia o AGENTS.md do projeto antes de criar:** restrições declaradas lá valem — p.ex. o gate de organização de projeto importado (Epoch 1 aberta → só tasks de harness: specs, skills, researches, notes em `pop/`).
 - Arquivos de task são linkados **só pelo nome** (`[[1.1.1-user-table-creation]]`), nunca por caminho — a pasta se move entre estágios.
 - Não escreva o plano aqui — isso acontece em `002_planning` via skill `advance-task`.

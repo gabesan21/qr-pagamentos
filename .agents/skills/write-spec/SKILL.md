@@ -5,7 +5,7 @@ description: Padroniza a criação de specs para qualquer tipo de projeto (softw
 
 # write-spec
 
-Cria uma spec em `specs/` a partir de `_templates/SPEC.md`, entrevistando o usuário com as perguntas certas para o tipo de projeto. Uma spec responde a **uma** pergunta; se começar a responder duas, são duas specs.
+Cria uma spec em `pop/specs/` (meta-projeto da raiz do vault e projetos ainda não migrados: harness na raiz, sem `pop/`) a partir de `_templates/SPEC.md`, entrevistando o usuário com as perguntas certas para o tipo de projeto. Uma spec responde a **uma** pergunta; se começar a responder duas, são duas specs.
 
 **Delegue a subagentes:** quase nada — é entrevista; leitura ampla de material existente para embasar a spec vai a subagente com pergunta específica e resposta ≤30 linhas.
 

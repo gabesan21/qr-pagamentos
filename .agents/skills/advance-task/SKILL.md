@@ -11,15 +11,15 @@ Você é o **orquestrador**: identifica o estágio da task, resolve gates e tran
 
 ## Entrada
 
-- **id da task** (ex.: `1.1.1-user-table-creation`). Localize a pasta: `find <projeto>/kanban -maxdepth 2 -name "<id>*" -type d`.
+- **id da task** (ex.: `1.1.1-user-table-creation`). Localize a pasta: `find <projeto>/pop/kanban -maxdepth 2 -name "<id>*" -type d` (meta-projeto da raiz do vault e projetos ainda não migrados: harness na raiz, sem `pop/`).
 
 ## Loop do orquestrador
 
 0. **Claim primeiro:** `scripts/pop_claim.py <task-id>` — recusou (claim ativo de outro agente)? **Não toque na task**, informe e encerre.
-1. Leia o card: `stage`, `critical`, `yolo`, `blocked`, `depends_on`, tabela "Skills por etapa". **Task em 001 sem `- [x] Pronto para planejar`?** É gate humano: libere o claim, pare e informe — o card ainda é do humano. Exceções: o humano mandou explicitamente seguir direto nesta conversa → marque o checkbox por ele e registre no Log (`liberada por comando do humano`); `yolo: true` → a marca no roadmap é a liberação — marque com Log `liberada por yolo (marcado no roadmap)`.
+1. Leia o card: `stage`, `critical`, `yolo`, `size`, `blocked`, `depends_on`, tabela "Skills por etapa". **Task em 001 sem `- [x] Pronto para planejar`?** É gate humano: libere o claim, pare e informe — o card ainda é do humano. Exceções: o humano mandou explicitamente seguir direto nesta conversa → marque o checkbox por ele e registre no Log (`liberada por comando do humano`); `yolo: true` → a marca no roadmap é a liberação — marque com Log `liberada por yolo (marcado no roadmap)`.
 2. Enquanto não houver gate humano pendente:
-   - Leia no [[WORKFLOW|WORKFLOW]] a seção do estágio atual e execute-a — **001 e 006** você mesmo (são baratos); **002/004/005** via subagente dedicado (abaixo). **Via rápida:** task trivial de pouquíssimos passos (mesma régua da dispensa de red-team) → execute o **004** você mesmo e registre a via rápida no Log; o **005 continua em subagente** (olhos frescos não se dispensam).
-   - Transição: `scripts/pop_move.py <task-id> <estágio>` move a pasta, atualiza `stage:`/`updated:` e appenda a linha no Log — atomicamente (sem o script, faça os três à mão).
+   - Leia no [[WORKFLOW|WORKFLOW]] a seção do estágio atual e execute-a — **001 e 006** você mesmo (são baratos); **002/004/005** via subagente dedicado (abaixo). **Via rápida (`size: S`):** execute você mesmo o **002** (mini-plano ≤40 linhas — seção 002 do WORKFLOW) e o **004**, registrando a via rápida no Log; o **005 continua em subagente** (olhos frescos não se dispensam).
+   - Transição: `scripts/pop_move.py <task-id> <estágio> --reason "motivo curto — contextos: <subagentes lançados no estágio>"` move a pasta, atualiza `stage:`/`updated:` e appenda a linha no Log — atomicamente. **Não** escreva linha manual duplicando a do script (sem o script, faça os três à mão numa linha só).
 3. Ao chegar num gate, **libere o claim** (`scripts/pop_claim.py <task-id> --release`), **pare e informe**: estágio atual, o que aguarda o humano e o que a próxima chamada fará.
 
 **Gates humanos (únicas paradas):** liberação em `001` (`- [x] Pronto para planejar`); aprovação em `003`; verificação humana se `critical: true` em `005`; item `(user)` de subtask; `blocked: true`; rodada de merge em `006`.
@@ -28,10 +28,10 @@ Você é o **orquestrador**: identifica o estágio da task, resolve gates e tran
 
 ## Subagentes por estágio
 
-Cada subagente recebe **só** a skill da sua etapa (tabela "Skills por etapa" do card) + o contexto mínimo — nunca o vault inteiro:
+Cada subagente recebe **só** a skill da sua etapa (tabela "Skills por etapa" do card) + o contexto mínimo — nunca o vault inteiro. O contrato de todo subagente de estágio inclui: **sem web** (lacuna de conhecimento → prompt no `RESEARCHES.md` + `blocked`, seção 002 do WORKFLOW), **teto de resposta** ("escreva o arquivo, devolva caminho + resumo ≤10 linhas") e **modelo pelo tier** da matriz papel × size da Orquestração (`scripts/models.json`):
 
-- **002 — planejador:** recebe card + specs linkadas → devolve o `.plan.md` (dispara a própria onda de recon do wargame, **3-5 por onda**; os workers de recon são folha — reportam "Lacunas / Não encontrado", nunca disparam subagentes).
-- **004 — executor:** recebe plano + seção "Contexto mínimo do executor" → trabalha na worktree da task, devolve checkboxes marcados + divergências.
+- **002 — planejador:** recebe card + pesquisas e specs linkadas → devolve o `.plan.md` (abre a própria onda de recon **orçada** — só perguntas acima do piso da regra 18 viram workers, **0 é válido**, ondas de até 3-5; workers são folha — reportam "Lacunas / Não encontrado", nunca disparam subagentes).
+- **004 — executor:** recebe plano + seção "Contexto mínimo do executor" → trabalha na worktree da task (`pop/worktrees/<id>`), devolve checkboxes marcados + divergências.
 - **005 — verificador:** recebe a tabela de verificação do plano → devolve o `.verify.md` com evidências. **Nunca o mesmo agente que executou** — julga sem o viés de quem fez.
 - **003/006 yolo — crítico:** recebe card + `.plan.md` + `.approval.md` (006: + `.verify.md` e PR) → assina a rodada ou devolve com motivos (skill [[.agents/skills/yolo-critic/SKILL|yolo-critic]]; teto de 2 devoluções). Distinto de planejador/executor/verificador.
 

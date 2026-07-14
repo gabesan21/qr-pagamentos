@@ -1,0 +1,32 @@
+{
+  "_meta": {
+    "updated": "2026-07-14",
+    "uso": "recomendação de modelo por tier de effort (cheap | medium | strong) — matriz papel × size na Orquestração do WORKFLOW; consumo via advance-task (subagentes de sessão) e delegate-coding/run-* (CLIs headless)",
+    "nota": "valores revisáveis; confira disponibilidade na execução com o comando de listagem da ferramenta (lookup pontual permitido: `cursor-agent models`, `opencode models`)"
+  },
+  "session": {
+    "cheap": "haiku",
+    "medium": "sonnet",
+    "strong": "herda o modelo da sessão"
+  },
+  "claude-code": {
+    "cheap": "claude-haiku-4-5",
+    "medium": "claude-sonnet-5",
+    "strong": "claude-opus-4-8"
+  },
+  "cursor-agent": {
+    "cheap": "composer-2",
+    "medium": "claude-sonnet-4.6",
+    "strong": "gpt-5.4"
+  },
+  "opencode": {
+    "cheap": "anthropic/claude-haiku-4-5",
+    "medium": "anthropic/claude-sonnet-4-6",
+    "strong": "anthropic/claude-opus-4-8"
+  },
+  "codex": {
+    "cheap": "gpt-5.4-mini",
+    "medium": "gpt-5.3-codex",
+    "strong": "gpt-5.5"
+  }
+}
