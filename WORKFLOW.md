@@ -69,7 +69,7 @@ Você não executa a task aqui — **wargameia** a execução, para que um execu
 
 - Crie/atualize o `.approval.md` com **nova rodada**: resumo do plano, "Resposta do humano" e `- [ ] Feito`.
 - **O agente só age quando `- [x] Feito`** — caso contrário, pare e informe. Então: pediu mudanças → `002_planning`; aprovou (ou vazio) → `004_processing`. A aprovação vale também para as specs propostas no plano: `rascunho` → `aprovada`.
-- **Gate de dependências:** só mova para 004 quando **toda** task em `depends_on` estiver concluída — card em `006_done` **ou** `memory/<id>*.md` existente (o 006 pode ter sido limpo). Dependência pendente → informe e aguarde (a task pode esperar aprovada em 003).
+- **Gate de dependências:** só mova para 004 quando **toda** task em `depends_on` estiver concluída — `memory/<id>*.md` existente é o sinal padrão (a pasta em `006_done` é apagada ao final do fechamento, ver passo 7 de 006); card ainda em `006_done` também conta, cobrindo a janela curta entre o merge e o apagamento. Dependência pendente → informe e aguarde (a task pode esperar aprovada em 003).
 - **Limite de WIP:** antes de mover para 004, se o projeto já tem **3** tasks lá, avise o usuário e pergunte qual priorizar.
 
 ### 004_processing — execução (agent)
@@ -94,10 +94,11 @@ Você não executa a task aqui — **wargameia** a execução, para que um execu
 
 1. **Abra o PR:** branch `task/<id>` → branch de PR declarada no AGENTS.md do projeto. Registre `pr:` e `awaiting_merge: true` no frontmatter, crie a rodada **Merge** no `.approval.md` ([[_templates/TASK-APPROVAL|TASK-APPROVAL]]) e **pare** — a task aparece no INBOX. Sem repositório git: a rodada de merge é a aprovação final da entrega, sem PR.
 2. **O humano merga:** ele mesmo no repositório, ou comandando na rodada de merge (aí o agente executa o comando dele).
-3. **Após o merge, finalize:** escreva `memory/<id>.md` ([[_templates/MEMORY|MEMORY]]) — resumo ≤2000 chars, commit final do merge, datas de início e fim; remova a worktree (`git worktree remove worktrees/<id>`); limpe `awaiting_merge:` e `worktree:`. É o registro durável: o `006_done` pode ser limpo depois, a memória fica. **Task cross-repo de projeto `full-multi-repo`:** a memória vai para o `memory/` de **cada repo afetado** (não há memory central) e o card central linka cada uma.
+3. **Após o merge, finalize:** escreva `memory/<id>.md` ([[_templates/MEMORY|MEMORY]]) — resumo ≤2000 chars, commit final do merge, datas de início e fim; remova a worktree (`git worktree remove worktrees/<id>`); limpe `awaiting_merge:` e `worktree:`. É o registro durável que sobrevive à pasta do kanban (ver passo 7). **Task cross-repo de projeto `full-multi-repo`:** a memória vai para o `memory/` de **cada repo afetado** (não há memory central) e o card central linka cada uma.
 4. **Sincronize as specs na mesma finalização da memory:** as specs da mudança montadas em 002 são incorporadas às specs do projeto (`sync-specs`), refletindo o que foi **realmente** feito — resolva itens "Aberto", status → `implementada`. Em `full-multi-repo`, sempre nas `specs/` dos repos afetados (não há specs central). **Não é opcional** — é parte da conclusão.
 5. **Status derivado:** marque a task como concluída na epoch; se todas as tasks da phase concluíram, a phase conclui; se todas as phases, a epoch. Atualize os `INDEX.md` se o status do projeto mudou.
 6. **Extraia aprendizados:** o reutilizável vira skill (`skills/`) ou nota (`notes/learnings/`), linkada no card.
+7. **Apague a pasta da task:** só depois dos passos 3-6 feitos, apague `kanban/006_done/<id>-<slug>/` inteira (card, `.plan.md`, `.approval.md`, `.verify.md`, `subtasks/`). Não é limpeza periódica — é o último passo obrigatório do fechamento de 006; a pasta só existe de forma transitória enquanto os passos 3-6 rodam. A memória (passo 3) é o que fica como prova.
 
 ## Regras transversais
 

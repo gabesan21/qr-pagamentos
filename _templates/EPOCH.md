@@ -3,7 +3,7 @@
 > Blockquotes deste template são instruções de preenchimento — **apague-os ao preencher**.
 
 - **Projeto:** [[PROJECT|<Nome do projeto>]] · **Roadmap:** [[ROADMAP|Roadmap]]
-- **Status:** pendente | em andamento | concluída
+- **Status:** pendente | em andamento | concluída (ou **contínua** — reservado à Epoch 0 de manutenção, ver [[AGENTS|AGENTS]]: nunca conclui, a `weekly-review` não a cobra por estagnação)
 - **Descrição:** uma linha — o que este capítulo entrega.
 - **Yolo:** sim | não — bullet **opcional** (ausente = não); só o humano marca.
 - **Abandonar/pausar se:** condição objetiva, se houver (auditada pela `weekly-review`).

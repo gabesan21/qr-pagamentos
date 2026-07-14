@@ -51,7 +51,7 @@ Uma frase: por que agora, e o que destrava.
 
 ## Dependências
 
-> Espelha `depends_on:` do frontmatter. A task só entra em `004_processing` quando toda dependência está concluída (card em `006_done` ou `memory/<id>*.md` existente). Vazio = pode rodar em paralelo com as demais.
+> Espelha `depends_on:` do frontmatter. A task só entra em `004_processing` quando toda dependência está concluída — `memory/<id>*.md` existente é o sinal padrão (a pasta em `006_done` é apagada ao fechar); card ainda em `006_done` também conta, para a janela curta antes do apagamento. Vazio = pode rodar em paralelo com as demais.
 
 - [[<id-de-task-pré-requisito>]] — o que ela entrega que esta task precisa.
 

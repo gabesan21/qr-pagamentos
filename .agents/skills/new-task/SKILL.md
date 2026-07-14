@@ -13,7 +13,7 @@ Materializa uma task do roadmap como pasta no kanban, no estágio `001_initial_t
 
 ## Entrevista (pule o que o usuário já respondeu)
 
-1. **Onde:** qual projeto e phase? Se o usuário não souber, mostre as phases em andamento da epoch atual e proponha a próxima task natural (da tabela de candidatas da epoch, se houver).
+1. **Onde:** qual projeto e phase? Se o usuário não souber, mostre as phases em andamento da epoch atual e proponha a próxima task natural (da tabela de candidatas da epoch, se houver). **Hotfix/ajuste pontual sem relação com o roadmap em andamento** (correção de bug em produção, ajuste de lógica já aplicada por outra epoch): proponha direto `epoch: 0 / phase: 0.1` (Epoch 0 de manutenção — ver [[AGENTS|AGENTS]]) em vez de perguntar a phase da epoch corrente.
 2. **O quê e por quê:** o que a task entrega, em uma linha? Por que agora — o que ela destrava?
 3. **Dependências:** quais tasks precisam estar concluídas antes desta (`depends_on`)? Olhe as tasks da epoch e proponha; vazio = pode rodar em paralelo com as demais. (Gate: só entra em 004 com todas concluídas — ver WORKFLOW.)
 4. **Criticidade:** esta task exige aprovação humana também na verificação (`critical: true`)? Considere o padrão do projeto na ficha (PROJECT.md).
@@ -23,7 +23,7 @@ Materializa uma task do roadmap como pasta no kanban, no estágio `001_initial_t
 
 ## Procedimento
 
-1. Confirme que a task existe (ou adicione-a) na tabela da phase em `roadmap/<n>-<slug-da-epoch>.md`.
+1. Confirme que a task existe (ou adicione-a) na tabela da phase em `roadmap/<n>-<slug-da-epoch>.md`. **Epoch 0:** se `roadmap/0-manutencao.md` ainda não existir, crie-o a partir de `_templates/EPOCH.md` (Status: `contínua`; Descrição: "Correções e ajustes pontuais fora do plano — nunca conclui"; uma única Phase `0.1`) e adicione a linha da Epoch 0 no `ROADMAP.md` do projeto.
 2. Crie a pasta `kanban/001_initial_task/<id>-<slug>/` com o card `<id>-<slug>.md` copiado de `_templates/TASK.md`:
    - Frontmatter completo (`id`, `project`, `epoch`, `phase`, `stage: 001_initial_task`, `critical`, `yolo`, `blocked: false`, `depends_on: [...]`, `awaiting_merge: false`, datas).
    - **Resolva a herança yolo** (epoch → phase → marcador da task; opt-out ` · yolo: não` vence): herdou/marcou → `yolo: true` + linha no Log com a origem (`yolo herdado da phase X.Y`).
