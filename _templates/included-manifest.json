@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "files": ["WORKFLOW.md", "TYPES.md", "INBOX.md"],
+  "directories": ["_templates", "scripts"],
+  "skills": ["new-task", "advance-task", "plan-roadmap", "write-spec", "sync-specs", "yolo-critic"],
+  "anatomy": ["roadmap", "specs", "researches", "skills", "notes/learnings", "notes/decisions", "notes/ideas", "notes/references", "memory", "open_questions", "kanban/001_initial_task", "kanban/002_planning", "kanban/003_human_approval", "kanban/004_processing", "kanban/005_verifying", "kanban/006_done", "worktrees"],
+  "keep_files": ["roadmap/.gitkeep", "specs/.gitkeep", "researches/.gitkeep", "skills/.gitkeep", "notes/learnings/.gitkeep", "notes/decisions/.gitkeep", "notes/ideas/.gitkeep", "notes/references/.gitkeep", "memory/.gitkeep", "open_questions/.gitkeep", "kanban/001_initial_task/.gitkeep", "kanban/002_planning/.gitkeep", "kanban/003_human_approval/.gitkeep", "kanban/004_processing/.gitkeep", "kanban/005_verifying/.gitkeep", "kanban/006_done/.gitkeep", "worktrees/.gitkeep"],
+  "managed": ["WORKFLOW.md", "TYPES.md", "INBOX.md", "_templates", "scripts", ".agents/skills", ".included-harness.json", "roadmap/.gitkeep", "specs/.gitkeep", "researches/.gitkeep", "skills/.gitkeep", "notes", "memory/.gitkeep", "open_questions/.gitkeep", "kanban", "worktrees/.gitkeep"]
+}

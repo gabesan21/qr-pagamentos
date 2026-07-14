@@ -1,0 +1,16 @@
+worktrees/
+
+# Local environment and credentials
+.env
+.env.*
+!.env.example
+
+# Application artifacts
+node_modules/
+.next/
+coverage/
+
+# included-harness: preservar a anatomia standalone no Git
+!worktrees/
+worktrees/*
+!worktrees/.gitkeep
