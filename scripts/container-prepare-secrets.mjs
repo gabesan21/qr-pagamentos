@@ -2,7 +2,7 @@ import { mkdir, readFile, rm, stat } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
 import path from "node:path";
 
-const helper = "node:24.18.0-bookworm-slim@sha256:cb4e8f7c443347358b7875e717c29e27bf9befc8f5a26cf18af3c3dec80e58c5";
+const helper = "node:24.18.0-bookworm-slim@sha256:39a4259b6f744868a8228742ad45aa3026f97302e5eec2fa4a38b30ca0a66e12";
 const names = {
   POSTGRES_ADMIN_PASSWORD_FILE: "admin_password",
   MIGRATOR_PASSWORD_FILE: "migrator_password",
