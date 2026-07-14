@@ -35,7 +35,7 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[1.2.1-review-clean-code-baseline]] | Review the Phase 1.1 codebase against the clean-code contracts and remediate confirmed issues before identity and access work begins. · size: M | 001_initial_task |
+| [[1.2.1-review-clean-code-baseline]] | Review the Phase 1.1 codebase against the clean-code contracts and remediate confirmed issues before identity and access work begins. · size: M | concluída |
 
 ## Phase 1.3 - Administrative control plane
 
