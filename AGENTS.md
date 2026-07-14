@@ -42,6 +42,15 @@ One execution continues until the next real gate. The complete state machine is 
 - **PoP workflow:** `.agents/skills/` contains `new-task`, `advance-task`, `plan-roadmap`, `write-spec`, and `sync-specs`.
 - **Project operations:** `skills/` will contain reusable build, test, run, migration, and deployment procedures as they become real.
 
+## Application contract
+
+- `src/app/` owns App Router pages and endpoints; `/pt-BR` and `/en` are the only supported locale roots, while `/api/health` stays unlocalized.
+- `src/i18n/` owns the closed locale set and server dictionary loader; never add a locale without matching dictionary keys and contract tests.
+- Use the exact Node and pnpm pins in `.node-version` and `package.json`; install with `pnpm install --frozen-lockfile`.
+- Run `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm build` independently, or `pnpm check` for the aggregate gate.
+- Never edit generated `next-env.d.ts`, `.next/`, `node_modules/`, coverage output, or TypeScript build-info files by hand.
+- Do not add a child `AGENTS.md` unless its subtree meets an objective DOX trigger below.
+
 ## Processo DOX — contexto hierárquico de agentes no código
 
 ### O que é
