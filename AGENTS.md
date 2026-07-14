@@ -44,19 +44,19 @@ One execution continues until the next real gate. The complete state machine is 
 
 ### Clean code
 
-- `clean-code-change` (`.agents/skills/`) — siga ao **planejar (002) e executar (004)** qualquer task que crie ou altere código.
-- `clean-code-review` (`.agents/skills/`) — siga ao **verificar (005)** task de código e como critério de leitura em gate de plano ou PR.
-- **Obrigatório:** em 002, toda task que cria/altera código entra com `clean-code-change` na linha **004** e `clean-code-review` na linha **005** da tabela **Skills por etapa** do card.
+- `clean-code-change` (`.agents/skills/`) — follow when **planning (002) and executing (004)** any task that creates or changes code.
+- `clean-code-review` (`.agents/skills/`) — follow when **verifying (005)** a code task and as a reading criterion in plan or PR gates.
+- **Mandatory:** in 002, every task that creates/changes code enters `clean-code-change` on the **004** row and `clean-code-review` on the **005** row of the card's **Skills por etapa** table.
 
-#### Verificação do projeto
+#### Project verification
 
-| Verificação | Comando |
-|-------------|---------|
-| Formatter | — |
-| Linter | `pnpm lint` |
-| Testes | `pnpm test` |
+| Check | Command |
+|-------|---------|
+| Formatter | — (no `format`/`prettier` script in `package.json`) |
+| Linter | `pnpm lint` (plus `pnpm typecheck`) |
+| Tests | `pnpm test` |
 
-Formatter: sem script definido no `package.json` (não há script `format`/`prettier`).
+Aggregate gate: `pnpm check` (lint + typecheck + test + build) — see Application contract below.
 
 ## Application contract
 
