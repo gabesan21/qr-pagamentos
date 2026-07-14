@@ -115,15 +115,18 @@ deploy() {
   if "$DRY_RUN"; then
     print_command docker compose -f "$ROOT_DIR/compose.yaml" -p qr-pagamentos build --pull
     print_command docker compose -f "$ROOT_DIR/compose.yaml" -p qr-pagamentos up -d
+    print_command docker compose -f "$ROOT_DIR/compose.yaml" -p qr-pagamentos exec -T app node container/healthcheck.mjs
     printf 'DRY-RUN wait for exact http://127.0.0.1:%s/api/health = {"status":"ok"}\n' "$APP_PORT"
     return
   fi
   compose build --pull
   compose up -d
-  local attempt body
+  local attempt
   for attempt in {1..120}; do
-    body=$(curl --fail --silent --show-error --max-time 3 "http://127.0.0.1:$APP_PORT/api/health" 2>/dev/null || true)
-    [[ $body == '{"status":"ok"}' ]] && { printf 'PASS install-health\n'; return; }
+    if compose exec -T app node container/healthcheck.mjs >/dev/null 2>&1; then
+      printf 'PASS install-health\n'
+      return
+    fi
     sleep 1
   done
   compose ps >&2 || true

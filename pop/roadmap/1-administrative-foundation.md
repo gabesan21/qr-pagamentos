@@ -33,6 +33,10 @@
 - **Yolo:** yes
 - **Specs:** [[specs/administrative-foundation|Administrative foundation]] - follow for identity and access requirements.
 
+| Task | Description | Status |
+|------|-------------|--------|
+| [[1.2.1-review-clean-code-baseline]] | Review the Phase 1.1 codebase against the clean-code contracts and remediate confirmed issues before identity and access work begins. · size: M | 001_initial_task |
+
 ## Phase 1.3 - Administrative control plane
 
 - **Status:** pendente

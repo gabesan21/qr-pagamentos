@@ -30,9 +30,21 @@ expect_contains "$INSTALL_DIR/install.sh" 'chmod 0400'
 expect_contains "$INSTALL_DIR/install.sh" '.install-secrets'
 expect_absent "$output" 'reserved-!:/?#[]@-admin'
 expect_absent "$output" 'sudo'
+expect_absent "$INSTALL_DIR/install.sh" 'curl '
 expect_absent "$INSTALL_DIR/install.sh" 'SUDO'
 expect_absent "$INSTALL_DIR/uninstall.sh" 'SUDO'
 git -C "$INSTALL_DIR/.." check-ignore -q install/.env || fail 'install/.env is not ignored by Git'
+
+sed 's/^APP_PORT=.*/APP_PORT="33013"/' "$TMP/install.env" > "$TMP/quoted.env"
+quoted_install_out=$TMP/install-quoted.out
+quoted_uninstall_out=$TMP/uninstall-quoted.out
+"$INSTALL_DIR/install.sh" --dry-run --env-file "$TMP/quoted.env" > "$quoted_install_out"
+"$INSTALL_DIR/uninstall.sh" --dry-run --env-file "$TMP/quoted.env" > "$quoted_uninstall_out"
+expect_contains "$quoted_install_out" '127.0.0.1:33013/api/health'
+expect_contains "$quoted_uninstall_out" 'APP_PORT=33013'
+
+sed 's/^APP_PORT=.*/APP_PORT=70000/' "$TMP/install.env" > "$TMP/invalid-port.env"
+if "$INSTALL_DIR/uninstall.sh" --dry-run --env-file "$TMP/invalid-port.env" >/dev/null 2>&1; then fail 'invalid uninstall port succeeded'; fi
 
 cp "$TMP/install.env" "$TMP/missing.env"
 sed -i '/RUNTIME_PASSWORD=/d' "$TMP/missing.env"

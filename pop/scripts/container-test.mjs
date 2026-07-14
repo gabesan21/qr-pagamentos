@@ -115,7 +115,6 @@ if (process.argv.includes("--clean-clone") && !process.env.CONTAINER_TEST_CLEAN_
     assert(!/postgresql:\/\/[^\s]+@/i.test(text), "database URL leaked");
   }
   async function startHappy() {
-    await prepare();
     compose(["up", "-d", "--build"]);
     const appId = await waitForApp();
     const bootstrapId = containerId("bootstrap");
