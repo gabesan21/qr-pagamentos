@@ -49,8 +49,15 @@ console.log("PASS image-contract");
 const docsIndex = process.argv.indexOf("--docs");
 if (docsIndex >= 0) {
   const range = process.argv[docsIndex + 1];
-  assert(range && /^[0-9a-f]{7,40}\.\.[0-9a-f]{7,40}$/.test(range), "--docs requires a committed Git range");
-  const changed = run("git", ["diff", "--name-only", range]).split(/\r?\n/);
+  const endpoints = range?.match(/^([^\s.][^\s]*?)\.\.([^\s.][^\s]*)$/)?.slice(1);
+  assert(endpoints?.length === 2, "--docs requires a committed Git range");
+  const [base, tip] = endpoints.map((endpoint) => run("git", ["rev-parse", "--verify", `${endpoint}^{commit}`]).trim());
+  const ancestry = spawnSync("git", ["merge-base", "--is-ancestor", base, tip]);
+  assert(ancestry.status === 0, "--docs base must be an ancestor of its committed tip");
+  const commitCount = Number(run("git", ["rev-list", "--count", `${base}..${tip}`]).trim());
+  assert(Number.isSafeInteger(commitCount) && commitCount > 0, "--docs committed Git range must be nonempty");
+  const committedRange = `${base}..${tip}`;
+  const changed = run("git", ["diff", "--name-only", committedRange]).split(/\r?\n/);
   for (const path of ["Dockerfile", "compose.yaml", "container/runtime.mjs", "README.md", "AGENTS.md"]) assert(changed.includes(path), `${path} missing from committed task range`);
   const readme = await readFile("README.md", "utf8");
   for (const text of ["Production container startup", "container:prepare-secrets", "docker compose --env-file .env.compose ps", "docker compose --env-file .env.compose logs", "docker compose --env-file .env.compose stop", "Rollback without deleting data", "Test-only destructive cleanup", "Critical verification in 005", "/api/health", "127.0.0.1"]) assert(readme.includes(text), `README missing ${text}`);
