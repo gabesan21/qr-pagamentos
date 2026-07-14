@@ -9,3 +9,8 @@ worktrees/
 node_modules/
 .next/
 coverage/
+
+# included-harness: preservar a anatomia standalone no Git
+!worktrees/
+worktrees/*
+!worktrees/.gitkeep

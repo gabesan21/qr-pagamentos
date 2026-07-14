@@ -42,6 +42,18 @@ def copy_tree(source: Path, dest: Path) -> None:
         copy_file(path, dest / path.relative_to(source))
 
 
+def preserve_worktree_marker(target: Path) -> None:
+    """Permite versionar só o marcador, mesmo em repos que ignoram worktrees/."""
+    ignore = target / ".gitignore"
+    if not ignore.exists():
+        return
+    block = ("# included-harness: preservar a anatomia standalone no Git\n"
+             "!worktrees/\nworktrees/*\n!worktrees/.gitkeep\n")
+    text = ignore.read_text(encoding="utf-8")
+    if "!worktrees/.gitkeep" not in text:
+        ignore.write_text(text.rstrip() + "\n\n" + block, encoding="utf-8")
+
+
 def audit() -> list[str]:
     data = manifest()
     missing = []
@@ -72,6 +84,13 @@ def install(target: Path) -> None:
     copy_file(MANIFEST, target / ".included-harness.json")
     for rel in data["anatomy"]:
         (target / rel).mkdir(parents=True, exist_ok=True)
+    # Git não preserva diretórios vazios: estes marcadores são parte gerida do
+    # contrato, para que um clone real mantenha toda a anatomia standalone.
+    for rel in data.get("keep_files", []):
+        marker = target / rel
+        marker.parent.mkdir(parents=True, exist_ok=True)
+        marker.touch()
+    preserve_worktree_marker(target)
     # O AGENTS pertence ao projeto: nunca o substituímos. Só corrigimos links do pai.
     for path in target.rglob("*.md"):
         if ".git" in path.parts or "kanban" in path.parts:

@@ -254,6 +254,9 @@ def check_standalone(root, violations):
     for name in data.get("anatomy", []):
         if not (root / name).is_dir():
             violations.append(f"{root / name}: anatomia obrigatória ausente")
+    for name in data.get("keep_files", []):
+        if not (root / name).is_file():
+            violations.append(f"{root / name}: marcador Git obrigatório ausente")
     for path in root.rglob("*.md"):
         parts = set(path.relative_to(root).parts)
         if parts & {".git", "worktrees", "kanban"}:
