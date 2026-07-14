@@ -22,7 +22,7 @@ O padrão do PoP. O harness (kanban, roadmap, specs, notes, memory…) mora em `
 
 O harness do PoP vive **dentro do repositório do projeto**, na raiz, misturado aos demais arquivos — não existe subpasta `project/`. É o type para quem quer o workflow do PoP commitado no próprio repo, funcionando standalone para quem nem usa o PoP.
 
-- **Com repo:** o repo é clonado em `categories/<categoria>/<projeto>/` e listado em **Repositórios agregados** no [[INDEX|INDEX]] raiz; o caminho do clone entra no `.gitignore` **raiz** do PoP (o PoP não versiona o conteúdo — só o registro no índice). A skill `new-project` copia para dentro do repo: `AGENTS.md` (+ symlink `CLAUDE.md`), `.agents/skills/` (**cópias reais** das core skills), `_templates/`, `WORKFLOW.md`, `TYPES.md` e as pastas da anatomia.
+- **Com repo:** o repo é clonado em `categories/<categoria>/<projeto>/` e listado em **Repositórios agregados** no [[INDEX|INDEX]] raiz; o caminho do clone entra no `.gitignore` **raiz** do PoP (o PoP não versiona o conteúdo — só o registro no índice). A materialização usa `python3 scripts/pop_install_included.py <repo>`; o manifesto é a única lista do pacote e a atualização repete o mesmo comando.
 - **Sem repo:** a pasta do projeto no PoP é a própria raiz do projeto, versionada no PoP.
 
 ## multi-repo

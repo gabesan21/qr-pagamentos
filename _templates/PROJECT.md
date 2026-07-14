@@ -1,10 +1,10 @@
 # <Nome do projeto>
 
-- **Categoria:** [[categories/agents/INDEX|agents]] | [[categories/applications/INDEX|applications]] | [[categories/writing/INDEX|writing]] | [[categories/work/INDEX|work]]
+- **Categoria:** [[applications/INDEX|applications]] | [[work/INDEX|work]]
 - **Status:** ideia | planejando | em andamento | pausado | concluído | abandonado
 - **Prioridade:** alta | média | baixa
 - **Criado em:** AAAA-MM-DD
-- **Roadmap:** [[categories/<categoria>/<projeto>/ROADMAP|Roadmap]]
+- **Roadmap:** [[ROADMAP|Roadmap]]
 
 ## Objetivo
 
@@ -22,7 +22,7 @@ Anatomia padrão (ver AGENTS.md da raiz): `AGENTS.md` do projeto + `.agents/skil
 
 Regras específicas para agentes trabalhando neste projeto:
 
-- **Type e repositórios:** declarados no [[categories/<categoria>/<projeto>/AGENTS|AGENTS do projeto]] (`default` | `included` | `multi-repo` | `full-multi-repo`, repos e branch de PR — ver [[TYPES|TYPES]]).
+- **Type e repositórios:** declarados no [[AGENTS|AGENTS do projeto]] (`default` | `included` | `multi-repo` | `full-multi-repo`, repos e branch de PR — ver [[TYPES|TYPES]]).
 - **Worktree por task:** sim (padrão) | não (aceitável só em projeto sem repositório git — tasks perdem o isolamento e o PR).
 - **Ferramentas e restrições:** o que pode e o que não pode.
 - **Tom/estilo:** se aplicável.
@@ -31,7 +31,7 @@ Regras específicas para agentes trabalhando neste projeto:
 
 ## Projetos relacionados
 
-- [[categories/<categoria>/<projeto>/PROJECT|<nome>]] — por que se relacionam.
+- [[PROJECT|<nome>]] — por que se relacionam.
 
 ## Decisões
 

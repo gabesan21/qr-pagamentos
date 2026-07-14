@@ -1,7 +1,7 @@
 # Administrative foundation research
 
 - **Created:** 2026-07-13
-- **Feeds:** [[categories/applications/qr-pagamentos/roadmap/1-administrative-foundation|Epoch 1]] and [[categories/applications/qr-pagamentos/specs/administrative-foundation|Administrative foundation spec]].
+- **Feeds:** [[roadmap/1-administrative-foundation|Epoch 1]] and [[specs/administrative-foundation|Administrative foundation spec]].
 
 ## Conclusions
 

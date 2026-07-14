@@ -1,6 +1,6 @@
 # Epoch 4 - Checkout and order lifecycle
 
-- **Project:** [[categories/applications/qr-pagamentos/PROJECT|QR Pagamentos]]
+- **Project:** [[PROJECT|QR Pagamentos]]
 - **Status:** pendente
 - **Description:** Deliver public checkout, QR payment generation, status updates, and user/admin order views.
 

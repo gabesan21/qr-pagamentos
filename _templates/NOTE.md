@@ -9,7 +9,7 @@ created: AAAA-MM-DD
 
 > Vive em `notes/<categoria>/`: `learnings/` (aprendizados de tasks), `decisions/` (decisões extraídas da ficha), `ideas/` (ideias soltas) ou `references/` (links e materiais externos).
 
-Conteúdo livre — mas ≤150 linhas e respondendo a **uma** pergunta. Linke a origem (task, spec, conversa): [[<id-da-task>]] · [[categories/<categoria>/<projeto>/specs/<spec>|<spec>]]
+Conteúdo livre — mas ≤150 linhas e respondendo a **uma** pergunta. Linke a origem (task, spec, conversa): [[<id-da-task>]] · [[specs/<spec>|<spec>]]
 
 Learnings linkam **onde se aplicam** (spec, skill, contrato), cada link com gatilho de 1 linha — *quando segui-lo*.
 

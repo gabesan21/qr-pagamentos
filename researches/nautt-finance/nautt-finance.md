@@ -2,8 +2,8 @@
 
 - **Ingested:** 2026-07-13
 - **Raw source:** `researches/nautt-finance/raw/`
-- **Feeds:** [[categories/applications/qr-pagamentos/specs/nautt-finance-integration|Nautt Finance integration]] - follow before planning provider operations.
-- **Product boundary:** [[categories/applications/qr-pagamentos/specs/product-scope|Product scope]] - follow when provider behavior affects checkout or administration.
+- **Feeds:** [[specs/nautt-finance-integration|Nautt Finance integration]] - follow before planning provider operations.
+- **Product boundary:** [[specs/product-scope|Product scope]] - follow when provider behavior affects checkout or administration.
 
 ## Direct answer: PIX QR Code
 
@@ -65,9 +65,9 @@
 
 ## Contradictions and inconsistencies
 
-> Contradiz: [[categories/applications/qr-pagamentos/specs/nautt-finance-integration|Nautt Finance integration]] - the current "only" boundary omits pricing, but pricing is a mandatory preparatory call because onramp creation requires its `quote_uuid`.
+> Contradiz: [[specs/nautt-finance-integration|Nautt Finance integration]] - the current "only" boundary omits pricing, but pricing is a mandatory preparatory call because onramp creation requires its `quote_uuid`.
 
-> Contradiz: [[categories/applications/qr-pagamentos/notes/decisions/2026-07-13-project-foundation|Project foundation decisions]] - the original boundary lists order opening/query and webhooks only; the later UUID decision explicitly admits pricing as a required preparatory operation.
+> Contradiz: [[notes/decisions/2026-07-13-project-foundation|Project foundation decisions]] - the original boundary lists order opening/query and webhooks only; the later UUID decision explicitly admits pricing as a required preparatory operation.
 
 - The sandbox guide says `api-stage.nauttfinance.com`, while webhook examples use `stage.nauttfinance.com`; the correct host requires confirmation (`raw/index.md:5-8`; `raw/webhook-registering.md:107-124`).
 - Webhook events use `completed` and `failed`, while order states use `finished` and do not list `failed`; mapping is undefined.

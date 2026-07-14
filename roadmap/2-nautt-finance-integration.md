@@ -1,6 +1,6 @@
 # Epoch 2 - Nautt Finance integration
 
-- **Project:** [[categories/applications/qr-pagamentos/PROJECT|QR Pagamentos]]
+- **Project:** [[PROJECT|QR Pagamentos]]
 - **Status:** pendente
 - **Description:** Onboard API keys with main-wallet balance, then provide pricing, orders, polling, and central webhooks without Nautt-hosted links.
 

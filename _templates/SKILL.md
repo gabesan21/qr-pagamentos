@@ -1,6 +1,6 @@
 # Skill — <nome-da-skill>
 
-- **Projeto:** [[categories/<categoria>/<projeto>/PROJECT|<Nome do projeto>]]
+- **Projeto:** [[PROJECT|<Nome do projeto>]]
 - **Quando usar:** uma frase — o gatilho que indica que esta skill se aplica.
 
 ## Procedimento

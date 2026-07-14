@@ -1,7 +1,7 @@
 # Spec - Product scope
 
-- **Project:** [[categories/applications/qr-pagamentos/PROJECT|QR Pagamentos]]
-- **Epoch/Phase:** [[categories/applications/qr-pagamentos/ROADMAP|Epochs 1-5]]
+- **Project:** [[PROJECT|QR Pagamentos]]
+- **Epoch/Phase:** [[ROADMAP|Epochs 1-5]]
 - **Status:** rascunho
 - **Created:** 2026-07-13
 
@@ -41,5 +41,5 @@ This spec defines the user-visible MVP boundaries for QR Pagamentos. Detailed pr
 
 ## Related specs
 
-- [[categories/applications/qr-pagamentos/specs/administrative-foundation|Administrative foundation]] - follow when implementing runtime, users, settings, or the initial admin UI.
-- [[categories/applications/qr-pagamentos/specs/nautt-finance-integration|Nautt Finance integration]] - follow when work touches API credentials, orders, polling, or webhooks.
+- [[specs/administrative-foundation|Administrative foundation]] - follow when implementing runtime, users, settings, or the initial admin UI.
+- [[specs/nautt-finance-integration|Nautt Finance integration]] - follow when work touches API credentials, orders, polling, or webhooks.
