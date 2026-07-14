@@ -21,6 +21,7 @@
 - Never use `db push`; create and review a new versioned migration instead.
 - Keep deterministic names for database constraints that verification asserts.
 - The foundation fixture is infrastructure proof only; never attach domain semantics or routes to it.
+- `deployment_bootstrap` is an immutable no-FK locator for the originally seeded UUID; never retarget it, add a user FK, or make it block ordinary user mutation/deletion.
 
 ## Verification
 
