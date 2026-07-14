@@ -2,7 +2,7 @@
 
 - **Project:** [[PROJECT|QR Pagamentos]] - read for product and harness decisions.
 - **Roadmap:** [[ROADMAP|Roadmap]] - read for epoch boundaries.
-- **Status:** pendente
+- **Status:** em andamento
 - **Description:** Establish the self-hosted runtime, identity, access control, global settings, and bilingual admin shell.
 - **Pause if:** first-party authentication cannot satisfy revocation, authorization, and session-security acceptance tests without revisiting the no-library constraint.
 
@@ -15,16 +15,16 @@
 
 ## Phase 1.1 - Reproducible platform baseline
 
-- **Status:** pendente
+- **Status:** em andamento
 - **Description:** A clean clone builds, tests, migrates, and starts Next.js with PostgreSQL through production-oriented Docker commands.
 - **Yolo:** yes
 - **Specs:** [[specs/administrative-foundation|Administrative foundation]] - follow for runtime acceptance boundaries.
 
 | Task | Description | Status |
 |------|-------------|--------|
-| `1.1.1-scaffold-next-platform` | Create the typed Next.js/pnpm baseline, quality commands, health endpoint, and root DOX contract. | não iniciada |
-| `1.1.2-establish-prisma-database` | Add Prisma, PostgreSQL constraints, versioned migrations, and isolated migration/runtime roles. | não iniciada |
-| `1.1.3-containerize-self-hosted-runtime` | Deliver non-root production images and Compose startup ordered by database health and migrations. | não iniciada |
+| [[1.1.1-scaffold-next-platform]] | Create the typed Next.js/pnpm baseline, quality commands, health endpoint, and root DOX contract. | concluída |
+| [[1.1.2-establish-prisma-database]] | Add Prisma, PostgreSQL constraints, versioned migrations, and isolated migration/runtime roles. | concluída |
+| [[1.1.3-containerize-self-hosted-runtime]] | Deliver non-root production images and Compose startup ordered by database health and migrations. | 005_verifying |
 
 ## Phase 1.2 - Local identity and access
 
