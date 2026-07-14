@@ -53,7 +53,7 @@ if (docsIndex >= 0) {
   const changed = run("git", ["diff", "--name-only", range]).split(/\r?\n/);
   for (const path of ["Dockerfile", "compose.yaml", "container/runtime.mjs", "README.md", "AGENTS.md"]) assert(changed.includes(path), `${path} missing from committed task range`);
   const readme = await readFile("README.md", "utf8");
-  for (const text of ["Production container startup", "container:prepare-secrets", "docker compose ps", "docker compose logs", "docker compose stop", "Rollback without deleting data", "Test-only destructive cleanup", "Critical verification in 005", "/api/health", "127.0.0.1"]) assert(readme.includes(text), `README missing ${text}`);
+  for (const text of ["Production container startup", "container:prepare-secrets", "docker compose --env-file .env.compose ps", "docker compose --env-file .env.compose logs", "docker compose --env-file .env.compose stop", "Rollback without deleting data", "Test-only destructive cleanup", "Critical verification in 005", "/api/health", "127.0.0.1"]) assert(readme.includes(text), `README missing ${text}`);
   console.log("PASS container-documentation");
   const rootDox = await readFile("AGENTS.md", "utf8");
   const prismaDox = await readFile("prisma/AGENTS.md", "utf8");
