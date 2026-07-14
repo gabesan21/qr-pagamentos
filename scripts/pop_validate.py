@@ -36,7 +36,7 @@ WIKILINK = re.compile(r"!?\[\[([^\]|#^]*)")
 POP_HASH = re.compile(r"<!--\s*pop-hash:\s*(\S+)\s+sha256=([0-9a-fA-F]+)\s*-->")
 INLINE_CODE = re.compile(r"`[^`]*`")
 LINK_SKIP_PARTS = {"external-repository", ".obsidian", ".git", "worktrees",
-                   "__pycache__", "node_modules"}
+                   "__pycache__", "node_modules", "vendor"}
 EXTERNAL_PROJECT_LINK = re.compile(r"\[\[categories/[^/]+/[^/]+/")
 
 
@@ -100,23 +100,17 @@ def note_limit(path):
 
 
 def check_note_sizes(root, projects, violations):
-    """(c) .md de projetos e notas <=150 linhas (planos <=200)."""
-    # A raiz (meta-projeto `pop`) entra pelas pastas de planejamento, não por
-    # rglob total — senão varreria o vault inteiro de novo (e o clone externo).
-    scopes = [p for p in projects if p != root]
-    for extra in ("notes", "researches", "open_questions", "drafts",
-                  "roadmap", "specs", "kanban", "memory"):
-        if (root / extra).is_dir():
-            scopes.append(root / extra)
-    for scope in scopes:
-        for path in sorted(scope.rglob("*.md")):
-            if "worktrees" in path.parts or "_templates" in path.parts:
-                continue
-            if "raw" in path.parts:
-                continue  # fonte bruta de pesquisa: imutável, não é nota
-            if "project" in path.relative_to(scope).parts:
-                continue  # execução/clones: não são notas; repo embutido
-                          # (full-multi-repo) é varrido como escopo próprio
+    """(c) .md de harness <=150 linhas (planos <=200).
+
+    Whitelist positiva (`poplib.iter_harness_markdown`): a régua só alcança as
+    pastas de harness de cada escopo descoberto — nunca arquivos do projeto
+    (código, docs do repo, `project/`, vendor, `node_modules`). Cada repo
+    embutido de `full-multi-repo` entra como escopo próprio, então seu harness
+    é coberto, mas seu código não. A raiz (meta-projeto `pop`) é só mais um
+    escopo, coberta pelas suas próprias pastas de planejamento.
+    """
+    for scope in projects:
+        for path in poplib.iter_harness_markdown(scope):
             limit = note_limit(path)
             if limit is None:
                 continue
@@ -177,10 +171,10 @@ def check_wikilinks(root, warnings):
         targets.update({path.name.lower(), path.stem.lower(), rel})
         if rel.endswith(".md"):
             targets.add(rel[:-3])
-    for path in sorted(root.rglob("*.md")):
-        parts = set(path.relative_to(root).parts)
-        if parts & LINK_SKIP_PARTS or "_templates" in parts or "raw" in parts:
-            continue
+    # Origem restrita ao harness (whitelist): wikilink quebrado em doc de código
+    # ou vendor é ruído, não sinal. A coleta de ALVOS acima segue a árvore toda,
+    # então um link de harness para um arquivo de código continua resolvendo.
+    for path in sorted(poplib.iter_all_harness_markdown(root)):
         if path.name.endswith(".excalidraw.md"):
             continue
         for n, line in lines_outside_fences(path):
