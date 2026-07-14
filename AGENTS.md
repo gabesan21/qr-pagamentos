@@ -5,8 +5,8 @@
 - **Type:** included - see [[TYPES|TYPES]].
 - **Project language:** English - specs, notes, research, code comments, and the entire kanban flow use English.
 - **Supported application languages (i18n):** Brazilian Portuguese (`pt-BR`) and English (`en`).
-- **Project brief:** [[categories/applications/qr-pagamentos/PROJECT|PROJECT]] - read when the task needs product purpose or harness decisions.
-- **Roadmap:** [[categories/applications/qr-pagamentos/ROADMAP|ROADMAP]] - read when selecting or sequencing work.
+- **Project brief:** [[PROJECT|PROJECT]] - read when the task needs product purpose or harness decisions.
+- **Roadmap:** [[ROADMAP|ROADMAP]] - read when selecting or sequencing work.
 
 ## Repository
 

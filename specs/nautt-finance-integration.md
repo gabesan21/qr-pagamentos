@@ -1,7 +1,7 @@
 # Spec - Nautt Finance integration
 
-- **Project:** [[categories/applications/qr-pagamentos/PROJECT|QR Pagamentos]]
-- **Epoch/Phase:** [[categories/applications/qr-pagamentos/roadmap/2-nautt-finance-integration|Epoch 2]]
+- **Project:** [[PROJECT|QR Pagamentos]]
+- **Epoch/Phase:** [[roadmap/2-nautt-finance-integration|Epoch 2]]
 - **Status:** rascunho
 - **Created:** 2026-07-13
 
@@ -43,5 +43,5 @@ This spec defines the allowed boundary between QR Pagamentos and Nautt Finance b
 
 ## Related specs
 
-- [[categories/applications/qr-pagamentos/specs/product-scope|Product scope]] - follow when provider constraints affect user-visible payment behavior.
-- [[categories/applications/qr-pagamentos/researches/nautt-finance/nautt-finance|Nautt Finance API synthesis]] - follow before planning API-key onboarding, balance, pricing, orders, or webhooks.
+- [[specs/product-scope|Product scope]] - follow when provider constraints affect user-visible payment behavior.
+- [[researches/nautt-finance/nautt-finance|Nautt Finance API synthesis]] - follow before planning API-key onboarding, balance, pricing, orders, or webhooks.

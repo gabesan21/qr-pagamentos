@@ -1,10 +1,6 @@
 # QR Pagamentos
 
-- **Category:** [[categories/applications/INDEX|applications]]
-- **Status:** planejando
-- **Priority:** high
-- **Created:** 2026-07-13
-- **Roadmap:** [[categories/applications/qr-pagamentos/ROADMAP|Roadmap]]
+- **Category:** [[applications/qr-pagamentos/ROADMAP|Roadmap]]
 
 ## Objective
 
@@ -20,7 +16,7 @@ This is an `included` project: application code and the complete PoP harness sha
 
 ## Agent harness
 
-- **Type and repository:** declared in [[categories/applications/qr-pagamentos/AGENTS|project AGENTS]]; task PRs target `develop` inside yolo phases and final phase PRs target `main`.
+- **Type and repository:** declared in [[AGENTS|project AGENTS]]; task PRs target `develop` inside yolo phases and final phase PRs target `main`.
 - **Worktree per task:** yes.
 - **Stack:** Next.js full-stack, pnpm, Node.js LTS, Prisma, PostgreSQL, and self-hosted Docker.
 - **Authentication:** local credentials and a simple first-party database session implementation; no external authentication service or framework.

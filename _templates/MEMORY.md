@@ -13,5 +13,5 @@ Resumo da implementação em até **2000 caracteres**: o que mudou e onde, decis
 
 Links com gatilho (1 linha cada — *quando segui-lo*):
 
-- **Spec afetada:** [[categories/<categoria>/<projeto>/specs/<spec>|<spec>]] — *siga se <condição>*.
-- **Learning gerado:** [[categories/<categoria>/<projeto>/notes/learnings/<nota>|<nota>]] — *siga se <condição>*.
+- **Spec afetada:** [[specs/<spec>|<spec>]] — *siga se <condição>*.
+- **Learning gerado:** [[notes/learnings/<nota>|<nota>]] — *siga se <condição>*.

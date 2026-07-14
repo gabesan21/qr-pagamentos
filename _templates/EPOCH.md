@@ -2,7 +2,7 @@
 
 > Blockquotes deste template são instruções de preenchimento — **apague-os ao preencher**.
 
-- **Projeto:** [[categories/<categoria>/<projeto>/PROJECT|<Nome do projeto>]] · **Roadmap:** [[categories/<categoria>/<projeto>/ROADMAP|Roadmap]]
+- **Projeto:** [[PROJECT|<Nome do projeto>]] · **Roadmap:** [[ROADMAP|Roadmap]]
 - **Status:** pendente | em andamento | concluída
 - **Descrição:** uma linha — o que este capítulo entrega.
 - **Yolo:** sim | não — bullet **opcional** (ausente = não); só o humano marca.
@@ -15,7 +15,7 @@
 
 > Pesquisas em `researches/` que embasaram o detalhamento; o que ficou sem resposta é RECON NEEDED, com o check que resolve. Forks: mudanças de rota pré-identificadas.
 
-- [[categories/<categoria>/<projeto>/researches/<assunto>/<nota>|<assunto>]] — o que estabeleceu, em uma linha.
+- [[researches/<assunto>/<nota>|<assunto>]] — o que estabeleceu, em uma linha.
 - [ ] RECON NEEDED: <suposição> — check: <pesquisa/experimento/task que resolve>.
 - Fork: se <observação/conclusão X> → <o que muda na epoch, em uma linha>.
 
@@ -24,7 +24,7 @@
 - **Status:** pendente | em andamento | concluída
 - **Descrição:** uma linha.
 - **Yolo:** sim | não — bullet **opcional** (ausente = herda da epoch).
-- **Specs:** [[categories/<categoria>/<projeto>/specs/<spec>|<spec>]]
+- **Specs:** [[specs/<spec>|<spec>]]
 
 | Task | Descrição (≤1 linha) | Status |
 |------|----------------------|--------|
