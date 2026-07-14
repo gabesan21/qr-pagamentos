@@ -10,6 +10,7 @@ function run(command, args) {
 
 const dockerfile = await readFile("Dockerfile", "utf8");
 const compose = await readFile("compose.yaml", "utf8");
+const recoveryCompose = await readFile("compose.recovery.yaml", "utf8");
 const nextConfig = await readFile("next.config.ts", "utf8");
 const pairs = [
   { tag: "node:24.18.0-bookworm-slim", source: dockerfile },
@@ -38,6 +39,11 @@ assert(!/ARG\s+.*(?:PASSWORD|SECRET|DATABASE_URL)|ENV\s+.*(?:PASSWORD|SECRET)/i.
 for (const expected of ["service_healthy", "service_completed_successfully", "/var/lib/postgresql", "127.0.0.1:${APP_PORT:-3000}:3000", "read_only: true", 'user: "1000:1000"']) {
   assert(compose.includes(expected), `Compose lost ${expected}`);
 }
+for (const expected of ["identity-seed", "initial_admin_email", "initial_admin_password", "container/identity-admin.mjs", "recover-initial-admin", "INITIAL_ADMIN_RECOVERY_PASSWORD_FILE"]) {
+  assert(compose.includes(expected) || recoveryCompose.includes(expected), `Identity Compose contract lost ${expected}`);
+}
+assert(!compose.includes("initial_admin_recovery_password"), "Base Compose must not require the recovery secret");
+assert(recoveryCompose.includes("profiles: [\"recovery\"]"), "Recovery service must remain opt-in");
 assert(!/5432:5432|ports:\s*\n\s*-.*5432/m.test(compose), "database port must not be published");
 assert(!compose.includes("MIGRATION_DATABASE_URL:") && !compose.includes("DATABASE_URL:"), "Compose must not render credential URLs");
 const bootstrap = await readFile("container/bootstrap.mjs", "utf8");

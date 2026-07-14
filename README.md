@@ -29,7 +29,7 @@ pnpm container:test --clean-clone --scenario happy
 
 `pnpm check` runs typechecking, linting, tests, and the production build. The explicit application routes are `/pt-BR` and `/en`.
 
-`GET /api/health` is an unlocalized liveness probe. It returns HTTP 200, `Cache-Control: no-store`, and exactly `{"status":"ok"}`. Database and migration readiness remain deferred to tasks 1.1.2 and 1.1.3.
+`GET /api/health` is an unlocalized liveness probe. It returns HTTP 200, `Cache-Control: no-store`, and exactly `{"status":"ok"}`. Database, migration, and identity-seed readiness are separate startup gates.
 
 ## Database foundation
 
@@ -49,11 +49,21 @@ With Docker Engine and the Compose v2 plugin already installed (see Prerequisite
 
 ```sh
 cp install/.env.example install/.env
-# Edit install/.env and replace all three password placeholders.
+# Replace all password placeholders and set the real initial-admin email.
 install/install.sh
 ```
 
-`install/.env` contains `APP_PORT`, `POSTGRES_ADMIN_PASSWORD`, `MIGRATOR_PASSWORD`, and `RUNTIME_PASSWORD`. It is ignored by Git. The installer materializes ignored protected secret files for Compose; no external password-file preparation is required. `install/uninstall.sh` removes application containers while preserving the PostgreSQL volume. Data deletion is a separate explicit operation:
+`install/.env` also requires the non-secret `INITIAL_ADMIN_EMAIL`. The installer canonicalizes that address, generates the initial administrator password once, and reports only its protected path: `.install-secrets/initial_admin_password`. The deployment seed creates exactly one active `ADMIN` after migrations; reruns use its immutable deployment UUID and never retarget it when the configured email changes. All generated files are ignored by Git and mounted read-only for the one-shot job.
+
+Server-side recovery is explicit and file-only. It restores the originally seeded UUID to active `ADMIN` and rotates its credential without using email, creating another user, or exposing the password in arguments, environment variables, or output:
+
+```sh
+install/install.sh --recover-initial-admin
+```
+
+On success the retry-stable candidate replaces `.install-secrets/initial_admin_password`; on failure it remains protected for the identical retry. Recovery aborts if the original UUID was deleted. Email delivery, public reset, login, sessions, and MFA are not part of this slice.
+
+`install/uninstall.sh` removes application containers while preserving the PostgreSQL volume. Data deletion is a separate explicit operation:
 
 ```sh
 install/uninstall.sh
@@ -63,14 +73,16 @@ install/uninstall.sh --purge-data
 ```sh
 cp .env.compose.example .env.compose
 chmod 0600 /absolute/path/to/postgres-admin-password /absolute/path/to/qr-migrator-password /absolute/path/to/qr-runtime-password
+# Also prepare mode-0600 canonical-email and generated initial-password files,
+# then set their absolute paths in .env.compose.
 pnpm container:prepare-secrets -- --env-file .env.compose
 docker compose --env-file .env.compose build --pull
 docker compose --env-file .env.compose up -d
 docker compose --env-file .env.compose ps
-docker compose --env-file .env.compose logs --no-color bootstrap migrate app
+docker compose --env-file .env.compose logs --no-color bootstrap migrate identity-seed app
 ```
 
-Only the application is published, on `127.0.0.1:${APP_PORT}`. PostgreSQL and the one-shot jobs have no host ports. A healthy `db` means PostgreSQL accepts readiness probes; successful `bootstrap` and `migrate` exits prove their one-shot gates; application logs must show `PASS runtime-db-preflight` before bind; `GET /api/health` then proves only the Next.js process is live. The app and database run non-root after official PostgreSQL initialization.
+Only the application is published, on `127.0.0.1:${APP_PORT}`. PostgreSQL and the one-shot jobs have no host ports. A healthy `db` means PostgreSQL accepts readiness probes; successful `bootstrap`, `migrate`, and `identity-seed` exits prove their one-shot gates; application logs must show `PASS runtime-db-preflight` before bind; `GET /api/health` then proves only the Next.js process is live. The app and database run non-root after official PostgreSQL initialization.
 
 Inspect or stop the deployment without deleting operator data:
 

@@ -121,7 +121,7 @@ try {
   const migrationEnv = { ...process.env, MIGRATION_DATABASE_URL: migratorUrl };
   delete migrationEnv.DATABASE_URL;
   const firstDeploy = run("pnpm", ["exec", "prisma", "migrate", "deploy"], { env: migrationEnv });
-  assert(firstDeploy.includes("1 migration found"), "Fresh deploy did not discover exactly one migration");
+  assert(firstDeploy.includes("2 migrations found"), "Fresh deploy did not discover exactly two migrations");
 
   const admin = new Client({ connectionString: adminUrl });
   await admin.connect();
@@ -129,11 +129,14 @@ try {
     SELECT migration_name, checksum, finished_at IS NOT NULL AS finished, rolled_back_at
     FROM app._prisma_migrations
   `);
-  const migrationSql = await readFile("prisma/migrations/20260714000000_foundation_baseline/migration.sql");
-  const checksum = createHash("sha256").update(migrationSql).digest("hex");
-  assert(history.rows.length === 1, "Migration history must contain exactly one row");
-  assert(history.rows[0].migration_name === "20260714000000_foundation_baseline", "Unexpected migration history name");
-  assert(history.rows[0].checksum === checksum && history.rows[0].finished && history.rows[0].rolled_back_at === null, "Migration checksum/state mismatch");
+  const expectedMigrations = ["20260714000000_foundation_baseline", "20260714190000_local_identities"];
+  assert(history.rows.length === expectedMigrations.length, "Migration history row count changed");
+  for (const migrationName of expectedMigrations) {
+    const migrationSql = await readFile(`prisma/migrations/${migrationName}/migration.sql`);
+    const checksum = createHash("sha256").update(migrationSql).digest("hex");
+    const row = history.rows.find((candidate) => candidate.migration_name === migrationName);
+    assert(row?.checksum === checksum && row.finished && row.rolled_back_at === null, `Migration checksum/state mismatch for ${migrationName}`);
+  }
   console.log("PASS migration-replay");
 
   const secondDeploy = run("pnpm", ["exec", "prisma", "migrate", "deploy"], { env: migrationEnv });
@@ -187,11 +190,38 @@ try {
   await expectSqlState(runtime, `INSERT INTO app._database_foundation_fixture (key, quantity) VALUES ('negative', -1)`, { code: "23514", constraint: "database_foundation_fixture_quantity_nonnegative" });
   console.log("PASS constraint-sqlstates");
 
+  const userId = randomUUID();
+  const otherUserId = randomUUID();
+  const missingUserId = randomUUID();
+  const passwordHash = "scrypt$v=1$N=131072,r=8,p=1$AAECAwQFBgcICQoLDA0ODw$GylG2nH0EXnoO5ncM4QtFXQbh8QSHIx_N4HB34ZPtYs";
+  await runtime.query(`INSERT INTO app."user" (id, email, role, status) VALUES ($1, 'admin@example.com', 'ADMIN', 'ACTIVE')`, [userId]);
+  await runtime.query(`INSERT INTO app.password_credential (user_id, password_hash) VALUES ($1, $2)`, [userId, passwordHash]);
+  await runtime.query(`INSERT INTO app.deployment_bootstrap (id, initial_admin_user_id) VALUES (1, $1)`, [userId]);
+  await expectSqlState(runtime, `INSERT INTO app."user" (id, email, role, status) VALUES ('${otherUserId}', 'admin@example.com', 'USER', 'ACTIVE')`, { code: "23505", constraint: "user_email_key" });
+  await expectSqlState(runtime, `INSERT INTO app."user" (id, email, role, status) VALUES ('${otherUserId}', 'Admin@example.com', 'USER', 'ACTIVE')`, { code: "23514", constraint: "user_email_canonical" });
+  await expectSqlState(runtime, `INSERT INTO app."user" (id, email, role, status) VALUES ('${otherUserId}', 'other@example.com', 'OWNER', 'ACTIVE')`, { code: "23514", constraint: "user_role_closed" });
+  await expectSqlState(runtime, `INSERT INTO app."user" (id, email, role, status) VALUES ('${otherUserId}', 'other@example.com', 'USER', 'LOCKED')`, { code: "23514", constraint: "user_status_closed" });
+  await expectSqlState(runtime, `INSERT INTO app.password_credential (user_id, password_hash) VALUES ('${missingUserId}', '${passwordHash}')`, { code: "23503", constraint: "password_credential_user_fkey" });
+  await expectSqlState(runtime, `UPDATE app.password_credential SET password_hash = 'not-a-credential' WHERE user_id = '${userId}'`, { code: "23514", constraint: "password_credential_hash_format" });
+  await expectSqlState(runtime, `INSERT INTO app.deployment_bootstrap (id, initial_admin_user_id) VALUES (2, '${userId}')`, { code: "23514", constraint: "deployment_bootstrap_singleton" });
+  await expectSqlState(runtime, `UPDATE app.deployment_bootstrap SET initial_admin_user_id = '${otherUserId}' WHERE id = 1`, { code: "23514" });
+  await expectSqlState(runtime, `DELETE FROM app.deployment_bootstrap WHERE id = 1`, { code: "23514" });
+  await runtime.query(`UPDATE app."user" SET role = 'USER', status = 'DISABLED' WHERE id = $1`, [userId]);
+  await runtime.query(`DELETE FROM app."user" WHERE id = $1`, [userId]);
+  const locator = await runtime.query(`SELECT b.initial_admin_user_id, u.id AS resolved_user_id FROM app.deployment_bootstrap b LEFT JOIN app."user" u ON u.id = b.initial_admin_user_id WHERE b.id = 1`);
+  assert(locator.rows.length === 1 && locator.rows[0].initial_admin_user_id === userId && locator.rows[0].resolved_user_id === null, "Deleted identity did not leave an unresolved immutable locator");
+  console.log("PASS identity-constraints");
+  console.log("PASS deployment-locator-immutability");
+  console.log("PASS user-lifecycle-with-tombstone");
+
   const privilege = await runtime.query(`
     SELECT current_user,
       has_schema_privilege(current_user, 'app', 'USAGE') AS schema_usage,
       has_schema_privilege(current_user, 'app', 'CREATE') AS schema_create,
       has_table_privilege(current_user, 'app._database_foundation_fixture', 'SELECT,INSERT,UPDATE,DELETE') AS table_dml,
+      has_table_privilege(current_user, 'app.user', 'SELECT,INSERT,UPDATE,DELETE') AS user_dml,
+      has_table_privilege(current_user, 'app.password_credential', 'SELECT,INSERT,UPDATE,DELETE') AS credential_dml,
+      has_table_privilege(current_user, 'app.deployment_bootstrap', 'SELECT,INSERT,UPDATE,DELETE') AS bootstrap_dml,
       has_table_privilege(current_user, 'app._database_foundation_fixture', 'TRUNCATE') AS table_truncate,
       has_table_privilege(current_user, 'app._database_foundation_fixture', 'REFERENCES') AS table_references,
       has_table_privilege(current_user, 'app._database_foundation_fixture', 'TRIGGER') AS table_trigger,
@@ -204,7 +234,7 @@ try {
       pg_has_role(current_user, 'qr_migrator', 'SET') AS migrator_set
   `);
   const acl = privilege.rows[0];
-  assert(acl.current_user === "qr_runtime" && acl.schema_usage && acl.table_dml && acl.sequence_usage, "Runtime lacks intended privileges");
+  assert(acl.current_user === "qr_runtime" && acl.schema_usage && acl.table_dml && acl.user_dml && acl.credential_dml && acl.bootstrap_dml && acl.sequence_usage, "Runtime lacks intended privileges");
   assert(!acl.schema_create && !acl.table_truncate && !acl.table_references && !acl.table_trigger && !acl.table_maintain && !acl.sequence_select && !acl.sequence_update && !acl.migration_access && !acl.migrator_member && !acl.migrator_set, "Runtime has excess privileges");
   const ownership = await admin.query(`
     SELECT

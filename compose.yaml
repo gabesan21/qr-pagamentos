@@ -60,6 +60,28 @@ services:
         condition: service_completed_successfully
     restart: "no"
 
+  identity-seed:
+    build:
+      context: .
+      target: db-ops
+    command: ["container/identity-admin.mjs", "seed"]
+    user: "1000:1000"
+    environment:
+      POSTGRES_HOST: db
+    secrets:
+      - source: runtime_password
+        target: runtime_password
+      - source: initial_admin_email
+        target: initial_admin_email
+      - source: initial_admin_password
+        target: initial_admin_password
+    networks:
+      - database
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: "no"
+
   app:
     build:
       context: .
@@ -81,7 +103,7 @@ services:
     ports:
       - "127.0.0.1:${APP_PORT:-3000}:3000"
     depends_on:
-      migrate:
+      identity-seed:
         condition: service_completed_successfully
     restart: unless-stopped
 
@@ -102,3 +124,7 @@ secrets:
     file: ${STAGED_SECRETS_DIR:-.container-secrets}/migrator_password
   runtime_password:
     file: ${STAGED_SECRETS_DIR:-.container-secrets}/runtime_password
+  initial_admin_email:
+    file: ${STAGED_SECRETS_DIR:-.container-secrets}/initial_admin_email
+  initial_admin_password:
+    file: ${STAGED_SECRETS_DIR:-.container-secrets}/initial_admin_password

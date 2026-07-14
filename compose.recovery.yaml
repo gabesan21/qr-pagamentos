@@ -1,0 +1,22 @@
+services:
+  identity-recovery:
+    profiles: ["recovery"]
+    build:
+      context: .
+      target: db-ops
+    command: ["container/identity-admin.mjs", "recover-initial-admin"]
+    user: "1000:1000"
+    environment:
+      POSTGRES_HOST: db
+    secrets:
+      - source: runtime_password
+        target: runtime_password
+      - source: initial_admin_recovery_password
+        target: initial_admin_recovery_password
+    networks:
+      - database
+    restart: "no"
+
+secrets:
+  initial_admin_recovery_password:
+    file: ${INITIAL_ADMIN_RECOVERY_PASSWORD_FILE:?set INITIAL_ADMIN_RECOVERY_PASSWORD_FILE}

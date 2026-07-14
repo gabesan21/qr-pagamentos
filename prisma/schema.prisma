@@ -17,3 +17,36 @@ model DatabaseFoundationFixture {
   @@map("_database_foundation_fixture")
   @@schema("app")
 }
+
+model User {
+  id         String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email      String              @unique(map: "user_email_key") @db.VarChar(254)
+  role       String              @db.VarChar(5)
+  status     String              @default("ACTIVE") @db.VarChar(8)
+  createdAt  DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt  DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  credential PasswordCredential?
+
+  @@map("user")
+  @@schema("app")
+}
+
+model PasswordCredential {
+  userId       String   @id @map("user_id") @db.Uuid
+  passwordHash String   @map("password_hash") @db.VarChar(128)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("password_credential")
+  @@schema("app")
+}
+
+model DeploymentBootstrap {
+  id                 Int      @id @db.SmallInt
+  initialAdminUserId String   @map("initial_admin_user_id") @db.Uuid
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@map("deployment_bootstrap")
+  @@schema("app")
+}

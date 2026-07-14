@@ -24,6 +24,7 @@ COPY --from=dependencies --chown=1000:1000 /workspace/node_modules ./node_module
 COPY --chown=1000:1000 package.json pnpm-lock.yaml pnpm-workspace.yaml prisma.config.ts ./
 COPY --chown=1000:1000 prisma ./prisma
 COPY --chown=1000:1000 container ./container
+COPY --chown=1000:1000 src/auth ./src/auth
 USER 1000:1000
 ENTRYPOINT ["node"]
 

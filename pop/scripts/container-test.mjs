@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { chmod, mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
+import { chmod, copyFile, mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import http from "node:http";
@@ -18,7 +18,7 @@ const delay = (milliseconds) => new Promise((resolve) => setTimeout(resolve, mil
 
 const scenarioIndex = process.argv.indexOf("--scenario");
 const scenario = scenarioIndex >= 0 ? process.argv[scenarioIndex + 1] : "happy";
-const allowed = new Set(["build", "config", "happy", "roles", "failures", "lifecycle", "isolation"]);
+const allowed = new Set(["build", "config", "happy", "roles", "failures", "lifecycle", "isolation", "identity-seed", "identity-recovery"]);
 assert(allowed.has(scenario), `unknown scenario ${scenario}`);
 
 if (process.argv.includes("--clean-clone") && !process.env.CONTAINER_TEST_CLEAN_CLONE) {
@@ -50,18 +50,28 @@ if (process.argv.includes("--clean-clone") && !process.env.CONTAINER_TEST_CLEAN_
     admin: `Adm!n:/?#[]@-${token}`,
     migrator: `Mig!r:/?#[]@-${token}`,
     runtime: `Run!t:/?#[]@-${token}`,
+    initial: `Initial-Admin-${token}-Password`,
   };
   const files = Object.fromEntries(Object.keys(values).map((name) => [name, path.join(sources, name)]));
   for (const name of Object.keys(values)) {
     await writeFile(files[name], `${values[name]}\n`, { mode: 0o600 });
     await chmod(files[name], 0o600);
   }
+  const emailFile = path.join(sources, "initial-email");
+  const recoveryFile = path.join(sources, "recovery");
+  await writeFile(emailFile, "admin@example.com\n", { mode: 0o600 });
+  await writeFile(recoveryFile, `Recovery-${token}-Password\n`, { mode: 0o600 });
+  await chmod(emailFile, 0o600);
+  await chmod(recoveryFile, 0o600);
   const env = {
     ...process.env,
     APP_PORT: "0",
     POSTGRES_ADMIN_PASSWORD_FILE: files.admin,
     MIGRATOR_PASSWORD_FILE: files.migrator,
     RUNTIME_PASSWORD_FILE: files.runtime,
+    INITIAL_ADMIN_EMAIL_FILE: emailFile,
+    INITIAL_ADMIN_PASSWORD_FILE: files.initial,
+    INITIAL_ADMIN_RECOVERY_PASSWORD_FILE: path.join(staged, "initial_admin_recovery_password"),
     STAGED_SECRETS_DIR: staged,
   };
   const compose = (args, options = {}) => {
@@ -74,10 +84,13 @@ if (process.argv.includes("--clean-clone") && !process.env.CONTAINER_TEST_CLEAN_
     return output;
   };
   const composeResult = (args) => execute("docker", ["compose", "-p", project, "-f", "compose.yaml", ...args], { env });
+  const recoveryComposeResult = (args) => execute("docker", ["compose", "-p", project, "-f", "compose.yaml", "-f", "compose.recovery.yaml", ...args], { env });
   let captured = "";
 
   async function prepare() {
     captured += run(process.execPath, ["pop/scripts/container-prepare-secrets.mjs"], { env });
+    await copyFile(recoveryFile, env.INITIAL_ADMIN_RECOVERY_PASSWORD_FILE);
+    await chmod(env.INITIAL_ADMIN_RECOVERY_PASSWORD_FILE, 0o400);
   }
   async function waitForApp() {
     const id = compose(["ps", "-q", "app"]).trim();
@@ -108,7 +121,7 @@ if (process.argv.includes("--clean-clone") && !process.env.CONTAINER_TEST_CLEAN_
   function containerId(service) { return compose(["ps", "-a", "-q", service]).trim(); }
   function inspectField(id, field) { return run("docker", ["inspect", "--format", field, id]).trim(); }
   function assertRedacted(text) {
-    for (const value of Object.values(values)) {
+    for (const value of [...Object.values(values), `Recovery-${token}-Password`]) {
       assert(!text.includes(value), "raw secret sentinel leaked");
       assert(!text.includes(encodeURIComponent(value)), "encoded secret sentinel leaked");
     }
@@ -119,11 +132,14 @@ if (process.argv.includes("--clean-clone") && !process.env.CONTAINER_TEST_CLEAN_
     const appId = await waitForApp();
     const bootstrapId = containerId("bootstrap");
     const migrateId = containerId("migrate");
+    const identitySeedId = containerId("identity-seed");
     assert(inspectField(bootstrapId, "{{.State.ExitCode}}") === "0", "bootstrap did not exit zero");
     assert(inspectField(migrateId, "{{.State.ExitCode}}") === "0", "migration did not exit zero");
+    assert(inspectField(identitySeedId, "{{.State.ExitCode}}") === "0", "identity seed did not exit zero");
     captured += compose(["logs", "--no-color"]);
     assert(captured.includes("PASS bootstrap"), "bootstrap pass evidence missing");
     assert(captured.includes("PASS migration"), "migration pass evidence missing");
+    assert(captured.includes("PASS identity-seed"), "identity seed pass evidence missing");
     assert(captured.includes("PASS runtime-db-preflight"), "runtime preflight evidence missing");
     const health = await get("/api/health");
     assert(health.status === 200 && health.body === '{"status":"ok"}', "application liveness contract failed");
@@ -137,10 +153,11 @@ if (process.argv.includes("--clean-clone") && !process.env.CONTAINER_TEST_CLEAN_
     console.log("PASS postgres-server-nonroot");
     console.log("PASS bootstrap");
     console.log("PASS migration");
+    console.log("PASS identity-seed");
     console.log("PASS runtime-db-preflight");
     console.log("PASS app-liveness");
     console.log("PASS static-assets");
-    return { appId, bootstrapId, migrateId, dbId };
+    return { appId, bootstrapId, migrateId, identitySeedId, dbId };
   }
 
   try {
@@ -151,7 +168,8 @@ if (process.argv.includes("--clean-clone") && !process.env.CONTAINER_TEST_CLEAN_
       assert(model.services.db.ports === undefined, "database port exposed");
       assert(model.services.bootstrap.depends_on.db.condition === "service_healthy", "bootstrap gate changed");
       assert(model.services.migrate.depends_on.bootstrap.condition === "service_completed_successfully", "migration gate changed");
-      assert(model.services.app.depends_on.migrate.condition === "service_completed_successfully", "app gate changed");
+      assert(model.services["identity-seed"].depends_on.migrate.condition === "service_completed_successfully", "identity seed gate changed");
+      assert(model.services.app.depends_on["identity-seed"].condition === "service_completed_successfully", "app gate changed");
       assert(Object.keys(model.services.db.secrets).length === 1, "DB secret grant changed");
       console.log("PASS source-secret-permissions");
       console.log("PASS staged-secret-permissions");
@@ -240,6 +258,37 @@ if (process.argv.includes("--clean-clone") && !process.env.CONTAINER_TEST_CLEAN_
       console.log("PASS secret-isolation");
       console.log("PASS no-secret-logs");
       console.log("PASS port-isolation");
+    } else if (scenario === "identity-seed") {
+      const { dbId } = await startHappy();
+      const sql = (statement) => run("docker", ["exec", dbId, "psql", "-U", "postgres", "-d", "qr_pagamentos", "-Atc", statement]).trim();
+      const before = sql(`SELECT u.id || '|' || u.email || '|' || u.role || '|' || u.status FROM app.deployment_bootstrap b JOIN app."user" u ON u.id=b.initial_admin_user_id WHERE b.id=1`);
+      assert(before.split("|").slice(1).join("|") === "admin@example.com|ADMIN|ACTIVE", "seeded identity differs");
+      await writeFile(emailFile, "changed@example.com\n", { mode: 0o600 });
+      await chmod(emailFile, 0o600);
+      await prepare();
+      const rerun = composeResult(["run", "--rm", "--no-deps", "identity-seed"]);
+      assert(rerun.status === 0, "identity seed rerun failed");
+      assert(sql(`SELECT u.id || '|' || u.email || '|' || u.role || '|' || u.status FROM app.deployment_bootstrap b JOIN app."user" u ON u.id=b.initial_admin_user_id WHERE b.id=1`) === before, "seed rerun mutated or retargeted identity");
+      assert(sql(`SELECT count(*) FROM app.deployment_bootstrap`) === "1" && sql(`SELECT count(*) FROM app."user"`) === "1", "seed is not singleton/idempotent");
+      assertRedacted(`${rerun.stdout ?? ""}${rerun.stderr ?? ""}`);
+      console.log("PASS identity-seed-idempotence");
+      console.log("PASS identity-email-no-retarget");
+    } else if (scenario === "identity-recovery") {
+      const { dbId } = await startHappy();
+      const sql = (statement) => run("docker", ["exec", dbId, "psql", "-U", "postgres", "-d", "qr_pagamentos", "-Atc", statement]).trim();
+      const userId = sql(`SELECT initial_admin_user_id FROM app.deployment_bootstrap WHERE id=1`);
+      const oldHash = sql(`SELECT password_hash FROM app.password_credential WHERE user_id='${userId}'`);
+      sql(`UPDATE app."user" SET email='renamed@example.com', role='USER', status='DISABLED' WHERE id='${userId}'`);
+      const recovered = recoveryComposeResult(["run", "--rm", "--no-deps", "identity-recovery"]);
+      assert(recovered.status === 0, "identity recovery failed");
+      assert(sql(`SELECT email || '|' || role || '|' || status FROM app."user" WHERE id='${userId}'`) === "renamed@example.com|ADMIN|ACTIVE", "recovery renamed or failed to restore target");
+      assert(sql(`SELECT password_hash FROM app.password_credential WHERE user_id='${userId}'`) !== oldHash, "recovery did not rotate credential");
+      sql(`DELETE FROM app."user" WHERE id='${userId}'`);
+      const missing = recoveryComposeResult(["run", "--rm", "--no-deps", "identity-recovery"]);
+      assert(missing.status !== 0 && sql(`SELECT count(*) FROM app."user"`) === "0", "missing locator target was recreated");
+      assertRedacted(`${recovered.stdout ?? ""}${recovered.stderr ?? ""}${missing.stdout ?? ""}${missing.stderr ?? ""}`);
+      console.log("PASS identity-recovery-uuid-target");
+      console.log("PASS identity-recovery-deleted-target-abort");
     }
   } finally {
     const cleanup = composeResult(["down", "--volumes", "--remove-orphans", "--rmi", "local"]);
