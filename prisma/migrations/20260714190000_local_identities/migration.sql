@@ -1,21 +1,29 @@
 CREATE TABLE "app"."user" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
-    "email" VARCHAR(254) NOT NULL,
+    "username" VARCHAR(32) NOT NULL,
+    "email" VARCHAR(254),
     "role" VARCHAR(5) NOT NULL,
     "status" VARCHAR(8) NOT NULL DEFAULT 'ACTIVE',
     "created_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "user_pkey" PRIMARY KEY ("id"),
+    CONSTRAINT "user_username_key" UNIQUE ("username"),
+    CONSTRAINT "user_username_canonical" CHECK (
+        octet_length("username") BETWEEN 3 AND 32
+        AND "username" = lower("username")
+        AND "username" ~ '^[a-z0-9]+([._-][a-z0-9]+)*$'
+    ),
     CONSTRAINT "user_email_key" UNIQUE ("email"),
     CONSTRAINT "user_email_canonical" CHECK (
+        "email" IS NULL OR (
         octet_length("email") BETWEEN 6 AND 254
         AND "email" = lower("email")
         AND split_part("email", '@', 1) !~ '(^\.|\.\.|\.$)'
         AND octet_length(split_part("email", '@', 2)) BETWEEN 4 AND 253
         AND split_part("email", '@', 2) !~ '(^|\.)-'
         AND split_part("email", '@', 2) !~ '-($|\.)'
-        AND "email" ~ '^[a-z0-9.!#$%&''*+/=?^_`{|}~-]{1,64}@[a-z0-9-]{1,63}(\.[a-z0-9-]{1,63})*\.[a-z]{2,63}$'
+        AND "email" ~ '^[a-z0-9.!#$%&''*+/=?^_`{|}~-]{1,64}@[a-z0-9-]{1,63}(\.[a-z0-9-]{1,63})*\.[a-z]{2,63}$')
     ),
     CONSTRAINT "user_role_closed" CHECK ("role" IN ('ADMIN', 'USER')),
     CONSTRAINT "user_status_closed" CHECK ("status" IN ('ACTIVE', 'DISABLED'))

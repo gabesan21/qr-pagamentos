@@ -42,9 +42,10 @@ for (const constraint of ["database_foundation_fixture_key_key", "database_found
   assert(migration.includes(constraint), `Migration lost ${constraint}`);
 }
 const identityMigration = await readFile("prisma/migrations/20260714190000_local_identities/migration.sql", "utf8");
-for (const contract of ["user_email_canonical", "user_role_closed", "user_status_closed", "password_credential_hash_format", "deployment_bootstrap_singleton", "reject_deployment_bootstrap_mutation", "initial_admin_user_id"]) {
+for (const contract of ["user_username_key", "user_username_canonical", "user_email_key", "user_email_canonical", "user_role_closed", "user_status_closed", "password_credential_hash_format", "deployment_bootstrap_singleton", "reject_deployment_bootstrap_mutation", "initial_admin_user_id"]) {
   assert(identityMigration.includes(contract), `Identity migration lost ${contract}`);
 }
+assert(schema.includes("username   String") && schema.includes("email      String?"), "Prisma identity fields must be required username and nullable email");
 assert(!/FOREIGN KEY \("initial_admin_user_id"\)/.test(identityMigration), "Deployment locator must not have a foreign key");
 
 const bootstrap = await readFile("prisma/bootstrap.sql", "utf8");

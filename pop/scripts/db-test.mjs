@@ -192,15 +192,21 @@ try {
 
   const userId = randomUUID();
   const otherUserId = randomUUID();
+  const thirdUserId = randomUUID();
   const missingUserId = randomUUID();
   const passwordHash = "scrypt$v=1$N=131072,r=8,p=1$AAECAwQFBgcICQoLDA0ODw$GylG2nH0EXnoO5ncM4QtFXQbh8QSHIx_N4HB34ZPtYs";
-  await runtime.query(`INSERT INTO app."user" (id, email, role, status) VALUES ($1, 'admin@example.com', 'ADMIN', 'ACTIVE')`, [userId]);
+  await runtime.query(`INSERT INTO app."user" (id, username, email, role, status) VALUES ($1, 'admin.user', 'admin@example.com', 'ADMIN', 'ACTIVE')`, [userId]);
   await runtime.query(`INSERT INTO app.password_credential (user_id, password_hash) VALUES ($1, $2)`, [userId, passwordHash]);
   await runtime.query(`INSERT INTO app.deployment_bootstrap (id, initial_admin_user_id) VALUES (1, $1)`, [userId]);
-  await expectSqlState(runtime, `INSERT INTO app."user" (id, email, role, status) VALUES ('${otherUserId}', 'admin@example.com', 'USER', 'ACTIVE')`, { code: "23505", constraint: "user_email_key" });
-  await expectSqlState(runtime, `INSERT INTO app."user" (id, email, role, status) VALUES ('${otherUserId}', 'Admin@example.com', 'USER', 'ACTIVE')`, { code: "23514", constraint: "user_email_canonical" });
-  await expectSqlState(runtime, `INSERT INTO app."user" (id, email, role, status) VALUES ('${otherUserId}', 'other@example.com', 'OWNER', 'ACTIVE')`, { code: "23514", constraint: "user_role_closed" });
-  await expectSqlState(runtime, `INSERT INTO app."user" (id, email, role, status) VALUES ('${otherUserId}', 'other@example.com', 'USER', 'LOCKED')`, { code: "23514", constraint: "user_status_closed" });
+  await expectSqlState(runtime, `INSERT INTO app."user" (id, username, email, role, status) VALUES ('${otherUserId}', 'admin.user', NULL, 'USER', 'ACTIVE')`, { code: "23505", constraint: "user_username_key" });
+  await expectSqlState(runtime, `INSERT INTO app."user" (id, username, email, role, status) VALUES ('${otherUserId}', 'Admin.User', NULL, 'USER', 'ACTIVE')`, { code: "23514", constraint: "user_username_canonical" });
+  await expectSqlState(runtime, `INSERT INTO app."user" (id, username, email, role, status) VALUES ('${otherUserId}', 'admin..user', NULL, 'USER', 'ACTIVE')`, { code: "23514", constraint: "user_username_canonical" });
+  await runtime.query(`INSERT INTO app."user" (id, username, email, role, status) VALUES ($1, 'second.user', NULL, 'USER', 'ACTIVE')`, [otherUserId]);
+  await runtime.query(`INSERT INTO app."user" (id, username, email, role, status) VALUES ($1, 'third.user', NULL, 'USER', 'ACTIVE')`, [thirdUserId]);
+  await expectSqlState(runtime, `UPDATE app."user" SET email = 'admin@example.com' WHERE id = '${otherUserId}'`, { code: "23505", constraint: "user_email_key" });
+  await expectSqlState(runtime, `UPDATE app."user" SET email = 'Admin@example.com' WHERE id = '${otherUserId}'`, { code: "23514", constraint: "user_email_canonical" });
+  await expectSqlState(runtime, `UPDATE app."user" SET role = 'OWNER' WHERE id = '${otherUserId}'`, { code: "23514", constraint: "user_role_closed" });
+  await expectSqlState(runtime, `UPDATE app."user" SET status = 'LOCKED' WHERE id = '${otherUserId}'`, { code: "23514", constraint: "user_status_closed" });
   await expectSqlState(runtime, `INSERT INTO app.password_credential (user_id, password_hash) VALUES ('${missingUserId}', '${passwordHash}')`, { code: "23503", constraint: "password_credential_user_fkey" });
   await expectSqlState(runtime, `UPDATE app.password_credential SET password_hash = 'not-a-credential' WHERE user_id = '${userId}'`, { code: "23514", constraint: "password_credential_hash_format" });
   await expectSqlState(runtime, `INSERT INTO app.deployment_bootstrap (id, initial_admin_user_id) VALUES (2, '${userId}')`, { code: "23514", constraint: "deployment_bootstrap_singleton" });

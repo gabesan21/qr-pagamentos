@@ -1,6 +1,7 @@
 import pg from "pg";
+import { readFile } from "node:fs/promises";
 
-import { normalizeEmail, validatePassword } from "../src/auth/identity.ts";
+import { normalizeOptionalEmail, normalizeUsername, validatePassword } from "../src/auth/identity.ts";
 import { hashPassword } from "../src/auth/password.ts";
 import { databaseUrl, readSecret, safeFailure } from "./lib.mjs";
 
@@ -11,6 +12,15 @@ async function readOneLine(path, validator) {
   const value = await readSecret(path);
   if (/[\r\n\0]/.test(value)) throw new Error("invalid identity input");
   return validator(value);
+}
+
+async function readOptionalEmail(path) {
+  const raw = await readFile(path, "utf8");
+  if (raw === "") return null;
+  if (!raw.endsWith("\n") || /[\0\r\n]/.test(raw.slice(0, -1)) || raw.slice(0, -1).includes("\n")) {
+    throw new Error("invalid identity input");
+  }
+  return normalizeOptionalEmail(raw.slice(0, -1));
 }
 
 async function withIdentityLock(operation) {
@@ -31,7 +41,8 @@ async function withIdentityLock(operation) {
 }
 
 async function seed() {
-  const email = await readOneLine("/run/secrets/initial_admin_email", normalizeEmail);
+  const username = await readOneLine("/run/secrets/initial_admin_username", normalizeUsername);
+  const email = await readOptionalEmail("/run/secrets/initial_admin_email");
   const password = await readOneLine("/run/secrets/initial_admin_password", validatePassword);
   const passwordHash = await hashPassword(password);
   await withIdentityLock(async (client) => {
@@ -40,8 +51,8 @@ async function seed() {
     if (locator.rowCount === 0) {
       if (users.rows[0].count !== 0) throw new Error("identity seed state is ambiguous");
       const inserted = await client.query(
-        `INSERT INTO app."user" (email, role, status) VALUES ($1, 'ADMIN', 'ACTIVE') RETURNING id`,
-        [email],
+        `INSERT INTO app."user" (username, email, role, status) VALUES ($1, $2, 'ADMIN', 'ACTIVE') RETURNING id`,
+        [username, email],
       );
       const userId = inserted.rows[0].id;
       await client.query(`INSERT INTO app.password_credential (user_id, password_hash) VALUES ($1, $2)`, [userId, passwordHash]);
