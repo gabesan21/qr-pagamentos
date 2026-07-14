@@ -8,4 +8,11 @@ worktrees/
 # Application artifacts
 node_modules/
 .next/
+out/
+build/
 coverage/
+*.tsbuildinfo
+.vercel/
+.DS_Store
+*.pem
+*.log

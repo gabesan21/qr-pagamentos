@@ -46,7 +46,7 @@ Como a task será executada, em poucos parágrafos. Alternativas descartadas em 
 
 > Montadas **aqui** (rascunho via `write-spec`), aprovadas junto com o gate 003, sincronizadas com as specs do projeto em 006 (`sync-specs`).
 
-- [[categories/<categoria>/<projeto>/specs/<spec>|<spec>]] — o que muda nela, em uma linha.
+- [[specs/<spec>|<spec>]] — o que muda nela, em uma linha.
 
 ## Contexto mínimo do executor
 

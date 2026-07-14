@@ -1,7 +1,7 @@
 # Spec - Administrative foundation
 
-- **Project:** [[categories/applications/qr-pagamentos/PROJECT|QR Pagamentos]]
-- **Epoch/Phase:** [[categories/applications/qr-pagamentos/roadmap/1-administrative-foundation|Epoch 1]]
+- **Project:** [[PROJECT|QR Pagamentos]]
+- **Epoch/Phase:** [[roadmap/1-administrative-foundation|Epoch 1]]
 - **Status:** rascunho
 - **Created:** 2026-07-13
 
@@ -29,7 +29,7 @@ This spec defines the reproducible runtime, local identity boundary, role model,
 
 ## Out of scope
 
-- Nautt credentials, provider orders, polling, and webhooks belong to [[categories/applications/qr-pagamentos/specs/nautt-finance-integration|Nautt Finance integration]].
+- Nautt credentials, provider orders, polling, and webhooks belong to [[specs/nautt-finance-integration|Nautt Finance integration]].
 - Product, payment-link, checkout, and storefront behavior belongs to later epochs.
 - External identity providers and external authentication frameworks are excluded by product decision.
 
@@ -43,5 +43,5 @@ This spec defines the reproducible runtime, local identity boundary, role model,
 
 ## Related specs
 
-- [[categories/applications/qr-pagamentos/specs/product-scope|Product scope]] - follow when an administrative decision changes the MVP boundary.
+- [[specs/product-scope|Product scope]] - follow when an administrative decision changes the MVP boundary.
 - [`AGENTS.md`](../AGENTS.md) - follow before changing the root application structure or DOX contracts.

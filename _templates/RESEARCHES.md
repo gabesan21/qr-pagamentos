@@ -2,14 +2,14 @@
 
 > Blockquotes deste template são instruções de preenchimento — **apague-os ao preencher**.
 
-Ficha: [[categories/<categoria>/<projeto>/PROJECT|<Nome do projeto>]] · Roadmap: [[categories/<categoria>/<projeto>/ROADMAP|Roadmap]]
+Ficha: [[PROJECT|<Nome do projeto>]] · Roadmap: [[ROADMAP|Roadmap]]
 
 > Arquivo **opcional**, ao lado do ROADMAP.md. Prompts de **pesquisa profunda** propostos pelo agente para o **usuário** rodar na ferramenta que preferir (deep research) e depositar o resultado em `researches/<assunto>/`. Pesquisa entregue enriquece o roadmap (recon das epochs), as specs e o projeto em si.
 
 ## <assunto-em-kebab-case>
 
-- **Status:** pendente | entregue → [[categories/<categoria>/<projeto>/researches/<assunto>/<assunto>|síntese]]
-- **Alimenta:** epoch <n> | spec [[categories/<categoria>/<projeto>/specs/<spec>|<spec>]] | RECON NEEDED <qual>
+- **Status:** pendente | entregue → [[researches/<assunto>/<assunto>|síntese]]
+- **Alimenta:** epoch <n> | spec [[specs/<spec>|<spec>]] | RECON NEEDED <qual>
 - **Prompt sugerido:**
 
 > Prompt completo e autocontido: contexto do projeto em 2–3 frases, a pergunta central, o que a resposta precisa cobrir (comparações, fontes, critérios) e o formato esperado do resultado. Deve funcionar colado em qualquer ferramenta de pesquisa, sem este vault por perto.

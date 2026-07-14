@@ -1,6 +1,6 @@
 # Epoch 5 - Storefront and production
 
-- **Project:** [[categories/applications/qr-pagamentos/PROJECT|QR Pagamentos]]
+- **Project:** [[PROJECT|QR Pagamentos]]
 - **Status:** pendente
 - **Description:** Add the optional public storefront, visual customization, hardening, observability, and production release.
 

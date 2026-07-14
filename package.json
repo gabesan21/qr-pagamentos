@@ -1,0 +1,33 @@
+{
+  "name": "qr-pagamentos",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": "24.18.0",
+    "pnpm": "11.13.0"
+  },
+  "packageManager": "pnpm@11.13.0",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm build"
+  },
+  "dependencies": {
+    "next": "16.2.10",
+    "react": "19.2.7",
+    "react-dom": "19.2.7"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.3",
+    "@types/react": "19.2.17",
+    "@types/react-dom": "19.2.3",
+    "eslint": "9.39.5",
+    "eslint-config-next": "16.2.10",
+    "typescript": "5.9.3",
+    "vitest": "4.1.10"
+  }
+}

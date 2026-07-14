@@ -1,6 +1,6 @@
 # Epoch 3 - Catalog and payment links
 
-- **Project:** [[categories/applications/qr-pagamentos/PROJECT|QR Pagamentos]]
+- **Project:** [[PROJECT|QR Pagamentos]]
 - **Status:** pendente
 - **Description:** Manage products, currencies, and active single-use or reusable payment links with one currency each.
 

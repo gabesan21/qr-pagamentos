@@ -2,7 +2,7 @@
 
 Place the original Nautt Finance documentation and examples in `raw/` without rewriting them. Preserve filenames when possible and never add real API keys, webhook secrets, customer data, or production payloads.
 
-After the source files are present, run the PoP `ingest-research` workflow before planning Epoch 2. The resulting synthesis must resolve or retain the open questions in [[categories/applications/qr-pagamentos/specs/nautt-finance-integration|Nautt Finance integration]].
+After the source files are present, run the PoP `ingest-research` workflow before planning Epoch 2. The resulting synthesis must resolve or retain the open questions in [[specs/nautt-finance-integration|Nautt Finance integration]].
 
 Required source coverage:
 

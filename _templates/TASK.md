@@ -22,7 +22,7 @@ updated: AAAA-MM-DD
 
 > Blockquotes deste template são instruções de preenchimento — **apague-os ao preencher**.
 
-- **Phase:** [[categories/<categoria>/<projeto>/roadmap/<n>-<slug-da-epoch>|Phase <n>.<m>]]
+- **Phase:** [[roadmap/<n>-<slug-da-epoch>|Phase <n>.<m>]]
 - **Plano:** [[<id>-<slug>.plan]] · **Aprovação:** [[<id>-<slug>.approval]] · **Verificação:** [[<id>-<slug>.verify]]
 
 ## O quê
@@ -45,9 +45,9 @@ Uma frase: por que agora, e o que destrava.
 
 | Etapa | Skills do projeto | Responsável |
 |-------|-------------------|-------------|
-| 002_planning | [[categories/<categoria>/<projeto>/skills/<skill>\|<skill>]] | agent |
-| 004_processing | [[categories/<categoria>/<projeto>/skills/<skill>\|<skill>]] | agent |
-| 005_verifying | [[categories/<categoria>/<projeto>/skills/<skill>\|<skill>]] | agent |
+| 002_planning | [[skills/<skill>\|<skill>]] | agent |
+| 004_processing | [[skills/<skill>\|<skill>]] | agent |
+| 005_verifying | [[skills/<skill>\|<skill>]] | agent |
 
 ## Dependências
 
@@ -59,7 +59,7 @@ Uma frase: por que agora, e o que destrava.
 
 > Cada link leva 1 linha de gatilho — *quando* vale segui-lo. Link sem gatilho é ignorado com razão.
 
-- **Specs:** [[categories/<categoria>/<projeto>/specs/<spec>|<spec>]] — *siga se <condição>*.
+- **Specs:** [[specs/<spec>|<spec>]] — *siga se <condição>*.
 - **Tasks relacionadas:** [[<id-de-outra-task>]] — *siga se <condição>*.
 
 ## Log
