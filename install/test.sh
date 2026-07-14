@@ -33,6 +33,8 @@ expect_absent "$output" 'sudo'
 expect_absent "$INSTALL_DIR/install.sh" 'SUDO'
 expect_absent "$INSTALL_DIR/uninstall.sh" 'SUDO'
 git -C "$INSTALL_DIR/.." check-ignore -q install/.env || fail 'install/.env is not ignored by Git'
+git -C "$INSTALL_DIR/.." check-ignore -q pop/worktrees/docker-context-probe/src/db/client.ts || \
+  fail 'PoP worktrees are not excluded from the Docker build context'
 
 cp "$TMP/install.env" "$TMP/missing.env"
 sed -i '/RUNTIME_PASSWORD=/d' "$TMP/missing.env"
