@@ -2,7 +2,7 @@
 set -Eeuo pipefail
 
 ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-ENV_FILE="$ROOT_DIR/install/.env.install"
+ENV_FILE="$ROOT_DIR/.env"
 DRY_RUN=false
 PURGE_DATA=false
 REMOVE_DOCKER=false
@@ -29,14 +29,18 @@ while IFS= read -r line || [[ -n $line ]]; do
   [[ $line == *=* ]] || die "invalid line in $ENV_FILE"
   key=${line%%=*}; value=${line#*=}
   case "$key" in
-    APP_PORT|POSTGRES_ADMIN_PASSWORD_FILE|MIGRATOR_PASSWORD_FILE|RUNTIME_PASSWORD_FILE) printf -v "$key" '%s' "$value" ;;
+    APP_PORT|POSTGRES_ADMIN_PASSWORD|MIGRATOR_PASSWORD|RUNTIME_PASSWORD) printf -v "$key" '%s' "$value" ;;
     *) die "unsupported variable in $ENV_FILE: $key" ;;
   esac
 done < "$ENV_FILE"
-for key in APP_PORT POSTGRES_ADMIN_PASSWORD_FILE MIGRATOR_PASSWORD_FILE RUNTIME_PASSWORD_FILE; do
+for key in APP_PORT POSTGRES_ADMIN_PASSWORD MIGRATOR_PASSWORD RUNTIME_PASSWORD; do
   [[ -n ${!key:-} ]] || die "required variable is missing: $key"
 done
 STAGED_SECRETS_DIR=$ROOT_DIR/.container-secrets
+SOURCE_SECRETS_DIR=$ROOT_DIR/.install-secrets
+POSTGRES_ADMIN_PASSWORD_FILE=$SOURCE_SECRETS_DIR/postgres_admin_password
+MIGRATOR_PASSWORD_FILE=$SOURCE_SECRETS_DIR/migrator_password
+RUNTIME_PASSWORD_FILE=$SOURCE_SECRETS_DIR/runtime_password
 
 if ((EUID == 0)); then SUDO=(); elif "$DRY_RUN"; then SUDO=(sudo); else command -v sudo >/dev/null || die 'sudo is required'; SUDO=(sudo); fi
 if "$DRY_RUN" || docker info >/dev/null 2>&1; then DOCKER=(docker); else DOCKER=("${SUDO[@]}" docker); fi
@@ -51,6 +55,7 @@ else
   env "${compose_env[@]}" "${compose[@]}" "${down_args[@]}"
 fi
 run "${SUDO[@]}" rm -rf -- "$STAGED_SECRETS_DIR"
+run "${SUDO[@]}" rm -rf -- "$SOURCE_SECRETS_DIR"
 
 if "$REMOVE_DOCKER"; then
   run "${SUDO[@]}" apt-get purge -y "${DOCKER_PACKAGES[@]}"

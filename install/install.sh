@@ -2,7 +2,7 @@
 set -Eeuo pipefail
 
 ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-ENV_FILE="$ROOT_DIR/install/.env.install"
+ENV_FILE="$ROOT_DIR/.env"
 OS_RELEASE_FILE=/etc/os-release
 DRY_RUN=false
 NODE_HELPER='node:24.18.0-bookworm-slim@sha256:6f7b03f7c2c8e2e784dcf9295400527b9b1270fd37b7e9a7285cf83b6951452d'
@@ -33,7 +33,10 @@ strip_quotes() {
 }
 
 load_install_env() {
-  [[ -f $ENV_FILE ]] || die "copy install/.env.install.example to install/.env.install first"
+  [[ -f $ENV_FILE && ! -L $ENV_FILE ]] || die "copy install/.env.example to .env first"
+  local env_owner env_mode
+  env_owner=$(stat -c '%u' "$ENV_FILE"); env_mode=$(stat -c '%a' "$ENV_FILE")
+  [[ $env_owner == "$OPERATOR_UID" && $env_mode == 600 ]] || die '.env must be invoking-user-owned with mode 0600'
   local line key value
   while IFS= read -r line || [[ -n $line ]]; do
     line=${line%$'\r'}
@@ -42,12 +45,12 @@ load_install_env() {
     key=${line%%=*}
     value=$(strip_quotes "${line#*=}")
     case "$key" in
-      APP_PORT|POSTGRES_ADMIN_PASSWORD_FILE|MIGRATOR_PASSWORD_FILE|RUNTIME_PASSWORD_FILE)
+      APP_PORT|POSTGRES_ADMIN_PASSWORD|MIGRATOR_PASSWORD|RUNTIME_PASSWORD)
         printf -v "$key" '%s' "$value" ;;
       *) die "unsupported variable in $ENV_FILE: $key" ;;
     esac
   done < "$ENV_FILE"
-  for key in APP_PORT POSTGRES_ADMIN_PASSWORD_FILE MIGRATOR_PASSWORD_FILE RUNTIME_PASSWORD_FILE; do
+  for key in APP_PORT POSTGRES_ADMIN_PASSWORD MIGRATOR_PASSWORD RUNTIME_PASSWORD; do
     [[ -n ${!key:-} ]] || die "required variable is missing: $key"
   done
   [[ $APP_PORT =~ ^[1-9][0-9]{0,4}$ ]] && ((10#$APP_PORT <= 65535)) || die 'APP_PORT must be between 1 and 65535'
@@ -79,14 +82,6 @@ select_privilege() {
   OPERATOR_GID=${SUDO_GID:-$(id -g)}
 }
 
-validate_secret() {
-  local label=$1 source=$2 owner mode
-  [[ $source == /* && $source != *:* && $source != *$'\n'* ]] || die "$label must be an absolute Docker-safe path"
-  [[ -f $source && ! -L $source ]] || die "$label must reference a regular file"
-  owner=$(stat -c '%u' "$source"); mode=$(stat -c '%a' "$source")
-  [[ $owner == "$OPERATOR_UID" && $mode == 600 ]] || die "$label must be invoking-user-owned with mode 0600"
-}
-
 install_docker() {
   local architecture key_tmp source_tmp
   run "${SUDO[@]}" apt-get update
@@ -111,6 +106,27 @@ install_docker() {
   fi
   run "${SUDO[@]}" apt-get update
   run "${SUDO[@]}" apt-get install -y "${DOCKER_PACKAGES[@]}"
+}
+
+write_secret_sources() {
+  local source_dir=$ROOT_DIR/.install-secrets variable target
+  run "${SUDO[@]}" install -d -m 0700 -o "$OPERATOR_UID" -g "$OPERATOR_GID" "$source_dir"
+  for entry in \
+    "POSTGRES_ADMIN_PASSWORD:postgres_admin_password" \
+    "MIGRATOR_PASSWORD:migrator_password" \
+    "RUNTIME_PASSWORD:runtime_password"; do
+    variable=${entry%%:*}; target=${entry#*:}
+    if "$DRY_RUN"; then
+      printf 'DRY-RUN create protected secret %s/%s mode 0600 owner %s:%s\n' "$source_dir" "$target" "$OPERATOR_UID" "$OPERATOR_GID"
+    else
+      (umask 077; printf '%s' "${!variable}" > "$source_dir/$target")
+      "${SUDO[@]}" chown "$OPERATOR_UID:$OPERATOR_GID" "$source_dir/$target"
+      "${SUDO[@]}" chmod 0600 "$source_dir/$target"
+    fi
+  done
+  POSTGRES_ADMIN_PASSWORD_FILE=$source_dir/postgres_admin_password
+  MIGRATOR_PASSWORD_FILE=$source_dir/migrator_password
+  RUNTIME_PASSWORD_FILE=$source_dir/runtime_password
 }
 
 select_docker() {
@@ -172,17 +188,13 @@ deploy() {
   die 'application did not return the exact health response within 120 seconds'
 }
 
+select_privilege
 load_install_env
 load_os_release
-select_privilege
-validate_secret POSTGRES_ADMIN_PASSWORD_FILE "$POSTGRES_ADMIN_PASSWORD_FILE"
-validate_secret MIGRATOR_PASSWORD_FILE "$MIGRATOR_PASSWORD_FILE"
-validate_secret RUNTIME_PASSWORD_FILE "$RUNTIME_PASSWORD_FILE"
-cmp -s "$POSTGRES_ADMIN_PASSWORD_FILE" "$MIGRATOR_PASSWORD_FILE" && die 'password files must be distinct'
-cmp -s "$POSTGRES_ADMIN_PASSWORD_FILE" "$RUNTIME_PASSWORD_FILE" && die 'password files must be distinct'
-cmp -s "$MIGRATOR_PASSWORD_FILE" "$RUNTIME_PASSWORD_FILE" && die 'password files must be distinct'
+[[ $POSTGRES_ADMIN_PASSWORD != "$MIGRATOR_PASSWORD" && $POSTGRES_ADMIN_PASSWORD != "$RUNTIME_PASSWORD" && $MIGRATOR_PASSWORD != "$RUNTIME_PASSWORD" ]] || die 'passwords must be distinct'
 install_docker
 select_docker
+write_secret_sources
 stage_secrets
 deploy
 printf 'PASS install-complete\n'
