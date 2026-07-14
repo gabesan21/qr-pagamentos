@@ -23,7 +23,7 @@ This spec defines the reproducible runtime, local identity boundary, role model,
 - Only administrators can manage users, roles, account status, currencies, and payment methods.
 - The system prevents removal or demotion of the final active administrator.
 - User DTOs never expose password hashes, session identifiers, secrets, or internal authorization fields.
-- The admin shell provides equivalent `pt-BR` and English routes, dictionaries, metadata, validation, and error messages.
+- The admin shell provides equivalent `pt-BR` and English dictionaries, metadata, validation, and error messages, resolving the language transparently from the persisted user preference without locale-prefixed URLs.
 - The admin shell is responsive at 320 CSS pixels, keyboard operable, and meets WCAG 2.2 AA contrast and focus requirements.
 - The visual system is commercially vibrant while never relying on color alone to communicate state.
 
@@ -39,16 +39,18 @@ This spec defines the reproducible runtime, local identity boundary, role model,
 - Idle and absolute session timeouts and the allowed number of concurrent sessions.
 - Whether administrators require TOTP MFA before production.
 - Initial currency and payment-method allowlists.
-- Exact component library, typography, palette, dark-mode policy, and locale negotiation behavior.
+- Exact component library, typography, palette, and dark-mode policy.
+- Default language before a user preference exists and whether browser negotiation seeds that preference.
 
 ## Implemented slices
 
 - [[1.1.1-scaffold-next-platform]] (2026-07-14) — pinned Node.js 24.18.0 and pnpm 11.13.0; added the typed Next.js baseline, frozen dependency graph, independent quality gates, explicit `pt-BR`/`en` routes and dictionary parity, and application-only `/api/health`. Database, migration, and container readiness remain pending in Phase 1.1, so this spec remains approved rather than fully implemented.
 - [[1.1.2-establish-prisma-database]] (2026-07-14) — pinned Prisma 7.8.0 and PostgreSQL 18.4 contracts; added a reviewed fixture-only migration, isolated schema-owning migrator and least-privilege runtime roles, secret-free connection boundaries, and disposable executable replay/constraint/CRUD/denial probes. Production Compose readiness and ordered startup remain pending in 1.1.3, so this spec remains approved.
+- [[1.1.3-containerize-self-hosted-runtime]] (2026-07-14) — added pinned non-root production images, ordered PostgreSQL/bootstrap/migration/runtime startup, file-backed least-grant secrets, loopback-only configurable application publication, clean-clone container contracts, and privilege-free install/uninstall procedures. Integrated Docker installation passed human critical verification; later identity and admin phases remain pending, so this spec remains approved.
 
 ## Planned slices
 
-- [[1.1.3-containerize-self-hosted-runtime]] — pin exact-tag registry index digests for Node 24.18.0 and PostgreSQL 18.4; build non-root Next.js standalone and database-operations targets; separate official PostgreSQL initialization-secret identity from staged UID1000 job/app secrets; order database health, role bootstrap, one-shot Prisma deployment, runtime-role `SELECT 1`, and application bind while keeping later liveness DB-independent; publish only the application on loopback; and prove credential safety/redaction, fail-closed startup, non-root server processes, no job rerun on app restart, role isolation, persistence, documentation/DOX, and deterministic cleanup. This becomes an implemented slice in 006 after verification.
+- Phase 1.3 candidate `1.3.1-user-language-preference` — persist each user's `pt-BR` or `en` preference and remove locale prefixes from application URLs; planning must decide the deterministic fallback before a preference exists.
 
 ## Related specs
 

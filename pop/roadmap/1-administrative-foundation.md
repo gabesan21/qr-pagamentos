@@ -15,7 +15,7 @@
 
 ## Phase 1.1 - Reproducible platform baseline
 
-- **Status:** em andamento
+- **Status:** concluída
 - **Description:** A clean clone builds, tests, migrates, and starts Next.js with PostgreSQL through production-oriented Docker commands.
 - **Yolo:** yes
 - **Specs:** [[specs/administrative-foundation|Administrative foundation]] - follow for runtime acceptance boundaries.
@@ -24,7 +24,7 @@
 |------|-------------|--------|
 | [[1.1.1-scaffold-next-platform]] | Create the typed Next.js/pnpm baseline, quality commands, health endpoint, and root DOX contract. | concluída |
 | [[1.1.2-establish-prisma-database]] | Add Prisma, PostgreSQL constraints, versioned migrations, and isolated migration/runtime roles. | concluída |
-| [[1.1.3-containerize-self-hosted-runtime]] | Deliver non-root production images and Compose startup ordered by database health and migrations. | 005_verifying |
+| [[1.1.3-containerize-self-hosted-runtime]] | Deliver non-root production images and Compose startup ordered by database health and migrations. | concluída |
 
 ## Phase 1.2 - Local identity and access
 
@@ -39,3 +39,7 @@
 - **Description:** Admins manage users and global currencies/payment methods through a responsive, accessible `pt-BR`/`en` interface.
 - **Yolo:** yes
 - **Specs:** [[specs/administrative-foundation|Administrative foundation]] - follow for admin behavior and UI constraints.
+
+| Task | Description | Status |
+|------|-------------|--------|
+| `1.3.1-user-language-preference` | Persist each user's language preference and resolve localized UI without locale-prefixed URLs. · size: M | not started |
