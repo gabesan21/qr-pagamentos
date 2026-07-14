@@ -1,12 +1,11 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-ENV_FILE="$ROOT_DIR/.env"
-OS_RELEASE_FILE=/etc/os-release
+INSTALL_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+ROOT_DIR=$(cd "$INSTALL_DIR/.." && pwd)
+ENV_FILE="$INSTALL_DIR/.env"
 DRY_RUN=false
 NODE_HELPER='node:24.18.0-bookworm-slim@sha256:6f7b03f7c2c8e2e784dcf9295400527b9b1270fd37b7e9a7285cf83b6951452d'
-DOCKER_PACKAGES=(docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin)
 
 die() { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
 print_command() { printf 'DRY-RUN'; printf ' %q' "$@"; printf '\n'; }
@@ -15,14 +14,10 @@ run() { if "$DRY_RUN"; then print_command "$@"; else "$@"; fi; }
 while (($#)); do
   case "$1" in
     --env-file) (($# >= 2)) || die '--env-file requires a path'; ENV_FILE=$2; shift 2 ;;
-    --os-release) (($# >= 2)) || die '--os-release requires a path'; OS_RELEASE_FILE=$2; shift 2 ;;
     --dry-run) DRY_RUN=true; shift ;;
     *) die "unknown argument: $1" ;;
   esac
 done
-if [[ $OS_RELEASE_FILE != /etc/os-release ]] && ! "$DRY_RUN"; then
-  die '--os-release is available only with --dry-run'
-fi
 
 strip_quotes() {
   local value=$1
@@ -33,10 +28,7 @@ strip_quotes() {
 }
 
 load_install_env() {
-  [[ -f $ENV_FILE && ! -L $ENV_FILE ]] || die "copy install/.env.example to .env first"
-  local env_owner env_mode
-  env_owner=$(stat -c '%u' "$ENV_FILE"); env_mode=$(stat -c '%a' "$ENV_FILE")
-  [[ $env_owner == "$OPERATOR_UID" && $env_mode == 600 ]] || die '.env must be invoking-user-owned with mode 0600'
+  [[ -f $ENV_FILE ]] || die "copy install/.env.example to install/.env first"
   local line key value
   while IFS= read -r line || [[ -n $line ]]; do
     line=${line%$'\r'}
@@ -56,19 +48,6 @@ load_install_env() {
   [[ $APP_PORT =~ ^[1-9][0-9]{0,4}$ ]] && ((10#$APP_PORT <= 65535)) || die 'APP_PORT must be between 1 and 65535'
 }
 
-load_os_release() {
-  [[ -f $OS_RELEASE_FILE ]] || die "missing OS release file: $OS_RELEASE_FILE"
-  local line key value
-  OS_ID= OS_CODENAME=
-  while IFS= read -r line || [[ -n $line ]]; do
-    [[ $line == *=* ]] || continue
-    key=${line%%=*}; value=$(strip_quotes "${line#*=}")
-    case "$key" in ID) OS_ID=$value ;; VERSION_CODENAME) OS_CODENAME=$value ;; esac
-  done < "$OS_RELEASE_FILE"
-  [[ $OS_ID == debian || $OS_ID == ubuntu ]] || die "unsupported operating system: ${OS_ID:-unknown}"
-  [[ $OS_CODENAME =~ ^[a-z0-9._-]+$ ]] || die 'VERSION_CODENAME is missing or invalid'
-}
-
 select_privilege() {
   if ((EUID == 0)); then
     SUDO=()
@@ -82,30 +61,16 @@ select_privilege() {
   OPERATOR_GID=${SUDO_GID:-$(id -g)}
 }
 
-install_docker() {
-  local architecture key_tmp source_tmp
-  run "${SUDO[@]}" apt-get update
-  run "${SUDO[@]}" apt-get install -y ca-certificates curl
-  if "$DRY_RUN" && [[ -n ${INSTALL_ARCHITECTURE:-} ]]; then architecture=$INSTALL_ARCHITECTURE; else architecture=$(dpkg --print-architecture); fi
-  [[ $architecture =~ ^[a-z0-9._-]+$ ]] || die 'Docker APT architecture is invalid'
+check_docker() {
   if "$DRY_RUN"; then
-    print_command curl -fsSL "https://download.docker.com/linux/$OS_ID/gpg" -o /tmp/qr-docker.asc
-    print_command "${SUDO[@]}" install -d -m 0755 /etc/apt/keyrings
-    print_command "${SUDO[@]}" install -m 0644 /tmp/qr-docker.asc /etc/apt/keyrings/docker.asc
-    printf 'DRY-RUN repository deb [arch=%s signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/%s %s stable\n' "$architecture" "$OS_ID" "$OS_CODENAME"
-    print_command "${SUDO[@]}" install -m 0644 /tmp/qr-docker.list /etc/apt/sources.list.d/docker.list
-  else
-    key_tmp=$(mktemp); source_tmp=$(mktemp)
-    trap 'rm -f "${key_tmp:-}" "${source_tmp:-}"' RETURN
-    curl -fsSL "https://download.docker.com/linux/$OS_ID/gpg" -o "$key_tmp"
-    "${SUDO[@]}" install -d -m 0755 /etc/apt/keyrings
-    "${SUDO[@]}" install -m 0644 "$key_tmp" /etc/apt/keyrings/docker.asc
-    printf 'deb [arch=%s signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/%s %s stable\n' "$architecture" "$OS_ID" "$OS_CODENAME" > "$source_tmp"
-    "${SUDO[@]}" install -m 0644 "$source_tmp" /etc/apt/sources.list.d/docker.list
-    rm -f "$key_tmp" "$source_tmp"; trap - RETURN
+    print_command command -v docker
+    print_command docker compose version
+    return
   fi
-  run "${SUDO[@]}" apt-get update
-  run "${SUDO[@]}" apt-get install -y "${DOCKER_PACKAGES[@]}"
+  command -v docker >/dev/null 2>&1 \
+    || die 'Docker Engine is a prerequisite this installer does not manage; install it first: https://docs.docker.com/engine/install/'
+  docker compose version >/dev/null 2>&1 \
+    || die 'the Docker Compose v2 plugin is a prerequisite this installer does not manage; install it first: https://docs.docker.com/compose/install/linux/'
 }
 
 write_secret_sources() {
@@ -189,10 +154,9 @@ deploy() {
 }
 
 select_privilege
+check_docker
 load_install_env
-load_os_release
 [[ $POSTGRES_ADMIN_PASSWORD != "$MIGRATOR_PASSWORD" && $POSTGRES_ADMIN_PASSWORD != "$RUNTIME_PASSWORD" && $MIGRATOR_PASSWORD != "$RUNTIME_PASSWORD" ]] || die 'passwords must be distinct'
-install_docker
 select_docker
 write_secret_sources
 stage_secrets

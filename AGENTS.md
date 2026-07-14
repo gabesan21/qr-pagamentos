@@ -68,7 +68,7 @@ Aggregate gate: `pnpm check` (lint + typecheck + test + build) — see Applicati
 - `Dockerfile` and `compose.yaml` own production image and startup ordering; never add a floating base, secret-bearing build input/environment field, public database port, or retrying one-shot job.
 - `container/` owns redacted non-shell bootstrap, migration, runtime preflight, and liveness wrappers; preserve direct child spawning and `SELECT 1` before application bind.
 - Run `pnpm container:contract-check` for static/digest contracts and `pnpm container:test --clean-clone --scenario <name>` only with disposable secrets/resources.
-- `install/` owns Debian/Ubuntu operator install/uninstall procedures; passwords live only in the ignored mode-0600 root `.env` and generated ignored secret files, and default uninstall never removes PostgreSQL data or Docker packages.
+- `install/` owns operator install/uninstall procedures for any Linux host with Docker Engine + Compose v2 already installed (a documented prerequisite, not installed by the script); passwords live only in the ignored `install/.env` and generated ignored secret files, and default uninstall never removes PostgreSQL data.
 - Run `install/test.sh` after changing installer commands, secret validation, Compose deployment, health waiting, or uninstall flags.
 - `MIGRATION_DATABASE_URL` is migration-only and `DATABASE_URL` is runtime-only; never share credentials or commit usable URLs.
 - Generated Prisma code lives in ignored `src/generated/prisma/`; never edit or commit it.

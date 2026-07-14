@@ -1,12 +1,11 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-ENV_FILE="$ROOT_DIR/.env"
+INSTALL_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+ROOT_DIR=$(cd "$INSTALL_DIR/.." && pwd)
+ENV_FILE="$INSTALL_DIR/.env"
 DRY_RUN=false
 PURGE_DATA=false
-REMOVE_DOCKER=false
-DOCKER_PACKAGES=(docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin)
 
 die() { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
 print_command() { printf 'DRY-RUN'; printf ' %q' "$@"; printf '\n'; }
@@ -16,7 +15,6 @@ while (($#)); do
   case "$1" in
     --env-file) (($# >= 2)) || die '--env-file requires a path'; ENV_FILE=$2; shift 2 ;;
     --purge-data) PURGE_DATA=true; shift ;;
-    --remove-docker) REMOVE_DOCKER=true; shift ;;
     --dry-run) DRY_RUN=true; shift ;;
     *) die "unknown argument: $1" ;;
   esac
@@ -57,8 +55,4 @@ fi
 run "${SUDO[@]}" rm -rf -- "$STAGED_SECRETS_DIR"
 run "${SUDO[@]}" rm -rf -- "$SOURCE_SECRETS_DIR"
 
-if "$REMOVE_DOCKER"; then
-  run "${SUDO[@]}" apt-get purge -y "${DOCKER_PACKAGES[@]}"
-  run "${SUDO[@]}" apt-get autoremove -y
-fi
 printf 'PASS uninstall-complete\n'

@@ -6,6 +6,7 @@ Self-hosted Next.js dashboard for products and first-party payment links backed 
 
 - Node.js 24.18.0 (also recorded in `.node-version`)
 - pnpm 11.13.0; pnpm's managed-version support enforces the `packageManager` pin without Corepack
+- For the self-contained `install/install.sh` deployment path: Docker Engine and the Docker Compose v2 plugin, installed per https://docs.docker.com/engine/install/ and https://docs.docker.com/compose/install/linux/
 
 ## Commands
 
@@ -42,23 +43,21 @@ Prisma migrations use `MIGRATION_DATABASE_URL`; application code uses the distin
 
 ## Production container startup
 
-The self-contained installer reads passwords directly from the ignored root `.env`. The lower-level manual Compose flow remains file-based through `.env.compose`.
+The self-contained installer reads passwords directly from the ignored `install/.env`. The lower-level manual Compose flow remains file-based through `.env.compose`.
 
-For a fresh Debian or Ubuntu host, the self-contained operator flow installs Docker from its official APT repository and performs the same secret staging and Compose startup without host Node.js or pnpm:
+With Docker Engine and the Compose v2 plugin already installed (see Prerequisites — the installer only verifies they are present), the self-contained operator flow performs secret staging and Compose startup without host Node.js or pnpm:
 
 ```sh
-cp install/.env.example .env
-chmod 0600 .env
-# Edit .env and replace all three password placeholders.
+cp install/.env.example install/.env
+# Edit install/.env and replace all three password placeholders.
 install/install.sh
 ```
 
-The root `.env` contains `APP_PORT`, `POSTGRES_ADMIN_PASSWORD`, `MIGRATOR_PASSWORD`, and `RUNTIME_PASSWORD`. It is ignored by Git and must remain mode `0600`. The installer materializes ignored protected secret files for Compose; no external password-file preparation is required. `install/uninstall.sh` removes application containers while preserving the PostgreSQL volume and Docker packages. Data deletion and Docker package removal are separate explicit operations:
+`install/.env` contains `APP_PORT`, `POSTGRES_ADMIN_PASSWORD`, `MIGRATOR_PASSWORD`, and `RUNTIME_PASSWORD`. It is ignored by Git. The installer materializes ignored protected secret files for Compose; no external password-file preparation is required. `install/uninstall.sh` removes application containers while preserving the PostgreSQL volume. Data deletion is a separate explicit operation:
 
 ```sh
 install/uninstall.sh
 install/uninstall.sh --purge-data
-install/uninstall.sh --remove-docker
 ```
 
 ```sh
