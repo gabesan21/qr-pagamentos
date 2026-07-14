@@ -15,3 +15,4 @@ Project brief: [[PROJECT|QR Pagamentos]]
 ## Future ideas
 
 - Additional payment providers remain outside the MVP until the Nautt-backed flow is stable in production.
+- Email-based password reset and administrator TOTP MFA are deferred until after all currently planned epochs.

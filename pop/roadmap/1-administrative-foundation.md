@@ -9,7 +9,7 @@
 ## Recon and forks
 
 - [[researches/administrative-foundation/administrative-foundation|Administrative foundation research]] - establishes current Next.js, Docker, PostgreSQL, security, and i18n constraints.
-- [ ] RECON NEEDED: exact idle and absolute session lifetimes - check: decide them while planning Phase 1.2 and encode tests.
+- [x] Session policy decided for Phase 1.2: 30-minute idle timeout, 12-hour absolute lifetime, and at most five concurrent sessions per user; encode these limits in executable tests.
 - [ ] RECON NEEDED: exact global currency and payment-method settings - check: define the initial allowlists before planning Phase 1.3.
 - Fork: if PostgreSQL 18 or Node.js 24 is not supported by the deployment host, pin the newest supported LTS pair consistently across local, CI, and production.
 
@@ -36,6 +36,9 @@
 | Task | Description | Status |
 |------|-------------|--------|
 | [[1.2.1-review-clean-code-baseline]] | Review the Phase 1.1 codebase against the clean-code contracts and remediate confirmed issues before identity and access work begins. · size: M | concluída |
+| `1.2.2-establish-local-identities` | Add local email identities, password credentials, closed roles, deployment-seeded administration, and secure operator recovery. · size: M | not started |
+| `1.2.3-implement-database-sessions` | Deliver bilingual credential sign-in and logout with opaque PostgreSQL sessions, secure cookies, expiry limits, and concurrency enforcement. · size: M | not started |
+| `1.2.4-enforce-access-control` | Enforce deny-by-default server authorization, safe user projections, session revocation, and final-active-admin protection end to end. · size: M | not started |
 
 ## Phase 1.3 - Administrative control plane
 

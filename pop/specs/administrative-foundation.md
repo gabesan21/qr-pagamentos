@@ -17,7 +17,11 @@ This spec defines the reproducible runtime, local identity boundary, role model,
 - The database uses separate migration and runtime roles; the runtime role cannot perform DDL or role administration.
 - The deployment seed creates the first administrator without persisting plaintext credentials in Git or image layers.
 - Authentication uses local credentials and first-party opaque sessions persisted in PostgreSQL.
-- Session cookies are `HttpOnly`, `Secure` in production, `SameSite`, scoped to `Path=/`, and never stored in browser storage.
+- Login identifiers are normalized email addresses; public registration is disabled and administrators create later user accounts.
+- Passwords accept 12 to 128 characters without composition rules; the deployment operator can securely recover the initial administrator from the server without email delivery.
+- The closed role set is `ADMIN` and `USER`.
+- Session cookies are `HttpOnly`, `Secure` in production, `SameSite=Lax`, scoped to `Path=/`, and never stored in browser storage.
+- Sessions expire after 30 minutes of inactivity or 12 hours absolutely, and each user can have at most five concurrent sessions.
 - Logout, account disablement, password change, and role change revoke affected sessions server-side.
 - Authorization denies by default and is rechecked at every data read and mutation, not only in layouts or client components.
 - Only administrators can manage users, roles, account status, currencies, and payment methods.
@@ -32,12 +36,10 @@ This spec defines the reproducible runtime, local identity boundary, role model,
 - Nautt credentials, provider orders, polling, and webhooks belong to [[specs/nautt-finance-integration|Nautt Finance integration]].
 - Product, payment-link, checkout, and storefront behavior belongs to later epochs.
 - External identity providers and external authentication frameworks are excluded by product decision.
+- Email-based password reset and administrator TOTP MFA are deferred until after the currently planned roadmap.
 
 ## Open
 
-- Exact password policy, reset mechanism, and administrator recovery process.
-- Idle and absolute session timeouts and the allowed number of concurrent sessions.
-- Whether administrators require TOTP MFA before production.
 - Initial currency and payment-method allowlists.
 - Exact component library, typography, palette, and dark-mode policy.
 - Default language before a user preference exists and whether browser negotiation seeds that preference.
