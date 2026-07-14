@@ -4,6 +4,8 @@
 !.env.example
 !.env.compose.example
 .container-secrets/
+install/.env.install
+!install/.env.install.example
 
 # Application artifacts
 node_modules/

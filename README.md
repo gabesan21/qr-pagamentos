@@ -44,6 +44,22 @@ Prisma migrations use `MIGRATION_DATABASE_URL`; application code uses the distin
 
 Create three distinct password files outside the repository. Each must be an absolute path to a regular file owned by the user invoking Docker and have mode `0600`. Copy `.env.compose.example` to `.env.compose` and set only those paths plus the loopback application port; never place a password or database URL in it.
 
+For a fresh Debian or Ubuntu host, the self-contained operator flow installs Docker from its official APT repository and performs the same secret staging and Compose startup without host Node.js or pnpm:
+
+```sh
+cp install/.env.install.example install/.env.install
+chmod 0600 /absolute/path/to/postgres-admin-password /absolute/path/to/qr-migrator-password /absolute/path/to/qr-runtime-password
+install/install.sh
+```
+
+Edit `install/.env.install` before running the installer. It contains paths and a loopback port, never password values. `install/uninstall.sh` removes application containers while preserving the PostgreSQL volume and Docker packages. Data deletion and Docker package removal are separate explicit operations:
+
+```sh
+install/uninstall.sh
+install/uninstall.sh --purge-data
+install/uninstall.sh --remove-docker
+```
+
 ```sh
 cp .env.compose.example .env.compose
 chmod 0600 /absolute/path/to/postgres-admin-password /absolute/path/to/qr-migrator-password /absolute/path/to/qr-runtime-password

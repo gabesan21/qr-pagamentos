@@ -2,7 +2,7 @@ name: qr-pagamentos
 
 services:
   db:
-    image: postgres:18.4-bookworm@sha256:b403bafdebf3f7027c15ceefbfc46899f575096549f549650b3fb2ab9a6a6930
+    image: postgres:18.4-bookworm@sha256:7cfd7f5e307dbd8cf5d88761b22934c042a749362c0ab7efc41805572d58b3a3
     environment:
       POSTGRES_DB: qr_pagamentos
       POSTGRES_PASSWORD_FILE: /run/secrets/postgres_admin_password
