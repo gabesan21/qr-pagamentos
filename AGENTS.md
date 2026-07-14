@@ -49,6 +49,9 @@ One execution continues until the next real gate. The complete state machine is 
 - Use the exact Node and pnpm pins in `.node-version` and `package.json`; install with `pnpm install --frozen-lockfile`.
 - Run `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm build` independently, or `pnpm check` for the aggregate gate.
 - Run `pnpm db:test` separately for the disposable PostgreSQL contract; it is never part of the database-free `pnpm check` gate.
+- `Dockerfile` and `compose.yaml` own production image and startup ordering; never add a floating base, secret-bearing build input/environment field, public database port, or retrying one-shot job.
+- `container/` owns redacted non-shell bootstrap, migration, runtime preflight, and liveness wrappers; preserve direct child spawning and `SELECT 1` before application bind.
+- Run `pnpm container:contract-check` for static/digest contracts and `pnpm container:test --clean-clone --scenario <name>` only with disposable secrets/resources.
 - `MIGRATION_DATABASE_URL` is migration-only and `DATABASE_URL` is runtime-only; never share credentials or commit usable URLs.
 - Generated Prisma code lives in ignored `src/generated/prisma/`; never edit or commit it.
 - Never edit generated `next-env.d.ts`, `.next/`, `node_modules/`, coverage output, or TypeScript build-info files by hand.
