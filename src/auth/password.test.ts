@@ -19,12 +19,32 @@ describe("password credential records", () => {
   });
 
   it.each([
-    "bcrypt$v=1$N=131072,r=8,p=1$AAECAwQFBgcICQoLDA0ODw$gK1MmKcHUXEafO7Jlc4EZuQ6xkn3D8GHIhI_TetYHfE",
-    fixture.replace("v=1", "v=2"), fixture.replace("N=131072", "N=0131072"),
-    fixture.replace("r=8,p=1", "p=1,r=8"), fixture.replace("$AAE", "$AAE="),
-    fixture.replace("AAECAwQFBgcICQoLDA0ODw", "AAECAwQFBgcICQoLDA0OD-"),
-    fixture.replace(/\$[^$]+$/, "$short"), `${fixture}$tail`, `${fixture}é`, "x".repeat(129),
-  ])("rejects malformed records uniformly: %j", async (record) => {
+    ["wrong prefix", fixture.replace("scrypt", "bcrypt")],
+    ["wrong version", fixture.replace("v=1", "v=2")],
+    ["wrong N", fixture.replace("N=131072", "N=65536")],
+    ["wrong r", fixture.replace("r=8", "r=4")],
+    ["wrong p", fixture.replace("p=1", "p=2")],
+    ["noncanonical decimal", fixture.replace("N=131072", "N=0131072")],
+    ["parameter order", fixture.replace("N=131072,r=8,p=1", "p=1,r=8,N=131072")],
+    ["missing parameter field", fixture.replace("N=131072,r=8,p=1", "N=131072,r=8")],
+    ["extra parameter field", fixture.replace("N=131072,r=8,p=1", "N=131072,r=8,p=1,q=1")],
+    ["missing salt field", fixture.replace(/\$AAECAwQFBgcICQoLDA0ODw/, "")],
+    ["missing key field", fixture.replace(/\$GylG.*$/, "")],
+    ["extra record field", `${fixture}$tail`],
+    ["padded salt", fixture.replace("AAECAwQFBgcICQoLDA0ODw", "AAECAwQFBgcICQoLDA0ODw==")],
+    ["invalid salt alphabet", fixture.replace("AAECAwQFBgcICQoLDA0ODw", "AAECAwQFBgcICQoLDA0OD*")],
+    ["noncanonical salt", fixture.replace("AAECAwQFBgcICQoLDA0ODw", "AAECAwQFBgcICQoLDA0OD-")],
+    ["15-byte salt", fixture.replace("AAECAwQFBgcICQoLDA0ODw", "AAECAwQFBgcICQoLDA0O")],
+    ["17-byte salt", fixture.replace("AAECAwQFBgcICQoLDA0ODw", "AAECAwQFBgcICQoLDA0ODxA")],
+    ["31-byte key", fixture.replace(/GylG.*$/, "A".repeat(42))],
+    ["33-byte key", fixture.replace(/GylG.*$/, "A".repeat(44))],
+    ["padded key", `${fixture}=`],
+    ["invalid key alphabet", fixture.replace(/s$/, "*")],
+    ["noncanonical key", fixture.replace(/s$/, "t")],
+    ["non-ASCII", `${fixture}é`],
+    ["trailing data", `${fixture}tail`],
+    ["over parser bound", "x".repeat(129)],
+  ] as const)("rejects malformed records uniformly: %s", async (_name, record) => {
     const hook = vi.fn();
     await expect(verifyPassword("correct horse battery staple", record, hook)).resolves.toBe(false);
     expect(hook).not.toHaveBeenCalled();

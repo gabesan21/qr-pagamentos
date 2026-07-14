@@ -55,6 +55,11 @@ sed 's|RUNTIME_PASSWORD=.*|RUNTIME_PASSWORD=reserved-!:/?#[]@-admin|' "$TMP/inst
 chmod 0600 "$TMP/duplicate.env"
 if "$INSTALL_DIR/install.sh" --dry-run --env-file "$TMP/duplicate.env" >/dev/null 2>&1; then fail 'duplicate passwords succeeded'; fi
 
+nul_env=$TMP/nul.env
+printf 'APP_PORT=33013\nINITIAL_ADMIN_EMAIL=admin@example.com\0ignored\nPOSTGRES_ADMIN_PASSWORD=admin-secret\nMIGRATOR_PASSWORD=migrator-secret\nRUNTIME_PASSWORD=runtime-secret\n' > "$nul_env"
+chmod 0600 "$nul_env"
+if "$INSTALL_DIR/install.sh" --dry-run --env-file "$nul_env" >/dev/null 2>&1; then fail 'NUL-bearing environment file succeeded'; fi
+
 identity_dir=$TMP/identity
 printf '%s' ' Admin.Example+ops@Example.COM ' | node "$INSTALL_DIR/../container/prepare-identity-secrets.mjs" "$identity_dir"
 [[ $(cat "$identity_dir/initial_admin_email") == 'admin.example+ops@example.com' ]] || fail 'email was not canonicalized'

@@ -32,6 +32,9 @@ strip_quotes() {
 
 load_install_env() {
   [[ -f $ENV_FILE ]] || die "copy install/.env.example to install/.env first"
+  if IFS= read -r -d '' _ < "$ENV_FILE"; then
+    die "installer environment file contains a NUL byte"
+  fi
   local line key value
   while IFS= read -r line || [[ -n $line ]]; do
     line=${line%$'\r'}

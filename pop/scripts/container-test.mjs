@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { chmod, copyFile, mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
+import { chmod, copyFile, mkdtemp, mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import http from "node:http";
@@ -84,7 +84,6 @@ if (process.argv.includes("--clean-clone") && !process.env.CONTAINER_TEST_CLEAN_
     return output;
   };
   const composeResult = (args) => execute("docker", ["compose", "-p", project, "-f", "compose.yaml", ...args], { env });
-  const recoveryComposeResult = (args) => execute("docker", ["compose", "-p", project, "-f", "compose.yaml", "-f", "compose.recovery.yaml", ...args], { env });
   let captured = "";
 
   async function prepare() {
@@ -274,19 +273,88 @@ if (process.argv.includes("--clean-clone") && !process.env.CONTAINER_TEST_CLEAN_
       console.log("PASS identity-seed-idempotence");
       console.log("PASS identity-email-no-retarget");
     } else if (scenario === "identity-recovery") {
+      assert(process.env.CONTAINER_TEST_CLEAN_CLONE === "1", "identity recovery requires --clean-clone");
       const { dbId } = await startHappy();
       const sql = (statement) => run("docker", ["exec", dbId, "psql", "-U", "postgres", "-d", "qr_pagamentos", "-Atc", statement]).trim();
       const userId = sql(`SELECT initial_admin_user_id FROM app.deployment_bootstrap WHERE id=1`);
       const oldHash = sql(`SELECT password_hash FROM app.password_credential WHERE user_id='${userId}'`);
       sql(`UPDATE app."user" SET email='renamed@example.com', role='USER', status='DISABLED' WHERE id='${userId}'`);
-      const recovered = recoveryComposeResult(["run", "--rm", "--no-deps", "identity-recovery"]);
+
+      const shimDirectory = path.join(temporary, "docker-shim");
+      const shimLog = path.join(temporary, "docker-shim.log");
+      const candidateSnapshot = path.join(temporary, "recovery-candidate");
+      const installerEnv = path.join(temporary, "install.env");
+      const realDocker = run("sh", ["-c", "command -v docker"]).trim();
+      await mkdir(shimDirectory, { mode: 0o700 });
+      await writeFile(path.join(shimDirectory, "docker"), `#!/usr/bin/env bash
+set -Eeuo pipefail
+rewritten=()
+replace_project=false
+is_recovery=false
+for argument in "$@"; do
+  if "$replace_project" && [[ $argument == qr-pagamentos ]]; then argument=$CONTAINER_TEST_PROJECT; fi
+  rewritten+=("$argument")
+  [[ $argument == -p ]] && replace_project=true || replace_project=false
+  [[ $argument == identity-recovery ]] && is_recovery=true
+done
+if "$is_recovery"; then
+  for variable in APP_PORT POSTGRES_ADMIN_PASSWORD_FILE MIGRATOR_PASSWORD_FILE RUNTIME_PASSWORD_FILE STAGED_SECRETS_DIR INITIAL_ADMIN_RECOVERY_PASSWORD_FILE; do
+    [[ -n \${!variable:-} ]] || { printf 'missing helper path: %s\n' "$variable" >&2; exit 97; }
+  done
+  cp .install-secrets/initial_admin_recovery_password "$CONTAINER_TEST_CANDIDATE_SNAPSHOT"
+  chmod 0600 "$CONTAINER_TEST_CANDIDATE_SNAPSHOT"
+  printf 'PASS helper-forwarded-base-and-recovery-paths\n' >> "$CONTAINER_TEST_DOCKER_LOG"
+fi
+exec ${realDocker} "\${rewritten[@]}"
+`, { mode: 0o700 });
+      await chmod(path.join(shimDirectory, "docker"), 0o700);
+      await writeFile(installerEnv, `APP_PORT=33013
+INITIAL_ADMIN_EMAIL=admin@example.com
+POSTGRES_ADMIN_PASSWORD=${values.admin}
+MIGRATOR_PASSWORD=${values.migrator}
+RUNTIME_PASSWORD=${values.runtime}
+`, { mode: 0o600 });
+      await chmod(installerEnv, 0o600);
+      const installerProcessEnv = {
+        ...process.env,
+        PATH: `${shimDirectory}:${process.env.PATH}`,
+        CONTAINER_TEST_PROJECT: project,
+        CONTAINER_TEST_DOCKER_LOG: shimLog,
+        CONTAINER_TEST_CANDIDATE_SNAPSHOT: candidateSnapshot,
+      };
+      const recover = () => execute("install/install.sh", ["--recover-initial-admin", "--env-file", installerEnv], { env: installerProcessEnv });
+      const recovered = recover();
       assert(recovered.status === 0, "identity recovery failed");
+      const recoveredOutput = `${recovered.stdout ?? ""}${recovered.stderr ?? ""}`;
+      const sourceDirectory = path.resolve(".install-secrets");
+      const stagedDirectory = path.resolve(".container-secrets");
+      const promotedPassword = await readFile(path.join(sourceDirectory, "initial_admin_password"), "utf8");
+      const promotedCandidate = await readFile(candidateSnapshot, "utf8");
+      assert(promotedPassword === promotedCandidate, "successful recovery did not promote its exact candidate");
+      assert((await stat(path.join(sourceDirectory, "initial_admin_password"))).mode % 0o1000 === 0o600, "promoted password mode changed");
+      await stat(path.join(sourceDirectory, "initial_admin_recovery_password")).then(
+        () => { throw new Error("source recovery candidate was not removed"); },
+        (error) => assert(error?.code === "ENOENT", "source recovery candidate removal was not observable"),
+      );
+      await stat(path.join(stagedDirectory, "initial_admin_recovery_password")).then(
+        () => { throw new Error("staged recovery candidate was not removed"); },
+        (error) => assert(error?.code === "ENOENT", "staged recovery candidate removal was not observable"),
+      );
+      assert((await readFile(shimLog, "utf8")).includes("PASS helper-forwarded-base-and-recovery-paths"), "installer compose helper was not exercised");
       assert(sql(`SELECT email || '|' || role || '|' || status FROM app."user" WHERE id='${userId}'`) === "renamed@example.com|ADMIN|ACTIVE", "recovery renamed or failed to restore target");
       assert(sql(`SELECT password_hash FROM app.password_credential WHERE user_id='${userId}'`) !== oldHash, "recovery did not rotate credential");
       sql(`DELETE FROM app."user" WHERE id='${userId}'`);
-      const missing = recoveryComposeResult(["run", "--rm", "--no-deps", "identity-recovery"]);
+      const missing = recover();
       assert(missing.status !== 0 && sql(`SELECT count(*) FROM app."user"`) === "0", "missing locator target was recreated");
-      assertRedacted(`${recovered.stdout ?? ""}${recovered.stderr ?? ""}${missing.stdout ?? ""}${missing.stderr ?? ""}`);
+      const retainedCandidate = await readFile(path.join(sourceDirectory, "initial_admin_recovery_password"), "utf8");
+      assert(retainedCandidate === await readFile(candidateSnapshot, "utf8"), "failed recovery did not retain the retry candidate");
+      assert(await readFile(path.join(stagedDirectory, "initial_admin_recovery_password"), "utf8") === retainedCandidate, "failed recovery did not retain the staged candidate");
+      const recoveryOutput = `${recoveredOutput}${missing.stdout ?? ""}${missing.stderr ?? ""}`;
+      assert(!recoveryOutput.includes(promotedCandidate) && !recoveryOutput.includes(retainedCandidate), "generated recovery candidate leaked");
+      assertRedacted(recoveryOutput);
+      console.log("PASS installer-recovery-helper-paths");
+      console.log("PASS installer-recovery-candidate-promotion");
+      console.log("PASS installer-recovery-failure-retention");
       console.log("PASS identity-recovery-uuid-target");
       console.log("PASS identity-recovery-deleted-target-abort");
     }
