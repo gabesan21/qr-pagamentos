@@ -65,7 +65,7 @@ install/install.sh --recover-initial-admin
 
 On success the retry-stable candidate replaces `.install-secrets/initial_admin_password`; on failure it remains protected for the identical retry. Recovery aborts if the original UUID was deleted. Email delivery, public reset, login UI, sessions, and MFA are not part of this slice.
 
-`install/uninstall.sh` removes application containers while preserving the PostgreSQL volume. Data deletion is a separate explicit operation:
+`install/uninstall.sh` removes application containers while preserving the PostgreSQL volume. Neither uninstall mode requires the initial administrator username, email, or creation-time identity files. Data deletion is a separate explicit operation:
 
 ```sh
 install/uninstall.sh

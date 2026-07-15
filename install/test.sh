@@ -109,6 +109,12 @@ expect_absent "$default_out" 'apt-get purge'
 expect_contains "$purge_out" '--volumes'
 expect_absent "$purge_out" 'apt-get purge'
 
+sed '/^INITIAL_ADMIN_\(USERNAME\|EMAIL\)=/d' "$TMP/install.env" > "$TMP/uninstall.env"
+"$INSTALL_DIR/uninstall.sh" --dry-run --env-file "$TMP/uninstall.env" >/dev/null \
+  || fail 'default uninstall required install-only identity variables'
+"$INSTALL_DIR/uninstall.sh" --dry-run --purge-data --env-file "$TMP/uninstall.env" >/dev/null \
+  || fail 'purge uninstall required install-only identity variables'
+
 for script in "$INSTALL_DIR/install.sh" "$INSTALL_DIR/uninstall.sh" "$INSTALL_DIR/test.sh"; do
   [[ -x $script ]] || fail "not executable: $script"
 done
