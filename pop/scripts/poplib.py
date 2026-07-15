@@ -49,7 +49,8 @@ def vault_root(override: Optional[str] = None) -> Path:
 
 
 def harness_root(project: Path) -> Path:
-    """Raiz do harness do escopo: `pop/` na anatomia nova, o próprio escopo no legado/meta."""
+    """Raiz do harness do escopo: `pop/` nos projetos de `categories/`; o
+    próprio escopo só na raiz do vault (meta-projeto, kanban na raiz)."""
     return project / "pop" if (project / "pop" / "kanban").is_dir() else project
 
 
@@ -124,20 +125,19 @@ def parse_frontmatter(text: str) -> Tuple[dict, str]:
 
 
 def discover_projects(root: Path) -> list:
-    """Escopos de projeto do vault: a raiz (meta-projeto `pop` — kanban na
-    raiz — ou clone included novo, com `pop/kanban`), projetos em
-    `categories/<c>/<p>/` (anatomia nova `pop/kanban` ou legada `kanban/`)
-    e repos embutidos de `full-multi-repo` (`<c>/<p>/<repo>/pop/kanban` na
-    nova, `<c>/<p>/project/<repo>/kanban` na legada)."""
+    """Escopos de projeto do vault, todos na anatomia `pop/`: a raiz
+    (meta-projeto `pop` — kanban na raiz, por exceção documentada — ou clone
+    included, com `pop/kanban`), projetos em `categories/<c>/<p>/pop/kanban`
+    e repos embutidos de `full-multi-repo` em `categories/<c>/<p>/<repo>/pop/kanban`.
+    Anatomia legada (harness na raiz) não é mais reconhecida — o validador a
+    reporta como violação (ver `check_strict_anatomy`)."""
     scopes = set()
     if (root / "kanban").is_dir() or (root / "pop" / "kanban").is_dir():
         scopes.add(root)
     # (pattern, nº de níveis do kanban até o escopo)
     patterns = (
-        ("categories/*/*/kanban", 1),
-        ("categories/*/*/project/*/kanban", 1),
-        ("categories/*/*/pop/kanban", 2),
-        ("categories/*/*/*/pop/kanban", 2),
+        ("categories/*/*/pop/kanban", 2),      # projeto
+        ("categories/*/*/*/pop/kanban", 2),    # repo embutido (full-multi-repo)
     )
     for pattern, up in patterns:
         for kanban in root.glob(pattern):
@@ -146,10 +146,6 @@ def discover_projects(root: Path) -> list:
             scope = kanban.parents[up - 1]
             rel = scope.relative_to(root)
             if any(part.startswith(".") for part in rel.parts):
-                continue
-            # `categories/c/p/project/pop/kanban` é repo LEGADO chamado `pop`
-            # (já coberto pelo pattern legado) — não é anatomia nova.
-            if up == 2 and len(rel.parts) == 4 and rel.parts[3] == "project":
                 continue
             scopes.add(scope)
     return sorted(scopes)
@@ -201,13 +197,11 @@ def iter_all_harness_markdown(root: Path) -> Iterator[Path]:
 
 def project_label(root: Path, project: Path) -> str:
     """Nome curto `<categoria>/<projeto>` de uma pasta de projeto — ou
-    `<categoria>/<projeto>/<repo>` para repo embutido (segmento `project/` omitido).
+    `<categoria>/<projeto>/<repo>` para repo embutido de full-multi-repo.
     A raiz do vault (meta-projeto) tem o rótulo fixo `pop`."""
     if project == root:
         return "pop"
     parts = project.relative_to(root / "categories").parts
-    if len(parts) == 4 and parts[2] == "project":
-        return "/".join((parts[0], parts[1], parts[3]))
     return "/".join(parts)
 
 
@@ -215,19 +209,13 @@ def project_dir(root: Path, label: str) -> Path:
     """Inverso de `project_label`: pasta do projeto a partir do rótulo.
 
     `<cat>/<proj>` -> `categories/<cat>/<proj>`;
-    `<cat>/<proj>/<repo>` -> `categories/<cat>/<proj>/<repo>` se esse repo
-    embutido tem `pop/kanban` (anatomia nova), senão o legado
-    `categories/<cat>/<proj>/project/<repo>`;
+    `<cat>/<proj>/<repo>` -> `categories/<cat>/<proj>/<repo>` (repo embutido
+    de full-multi-repo, anatomia `pop/`);
     `pop` -> raiz do vault (meta-projeto).
     """
     if label == "pop":
         return root
     parts = [p for p in label.split("/") if p]
-    if len(parts) == 3:
-        new = root.joinpath("categories", *parts)
-        if (new / "pop" / "kanban").is_dir():
-            return new
-        return root / "categories" / parts[0] / parts[1] / "project" / parts[2]
     return root.joinpath("categories", *parts)
 
 
