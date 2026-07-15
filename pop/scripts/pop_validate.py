@@ -2,8 +2,11 @@
 """pop_validate — valida os limites e invariantes do vault PoP.
 
 Checa: descrições do INDEX.md raiz (<=144 chars) e dos INDEX.md de categoria
-(<=600 chars); notas de projetos com <=150 linhas (planos <=200; `project/`
-— execução e clones — fica fora da régua); frontmatter
+(<=600 chars); notas de harness com <=150 linhas (planos <=200; whitelist
+positiva — só as pastas de harness, nunca o código do produto); anatomia
+`pop/` obrigatória nos projetos de `categories/` (harness na raiz da pasta —
+`kanban/` ou `.included-harness.json` fora de `pop/` — é violação, a
+fronteira da regra 13); frontmatter
 obrigatório dos cards de task e coerência do `stage:` com a pasta; worktrees
 órfãs (aviso); wikilinks quebrados (aviso — link para nota futura é
 legítimo); e anotações `<!-- pop-hash: <caminho> sha256=<hash> -->` de
@@ -12,7 +15,7 @@ divergente é violação — ver regra 9 do DOX). Exit 1 se houver violação;
 avisos não falham.
 
 Uso:
-    python3 pop/scripts/pop_validate.py [--vault DIR]
+    python3 scripts/pop_validate.py [--vault DIR]
 """
 
 import argparse
@@ -38,6 +41,10 @@ POP_HASH = re.compile(r"<!--\s*pop-hash:\s*(\S+)\s+sha256=([0-9a-fA-F]+)\s*-->")
 INLINE_CODE = re.compile(r"`[^`]*`")
 LINK_SKIP_PARTS = {"external-repository", ".obsidian", ".git", "worktrees",
                    "__pycache__", "node_modules", "vendor"}
+# Sufixos dos artefatos de estágio da própria task (criados só ao avançar no
+# kanban): um card em 001-005 linka `.plan/.approval/.verify` que ainda não
+# nasceram — link de navegação esperado, não quebra real (ver [[WORKFLOW]]).
+STAGE_ARTIFACT_SUFFIXES = (".plan", ".approval", ".verify")
 EXTERNAL_PROJECT_LINK = re.compile(r"\[\[categories/[^/]+/[^/]+/")
 
 
@@ -163,12 +170,46 @@ def check_worktrees(root, projects, warnings):
                                 f"004_processing")
 
 
-def check_dual_anatomy(root, projects, warnings):
-    """(i) escopo com anatomia dupla: `kanban/` legado E `pop/kanban/` (aviso)."""
-    for project in projects:
-        if (project / "kanban").is_dir() and (project / "pop" / "kanban").is_dir():
-            warnings.append(f"{project}: anatomia dupla — kanban/ legado e "
-                            f"pop/kanban/ coexistem; os scripts usam pop/")
+# Marcadores inequívocos de harness do PoP fora de `pop/`: um projeto legado
+# sempre tem `kanban/` na raiz (qualquer type) ou, se included, o manifesto na
+# raiz. Uma pasta `project/` sem harness é scaffold ainda-não-importado (não é
+# projeto do PoP) — fica de fora, não é violação de anatomia. Nomes genéricos
+# (`scripts/`, `docs/`) que o código do produto pode ter legitimamente também
+# ficam de fora, como manda a whitelist positiva.
+LEGACY_MARKERS = ("kanban", ".included-harness.json")
+
+
+def _scan_legacy_markers(scope, root, violations):
+    """Reporta marcadores inequívocos de harness fora de `pop/` num escopo."""
+    for name in LEGACY_MARKERS:
+        if (scope / name).exists():
+            violations.append(
+                f"{(scope / name)}: harness fora de `pop/` — anatomia legada / "
+                f"fronteira da regra 13; mova o harness para `pop/`")
+
+
+def check_strict_anatomy(root, violations):
+    """(i) anatomia `pop/` obrigatória nos projetos de `categories/`.
+
+    Num projeto sob `categories/` (e em cada repo embutido de full-multi-repo),
+    nenhum artefato inequívoco de harness do PoP pode estar na raiz da pasta:
+    `kanban/` ou `.included-harness.json` fora de `pop/` é violação — o harness
+    inteiro mora em `pop/`. A raiz do vault (meta-projeto) é isenta: sua
+    anatomia mora na raiz por exceção documentada.
+    """
+    categories = root / "categories"
+    if not categories.is_dir():
+        return
+    for project in sorted(categories.glob("*/*")):
+        if not project.is_dir():
+            continue
+        if any(part.startswith(".") for part in project.relative_to(root).parts):
+            continue
+        _scan_legacy_markers(project, root, violations)
+        # um nível a mais: repo embutido de full-multi-repo
+        for sub in sorted(project.glob("*")):
+            if sub.is_dir() and sub.name != "pop" and not sub.name.startswith("."):
+                _scan_legacy_markers(sub, root, violations)
 
 
 def check_wikilinks(root, warnings):
@@ -201,6 +242,15 @@ def check_wikilinks(root, warnings):
                 low = target.lower()
                 name = low.rsplit("/", 1)[-1]
                 if {low, f"{low}.md", name} & targets:
+                    continue
+                # Link da task para um artefato de estágio irmão ainda não
+                # criado (`<id>.plan|approval|verify`): navegação esperada.
+                src_stem = path.stem.lower()
+                for suf in STAGE_ARTIFACT_SUFFIXES:
+                    if src_stem.endswith(suf):
+                        src_stem = src_stem[: -len(suf)]
+                        break
+                if name in {f"{src_stem}{suf}" for suf in STAGE_ARTIFACT_SUFFIXES}:
                     continue
                 warnings.append(f"{path}:{n}: wikilink quebrado [[{target}]]")
 
@@ -241,11 +291,11 @@ def check_hash_pins(root, violations):
 def check_standalone(root, violations):
     """Contrato estrito para um clone included, sem fallback ao vault pai.
 
-    Prefixo dual: no manifest v2 o harness mora em `pop/` (`hb`), com o
-    `.included-harness.json` dentro dele; skills ficam sempre na raiz do repo.
+    O harness mora em `pop/` (`hb`), com o `.included-harness.json` dentro
+    dele; skills ficam sempre na raiz do repo. Sem `pop/` a checagem falha
+    fechada (manifesto ausente).
     """
-    hb = root / "pop" if (root / "pop" / ".included-harness.json").is_file() \
-        else root
+    hb = root / "pop"
     manifest_path = hb / ".included-harness.json"
     if not manifest_path.is_file():
         violations.append(f"{manifest_path}: manifesto standalone ausente")
@@ -303,7 +353,7 @@ def main():
     check_cards(root, projects, violations)
     check_release(root, projects, warnings)
     check_worktrees(root, projects, warnings)
-    check_dual_anatomy(root, projects, warnings)
+    check_strict_anatomy(root, violations)
     check_wikilinks(root, warnings)
     check_hash_pins(root, violations)
     if args.standalone:

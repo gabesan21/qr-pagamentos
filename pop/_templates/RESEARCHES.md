@@ -8,7 +8,7 @@ Ficha: [[pop/PROJECT|<Nome do projeto>]] · Roadmap: [[pop/ROADMAP|Roadmap]]
 
 ## <assunto-em-kebab-case>
 
-- **Status:** pendente | entregue → [[pop/researches/<assunto>/<assunto>|síntese]]
+- **Status:** pendente (entregue → a seção sai do arquivo; a síntese é o registro)
 - **Alimenta:** epoch <n> | spec [[pop/specs/<spec>|<spec>]] | RECON NEEDED <qual>
 - **Prompt sugerido:**
 
@@ -18,4 +18,4 @@ Ficha: [[pop/PROJECT|<Nome do projeto>]] · Roadmap: [[pop/ROADMAP|Roadmap]]
 
 1. O agente propõe pesquisas aqui (`new-project`, `plan-roadmap`, `import-project`) — uma seção por assunto.
 2. O usuário roda o prompt onde quiser e entrega o resultado bruto em `pop/researches/<assunto>/raw/` (dica: o Obsidian Web Clipper converte artigos web em markdown).
-3. Resultado entregue → o agente roda a skill `ingest-research`: síntese em `pop/researches/<assunto>/<assunto>.md`, status `entregue` com link para a síntese e proposta de updates de roadmap/spec (contradição com spec/nota fica sinalizada, nunca silenciosa).
+3. Resultado entregue → o agente roda a skill `ingest-research`: síntese em `pop/researches/<assunto>/<assunto>.md`, **remoção da seção daqui** (o arquivo não guarda histórico — a síntese é o registro) e proposta de updates de roadmap/spec (contradição com spec/nota fica sinalizada, nunca silenciosa).

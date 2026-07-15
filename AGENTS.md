@@ -48,6 +48,13 @@ One execution continues until the next real gate. The complete state machine is 
 - `clean-code-review` (`.agents/skills/`) — follow when **verifying (005)** a code task and as a reading criterion in plan or PR gates.
 - **Mandatory:** in 002, every task that creates/changes code enters `clean-code-change` on the **004** row and `clean-code-review` on the **005** row of the card's **Skills por etapa** table.
 
+### UI and frontend
+
+- `ui-change` (`.agents/skills/`) — follow when **planning (002) and executing (004)** any task that designs or implements UI (screens, components, styles).
+- `ui-review` (`.agents/skills/`) — follow when **verifying (005)** a UI task and as a reading criterion in frontend plan or PR gates.
+- **Mandatory:** in 002, every UI task enters `ui-change` on the **004** row and `ui-review` on the **005** row of the card's **Skills por etapa** table.
+- **Vendored support batch** (`.agents/skills/`, consulted by the two skills above per each one's trigger): `frontend-design`, `web-artifacts-builder`, `taste-skill`, `impeccable`, `react-best-practices`, `web-design-guidelines`, `skill-a11y-audit`, `color-expert`, `design-tokens`, `shadcn`, `ux-audit-rethink`, `nielsen-heuristics-audit`, `wcag-accessibility-audit`, `cognitive-walkthrough`, `ui-design-review`, `don-norman-principles-audit`.
+
 #### Project verification
 
 | Check | Command |
