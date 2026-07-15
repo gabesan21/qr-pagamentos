@@ -39,7 +39,7 @@ while IFS= read -r line || [[ -n $line ]]; do
     *) die "unsupported variable in $ENV_FILE: $key" ;;
   esac
 done < "$ENV_FILE"
-for key in APP_PORT POSTGRES_ADMIN_PASSWORD MIGRATOR_PASSWORD RUNTIME_PASSWORD INITIAL_ADMIN_USERNAME; do
+for key in APP_PORT POSTGRES_ADMIN_PASSWORD MIGRATOR_PASSWORD RUNTIME_PASSWORD; do
   [[ -n ${!key:-} ]] || die "required variable is missing: $key"
 done
 [[ $APP_PORT =~ ^[1-9][0-9]{0,4}$ ]] && ((10#$APP_PORT <= 65535)) || die 'APP_PORT must be between 1 and 65535'
