@@ -57,4 +57,12 @@ export const en = {
   adminDisabled: "Disabled",
   adminAdministrator: "Administrator",
   adminUser: "User",
+  adminPaymentSettingsHeading: "Global payment settings",
+  adminCurrenciesLabel: "Accepted currencies",
+  adminPaymentMethodsLabel: "Accepted payment methods",
+  adminCurrencyBRL: "Brazilian real (BRL)",
+  adminPaymentMethodPIX: "PIX",
+  adminPaymentSettingsHelp: "Choose the payment options available to future products and checkout pages.",
+  adminSavePaymentSettings: "Save payment settings",
+  adminSettingsFailed: "The payment settings could not be saved. Review the options and try again.",
 } as const;

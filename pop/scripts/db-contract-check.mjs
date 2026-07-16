@@ -30,13 +30,13 @@ assert(runtimeClient.includes("process.env.DATABASE_URL") && !runtimeClient.incl
 const gitignore = await readFile(".gitignore", "utf8");
 assert(gitignore.split("\n").includes("src/generated/prisma/"), "Generated Prisma output is not ignored");
 const schema = await readFile("prisma/schema.prisma", "utf8");
-for (const model of ["DatabaseFoundationFixture", "User", "PasswordCredential", "DeploymentBootstrap", "Session"]) {
+for (const model of ["DatabaseFoundationFixture", "User", "PasswordCredential", "DeploymentBootstrap", "Session", "GlobalPaymentSettings"]) {
   assert(schema.includes(`model ${model}`), `Schema is missing ${model}`);
 }
 assert(schema.includes('output   = "../src/generated/prisma"'), "Generated output changed");
 
 const migrationDirectories = (await readdir("prisma/migrations", { withFileTypes: true })).filter((entry) => entry.isDirectory()).map((entry) => entry.name);
-assert(JSON.stringify(migrationDirectories) === JSON.stringify(["20260714000000_foundation_baseline", "20260714190000_local_identities", "20260716110000_database_sessions", "20260716160000_user_language_preference"]), "Migration history name/count changed");
+assert(JSON.stringify(migrationDirectories) === JSON.stringify(["20260714000000_foundation_baseline", "20260714190000_local_identities", "20260716110000_database_sessions", "20260716160000_user_language_preference", "20260716180000_global_payment_settings"]), "Migration history name/count changed");
 const migration = await readFile("prisma/migrations/20260714000000_foundation_baseline/migration.sql", "utf8");
 for (const constraint of ["database_foundation_fixture_key_key", "database_foundation_fixture_key_nonblank", "database_foundation_fixture_quantity_nonnegative"]) {
   assert(migration.includes(constraint), `Migration lost ${constraint}`);
@@ -56,6 +56,11 @@ const localeMigration = await readFile("prisma/migrations/20260716160000_user_la
 assert(schema.includes('preferredLocale String?') && schema.includes('@map("preferred_locale")'), "Schema is missing the nullable preferred locale field");
 for (const contract of ["preferred_locale", "user_preferred_locale_check", "'pt-BR'", "'en'", 'GRANT SELECT, UPDATE ("preferred_locale")']) {
   assert(localeMigration.includes(contract), `Language preference migration lost ${contract}`);
+}
+const settingsMigration = await readFile("prisma/migrations/20260716180000_global_payment_settings/migration.sql", "utf8");
+assert(schema.includes("model GlobalPaymentSettings") && schema.includes("paymentMethods String[]"), "Schema is missing global payment settings");
+for (const contract of ["global_payment_settings_singleton", "global_payment_settings_currencies_closed", "global_payment_settings_payment_methods_closed", "'BRL'", "'PIX'", 'GRANT SELECT, UPDATE ("currencies", "payment_methods", "updated_at")']) {
+  assert(settingsMigration.includes(contract), `Payment settings migration lost ${contract}`);
 }
 
 const bootstrap = await readFile("prisma/bootstrap.sql", "utf8");

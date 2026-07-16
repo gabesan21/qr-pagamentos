@@ -19,6 +19,8 @@ describe("language dictionaries", () => {
       expect(dictionary.languageSave).not.toBe("");
       expect(dictionary.languageSaved).not.toBe("");
       expect(dictionary.languageError).not.toBe("");
+      expect(dictionary.adminPaymentSettingsHeading).not.toBe("");
+      expect(dictionary.adminSavePaymentSettings).not.toBe("");
     }
   });
 });

@@ -2,8 +2,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 
-const { requireAdmin, listUsers, resolveLocale, redirect } = vi.hoisted(() => ({
-  requireAdmin: vi.fn(), listUsers: vi.fn(), resolveLocale: vi.fn(),
+const { requireAdmin, listUsers, listSettings, resolveLocale, redirect } = vi.hoisted(() => ({
+  requireAdmin: vi.fn(), listUsers: vi.fn(), listSettings: vi.fn(), resolveLocale: vi.fn(),
   redirect: vi.fn((location: string) => { throw new Error(`redirect:${location}`); }),
 }));
 
@@ -14,6 +14,7 @@ vi.mock("@/auth/authorization", () => ({
   getAuthorizationService: () => ({ requireAdmin }),
 }));
 vi.mock("@/auth/administration", () => ({ getAdministrationService: () => ({ listUsers }) }));
+vi.mock("@/auth/payment-settings", () => ({ getPaymentSettingsService: () => ({ list: listSettings }), SUPPORTED_CURRENCIES: ["BRL"], SUPPORTED_PAYMENT_METHODS: ["PIX"] }));
 vi.mock("@/i18n/locale-preference", () => ({ getLocalePreferenceService: () => ({ resolve: resolveLocale }) }));
 vi.mock("@/i18n/dictionaries", async () => {
   const [{ en }, { ptBR }] = await Promise.all([import("../../i18n/dictionaries/en"), import("../../i18n/dictionaries/pt-BR")]);
@@ -41,6 +42,7 @@ describe("admin page contract", () => {
     requireAdmin.mockResolvedValue(admin);
     resolveLocale.mockResolvedValue(locale);
     listUsers.mockResolvedValue([]);
+    listSettings.mockResolvedValue({ currencies: ["BRL"], paymentMethods: ["PIX"] });
     const markup = renderToStaticMarkup(await AdminPage({ searchParams: Promise.resolve({}) }));
 
     expect(markup).toContain(locale === "en" ? "Administrator accounts" : "Contas administrativas");
@@ -48,12 +50,15 @@ describe("admin page contract", () => {
     expect(markup).toContain("<select");
     expect(markup).toContain("type=\"password\"");
     expect(markup).toContain("disabled=\"\"");
+    expect(markup).toContain(locale === "en" ? "Global payment settings" : "Configurações globais de pagamento");
+    expect(markup).toContain('type="checkbox"');
   });
 
   it("announces failed mutations with an assertive alert and recovery text", async () => {
     requireAdmin.mockResolvedValue(admin);
     resolveLocale.mockResolvedValue("en");
     listUsers.mockResolvedValue([]);
+    listSettings.mockResolvedValue({ currencies: ["BRL"], paymentMethods: ["PIX"] });
     const markup = renderToStaticMarkup(await AdminPage({ searchParams: Promise.resolve({ error: "change-failed" }) }));
     expect(markup).toContain('role="alert"');
     expect(markup).toContain('aria-live="assertive"');

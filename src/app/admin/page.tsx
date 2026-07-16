@@ -6,6 +6,7 @@ import { Panel } from "@/app/ui/panel";
 import { Status } from "@/app/ui/status";
 import { ForbiddenError, getAuthorizationService } from "@/auth/authorization";
 import { getAdministrationService } from "@/auth/administration";
+import { getPaymentSettingsService, SUPPORTED_CURRENCIES, SUPPORTED_PAYMENT_METHODS } from "@/auth/payment-settings";
 import { getDictionary } from "@/i18n/dictionaries";
 import { getLocalePreferenceService } from "@/i18n/locale-preference";
 
@@ -27,14 +28,15 @@ export default async function AdminPage({ searchParams }: Readonly<{ searchParam
     if (error instanceof ForbiddenError) redirect("/");
     redirect("/login");
   }
-  const [locale, users, query] = await Promise.all([
+  const [locale, users, settings, query] = await Promise.all([
     getLocalePreferenceService().resolve(actor.id),
     getAdministrationService().listUsers(actor),
+    getPaymentSettingsService().list(actor),
     searchParams,
   ]);
   const dictionary = getDictionary(locale);
   const notice: Notice = query.success ? "success" : query.error ? "error" : undefined;
-  const noticeText = query.success === "created" ? dictionary.adminCreated : query.success ? dictionary.adminChanged : query.error === "create-failed" ? dictionary.adminCreateFailed : dictionary.adminChangeFailed;
+  const noticeText = query.success === "created" ? dictionary.adminCreated : query.success ? dictionary.adminChanged : query.error === "create-failed" ? dictionary.adminCreateFailed : query.error === "settings-failed" ? dictionary.adminSettingsFailed : dictionary.adminChangeFailed;
 
   return (
     <main className="admin-shell">
@@ -61,6 +63,20 @@ export default async function AdminPage({ searchParams }: Readonly<{ searchParam
       </Panel>
       <Panel title={dictionary.adminUsersHeading}>
         {users.length === 0 ? <p>{dictionary.adminEmpty}</p> : <div className="admin-table-wrap"><table className="admin-table"><thead><tr><th scope="col">{dictionary.adminUsername}</th><th scope="col">{dictionary.adminEmail}</th><th scope="col">{dictionary.adminRole}</th><th scope="col">{dictionary.adminStatus}</th><th scope="col">{dictionary.adminActions}</th></tr></thead><tbody>{users.map((user) => <tr key={user.id}><td>{user.username}</td><td>{user.email ?? "—"}</td><td>{displayRole(user.role, dictionary)}</td><td>{displayStatus(user.status, dictionary)}</td><td><div className="admin-actions"><form action={`/admin/users/${user.id}/role`} method="post"><label className="sr-only" htmlFor={`role-${user.id}`}>{dictionary.adminRoleLabel}</label><select className="field__input" defaultValue={user.role} id={`role-${user.id}`} name="role"><option value="USER">{dictionary.adminUser}</option><option value="ADMIN">{dictionary.adminAdministrator}</option></select><AdminSubmit label={dictionary.adminSaveRole} tone="secondary" /></form><form action={`/admin/users/${user.id}/status`} method="post"><label className="sr-only" htmlFor={`status-${user.id}`}>{dictionary.adminStatusLabel}</label><select className="field__input" defaultValue={user.status} id={`status-${user.id}`} name="status"><option value="ACTIVE">{dictionary.adminActive}</option><option value="DISABLED">{dictionary.adminDisabled}</option></select><AdminSubmit label={dictionary.adminSaveStatus} tone="secondary" /></form><form action={`/admin/users/${user.id}/password`} method="post"><label className="sr-only" htmlFor={`password-${user.id}`}>{dictionary.passwordLabel}</label><input className="field__input" id={`password-${user.id}`} minLength={12} name="password" required type="password" /><AdminSubmit label={dictionary.adminChangePassword} tone="secondary" /></form></div></td></tr>)}</tbody></table></div>}
+      </Panel>
+      <Panel title={dictionary.adminPaymentSettingsHeading}>
+        <form action="/admin/payment-settings" method="post">
+          <fieldset className="field__group">
+            <legend>{dictionary.adminCurrenciesLabel}</legend>
+            {SUPPORTED_CURRENCIES.map((currency) => <label className="field__choice" key={currency}><input defaultChecked={settings.currencies.includes(currency)} name="currencies" type="checkbox" value={currency} /> {dictionary.adminCurrencyBRL}</label>)}
+          </fieldset>
+          <fieldset className="field__group">
+            <legend>{dictionary.adminPaymentMethodsLabel}</legend>
+            {SUPPORTED_PAYMENT_METHODS.map((method) => <label className="field__choice" key={method}><input defaultChecked={settings.paymentMethods.includes(method)} name="paymentMethods" type="checkbox" value={method} /> {dictionary.adminPaymentMethodPIX}</label>)}
+          </fieldset>
+          <p className="field__help">{dictionary.adminPaymentSettingsHelp}</p>
+          <AdminSubmit label={dictionary.adminSavePaymentSettings} />
+        </form>
       </Panel>
       <div className="admin-shell__actions"><form action="/language-preference" method="post"><label className="field__label" htmlFor="locale">{dictionary.languageLabel}</label><select className="field__input" defaultValue={locale} id="locale" name="locale"><option value="pt-BR">Português (Brasil)</option><option value="en">English</option></select><AdminSubmit label={dictionary.languageSave} tone="secondary" /></form><form action="/logout" method="post"><AdminSubmit label={dictionary.signOut} tone="secondary" /></form></div>
     </main>

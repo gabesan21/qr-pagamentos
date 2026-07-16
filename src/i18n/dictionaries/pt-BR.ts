@@ -57,4 +57,12 @@ export const ptBR = {
   adminDisabled: "Desativado",
   adminAdministrator: "Administrador",
   adminUser: "Usuário",
+  adminPaymentSettingsHeading: "Configurações globais de pagamento",
+  adminCurrenciesLabel: "Moedas aceitas",
+  adminPaymentMethodsLabel: "Métodos de pagamento aceitos",
+  adminCurrencyBRL: "Real brasileiro (BRL)",
+  adminPaymentMethodPIX: "PIX",
+  adminPaymentSettingsHelp: "Escolha as opções de pagamento disponíveis para produtos e páginas de checkout futuros.",
+  adminSavePaymentSettings: "Salvar configurações de pagamento",
+  adminSettingsFailed: "Não foi possível salvar as configurações de pagamento. Revise as opções e tente novamente.",
 } as const;
