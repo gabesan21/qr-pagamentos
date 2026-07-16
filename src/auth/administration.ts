@@ -1,5 +1,5 @@
 import { getDatabaseClient } from "../db/client";
-import { toUserDto, type UserRole, type UserStatus } from "./identity";
+import { normalizeOptionalEmail, normalizeUsername, toUserDto, USER_ROLES, type UserRole, type UserStatus } from "./identity";
 import { hashPassword } from "./password";
 import { ForbiddenError, type Principal } from "./authorization";
 
@@ -12,6 +12,7 @@ type MutationStore = {
   updateRole(id: string, role: UserRole): Promise<void>;
   updatePassword(id: string, passwordHash: string): Promise<void>;
   revokeSessions(userId: string): Promise<void>;
+  createUser(input: { username: string; email: string | null; role: UserRole; passwordHash: string }): Promise<UserRecord>;
 };
 
 export interface AdministrationStore extends MutationStore {
@@ -19,6 +20,7 @@ export interface AdministrationStore extends MutationStore {
 }
 
 export class FinalAdministratorError extends Error {}
+export class AdministrationValidationError extends Error {}
 
 function requireAdmin(actor: Principal) {
   if (actor.role !== "ADMIN" || actor.status !== "ACTIVE") throw new ForbiddenError("Administrator access is required");
@@ -43,6 +45,19 @@ export function createAdministrationService(store: AdministrationStore) {
       requireAdmin(actor);
       return (await store.listUsers()).map(toUserDto);
     },
+    async createUser(actor: Principal, input: { username: string; email?: string | null; password: string; role: string }) {
+      requireAdmin(actor);
+      if (!USER_ROLES.includes(input.role as UserRole)) throw new AdministrationValidationError("Invalid role");
+      try {
+        const username = normalizeUsername(input.username);
+        const email = normalizeOptionalEmail(input.email);
+        const passwordHash = await hashPassword(input.password);
+        return toUserDto(await store.createUser({ username, email, role: input.role as UserRole, passwordHash }));
+      } catch (error) {
+        if (error instanceof AdministrationValidationError) throw error;
+        throw new AdministrationValidationError("Invalid account details");
+      }
+    },
     async changePassword(actor: Principal, targetId: string, password: string) {
       requireAdmin(actor);
       const passwordHash = await hashPassword(password);
@@ -54,6 +69,7 @@ export function createAdministrationService(store: AdministrationStore) {
     },
     async changeStatus(actor: Principal, targetId: string, status: UserStatus) {
       requireAdmin(actor);
+      if (status !== "ACTIVE" && status !== "DISABLED") throw new AdministrationValidationError("Invalid status");
       if (status === "DISABLED") return mutateAdminSafety(targetId, (locked) => locked.updateStatus(targetId, status));
       await store.withAuthorizationLock(async (locked) => {
         if (!await locked.findUser(targetId)) return;
@@ -63,6 +79,7 @@ export function createAdministrationService(store: AdministrationStore) {
     },
     async changeRole(actor: Principal, targetId: string, role: UserRole) {
       requireAdmin(actor);
+      if (role !== "ADMIN" && role !== "USER") throw new AdministrationValidationError("Invalid role");
       await store.withAuthorizationLock(async (locked) => {
         const target = await locked.findUser(targetId);
         if (!target) return;
@@ -86,6 +103,12 @@ function prismaStore(): AdministrationStore {
     async updateRole(id, role) { await client.user.update({ where: { id }, data: { role } }); },
     async updatePassword(id, passwordHash) { await client.passwordCredential.update({ where: { userId: id }, data: { passwordHash } }); },
     async revokeSessions(userId) { await client.session.deleteMany({ where: { userId } }); },
+    async createUser(input) {
+      return (await client.user.create({
+        data: { username: input.username, email: input.email, role: input.role, status: "ACTIVE", credential: { create: { passwordHash: input.passwordHash } } },
+        select: { id: true, username: true, email: true, role: true, status: true, createdAt: true },
+      })) as UserRecord;
+    },
   });
   return {
     ...scoped(db),

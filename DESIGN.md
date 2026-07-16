@@ -68,12 +68,18 @@ following deliberately small inventory is the only foundation introduced:
 | `Field` | labelled text input with help text | default, disabled, error, hover/focus; loading and empty are not applicable |
 | `Status` | labelled success, warning, or error fact | default and hover/focus when actionable; loading, empty, and disabled are not applicable |
 | `Panel` | ruled content grouping | default, loading, empty, error with recovery action; hover/focus and disabled are not applicable to a non-control |
+| `AdminSubmit` | form-status adapter for `ActionButton` | default, loading, disabled, hover/focus; empty and error remain the surrounding form's responsibility |
 
 The deterministic `/design-system` exercise surface resolves its dictionary from
 the same server preference contract as the authenticated shell and presents all
 applicable states. Its keyboard order is primary action,
 field, error recovery, then secondary action. Enabled controls use a visible
 two-pixel semantic focus outline; disabled controls are not focusable.
+
+The `/admin` shell consumes this inventory for account creation, account
+mutations, language preference, and logout. Its empty account list, server
+recovery status, and pending submits make the screen-level empty/error/loading
+states explicit without adding a second button style.
 
 ## Composition and motion
 
