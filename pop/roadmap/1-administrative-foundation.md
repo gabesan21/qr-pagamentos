@@ -38,7 +38,7 @@
 | [[1.2.1-review-clean-code-baseline]] | Review the Phase 1.1 codebase against the clean-code contracts and remediate confirmed issues before identity and access work begins. · size: M | concluída |
 | [[1.2.2-establish-local-identities]] | Add required unique usernames, optional email profile data, password credentials, closed roles, deployment-seeded administration, and secure operator recovery. · size: M | concluída |
 | [[1.2.3-implement-database-sessions]] | Deliver bilingual username-and-password sign-in and logout with opaque PostgreSQL sessions, secure cookies, expiry limits, and concurrency enforcement; never fall back to email lookup. · size: M | concluída |
-| [[1.2.4-enforce-access-control]] | Enforce deny-by-default server authorization, username-bearing safe user projections with nullable email, session revocation, and final-active-admin protection end to end. · size: M | concluída |
+| `1.2.4-enforce-access-control` | Enforce deny-by-default server authorization, username-bearing safe user projections with nullable email, session revocation, and final-active-admin protection end to end. · size: M | not started |
 
 ## Phase 1.3 - Administrative control plane
 
