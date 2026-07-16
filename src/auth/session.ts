@@ -72,8 +72,6 @@ export function createSessionService(store: SessionStore, clock: () => Date = ()
   };
 }
 
-export type SessionService = ReturnType<typeof createSessionService>;
-
 function prismaStore(): SessionStore {
   const db = getDatabaseClient();
   const scoped = (client: typeof db): SessionStore => ({
