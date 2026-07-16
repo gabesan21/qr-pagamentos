@@ -121,7 +121,7 @@ try {
   const migrationEnv = { ...process.env, MIGRATION_DATABASE_URL: migratorUrl };
   delete migrationEnv.DATABASE_URL;
   const firstDeploy = run("pnpm", ["exec", "prisma", "migrate", "deploy"], { env: migrationEnv });
-  assert(firstDeploy.includes("3 migrations found"), "Fresh deploy did not discover exactly three migrations");
+  assert(firstDeploy.includes("4 migrations found"), "Fresh deploy did not discover exactly four migrations");
 
   const admin = new Client({ connectionString: adminUrl });
   await admin.connect();
@@ -129,7 +129,7 @@ try {
     SELECT migration_name, checksum, finished_at IS NOT NULL AS finished, rolled_back_at
     FROM app._prisma_migrations
   `);
-  const expectedMigrations = ["20260714000000_foundation_baseline", "20260714190000_local_identities", "20260716110000_database_sessions"];
+  const expectedMigrations = ["20260714000000_foundation_baseline", "20260714190000_local_identities", "20260716110000_database_sessions", "20260716160000_user_language_preference"];
   assert(history.rows.length === expectedMigrations.length, "Migration history row count changed");
   for (const migrationName of expectedMigrations) {
     const migrationSql = await readFile(`prisma/migrations/${migrationName}/migration.sql`);
@@ -241,6 +241,18 @@ try {
   const cascadedSession = await runtime.query(`SELECT count(*)::int AS count FROM app.session WHERE token_digest = $1`, [sessionDigest]);
   assert(cascadedSession.rows[0].count === 0, "Session did not cascade with its user");
   console.log("PASS session-schema");
+
+  const localeColumn = await runtime.query(`
+    SELECT data_type, udt_name, is_nullable
+    FROM information_schema.columns
+    WHERE table_schema = 'app' AND table_name = 'user' AND column_name = 'preferred_locale'
+  `);
+  assert(JSON.stringify(localeColumn.rows) === JSON.stringify([{ data_type: "character varying", udt_name: "varchar", is_nullable: "YES" }]), "Preferred locale column differs from the contract");
+  await runtime.query(`UPDATE app."user" SET preferred_locale = 'en' WHERE id = $1`, [otherUserId]);
+  const savedLocale = await runtime.query(`SELECT preferred_locale FROM app."user" WHERE id = $1`, [otherUserId]);
+  assert(savedLocale.rows[0]?.preferred_locale === "en", "Runtime could not persist a supported locale");
+  await expectSqlState(runtime, `UPDATE app."user" SET preferred_locale = 'es' WHERE id = '${otherUserId}'`, { code: "23514", constraint: "user_preferred_locale_check" });
+  console.log("PASS language-preference-schema");
 
   const privilege = await runtime.query(`
     SELECT current_user,

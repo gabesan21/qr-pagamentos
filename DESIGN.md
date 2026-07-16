@@ -69,8 +69,9 @@ following deliberately small inventory is the only foundation introduced:
 | `Status` | labelled success, warning, or error fact | default and hover/focus when actionable; loading, empty, and disabled are not applicable |
 | `Panel` | ruled content grouping | default, loading, empty, error with recovery action; hover/focus and disabled are not applicable to a non-control |
 
-The deterministic `/en/design-system` and `/pt-BR/design-system` exercise
-surface presents all applicable states. Its keyboard order is primary action,
+The deterministic `/design-system` exercise surface resolves its dictionary from
+the same server preference contract as the authenticated shell and presents all
+applicable states. Its keyboard order is primary action,
 field, error recovery, then secondary action. Enabled controls use a visible
 two-pixel semantic focus outline; disabled controls are not focusable.
 
