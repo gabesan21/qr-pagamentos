@@ -18,7 +18,7 @@
     "container:prepare-secrets": "node pop/scripts/container-prepare-secrets.mjs",
     "container:contract-check": "node pop/scripts/container-contract-check.mjs",
     "container:test": "node pop/scripts/container-test.mjs",
-    "lint": "eslint .",
+    "lint": "node scripts/check-design-tokens.mjs && eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "precheck": "pnpm db:generate",
