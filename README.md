@@ -4,8 +4,8 @@ Self-hosted Next.js dashboard for products and first-party payment links backed 
 
 ## Prerequisites
 
-- Node.js 24.18.0 (also recorded in `.node-version`)
-- pnpm 11.13.0; pnpm's managed-version support enforces the `packageManager` pin without Corepack
+- Node.js 26.4.0 (also recorded in `.node-version`)
+- pnpm 11.3.0; pnpm's managed-version support enforces the `packageManager` pin without Corepack
 - For the self-contained `install/install.sh` deployment path: Docker Engine and the Docker Compose v2 plugin, installed per https://docs.docker.com/engine/install/ and https://docs.docker.com/compose/install/linux/, with the invoking user already a member of the `docker` group (`sudo usermod -aG docker "$USER"`, then log out and back in) — the installer runs entirely without `sudo` and errors out instead of granting or working around missing Docker access
 
 ## Commands

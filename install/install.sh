@@ -6,7 +6,7 @@ ROOT_DIR=$(cd "$INSTALL_DIR/.." && pwd)
 ENV_FILE="$INSTALL_DIR/.env"
 DRY_RUN=false
 RECOVER_INITIAL_ADMIN=false
-NODE_HELPER='node:24.18.0-bookworm-slim@sha256:6f7b03f7c2c8e2e784dcf9295400527b9b1270fd37b7e9a7285cf83b6951452d'
+NODE_HELPER='node:26.4.0-bookworm-slim@sha256:70a832c538c185e6a1a5387d46fc5b615363c50d49dcf50505879ee3f39c6001'
 DOCKER=(docker)
 
 die() { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
