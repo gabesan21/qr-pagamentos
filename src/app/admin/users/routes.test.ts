@@ -22,19 +22,21 @@ const request = (body = new URLSearchParams()) => new Request("https://example.t
 const target = { params: Promise.resolve({ id: "target" }) };
 
 describe("administrative mutation route contract", () => {
-  it("returns empty unauthenticated and forbidden responses without target disclosure", async () => {
-    requireAdminFromCookie.mockRejectedValueOnce(new Error("unauthenticated"));
-    protectedMutationResponse.mockReturnValueOnce(new Response(null, { status: 401 }));
-    const response = await create(request());
-    expect(response.status).toBe(401);
-    expect(await response.text()).toBe("");
-
-    requireAdminFromCookie.mockRejectedValueOnce(new Error("forbidden"));
-    protectedMutationResponse.mockReturnValueOnce(new Response(null, { status: 403 }));
-    const roleResponse = await role(request(new URLSearchParams({ role: "ADMIN" })), target);
-    expect(roleResponse.status).toBe(403);
-    expect(await roleResponse.text()).toBe("");
-    expect(roleResponse.headers.get("location")).toBeNull();
+  it.each([
+    ["create", (form: URLSearchParams) => create(request(form)), new URLSearchParams()],
+    ["role", (form: URLSearchParams) => role(request(form), target), new URLSearchParams({ role: "ADMIN" })],
+    ["status", (form: URLSearchParams) => status(request(form), target), new URLSearchParams({ status: "DISABLED" })],
+    ["password", (form: URLSearchParams) => password(request(form), target), new URLSearchParams({ password: "correct horse battery staple" })],
+  ] as const)("returns empty 401 and 403 without disclosure for %s", async (_name, handler, form) => {
+    for (const [statusCode, error] of [[401, "unauthenticated"], [403, "forbidden"]] as const) {
+      requireAdminFromCookie.mockRejectedValueOnce(new Error(error));
+      protectedMutationResponse.mockReturnValueOnce(new Response(null, { status: statusCode }));
+      const response = await handler(form);
+      expect(response.status).toBe(statusCode);
+      expect(await response.text()).toBe("");
+      expect(response.headers.get("location")).toBeNull();
+      expect(response.headers.get("www-authenticate")).toBeNull();
+    }
   });
 
   it("uses only the re-authorized principal and opaque authorized redirects", async () => {

@@ -44,7 +44,7 @@ export default async function AdminPage({ searchParams }: Readonly<{ searchParam
         <div className="receipt-rail__facts"><span>{actor.username}</span><span>{dictionary.adminAdministrator}</span></div>
       </header>
       <p className="admin-shell__intro">{dictionary.adminIntroduction}</p>
-      {notice ? <Status label={notice === "success" ? dictionary.adminHeading : dictionary.adminChangeFailed} tone={notice === "success" ? "success" : "danger"}>{noticeText}</Status> : null}
+      {notice ? <div aria-live={notice === "success" ? "polite" : "assertive"} role={notice === "success" ? "status" : "alert"}><Status label={notice === "success" ? dictionary.adminHeading : dictionary.adminChangeFailed} tone={notice === "success" ? "success" : "danger"}>{noticeText}</Status></div> : null}
       <Panel title={dictionary.adminCreateHeading}>
         <form action="/admin/users" method="post">
           <label className="field__label" htmlFor="username">{dictionary.usernameLabel}</label>
