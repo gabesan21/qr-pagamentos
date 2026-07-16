@@ -53,5 +53,5 @@
 |------|-------------|--------|
 | [[1.3.1-establish-admin-design-system]] | Define the admin tone, semantic tokens, `DESIGN.md`, lintable no-raw-value contract, shared primitive inventory, and required component states before building admin screens. · size: M | concluída |
 | [[1.3.2-user-language-preference]] | Persist each user's language preference and resolve localized UI without locale-prefixed URLs. · size: M | concluída |
-| `1.3.3-manage-administrative-users` | Deliver the authenticated, accessible admin shell and user management for accounts, roles, and account status, including protection of the final active administrator. · size: L | not started |
+| [[1.3.3-manage-administrative-users]] | Deliver the authenticated, accessible admin shell and user management for accounts, roles, and account status, including protection of the final active administrator. · size: L | concluída |
 | `1.3.4-manage-global-payment-settings` | Deliver accessible administrator management of the approved global currency and payment-method allowlists. · size: M | not started |
