@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { createAdministrationService, FinalAdministratorError, type AdministrationStore } from "./administration";
+import { AdministrationTargetNotFoundError, createAdministrationService, FinalAdministratorError, type AdministrationStore } from "./administration";
 
 const createdAt = new Date("2026-07-16T00:00:00Z");
 type TestUser = { id: string; username: string; email: string | null; role: "ADMIN" | "USER"; status: "ACTIVE" | "DISABLED"; createdAt: Date };
@@ -54,6 +54,13 @@ describe("identity administration", () => {
     const twoAdmins = storeWith([admin, { ...admin, id: "admin-2", username: "admin-2" }]);
     await expect(createAdministrationService(twoAdmins).changeStatus(admin, "admin-2", "DISABLED")).resolves.toBeUndefined();
     expect(twoAdmins.lockScopes).toBe(1);
+  });
+
+  it("rejects unknown password, role, and status targets", async () => {
+    const service = createAdministrationService(storeWith());
+    await expect(service.changePassword(admin, "unknown", "correct horse battery staple")).rejects.toBeInstanceOf(AdministrationTargetNotFoundError);
+    await expect(service.changeRole(admin, "unknown", "USER")).rejects.toBeInstanceOf(AdministrationTargetNotFoundError);
+    await expect(service.changeStatus(admin, "unknown", "DISABLED")).rejects.toBeInstanceOf(AdministrationTargetNotFoundError);
   });
 
   it("creates normalized safe account facts only for an active administrator", async () => {

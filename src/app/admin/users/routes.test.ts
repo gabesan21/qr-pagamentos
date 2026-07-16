@@ -56,11 +56,15 @@ describe("administrative mutation route contract", () => {
     }
   });
 
-  it("maps unknown or final-admin service failures to the same generic redirect", async () => {
+  it.each([
+    ["role", role, changeRole, new URLSearchParams({ role: "USER" })],
+    ["status", status, changeStatus, new URLSearchParams({ status: "DISABLED" })],
+    ["password", password, changePassword, new URLSearchParams({ password: "correct horse battery staple" })],
+  ] as const)("maps an unknown %s target to the generic failure redirect", async (_operation, handler, mutation, form) => {
     requireAdminFromCookie.mockResolvedValue(actor);
     protectedMutationResponse.mockReturnValue(null);
-    changeStatus.mockRejectedValueOnce(new Error("unknown or protected"));
-    const response = await status(request(new URLSearchParams({ status: "DISABLED" })), target);
+    mutation.mockRejectedValueOnce(new Error("unknown target"));
+    const response = await handler(request(form), target);
     expect(response.status).toBe(303);
     expect(response.headers.get("location")).toBe("https://example.test/admin?error=change-failed");
     expect(response.headers.get("location")).not.toContain("target");

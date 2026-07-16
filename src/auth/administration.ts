@@ -21,6 +21,7 @@ export interface AdministrationStore extends MutationStore {
 
 export class FinalAdministratorError extends Error {}
 export class AdministrationValidationError extends Error {}
+export class AdministrationTargetNotFoundError extends Error {}
 
 function requireAdmin(actor: Principal) {
   if (actor.role !== "ADMIN" || actor.status !== "ACTIVE") throw new ForbiddenError("Administrator access is required");
@@ -30,7 +31,7 @@ export function createAdministrationService(store: AdministrationStore) {
   async function mutateAdminSafety(targetId: string, change: (locked: MutationStore, target: UserRecord) => Promise<void>) {
     await store.withAuthorizationLock(async (locked) => {
       const target = await locked.findUser(targetId);
-      if (!target) return;
+      if (!target) throw new AdministrationTargetNotFoundError("Administrative target was not found");
       const removesAdmin = target.role === "ADMIN" && target.status === "ACTIVE";
       if (removesAdmin && await locked.countActiveAdmins() <= 1) {
         throw new FinalAdministratorError("The final active administrator cannot be changed");
@@ -62,7 +63,7 @@ export function createAdministrationService(store: AdministrationStore) {
       requireAdmin(actor);
       const passwordHash = await hashPassword(password);
       await store.withAuthorizationLock(async (locked) => {
-        if (!await locked.findUser(targetId)) return;
+        if (!await locked.findUser(targetId)) throw new AdministrationTargetNotFoundError("Administrative target was not found");
         await locked.updatePassword(targetId, passwordHash);
         await locked.revokeSessions(targetId);
       });
@@ -72,7 +73,7 @@ export function createAdministrationService(store: AdministrationStore) {
       if (status !== "ACTIVE" && status !== "DISABLED") throw new AdministrationValidationError("Invalid status");
       if (status === "DISABLED") return mutateAdminSafety(targetId, (locked) => locked.updateStatus(targetId, status));
       await store.withAuthorizationLock(async (locked) => {
-        if (!await locked.findUser(targetId)) return;
+        if (!await locked.findUser(targetId)) throw new AdministrationTargetNotFoundError("Administrative target was not found");
         await locked.updateStatus(targetId, status);
         await locked.revokeSessions(targetId);
       });
@@ -82,7 +83,7 @@ export function createAdministrationService(store: AdministrationStore) {
       if (role !== "ADMIN" && role !== "USER") throw new AdministrationValidationError("Invalid role");
       await store.withAuthorizationLock(async (locked) => {
         const target = await locked.findUser(targetId);
-        if (!target) return;
+        if (!target) throw new AdministrationTargetNotFoundError("Administrative target was not found");
         if (role !== "ADMIN" && target.role === "ADMIN" && target.status === "ACTIVE" && await locked.countActiveAdmins() <= 1) {
           throw new FinalAdministratorError("The final active administrator cannot be changed");
         }
