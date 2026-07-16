@@ -65,5 +65,6 @@ This spec defines the reproducible runtime, local identity boundary, role model,
 
 ## Related specs
 
+- [[specs/administrative-design-system|Administrative design system]] - follow when changing the shared shadcn sources, visual tokens, typography, component states, or browser evidence for Epoch 1 surfaces.
 - [[specs/product-scope|Product scope]] - follow when an administrative decision changes the MVP boundary.
 - [`AGENTS.md`](../AGENTS.md) - follow before changing the root application structure or DOX contracts.
