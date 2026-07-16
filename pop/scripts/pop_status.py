@@ -4,7 +4,9 @@
 Mostra, por projeto, a contagem de tasks por estágio do kanban e as listas
 que pedem atenção humana: aguardando liberação (001), aguardando aprovação
 (003), verificação crítica (005 + critical), aguardando merge, bloqueadas
-e alerta de WIP > 3 em 004.
+e alerta de WIP > 3 em 004. Tasks `yolo: true` ficam fora das listas de
+aprovação/crítica/merge — esses gates são delegados ao agente crítico
+(seção Yolo mode do WORKFLOW).
 
 Uso:
     python3 scripts/pop_status.py [--project <categoria>/<projeto>] [--vault DIR]
@@ -41,11 +43,12 @@ def collect(project):
         tid = task_dir.name
         if stage == "001_initial_task" and not poplib.task_released(card):
             attention["release"].append(tid)
-        if stage == "003_human_approval":
+        yolo = meta.get("yolo") is True
+        if stage == "003_human_approval" and not yolo:
             attention["approval"].append(tid)
-        if stage == "005_verifying" and meta.get("critical") is True:
+        if stage == "005_verifying" and meta.get("critical") is True and not yolo:
             attention["critical"].append(tid)
-        if meta.get("awaiting_merge") is True:
+        if meta.get("awaiting_merge") is True and not yolo:
             attention["merge"].append(tid)
         if meta.get("blocked") is True:
             reason = meta.get("blocked_reason") or "sem motivo registrado"

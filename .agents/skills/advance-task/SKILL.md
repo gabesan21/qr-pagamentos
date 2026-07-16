@@ -24,7 +24,7 @@ Você é o **orquestrador**: identifica o estágio da task, resolve gates e tran
 
 **Gates humanos (únicas paradas):** liberação em `001` (`- [x] Pronto para planejar`); aprovação em `003`; verificação humana se `critical: true` em `005`; item `(user)` de subtask; `blocked: true`; rodada de merge em `006`.
 
-**Task `yolo: true`** (seção Yolo mode do [[WORKFLOW|WORKFLOW]]): os gates de 001, 003 e merge de task em 006 são resolvidos pelo subagente **crítico** ([[.agents/skills/yolo-critic/SKILL|yolo-critic]]) — as demais paradas continuam humanas. **Loop de escopo:** concluída uma task de escopo yolo, materialize a próxima elegível da phase/epoch (`new-task` sem entrevista, em ordem de `depends_on`, WIP 3) até o escopo terminar — aí abra o fechamento de escopo (PR `develop` → branch de PR + open_question, protocolo na skill do crítico). Marca yolo removida mid-flight vale a partir do próximo gate.
+**Task `yolo: true`** (seção Yolo mode do [[WORKFLOW|WORKFLOW]]): os gates de 001, 003, `critical` em 005 e integração de task em 006 são resolvidos pelo subagente **crítico** ([[.agents/skills/yolo-critic/SKILL|yolo-critic]]) — sem PR nem `pr:`/`awaiting_merge:` por task; param no humano só item `(user)`, `blocked: true` e a revisão final do escopo. **Loop de escopo:** concluída uma task de escopo yolo, materialize a próxima elegível da phase/epoch (`new-task` sem entrevista, em ordem de `depends_on`, WIP 3 priorizado por você) até o escopo terminar — aí o fechamento de escopo (open_question de entrega, **sem PR automático** — protocolo na skill do crítico; escopo de 1 task fecha ao final dela mesma). Marca yolo removida mid-flight vale a partir do próximo gate.
 
 ## Subagentes por estágio
 
@@ -33,7 +33,7 @@ Cada subagente recebe **só** a skill da sua etapa (tabela "Skills por etapa" do
 - **002 — planejador:** recebe card + pesquisas e specs linkadas → devolve o `.plan.md` (abre a própria onda de recon **orçada** — só perguntas acima do piso da regra 18 viram workers, **0 é válido**, ondas de até 3-5; workers são folha — reportam "Lacunas / Não encontrado", nunca disparam subagentes).
 - **004 — executor:** recebe plano + seção "Contexto mínimo do executor" → trabalha na worktree da task (`pop/worktrees/<id>`), devolve checkboxes marcados + divergências.
 - **005 — verificador:** recebe a tabela de verificação do plano → devolve o `.verify.md` com evidências. **Nunca o mesmo agente que executou** — julga sem o viés de quem fez.
-- **003/006 yolo — crítico:** recebe card + `.plan.md` + `.approval.md` (006: + `.verify.md` e PR) → assina a rodada ou devolve com motivos (skill [[.agents/skills/yolo-critic/SKILL|yolo-critic]]; teto de 2 devoluções). Distinto de planejador/executor/verificador.
+- **003/005-crítico/006 yolo — crítico:** recebe card + `.plan.md` + `.approval.md` (005 crítico: + `.verify.md` e worktree; 006: + `.verify.md` e branch `task/<id>`) → assina a rodada/verificação ou devolve com motivos (skill [[.agents/skills/yolo-critic/SKILL|yolo-critic]]; teto de 2 devoluções em 003; 006 = merge local em `develop`, sem PR). Distinto de planejador/executor/verificador.
 
 ## Cuidados (desta skill; os do fluxo estão nas Regras transversais)
 

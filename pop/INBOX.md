@@ -24,7 +24,7 @@ SORT updated ASC
 
 ```dataview
 TABLE WITHOUT ID file.link AS Task, project AS Projeto, updated AS "Desde"
-WHERE stage = "005_verifying" AND critical = true
+WHERE stage = "005_verifying" AND critical = true AND yolo != true
 SORT updated ASC
 ```
 
@@ -32,7 +32,7 @@ SORT updated ASC
 
 ```dataview
 TABLE WITHOUT ID file.link AS Task, project AS Projeto, pr AS PR
-WHERE awaiting_merge = true
+WHERE awaiting_merge = true AND yolo != true
 SORT updated ASC
 ```
 
@@ -57,7 +57,7 @@ SORT created ASC
 
 ## Yolo em andamento
 
-Informativo (não pede decisão): tasks com gates delegados ao agente crítico — ver seção Yolo mode do [[WORKFLOW|WORKFLOW]]. Travamentos aparecem em **Bloqueadas**; o PR final do escopo chega como questão aberta.
+Informativo (não pede decisão): tasks com gates delegados ao agente crítico — ver seção Yolo mode do [[WORKFLOW|WORKFLOW]]. Travamentos aparecem em **Bloqueadas**; a entrega do escopo chega como questão aberta (você testa `develop` e decide se abre o PR).
 
 ```dataview
 TABLE WITHOUT ID file.link AS Task, project AS Projeto, stage AS Estágio, updated AS "Desde"

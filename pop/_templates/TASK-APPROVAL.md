@@ -25,7 +25,7 @@ _(preenchido após o Feito: "aprovado → 004" ou "mudanças pedidas → 002: <r
 
 ## Merge — 006 — AAAA-MM-DD
 
-> Rodada final, criada quando a task chega a `006_done` com PR aberto. O merge é **sempre do humano** — direto no repositório, ou comandado aqui para o agente executar. **Task yolo:** o PR mira `develop` e quem merga é o crítico (subseção `### Resposta do crítico (yolo)`); o PR final do escopo (`develop` → branch de PR) é **sempre do humano**, via open_question — ver [[WORKFLOW|WORKFLOW]].
+> Rodada final, criada quando a task chega a `006_done` com PR aberto. O merge é **sempre do humano** — direto no repositório, ou comandado aqui para o agente executar. **Task yolo:** sem PR — o crítico integra `task/<id>` em `develop` por merge local e assina aqui (subseção `### Resposta do crítico (yolo)`); a entrega final do escopo chega ao humano via open_question, onde ele decide se abre o PR `develop` → branch de PR — ver [[WORKFLOW|WORKFLOW]].
 
 - **PR:** <link> — branch `task/<id>-<slug>` → `<branch de PR do AGENTS.md do projeto>`
 - _Sem repositório git: esta rodada é a aprovação final da entrega, sem PR._
