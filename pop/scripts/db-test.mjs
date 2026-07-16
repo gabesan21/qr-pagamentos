@@ -121,7 +121,7 @@ try {
   const migrationEnv = { ...process.env, MIGRATION_DATABASE_URL: migratorUrl };
   delete migrationEnv.DATABASE_URL;
   const firstDeploy = run("pnpm", ["exec", "prisma", "migrate", "deploy"], { env: migrationEnv });
-  assert(firstDeploy.includes("2 migrations found"), "Fresh deploy did not discover exactly two migrations");
+  assert(firstDeploy.includes("3 migrations found"), "Fresh deploy did not discover exactly three migrations");
 
   const admin = new Client({ connectionString: adminUrl });
   await admin.connect();
@@ -129,7 +129,7 @@ try {
     SELECT migration_name, checksum, finished_at IS NOT NULL AS finished, rolled_back_at
     FROM app._prisma_migrations
   `);
-  const expectedMigrations = ["20260714000000_foundation_baseline", "20260714190000_local_identities"];
+  const expectedMigrations = ["20260714000000_foundation_baseline", "20260714190000_local_identities", "20260716110000_database_sessions"];
   assert(history.rows.length === expectedMigrations.length, "Migration history row count changed");
   for (const migrationName of expectedMigrations) {
     const migrationSql = await readFile(`prisma/migrations/${migrationName}/migration.sql`);
@@ -220,6 +220,28 @@ try {
   console.log("PASS deployment-locator-immutability");
   console.log("PASS user-lifecycle-with-tombstone");
 
+  const sessionColumns = await runtime.query(`
+    SELECT column_name, data_type, udt_name, is_nullable
+    FROM information_schema.columns
+    WHERE table_schema = 'app' AND table_name = 'session'
+    ORDER BY ordinal_position
+  `);
+  assert(JSON.stringify(sessionColumns.rows) === JSON.stringify([
+    { column_name: "id", data_type: "uuid", udt_name: "uuid", is_nullable: "NO" },
+    { column_name: "user_id", data_type: "uuid", udt_name: "uuid", is_nullable: "NO" },
+    { column_name: "token_digest", data_type: "character varying", udt_name: "varchar", is_nullable: "NO" },
+    { column_name: "created_at", data_type: "timestamp with time zone", udt_name: "timestamptz", is_nullable: "NO" },
+    { column_name: "last_seen_at", data_type: "timestamp with time zone", udt_name: "timestamptz", is_nullable: "NO" },
+    { column_name: "absolute_expires_at", data_type: "timestamp with time zone", udt_name: "timestamptz", is_nullable: "NO" },
+  ]), "Session columns differ from the contract");
+  const sessionDigest = "a".repeat(64);
+  await runtime.query(`INSERT INTO app.session (user_id, token_digest, absolute_expires_at) VALUES ($1, $2, CURRENT_TIMESTAMP + INTERVAL '12 hours')`, [thirdUserId, sessionDigest]);
+  await expectSqlState(runtime, `INSERT INTO app.session (user_id, token_digest, absolute_expires_at) VALUES ('${thirdUserId}', '${sessionDigest}', CURRENT_TIMESTAMP + INTERVAL '12 hours')`, { code: "23505", constraint: "session_token_digest_key" });
+  await runtime.query(`DELETE FROM app."user" WHERE id = $1`, [thirdUserId]);
+  const cascadedSession = await runtime.query(`SELECT count(*)::int AS count FROM app.session WHERE token_digest = $1`, [sessionDigest]);
+  assert(cascadedSession.rows[0].count === 0, "Session did not cascade with its user");
+  console.log("PASS session-schema");
+
   const privilege = await runtime.query(`
     SELECT current_user,
       has_schema_privilege(current_user, 'app', 'USAGE') AS schema_usage,
@@ -228,6 +250,7 @@ try {
       has_table_privilege(current_user, 'app.user', 'SELECT,INSERT,UPDATE,DELETE') AS user_dml,
       has_table_privilege(current_user, 'app.password_credential', 'SELECT,INSERT,UPDATE,DELETE') AS credential_dml,
       has_table_privilege(current_user, 'app.deployment_bootstrap', 'SELECT,INSERT,UPDATE,DELETE') AS bootstrap_dml,
+      has_table_privilege(current_user, 'app.session', 'SELECT,INSERT,UPDATE,DELETE') AS session_dml,
       has_table_privilege(current_user, 'app._database_foundation_fixture', 'TRUNCATE') AS table_truncate,
       has_table_privilege(current_user, 'app._database_foundation_fixture', 'REFERENCES') AS table_references,
       has_table_privilege(current_user, 'app._database_foundation_fixture', 'TRIGGER') AS table_trigger,
@@ -240,7 +263,7 @@ try {
       pg_has_role(current_user, 'qr_migrator', 'SET') AS migrator_set
   `);
   const acl = privilege.rows[0];
-  assert(acl.current_user === "qr_runtime" && acl.schema_usage && acl.table_dml && acl.user_dml && acl.credential_dml && acl.bootstrap_dml && acl.sequence_usage, "Runtime lacks intended privileges");
+  assert(acl.current_user === "qr_runtime" && acl.schema_usage && acl.table_dml && acl.user_dml && acl.credential_dml && acl.bootstrap_dml && acl.session_dml && acl.sequence_usage, "Runtime lacks intended privileges");
   assert(!acl.schema_create && !acl.table_truncate && !acl.table_references && !acl.table_trigger && !acl.table_maintain && !acl.sequence_select && !acl.sequence_update && !acl.migration_access && !acl.migrator_member && !acl.migrator_set, "Runtime has excess privileges");
   const ownership = await admin.query(`
     SELECT

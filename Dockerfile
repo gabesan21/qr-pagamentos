@@ -1,11 +1,11 @@
 # syntax=docker/dockerfile:1.12
-ARG NODE_IMAGE=node:24.18.0-bookworm-slim@sha256:6f7b03f7c2c8e2e784dcf9295400527b9b1270fd37b7e9a7285cf83b6951452d
+ARG NODE_IMAGE=node:26.4.0-bookworm-slim@sha256:70a832c538c185e6a1a5387d46fc5b615363c50d49dcf50505879ee3f39c6001
 
 FROM ${NODE_IMAGE} AS toolchain
 RUN apt-get update \
  && apt-get install -y --no-install-recommends ca-certificates openssl \
  && rm -rf /var/lib/apt/lists/* \
- && npm install --global pnpm@11.13.0
+ && npm install --global pnpm@11.3.0
 WORKDIR /workspace
 
 FROM toolchain AS dependencies

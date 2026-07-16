@@ -13,7 +13,7 @@ const compose = await readFile("compose.yaml", "utf8");
 const recoveryCompose = await readFile("compose.recovery.yaml", "utf8");
 const nextConfig = await readFile("next.config.ts", "utf8");
 const pairs = [
-  { tag: "node:24.18.0-bookworm-slim", source: dockerfile },
+  { tag: "node:26.4.0-bookworm-slim", source: dockerfile },
   { tag: "postgres:18.4-bookworm", source: compose },
 ];
 const architecture = process.arch === "x64" ? "amd64" : process.arch === "arm64" ? "arm64" : process.arch;

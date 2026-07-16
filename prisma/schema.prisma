@@ -27,8 +27,23 @@ model User {
   createdAt  DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt  DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
   credential PasswordCredential?
+  sessions   Session[]
 
   @@map("user")
+  @@schema("app")
+}
+
+model Session {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId            String   @map("user_id") @db.Uuid
+  tokenDigest       String   @unique(map: "session_token_digest_key") @map("token_digest") @db.VarChar(64)
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  lastSeenAt        DateTime @default(now()) @map("last_seen_at") @db.Timestamptz(3)
+  absoluteExpiresAt DateTime @map("absolute_expires_at") @db.Timestamptz(3)
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt, id], map: "session_user_created_at_id_idx")
+  @@map("session")
   @@schema("app")
 }
 
