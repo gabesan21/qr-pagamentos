@@ -1,4 +1,8 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
+
+import { getSessionService } from "../auth/session";
+import { getLocalePreferenceService } from "../i18n/locale-preference";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -6,9 +10,12 @@ export const metadata: Metadata = {
   description: "QR Pagamentos administrative platform",
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const token = (await cookies()).get("qr_session")?.value;
+  const principal = await getSessionService().validate(token);
+  const locale = principal ? await getLocalePreferenceService().resolve(principal.userId) : "pt-BR";
   return (
-    <html lang="en">
+    <html lang={locale}>
       <body>{children}</body>
     </html>
   );
