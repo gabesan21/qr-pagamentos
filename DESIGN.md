@@ -77,9 +77,10 @@ field, error recovery, then secondary action. Enabled controls use a visible
 two-pixel semantic focus outline; disabled controls are not focusable.
 
 The `/admin` shell consumes this inventory for account creation, account
-mutations, language preference, and logout. Its empty account list, server
-recovery status, and pending submits make the screen-level empty/error/loading
-states explicit without adding a second button style.
+mutations, global BRL/PIX payment settings, language preference, and logout.
+Its empty account list, server recovery status, and pending submits make the
+screen-level empty/error/loading states explicit without adding a second button
+style.
 
 ## Composition and motion
 

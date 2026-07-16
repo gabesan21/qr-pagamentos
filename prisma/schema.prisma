@@ -67,3 +67,13 @@ model DeploymentBootstrap {
   @@map("deployment_bootstrap")
   @@schema("app")
 }
+
+model GlobalPaymentSettings {
+  id             Int      @id @db.SmallInt
+  currencies     String[] @db.Text
+  paymentMethods String[] @map("payment_methods") @db.Text
+  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@map("global_payment_settings")
+  @@schema("app")
+}
