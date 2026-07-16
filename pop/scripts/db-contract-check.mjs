@@ -36,7 +36,7 @@ for (const model of ["DatabaseFoundationFixture", "User", "PasswordCredential", 
 assert(schema.includes('output   = "../src/generated/prisma"'), "Generated output changed");
 
 const migrationDirectories = (await readdir("prisma/migrations", { withFileTypes: true })).filter((entry) => entry.isDirectory()).map((entry) => entry.name);
-assert(JSON.stringify(migrationDirectories) === JSON.stringify(["20260714000000_foundation_baseline", "20260714190000_local_identities", "20260716110000_database_sessions", "20260716160000_user_language_preference", "20260716180000_global_payment_settings"]), "Migration history name/count changed");
+assert(JSON.stringify(migrationDirectories) === JSON.stringify(["20260714000000_foundation_baseline", "20260714190000_local_identities", "20260716110000_database_sessions", "20260716160000_user_language_preference", "20260716180000_global_payment_settings", "20260716210000_restrict_global_payment_settings_runtime"]), "Migration history name/count changed");
 const migration = await readFile("prisma/migrations/20260714000000_foundation_baseline/migration.sql", "utf8");
 for (const constraint of ["database_foundation_fixture_key_key", "database_foundation_fixture_key_nonblank", "database_foundation_fixture_quantity_nonnegative"]) {
   assert(migration.includes(constraint), `Migration lost ${constraint}`);
@@ -62,10 +62,19 @@ assert(schema.includes("model GlobalPaymentSettings") && schema.includes("paymen
 for (const contract of ["global_payment_settings_singleton", "global_payment_settings_currencies_closed", "global_payment_settings_payment_methods_closed", "'BRL'", "'PIX'", 'GRANT SELECT, UPDATE ("currencies", "payment_methods", "updated_at")']) {
   assert(settingsMigration.includes(contract), `Payment settings migration lost ${contract}`);
 }
+const settingsAclMigration = await readFile("prisma/migrations/20260716210000_restrict_global_payment_settings_runtime/migration.sql", "utf8");
+for (const contract of ["REVOKE ALL PRIVILEGES", "GRANT SELECT", 'GRANT UPDATE ("currencies", "payment_methods", "updated_at")']) {
+  assert(settingsAclMigration.includes(contract), `Payment settings ACL migration lost ${contract}`);
+}
+assert(!/GRANT\s+(?:INSERT|DELETE)|GRANT\s+UPDATE\s+ON/i.test(settingsAclMigration), "Payment settings ACL migration grants excess table writes");
 
 const bootstrap = await readFile("prisma/bootstrap.sql", "utf8");
 assert(bootstrap.includes("GRANT CONNECT ON DATABASE qr_pagamentos TO qr_migrator, qr_runtime"), "Both roles require explicit CONNECT");
 assert(bootstrap.includes("ALTER DEFAULT PRIVILEGES FOR ROLE qr_migrator IN SCHEMA app"), "Migrator-scoped defaults are missing");
+assert(bootstrap.includes("GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA app TO qr_runtime"), "Ordinary-table runtime DML changed");
+for (const contract of ["to_regclass('app.global_payment_settings') IS NOT NULL", "REVOKE ALL PRIVILEGES ON TABLE app.global_payment_settings", "GRANT SELECT ON TABLE app.global_payment_settings", "GRANT UPDATE (currencies, payment_methods, updated_at)"]) {
+  assert(bootstrap.includes(contract), `Bootstrap payment settings ACL lost ${contract}`);
+}
 assert(!/\bPASSWORD\s+['"]|postgres(?:ql)?:\/\//i.test(bootstrap), "Bootstrap must not contain credentials or URLs");
 
 const readme = await readFile("README.md", "utf8");

@@ -10,6 +10,7 @@
 - Never use `DATABASE_URL` for DDL, migration metadata, or role administration.
 - Never commit passwords, usable URLs, generated clients, database dumps, or seed data.
 - Keep schema `app` owned by `qr_migrator`; `qr_runtime` receives only demonstrated DML and sequence use.
+- Keep bootstrap's ordinary-table DML defaults, but never remove the relation-guarded post-grant normalization for `app.global_payment_settings`; its forward migration repairs databases where the table already exists.
 - Never grant runtime schema `CREATE`, object ownership, migration-table access, role membership, `TEMPORARY`, or role-administration attributes.
 - `../container/bootstrap.mjs` must execute `prisma/bootstrap.sql` unchanged before assigning externally supplied role passwords; never duplicate role/grant SQL in a wrapper or Compose init directory.
 - `../container/migrate.mjs` is the only production migration wrapper and must use only `MIGRATION_DATABASE_URL` with `prisma migrate deploy`.

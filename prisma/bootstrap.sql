@@ -45,3 +45,14 @@ ALTER DEFAULT PRIVILEGES FOR ROLE qr_migrator IN SCHEMA app
   GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO qr_runtime;
 ALTER DEFAULT PRIVILEGES FOR ROLE qr_migrator IN SCHEMA app
   GRANT USAGE ON SEQUENCES TO qr_runtime;
+
+DO $global_payment_settings_acl$
+BEGIN
+  IF to_regclass('app.global_payment_settings') IS NOT NULL THEN
+    REVOKE ALL PRIVILEGES ON TABLE app.global_payment_settings FROM qr_runtime;
+    GRANT SELECT ON TABLE app.global_payment_settings TO qr_runtime;
+    GRANT UPDATE (currencies, payment_methods, updated_at)
+      ON TABLE app.global_payment_settings TO qr_runtime;
+  END IF;
+END
+$global_payment_settings_acl$;

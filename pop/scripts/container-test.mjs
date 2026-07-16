@@ -18,7 +18,7 @@ const delay = (milliseconds) => new Promise((resolve) => setTimeout(resolve, mil
 
 const scenarioIndex = process.argv.indexOf("--scenario");
 const scenario = scenarioIndex >= 0 ? process.argv[scenarioIndex + 1] : "happy";
-const allowed = new Set(["build", "config", "happy", "roles", "failures", "lifecycle", "isolation", "identity-seed", "identity-recovery"]);
+const allowed = new Set(["build", "config", "happy", "login", "roles", "failures", "lifecycle", "isolation", "identity-seed", "identity-recovery"]);
 assert(allowed.has(scenario), `unknown scenario ${scenario}`);
 
 if (process.argv.includes("--clean-clone") && !process.env.CONTAINER_TEST_CLEAN_CLONE) {
@@ -121,6 +121,34 @@ if (process.argv.includes("--clean-clone") && !process.env.CONTAINER_TEST_CLEAN_
       request.on("timeout", () => request.destroy(new Error("HTTP timeout")));
     });
   }
+  async function postForm(pathname, fields, headers = {}) {
+    const mapping = compose(["port", "app", "3000"]).trim();
+    const port = Number(mapping.match(/:(\d+)$/)?.[1]);
+    assert(port, "could not resolve app loopback port");
+    const body = new URLSearchParams(fields).toString();
+    return new Promise((resolve, reject) => {
+      const request = http.request({
+        hostname: "127.0.0.1",
+        port,
+        path: pathname,
+        method: "POST",
+        timeout: 3000,
+        headers: {
+          "content-type": "application/x-www-form-urlencoded",
+          "content-length": Buffer.byteLength(body),
+          ...headers,
+        },
+      }, (response) => {
+        let responseBody = "";
+        response.setEncoding("utf8");
+        response.on("data", (chunk) => { responseBody += chunk; });
+        response.on("end", () => resolve({ status: response.statusCode, headers: response.headers, body: responseBody }));
+      });
+      request.on("error", reject);
+      request.on("timeout", () => request.destroy(new Error("HTTP timeout")));
+      request.end(body);
+    });
+  }
   function containerId(service) { return compose(["ps", "-a", "-q", service]).trim(); }
   function inspectField(id, field) { return run("docker", ["inspect", "--format", field, id]).trim(); }
   function assertRedacted(text) {
@@ -193,6 +221,42 @@ if (process.argv.includes("--clean-clone") && !process.env.CONTAINER_TEST_CLEAN_
       }
     } else if (scenario === "happy") {
       await startHappy();
+    } else if (scenario === "login") {
+      const { dbId } = await startHappy();
+      const invalid = await postForm("/login/submit", { username: "admin.user", password: "invalid-password" });
+      assert(invalid.status === 303, `invalid login status=${invalid.status}`);
+      const invalidLocation = new URL(invalid.headers.location);
+      assert(`${invalidLocation.pathname}${invalidLocation.search}` === "/login?error=invalid-credentials", "invalid login redirect changed");
+      assert(invalid.headers["set-cookie"] === undefined, "invalid login created a cookie");
+      console.log("PASS login-invalid-opaque");
+
+      const valid = await postForm(
+        "/login/submit",
+        { username: "admin.user", password: values.initial },
+        { "accept-language": "en-US,en;q=0.9" },
+      );
+      if (valid.status !== 303) {
+        const logs = compose(["logs", "--no-color", "app"]);
+        assertRedacted(logs);
+        console.error(logs);
+      }
+      assert(valid.status === 303, `valid login status=${valid.status}`);
+      assert(new URL(valid.headers.location).pathname === "/", "valid login redirect changed");
+      const cookie = valid.headers["set-cookie"]?.[0];
+      assert(cookie, "valid login did not create a session cookie");
+      const cookieParts = cookie.split("; ");
+      assert(cookieParts[0].startsWith("qr_session=") && cookieParts[0].length > "qr_session=".length, "session cookie value is absent");
+      for (const attribute of ["Path=/", "Max-Age=43200", "HttpOnly", "Secure", "SameSite=lax"]) {
+        assert(cookieParts.includes(attribute), `session cookie is missing ${attribute}`);
+      }
+      assert(cookieParts.some((part) => part.startsWith("Expires=")), "session cookie is missing Expires");
+      console.log("PASS login-valid");
+      console.log("PASS login-cookie-contract");
+
+      const sql = (statement) => run("docker", ["exec", dbId, "psql", "-U", "postgres", "-d", "qr_pagamentos", "-Atc", statement]).trim();
+      assert(sql(`SELECT count(*) FROM app.session`) === "1", "valid login did not persist exactly one session");
+      assert(sql(`SELECT preferred_locale FROM app.\"user\" WHERE username='admin.user'`) === "en", "valid login did not persist negotiated locale");
+      console.log("PASS login-locale-preference");
     } else if (scenario === "roles") {
       const { dbId } = await startHappy();
       const probe = (user, password, sql) => execute("docker", ["exec", "-e", `PGPASSWORD=${password}`, dbId, "psql", "-h", "127.0.0.1", "-U", user, "-d", "qr_pagamentos", "-v", "ON_ERROR_STOP=1", "-Atc", sql]);

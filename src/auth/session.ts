@@ -24,6 +24,14 @@ export interface SessionStore {
   activeSessions(userId: string): Promise<StoredSession[]>;
 }
 
+interface UserSessionLockTransaction {
+  $executeRaw(query: TemplateStringsArray, ...values: unknown[]): Promise<number>;
+}
+
+export async function acquireUserSessionLock(transaction: UserSessionLockTransaction, userId: string) {
+  await transaction.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${userId}))`;
+}
+
 function digest(token: string) { return createHash("sha256").update(token).digest("hex"); }
 function expired(session: StoredSession, now: Date) {
   return now.getTime() - session.lastSeenAt.getTime() >= SESSION_IDLE_MS || now >= session.absoluteExpiresAt;
@@ -88,7 +96,7 @@ function prismaStore(): SessionStore {
     async touchSession(id, lastSeenAt) { await client.session.updateMany({ where: { id }, data: { lastSeenAt } }); },
     async withUserLock(userId, work) {
       return client.$transaction(async (transaction) => {
-        await transaction.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${userId}))`;
+        await acquireUserSessionLock(transaction, userId);
         return work(scoped(transaction as typeof db));
       });
     },
