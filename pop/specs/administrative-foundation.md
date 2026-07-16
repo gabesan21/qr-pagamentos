@@ -47,7 +47,6 @@ This spec defines the reproducible runtime, local identity boundary, role model,
 
 - Initial currency and payment-method allowlists.
 - The administrative design foundation uses the recorded `PIX ledger` tone, Brazilian PIX receipt reference, graphite-receipt semantic palette, system typography, and `prefers-color-scheme` dark mode from `DESIGN.md`; later screens consume that contract rather than choosing a new visual direction.
-- Default language before a user preference exists and whether browser negotiation seeds that preference.
 
 ## Implemented slices
 
@@ -59,10 +58,10 @@ This spec defines the reproducible runtime, local identity boundary, role model,
 - [[1.2.3-implement-database-sessions]] (2026-07-16) — aligned project and container pins with Node.js 26.4.0 and pnpm 11.3.0, retaining the amd64 digest-pinned Node image. Added PostgreSQL-backed opaque sessions with SHA-256 digest-only storage, user-cascade deletion, 30-minute idle and 12-hour absolute expiry, transactional five-session eviction, and server-side logout revocation. Locale-aware username/password forms post to first-party handlers, set HttpOnly/Lax/path-scoped cookies (Secure in production), and expose only generic authentication failures. Disposable migration/privilege probes, deterministic service/route tests, and aggregate quality gates passed; authorization and administrative UI remain pending, so this spec remains approved.
 - [[1.2.4-enforce-access-control]] (2026-07-16) — added deny-by-default server authorization, role/status-aware safe user projections, authenticated access boundaries, session revocation, and transactional protection of the final active administrator. Deterministic authorization and route tests, the disposable database contract, and the aggregate quality gate passed; administrative design and management UI remain pending, so this spec remains approved.
 - [[1.3.1-establish-admin-design-system]] (2026-07-16) — established the `PIX ledger` visual contract in `DESIGN.md`, light/dark semantic CSS tokens, reusable action/field/panel/status primitives, and a localized exercise route. A lint-integrated guard rejects raw visual values outside token sources, including unitless line-height; contrast and primitive tests plus the aggregate gate passed. Playwright was unavailable, so the documented no-capture fallback was used. User management, language preference, and global settings remain pending.
+- [[1.3.2-user-language-preference]] (2026-07-16) — added nullable constrained persisted `pt-BR`/`en` preferences, atomic server-side first-sign-in negotiation with `pt-BR` fallback, and authenticated explicit preference changes that cannot target another user. UI and auth URLs are unprefixed; legacy locale-prefixed surfaces return 404 while `/api/health` remains unlocalized. Database replay/privilege probes, focused concurrency/authorization/route/dictionary/control tests, and the aggregate gate passed; Playwright remains unavailable for capture execution.
 
 ## Planned slices
 
-- Phase 1.3 candidate `1.3.2-user-language-preference` — persist each user's `pt-BR` or `en` preference and remove locale prefixes from application URLs; planning must decide the deterministic fallback before a preference exists.
 
 ## Related specs
 
