@@ -37,7 +37,7 @@
 |------|-------------|--------|
 | [[1.2.1-review-clean-code-baseline]] | Review the Phase 1.1 codebase against the clean-code contracts and remediate confirmed issues before identity and access work begins. · size: M | concluída |
 | [[1.2.2-establish-local-identities]] | Add required unique usernames, optional email profile data, password credentials, closed roles, deployment-seeded administration, and secure operator recovery. · size: M | concluída |
-| `1.2.3-implement-database-sessions` | Deliver bilingual username-and-password sign-in and logout with opaque PostgreSQL sessions, secure cookies, expiry limits, and concurrency enforcement; never fall back to email lookup. · size: M | not started |
+| [[1.2.3-implement-database-sessions]] | Deliver bilingual username-and-password sign-in and logout with opaque PostgreSQL sessions, secure cookies, expiry limits, and concurrency enforcement; never fall back to email lookup. · size: M | concluída |
 | `1.2.4-enforce-access-control` | Enforce deny-by-default server authorization, username-bearing safe user projections with nullable email, session revocation, and final-active-admin protection end to end. · size: M | not started |
 
 ## Phase 1.3 - Administrative control plane
@@ -52,3 +52,5 @@
 |------|-------------|--------|
 | `1.3.1-establish-admin-design-system` | Define the admin tone, semantic tokens, `DESIGN.md`, lintable no-raw-value contract, shared primitive inventory, and required component states before building admin screens. · size: M | not started |
 | `1.3.2-user-language-preference` | Persist each user's language preference and resolve localized UI without locale-prefixed URLs. · size: M | not started |
+| `1.3.3-manage-administrative-users` | Deliver the authenticated, accessible admin shell and user management for accounts, roles, and account status, including protection of the final active administrator. · size: L | not started |
+| `1.3.4-manage-global-payment-settings` | Deliver accessible administrator management of the approved global currency and payment-method allowlists. · size: M | not started |
