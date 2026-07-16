@@ -2,7 +2,7 @@
 
 - **Project:** [[PROJECT|QR Pagamentos]] - read for product and harness decisions.
 - **Roadmap:** [[ROADMAP|Roadmap]] - read for epoch boundaries.
-- **Status:** concluída
+- **Status:** em andamento
 - **Yolo:** yes
 - **Description:** Establish the self-hosted runtime, identity, access control, global settings, and bilingual admin shell.
 - **Pause if:** first-party authentication cannot satisfy revocation, authorization, and session-security acceptance tests without revisiting the no-library constraint.
@@ -10,8 +10,10 @@
 ## Recon and forks
 
 - [[researches/administrative-foundation/administrative-foundation|Administrative foundation research]] - establishes current Next.js, Docker, PostgreSQL, security, and i18n constraints.
+- [[researches/epoch-1-quality-hardening/epoch-1-quality-hardening|Epoch 1 quality-hardening recon]] - maps the login failure boundary, current UI architecture, shadcn gap, and concrete visual/code-quality risks that Phase 1.4 must resolve.
 - [x] Session policy decided for Phase 1.2: 30-minute idle timeout, 12-hour absolute lifetime, and at most five concurrent sessions per user; encode these limits in executable tests.
 - [x] Initial global allowlists decided for Phase 1.3: BRL currency and PIX payment method.
+- [ ] RECON NEEDED: exact `/login/submit` production exception - check: task 1.4.1 reproduces the failure through the self-hosted PostgreSQL/Compose path and records sanitized server evidence before selecting a fix.
 - Fork: if PostgreSQL 18 or Node.js 24 is not supported by the deployment host, pin the newest supported LTS pair consistently across local, CI, and production.
 
 ## Phase 1.1 - Reproducible platform baseline
@@ -55,3 +57,20 @@
 | [[1.3.2-user-language-preference]] | Persist each user's language preference and resolve localized UI without locale-prefixed URLs. · size: M | concluída |
 | [[1.3.3-manage-administrative-users]] | Deliver the authenticated, accessible admin shell and user management for accounts, roles, and account status, including protection of the final active administrator. · size: L | concluída |
 | [[1.3.4-manage-global-payment-settings]] | Deliver accessible administrator management of the approved global currency and payment-method allowlists. · size: M | concluída |
+
+## Phase 1.4 - Design-system and quality hardening
+
+- **Status:** em andamento
+- **Description:** Repair the login failure and turn the existing administrative UI into a professional, modular, reusable shadcn-based system with independently verified code and UX quality.
+- **Yolo:** yes
+- **Specs:** [[specs/administrative-foundation|Administrative foundation]] - follow for authentication, bilingual UI, accessibility, component-state, and design-system boundaries.
+- **Scope boundary:** Improve only the Epoch 1 login and administrative surfaces; do not anticipate storefront, catalog, checkout, or later presentation requirements.
+- **Quality gate:** Planning and implementation must use `clean-code-change` and `ui-change` where applicable; verification must use `clean-code-review` and `ui-review`, with the task-specific UI/UX skills recorded in each card. Browser-backed responsive and accessibility evidence is required; another no-capture fallback does not complete this phase.
+
+| Task | Description | Status |
+|------|-------------|--------|
+| [[1.4.1-repair-login-submit-reliability]] | Reproduce and repair the `/login/submit` 500 through the real database/runtime path while preserving opaque credential failures, secure sessions, and bilingual preference resolution. · size: M | 001_initial_task |
+| [[1.4.2-rebuild-design-system-with-shadcn]] | Audit and rebuild the shared visual foundation with shadcn, professional offline-safe typography, semantic tokens, intentional component APIs/states, and an authoritative specimen. · size: L | 001_initial_task |
+| [[1.4.3-redesign-login-experience]] | Recompose the bilingual login experience with the shared shadcn system, intentional hierarchy, complete interaction states, and responsive browser evidence. · size: M | 001_initial_task |
+| [[1.4.4-refactor-admin-surfaces-onto-design-system]] | Modularize and migrate the existing administration surfaces onto the approved shared components without changing authorization or locale behavior. · size: L | 001_initial_task |
+| [[1.4.5-audit-and-harden-epoch1-code-and-ui]] | Independently audit and remediate Epoch 1 clean-code, React, component-drift, accessibility, responsive, visual, and regression findings before phase closeout. · size: M | 001_initial_task |

@@ -1,5 +1,5 @@
 ---
-status: aberta
+status: respondida
 origem: projeto
 created: 2026-07-16
 ---
@@ -29,4 +29,4 @@ May the agent open the `develop` → `main` pull request for the completed Epoch
 
 ## Resposta (user)
 
-<em branco — o humano responde aqui>
+The delivery was not accepted as the final Epoch 1 scope. On 2026-07-16 the human reopened Epoch 1 and requested Phase 1.4 for login reliability, professional shadcn-based design-system hardening, UI/UX refinement, and clean-code verification. A final `develop` to `main` decision is deferred until that phase is complete and tested.
