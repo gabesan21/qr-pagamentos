@@ -43,10 +43,12 @@
 ## Phase 1.3 - Administrative control plane
 
 - **Status:** pendente
-- **Description:** Admins manage users and global currencies/payment methods through a responsive, accessible `pt-BR`/`en` interface.
+- **Description:** Establish the reusable admin design system, then let admins manage users and global currencies/payment methods through a responsive, accessible `pt-BR`/`en` interface.
 - **Yolo:** yes
 - **Specs:** [[specs/administrative-foundation|Administrative foundation]] - follow for admin behavior and UI constraints.
+- **Frontend execution gate:** Every Phase 1.3 frontend task must declare `clean-code-change` and `ui-change` in its 004 card row, and `clean-code-review` and `ui-review` in its 005 row. The design-system task also uses `frontend-design`, `design-tokens`, `color-expert`, and `web-design-guidelines`; later tasks use the applicable supporting UI/UX skills selected by those two primary skills.
 
 | Task | Description | Status |
 |------|-------------|--------|
-| `1.3.1-user-language-preference` | Persist each user's language preference and resolve localized UI without locale-prefixed URLs. · size: M | not started |
+| `1.3.1-establish-admin-design-system` | Define the admin tone, semantic tokens, `DESIGN.md`, lintable no-raw-value contract, shared primitive inventory, and required component states before building admin screens. · size: M | not started |
+| `1.3.2-user-language-preference` | Persist each user's language preference and resolve localized UI without locale-prefixed URLs. · size: M | not started |

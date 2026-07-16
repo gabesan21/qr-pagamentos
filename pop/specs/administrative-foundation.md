@@ -30,6 +30,11 @@ This spec defines the reproducible runtime, local identity boundary, role model,
 - The admin shell provides equivalent `pt-BR` and English dictionaries, metadata, validation, and error messages, resolving the language transparently from the persisted user preference without locale-prefixed URLs.
 - The admin shell is responsive at 320 CSS pixels, keyboard operable, and meets WCAG 2.2 AA contrast and focus requirements.
 - The visual system is commercially vibrant while never relying on color alone to communicate state.
+- Before an administrative screen is implemented, Phase 1.3 establishes a reusable admin design-system foundation with a single named visual tone, a documented real-world reference, and explicit banned defaults in `DESIGN.md`.
+- The design system defines semantic tokens for color, spacing, radius, shadow, and type; raw visual values outside its token source are rejected by lint, and theme changes modify tokens rather than components.
+- `DESIGN.md` records the token contract, typography, spacing rhythm, component-state rules, and composition limits; it is updated with every approved visual decision.
+- The initial primitive inventory prevents duplicate component variants. Each admin component documents and supports default, loading, empty, error, hover/focus, and disabled states as applicable.
+- Every Phase 1.3 frontend task records the mandatory UI workflow in its card: `ui-change` during implementation and `ui-review` during verification, together with the applicable supporting UI/UX skills.
 
 ## Out of scope
 
@@ -41,7 +46,7 @@ This spec defines the reproducible runtime, local identity boundary, role model,
 ## Open
 
 - Initial currency and payment-method allowlists.
-- Exact component library, typography, palette, and dark-mode policy.
+- The exact visual tone, reference, component library, typography, palette, and dark-mode policy are decided and recorded by Phase 1.3 task `1.3.1-establish-admin-design-system` before any administrative screen is implemented.
 - Default language before a user preference exists and whether browser negotiation seeds that preference.
 
 ## Implemented slices
@@ -54,7 +59,8 @@ This spec defines the reproducible runtime, local identity boundary, role model,
 
 ## Planned slices
 
-- Phase 1.3 candidate `1.3.1-user-language-preference` — persist each user's `pt-BR` or `en` preference and remove locale prefixes from application URLs; planning must decide the deterministic fallback before a preference exists.
+- Phase 1.3 candidate `1.3.1-establish-admin-design-system` — create the executable visual contract and shared primitives that every administrative screen must consume; its task plan selects the named tone and visual reference before implementation.
+- Phase 1.3 candidate `1.3.2-user-language-preference` — persist each user's `pt-BR` or `en` preference and remove locale prefixes from application URLs; planning must decide the deterministic fallback before a preference exists.
 
 ## Related specs
 
