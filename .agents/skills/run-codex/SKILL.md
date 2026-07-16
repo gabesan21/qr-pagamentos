@@ -97,5 +97,5 @@ timeout 600 codex exec resume --last --dangerously-bypass-approvals-and-sandbox 
 
 ## Ver também
 
-- Contrato e escolha: `delegate-coding` · Mesma operação em outra ferramenta: `run-claude-code`, `run-cursor-agent`, `run-opencode`.
+- Contrato e escolha: `delegate-coding` · Mesma operação em outra ferramenta: `run-cursor-agent`, `run-opencode`.
 - Rastrear um fato até o bruto: [[researches/codex-cli-headless/codex-cli-headless|síntese]].

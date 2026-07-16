@@ -95,5 +95,5 @@ timeout 900 cursor-agent -p --force --trust --approve-mcps "Rode os testes E2E c
 
 ## Ver também
 
-- Contrato e escolha: `delegate-coding` · Mesma operação em outra ferramenta: `run-claude-code`, `run-opencode`, `run-codex`.
+- Contrato e escolha: `delegate-coding` · Mesma operação em outra ferramenta: `run-opencode`, `run-codex`.
 - Rastrear um fato até o bruto: [[researches/cursor-cli-headless/cursor-cli-headless|síntese]].

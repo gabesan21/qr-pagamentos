@@ -3,7 +3,7 @@
   "harness_root": "pop",
   "files": ["WORKFLOW.md", "TYPES.md", "INBOX.md"],
   "directories": ["_templates", "scripts"],
-  "skills": ["new-task", "advance-task", "plan-roadmap", "write-spec", "sync-specs", "yolo-critic", "clean-code-change", "clean-code-review", "delegate-coding", "run-claude-code", "run-codex", "run-cursor-agent", "run-opencode"],
+  "skills": ["new-task", "advance-task", "plan-roadmap", "write-spec", "sync-specs", "yolo-critic", "clean-code-change", "clean-code-review", "delegate-coding", "run-codex", "run-cursor-agent", "run-opencode"],
   "anatomy": ["roadmap", "specs", "researches", "skills", "notes/learnings", "notes/decisions", "notes/ideas", "notes/references", "memory", "open_questions", "kanban/001_initial_task", "kanban/002_planning", "kanban/003_human_approval", "kanban/004_processing", "kanban/005_verifying", "kanban/006_done", "worktrees"],
   "keep_files": ["roadmap/.gitkeep", "specs/.gitkeep", "researches/.gitkeep", "skills/.gitkeep", "notes/learnings/.gitkeep", "notes/decisions/.gitkeep", "notes/ideas/.gitkeep", "notes/references/.gitkeep", "memory/.gitkeep", "open_questions/.gitkeep", "kanban/001_initial_task/.gitkeep", "kanban/002_planning/.gitkeep", "kanban/003_human_approval/.gitkeep", "kanban/004_processing/.gitkeep", "kanban/005_verifying/.gitkeep", "kanban/006_done/.gitkeep", "worktrees/.gitkeep"],
   "managed": ["pop/WORKFLOW.md", "pop/TYPES.md", "pop/INBOX.md", "pop/_templates", "pop/scripts", ".agents/skills", "pop/.included-harness.json", "pop/roadmap/.gitkeep", "pop/specs/.gitkeep", "pop/researches/.gitkeep", "pop/skills/.gitkeep", "pop/notes", "pop/memory/.gitkeep", "pop/open_questions/.gitkeep", "pop/kanban", "pop/worktrees/.gitkeep"]

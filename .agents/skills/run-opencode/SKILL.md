@@ -91,5 +91,5 @@ opencode run --session ses_abc123 --fork --auto --format json "Try an alternativ
 
 ## Ver também
 
-- Contrato e escolha: `delegate-coding` · Mesma operação em outra ferramenta: `run-claude-code`, `run-cursor-agent`, `run-codex`.
+- Contrato e escolha: `delegate-coding` · Mesma operação em outra ferramenta: `run-cursor-agent`, `run-codex`.
 - Rastrear um fato até o bruto: [[researches/opencode-headless/opencode-headless|síntese]].
