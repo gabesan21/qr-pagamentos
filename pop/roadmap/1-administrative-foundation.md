@@ -13,7 +13,7 @@
 - [[researches/epoch-1-quality-hardening/epoch-1-quality-hardening|Epoch 1 quality-hardening recon]] - maps the login failure boundary, current UI architecture, shadcn gap, and concrete visual/code-quality risks that Phase 1.4 must resolve.
 - [x] Session policy decided for Phase 1.2: 30-minute idle timeout, 12-hour absolute lifetime, and at most five concurrent sessions per user; encode these limits in executable tests.
 - [x] Initial global allowlists decided for Phase 1.3: BRL currency and PIX payment method.
-- [ ] RECON NEEDED: exact `/login/submit` production exception - check: task 1.4.1 reproduces the failure through the self-hosted PostgreSQL/Compose path and records sanitized server evidence before selecting a fix.
+- [x] Exact `/login/submit` production exception identified in task 1.4.1: Prisma attempted to deserialize the PostgreSQL `void` result from `pg_advisory_xact_lock`; the repaired route passed the self-hosted PostgreSQL/Compose regression with sanitized evidence.
 - Fork: if PostgreSQL 18 or Node.js 24 is not supported by the deployment host, pin the newest supported LTS pair consistently across local, CI, and production.
 
 ## Phase 1.1 - Reproducible platform baseline
@@ -69,7 +69,7 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[1.4.1-repair-login-submit-reliability]] | Reproduce and repair the `/login/submit` 500 through the real database/runtime path while preserving opaque credential failures, secure sessions, and bilingual preference resolution. · size: M | 001_initial_task |
+| [[1.4.1-repair-login-submit-reliability]] | Reproduce and repair the `/login/submit` 500 through the real database/runtime path while preserving opaque credential failures, secure sessions, and bilingual preference resolution. · size: M | concluída |
 | [[1.4.2-rebuild-design-system-with-shadcn]] | Audit and rebuild the shared visual foundation with shadcn, professional offline-safe typography, semantic tokens, intentional component APIs/states, and an authoritative specimen. · size: L | 001_initial_task |
 | [[1.4.3-redesign-login-experience]] | Recompose the bilingual login experience with the shared shadcn system, intentional hierarchy, complete interaction states, and responsive browser evidence. · size: M | 001_initial_task |
 | [[1.4.4-refactor-admin-surfaces-onto-design-system]] | Modularize and migrate the existing administration surfaces onto the approved shared components without changing authorization or locale behavior. · size: L | 001_initial_task |
