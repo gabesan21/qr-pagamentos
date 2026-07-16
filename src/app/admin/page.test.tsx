@@ -1,0 +1,62 @@
+import { renderToStaticMarkup } from "react-dom/server";
+import type { ReactNode } from "react";
+import { describe, expect, it, vi } from "vitest";
+
+const { requireAdmin, listUsers, resolveLocale, redirect } = vi.hoisted(() => ({
+  requireAdmin: vi.fn(), listUsers: vi.fn(), resolveLocale: vi.fn(),
+  redirect: vi.fn((location: string) => { throw new Error(`redirect:${location}`); }),
+}));
+
+vi.mock("next/headers", () => ({ cookies: async () => ({ get: () => ({ value: "opaque-session" }) }) }));
+vi.mock("next/navigation", () => ({ redirect }));
+vi.mock("@/auth/authorization", () => ({
+  ForbiddenError: class ForbiddenError extends Error {},
+  getAuthorizationService: () => ({ requireAdmin }),
+}));
+vi.mock("@/auth/administration", () => ({ getAdministrationService: () => ({ listUsers }) }));
+vi.mock("@/i18n/locale-preference", () => ({ getLocalePreferenceService: () => ({ resolve: resolveLocale }) }));
+vi.mock("@/i18n/dictionaries", async () => {
+  const [{ en }, { ptBR }] = await Promise.all([import("../../i18n/dictionaries/en"), import("../../i18n/dictionaries/pt-BR")]);
+  return { getDictionary: (locale: "en" | "pt-BR") => locale === "en" ? en : ptBR };
+});
+vi.mock("@/app/admin/admin-submit", () => ({ AdminSubmit: ({ label }: { label: string }) => <button disabled type="submit">{label}</button> }));
+vi.mock("@/app/ui/panel", () => ({ Panel: ({ children, title }: { children: ReactNode; title: string }) => <section><h2>{title}</h2>{children}</section> }));
+vi.mock("@/app/ui/status", () => ({ Status: ({ children, label }: { children: ReactNode; label: string }) => <p><strong>{label}</strong>{children}</p> }));
+
+import AdminPage from "./page";
+
+const admin = { id: "admin", username: "admin", email: null, role: "ADMIN" as const, status: "ACTIVE" as const, createdAt: new Date() };
+
+describe("admin page contract", () => {
+  it("redirects unauthenticated and non-admin visitors without rendering the shell", async () => {
+    requireAdmin.mockRejectedValueOnce(new Error("unauthenticated"));
+    await expect(AdminPage({ searchParams: Promise.resolve({}) })).rejects.toThrow("redirect:/login");
+
+    const { ForbiddenError } = await import("@/auth/authorization");
+    requireAdmin.mockRejectedValueOnce(new ForbiddenError());
+    await expect(AdminPage({ searchParams: Promise.resolve({}) })).rejects.toThrow("redirect:/");
+  });
+
+  it.each(["en", "pt-BR"] as const)("renders the %s dictionary with native, disabled, and empty states", async (locale) => {
+    requireAdmin.mockResolvedValue(admin);
+    resolveLocale.mockResolvedValue(locale);
+    listUsers.mockResolvedValue([]);
+    const markup = renderToStaticMarkup(await AdminPage({ searchParams: Promise.resolve({}) }));
+
+    expect(markup).toContain(locale === "en" ? "Administrator accounts" : "Contas administrativas");
+    expect(markup).toContain(locale === "en" ? "No user accounts are available." : "Nenhuma conta de usuário está disponível.");
+    expect(markup).toContain("<select");
+    expect(markup).toContain("type=\"password\"");
+    expect(markup).toContain("disabled=\"\"");
+  });
+
+  it("announces failed mutations with an assertive alert and recovery text", async () => {
+    requireAdmin.mockResolvedValue(admin);
+    resolveLocale.mockResolvedValue("en");
+    listUsers.mockResolvedValue([]);
+    const markup = renderToStaticMarkup(await AdminPage({ searchParams: Promise.resolve({ error: "change-failed" }) }));
+    expect(markup).toContain('role="alert"');
+    expect(markup).toContain('aria-live="assertive"');
+    expect(markup).toContain("Review the details and try again.");
+  });
+});

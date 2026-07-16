@@ -173,4 +173,14 @@ main { margin: 0 auto; max-width: var(--layout-max); padding: var(--space-12) va
 .status--warning { color: var(--text-on-warning); }
 .status--danger { color: var(--feedback-danger); }
 
+.admin-table-wrap { overflow-x: auto; }
+.admin-table { border-collapse: collapse; min-width: var(--layout-max); width: 100%; }
+.admin-table th,
+.admin-table td { border-block-end: var(--focus-width) solid var(--border-subtle); padding: var(--space-2); text-align: start; vertical-align: top; }
+.admin-actions,
+.admin-actions form,
+.admin-shell__actions,
+.admin-shell__actions form { display: grid; gap: var(--space-2); }
+.sr-only { height: var(--space-1); margin: calc(var(--space-1) * -1); overflow: hidden; position: absolute; width: var(--space-1); }
+
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto; transition: none; } }
