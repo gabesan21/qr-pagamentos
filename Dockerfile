@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.12
-ARG NODE_IMAGE=node:26.4.0-bookworm-slim@sha256:70a832c538c185e6a1a5387d46fc5b615363c50d49dcf50505879ee3f39c6001
+ARG NODE_IMAGE=node:26.4.0-bookworm-slim@sha256:ec82d089a8ae2cf02628da7b34ea57dc357b24db724d557fe2d240e6beb659c1
 
 FROM ${NODE_IMAGE} AS toolchain
 RUN apt-get update \

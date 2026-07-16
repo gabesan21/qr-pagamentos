@@ -9,11 +9,24 @@ function run(command, args) {
 }
 
 const dockerfile = await readFile("Dockerfile", "utf8");
+const installer = await readFile("install/install.sh", "utf8");
+const secretPreparer = await readFile("pop/scripts/container-prepare-secrets.mjs", "utf8");
 const compose = await readFile("compose.yaml", "utf8");
 const recoveryCompose = await readFile("compose.recovery.yaml", "utf8");
 const nextConfig = await readFile("next.config.ts", "utf8");
+const nodeTag = "node:26.4.0-bookworm-slim";
+const escapedNodeTag = nodeTag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const nodePins = [dockerfile, installer, secretPreparer].map((source) => {
+  const matches = [...source.matchAll(new RegExp(`${escapedNodeTag}@(sha256:[a-f0-9]{64})`, "g"))];
+  assert(matches.length === 1, `expected exactly one ${nodeTag} pin per consumer`);
+  return matches[0][1];
+});
+assert(new Set(nodePins).size === 1, `${nodeTag} consumers have mismatched indexes`);
+console.log(`PASS node-pin-consistency tag=${nodeTag} index=${nodePins[0]} consumers=3`);
+if (process.argv.includes("--local-pins")) process.exit(0);
+
 const pairs = [
-  { tag: "node:26.4.0-bookworm-slim", source: dockerfile },
+  { tag: nodeTag, source: dockerfile },
   { tag: "postgres:18.4-bookworm", source: compose },
 ];
 const architecture = process.arch === "x64" ? "amd64" : process.arch === "arm64" ? "arm64" : process.arch;
@@ -48,6 +61,9 @@ assert(!/5432:5432|ports:\s*\n\s*-.*5432/m.test(compose), "database port must no
 assert(!compose.includes("MIGRATION_DATABASE_URL:") && !compose.includes("DATABASE_URL:"), "Compose must not render credential URLs");
 const bootstrap = await readFile("container/bootstrap.mjs", "utf8");
 assert(bootstrap.includes('readFile("prisma/bootstrap.sql"') && !bootstrap.includes("CREATE ROLE"), "wrapper must execute, not duplicate, bootstrap SQL");
+const bootstrapSql = await readFile("prisma/bootstrap.sql", "utf8");
+assert(bootstrapSql.includes("GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA app TO qr_runtime"), "ordinary-table bootstrap grant changed");
+assert(bootstrapSql.includes("to_regclass('app.global_payment_settings') IS NOT NULL") && bootstrapSql.includes("REVOKE ALL PRIVILEGES ON TABLE app.global_payment_settings"), "guarded singleton ACL normalization is missing");
 const runtime = await readFile("container/runtime.mjs", "utf8");
 assert(runtime.includes('query("SELECT 1 AS ready")') && runtime.includes('["server.js"]'), "runtime preflight contract changed");
 console.log("PASS image-contract");

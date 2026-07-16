@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { hashPassword } from "./password";
-import { createSessionService, SESSION_ABSOLUTE_MS, SESSION_IDLE_MS, type SessionStore } from "./session";
+import { acquireUserSessionLock, createSessionService, SESSION_ABSOLUTE_MS, SESSION_IDLE_MS, type SessionStore } from "./session";
 
 type Row = { id: string; userId: string; tokenDigest: string; createdAt: Date; lastSeenAt: Date; absoluteExpiresAt: Date };
 
@@ -30,6 +30,16 @@ function memoryStore(): SessionStore & { rows: Row[]; credentials: Map<string, {
 }
 
 describe("opaque database sessions", () => {
+  it("acquires its transaction lock without deserializing PostgreSQL void", async () => {
+    const executeRaw = async (strings: TemplateStringsArray, userId: string) => {
+      expect(strings.join("?")).toBe("SELECT pg_advisory_xact_lock(hashtext(?))");
+      expect(userId).toBe("user-1");
+      return 1;
+    };
+
+    await acquireUserSessionLock({ $executeRaw: executeRaw }, "user-1");
+  });
+
   it("creates digest-only sessions after normalized valid credentials", async () => {
     const store = memoryStore();
     store.credentials.set("admin.user", { id: "user-1", status: "ACTIVE", passwordHash: await hashPassword("correct horse battery staple") });
