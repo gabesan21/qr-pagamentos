@@ -2,7 +2,7 @@
 
 - **Project:** [[PROJECT|QR Pagamentos]]
 - **Epoch/Phase:** [[roadmap/1-administrative-foundation|Epoch 1]]
-- **Status:** aprovada
+- **Status:** implementada
 - **Created:** 2026-07-13
 
 ## What it covers

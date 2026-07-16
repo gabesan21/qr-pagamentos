@@ -2,7 +2,7 @@
 
 - **Project:** [[PROJECT|QR Pagamentos]] - read for product and harness decisions.
 - **Roadmap:** [[ROADMAP|Roadmap]] - read for epoch boundaries.
-- **Status:** em andamento
+- **Status:** concluída
 - **Yolo:** yes
 - **Description:** Establish the self-hosted runtime, identity, access control, global settings, and bilingual admin shell.
 - **Pause if:** first-party authentication cannot satisfy revocation, authorization, and session-security acceptance tests without revisiting the no-library constraint.
@@ -11,7 +11,7 @@
 
 - [[researches/administrative-foundation/administrative-foundation|Administrative foundation research]] - establishes current Next.js, Docker, PostgreSQL, security, and i18n constraints.
 - [x] Session policy decided for Phase 1.2: 30-minute idle timeout, 12-hour absolute lifetime, and at most five concurrent sessions per user; encode these limits in executable tests.
-- [ ] RECON NEEDED: exact global currency and payment-method settings - check: define the initial allowlists before planning Phase 1.3.
+- [x] Initial global allowlists decided for Phase 1.3: BRL currency and PIX payment method.
 - Fork: if PostgreSQL 18 or Node.js 24 is not supported by the deployment host, pin the newest supported LTS pair consistently across local, CI, and production.
 
 ## Phase 1.1 - Reproducible platform baseline
@@ -43,7 +43,7 @@
 
 ## Phase 1.3 - Administrative control plane
 
-- **Status:** em andamento
+- **Status:** concluída
 - **Description:** Establish the reusable admin design system, then let admins manage users and global currencies/payment methods through a responsive, accessible `pt-BR`/`en` interface.
 - **Yolo:** yes
 - **Specs:** [[specs/administrative-foundation|Administrative foundation]] - follow for admin behavior and UI constraints.
@@ -54,4 +54,4 @@
 | [[1.3.1-establish-admin-design-system]] | Define the admin tone, semantic tokens, `DESIGN.md`, lintable no-raw-value contract, shared primitive inventory, and required component states before building admin screens. · size: M | concluída |
 | [[1.3.2-user-language-preference]] | Persist each user's language preference and resolve localized UI without locale-prefixed URLs. · size: M | concluída |
 | [[1.3.3-manage-administrative-users]] | Deliver the authenticated, accessible admin shell and user management for accounts, roles, and account status, including protection of the final active administrator. · size: L | concluída |
-| `1.3.4-manage-global-payment-settings` | Deliver accessible administrator management of the approved global currency and payment-method allowlists. · size: M | not started |
+| [[1.3.4-manage-global-payment-settings]] | Deliver accessible administrator management of the approved global currency and payment-method allowlists. · size: M | concluída |

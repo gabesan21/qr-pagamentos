@@ -5,7 +5,7 @@ description: Orquestra o avanço de uma task pelo kanban (001→006), delegando 
 
 # advance-task
 
-Você é o **orquestrador**: identifica o estágio da task, resolve gates e transições e **avança até o próximo gate humano** — nunca pare em transição agent→agent. A fonte de verdade é o [[WORKFLOW|WORKFLOW]]: leia **apenas a seção do estágio em que a task está + as Regras transversais** — esta skill não reescreve os estágios.
+Você é o **orquestrador**: identifica o estágio da task, resolve gates e transições e **avança até o próximo gate humano** — nunca pare em transição agent→agent (ver Disciplina de turno). A fonte de verdade é o [[WORKFLOW|WORKFLOW]]: leia **apenas a seção do estágio em que a task está + as Regras transversais** — esta skill não reescreve os estágios.
 
 **Delegue a subagentes:** todo o trabalho de 002, 004 e 005 (um subagente dedicado por etapa); o orquestrador executa só 001, 006, gates e transições.
 
@@ -25,6 +25,15 @@ Você é o **orquestrador**: identifica o estágio da task, resolve gates e tran
 **Gates humanos (únicas paradas):** liberação em `001` (`- [x] Pronto para planejar`); aprovação em `003`; verificação humana se `critical: true` em `005`; item `(user)` de subtask; `blocked: true`; rodada de merge em `006`.
 
 **Task `yolo: true`** (seção Yolo mode do [[WORKFLOW|WORKFLOW]]): os gates de 001, 003, `critical` em 005 e integração de task em 006 são resolvidos pelo subagente **crítico** ([[.agents/skills/yolo-critic/SKILL|yolo-critic]]) — sem PR nem `pr:`/`awaiting_merge:` por task; param no humano só item `(user)`, `blocked: true` e a revisão final do escopo. **Loop de escopo:** concluída uma task de escopo yolo, materialize a próxima elegível da phase/epoch (`new-task` sem entrevista, em ordem de `depends_on`, WIP 3 priorizado por você) até o escopo terminar — aí o fechamento de escopo (open_question de entrega, **sem PR automático** — protocolo na skill do crítico; escopo de 1 task fecha ao final dela mesma). Marca yolo removida mid-flight vale a partir do próximo gate.
+
+## Disciplina de turno
+
+"Encadear estágios numa mesma chamada" tem consequências mecânicas — as violações abaixo foram observadas em campo e são **bugs do orquestrador**, não paradas:
+
+- **Delegação de estágio é síncrona:** ao lançar o subagente de 002/004/005/crítico, **aguarde o resultado antes de qualquer outra coisa**. Se o harness roda subagentes em background por padrão, use o modo síncrono/bloqueante; se só houver espera ativa, espere até concluir. "Nenhum subagente concluiu ainda" não é estado final — é sinal de que a espera continua. Disparar ≠ delegar: estágio cujo resultado não foi colhido é estágio **não executado**.
+- **Nunca encerre o turno com subagente de estágio rodando.**
+- **Teste da última mensagem:** se ela descreve trabalho futuro de responsável `agent` ("vou seguir encadeando…", "a seguir farei…"), o turno **não pode terminar** — execute esse trabalho agora. Encerramentos legítimos: gate humano alcançado (lista abaixo), `blocked: true`, ou escopo yolo fechado (fechamento feito, não prometido).
+- **O loop de escopo yolo roda no mesmo turno:** concluída uma task, materialize e avance a próxima elegível na mesma execução, até fim do escopo, `blocked` ou item `(user)`. Relatório de progresso se dá no fechamento — não é ponto de parada.
 
 ## Subagentes por estágio
 
