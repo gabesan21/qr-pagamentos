@@ -2,7 +2,7 @@
 
 import { useFormStatus } from "react-dom";
 
-import { ActionButton } from "@/app/ui/action-button";
+import { ActionButton } from "../ui/action-button";
 
 type LanguagePreferenceSubmitProps = {
   label: string;

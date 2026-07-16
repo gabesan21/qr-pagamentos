@@ -15,13 +15,17 @@ try {
 const { chromium } = await import("playwright");
 const artifacts = join(root, "artifacts");
 const browser = await chromium.launch();
-const page = await browser.newPage({ viewport: { width: 320, height: 800 }, reducedMotion: "reduce" });
+const page = await browser.newPage({ reducedMotion: "reduce" });
+const viewports = [375, 768, 1440];
 
 mkdirSync(artifacts, { recursive: true });
 for (const colorScheme of ["light", "dark"]) {
   await page.emulateMedia({ colorScheme, reducedMotion: "reduce" });
-  await page.goto("http://127.0.0.1:3000/en/design-system", { waitUntil: "networkidle" });
-  await page.screenshot({ path: join(artifacts, `1.3.1-design-system-${colorScheme}-320.png`), fullPage: true });
+  for (const width of viewports) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("http://127.0.0.1:3000/design-system", { waitUntil: "networkidle" });
+    await page.screenshot({ path: join(artifacts, `1.3.1-design-system-${colorScheme}-${width}.png`), fullPage: true });
+  }
 }
 
 await browser.close();
