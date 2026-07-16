@@ -44,12 +44,14 @@ describe("design tokens", () => {
       { path: join(process.cwd(), "src/app/ui/fixture.tsx"), source: "<main style={{ color: '#112233' }} />" },
       { path: join(process.cwd(), "src/app/ui/fixture.css"), source: ".fixture { padding: 16px; }" },
       { path: join(process.cwd(), "src/app/ui/type-fixture.css"), source: ".fixture { font-weight: 700; }" },
+      { path: join(process.cwd(), "src/app/ui/line-height-fixture.css"), source: ".fixture { line-height: 1.7; }" },
     ]);
 
     expect(violations).toContain("src/app/ui/fixture.tsx: raw visual value #112233");
     expect(violations).toContain("src/app/ui/fixture.tsx: inline visual style style=");
     expect(violations).toContain("src/app/ui/fixture.css: raw visual value 16px");
     expect(violations).toContain("src/app/ui/type-fixture.css: raw visual value font-weight:");
+    expect(violations).toContain("src/app/ui/line-height-fixture.css: raw visual value line-height:");
   });
 
   it("keeps the token markers in the designated source", () => {
