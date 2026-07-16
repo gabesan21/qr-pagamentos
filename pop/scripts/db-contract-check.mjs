@@ -36,7 +36,7 @@ for (const model of ["DatabaseFoundationFixture", "User", "PasswordCredential", 
 assert(schema.includes('output   = "../src/generated/prisma"'), "Generated output changed");
 
 const migrationDirectories = (await readdir("prisma/migrations", { withFileTypes: true })).filter((entry) => entry.isDirectory()).map((entry) => entry.name);
-assert(JSON.stringify(migrationDirectories) === JSON.stringify(["20260714000000_foundation_baseline", "20260714190000_local_identities", "20260716110000_database_sessions"]), "Migration history name/count changed");
+assert(JSON.stringify(migrationDirectories) === JSON.stringify(["20260714000000_foundation_baseline", "20260714190000_local_identities", "20260716110000_database_sessions", "20260716160000_user_language_preference"]), "Migration history name/count changed");
 const migration = await readFile("prisma/migrations/20260714000000_foundation_baseline/migration.sql", "utf8");
 for (const constraint of ["database_foundation_fixture_key_key", "database_foundation_fixture_key_nonblank", "database_foundation_fixture_quantity_nonnegative"]) {
   assert(migration.includes(constraint), `Migration lost ${constraint}`);
@@ -45,13 +45,18 @@ const identityMigration = await readFile("prisma/migrations/20260714190000_local
 for (const contract of ["user_username_key", "user_username_canonical", "user_email_key", "user_email_canonical", "user_role_closed", "user_status_closed", "password_credential_hash_format", "deployment_bootstrap_singleton", "reject_deployment_bootstrap_mutation", "initial_admin_user_id"]) {
   assert(identityMigration.includes(contract), `Identity migration lost ${contract}`);
 }
-assert(schema.includes("username   String") && schema.includes("email      String?"), "Prisma identity fields must be required username and nullable email");
+assert(/username\s+String/.test(schema) && /email\s+String\?/.test(schema), "Prisma identity fields must be required username and nullable email");
 assert(!/FOREIGN KEY \("initial_admin_user_id"\)/.test(identityMigration), "Deployment locator must not have a foreign key");
 const sessionMigration = await readFile("prisma/migrations/20260716110000_database_sessions/migration.sql", "utf8");
 for (const contract of ["session_token_digest_key", "session_user_fkey", "session_user_created_at_id_idx", "absolute_expires_at", "GRANT SELECT, INSERT, UPDATE, DELETE"]) {
   assert(sessionMigration.includes(contract), `Session migration lost ${contract}`);
 }
 assert(!/raw_token|plaintext|token_value/i.test(sessionMigration), "Session migration may store a bearer token");
+const localeMigration = await readFile("prisma/migrations/20260716160000_user_language_preference/migration.sql", "utf8");
+assert(schema.includes('preferredLocale String?') && schema.includes('@map("preferred_locale")'), "Schema is missing the nullable preferred locale field");
+for (const contract of ["preferred_locale", "user_preferred_locale_check", "'pt-BR'", "'en'", 'GRANT SELECT, UPDATE ("preferred_locale")']) {
+  assert(localeMigration.includes(contract), `Language preference migration lost ${contract}`);
+}
 
 const bootstrap = await readFile("prisma/bootstrap.sql", "utf8");
 assert(bootstrap.includes("GRANT CONNECT ON DATABASE qr_pagamentos TO qr_migrator, qr_runtime"), "Both roles require explicit CONNECT");

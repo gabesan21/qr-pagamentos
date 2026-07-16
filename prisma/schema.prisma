@@ -19,14 +19,14 @@ model DatabaseFoundationFixture {
 }
 
 model User {
-  id         String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  username   String              @unique(map: "user_username_key") @db.VarChar(32)
-  email      String?             @unique(map: "user_email_key") @db.VarChar(254)
-  role       String              @db.VarChar(5)
-  status     String              @default("ACTIVE") @db.VarChar(8)
-  preferredLocale String?         @map("preferred_locale") @db.VarChar(5)
-  createdAt  DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt  DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  id              String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  username        String              @unique(map: "user_username_key") @db.VarChar(32)
+  email           String?             @unique(map: "user_email_key") @db.VarChar(254)
+  role            String              @db.VarChar(5)
+  status          String              @default("ACTIVE") @db.VarChar(8)
+  preferredLocale String?             @map("preferred_locale") @db.VarChar(5)
+  createdAt       DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
   credential PasswordCredential?
   sessions   Session[]
 
