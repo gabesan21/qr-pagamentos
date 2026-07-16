@@ -22,6 +22,7 @@ export default async function LocalePage({
     <main>
       <h1>{dictionary.heading}</h1>
       <p>{dictionary.introduction}</p>
+      <form action={`/${lang}/logout`} method="post"><button type="submit">{dictionary.signOut}</button></form>
     </main>
   );
 }
