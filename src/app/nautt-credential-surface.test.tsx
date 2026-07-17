@@ -2,7 +2,6 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
-vi.mock("./nautt-credential-submit", () => ({ NauttCredentialSubmit: ({ label }: { label: string }) => <button type="submit">{label}</button> }));
 
 import { getDictionary } from "@/i18n/dictionaries";
 import type { OwnerNauttStatus } from "@/integrations/nautt/owner-onboarding";
@@ -21,6 +20,8 @@ describe("Nautt credential surface", () => {
     expect(html).toContain('name="apiKey"');
     expect(html).toContain('for="nautt-api-key"');
     expect(html).toContain('action="/nautt-credentials"');
+    expect(html).toContain('form="nautt-credential-form"');
+    expect(html).not.toContain(locale === "en" ? "Connecting account" : "Conectando conta");
     expect(html).not.toContain("private-key");
   });
 
@@ -34,7 +35,10 @@ describe("Nautt credential surface", () => {
 
   it.each(["UNREGISTERED", "REGISTERING", "INDETERMINATE"] as const)("renders the safe %s registration fork", (state) => {
     const html = markup("en", { credential: { ...emptyCredential, hasCredential: true, credentialRevision: "revision", webhookRegistrationState: state, updatedAt: new Date() }, balance: null, balanceUnavailable: true });
-    if (state === "UNREGISTERED") expect(html).toContain('action="/nautt-credentials/register"');
+    if (state === "UNREGISTERED") {
+      expect(html).toContain('action="/nautt-credentials/register"');
+      expect(html).toContain('form="nautt-registration-form"');
+    }
     else expect(html).not.toContain('action="/nautt-credentials/register"');
     expect(html).not.toContain("revision");
   });

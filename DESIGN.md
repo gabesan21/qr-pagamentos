@@ -86,6 +86,10 @@ setup-changed, provider-unavailable, `UNREGISTERED` completion, non-retryable
 recovery, configured balance, and manual balance-retry states compose the same
 `Card`, `Alert`, `Field`/`Input`, `Button`, and `Spinner` inventory. Wallet facts
 use labelled, tabular rows, and ambiguous webhook states expose no action.
+Native onboarding submissions are observed without intercepting navigation: the
+active action immediately exposes localized spinner/`aria-busy` feedback, and a
+shared scope disables the password input plus competing setup actions after the
+first payload is formed so a second provider mutation cannot be dispatched.
 
 The unauthenticated `/login` page consumes the same inventory as a single
 restrained credential `Card`: `Field`/`Input` with labels above the native

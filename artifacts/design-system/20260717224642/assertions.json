@@ -1,0 +1,1482 @@
+[
+  {
+    "colorScheme": "light",
+    "width": 320,
+    "screenshot": "artifacts/design-system/20260717224642/design-system-light-320.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "hitTargets": [
+        {
+          "width": 160,
+          "height": 44
+        },
+        {
+          "width": 140,
+          "height": 44
+        },
+        {
+          "width": 280,
+          "height": 44
+        },
+        {
+          "width": 280,
+          "height": 44
+        },
+        {
+          "width": 280,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 148,
+          "height": 44
+        },
+        {
+          "width": 248,
+          "height": 44
+        },
+        {
+          "width": 248,
+          "height": 44
+        },
+        {
+          "width": 190,
+          "height": 44
+        },
+        {
+          "width": 248,
+          "height": 44
+        },
+        {
+          "width": 248,
+          "height": 44
+        },
+        {
+          "width": 188,
+          "height": 44
+        }
+      ],
+      "primaryActions": [
+        1,
+        0,
+        0,
+        0,
+        1,
+        1,
+        0,
+        0,
+        0
+      ],
+      "statusCues": [
+        true,
+        true,
+        true
+      ],
+      "proseWidths": [
+        280,
+        280,
+        280,
+        280,
+        280,
+        248
+      ],
+      "maxProseWidth": 650
+    },
+    "focusTraversal": [
+      {
+        "index": 0,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 1,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 2,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 3,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 4,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 5,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 6,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 7,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 8,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 9,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 10,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 11,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 12,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 13,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      }
+    ],
+    "pendingState": {
+      "action": "/nautt-credentials",
+      "busy": "true",
+      "disabled": true,
+      "label": "Conectando conta",
+      "spinners": 1,
+      "controls": 3,
+      "allDisabled": true,
+      "requestCount": 1
+    },
+    "severeAxe": []
+  },
+  {
+    "colorScheme": "light",
+    "width": 375,
+    "screenshot": "artifacts/design-system/20260717224642/design-system-light-375.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "hitTargets": [
+        {
+          "width": 160,
+          "height": 44
+        },
+        {
+          "width": 140,
+          "height": 44
+        },
+        {
+          "width": 335,
+          "height": 44
+        },
+        {
+          "width": 335,
+          "height": 44
+        },
+        {
+          "width": 335,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 148,
+          "height": 44
+        },
+        {
+          "width": 303,
+          "height": 44
+        },
+        {
+          "width": 303,
+          "height": 44
+        },
+        {
+          "width": 190,
+          "height": 44
+        },
+        {
+          "width": 303,
+          "height": 44
+        },
+        {
+          "width": 303,
+          "height": 44
+        },
+        {
+          "width": 188,
+          "height": 44
+        }
+      ],
+      "primaryActions": [
+        1,
+        0,
+        0,
+        0,
+        1,
+        1,
+        0,
+        0,
+        0
+      ],
+      "statusCues": [
+        true,
+        true,
+        true
+      ],
+      "proseWidths": [
+        335,
+        335,
+        335,
+        335,
+        335,
+        303
+      ],
+      "maxProseWidth": 650
+    },
+    "focusTraversal": [
+      {
+        "index": 0,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 1,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 2,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 3,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 4,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 5,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 6,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 7,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 8,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 9,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 10,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 11,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 12,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 13,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      }
+    ],
+    "pendingState": {
+      "action": "/nautt-credentials",
+      "busy": "true",
+      "disabled": true,
+      "label": "Conectando conta",
+      "spinners": 1,
+      "controls": 3,
+      "allDisabled": true,
+      "requestCount": 1
+    },
+    "severeAxe": []
+  },
+  {
+    "colorScheme": "light",
+    "width": 768,
+    "screenshot": "artifacts/design-system/20260717224642/design-system-light-768.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "hitTargets": [
+        {
+          "width": 160,
+          "height": 44
+        },
+        {
+          "width": 140,
+          "height": 44
+        },
+        {
+          "width": 650,
+          "height": 44
+        },
+        {
+          "width": 650,
+          "height": 44
+        },
+        {
+          "width": 650,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 148,
+          "height": 44
+        },
+        {
+          "width": 696,
+          "height": 44
+        },
+        {
+          "width": 696,
+          "height": 44
+        },
+        {
+          "width": 190,
+          "height": 44
+        },
+        {
+          "width": 696,
+          "height": 44
+        },
+        {
+          "width": 696,
+          "height": 44
+        },
+        {
+          "width": 188,
+          "height": 44
+        }
+      ],
+      "primaryActions": [
+        1,
+        0,
+        0,
+        0,
+        1,
+        1,
+        0,
+        0,
+        0
+      ],
+      "statusCues": [
+        true,
+        true,
+        true
+      ],
+      "proseWidths": [
+        650,
+        650,
+        650,
+        650,
+        650,
+        520
+      ],
+      "maxProseWidth": 650
+    },
+    "focusTraversal": [
+      {
+        "index": 0,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 1,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 2,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 3,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 4,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 5,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 6,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 7,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 8,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 9,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 10,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 11,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 12,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 13,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      }
+    ],
+    "pendingState": {
+      "action": "/nautt-credentials",
+      "busy": "true",
+      "disabled": true,
+      "label": "Conectando conta",
+      "spinners": 1,
+      "controls": 3,
+      "allDisabled": true,
+      "requestCount": 1
+    },
+    "severeAxe": []
+  },
+  {
+    "colorScheme": "light",
+    "width": 1440,
+    "screenshot": "artifacts/design-system/20260717224642/design-system-light-1440.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "hitTargets": [
+        {
+          "width": 160,
+          "height": 44
+        },
+        {
+          "width": 140,
+          "height": 44
+        },
+        {
+          "width": 650,
+          "height": 44
+        },
+        {
+          "width": 650,
+          "height": 44
+        },
+        {
+          "width": 650,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 148,
+          "height": 44
+        },
+        {
+          "width": 1080,
+          "height": 44
+        },
+        {
+          "width": 1080,
+          "height": 44
+        },
+        {
+          "width": 190,
+          "height": 44
+        },
+        {
+          "width": 1080,
+          "height": 44
+        },
+        {
+          "width": 1080,
+          "height": 44
+        },
+        {
+          "width": 188,
+          "height": 44
+        }
+      ],
+      "primaryActions": [
+        1,
+        0,
+        0,
+        0,
+        1,
+        1,
+        0,
+        0,
+        0
+      ],
+      "statusCues": [
+        true,
+        true,
+        true
+      ],
+      "proseWidths": [
+        650,
+        650,
+        650,
+        650,
+        650,
+        520
+      ],
+      "maxProseWidth": 650
+    },
+    "focusTraversal": [
+      {
+        "index": 0,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 1,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 2,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 3,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 4,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 5,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 6,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 7,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 8,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 9,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 10,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 11,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 12,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 13,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      }
+    ],
+    "pendingState": {
+      "action": "/nautt-credentials",
+      "busy": "true",
+      "disabled": true,
+      "label": "Conectando conta",
+      "spinners": 1,
+      "controls": 3,
+      "allDisabled": true,
+      "requestCount": 1
+    },
+    "severeAxe": []
+  },
+  {
+    "colorScheme": "dark",
+    "width": 320,
+    "screenshot": "artifacts/design-system/20260717224642/design-system-dark-320.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "hitTargets": [
+        {
+          "width": 160,
+          "height": 44
+        },
+        {
+          "width": 140,
+          "height": 44
+        },
+        {
+          "width": 280,
+          "height": 44
+        },
+        {
+          "width": 280,
+          "height": 44
+        },
+        {
+          "width": 280,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 148,
+          "height": 44
+        },
+        {
+          "width": 248,
+          "height": 44
+        },
+        {
+          "width": 248,
+          "height": 44
+        },
+        {
+          "width": 190,
+          "height": 44
+        },
+        {
+          "width": 248,
+          "height": 44
+        },
+        {
+          "width": 248,
+          "height": 44
+        },
+        {
+          "width": 188,
+          "height": 44
+        }
+      ],
+      "primaryActions": [
+        1,
+        0,
+        0,
+        0,
+        1,
+        1,
+        0,
+        0,
+        0
+      ],
+      "statusCues": [
+        true,
+        true,
+        true
+      ],
+      "proseWidths": [
+        280,
+        280,
+        280,
+        280,
+        280,
+        248
+      ],
+      "maxProseWidth": 650
+    },
+    "focusTraversal": [
+      {
+        "index": 0,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 1,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 2,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 3,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 4,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 5,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 6,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 7,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 8,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 9,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 10,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 11,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 12,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 13,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      }
+    ],
+    "pendingState": {
+      "action": "/nautt-credentials",
+      "busy": "true",
+      "disabled": true,
+      "label": "Conectando conta",
+      "spinners": 1,
+      "controls": 3,
+      "allDisabled": true,
+      "requestCount": 1
+    },
+    "severeAxe": []
+  },
+  {
+    "colorScheme": "dark",
+    "width": 375,
+    "screenshot": "artifacts/design-system/20260717224642/design-system-dark-375.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "hitTargets": [
+        {
+          "width": 160,
+          "height": 44
+        },
+        {
+          "width": 140,
+          "height": 44
+        },
+        {
+          "width": 335,
+          "height": 44
+        },
+        {
+          "width": 335,
+          "height": 44
+        },
+        {
+          "width": 335,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 148,
+          "height": 44
+        },
+        {
+          "width": 303,
+          "height": 44
+        },
+        {
+          "width": 303,
+          "height": 44
+        },
+        {
+          "width": 190,
+          "height": 44
+        },
+        {
+          "width": 303,
+          "height": 44
+        },
+        {
+          "width": 303,
+          "height": 44
+        },
+        {
+          "width": 188,
+          "height": 44
+        }
+      ],
+      "primaryActions": [
+        1,
+        0,
+        0,
+        0,
+        1,
+        1,
+        0,
+        0,
+        0
+      ],
+      "statusCues": [
+        true,
+        true,
+        true
+      ],
+      "proseWidths": [
+        335,
+        335,
+        335,
+        335,
+        335,
+        303
+      ],
+      "maxProseWidth": 650
+    },
+    "focusTraversal": [
+      {
+        "index": 0,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 1,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 2,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 3,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 4,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 5,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 6,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 7,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 8,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 9,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 10,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 11,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 12,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 13,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      }
+    ],
+    "pendingState": {
+      "action": "/nautt-credentials",
+      "busy": "true",
+      "disabled": true,
+      "label": "Conectando conta",
+      "spinners": 1,
+      "controls": 3,
+      "allDisabled": true,
+      "requestCount": 1
+    },
+    "severeAxe": []
+  },
+  {
+    "colorScheme": "dark",
+    "width": 768,
+    "screenshot": "artifacts/design-system/20260717224642/design-system-dark-768.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "hitTargets": [
+        {
+          "width": 160,
+          "height": 44
+        },
+        {
+          "width": 140,
+          "height": 44
+        },
+        {
+          "width": 650,
+          "height": 44
+        },
+        {
+          "width": 650,
+          "height": 44
+        },
+        {
+          "width": 650,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 148,
+          "height": 44
+        },
+        {
+          "width": 696,
+          "height": 44
+        },
+        {
+          "width": 696,
+          "height": 44
+        },
+        {
+          "width": 190,
+          "height": 44
+        },
+        {
+          "width": 696,
+          "height": 44
+        },
+        {
+          "width": 696,
+          "height": 44
+        },
+        {
+          "width": 188,
+          "height": 44
+        }
+      ],
+      "primaryActions": [
+        1,
+        0,
+        0,
+        0,
+        1,
+        1,
+        0,
+        0,
+        0
+      ],
+      "statusCues": [
+        true,
+        true,
+        true
+      ],
+      "proseWidths": [
+        650,
+        650,
+        650,
+        650,
+        650,
+        520
+      ],
+      "maxProseWidth": 650
+    },
+    "focusTraversal": [
+      {
+        "index": 0,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 1,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 2,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 3,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 4,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 5,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 6,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 7,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 8,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 9,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 10,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 11,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 12,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 13,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      }
+    ],
+    "pendingState": {
+      "action": "/nautt-credentials",
+      "busy": "true",
+      "disabled": true,
+      "label": "Conectando conta",
+      "spinners": 1,
+      "controls": 3,
+      "allDisabled": true,
+      "requestCount": 1
+    },
+    "severeAxe": []
+  },
+  {
+    "colorScheme": "dark",
+    "width": 1440,
+    "screenshot": "artifacts/design-system/20260717224642/design-system-dark-1440.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "hitTargets": [
+        {
+          "width": 160,
+          "height": 44
+        },
+        {
+          "width": 140,
+          "height": 44
+        },
+        {
+          "width": 650,
+          "height": 44
+        },
+        {
+          "width": 650,
+          "height": 44
+        },
+        {
+          "width": 650,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 148,
+          "height": 44
+        },
+        {
+          "width": 1080,
+          "height": 44
+        },
+        {
+          "width": 1080,
+          "height": 44
+        },
+        {
+          "width": 190,
+          "height": 44
+        },
+        {
+          "width": 1080,
+          "height": 44
+        },
+        {
+          "width": 1080,
+          "height": 44
+        },
+        {
+          "width": 188,
+          "height": 44
+        }
+      ],
+      "primaryActions": [
+        1,
+        0,
+        0,
+        0,
+        1,
+        1,
+        0,
+        0,
+        0
+      ],
+      "statusCues": [
+        true,
+        true,
+        true
+      ],
+      "proseWidths": [
+        650,
+        650,
+        650,
+        650,
+        650,
+        520
+      ],
+      "maxProseWidth": 650
+    },
+    "focusTraversal": [
+      {
+        "index": 0,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 1,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 2,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 3,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 4,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 5,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 6,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 7,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 8,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 9,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 10,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 11,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 12,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "index": 13,
+        "outlineWidth": 2,
+        "visible": true,
+        "focusVisible": true
+      }
+    ],
+    "pendingState": {
+      "action": "/nautt-credentials",
+      "busy": "true",
+      "disabled": true,
+      "label": "Conectando conta",
+      "spinners": 1,
+      "controls": 3,
+      "allDisabled": true,
+      "requestCount": 1
+    },
+    "severeAxe": []
+  }
+]

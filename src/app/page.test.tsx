@@ -15,7 +15,6 @@ vi.mock("@/auth/authorization", () => ({ getAuthorizationService: () => ({ resol
 vi.mock("@/i18n/locale-preference", () => ({ getLocalePreferenceService: () => ({ resolve: resolveLocale }) }));
 vi.mock("@/integrations/nautt/owner-onboarding", () => ({ getOwnerOnboardingService: () => ({ readStatus }) }));
 vi.mock("@/app/language-preference/language-preference-form", () => ({ LanguagePreferenceSubmit: ({ label }: { label: string }) => <button type="submit">{label}</button> }));
-vi.mock("@/app/nautt-credential-submit", () => ({ NauttCredentialSubmit: ({ label }: { label: string }) => <button type="submit">{label}</button> }));
 
 import Home from "./page";
 
