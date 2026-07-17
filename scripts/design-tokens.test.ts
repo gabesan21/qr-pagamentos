@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
-import { findDesignTokenViolations } from "../../../scripts/check-design-tokens.mjs";
+import { findDesignTokenViolations } from "./check-design-tokens.mjs";
 
 const contrastPairs = {
   light: {
@@ -41,17 +41,17 @@ describe("design tokens", () => {
 
   it("reports every rejected raw-value fixture with its path and value", () => {
     const violations = findDesignTokenViolations([
-      { path: join(process.cwd(), "src/app/ui/fixture.tsx"), source: "<main style={{ color: '#112233' }} />" },
-      { path: join(process.cwd(), "src/app/ui/fixture.css"), source: ".fixture { padding: 16px; }" },
-      { path: join(process.cwd(), "src/app/ui/type-fixture.css"), source: ".fixture { font-weight: 700; }" },
-      { path: join(process.cwd(), "src/app/ui/line-height-fixture.css"), source: ".fixture { line-height: 1.7; }" },
+      { path: join(process.cwd(), "src/components/ui/fixture.tsx"), source: "<main style={{ color: '#112233' }} />" },
+      { path: join(process.cwd(), "src/components/ui/fixture.css"), source: ".fixture { padding: 16px; }" },
+      { path: join(process.cwd(), "src/components/ui/type-fixture.css"), source: ".fixture { font-weight: 700; }" },
+      { path: join(process.cwd(), "src/components/ui/line-height-fixture.css"), source: ".fixture { line-height: 1.7; }" },
     ]);
 
-    expect(violations).toContain("src/app/ui/fixture.tsx: raw visual value #112233");
-    expect(violations).toContain("src/app/ui/fixture.tsx: inline visual style style=");
-    expect(violations).toContain("src/app/ui/fixture.css: raw visual value 16px");
-    expect(violations).toContain("src/app/ui/type-fixture.css: raw visual value font-weight:");
-    expect(violations).toContain("src/app/ui/line-height-fixture.css: raw visual value line-height:");
+    expect(violations).toContain("src/components/ui/fixture.tsx: raw visual value #112233");
+    expect(violations).toContain("src/components/ui/fixture.tsx: inline visual style style=");
+    expect(violations).toContain("src/components/ui/fixture.css: raw visual value 16px");
+    expect(violations).toContain("src/components/ui/type-fixture.css: raw visual value font-weight:");
+    expect(violations).toContain("src/components/ui/line-height-fixture.css: raw visual value line-height:");
   });
 
   it("keeps the token markers in the designated source", () => {

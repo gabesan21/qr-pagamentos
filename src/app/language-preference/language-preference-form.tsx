@@ -2,7 +2,8 @@
 
 import { useFormStatus } from "react-dom";
 
-import { ActionButton } from "../ui/action-button";
+import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 
 type LanguagePreferenceSubmitProps = {
   label: string;
@@ -10,5 +11,5 @@ type LanguagePreferenceSubmitProps = {
 
 export function LanguagePreferenceSubmit({ label }: Readonly<LanguagePreferenceSubmitProps>) {
   const { pending } = useFormStatus();
-  return <ActionButton disabled={pending} loading={pending} type="submit">{label}</ActionButton>;
+  return <Button aria-busy={pending || undefined} disabled={pending} type="submit">{pending ? <Spinner data-icon="inline-start" /> : null}{label}</Button>;
 }

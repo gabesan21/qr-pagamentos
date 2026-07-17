@@ -16,5 +16,3 @@
   sizing. Loading buttons compose `Spinner` and remain disabled.
 - Update [`../../../DESIGN.md`](../../../DESIGN.md) and the specimen when the
   inventory, state matrix, or visual contract changes.
-- Follow [`../../app/ui/AGENTS.md`](../../app/ui/AGENTS.md) when changing the
-  temporary compatibility adapters over these sources.

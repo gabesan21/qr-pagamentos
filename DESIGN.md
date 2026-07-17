@@ -66,7 +66,6 @@ deliberately small inventory is the only foundation introduced:
 | --- | --- | --- |
 | `Button`, `Field`/`Input`, `NativeSelect`, `Checkbox` | current action and native form controls | default, loading where applicable, disabled, error, hover/focus; empty is not applicable to a control |
 | `Card`, `Alert`, `Badge`, `Separator`, `Skeleton`, `Table`, `Spinner` | grouped content, feedback, loading, and facts | documented default, empty/error/recovery, or loading state as applicable |
-| `ActionButton`, app `Field`, `Panel`, `Status` | deprecated compatibility adapters | delegate to owned sources only; removal targets are 1.4.3/1.4.4 |
 
 The deterministic `/design-system` exercise surface resolves its dictionary from
 the same server preference contract as the authenticated shell and presents all
@@ -74,11 +73,12 @@ applicable states. Its keyboard order is primary action,
 field, error recovery, then secondary action. Enabled controls use a visible
 two-pixel semantic focus outline; disabled controls are not focusable.
 
-The `/admin` shell consumes this inventory for account creation, account
-mutations, global BRL/PIX payment settings, language preference, and logout.
-Its empty account list, server recovery status, and pending submits make the
-screen-level empty/error/loading states explicit without adding a second button
-style.
+The `/admin` shell and authenticated home consume this inventory directly for
+account creation, account mutations, global BRL/PIX payment settings, language
+preference, notices, navigation, and logout. Ruled account sections replace the
+wide action table at narrow widths. Empty, loading, recovery,
+pending/disabled, success, error, and inline destructive-confirmation states are
+explicit without page-local variants or compatibility sources.
 
 The unauthenticated `/login` page consumes the same inventory as a single
 restrained credential `Card`: `Field`/`Input` with labels above the native
@@ -103,6 +103,6 @@ action targets, native label/autofill semantics, the generic recovery alert,
 and no serious/critical axe finding on default or recovery states.
 
 The status rail and panels use ruled separation and restrained corners. Never
-make a page-specific button variant: use owned `Button` variants or the
-temporary adapter. Motion is reduced when the operating system requests it; no
+make a page-specific button variant: use owned `Button` variants. Motion is
+reduced when the operating system requests it; no
 essential information depends on animation.

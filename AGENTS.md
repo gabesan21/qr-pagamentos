@@ -44,8 +44,6 @@ One execution continues until the next real gate. The complete state machine is 
 
 ## DOX index
 
-- [`src/app/ui/AGENTS.md`](src/app/ui/AGENTS.md) — follow when changing legacy
-  administrative UI adapters.
 - [`src/components/ui/AGENTS.md`](src/components/ui/AGENTS.md) — follow when
   changing owned Radix/nova shadcn source, its inventory, or its state contract.
 

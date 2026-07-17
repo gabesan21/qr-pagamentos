@@ -25,6 +25,10 @@
     "design-system:evidence:verify": "node scripts/verify-design-system-evidence.mjs",
     "login:evidence": "pnpm build && playwright test login.evidence.spec.ts --project=chromium --workers=1",
     "login:evidence:verify": "node scripts/verify-login-evidence.mjs",
+    "admin:source-check": "node scripts/check-admin-ui-inventory.mjs",
+    "admin:contract-check": "node scripts/check-admin-contract-sync.mjs",
+    "admin:evidence": "node scripts/run-admin-evidence.mjs",
+    "admin:evidence:verify": "node scripts/verify-admin-evidence.mjs",
     "precheck": "pnpm db:generate",
     "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm build"
   },

@@ -8,7 +8,7 @@ export default defineConfig({
   workers: 1,
   reporter: "line",
   use: {
-    baseURL: "http://127.0.0.1:4319",
+    baseURL: process.env.ADMIN_EVIDENCE_BASE_URL ?? "http://127.0.0.1:4319",
     trace: "retain-on-failure",
   },
   projects: [
@@ -17,7 +17,7 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"] },
     },
   ],
-  webServer: {
+  webServer: process.env.ADMIN_EVIDENCE_BASE_URL ? undefined : {
     command: "pnpm start --hostname 127.0.0.1 --port 4319",
     url: "http://127.0.0.1:4319/design-system",
     reuseExistingServer: false,

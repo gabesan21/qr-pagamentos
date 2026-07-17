@@ -32,4 +32,19 @@ describe("language dictionaries", () => {
       expect(dictionary.designSystemRetry).not.toBe("");
     }
   });
+
+  it("exposes every admin navigation, confirmation, loading, and recovery key in both locales", () => {
+    const adminStateKeys = [
+      "adminNavigationLabel", "adminHome", "signOut", "adminCancel",
+      "adminDemotionTitle", "adminDemotionDescription", "adminConfirmDemotion",
+      "adminDisableTitle", "adminDisableDescription", "adminConfirmDisable",
+      "adminLoadingHeading", "adminLoadingDescription", "adminReadErrorHeading",
+      "adminReadErrorDescription", "adminRetry",
+    ] as const;
+
+    for (const locale of ["pt-BR", "en"] as const) {
+      const dictionary = getDictionary(locale);
+      for (const key of adminStateKeys) expect(dictionary[key], `${locale}.${key}`).not.toBe("");
+    }
+  });
 });
