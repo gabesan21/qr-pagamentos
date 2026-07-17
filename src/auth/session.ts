@@ -45,8 +45,9 @@ export function createSessionService(
 ) {
   return {
     async signIn(usernameInput: string, password: string) {
-      let credential: Credential | null = null;
-      try { credential = await store.findCredential(normalizeUsername(usernameInput)); } catch { /* Preserve the generic credential path. */ }
+      let username: string | null = null;
+      try { username = normalizeUsername(usernameInput); } catch { /* Preserve the generic credential path. */ }
+      const credential: Credential | null = username ? await store.findCredential(username) : null;
       const passwordMatches = await verifyCredential(password, credential?.passwordHash ?? UNKNOWN_CREDENTIAL_RECORD);
       if (!credential || credential.status !== "ACTIVE" || !passwordMatches) return null;
       return this.create(credential.id);
