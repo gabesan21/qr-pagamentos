@@ -84,9 +84,10 @@ The unauthenticated `/login` page consumes the same inventory as a single
 restrained credential `Card`: `Field`/`Input` with labels above the native
 controls, a destructive `Alert` for the generic invalid-credential recovery,
 and a page-local submit control that renders the owned `Button` plus `Spinner`
-through `useFormStatus`. Its default, pending/disabled, error/recovery, and
-hover/focus states all come from the owned primitives; it introduces no
-page-specific variant, token, or adapter.
+by observing the associated native form's `submit` event. It never intercepts
+or replaces the `/login/submit` POST. Its default, pending/disabled,
+error/recovery, and hover/focus states all come from the owned primitives; it
+introduces no page-specific variant, token, or adapter.
 
 ## Evidence and composition
 
@@ -100,7 +101,9 @@ font drift, target/action/status/prose violations, and console failures.
 run-bound contract for production `/login`: eight light/dark captures at the
 same widths, keyboard traversal username → password → submit, 44px field and
 action targets, native label/autofill semantics, the generic recovery alert,
-and no serious/critical axe finding on default or recovery states.
+and no serious/critical axe finding on default or recovery states. The same run
+delays the native POST and proves the pending label, spinner, `aria-busy`, and
+disabled state for both click and Enter submission.
 
 The status rail and panels use ruled separation and restrained corners. Never
 make a page-specific button variant: use owned `Button` variants. Motion is
