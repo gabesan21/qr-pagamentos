@@ -59,9 +59,11 @@
 
 - `POST /client-webhooks` requires an HTTPS `url`; optional `event_types` subscribes to selected events, while omitted/empty subscribes to all (`raw/webhook-registering.md:29-39`).
 - The `201` response returns webhook UUID, URL, event types, active status, and a secret that is shown only once (`raw/webhook-registering.md:59-80`).
-- The available events include `created`, `paid`, `processing`, `completed`, `failed`, `expired`, `rejected`, `refunded`, and `canceled` (`raw/webhook-registering.md:37-39`).
-- Delivery payload, signature header, signing algorithm, timestamp/replay protection, retry schedule, ordering, and acknowledgement rules are not documented and block secure webhook implementation.
-- List/delete/recreate contracts are absent, so key rotation and lost-secret recovery cannot yet be fully designed.
+- Delivery posts contain a stable top-level delivery `id`, event, creation timestamp, order UUID/status, and attempt evidence; the handler must re-fetch `GET /orders/{uuid}` for the authoritative order object (`raw/webhook.md`).
+- Delivery verification uses the encrypted one-time webhook secret: calculate `hex(HMAC-SHA256(secret, rawBody))`, compare it in constant time with `X-Nautt-Signature: sha256=<hex>`, and parse only after verification. `X-Nautt-Delivery` is the durable unique deduplication key and `X-Nautt-Event` identifies the event. This dispatcher contract was supplied from Nautt's `webhook_dispatcher` source on 2026-07-17.
+- A receiver must return `2xx` within 15 seconds; Nautt retries failed deliveries five times at 10, 20, 40, 80, and 160 seconds. Delivery-history reads cover an order's deliveries and a specific delivery, including permanently failed attempts (`raw/webhook.md`).
+- `order.failed` is an event type, not an order status. The documented order statuses remain `new`, `processing`, `paid`, `finished`, `rejected`, `canceled`, `refunded`, and `expired`; `paid`, `processing`, and `finished` are payment-confirmed for table/polling presentation.
+- Webhook list/delete/recreate contracts remain absent, so key rotation and lost-secret recovery cannot yet be fully designed.
 
 ## Contradictions and inconsistencies
 
@@ -70,13 +72,12 @@
 > Contradiz: [[notes/decisions/2026-07-13-project-foundation|Project foundation decisions]] - the original boundary lists order opening/query and webhooks only; the later UUID decision explicitly admits pricing as a required preparatory operation.
 
 - The sandbox guide says `api-stage.nauttfinance.com`, while webhook examples use `stage.nauttfinance.com`; the correct host requires confirmation (`raw/index.md:5-8`; `raw/webhook-registering.md:107-124`).
-- Webhook events use `completed` and `failed`, while order states use `finished` and do not list `failed`; mapping is undefined.
+- `order.failed` appears in registration documentation but not the delivered event table; it is an event type rather than an order status and requires no status mapping.
 - The creation docs claim parity with the GET object, but one creation example omits the GET field described as always present.
 - A card example uses status `New`, while the documented enum is lowercase `new`.
 
 ## Missing documentation before Epoch 2 implementation
 
-- Webhook delivery payload, authentication/signature procedure, replay defense, retries, and ordering.
 - Webhook list/delete operations and behavior after API-key rotation.
 - Provider idempotency for order creation and recovery after ambiguous timeouts.
 - Rules selecting `qrcode`, `pix_qrcode`, and `pix_qrcode_url` by payment method/provider.
