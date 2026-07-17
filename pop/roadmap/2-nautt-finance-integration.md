@@ -30,14 +30,14 @@
 
 ## Phase 2.2 - Provider order boundary
 
-- **Status:** pending
+- **Status:** concluída
 - **Description:** Establish owner-bound quote, onramp-order, provider-read, and polling contracts for later checkout consumption.
 - **Specs:** [[specs/nautt-finance-integration|Nautt Finance integration]]
 
 | Task | Description | Status |
 |------|-------------|--------|
 | [[2.2.1-build-nautt-pricing-and-order-adapter]] | Implement server-side exact-decimal quotes and owner-bound onramp/provider-order operations with five-minute quote expiry and no hosted-link calls. · size: L | concluída |
-| [[2.2.2-model-provider-orders-and-safe-polling]] | Persist provider identifiers and non-final reconciliation state, preventing an older provider read from overwriting a final local state. · size: L | 001_initial_task |
+| [[2.2.2-model-provider-orders-and-safe-polling]] | Persist provider identifiers and non-final reconciliation state, preventing an older provider read from overwriting a final local state. · size: L | concluída |
 
 ## Phase 2.3 - Trusted event reconciliation
 

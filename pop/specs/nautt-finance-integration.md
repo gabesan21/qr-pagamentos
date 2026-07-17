@@ -49,6 +49,7 @@ This spec defines the allowed boundary between QR Pagamentos and Nautt Finance f
 - Owner-scoped central webhook registration with an atomic pre-dispatch claim, explicit documented event subscriptions, encrypted one-time-secret persistence, conservative `INDETERMINATE` handling after every ambiguous dispatch, and API-key replacement blocked outside `UNREGISTERED` (task 2.1.3).
 - Server-only exact-decimal pricing, one-shot onramp creation, opaque owner-scoped reads, and a replaceable UUID-keyed quote-ownership store that claims before credential decryption and fails closed across replay, ownership mismatch, expiry, duplicate registration, and store rejection (task 2.2.1).
 - Bilingual owner onboarding with validate-before-save UUID revision pinning, exact-claim webhook registration, and redacted main-wallet balance, unavailable, retry, and recovery states (task 2.1.2).
+- Durable owner-bound quote and provider-order persistence with atomic one-shot creation claims, exact-decimal redacted order fields, known-UUID explicit recovery, injected one-order polling, and shared versioned compare-and-swap reconciliation that prevents stale or final-state regression (task 2.2.2).
 
 ## Open
 
