@@ -91,6 +91,14 @@ consistent state behavior outrank marketing-page novelty.
   Playwright/axe runner binds eight responsive captures and objective assertions
   to a manifest and review; it rejects stale, external-font, overflow, contrast,
   target, focus, action-count, status-cue, and prose-width regressions.
+- [[1.4.3-redesign-login-experience]] (2026-07-17) — recorded `/login` as a
+  consumer of the existing source inventory: a restrained credential `Card`
+  with `Field`/`Input`, destructive `Alert` recovery, and a page-local
+  `Button`+`Spinner` submit control, with no page-specific variant, token, or
+  adapter. A dedicated `pnpm login:evidence` runner binds eight light/dark
+  responsive captures, keyboard traversal, 44px targets, label/autofill
+  semantics, the generic recovery alert, and axe to a hashed manifest and
+  review, verified by `pnpm login:evidence:verify`.
 
 ## Related specs
 
