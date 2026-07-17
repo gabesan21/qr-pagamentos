@@ -37,6 +37,29 @@ expect_absent "$output" 'Admin.User'
 expect_absent "$INSTALL_DIR/install.sh" 'curl '
 expect_absent "$INSTALL_DIR/install.sh" 'SUDO'
 expect_absent "$INSTALL_DIR/uninstall.sh" 'SUDO'
+
+# Nautt encryption key generation/validation path
+expect_contains "$INSTALL_DIR/install.sh" 'NAUTT_ENCRYPTION_KEY'
+expect_contains "$output" 'nautt_encryption_key'
+valid_nautt_key=$(node -e 'process.stdout.write(crypto.randomBytes(32).toString("base64url"))')
+[[ ${#valid_nautt_key} -ge 32 ]] || fail 'generated Nautt key is unexpectedly short'
+node -e 'process.exit(Buffer.from(process.argv[1], "base64url").length === 32 ? 0 : 1)' "$valid_nautt_key" || fail 'valid Nautt key length check failed'
+node -e 'process.exit(Buffer.from(process.argv[1], "base64url").length === 32 ? 0 : 1)' 'aG9zdA' && fail 'invalid Nautt key length check succeeded' || true
+cat > "$TMP/nautt-valid.env" <<EOF
+APP_PORT=33013
+INITIAL_ADMIN_USERNAME=Admin.User
+INITIAL_ADMIN_EMAIL=
+POSTGRES_ADMIN_PASSWORD=reserved-!:/?#[]@-admin
+MIGRATOR_PASSWORD=reserved-!:/?#[]@-migrator
+RUNTIME_PASSWORD=reserved-!:/?#[]@-runtime
+NAUTT_ENCRYPTION_KEY=$valid_nautt_key
+EOF
+chmod 0600 "$TMP/nautt-valid.env"
+nautt_valid_out=$TMP/nautt-valid.out
+"$INSTALL_DIR/install.sh" --dry-run --env-file "$TMP/nautt-valid.env" > "$nautt_valid_out"
+expect_contains "$nautt_valid_out" 'nautt_encryption_key'
+expect_absent "$nautt_valid_out" "$valid_nautt_key"
+
 git -C "$INSTALL_DIR/.." check-ignore -q install/.env || fail 'install/.env is not ignored by Git'
 
 sed 's/^APP_PORT=.*/APP_PORT="33013"/' "$TMP/install.env" > "$TMP/quoted.env"
