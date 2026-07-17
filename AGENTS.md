@@ -87,6 +87,7 @@ Username and password are the only login credentials; email is optional and neve
 - `install/` owns operator install/uninstall and initial-admin recovery for any Linux host with Docker Engine + Compose v2 already installed and the invoking user already in the `docker` group (documented prerequisites, not installed or granted by the script — never reintroduce `sudo`/root escalation or ownership rewrites here); passwords live only in ignored source/staged files, recovery uses the existing Compose helper, and default uninstall never removes PostgreSQL data.
 - Run `install/test.sh` after changing installer commands, secret validation, Compose deployment, health waiting, or uninstall flags.
 - `MIGRATION_DATABASE_URL` is migration-only and `DATABASE_URL` is runtime-only; never share credentials or commit usable URLs.
+- `NAUTT_WEBHOOK_CALLBACK_URL` is required non-secret server configuration; accept only canonical absolute HTTPS and never derive it from browser fields or request headers.
 - Generated Prisma code lives in ignored `src/generated/prisma/`; never edit or commit it.
 - Never edit generated `next-env.d.ts`, `.next/`, `node_modules/`, coverage output, or TypeScript build-info files by hand.
 - [`prisma/AGENTS.md`](prisma/AGENTS.md) — follow before changing the schema, bootstrap SQL, or immutable migration history.

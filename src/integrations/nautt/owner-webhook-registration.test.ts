@@ -23,6 +23,7 @@ function record(state: NauttWebhookRegistrationState = "UNREGISTERED"): NauttCre
   return {
     userId: ownerId,
     encryptedApiKey: "encrypted-api-key",
+    credentialRevision: "revision-a",
     webhookRegistrationState: state,
     providerWebhookId: state === "ACTIVE" ? providerWebhookId : null,
     encryptedWebhookSecret: state === "ACTIVE" ? "encrypted-webhook-secret" : null,
@@ -40,15 +41,17 @@ function store(initial: NauttCredentialRecord | null = record()): OwnerWebhookRe
 } {
   return {
     current: initial,
-    async find() {
-      return this.current ? structuredClone(this.current) : null;
+    async findMetadata() {
+      if (!this.current) return null;
+      const { credentialRevision, webhookRegistrationState, providerWebhookId, encryptedWebhookSecret, webhookRegisteredAt } = this.current;
+      return structuredClone({ credentialRevision, webhookRegistrationState, providerWebhookId, encryptedWebhookSecret, webhookRegisteredAt });
     },
-    async claim(_userId, expectedUpdatedAt) {
+    async claimAndReadEncryptedApiKey(_userId, expectedRevision) {
       if (this.failClaim) throw new Error("claim outcome unknown");
-      if (this.loseClaim || !this.current || this.current.webhookRegistrationState !== "UNREGISTERED" || this.current.updatedAt.getTime() !== expectedUpdatedAt.getTime()) return false;
+      if (this.loseClaim || !this.current || this.current.webhookRegistrationState !== "UNREGISTERED" || this.current.credentialRevision !== expectedRevision) return null;
       this.current.webhookRegistrationState = "REGISTERING";
       this.current.updatedAt = new Date(this.current.updatedAt.getTime() + 1);
-      return true;
+      return this.current.encryptedApiKey;
     },
     async markIndeterminate() {
       if (this.current?.webhookRegistrationState === "REGISTERING") this.current.webhookRegistrationState = "INDETERMINATE";
@@ -95,7 +98,6 @@ function providerSuccess(overrides: Record<string, unknown> = {}) {
 describe("owner webhook registration", () => {
   it.each([
     ["missing credential", null, callbackUrl, undefined],
-    ["decryption failure", record(), callbackUrl, () => { throw new Error(`cannot decrypt ${plaintextApiKey}`); }],
     ["invalid callback", record(), "http://payments.example.com/webhook", undefined],
     ["callback credentials", record(), "https://user:pass@payments.example.com/webhook", undefined],
     ["callback fragment", record(), "https://payments.example.com/webhook#fragment", undefined],
@@ -109,6 +111,16 @@ describe("owner webhook registration", () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 
+  it("claims the exact revision before decrypting and preserves a failed decrypt as recovery-required", async () => {
+    const repository = store();
+    const fetch = vi.fn();
+    const cryptography = crypto({ decrypt: () => { throw new Error(`cannot decrypt ${plaintextApiKey}`); } });
+    const service = createOwnerWebhookRegistrationService(repository, createClientWebhooksAdapter({ fetch }), cryptography);
+    await expect(service.register(ownerId, callbackUrl, "revision-a")).rejects.toBeInstanceOf(OwnerWebhookRegistrationRecoveryRequiredError);
+    expect(repository.current?.webhookRegistrationState).toBe("INDETERMINATE");
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
   it.each(["race", "uncertain"])("does not dispatch after an atomic claim %s", async (kind) => {
     const repository = store();
     if (kind === "race") repository.loseClaim = true;
@@ -117,6 +129,27 @@ describe("owner webhook registration", () => {
     const service = createOwnerWebhookRegistrationService(repository, createClientWebhooksAdapter({ fetch }), crypto());
     await expect(service.register(ownerId, callbackUrl)).rejects.toBeInstanceOf(OwnerWebhookRegistrationRecoveryRequiredError);
     expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("rejects a stale UUID without reading or decrypting the replacement even when updatedAt is identical", async () => {
+    const repository = store();
+    const sharedTimestamp = repository.current!.updatedAt;
+    Object.assign(repository.current!, {
+      encryptedApiKey: "encrypted-key-b",
+      credentialRevision: "revision-b",
+      updatedAt: sharedTimestamp,
+    });
+    const fetch = vi.fn(async () => providerSuccess());
+    const cryptography = crypto();
+    const service = createOwnerWebhookRegistrationService(repository, createClientWebhooksAdapter({ fetch }), cryptography);
+
+    await expect(service.register(ownerId, callbackUrl, "revision-a")).rejects.toBeInstanceOf(OwnerWebhookRegistrationRecoveryRequiredError);
+    expect(cryptography.decrypt).not.toHaveBeenCalled();
+    expect(fetch).not.toHaveBeenCalled();
+
+    await expect(service.register(ownerId, callbackUrl, "revision-b")).resolves.toEqual({ providerWebhookId, state: "ACTIVE", registeredAt });
+    expect(cryptography.decrypt).toHaveBeenCalledWith("encrypted-key-b", encryptionKey);
+    expect(fetch).toHaveBeenCalledTimes(1);
   });
 
   it("persists encrypted success and returns only redacted metadata", async () => {

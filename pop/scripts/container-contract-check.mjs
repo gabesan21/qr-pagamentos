@@ -59,6 +59,7 @@ assert(!compose.includes("initial_admin_recovery_password"), "Base Compose must 
 assert(recoveryCompose.includes("profiles: [\"recovery\"]"), "Recovery service must remain opt-in");
 assert(!/5432:5432|ports:\s*\n\s*-.*5432/m.test(compose), "database port must not be published");
 assert(!compose.includes("MIGRATION_DATABASE_URL:") && !compose.includes("DATABASE_URL:"), "Compose must not render credential URLs");
+assert(compose.includes("NAUTT_WEBHOOK_CALLBACK_URL: ${NAUTT_WEBHOOK_CALLBACK_URL:?set NAUTT_WEBHOOK_CALLBACK_URL}"), "Compose must require the canonical Nautt callback");
 const bootstrap = await readFile("container/bootstrap.mjs", "utf8");
 assert(bootstrap.includes('readFile("prisma/bootstrap.sql"') && !bootstrap.includes("CREATE ROLE"), "wrapper must execute, not duplicate, bootstrap SQL");
 const bootstrapSql = await readFile("prisma/bootstrap.sql", "utf8");
@@ -66,6 +67,7 @@ assert(bootstrapSql.includes("GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES
 assert(bootstrapSql.includes("to_regclass('app.global_payment_settings') IS NOT NULL") && bootstrapSql.includes("REVOKE ALL PRIVILEGES ON TABLE app.global_payment_settings"), "guarded singleton ACL normalization is missing");
 const runtime = await readFile("container/runtime.mjs", "utf8");
 assert(runtime.includes('query("SELECT 1 AS ready")') && runtime.includes('["server.js"]'), "runtime preflight contract changed");
+assert(runtime.includes('callbackUrl.protocol !== "https:"') && runtime.includes("NAUTT_WEBHOOK_CALLBACK_URL"), "runtime callback validation is missing");
 console.log("PASS image-contract");
 
 const docsIndex = process.argv.indexOf("--docs");

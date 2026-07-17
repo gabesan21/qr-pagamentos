@@ -22,7 +22,7 @@ assert(packageJson.scripts?.["db:test"] === "node pop/scripts/db-test.mjs", "db:
 
 const envExample = await readFile(".env.example", "utf8");
 assert(
-  envExample === "MIGRATION_DATABASE_URL=<postgresql-migrator-url>\nDATABASE_URL=<postgresql-runtime-url>\nNAUTT_ENCRYPTION_KEY=<32-byte-base64url-key>\n",
+  envExample === "MIGRATION_DATABASE_URL=<postgresql-migrator-url>\nDATABASE_URL=<postgresql-runtime-url>\nNAUTT_ENCRYPTION_KEY=<32-byte-base64url-key>\nNAUTT_WEBHOOK_CALLBACK_URL=https://payments.example.com/api/nautt/webhooks\n",
   ".env.example must contain only the documented non-usable placeholders",
 );
 const prismaConfig = await readFile("prisma.config.ts", "utf8");
@@ -39,7 +39,7 @@ for (const model of ["DatabaseFoundationFixture", "User", "PasswordCredential", 
 assert(schema.includes('output   = "../src/generated/prisma"'), "Generated output changed");
 
 const migrationDirectories = (await readdir("prisma/migrations", { withFileTypes: true })).filter((entry) => entry.isDirectory()).map((entry) => entry.name);
-assert(JSON.stringify(migrationDirectories) === JSON.stringify(["20260714000000_foundation_baseline", "20260714190000_local_identities", "20260716110000_database_sessions", "20260716160000_user_language_preference", "20260716180000_global_payment_settings", "20260716210000_restrict_global_payment_settings_runtime", "20260717190000_nautt_credentials", "20260717210000_nautt_webhook_registration"]), "Migration history name/count changed");
+assert(JSON.stringify(migrationDirectories) === JSON.stringify(["20260714000000_foundation_baseline", "20260714190000_local_identities", "20260716110000_database_sessions", "20260716160000_user_language_preference", "20260716180000_global_payment_settings", "20260716210000_restrict_global_payment_settings_runtime", "20260717190000_nautt_credentials", "20260717210000_nautt_webhook_registration", "20260717230000_nautt_credential_revision"]), "Migration history name/count changed");
 const migration = await readFile("prisma/migrations/20260714000000_foundation_baseline/migration.sql", "utf8");
 for (const constraint of ["database_foundation_fixture_key_key", "database_foundation_fixture_key_nonblank", "database_foundation_fixture_quantity_nonnegative"]) {
   assert(migration.includes(constraint), `Migration lost ${constraint}`);
@@ -84,6 +84,12 @@ for (const field of ["webhookRegistrationState", "providerWebhookId", "encrypted
   assert(schema.includes(field), `Schema is missing Nautt webhook field ${field}`);
 }
 assert(!/GRANT|ALTER\s+(?:TABLE|SCHEMA).*OWNER/i.test(nauttWebhookMigration), "Nautt webhook migration must not change grants or ownership");
+const nauttRevisionMigration = await readFile("prisma/migrations/20260717230000_nautt_credential_revision/migration.sql", "utf8");
+for (const contract of ["credential_revision", "gen_random_uuid()", "SET NOT NULL", "nautt_credential_credential_revision_key"]) {
+  assert(nauttRevisionMigration.includes(contract), `Nautt revision migration lost ${contract}`);
+}
+assert(schema.includes("credentialRevision") && schema.includes('@db.Uuid'), "Schema is missing the UUID credential revision");
+assert(!/GRANT|ALTER\s+(?:TABLE|SCHEMA).*OWNER/i.test(nauttRevisionMigration), "Nautt revision migration must not change grants or ownership");
 
 const bootstrap = await readFile("prisma/bootstrap.sql", "utf8");
 assert(bootstrap.includes("GRANT CONNECT ON DATABASE qr_pagamentos TO qr_migrator, qr_runtime"), "Both roles require explicit CONNECT");

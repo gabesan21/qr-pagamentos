@@ -16,6 +16,7 @@ INITIAL_ADMIN_EMAIL=Admin.Example+ops@Example.COM
 POSTGRES_ADMIN_PASSWORD=reserved-!:/?#[]@-admin
 MIGRATOR_PASSWORD=reserved-!:/?#[]@-migrator
 RUNTIME_PASSWORD=reserved-!:/?#[]@-runtime
+NAUTT_WEBHOOK_CALLBACK_URL=https://payments.example.com/api/nautt/webhooks
 EOF
 chmod 0600 "$TMP/install.env"
 
@@ -53,12 +54,17 @@ POSTGRES_ADMIN_PASSWORD=reserved-!:/?#[]@-admin
 MIGRATOR_PASSWORD=reserved-!:/?#[]@-migrator
 RUNTIME_PASSWORD=reserved-!:/?#[]@-runtime
 NAUTT_ENCRYPTION_KEY=$valid_nautt_key
+NAUTT_WEBHOOK_CALLBACK_URL=https://payments.example.com/api/nautt/webhooks
 EOF
 chmod 0600 "$TMP/nautt-valid.env"
 nautt_valid_out=$TMP/nautt-valid.out
 "$INSTALL_DIR/install.sh" --dry-run --env-file "$TMP/nautt-valid.env" > "$nautt_valid_out"
 expect_contains "$nautt_valid_out" 'nautt_encryption_key'
 expect_absent "$nautt_valid_out" "$valid_nautt_key"
+sed 's|^NAUTT_WEBHOOK_CALLBACK_URL=.*|NAUTT_WEBHOOK_CALLBACK_URL=http://payments.example/webhook|' "$TMP/install.env" > "$TMP/invalid-callback.env"
+if "$INSTALL_DIR/install.sh" --dry-run --env-file "$TMP/invalid-callback.env" >/dev/null 2>&1; then fail 'invalid Nautt callback succeeded'; fi
+sed '/^NAUTT_WEBHOOK_CALLBACK_URL=/d' "$TMP/install.env" > "$TMP/missing-callback.env"
+if "$INSTALL_DIR/install.sh" --dry-run --env-file "$TMP/missing-callback.env" >/dev/null 2>&1; then fail 'missing Nautt callback succeeded'; fi
 
 git -C "$INSTALL_DIR/.." check-ignore -q install/.env || fail 'install/.env is not ignored by Git'
 

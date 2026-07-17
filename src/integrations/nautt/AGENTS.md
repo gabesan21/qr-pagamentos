@@ -15,7 +15,7 @@
 ## Non-idempotent webhook registration
 
 - Never automatically retry `POST /client-webhooks`; provider idempotency and pre-commit error classes are undocumented.
-- Claim the owner credential revision in durable state before dispatching registration.
+- Claim `owner + UNREGISTERED + credential_revision` in durable state before reading ciphertext, decrypting, or dispatching registration; never use millisecond timestamps as revision identity.
 - Only local failures with a proven provider call count of zero may remain `UNREGISTERED`.
 - Once dispatch starts, preserve an ambiguous result as `INDETERMINATE` or `REGISTERING`; never authorize another POST from that state.
 - Encrypt the one-time webhook secret immediately after parsing and return only redacted UUID, state, and timestamp metadata.
@@ -35,4 +35,5 @@
 
 - Inject network and timeout boundaries in tests; never call Nautt during automated tests.
 - Cover exact request shape, complete success parsing, timeout/transport ambiguity, response redaction, and no-retry transitions.
+- For credential onboarding, validate the submitted key through the main-wallet read before an atomic ciphertext+fresh-UUID CAS; a stale UUID performs zero ciphertext read, decryption, or dispatch.
 - Cover the claim matrix (unknown, cross-owner, expired, consumed, duplicate register) with zero-decryption/zero-fetch assertions.

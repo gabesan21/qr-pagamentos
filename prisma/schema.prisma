@@ -63,6 +63,7 @@ model PasswordCredential {
 model NauttCredential {
   userId                   String    @id @map("user_id") @db.Uuid
   encryptedApiKey          String    @map("encrypted_api_key") @db.Text
+  credentialRevision       String    @unique(map: "nautt_credential_credential_revision_key") @default(dbgenerated("gen_random_uuid()")) @map("credential_revision") @db.Uuid
   webhookRegistrationState String    @default("UNREGISTERED") @map("webhook_registration_state") @db.VarChar(13)
   providerWebhookId        String?   @map("provider_webhook_id") @db.Uuid
   encryptedWebhookSecret  String?   @map("encrypted_webhook_secret") @db.Text

@@ -9,10 +9,94 @@ import { expect, test } from "@playwright/test";
 const viewports = [320, 375, 768, 1440] as const;
 const schemes = ["light", "dark"] as const;
 const artifactRoot = join(process.cwd(), "artifacts", "design-system");
+let pendingObservationId = 0;
+
+async function beginPendingNauttSubmission(
+  page: import("@playwright/test").Page,
+  input: { action: string; buttonName: string; pendingLabel: string },
+) {
+  let releaseResponse = () => {};
+  const responseGate = new Promise<void>((resolve) => { releaseResponse = resolve; });
+  let requestCount = 0;
+  let reportFirstRequest = () => {};
+  const firstRequest = new Promise<void>((resolve) => { reportFirstRequest = resolve; });
+  let reportResponseCompleted = () => {};
+  const responseCompleted = new Promise<void>((resolve) => { reportResponseCompleted = resolve; });
+  const pendingRoute = async (route: import("@playwright/test").Route) => {
+    if (new URL(route.request().url()).pathname !== input.action) {
+      await route.fallback();
+      return;
+    }
+    requestCount += 1;
+    reportFirstRequest();
+    await responseGate;
+    await route.fulfill({ body: "", status: 204 });
+    reportResponseCompleted();
+  };
+  await page.route("**/*", pendingRoute);
+
+  const section = page.locator('[data-ds-section="specimen-pending"]');
+  const submit = section.getByRole("button", { name: input.buttonName });
+  const callbackName = `reportNauttPendingState${pendingObservationId++}`;
+  let reportPendingState: (state: Record<string, unknown>) => void = () => {};
+  const observedPendingState = new Promise<Record<string, unknown>>((resolve) => { reportPendingState = resolve; });
+  await page.exposeFunction(callbackName, reportPendingState);
+  await section.evaluate((element, { action, reportName }) => {
+    const form = Array.from(element.querySelectorAll("form")).find((candidate) => new URL(candidate.action).pathname === action);
+    const button = form?.querySelector<HTMLButtonElement>('[data-slot="button"]');
+    if (!button) throw new Error(`Nautt submit control is missing for ${action}`);
+    const observer = new MutationObserver(() => {
+      if (button.getAttribute("aria-busy") !== "true") return;
+      const controls = Array.from(element.querySelectorAll<HTMLInputElement | HTMLButtonElement>("[data-nautt-action-control]"));
+      const state = {
+        action,
+        busy: button.getAttribute("aria-busy"),
+        disabled: button.disabled,
+        label: button.textContent?.trim(),
+        spinners: button.querySelectorAll('[data-slot="spinner"]').length,
+        controls: controls.length,
+        allDisabled: controls.every((control) => control.disabled),
+      };
+      (window as unknown as Record<string, (value: typeof state) => void>)[reportName](state);
+      observer.disconnect();
+    });
+    observer.observe(element, { attributes: true, childList: true, subtree: true });
+  }, { action: input.action, reportName: callbackName });
+  await submit.evaluate((element) => {
+    (element as HTMLButtonElement).click();
+    (element as HTMLButtonElement).click();
+  });
+  const [, pendingState] = await Promise.all([firstRequest, observedPendingState]);
+  expect(pendingState).toMatchObject({ action: input.action, busy: "true", disabled: true, label: input.pendingLabel, spinners: 1, allDisabled: true });
+  await page.waitForTimeout(100);
+  expect(requestCount).toBe(1);
+
+  return {
+    pendingState: { ...pendingState, requestCount },
+    async release() {
+      releaseResponse();
+      await responseCompleted;
+      await page.unroute("**/*", pendingRoute);
+    },
+  };
+}
 
 function sha256(value: Buffer | string) {
   return createHash("sha256").update(value).digest("hex");
 }
+
+test("locks both native Nautt onboarding actions during one in-flight POST", async ({ page }) => {
+  for (const scenario of [
+    { action: "/nautt-credentials", buttonName: "Conectar conta", pendingLabel: "Conectando conta", fillKey: true },
+    { action: "/nautt-credentials/register", buttonName: "Concluir configuração", pendingLabel: "Concluindo configuração", fillKey: false },
+  ]) {
+    await page.goto("/design-system", { waitUntil: "domcontentloaded" });
+    if (scenario.fillKey) await page.locator("#specimen-pending-api-key").fill("evidence-only-key");
+    const observation = await beginPendingNauttSubmission(page, scenario);
+    expect(observation.pendingState).toMatchObject({ requestCount: 1, allDisabled: true, busy: "true", spinners: 1, label: scenario.pendingLabel });
+    await observation.release();
+  }
+});
 
 test("creates current, responsive design-system evidence", async ({ page }) => {
   const startedAt = new Date().toISOString();
@@ -107,8 +191,15 @@ test("creates current, responsive design-system evidence", async ({ page }) => {
       expect(pageErrors).toEqual([]);
 
       const screenshot = join(runDirectory, `design-system-${colorScheme}-${width}.png`);
+      await page.locator("#specimen-pending-api-key").fill("evidence-only-key");
+      const pendingObservation = await beginPendingNauttSubmission(page, {
+        action: "/nautt-credentials",
+        buttonName: "Conectar conta",
+        pendingLabel: "Conectando conta",
+      });
+      await pendingObservation.release();
       await page.screenshot({ path: screenshot, fullPage: true });
-      results.push({ colorScheme, width, screenshot: screenshot.slice(process.cwd().length + 1), measured, focusTraversal, severeAxe });
+      results.push({ colorScheme, width, screenshot: screenshot.slice(process.cwd().length + 1), measured, focusTraversal, pendingState: pendingObservation.pendingState, severeAxe });
     }
   }
 

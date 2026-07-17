@@ -96,6 +96,7 @@ services:
       - /tmp:uid=1000,gid=1000,mode=0700
     environment:
       POSTGRES_HOST: db
+      NAUTT_WEBHOOK_CALLBACK_URL: ${NAUTT_WEBHOOK_CALLBACK_URL:?set NAUTT_WEBHOOK_CALLBACK_URL}
     secrets:
       - source: runtime_password
         target: runtime_password

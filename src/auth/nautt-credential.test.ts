@@ -27,13 +27,17 @@ function store(): NauttCredentialStore & { records: Map<string, NauttCredentialR
   const records = new Map<string, NauttCredentialRecord>();
   return {
     records,
-    async saveIfUnregistered(userId, encryptedApiKey) {
+    async saveValidatedIfRevision({ userId, encryptedApiKey, expectedRevision, freshRevision }) {
       const existing = records.get(userId);
-      if (existing && existing.webhookRegistrationState !== "UNREGISTERED") return false;
+      if (
+        (existing && (existing.webhookRegistrationState !== "UNREGISTERED" || existing.credentialRevision !== expectedRevision)) ||
+        (!existing && expectedRevision !== null)
+      ) return false;
       const now = new Date();
       records.set(userId, {
         userId,
         encryptedApiKey,
+        credentialRevision: freshRevision,
         webhookRegistrationState: "UNREGISTERED",
         providerWebhookId: null,
         encryptedWebhookSecret: null,
@@ -111,7 +115,7 @@ describe("nautt credential service", () => {
     "preserves every field when replacement is blocked in %s",
     async (webhookRegistrationState) => {
       const repository = store();
-      await repository.saveIfUnregistered(owner.id, "enc:original");
+      await repository.saveValidatedIfRevision({ userId: owner.id, encryptedApiKey: "enc:original", expectedRevision: null, freshRevision: "revision-original" });
       const record = repository.records.get(owner.id)!;
       Object.assign(record, {
         webhookRegistrationState,
@@ -129,9 +133,9 @@ describe("nautt credential service", () => {
 
   it("preserves the complete row when replacement loses an atomic claim race", async () => {
     const repository = store();
-    await repository.saveIfUnregistered(owner.id, "enc:original");
+    await repository.saveValidatedIfRevision({ userId: owner.id, encryptedApiKey: "enc:original", expectedRevision: null, freshRevision: "revision-original" });
     const before = structuredClone(repository.records.get(owner.id)!);
-    repository.saveIfUnregistered = vi.fn(async () => false);
+    repository.saveValidatedIfRevision = vi.fn(async () => false);
     const service = createNauttCredentialService(repository, crypto);
 
     await expect(service.save(owner, owner.id, "replacement-key")).rejects.toBeInstanceOf(NauttCredentialReplacementBlockedError);
