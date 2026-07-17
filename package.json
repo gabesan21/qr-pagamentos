@@ -23,6 +23,8 @@
     "test": "vitest run",
     "design-system:evidence": "pnpm build && playwright test design-system.evidence.spec.ts --project=chromium --workers=1",
     "design-system:evidence:verify": "node scripts/verify-design-system-evidence.mjs",
+    "login:evidence": "pnpm build && playwright test login.evidence.spec.ts --project=chromium --workers=1",
+    "login:evidence:verify": "node scripts/verify-login-evidence.mjs",
     "precheck": "pnpm db:generate",
     "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm build"
   },

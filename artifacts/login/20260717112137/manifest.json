@@ -1,0 +1,57 @@
+{
+  "runId": "20260717112137",
+  "startedAt": "2026-07-17T11:21:37.590Z",
+  "gitHead": "a49b7fc228c3079a44e371a904e0a6e4422eeb1d",
+  "assertions": "artifacts/login/20260717112137/assertions.json",
+  "assertionsSha256": "39a084d215419d0a3097548e174fe5d4e4d634559282582607f3d6aee35b62e2",
+  "pngs": [
+    {
+      "path": "artifacts/login/20260717112137/login-light-320.png",
+      "bytes": 10821,
+      "sha256": "42bafa65dfbc08cb50371adcf1da04f32f94b136b1c2781cdab93369a0718ef8",
+      "mtimeMs": 1784287298821.4966
+    },
+    {
+      "path": "artifacts/login/20260717112137/login-light-375.png",
+      "bytes": 11243,
+      "sha256": "a8588e778c517036c0483207ffb8e4ad4d6c846f282767362a79aaf73e21d910",
+      "mtimeMs": 1784287299754.8306
+    },
+    {
+      "path": "artifacts/login/20260717112137/login-light-768.png",
+      "bytes": 12123,
+      "sha256": "c89fec19852419ba75e169ec2f5c84f7e3eb95e93916fc35f08b7c77ecdd5dea",
+      "mtimeMs": 1784287300691.4978
+    },
+    {
+      "path": "artifacts/login/20260717112137/login-light-1440.png",
+      "bytes": 14093,
+      "sha256": "08fd170307b436792908d890ff7022d92f31c45f8e03bf91cecb631abd55063e",
+      "mtimeMs": 1784287301631.4983
+    },
+    {
+      "path": "artifacts/login/20260717112137/login-dark-320.png",
+      "bytes": 10835,
+      "sha256": "8124dc547e78219cc83ec9abf562a60c77f156d1bd28aa58b3fe357fefef871a",
+      "mtimeMs": 1784287302514.8323
+    },
+    {
+      "path": "artifacts/login/20260717112137/login-dark-375.png",
+      "bytes": 11203,
+      "sha256": "00f5ff143494c81dff1ae0430eaab0b48c77f48eb55d399daaf16475e65805a2",
+      "mtimeMs": 1784287303434.833
+    },
+    {
+      "path": "artifacts/login/20260717112137/login-dark-768.png",
+      "bytes": 12193,
+      "sha256": "95b8dd576cbab1f4f31f00e488e9f58887f3f5701f92ca99a6c81c7ca5f73099",
+      "mtimeMs": 1784287304338.1667
+    },
+    {
+      "path": "artifacts/login/20260717112137/login-dark-1440.png",
+      "bytes": 14145,
+      "sha256": "8394e37a8a63e0054b91878194de38d43336721f30d67a998d864f4648fc7410",
+      "mtimeMs": 1784287305248.1675
+    }
+  ]
+}

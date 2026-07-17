@@ -80,6 +80,14 @@ Its empty account list, server recovery status, and pending submits make the
 screen-level empty/error/loading states explicit without adding a second button
 style.
 
+The unauthenticated `/login` page consumes the same inventory as a single
+restrained credential `Card`: `Field`/`Input` with labels above the native
+controls, a destructive `Alert` for the generic invalid-credential recovery,
+and a page-local submit control that renders the owned `Button` plus `Spinner`
+through `useFormStatus`. Its default, pending/disabled, error/recovery, and
+hover/focus states all come from the owned primitives; it introduces no
+page-specific variant, token, or adapter.
+
 ## Evidence and composition
 
 `pnpm design-system:evidence` builds production output and creates a fresh
@@ -87,6 +95,12 @@ run-bound manifest with light/dark captures at 320, 375, 768, and 1440 CSS
 pixels. It rejects external requests, serious/critical axe findings, overflow,
 font drift, target/action/status/prose violations, and console failures.
 `pnpm design-system:evidence:verify` requires the exact review and hashes.
+
+`pnpm login:evidence` and `pnpm login:evidence:verify` provide the same
+run-bound contract for production `/login`: eight light/dark captures at the
+same widths, keyboard traversal username → password → submit, 44px field and
+action targets, native label/autofill semantics, the generic recovery alert,
+and no serious/critical axe finding on default or recovery states.
 
 The status rail and panels use ruled separation and restrained corners. Never
 make a page-specific button variant: use owned `Button` variants or the
