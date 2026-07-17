@@ -75,11 +75,16 @@ export function createOwnerPricingOrdersService(
 
       try {
         const issued = await adapter.createQuote({ apiKey, ...input });
-        const registered = await quoteStore.register({
-          quoteUuid: issued.quoteUuid,
-          ownerId,
-          expiresAt: issued.expiresAt,
-        });
+        let registered: boolean;
+        try {
+          registered = await quoteStore.register({
+            quoteUuid: issued.quoteUuid,
+            ownerId,
+            expiresAt: issued.expiresAt,
+          });
+        } catch {
+          throw new OwnerPricingOrdersError();
+        }
         if (!registered) throw new OwnerPricingOrdersError();
         return issued;
       } finally {
@@ -102,7 +107,12 @@ export function createOwnerPricingOrdersService(
         throw new OwnerPricingOrdersError();
       }
 
-      const claim = await quoteStore.claimForCreation({ quoteUuid: quoteReference.quoteUuid, ownerId, now: now() });
+      let claim: Awaited<ReturnType<QuoteOwnershipStore["claimForCreation"]>>;
+      try {
+        claim = await quoteStore.claimForCreation({ quoteUuid: quoteReference.quoteUuid, ownerId, now: now() });
+      } catch {
+        throw new OwnerPricingOrdersError();
+      }
       if (claim !== "claimed") throw new OwnerPricingOrdersError();
 
       let apiKey: string;

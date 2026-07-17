@@ -11,7 +11,7 @@ import {
   NauttOrderCreationIndeterminateError,
   NauttPricingAdapterError,
 } from "./pricing-orders-client";
-import { createInMemoryQuoteOwnershipStore } from "./quote-ownership";
+import { createInMemoryQuoteOwnershipStore, type QuoteOwnershipStore } from "./quote-ownership";
 
 const ownerA = "110e8400-e29b-41d4-a716-446655440011";
 const ownerB = "220e8400-e29b-41d4-a716-446655440022";
@@ -87,10 +87,10 @@ function fakeCredentialPort(keys: Record<string, string>) {
   };
 }
 
-function harness(options: { now?: () => Date; adapterNow?: () => Date } = {}) {
+function harness(options: { now?: () => Date; adapterNow?: () => Date; store?: QuoteOwnershipStore } = {}) {
   const fetch = vi.fn();
   const credentials = fakeCredentialPort({ [ownerA]: keyA, [ownerB]: keyB });
-  const store = createInMemoryQuoteOwnershipStore();
+  const store = options.store ?? createInMemoryQuoteOwnershipStore();
   const adapter = createPricingOrdersAdapter({ fetch, now: options.adapterNow ?? (() => T0) });
   const service = createOwnerPricingOrdersService(credentials, adapter, store, options.now ?? (() => T0));
   return { fetch, credentials, store, service };
@@ -157,6 +157,23 @@ describe("owner quote issuance", () => {
 
     await expect(service.quote(ownerB, fiatQuoteInput)).rejects.toBeInstanceOf(OwnerPricingOrdersError);
   });
+
+  it("maps a rejected quote registration to the opaque owner error", async () => {
+    const rawStoreError = `database register failed with ${keyA}`;
+    const store: QuoteOwnershipStore = {
+      register: vi.fn().mockRejectedValue(new Error(rawStoreError)),
+      claimForCreation: vi.fn(),
+    };
+    const { fetch, credentials, service } = harness({ store });
+    fetch.mockResolvedValueOnce(quoteSuccess());
+
+    const error = await service.quote(ownerA, fiatQuoteInput).catch((caught: unknown) => caught);
+
+    expect(error).toEqual(new OwnerPricingOrdersError());
+    expect(String(error)).not.toContain(rawStoreError);
+    expect(credentials.calls).toEqual([ownerA]);
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe("owner order creation with quote ownership claims", () => {
@@ -204,6 +221,24 @@ describe("owner order creation with quote ownership claims", () => {
     await expect(service.createOrder(ownerA, { quoteUuid }, {})).rejects.toBeInstanceOf(OwnerPricingOrdersError);
     expect(credentials.calls).toEqual([]);
     expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("maps a rejected quote claim to the opaque owner error before decryption or order dispatch", async () => {
+    const rawStoreError = `database claim failed with ${keyA}`;
+    const store: QuoteOwnershipStore = {
+      register: vi.fn().mockResolvedValue(true),
+      claimForCreation: vi.fn().mockRejectedValue(new Error(rawStoreError)),
+    };
+    const { fetch, credentials, service } = harness({ store });
+    fetch.mockResolvedValueOnce(quoteSuccess());
+    await service.quote(ownerA, fiatQuoteInput);
+
+    const error = await service.createOrder(ownerA, { quoteUuid }, {}).catch((caught: unknown) => caught);
+
+    expect(error).toEqual(new OwnerPricingOrdersError());
+    expect(String(error)).not.toContain(rawStoreError);
+    expect(credentials.calls).toEqual([ownerA]);
+    expect(fetch).toHaveBeenCalledTimes(1);
   });
 
   it("fails closed on a fresh registry after restart: a previously valid serialized reference is unknown", async () => {
