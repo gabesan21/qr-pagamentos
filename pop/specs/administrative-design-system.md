@@ -2,7 +2,7 @@
 
 - **Project:** [[PROJECT|QR Pagamentos]]
 - **Epoch/Phase:** [[roadmap/1-administrative-foundation|Phase 1.4]]
-- **Status:** approved
+- **Status:** implemented
 - **Created:** 2026-07-16
 
 ## What it is
@@ -82,12 +82,15 @@ preflight because its dashboard implementation guidance is explicitly out of
 scope. The product register governs implementation: familiarity, density, and
 consistent state behavior outrank marketing-page novelty.
 
-## Open
+## Implemented slice
 
-- Exact registry and package versions are resolved by read-only npm lookups at
-  execution time and then committed as exact versions; planning network access
-  was unavailable. The selected official named preset is `nova` and must resolve
-  to base `radix` plus style `nova` before components are added.
+- [[1.4.2-rebuild-design-system-with-shadcn]] (2026-07-16) — initialized the
+  pinned official shadcn `nova` preset with Radix base, local IBM Plex Sans,
+  owned current-scope sources, deprecated single-source adapters, semantic
+  light/dark tokens, and the unprefixed bilingual specimen. The production
+  Playwright/axe runner binds eight responsive captures and objective assertions
+  to a manifest and review; it rejects stale, external-font, overflow, contrast,
+  target, focus, action-count, status-cue, and prose-width regressions.
 
 ## Related specs
 

@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const token = (await cookies()).get("qr_session")?.value;
-  const principal = await getSessionService().validate(token);
+  const principal = token ? await getSessionService().validate(token) : null;
   const locale = principal ? await getLocalePreferenceService().resolve(principal.userId) : "pt-BR";
   return (
     <html lang={locale}>

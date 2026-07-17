@@ -9,10 +9,10 @@ import { Status } from "./status";
 describe("admin primitives", () => {
   it("renders primary, loading, and disabled button states without a duplicate variant", () => {
     const markup = renderToStaticMarkup(<><ActionButton type="button">Save</ActionButton><ActionButton loading type="button">Save</ActionButton><ActionButton disabled tone="secondary" type="button">Review</ActionButton></>);
-    expect(markup).toContain("action-button--primary");
+    expect(markup).toContain('data-slot="button"');
     expect(markup).toContain("aria-busy=\"true\"");
     expect(markup).toContain("disabled=\"\"");
-    expect(markup).toContain("action-button--secondary");
+    expect(markup).toContain('data-variant="outline"');
   });
 
   it("associates fields with labels, help, and error recovery information", () => {
@@ -24,7 +24,7 @@ describe("admin primitives", () => {
 
   it("renders semantic status facts and panel empty/error content", () => {
     const markup = renderToStaticMarkup(<Panel title="Review"><Status label="Attention" tone="danger">Retry the request</Status><p>No receipts need review.</p></Panel>);
-    expect(markup).toContain("status--danger");
+    expect(markup).toContain('data-variant="danger"');
     expect(markup).toContain("Retry the request");
     expect(markup).toContain("No receipts need review.");
   });

@@ -21,6 +21,8 @@ describe("language dictionaries", () => {
       expect(dictionary.languageError).not.toBe("");
       expect(dictionary.adminPaymentSettingsHeading).not.toBe("");
       expect(dictionary.adminSavePaymentSettings).not.toBe("");
+      expect(dictionary.designSystemHeading).not.toBe("");
+      expect(dictionary.designSystemRetry).not.toBe("");
     }
   });
 });
