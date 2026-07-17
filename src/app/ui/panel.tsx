@@ -1,10 +1,14 @@
-import type { ReactNode } from "react";
+import { useId, type ReactNode } from "react";
 
-type PanelProps = {
-  children: ReactNode;
-  title: string;
-};
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+type PanelProps = { children: ReactNode; title: string };
+
+/** @deprecated Migrate consumers to Card composition in task 1.4.4. */
 export function Panel({ children, title }: Readonly<PanelProps>) {
-  return <section aria-labelledby={`${title}-title`} className="panel"><h2 id={`${title}-title`}>{title}</h2>{children}</section>;
+  const titleId = useId();
+  return <Card aria-labelledby={titleId} role="region">
+    <CardHeader><CardTitle id={titleId}>{title}</CardTitle></CardHeader>
+    <CardContent className="flex flex-col gap-4">{children}</CardContent>
+  </Card>;
 }

@@ -46,7 +46,11 @@ This spec defines the reproducible runtime, local identity boundary, role model,
 ## Open
 
 - Initial currency and payment-method allowlists.
-- The administrative design foundation uses the recorded `PIX ledger` tone, Brazilian PIX receipt reference, graphite-receipt semantic palette, system typography, and `prefers-color-scheme` dark mode from `DESIGN.md`; later screens consume that contract rather than choosing a new visual direction.
+- The administrative design foundation uses the recorded `PIX ledger` tone,
+  Brazilian PIX receipt reference, local IBM Plex Sans variable typography,
+  semantic light/dark tokens, and verified production browser evidence from
+  `DESIGN.md`; later screens consume that contract rather than choosing a new
+  visual direction.
 
 ## Implemented slices
 
@@ -62,6 +66,7 @@ This spec defines the reproducible runtime, local identity boundary, role model,
 - [[1.3.3-manage-administrative-users]] (2026-07-16) — delivered an unprefixed localized `/admin` shell and server-authorized account creation, password, role, and status management. Exact protected-route and opaque unknown-target responses prevent data disclosure; final-active-administrator protection remains transactional. Service, route, page, dictionary, aggregate, and static database-contract gates passed; the disposable Docker test is environment-blocked by socket permission.
 - [[1.3.4-manage-global-payment-settings]] (2026-07-16) — delivered the singleton, administrator-managed `BRL` currency and `PIX` payment-method allowlists, constrained to that initial closed catalog and exposed through the localized `/admin` shell. Server-side authorization, opaque protected outcomes, migration/replay/privilege contracts, focused service/route/page/dictionary tests, and the aggregate gate cover the delivered scope; no additional catalog values or payment-provider integration are included.
 - [[1.4.1-repair-login-submit-reliability]] (2026-07-16) — reproduced the production `/login/submit` failure and repaired PostgreSQL advisory-lock execution without deserializing its `void` result. Real Compose coverage now proves valid and invalid login, cookie attributes, locale persistence, and opaque infrastructure failures. The hardening pass also removed inherited write privileges from the global-settings singleton through a forward migration and guarded bootstrap replay normalization, refreshed the exact Node image index pin across all consumers, and added deterministic pin-consistency coverage. Disposable database replay, database/container contracts, installer checks, clean-clone login, and the aggregate gate passed.
+- [[1.4.2-rebuild-design-system-with-shadcn]] (2026-07-16) — replaced the temporary custom-only primitives with one owned Radix/nova shadcn source system, locally bundled IBM Plex Sans, semantic token aliases, deprecated compatibility adapters, and an unprefixed localized specimen. The production evidence runner captures and hashes all eight light/dark responsive cases with automated axe, target, font, focus, overflow, action, status-cue, and prose assertions.
 
 ## Related specs
 

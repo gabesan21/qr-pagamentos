@@ -30,8 +30,8 @@ switch.
 | Feedback | `--feedback-success`, `--feedback-warning`, `--feedback-danger` and matching `--text-on-*` tokens |
 | Layout | `--space-*`, `--radius-*`, `--shadow-raised`, `--type-*`, `--focus-*` |
 
-The type stack is `ui-sans-serif, system-ui, sans-serif`; factual values use
-`font-variant-numeric: tabular-nums`. Spacing follows the token scale from
+The locally bundled type stack is `IBM Plex Sans Variable`, `IBM Plex Sans`,
+then `sans-serif`; factual values use `font-variant-numeric: tabular-nums`. Spacing follows the token scale from
 compact labelled facts to section separation. Text prose is at most `65ch`;
 there is at most one primary action per section, and labels sit above inputs.
 
@@ -59,16 +59,14 @@ control boundaries at **3:1**.
 
 ## Primitive inventory and state matrix
 
-There were no reusable primitives or component library before this task. The
-following deliberately small inventory is the only foundation introduced:
+Owned Radix/nova shadcn source lives in `src/components/ui/`. The following
+deliberately small inventory is the only foundation introduced:
 
 | Primitive | Purpose | States |
 | --- | --- | --- |
-| `ActionButton` | one primary or secondary action | default, loading, disabled, hover/focus; empty and error are not applicable to a control |
-| `Field` | labelled text input with help text | default, disabled, error, hover/focus; loading and empty are not applicable |
-| `Status` | labelled success, warning, or error fact | default and hover/focus when actionable; loading, empty, and disabled are not applicable |
-| `Panel` | ruled content grouping | default, loading, empty, error with recovery action; hover/focus and disabled are not applicable to a non-control |
-| `AdminSubmit` | form-status adapter for `ActionButton` | default, loading, disabled, hover/focus; empty and error remain the surrounding form's responsibility |
+| `Button`, `Field`/`Input`, `NativeSelect`, `Checkbox` | current action and native form controls | default, loading where applicable, disabled, error, hover/focus; empty is not applicable to a control |
+| `Card`, `Alert`, `Badge`, `Separator`, `Skeleton`, `Table`, `Spinner` | grouped content, feedback, loading, and facts | documented default, empty/error/recovery, or loading state as applicable |
+| `ActionButton`, app `Field`, `Panel`, `Status` | deprecated compatibility adapters | delegate to owned sources only; removal targets are 1.4.3/1.4.4 |
 
 The deterministic `/design-system` exercise surface resolves its dictionary from
 the same server preference contract as the authenticated shell and presents all
@@ -82,9 +80,15 @@ Its empty account list, server recovery status, and pending submits make the
 screen-level empty/error/loading states explicit without adding a second button
 style.
 
-## Composition and motion
+## Evidence and composition
+
+`pnpm design-system:evidence` builds production output and creates a fresh
+run-bound manifest with light/dark captures at 320, 375, 768, and 1440 CSS
+pixels. It rejects external requests, serious/critical axe findings, overflow,
+font drift, target/action/status/prose violations, and console failures.
+`pnpm design-system:evidence:verify` requires the exact review and hashes.
 
 The status rail and panels use ruled separation and restrained corners. Never
-make a page-specific button variant: use `ActionButton` modes. Motion is
-reduced when the operating system requests it; no essential information depends
-on animation.
+make a page-specific button variant: use owned `Button` variants or the
+temporary adapter. Motion is reduced when the operating system requests it; no
+essential information depends on animation.

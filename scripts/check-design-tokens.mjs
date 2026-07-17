@@ -3,7 +3,7 @@ import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
-const uiRoot = join(root, "src", "app");
+const uiRoots = [join(root, "src", "app"), join(root, "src", "components", "ui")];
 const visualValue = /#[\da-f]{3,8}\b|\b\d*\.?\d+(?:px|rem|em|ch)\b|\brgb\(|\bfont-family\s*:(?!\s*var\()|\bfont-weight\s*:(?!\s*var\()|\bline-height\s*:(?!\s*var\()/i;
 const inlineStyle = /\bstyle\s*=/i;
 
@@ -21,7 +21,7 @@ function removeTokenSource(path, source) {
   return source.replace(/\/\* design-tokens:start \*\/[\s\S]*?\/\* design-tokens:end \*\//, "");
 }
 
-export function findDesignTokenViolations(files = authoredUiFiles(uiRoot).map((path) => ({ path, source: readFileSync(path, "utf8") }))) {
+export function findDesignTokenViolations(files = uiRoots.flatMap(authoredUiFiles).map((path) => ({ path, source: readFileSync(path, "utf8") }))) {
   return files.flatMap(({ path, source }) => {
     const violations = [];
     const inspectedSource = removeTokenSource(path, source);

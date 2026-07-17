@@ -42,6 +42,13 @@ One execution continues until the next real gate. The complete state machine is 
 - **PoP workflow:** `.agents/skills/` contains `new-task`, `advance-task`, `plan-roadmap`, `write-spec`, and `sync-specs`.
 - **Project operations:** `skills/` will contain reusable build, test, run, migration, and deployment procedures as they become real.
 
+## DOX index
+
+- [`src/app/ui/AGENTS.md`](src/app/ui/AGENTS.md) — follow when changing legacy
+  administrative UI adapters.
+- [`src/components/ui/AGENTS.md`](src/components/ui/AGENTS.md) — follow when
+  changing owned Radix/nova shadcn source, its inventory, or its state contract.
+
 ### Clean code
 
 - `clean-code-change` (`.agents/skills/`) — follow when **planning (002) and executing (004)** any task that creates or changes code.
