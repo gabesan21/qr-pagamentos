@@ -1,0 +1,434 @@
+[
+  {
+    "colorScheme": "light",
+    "width": 320,
+    "screenshot": "artifacts/login/20260717112137/login-light-320.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "formAction": "/login/submit",
+      "formMethod": "post",
+      "username": {
+        "autocomplete": "username",
+        "required": true,
+        "labels": 1,
+        "height": 44
+      },
+      "password": {
+        "autocomplete": "current-password",
+        "required": true,
+        "type": "password",
+        "labels": 1,
+        "height": 44
+      },
+      "submit": {
+        "height": 44,
+        "disabled": false
+      }
+    },
+    "focusTraversal": [
+      {
+        "id": "username",
+        "visible": true,
+        "focusVisible": true,
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(35.1989 -35.1491 7.74114) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      },
+      {
+        "id": "password",
+        "visible": true,
+        "focusVisible": true,
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(35.1989 -35.1491 7.74114) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      },
+      {
+        "id": "button",
+        "visible": true,
+        "focusVisible": true,
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(35.1989 -35.1491 7.74114) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      }
+    ],
+    "recovery": {
+      "text": "Nome de usuário ou senha inválidos.",
+      "visible": true
+    },
+    "severeAxe": [],
+    "severeRecoveryAxe": []
+  },
+  {
+    "colorScheme": "light",
+    "width": 375,
+    "screenshot": "artifacts/login/20260717112137/login-light-375.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "formAction": "/login/submit",
+      "formMethod": "post",
+      "username": {
+        "autocomplete": "username",
+        "required": true,
+        "labels": 1,
+        "height": 44
+      },
+      "password": {
+        "autocomplete": "current-password",
+        "required": true,
+        "type": "password",
+        "labels": 1,
+        "height": 44
+      },
+      "submit": {
+        "height": 44,
+        "disabled": false
+      }
+    },
+    "focusTraversal": [
+      {
+        "id": "username",
+        "visible": true,
+        "focusVisible": true,
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(35.1989 -35.1491 7.74114) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      },
+      {
+        "id": "password",
+        "visible": true,
+        "focusVisible": true,
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(35.1989 -35.1491 7.74114) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      },
+      {
+        "id": "button",
+        "visible": true,
+        "focusVisible": true,
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(35.1989 -35.1491 7.74114) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      }
+    ],
+    "recovery": {
+      "text": "Nome de usuário ou senha inválidos.",
+      "visible": true
+    },
+    "severeAxe": [],
+    "severeRecoveryAxe": []
+  },
+  {
+    "colorScheme": "light",
+    "width": 768,
+    "screenshot": "artifacts/login/20260717112137/login-light-768.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "formAction": "/login/submit",
+      "formMethod": "post",
+      "username": {
+        "autocomplete": "username",
+        "required": true,
+        "labels": 1,
+        "height": 44
+      },
+      "password": {
+        "autocomplete": "current-password",
+        "required": true,
+        "type": "password",
+        "labels": 1,
+        "height": 44
+      },
+      "submit": {
+        "height": 44,
+        "disabled": false
+      }
+    },
+    "focusTraversal": [
+      {
+        "id": "username",
+        "visible": true,
+        "focusVisible": true,
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(35.1989 -35.1491 7.74114) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      },
+      {
+        "id": "password",
+        "visible": true,
+        "focusVisible": true,
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(35.1989 -35.1491 7.74114) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      },
+      {
+        "id": "button",
+        "visible": true,
+        "focusVisible": true,
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(35.1989 -35.1491 7.74114) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      }
+    ],
+    "recovery": {
+      "text": "Nome de usuário ou senha inválidos.",
+      "visible": true
+    },
+    "severeAxe": [],
+    "severeRecoveryAxe": []
+  },
+  {
+    "colorScheme": "light",
+    "width": 1440,
+    "screenshot": "artifacts/login/20260717112137/login-light-1440.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "formAction": "/login/submit",
+      "formMethod": "post",
+      "username": {
+        "autocomplete": "username",
+        "required": true,
+        "labels": 1,
+        "height": 44
+      },
+      "password": {
+        "autocomplete": "current-password",
+        "required": true,
+        "type": "password",
+        "labels": 1,
+        "height": 44
+      },
+      "submit": {
+        "height": 44,
+        "disabled": false
+      }
+    },
+    "focusTraversal": [
+      {
+        "id": "username",
+        "visible": true,
+        "focusVisible": true,
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(35.1989 -35.1491 7.74114) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      },
+      {
+        "id": "password",
+        "visible": true,
+        "focusVisible": true,
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(35.1989 -35.1491 7.74114) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      },
+      {
+        "id": "button",
+        "visible": true,
+        "focusVisible": true,
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(35.1989 -35.1491 7.74114) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      }
+    ],
+    "recovery": {
+      "text": "Nome de usuário ou senha inválidos.",
+      "visible": true
+    },
+    "severeAxe": [],
+    "severeRecoveryAxe": []
+  },
+  {
+    "colorScheme": "dark",
+    "width": 320,
+    "screenshot": "artifacts/login/20260717112137/login-dark-320.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "formAction": "/login/submit",
+      "formMethod": "post",
+      "username": {
+        "autocomplete": "username",
+        "required": true,
+        "labels": 1,
+        "height": 44
+      },
+      "password": {
+        "autocomplete": "current-password",
+        "required": true,
+        "type": "password",
+        "labels": 1,
+        "height": 44
+      },
+      "submit": {
+        "height": 44,
+        "disabled": false
+      }
+    },
+    "focusTraversal": [
+      {
+        "id": "username",
+        "visible": true,
+        "focusVisible": true,
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(76.0769 -40.7205 11.6145) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      },
+      {
+        "id": "password",
+        "visible": true,
+        "focusVisible": true,
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(76.0769 -40.7205 11.6145) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      },
+      {
+        "id": "button",
+        "visible": true,
+        "focusVisible": true,
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(76.0769 -40.7205 11.6145) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      }
+    ],
+    "recovery": {
+      "text": "Nome de usuário ou senha inválidos.",
+      "visible": true
+    },
+    "severeAxe": [],
+    "severeRecoveryAxe": []
+  },
+  {
+    "colorScheme": "dark",
+    "width": 375,
+    "screenshot": "artifacts/login/20260717112137/login-dark-375.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "formAction": "/login/submit",
+      "formMethod": "post",
+      "username": {
+        "autocomplete": "username",
+        "required": true,
+        "labels": 1,
+        "height": 44
+      },
+      "password": {
+        "autocomplete": "current-password",
+        "required": true,
+        "type": "password",
+        "labels": 1,
+        "height": 44
+      },
+      "submit": {
+        "height": 44,
+        "disabled": false
+      }
+    },
+    "focusTraversal": [
+      {
+        "id": "username",
+        "visible": true,
+        "focusVisible": true,
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(76.0769 -40.7205 11.6145) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      },
+      {
+        "id": "password",
+        "visible": true,
+        "focusVisible": true,
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(76.0769 -40.7205 11.6145) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      },
+      {
+        "id": "button",
+        "visible": true,
+        "focusVisible": true,
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(76.0769 -40.7205 11.6145) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      }
+    ],
+    "recovery": {
+      "text": "Nome de usuário ou senha inválidos.",
+      "visible": true
+    },
+    "severeAxe": [],
+    "severeRecoveryAxe": []
+  },
+  {
+    "colorScheme": "dark",
+    "width": 768,
+    "screenshot": "artifacts/login/20260717112137/login-dark-768.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "formAction": "/login/submit",
+      "formMethod": "post",
+      "username": {
+        "autocomplete": "username",
+        "required": true,
+        "labels": 1,
+        "height": 44
+      },
+      "password": {
+        "autocomplete": "current-password",
+        "required": true,
+        "type": "password",
+        "labels": 1,
+        "height": 44
+      },
+      "submit": {
+        "height": 44,
+        "disabled": false
+      }
+    },
+    "focusTraversal": [
+      {
+        "id": "username",
+        "visible": true,
+        "focusVisible": true,
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(76.0769 -40.7205 11.6145) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      },
+      {
+        "id": "password",
+        "visible": true,
+        "focusVisible": true,
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(76.0769 -40.7205 11.6145) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      },
+      {
+        "id": "button",
+        "visible": true,
+        "focusVisible": true,
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(76.0769 -40.7205 11.6145) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      }
+    ],
+    "recovery": {
+      "text": "Nome de usuário ou senha inválidos.",
+      "visible": true
+    },
+    "severeAxe": [],
+    "severeRecoveryAxe": []
+  },
+  {
+    "colorScheme": "dark",
+    "width": 1440,
+    "screenshot": "artifacts/login/20260717112137/login-dark-1440.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "formAction": "/login/submit",
+      "formMethod": "post",
+      "username": {
+        "autocomplete": "username",
+        "required": true,
+        "labels": 1,
+        "height": 44
+      },
+      "password": {
+        "autocomplete": "current-password",
+        "required": true,
+        "type": "password",
+        "labels": 1,
+        "height": 44
+      },
+      "submit": {
+        "height": 44,
+        "disabled": false
+      }
+    },
+    "focusTraversal": [
+      {
+        "id": "username",
+        "visible": true,
+        "focusVisible": true,
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(76.0769 -40.7205 11.6145) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      },
+      {
+        "id": "password",
+        "visible": true,
+        "focusVisible": true,
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(76.0769 -40.7205 11.6145) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      },
+      {
+        "id": "button",
+        "visible": true,
+        "focusVisible": true,
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(76.0769 -40.7205 11.6145) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      }
+    ],
+    "recovery": {
+      "text": "Nome de usuário ou senha inválidos.",
+      "visible": true
+    },
+    "severeAxe": [],
+    "severeRecoveryAxe": []
+  }
+]

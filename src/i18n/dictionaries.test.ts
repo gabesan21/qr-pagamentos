@@ -15,6 +15,13 @@ describe("language dictionaries", () => {
     for (const locale of ["pt-BR", "en"] as const) {
       const dictionary = getDictionary(locale);
       expect(dictionary.languageHeading).not.toBe("");
+      expect(dictionary.loginHeading).not.toBe("");
+      expect(dictionary.loginIntroduction).not.toBe("");
+      expect(dictionary.usernameLabel).not.toBe("");
+      expect(dictionary.passwordLabel).not.toBe("");
+      expect(dictionary.signIn).not.toBe("");
+      expect(dictionary.signingIn).not.toBe("");
+      expect(dictionary.invalidCredentials).not.toBe("");
       expect(dictionary.languageLabel).not.toBe("");
       expect(dictionary.languageSave).not.toBe("");
       expect(dictionary.languageSaved).not.toBe("");

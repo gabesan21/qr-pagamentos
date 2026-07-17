@@ -283,4 +283,7 @@ p { text-wrap: pretty; }
 .ds-form { max-width: var(--layout-max); }
 .ds-facts { font-variant-numeric: tabular-nums; }
 .ds-skeletons { display: grid; gap: var(--space-3); max-width: var(--layout-max); }
+.login-page { display: grid; min-height: 100svh; place-items: center; }
+.login-card { max-width: var(--layout-max); width: 100%; }
+.login-form { display: grid; gap: var(--space-5); }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto; transition: none; animation: none; } }
