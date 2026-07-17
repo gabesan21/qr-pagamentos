@@ -61,11 +61,15 @@ model PasswordCredential {
 }
 
 model NauttCredential {
-  userId          String   @id @map("user_id") @db.Uuid
-  encryptedApiKey String   @map("encrypted_api_key") @db.Text
-  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId                   String    @id @map("user_id") @db.Uuid
+  encryptedApiKey          String    @map("encrypted_api_key") @db.Text
+  webhookRegistrationState String    @default("UNREGISTERED") @map("webhook_registration_state") @db.VarChar(13)
+  providerWebhookId        String?   @map("provider_webhook_id") @db.Uuid
+  encryptedWebhookSecret  String?   @map("encrypted_webhook_secret") @db.Text
+  webhookRegisteredAt     DateTime? @map("webhook_registered_at") @db.Timestamptz(3)
+  createdAt                DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt                DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  user                     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("nautt_credential")
   @@schema("app")
