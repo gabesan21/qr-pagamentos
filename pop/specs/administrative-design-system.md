@@ -106,6 +106,13 @@ consistent state behavior outrank marketing-page novelty.
   authorization, BRL/PIX, and bilingual contracts. `pnpm admin:evidence` binds
   authenticated light/dark captures at 320, 375, 768, and 1440 pixels to the
   objective source, accessibility, interaction, and manifest checks.
+- [[1.4.5-audit-and-harden-epoch1-code-and-ui]] (2026-07-17) — replaced the
+  login's detached mocked pending state with native-form submit observation,
+  preserving `/login/submit` while proving click and Enter pending behavior in
+  production Chromium. Fresh design-system, login, and authenticated-admin
+  runs each bind eight light/dark responsive captures, objective keyboard,
+  focus, target, overflow, font, request/error, and axe assertions, plus a
+  manifest-hash-bound visual review with all S2-S4 findings resolved.
 
 ## Related specs
 

@@ -10,6 +10,7 @@ vi.mock("next/headers", () => ({ cookies: async () => ({ get: () => ({ value: "o
 vi.mock("next/navigation", () => ({ redirect }));
 vi.mock("@/auth/authorization", () => ({
   ForbiddenError: class ForbiddenError extends Error {},
+  UnauthenticatedError: class UnauthenticatedError extends Error {},
   getAuthorizationService: () => ({ requireAdmin }),
 }));
 vi.mock("@/auth/administration", () => ({ getAdministrationService: () => ({ listUsers }) }));
@@ -27,12 +28,18 @@ const admin = { id: "admin", username: "admin", email: null, role: "ADMIN" as co
 
 describe("admin page contract", () => {
   it("redirects unauthenticated and non-admin visitors without rendering the shell", async () => {
-    requireAdmin.mockRejectedValueOnce(new Error("unauthenticated"));
+    const { ForbiddenError, UnauthenticatedError } = await import("@/auth/authorization");
+    requireAdmin.mockRejectedValueOnce(new UnauthenticatedError());
     await expect(AdminPage({ searchParams: Promise.resolve({}) })).rejects.toThrow("redirect:/login");
 
-    const { ForbiddenError } = await import("@/auth/authorization");
     requireAdmin.mockRejectedValueOnce(new ForbiddenError());
     await expect(AdminPage({ searchParams: Promise.resolve({}) })).rejects.toThrow("redirect:/");
+  });
+
+  it("preserves unexpected authorization failures for the recovery boundary", async () => {
+    const failure = new Error("database unavailable");
+    requireAdmin.mockRejectedValueOnce(failure);
+    await expect(AdminPage({ searchParams: Promise.resolve({}) })).rejects.toBe(failure);
   });
 
   it.each(["en", "pt-BR"] as const)("renders the %s dictionary with native, disabled, and empty states", async (locale) => {

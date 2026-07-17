@@ -1,15 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { signIn, validate, resolve, negotiateLocale } = vi.hoisted(() => ({
+const { signIn, resolvePrincipal, resolve, negotiateLocale } = vi.hoisted(() => ({
   signIn: vi.fn(),
-  validate: vi.fn(),
+  resolvePrincipal: vi.fn(),
   resolve: vi.fn(),
   negotiateLocale: vi.fn(),
 }));
 
 vi.mock("@/auth/session", () => ({
-  getSessionService: () => ({ signIn, validate }),
+  getSessionService: () => ({ signIn }),
   SESSION_ABSOLUTE_MS: 60_000,
+}));
+vi.mock("@/auth/authorization", () => ({
+  getAuthorizationService: () => ({ resolve: resolvePrincipal }),
 }));
 vi.mock("@/i18n/locale-preference", () => ({
   getLocalePreferenceService: () => ({ resolve }),
@@ -25,7 +28,7 @@ describe("POST /login/submit", () => {
 
   it("seeds the authenticated user's first preference from the negotiated header before redirecting", async () => {
     signIn.mockResolvedValueOnce("session-token");
-    validate.mockResolvedValueOnce({ userId: "principal" });
+    resolvePrincipal.mockResolvedValueOnce({ id: "principal" });
     negotiateLocale.mockReturnValueOnce("en");
     resolve.mockResolvedValueOnce("en");
 
@@ -51,7 +54,7 @@ describe("POST /login/submit", () => {
     }));
 
     expect(resolve).not.toHaveBeenCalled();
-    expect(validate).not.toHaveBeenCalled();
+    expect(resolvePrincipal).not.toHaveBeenCalled();
     expect(response.status).toBe(303);
     expect(response.headers.get("location")).toBe("https://example.test/login?error=invalid-credentials");
     expect(response.headers.get("set-cookie")).toBeNull();
@@ -65,7 +68,7 @@ describe("POST /login/submit", () => {
       body: new URLSearchParams({ username: "admin", password: "correct-password" }),
     }))).rejects.toThrow("database unavailable");
 
-    expect(validate).not.toHaveBeenCalled();
+    expect(resolvePrincipal).not.toHaveBeenCalled();
     expect(resolve).not.toHaveBeenCalled();
   });
 });

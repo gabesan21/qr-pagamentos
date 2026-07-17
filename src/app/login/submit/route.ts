@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getAuthorizationService } from "@/auth/authorization";
 import { getLocalePreferenceService } from "@/i18n/locale-preference";
 import { negotiateLocale } from "@/i18n/locales";
 import { getSessionService, SESSION_ABSOLUTE_MS } from "@/auth/session";
@@ -11,9 +12,9 @@ export async function POST(request: Request) {
   const session = getSessionService();
   const token = typeof username === "string" && typeof password === "string" ? await session.signIn(username, password) : null;
   if (!token) return NextResponse.redirect(new URL("/login?error=invalid-credentials", request.url), { status: 303 });
-  const principal = await session.validate(token);
+  const principal = await getAuthorizationService().resolve(token);
   if (!principal) return NextResponse.redirect(new URL("/login?error=invalid-credentials", request.url), { status: 303 });
-  await getLocalePreferenceService().resolve(principal.userId, negotiateLocale(request.headers.get("accept-language")));
+  await getLocalePreferenceService().resolve(principal.id, negotiateLocale(request.headers.get("accept-language")));
   const response = NextResponse.redirect(new URL("/", request.url), { status: 303 });
   response.cookies.set("qr_session", token, cookieOptions);
   return response;

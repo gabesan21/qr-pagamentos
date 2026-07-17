@@ -10,10 +10,69 @@ const viewports = [320, 375, 768, 1440] as const;
 const schemes = ["light", "dark"] as const;
 const artifactRoot = join(process.cwd(), "artifacts", "login");
 const genericRecovery = "Nome de usuário ou senha inválidos.";
+let pendingObservationId = 0;
+
+async function observePendingNativeSubmission(page: import("@playwright/test").Page, trigger: () => Promise<void>) {
+  let releaseResponse = () => {};
+  const responseGate = new Promise<void>((resolve) => {
+    releaseResponse = resolve;
+  });
+  const submittedRequest = page.waitForRequest((request) => new URL(request.url()).pathname === "/login/submit");
+  const callbackName = `reportPendingState${pendingObservationId++}`;
+  let resolvePendingState: (state: Record<string, unknown>) => void = () => {};
+  const observedPendingState = new Promise<Record<string, unknown>>((resolve) => {
+    resolvePendingState = resolve;
+  });
+
+  await page.exposeFunction(callbackName, resolvePendingState);
+  await page.evaluate((reportName) => {
+    const submit = document.querySelector<HTMLButtonElement>('[data-slot="button"]');
+    if (!submit) throw new Error("Login submit control is missing.");
+    const observer = new MutationObserver(() => {
+      if (submit.getAttribute("aria-busy") !== "true") return;
+      const state = {
+        busy: submit.getAttribute("aria-busy"),
+        disabled: submit.disabled,
+        label: submit.textContent?.trim(),
+        spinners: submit.querySelectorAll('[data-slot="spinner"]').length,
+      };
+      (window as unknown as Record<string, (value: typeof state) => void>)[reportName](state);
+      observer.disconnect();
+    });
+    observer.observe(submit, { attributes: true, childList: true, subtree: true });
+  }, callbackName);
+  await page.route("**/login/submit", async (route) => {
+    await responseGate;
+    await route.fulfill({ body: "", status: 200 });
+  });
+  await trigger();
+  const [request, pendingState] = await Promise.all([submittedRequest, observedPendingState]);
+  expect(new URL(request.url()).pathname).toBe("/login/submit");
+  expect(request.method()).toBe("POST");
+  releaseResponse();
+  await page.waitForURL("**/login/submit");
+  await page.unroute("**/login/submit");
+  expect(pendingState).toEqual({ busy: "true", disabled: true, label: "Entrando", spinners: 1 });
+}
 
 function sha256(value: Buffer | string) {
   return createHash("sha256").update(value).digest("hex");
 }
+
+test("exposes pending state for native click and Enter submission", async ({ page }) => {
+  for (const path of ["click", "enter"] as const) {
+    await page.goto("/login", { waitUntil: "domcontentloaded" });
+    await page.getByLabel("Nome de usuário").fill("pending-admin");
+    await page.getByLabel("Senha").fill("pending-password");
+    await observePendingNativeSubmission(page, async () => {
+      if (path === "click") {
+        await page.getByRole("button", { name: "Entrar" }).click({ noWaitAfter: true });
+      } else {
+        await page.getByLabel("Senha").press("Enter", { noWaitAfter: true });
+      }
+    });
+  }
+});
 
 test("creates current, responsive login evidence", async ({ page }) => {
   const startedAt = new Date().toISOString();

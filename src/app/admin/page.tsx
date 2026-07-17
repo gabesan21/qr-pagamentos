@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { AdminSurface } from "@/app/admin/admin-surface";
-import { ForbiddenError, getAuthorizationService } from "@/auth/authorization";
+import { ForbiddenError, UnauthenticatedError, getAuthorizationService } from "@/auth/authorization";
 import { getAdministrationService } from "@/auth/administration";
 import { getPaymentSettingsService } from "@/auth/payment-settings";
 import { getDictionary } from "@/i18n/dictionaries";
@@ -14,7 +14,8 @@ export default async function AdminPage({ searchParams }: Readonly<{ searchParam
     actor = await getAuthorizationService().requireAdmin((await cookies()).get("qr_session")?.value);
   } catch (error) {
     if (error instanceof ForbiddenError) redirect("/");
-    redirect("/login");
+    if (error instanceof UnauthenticatedError) redirect("/login");
+    throw error;
   }
   const [locale, users, settings, query] = await Promise.all([
     getLocalePreferenceService().resolve(actor.id),

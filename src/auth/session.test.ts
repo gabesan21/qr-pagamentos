@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { hashPassword } from "./password";
 import { acquireUserSessionLock, createSessionService, SESSION_ABSOLUTE_MS, SESSION_IDLE_MS, type SessionStore } from "./session";
@@ -30,6 +30,25 @@ function memoryStore(): SessionStore & { rows: Row[]; credentials: Map<string, {
 }
 
 describe("opaque database sessions", () => {
+  it("performs password verification for an unknown canonical username", async () => {
+    const verify = vi.fn().mockResolvedValue(false);
+    const service = createSessionService(memoryStore(), () => new Date("2026-07-16T12:00:00Z"), verify);
+
+    await expect(service.signIn("unknown.user", "correct horse battery staple")).resolves.toBeNull();
+    expect(verify).toHaveBeenCalledOnce();
+    expect(verify.mock.calls[0][1]).toMatch(/^scrypt\$v=1\$N=131072,r=8,p=1\$/);
+  });
+
+  it("propagates credential-store failures instead of disguising infrastructure errors", async () => {
+    const store = memoryStore();
+    store.findCredential = async () => { throw new Error("credential store unavailable"); };
+    const verify = vi.fn().mockResolvedValue(false);
+    const service = createSessionService(store, () => new Date("2026-07-16T12:00:00Z"), verify);
+
+    await expect(service.signIn("known.user", "correct horse battery staple")).rejects.toThrow("credential store unavailable");
+    expect(verify).not.toHaveBeenCalled();
+  });
+
   it("acquires its transaction lock without deserializing PostgreSQL void", async () => {
     const executeRaw = async (strings: TemplateStringsArray, userId: string) => {
       expect(strings.join("?")).toBe("SELECT pg_advisory_xact_lock(hashtext(?))");

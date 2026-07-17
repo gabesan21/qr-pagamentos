@@ -27,7 +27,7 @@ pnpm container:contract-check
 pnpm container:test --clean-clone --scenario happy
 ```
 
-`pnpm check` runs typechecking, linting, tests, and the production build. The explicit application routes are `/pt-BR` and `/en`.
+`pnpm check` runs typechecking, linting, tests, and the production build. User-interface and mutation routes are unprefixed; persisted preferences select `pt-BR` or `en`, and legacy locale-prefixed routes return 404.
 
 `GET /api/health` is an unlocalized liveness probe. It returns HTTP 200, `Cache-Control: no-store`, and exactly `{"status":"ok"}`. Database, migration, and identity-seed readiness are separate startup gates.
 

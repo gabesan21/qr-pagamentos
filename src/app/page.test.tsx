@@ -1,16 +1,16 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
-const { resolveLocale, validate, redirect } = vi.hoisted(() => ({
+const { resolveLocale, resolvePrincipal, redirect } = vi.hoisted(() => ({
   resolveLocale: vi.fn(),
-  validate: vi.fn(),
+  resolvePrincipal: vi.fn(),
   redirect: vi.fn((location: string) => { throw new Error(`redirect:${location}`); }),
 }));
 
 vi.mock("next/headers", () => ({ cookies: async () => ({ get: () => ({ value: "opaque-session" }) }) }));
 vi.mock("next/navigation", () => ({ redirect }));
 vi.mock("server-only", () => ({}));
-vi.mock("@/auth/session", () => ({ getSessionService: () => ({ validate }) }));
+vi.mock("@/auth/authorization", () => ({ getAuthorizationService: () => ({ resolve: resolvePrincipal }) }));
 vi.mock("@/i18n/locale-preference", () => ({ getLocalePreferenceService: () => ({ resolve: resolveLocale }) }));
 vi.mock("@/app/language-preference/language-preference-form", () => ({ LanguagePreferenceSubmit: ({ label }: { label: string }) => <button type="submit">{label}</button> }));
 
@@ -18,7 +18,7 @@ import Home from "./page";
 
 describe("authenticated home states", () => {
   it("redirects visitors without a valid session", async () => {
-    validate.mockResolvedValueOnce(null);
+    resolvePrincipal.mockResolvedValueOnce(null);
     await expect(Home({ searchParams: Promise.resolve({}) })).rejects.toThrow("redirect:/login");
   });
 
@@ -26,7 +26,7 @@ describe("authenticated home states", () => {
     ["en", "Language preference saved.", "Choose a supported language.", "Sign out"],
     ["pt-BR", "Preferência de idioma salva.", "Escolha um idioma compatível.", "Sair"],
   ] as const)("renders default, locale, success, error, and logout states in %s", async (locale, success, error, signOut) => {
-    validate.mockResolvedValue({ userId: "admin" });
+    resolvePrincipal.mockResolvedValue({ id: "admin" });
     resolveLocale.mockResolvedValue(locale);
 
     const defaultMarkup = renderToStaticMarkup(await Home({ searchParams: Promise.resolve({}) }));
