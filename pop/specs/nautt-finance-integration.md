@@ -2,7 +2,7 @@
 
 - **Project:** [[PROJECT|QR Pagamentos]]
 - **Epoch/Phase:** [[roadmap/2-nautt-finance-integration|Epoch 2]]
-- **Status:** in progress
+- **Status:** aprovada
 - **Created:** 2026-07-13
 
 ## What it covers
@@ -21,7 +21,7 @@ This spec defines the allowed boundary between QR Pagamentos and Nautt Finance f
 - After a successful API key save, the same settings screen queries `GET /users/wallets/main/balances` without `user_uuid` and displays `token_symbol`, `token_name`, `network_name`, and the decimal `balance` returned by Nautt.
 - The displayed balance is never interpreted as raw wei and is scoped to the API key owner's main wallet.
 - Server-side pricing accepts the administrator-configured Nautt `currency_uuid` and `exchange_currency_uuid` from a trusted server caller and posts them with exactly one positive exact-decimal `amount` or `amount_usd` to `/pricing/panel/buy`; the adapter never sources provider UUIDs from environment variables. The returned `quote_uuid` expires five minutes after the validated response is received and is required for `POST /orders/onramp`.
-- The server-side adapter binds quote, onramp creation, and provider reads to a locally derived owner identifier and decrypts exactly that owner's API key; authenticated callers derive it from the session and later public checkout derives it from the persisted payment link, never from a browser-supplied owner field or provider response. A replaceable quote-ownership store keys authoritative owner and expiry by `quote_uuid`, registers at issuance, and atomically claims once for same-owner fresh creation before credential decryption or provider dispatch. The initial in-memory store accepts a serialized/reconstructed reference on the same instance but fails closed after restart/another instance; cross-owner, unknown, expired, and consumed references receive one opaque failure with no provider fallback. Its one-instance consumption guard is not application/provider idempotency; task 2.2.2 may replace the store with durable state without changing the adapter's public contract. The adapter returns only the minimum redacted quote/order DTO, preserving monetary strings and normalizing `pix_qrcode ?? qrcode` as optional PIX copy-and-paste data.
+- The server-side adapter binds quote, onramp creation, and provider reads to a locally derived owner identifier and decrypts exactly that owner's API key; authenticated callers derive it from the session and later public checkout derives it from the persisted payment link, never from a browser-supplied owner field or provider response. A replaceable quote-ownership store keys authoritative owner and expiry by `quote_uuid`, registers at issuance, and atomically claims once for same-owner fresh creation before credential decryption or provider dispatch. The initial in-memory store accepts a serialized/reconstructed reference on the same instance but fails closed after restart/another instance; duplicate registration, rejected store operations, cross-owner, unknown, expired, and consumed references receive one opaque unavailable failure with no raw store error or provider fallback. Its one-instance consumption guard is not application/provider idempotency; task 2.2.2 may replace the store with durable state without changing the adapter's public contract. The adapter uses a fixed 10-second client timeout and returns only the minimum redacted quote/order DTO, preserving monetary strings and normalizing `pix_qrcode ?? qrcode` as optional PIX copy-and-paste data.
 - The adapter performs exactly one `POST /orders/onramp` attempt and never retries an ambiguous provider result. Durable local idempotency, provider-identifier persistence, and timeout recovery belong to the persisted-order boundary (task 2.2.2) and remain blocked on Nautt's undocumented idempotency/pre-commit contract.
 - Provider order reads use `GET /orders/{uuid}` with the owner's key. Local polling reconciles only `new`, `processing`, and `paid` records and never overwrites a final `finished`, `rejected`, `canceled`, `refunded`, or `expired` state with an older provider response.
 - Webhooks verify the exact raw request bytes with `HMAC-SHA256(secret, rawBody)`, compare the expected `sha256=<hex>` value from `X-Nautt-Signature` in constant time, and reject a failed verification before parsing or changing state.
@@ -41,6 +41,7 @@ This spec defines the allowed boundary between QR Pagamentos and Nautt Finance f
 
 - Per-user encrypted Nautt API-key storage with server-only AES-256-GCM decryption, owner-or-admin authorization, redacted DTOs, and safe replacement (task 2.1.1).
 - Owner-scoped central webhook registration with an atomic pre-dispatch claim, explicit documented event subscriptions, encrypted one-time-secret persistence, conservative `INDETERMINATE` handling after every ambiguous dispatch, and API-key replacement blocked outside `UNREGISTERED` (task 2.1.3).
+- Server-only exact-decimal pricing, one-shot onramp creation, opaque owner-scoped reads, and a replaceable UUID-keyed quote-ownership store that claims before credential decryption and fails closed across replay, ownership mismatch, expiry, duplicate registration, and store rejection (task 2.2.1).
 
 ## Open
 
@@ -49,7 +50,7 @@ This spec defines the allowed boundary between QR Pagamentos and Nautt Finance f
 - API-key encryption-key lifecycle and rotation in the self-hosted deployment.
 - Webhook list/delete/recreate operations and the key-rotation/lost-secret recovery procedure.
 - Idempotency support supplied by Nautt and the recovery procedure after a timed-out provider-order creation; until resolved, the adapter reports every post-dispatch creation failure as indeterminate and never retries automatically.
-- Exact `deposit_fields` required for each configured UUID pair, quote-refresh behavior, QR-field selection, monetary-field semantics/rounding, rate limits, client timeouts, and polling interval.
+- Exact `deposit_fields` required for each configured UUID pair, quote-refresh behavior, monetary-field semantics/rounding, rate limits, and polling interval.
 
 ## Related specs
 

@@ -2,7 +2,7 @@
 
 - **Project:** [[PROJECT|QR Pagamentos]] - read for local identity, authorization, i18n, runtime, and secret constraints.
 - **Roadmap:** [[ROADMAP|Roadmap]] - read for epoch boundaries.
-- **Status:** pending
+- **Status:** em andamento
 - **Yolo:** yes
 - **Description:** Onboard encrypted per-user Nautt API keys with main-wallet balance, then provide server-side pricing, orders, polling, and central webhook intake without Nautt-hosted links.
 - **Pause if:** Nautt's documented HMAC verification cannot be reproduced against the production dispatcher before an order-state-changing receiver is implemented.
@@ -36,7 +36,7 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[2.2.1-build-nautt-pricing-and-order-adapter]] | Implement server-side exact-decimal quotes and owner-bound onramp/provider-order operations with five-minute quote expiry and no hosted-link calls. · size: L | 001_initial_task |
+| [[2.2.1-build-nautt-pricing-and-order-adapter]] | Implement server-side exact-decimal quotes and owner-bound onramp/provider-order operations with five-minute quote expiry and no hosted-link calls. · size: L | concluída |
 | [[2.2.2-model-provider-orders-and-safe-polling]] | Persist provider identifiers and non-final reconciliation state, preventing an older provider read from overwriting a final local state. · size: L | 001_initial_task |
 
 ## Phase 2.3 - Trusted event reconciliation
