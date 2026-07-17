@@ -23,9 +23,8 @@ checkout, storefront, or payment-provider surfaces.
 - The initial inventory is limited to the components needed by current Epoch 1
   surfaces: button, field/input, native select, checkbox, card, alert, badge,
   separator, skeleton, table, and loading indicator or equivalent compositions.
-- Existing `ActionButton`, `Field`, `Panel`, and `Status` consumers may use
-  temporary compatibility adapters only when each adapter delegates to the same
-  shadcn source and introduces no parallel styling contract.
+- Epoch 1 application surfaces consume owned sources directly; compatibility
+  adapters and page-local visual variants are absent after migration.
 - Reference values live only in the designated token source. Semantic tokens
   cover surfaces, text, borders, actions, feedback, focus, spacing, typography,
   radius, shadow, motion, and layer roles; components never select raw colors.
@@ -62,8 +61,6 @@ checkout, storefront, or payment-provider surfaces.
 
 - Recomposition of the login page belongs to
   [[1.4.3-redesign-login-experience]].
-- Full admin information-architecture and page decomposition belongs to
-  [[1.4.4-refactor-admin-surfaces-onto-design-system]].
 - Catalog, payment links, checkout, storefront, provider orders, and marketing
   presentation are outside Epoch 1.
 - Manual theme selection, new locales, remote fonts, decorative motion, charts,
@@ -99,12 +96,20 @@ consistent state behavior outrank marketing-page novelty.
   responsive captures, keyboard traversal, 44px targets, label/autofill
   semantics, the generic recovery alert, and axe to a hashed manifest and
   review, verified by `pnpm login:evidence:verify`.
+- [[1.4.4-refactor-admin-surfaces-onto-design-system]] (2026-07-17) — migrated
+  `/admin` and the authenticated home directly onto the owned source inventory,
+  decomposed the server-rendered administration surface into cohesive account,
+  settings, locale, notice, navigation, and logout compositions, and removed
+  every compatibility adapter and obsolete selector. Responsive ruled account
+  sections, pending/disabled controls, empty/loading/recovery feedback, and
+  inline demotion/disablement confirmation preserve the existing native POST,
+  authorization, BRL/PIX, and bilingual contracts. `pnpm admin:evidence` binds
+  authenticated light/dark captures at 320, 375, 768, and 1440 pixels to the
+  objective source, accessibility, interaction, and manifest checks.
 
 ## Related specs
 
 - [[specs/administrative-foundation|Administrative foundation]] - follow when a
   visual decision affects authentication, localization, or admin behavior.
-- [`../src/app/ui/AGENTS.md`](../../src/app/ui/AGENTS.md) - follow while replacing
-  the legacy primitive implementation with single-source adapters.
 - [`../AGENTS.md`](../../AGENTS.md) - follow when adding the shared shadcn subtree
   or changing the root application structure.

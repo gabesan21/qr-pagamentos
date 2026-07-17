@@ -15,7 +15,7 @@ describe("language preference submit control", () => {
     vi.clearAllMocks();
   });
 
-  it("uses the shared native button with a visible loading and disabled state", () => {
+  it("uses the owned button with a visible loading and disabled state", () => {
     useFormStatus.mockReturnValue({ pending: true });
 
     const markup = renderToStaticMarkup(createElement(LanguagePreferenceSubmit, { label: "Save language" }));
