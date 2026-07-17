@@ -18,7 +18,7 @@ import { POST as role } from "./[id]/role/route";
 import { POST as status } from "./[id]/status/route";
 
 const actor = { id: "admin", username: "admin", email: null, role: "ADMIN" as const, status: "ACTIVE" as const, createdAt: new Date() };
-const request = (body = new URLSearchParams()) => new Request("https://example.test/admin/users/target", { method: "POST", body });
+const request = (body = new URLSearchParams()) => new Request("http://0.0.0.0:3000/admin/users/target", { method: "POST", body });
 const target = { params: Promise.resolve({ id: "target" }) };
 
 describe("administrative mutation route contract", () => {
@@ -46,13 +46,13 @@ describe("administrative mutation route contract", () => {
     const created = await create(request(new URLSearchParams({ username: "new.user", password: "correct horse battery staple", role: "USER", actorId: "attacker" })));
     expect(createUser).toHaveBeenCalledWith(actor, expect.objectContaining({ username: "new.user", role: "USER" }));
     expect(created.status).toBe(303);
-    expect(created.headers.get("location")).toBe("https://example.test/admin?success=created");
+    expect(created.headers.get("location")).toBe("/admin?success=created");
 
     for (const [handler, form] of [[role, new URLSearchParams({ role: "USER" })], [status, new URLSearchParams({ status: "DISABLED" })], [password, new URLSearchParams({ password: "correct horse battery staple" })]] as const) {
       requireAdminFromCookie.mockResolvedValue(actor);
       const response = await handler(request(form), target);
       expect(response.status).toBe(303);
-      expect(response.headers.get("location")).toBe("https://example.test/admin?success=" + (handler === role ? "role" : handler === status ? "status" : "password"));
+      expect(response.headers.get("location")).toBe("/admin?success=" + (handler === role ? "role" : handler === status ? "status" : "password"));
     }
   });
 
@@ -66,7 +66,7 @@ describe("administrative mutation route contract", () => {
     mutation.mockRejectedValueOnce(new Error("unknown target"));
     const response = await handler(request(form), target);
     expect(response.status).toBe(303);
-    expect(response.headers.get("location")).toBe("https://example.test/admin?error=change-failed");
+    expect(response.headers.get("location")).toBe("/admin?error=change-failed");
     expect(response.headers.get("location")).not.toContain("target");
   });
 });

@@ -41,14 +41,14 @@ describe("POST /login/submit", () => {
     expect(negotiateLocale).toHaveBeenCalledWith("en-US,en;q=0.9");
     expect(resolve).toHaveBeenCalledWith("principal", "en");
     expect(response.status).toBe(303);
-    expect(response.headers.get("location")).toBe("https://example.test/");
+    expect(response.headers.get("location")).toBe("/");
     expect(response.headers.get("set-cookie")).toMatch(/^qr_session=session-token; Path=\/; Expires=.+; Max-Age=60; HttpOnly; SameSite=lax$/);
   });
 
-  it("does not seed a preference when credentials are invalid", async () => {
+  it("keeps the browser's public origin when credentials are invalid behind a container proxy", async () => {
     signIn.mockResolvedValueOnce(null);
 
-    const response = await POST(new Request("https://example.test/login/submit", {
+    const response = await POST(new Request("http://0.0.0.0:3000/login/submit", {
       method: "POST",
       body: new URLSearchParams({ username: "admin", password: "wrong-password" }),
     }));
@@ -56,7 +56,7 @@ describe("POST /login/submit", () => {
     expect(resolve).not.toHaveBeenCalled();
     expect(resolvePrincipal).not.toHaveBeenCalled();
     expect(response.status).toBe(303);
-    expect(response.headers.get("location")).toBe("https://example.test/login?error=invalid-credentials");
+    expect(response.headers.get("location")).toBe("/login?error=invalid-credentials");
     expect(response.headers.get("set-cookie")).toBeNull();
   });
 

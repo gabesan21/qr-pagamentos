@@ -1,10 +1,9 @@
-import { NextResponse } from "next/server";
-
 import { getAdministrationService } from "@/auth/administration";
 import { protectedMutationResponse, requireAdminFromCookie } from "@/app/admin/guard";
+import { relativeRedirect } from "@/app/relative-redirect";
 
-function redirect(request: Request, value: string) {
-  return NextResponse.redirect(new URL(`/admin?${value}`, request.url), { status: 303 });
+function redirect(value: string) {
+  return relativeRedirect(`/admin?${value}`);
 }
 
 export async function POST(request: Request) {
@@ -17,10 +16,10 @@ export async function POST(request: Request) {
       password: String(form.get("password") ?? ""),
       role: String(form.get("role") ?? ""),
     });
-    return redirect(request, "success=created");
+    return redirect("success=created");
   } catch (error) {
     const protectedResponse = protectedMutationResponse(error);
     if (protectedResponse) return protectedResponse;
-    return redirect(request, "error=create-failed");
+    return redirect("error=create-failed");
   }
 }

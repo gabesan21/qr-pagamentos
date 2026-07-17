@@ -1,7 +1,6 @@
-import { NextResponse } from "next/server";
-
 import { getAdministrationService } from "@/auth/administration";
 import { protectedMutationResponse, requireAdminFromCookie } from "@/app/admin/guard";
+import { relativeRedirect } from "@/app/relative-redirect";
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -9,10 +8,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const role = (await request.formData()).get("role");
     if (role !== "ADMIN" && role !== "USER") throw new Error("Invalid role");
     await getAdministrationService().changeRole(actor, (await params).id, role);
-    return NextResponse.redirect(new URL("/admin?success=role", request.url), { status: 303 });
+    return relativeRedirect("/admin?success=role");
   } catch (error) {
     const protectedResponse = protectedMutationResponse(error);
     if (protectedResponse) return protectedResponse;
-    return NextResponse.redirect(new URL("/admin?error=change-failed", request.url), { status: 303 });
+    return relativeRedirect("/admin?error=change-failed");
   }
 }

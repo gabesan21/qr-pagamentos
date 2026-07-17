@@ -1,7 +1,6 @@
-import { NextResponse } from "next/server";
-
 import { protectedMutationResponse, requireAdminFromCookie } from "@/app/admin/guard";
 import { getPaymentSettingsService, SUPPORTED_CURRENCIES, SUPPORTED_PAYMENT_METHODS } from "@/auth/payment-settings";
+import { relativeRedirect } from "@/app/relative-redirect";
 
 function selected(form: FormData, field: string, allowed: readonly string[]) {
   const values = form.getAll(field).filter((value): value is string => typeof value === "string");
@@ -17,10 +16,10 @@ export async function POST(request: Request) {
       currencies: selected(form, "currencies", SUPPORTED_CURRENCIES),
       paymentMethods: selected(form, "paymentMethods", SUPPORTED_PAYMENT_METHODS),
     });
-    return NextResponse.redirect(new URL("/admin?success=settings", request.url), { status: 303 });
+    return relativeRedirect("/admin?success=settings");
   } catch (error) {
     const protectedResponse = protectedMutationResponse(error);
     if (protectedResponse) return protectedResponse;
-    return NextResponse.redirect(new URL("/admin?error=settings-failed", request.url), { status: 303 });
+    return relativeRedirect("/admin?error=settings-failed");
   }
 }

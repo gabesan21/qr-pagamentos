@@ -7,7 +7,7 @@ vi.mock("@/auth/payment-settings", () => ({ getPaymentSettingsService: () => ({ 
 import { POST } from "./route";
 
 const actor = { id: "admin", username: "admin", email: null, role: "ADMIN" as const, status: "ACTIVE" as const, createdAt: new Date() };
-const request = (body = new URLSearchParams()) => new Request("https://example.test/admin/payment-settings", { method: "POST", body });
+const request = (body = new URLSearchParams()) => new Request("http://0.0.0.0:3000/admin/payment-settings", { method: "POST", body });
 
 describe("payment settings route", () => {
   it("returns empty protected outcomes", async () => {
@@ -26,7 +26,7 @@ describe("payment settings route", () => {
     save.mockResolvedValue(undefined);
     const response = await POST(request(new URLSearchParams({ currencies: "BRL", paymentMethods: "PIX", actorId: "attacker" })));
     expect(save).toHaveBeenCalledWith(actor, { currencies: ["BRL"], paymentMethods: ["PIX"] });
-    expect(response.headers.get("location")).toBe("https://example.test/admin?success=settings");
+    expect(response.headers.get("location")).toBe("/admin?success=settings");
   });
 
   it("redirects invalid and unknown input without value disclosure", async () => {
@@ -34,6 +34,6 @@ describe("payment settings route", () => {
     protectedMutationResponse.mockReturnValue(null);
     const response = await POST(request(new URLSearchParams({ currencies: "USD" })));
     expect(response.status).toBe(303);
-    expect(response.headers.get("location")).toBe("https://example.test/admin?error=settings-failed");
+    expect(response.headers.get("location")).toBe("/admin?error=settings-failed");
   });
 });
