@@ -24,9 +24,9 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[2.1.1-secure-per-user-nautt-credentials]] | Persist one owner-bound Nautt API key encrypted at rest with server-only decryption, redacted observability, safe replacement, and authorization tests. · size: L | 001_initial_task |
+| [[2.1.1-secure-per-user-nautt-credentials]] | Persist one owner-bound Nautt API key encrypted at rest with server-only decryption, redacted observability, safe replacement, and authorization tests. · size: L | done |
 | [[2.1.2-onboard-nautt-key-and-wallet-balance]] | Deliver bilingual authenticated key onboarding that validates the caller-owned main wallet and presents balance, unavailable, and retry states without revealing the key. · size: M | 001_initial_task |
-| [[2.1.3-register-owner-webhooks]] | Register the central HTTPS callback with each validated owner key, explicitly subscribe to documented lifecycle events, and persist the one-time provider webhook secret encrypted. · size: M | 001_initial_task |
+| [[2.1.3-register-owner-webhooks]] | Register the central HTTPS callback with each validated owner key, explicitly subscribe to documented lifecycle events, and persist the one-time provider webhook secret encrypted. · size: M | done |
 
 ## Phase 2.2 - Provider order boundary
 

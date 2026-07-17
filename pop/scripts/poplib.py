@@ -31,7 +31,7 @@ STAGES = [
 DEFAULT_LEASE_HOURS = 2
 
 # Checkbox de liberação humana no card (gate de saída do 001).
-RELEASE_MARK = re.compile(r"^\s*[-*]\s*\[[xX]\]\s*Pronto para planejar")
+RELEASE_MARK = re.compile(r"^\s*[-*]\s*\[[xX]\]\s*(?:Pronto para planejar|Ready to plan)")
 
 def vault_root(override: Optional[str] = None) -> Path:
     """Raiz do vault: `--vault` se dado, senão a pasta acima de `scripts/`.
