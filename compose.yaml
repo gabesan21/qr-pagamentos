@@ -99,6 +99,8 @@ services:
     secrets:
       - source: runtime_password
         target: runtime_password
+      - source: nautt_encryption_key
+        target: nautt_encryption_key
     networks:
       - database
       - edge
@@ -132,3 +134,5 @@ secrets:
     file: ${STAGED_SECRETS_DIR:-.container-secrets}/initial_admin_email
   initial_admin_password:
     file: ${STAGED_SECRETS_DIR:-.container-secrets}/initial_admin_password
+  nautt_encryption_key:
+    file: ${STAGED_SECRETS_DIR:-.container-secrets}/nautt_encryption_key

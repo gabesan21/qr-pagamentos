@@ -121,7 +121,7 @@ try {
   const migrationEnv = { ...process.env, MIGRATION_DATABASE_URL: migratorUrl };
   delete migrationEnv.DATABASE_URL;
   const firstDeploy = run("pnpm", ["exec", "prisma", "migrate", "deploy"], { env: migrationEnv });
-  assert(firstDeploy.includes("6 migrations found"), "Fresh deploy did not discover exactly six migrations");
+  assert(firstDeploy.includes("7 migrations found"), "Fresh deploy did not discover exactly seven migrations");
 
   const admin = new Client({ connectionString: adminUrl });
   await admin.connect();
@@ -129,7 +129,7 @@ try {
     SELECT migration_name, checksum, finished_at IS NOT NULL AS finished, rolled_back_at
     FROM app._prisma_migrations
   `);
-  const expectedMigrations = ["20260714000000_foundation_baseline", "20260714190000_local_identities", "20260716110000_database_sessions", "20260716160000_user_language_preference", "20260716180000_global_payment_settings", "20260716210000_restrict_global_payment_settings_runtime"];
+  const expectedMigrations = ["20260714000000_foundation_baseline", "20260714190000_local_identities", "20260716110000_database_sessions", "20260716160000_user_language_preference", "20260716180000_global_payment_settings", "20260716210000_restrict_global_payment_settings_runtime", "20260717190000_nautt_credentials"];
   assert(history.rows.length === expectedMigrations.length, "Migration history row count changed");
   for (const migrationName of expectedMigrations) {
     const migrationSql = await readFile(`prisma/migrations/${migrationName}/migration.sql`);
@@ -266,6 +266,40 @@ try {
   console.log("PASS global-payment-settings-schema");
   console.log("PASS global-payment-settings-runtime-denials");
 
+  const nauttCredentialColumns = await runtime.query(`
+    SELECT column_name, data_type, udt_name, is_nullable
+    FROM information_schema.columns
+    WHERE table_schema = 'app' AND table_name = 'nautt_credential'
+    ORDER BY ordinal_position
+  `);
+  assert(JSON.stringify(nauttCredentialColumns.rows) === JSON.stringify([
+    { column_name: "user_id", data_type: "uuid", udt_name: "uuid", is_nullable: "NO" },
+    { column_name: "encrypted_api_key", data_type: "text", udt_name: "text", is_nullable: "NO" },
+    { column_name: "created_at", data_type: "timestamp with time zone", udt_name: "timestamptz", is_nullable: "NO" },
+    { column_name: "updated_at", data_type: "timestamp with time zone", udt_name: "timestamptz", is_nullable: "NO" },
+  ]), "Nautt credential columns differ from the contract");
+  const nauttCredentialConstraints = await runtime.query(`
+    SELECT c.conname, c.contype, pg_get_userbyid(t.relowner) AS owner
+    FROM pg_constraint c
+    JOIN pg_class t ON t.oid = c.conrelid
+    JOIN pg_namespace n ON n.oid = t.relnamespace
+    WHERE n.nspname = 'app' AND t.relname = 'nautt_credential'
+    ORDER BY c.conname
+  `);
+  const nauttConstraintNames = new Set(nauttCredentialConstraints.rows.map((row) => row.conname));
+  for (const name of ["nautt_credential_pkey", "nautt_credential_user_fkey"]) {
+    assert(nauttConstraintNames.has(name), `Missing constraint ${name}`);
+  }
+  assert(nauttCredentialConstraints.rows.every((row) => row.owner === "qr_migrator"), "Runtime owns the nautt credential table");
+  const nauttUserId = randomUUID();
+  await runtime.query(`INSERT INTO app."user" (id, username, email, role, status) VALUES ($1, 'nautt.user', NULL, 'USER', 'ACTIVE')`, [nauttUserId]);
+  await runtime.query(`INSERT INTO app.nautt_credential (user_id, encrypted_api_key) VALUES ($1, 'encrypted-value')`, [nauttUserId]);
+  await runtime.query(`UPDATE app.nautt_credential SET encrypted_api_key = 'replaced-value' WHERE user_id = $1`, [nauttUserId]);
+  await runtime.query(`DELETE FROM app."user" WHERE id = $1`, [nauttUserId]);
+  const cascadedCredential = await runtime.query(`SELECT count(*)::int AS count FROM app.nautt_credential WHERE user_id = $1`, [nauttUserId]);
+  assert(cascadedCredential.rows[0].count === 0, "Nautt credential did not cascade with its user");
+  console.log("PASS nautt-credential-schema");
+
   const privilege = await runtime.query(`
     SELECT current_user,
       has_schema_privilege(current_user, 'app', 'USAGE') AS schema_usage,
@@ -275,6 +309,7 @@ try {
       has_table_privilege(current_user, 'app.password_credential', 'SELECT,INSERT,UPDATE,DELETE') AS credential_dml,
       has_table_privilege(current_user, 'app.deployment_bootstrap', 'SELECT,INSERT,UPDATE,DELETE') AS bootstrap_dml,
       has_table_privilege(current_user, 'app.session', 'SELECT,INSERT,UPDATE,DELETE') AS session_dml,
+      has_table_privilege(current_user, 'app.nautt_credential', 'SELECT,INSERT,UPDATE,DELETE') AS nautt_credential_dml,
       has_table_privilege(current_user, 'app.global_payment_settings', 'SELECT') AS settings_select,
       has_column_privilege(current_user, 'app.global_payment_settings', 'currencies', 'UPDATE')
         AND has_column_privilege(current_user, 'app.global_payment_settings', 'payment_methods', 'UPDATE')
@@ -293,7 +328,7 @@ try {
       pg_has_role(current_user, 'qr_migrator', 'SET') AS migrator_set
   `);
   const acl = privilege.rows[0];
-  assert(acl.current_user === "qr_runtime" && acl.schema_usage && acl.table_dml && acl.user_dml && acl.credential_dml && acl.bootstrap_dml && acl.session_dml && acl.settings_select && acl.settings_column_update && acl.sequence_usage, "Runtime lacks intended privileges");
+  assert(acl.current_user === "qr_runtime" && acl.schema_usage && acl.table_dml && acl.user_dml && acl.credential_dml && acl.bootstrap_dml && acl.session_dml && acl.nautt_credential_dml && acl.settings_select && acl.settings_column_update && acl.sequence_usage, "Runtime lacks intended privileges");
   assert(!acl.settings_table_update && !acl.settings_write_extra && !acl.schema_create && !acl.table_truncate && !acl.table_references && !acl.table_trigger && !acl.table_maintain && !acl.sequence_select && !acl.sequence_update && !acl.migration_access && !acl.migrator_member && !acl.migrator_set, "Runtime has excess privileges");
   const ownership = await admin.query(`
     SELECT

@@ -35,7 +35,7 @@ while IFS= read -r line || [[ -n $line ]]; do
   [[ $line == *=* ]] || die "invalid line in $ENV_FILE"
   key=${line%%=*}; value=$(strip_quotes "${line#*=}")
   case "$key" in
-    APP_PORT|POSTGRES_ADMIN_PASSWORD|MIGRATOR_PASSWORD|RUNTIME_PASSWORD|INITIAL_ADMIN_USERNAME|INITIAL_ADMIN_EMAIL) printf -v "$key" '%s' "$value" ;;
+    APP_PORT|POSTGRES_ADMIN_PASSWORD|MIGRATOR_PASSWORD|RUNTIME_PASSWORD|INITIAL_ADMIN_USERNAME|INITIAL_ADMIN_EMAIL|NAUTT_ENCRYPTION_KEY) printf -v "$key" '%s' "$value" ;;
     *) die "unsupported variable in $ENV_FILE: $key" ;;
   esac
 done < "$ENV_FILE"

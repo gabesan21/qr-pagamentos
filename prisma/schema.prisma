@@ -27,8 +27,9 @@ model User {
   preferredLocale String?             @map("preferred_locale") @db.VarChar(5)
   createdAt       DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt       DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
-  credential PasswordCredential?
-  sessions   Session[]
+  credential       PasswordCredential?
+  nauttCredential  NauttCredential?
+  sessions         Session[]
 
   @@map("user")
   @@schema("app")
@@ -56,6 +57,17 @@ model PasswordCredential {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("password_credential")
+  @@schema("app")
+}
+
+model NauttCredential {
+  userId          String   @id @map("user_id") @db.Uuid
+  encryptedApiKey String   @map("encrypted_api_key") @db.Text
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("nautt_credential")
   @@schema("app")
 }
 

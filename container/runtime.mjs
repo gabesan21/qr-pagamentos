@@ -17,7 +17,8 @@ async function main() {
     await client.end();
   }
   console.log("PASS runtime-db-preflight");
-  const env = { ...process.env, DATABASE_URL: applicationUrl };
+  const nauttEncryptionKey = await readSecret("/run/secrets/nautt_encryption_key");
+  const env = { ...process.env, DATABASE_URL: applicationUrl, NAUTT_ENCRYPTION_KEY: nauttEncryptionKey };
   delete env.MIGRATION_DATABASE_URL;
   const child = spawn(process.execPath, ["server.js"], { env, stdio: "inherit", shell: false });
   child.once("error", (error) => safeFailure("application", error));

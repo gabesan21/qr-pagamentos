@@ -21,7 +21,10 @@ assert(packageJson.scripts?.["db:generate"] === "prisma generate", "db:generate 
 assert(packageJson.scripts?.["db:test"] === "node pop/scripts/db-test.mjs", "db:test contract changed");
 
 const envExample = await readFile(".env.example", "utf8");
-assert(envExample === "MIGRATION_DATABASE_URL=<postgresql-migrator-url>\nDATABASE_URL=<postgresql-runtime-url>\n", ".env.example must contain only the two non-usable placeholders");
+assert(
+  envExample === "MIGRATION_DATABASE_URL=<postgresql-migrator-url>\nDATABASE_URL=<postgresql-runtime-url>\nNAUTT_ENCRYPTION_KEY=<32-byte-base64url-key>\n",
+  ".env.example must contain only the documented non-usable placeholders",
+);
 const prismaConfig = await readFile("prisma.config.ts", "utf8");
 const runtimeClient = await readFile("src/db/client.ts", "utf8");
 assert(prismaConfig.includes("process.env.MIGRATION_DATABASE_URL") && !prismaConfig.includes("process.env.DATABASE_URL"), "Prisma config must consume only the migration URL");
@@ -30,13 +33,13 @@ assert(runtimeClient.includes("process.env.DATABASE_URL") && !runtimeClient.incl
 const gitignore = await readFile(".gitignore", "utf8");
 assert(gitignore.split("\n").includes("src/generated/prisma/"), "Generated Prisma output is not ignored");
 const schema = await readFile("prisma/schema.prisma", "utf8");
-for (const model of ["DatabaseFoundationFixture", "User", "PasswordCredential", "DeploymentBootstrap", "Session", "GlobalPaymentSettings"]) {
+for (const model of ["DatabaseFoundationFixture", "User", "PasswordCredential", "NauttCredential", "DeploymentBootstrap", "Session", "GlobalPaymentSettings"]) {
   assert(schema.includes(`model ${model}`), `Schema is missing ${model}`);
 }
 assert(schema.includes('output   = "../src/generated/prisma"'), "Generated output changed");
 
 const migrationDirectories = (await readdir("prisma/migrations", { withFileTypes: true })).filter((entry) => entry.isDirectory()).map((entry) => entry.name);
-assert(JSON.stringify(migrationDirectories) === JSON.stringify(["20260714000000_foundation_baseline", "20260714190000_local_identities", "20260716110000_database_sessions", "20260716160000_user_language_preference", "20260716180000_global_payment_settings", "20260716210000_restrict_global_payment_settings_runtime"]), "Migration history name/count changed");
+assert(JSON.stringify(migrationDirectories) === JSON.stringify(["20260714000000_foundation_baseline", "20260714190000_local_identities", "20260716110000_database_sessions", "20260716160000_user_language_preference", "20260716180000_global_payment_settings", "20260716210000_restrict_global_payment_settings_runtime", "20260717190000_nautt_credentials"]), "Migration history name/count changed");
 const migration = await readFile("prisma/migrations/20260714000000_foundation_baseline/migration.sql", "utf8");
 for (const constraint of ["database_foundation_fixture_key_key", "database_foundation_fixture_key_nonblank", "database_foundation_fixture_quantity_nonnegative"]) {
   assert(migration.includes(constraint), `Migration lost ${constraint}`);
@@ -67,6 +70,12 @@ for (const contract of ["REVOKE ALL PRIVILEGES", "GRANT SELECT", 'GRANT UPDATE (
   assert(settingsAclMigration.includes(contract), `Payment settings ACL migration lost ${contract}`);
 }
 assert(!/GRANT\s+(?:INSERT|DELETE)|GRANT\s+UPDATE\s+ON/i.test(settingsAclMigration), "Payment settings ACL migration grants excess table writes");
+
+const nauttCredentialMigration = await readFile("prisma/migrations/20260717190000_nautt_credentials/migration.sql", "utf8");
+assert(schema.includes("model NauttCredential") && schema.includes("nauttCredential  NauttCredential?"), "Schema is missing the user/nautt credential relation");
+for (const contract of ["nautt_credential_pkey", "nautt_credential_user_fkey", "encrypted_api_key", "GRANT SELECT, INSERT, UPDATE, DELETE"]) {
+  assert(nauttCredentialMigration.includes(contract), `Nautt credential migration lost ${contract}`);
+}
 
 const bootstrap = await readFile("prisma/bootstrap.sql", "utf8");
 assert(bootstrap.includes("GRANT CONNECT ON DATABASE qr_pagamentos TO qr_migrator, qr_runtime"), "Both roles require explicit CONNECT");

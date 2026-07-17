@@ -2,7 +2,7 @@
 
 - **Project:** [[PROJECT|QR Pagamentos]]
 - **Epoch/Phase:** [[roadmap/2-nautt-finance-integration|Epoch 2]]
-- **Status:** rascunho
+- **Status:** in progress
 - **Created:** 2026-07-13
 
 ## What it covers
@@ -34,6 +34,10 @@ This spec defines the allowed boundary between QR Pagamentos and Nautt Finance f
 - Product, link, checkout, and storefront ownership remains entirely inside QR Pagamentos.
 - Inventing undocumented Nautt endpoints, signatures, statuses, or retry guarantees is forbidden.
 - Other payment providers are outside the MVP.
+
+## Implemented slices
+
+- Per-user encrypted Nautt API-key storage with server-only AES-256-GCM decryption, owner-or-admin authorization, redacted DTOs, and safe replacement (task 2.1.1).
 
 ## Open
 
