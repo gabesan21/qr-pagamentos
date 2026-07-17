@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useReducer, useRef } from "react";
 
 import { AdminSubmit } from "@/app/admin/admin-submit";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -22,15 +22,53 @@ type MutationFormProps = Readonly<{
   saveLabel: string;
 }>;
 
+export type AccountMutationState = Readonly<{
+  confirmationOpen: boolean;
+  selectedValue: string;
+}>;
+
+type AccountMutationAction =
+  | Readonly<{ type: "cancel" | "open-confirmation" }>
+  | Readonly<{ type: "select"; value: string }>;
+
+export function reduceAccountMutation(state: AccountMutationState, action: AccountMutationAction): AccountMutationState {
+  if (action.type === "select") return { confirmationOpen: false, selectedValue: action.value };
+  if (action.type === "open-confirmation") return { ...state, confirmationOpen: true };
+  return { ...state, confirmationOpen: false };
+}
+
+export function accountMutationIntent(state: AccountMutationState, currentValue: string, destructiveValue: string) {
+  return state.selectedValue === destructiveValue && state.selectedValue !== currentValue ? "confirm" : "submit";
+}
+
+export function synchronizeAccountMutationFocus(
+  confirmationOpen: boolean,
+  restoreTrigger: boolean,
+  cancelControl: Pick<HTMLButtonElement, "focus"> | null,
+  triggerControl: Pick<HTMLButtonElement, "focus"> | null,
+) {
+  if (confirmationOpen) cancelControl?.focus();
+  else if (restoreTrigger) triggerControl?.focus();
+}
+
 export function AccountMutationForm(props: MutationFormProps) {
   const formRef = useRef<HTMLFormElement>(null);
-  const [confirmationOpen, setConfirmationOpen] = useState(false);
-  const [selectedValue, setSelectedValue] = useState(props.currentValue);
-  const needsConfirmation = selectedValue === props.destructiveValue && selectedValue !== props.currentValue;
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const cancelRef = useRef<HTMLButtonElement>(null);
+  const restoreTriggerRef = useRef(false);
+  const [state, dispatch] = useReducer(reduceAccountMutation, {
+    confirmationOpen: false,
+    selectedValue: props.currentValue,
+  });
+
+  useEffect(() => {
+    synchronizeAccountMutationFocus(state.confirmationOpen, restoreTriggerRef.current, cancelRef.current, triggerRef.current);
+    restoreTriggerRef.current = false;
+  }, [state.confirmationOpen]);
 
   function prepareSubmission() {
-    if (needsConfirmation) {
-      setConfirmationOpen(true);
+    if (accountMutationIntent(state, props.currentValue, props.destructiveValue) === "confirm") {
+      dispatch({ type: "open-confirmation" });
       return;
     }
     formRef.current?.requestSubmit();
@@ -45,25 +83,28 @@ export function AccountMutationForm(props: MutationFormProps) {
             id={`${props.name}-${props.action}`}
             name={props.name}
             onChange={(event) => {
-              setSelectedValue(event.currentTarget.value);
-              setConfirmationOpen(false);
+              restoreTriggerRef.current = false;
+              dispatch({ type: "select", value: event.currentTarget.value });
             }}
-            value={selectedValue}
+            value={state.selectedValue}
           >
             {props.options.map((option) => <NativeSelectOption key={option.value} value={option.value}>{option.label}</NativeSelectOption>)}
           </NativeSelect>
         </Field>
-        {confirmationOpen ? (
+        {state.confirmationOpen ? (
           <Alert variant="warning">
             <AlertTitle>{props.confirmTitle}</AlertTitle>
             <AlertDescription>{props.confirmDescription}</AlertDescription>
             <div className="admin-confirm-actions">
-              <Button onClick={() => setConfirmationOpen(false)} type="button" variant="outline">{props.cancelLabel}</Button>
+              <Button ref={cancelRef} onClick={() => {
+                restoreTriggerRef.current = true;
+                dispatch({ type: "cancel" });
+              }} type="button" variant="outline">{props.cancelLabel}</Button>
               <AdminSubmit label={props.confirmLabel} tone="secondary" />
             </div>
           </Alert>
         ) : (
-          <Button onClick={prepareSubmission} type="button" variant="outline">{props.saveLabel}</Button>
+          <Button ref={triggerRef} onClick={prepareSubmission} type="button" variant="outline">{props.saveLabel}</Button>
         )}
       </FieldGroup>
     </form>

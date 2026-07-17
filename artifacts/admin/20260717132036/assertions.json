@@ -2,7 +2,7 @@
   {
     "colorScheme": "light",
     "width": 320,
-    "screenshot": "artifacts/admin/20260717125713/admin-light-320.png",
+    "screenshot": "artifacts/admin/20260717132036/admin-light-320.png",
     "measured": {
       "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
       "overflow": false,
@@ -104,15 +104,15 @@
           "method": "post"
         },
         {
-          "action": "/admin/users/7b81627c-7816-45e6-988c-2c8c8c9eee73/role",
+          "action": "/admin/users/3a965e17-df85-4f3b-af5a-05a5543babbd/role",
           "method": "post"
         },
         {
-          "action": "/admin/users/7b81627c-7816-45e6-988c-2c8c8c9eee73/status",
+          "action": "/admin/users/3a965e17-df85-4f3b-af5a-05a5543babbd/status",
           "method": "post"
         },
         {
-          "action": "/admin/users/7b81627c-7816-45e6-988c-2c8c8c9eee73/password",
+          "action": "/admin/users/3a965e17-df85-4f3b-af5a-05a5543babbd/password",
           "method": "post"
         },
         {
@@ -151,15 +151,107 @@
         "visible": true,
         "focusVisible": true,
         "outline": 2
+      },
+      {
+        "tag": "INPUT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "SELECT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "SELECT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "SELECT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "INPUT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "SELECT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
       }
     ],
+    "keyboardSequence": {
+      "cancelHandoff": true,
+      "cancelRestoredTrigger": true,
+      "confirmationSubmitted": true,
+      "destructiveSelection": "USER",
+      "errorRecoveryVisible": true,
+      "fullTraversalCount": 18
+    },
     "severeAxe": [],
     "confirmation": true
   },
   {
     "colorScheme": "light",
     "width": 375,
-    "screenshot": "artifacts/admin/20260717125713/admin-light-375.png",
+    "screenshot": "artifacts/admin/20260717132036/admin-light-375.png",
     "measured": {
       "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
       "overflow": false,
@@ -261,15 +353,15 @@
           "method": "post"
         },
         {
-          "action": "/admin/users/7b81627c-7816-45e6-988c-2c8c8c9eee73/role",
+          "action": "/admin/users/3a965e17-df85-4f3b-af5a-05a5543babbd/role",
           "method": "post"
         },
         {
-          "action": "/admin/users/7b81627c-7816-45e6-988c-2c8c8c9eee73/status",
+          "action": "/admin/users/3a965e17-df85-4f3b-af5a-05a5543babbd/status",
           "method": "post"
         },
         {
-          "action": "/admin/users/7b81627c-7816-45e6-988c-2c8c8c9eee73/password",
+          "action": "/admin/users/3a965e17-df85-4f3b-af5a-05a5543babbd/password",
           "method": "post"
         },
         {
@@ -308,15 +400,107 @@
         "visible": true,
         "focusVisible": true,
         "outline": 2
+      },
+      {
+        "tag": "INPUT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "SELECT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "SELECT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "SELECT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "INPUT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "SELECT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
       }
     ],
+    "keyboardSequence": {
+      "cancelHandoff": true,
+      "cancelRestoredTrigger": true,
+      "confirmationSubmitted": true,
+      "destructiveSelection": "USER",
+      "errorRecoveryVisible": true,
+      "fullTraversalCount": 18
+    },
     "severeAxe": [],
     "confirmation": true
   },
   {
     "colorScheme": "light",
     "width": 768,
-    "screenshot": "artifacts/admin/20260717125713/admin-light-768.png",
+    "screenshot": "artifacts/admin/20260717132036/admin-light-768.png",
     "measured": {
       "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
       "overflow": false,
@@ -418,15 +602,15 @@
           "method": "post"
         },
         {
-          "action": "/admin/users/7b81627c-7816-45e6-988c-2c8c8c9eee73/role",
+          "action": "/admin/users/3a965e17-df85-4f3b-af5a-05a5543babbd/role",
           "method": "post"
         },
         {
-          "action": "/admin/users/7b81627c-7816-45e6-988c-2c8c8c9eee73/status",
+          "action": "/admin/users/3a965e17-df85-4f3b-af5a-05a5543babbd/status",
           "method": "post"
         },
         {
-          "action": "/admin/users/7b81627c-7816-45e6-988c-2c8c8c9eee73/password",
+          "action": "/admin/users/3a965e17-df85-4f3b-af5a-05a5543babbd/password",
           "method": "post"
         },
         {
@@ -465,15 +649,107 @@
         "visible": true,
         "focusVisible": true,
         "outline": 2
+      },
+      {
+        "tag": "INPUT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "SELECT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "SELECT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "SELECT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "INPUT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "SELECT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
       }
     ],
+    "keyboardSequence": {
+      "cancelHandoff": true,
+      "cancelRestoredTrigger": true,
+      "confirmationSubmitted": true,
+      "destructiveSelection": "USER",
+      "errorRecoveryVisible": true,
+      "fullTraversalCount": 18
+    },
     "severeAxe": [],
     "confirmation": true
   },
   {
     "colorScheme": "light",
     "width": 1440,
-    "screenshot": "artifacts/admin/20260717125713/admin-light-1440.png",
+    "screenshot": "artifacts/admin/20260717132036/admin-light-1440.png",
     "measured": {
       "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
       "overflow": false,
@@ -575,15 +851,15 @@
           "method": "post"
         },
         {
-          "action": "/admin/users/7b81627c-7816-45e6-988c-2c8c8c9eee73/role",
+          "action": "/admin/users/3a965e17-df85-4f3b-af5a-05a5543babbd/role",
           "method": "post"
         },
         {
-          "action": "/admin/users/7b81627c-7816-45e6-988c-2c8c8c9eee73/status",
+          "action": "/admin/users/3a965e17-df85-4f3b-af5a-05a5543babbd/status",
           "method": "post"
         },
         {
-          "action": "/admin/users/7b81627c-7816-45e6-988c-2c8c8c9eee73/password",
+          "action": "/admin/users/3a965e17-df85-4f3b-af5a-05a5543babbd/password",
           "method": "post"
         },
         {
@@ -622,15 +898,107 @@
         "visible": true,
         "focusVisible": true,
         "outline": 2
+      },
+      {
+        "tag": "INPUT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "SELECT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "SELECT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "SELECT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "INPUT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "SELECT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
       }
     ],
+    "keyboardSequence": {
+      "cancelHandoff": true,
+      "cancelRestoredTrigger": true,
+      "confirmationSubmitted": true,
+      "destructiveSelection": "USER",
+      "errorRecoveryVisible": true,
+      "fullTraversalCount": 18
+    },
     "severeAxe": [],
     "confirmation": true
   },
   {
     "colorScheme": "dark",
     "width": 320,
-    "screenshot": "artifacts/admin/20260717125713/admin-dark-320.png",
+    "screenshot": "artifacts/admin/20260717132036/admin-dark-320.png",
     "measured": {
       "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
       "overflow": false,
@@ -732,15 +1100,15 @@
           "method": "post"
         },
         {
-          "action": "/admin/users/7b81627c-7816-45e6-988c-2c8c8c9eee73/role",
+          "action": "/admin/users/3a965e17-df85-4f3b-af5a-05a5543babbd/role",
           "method": "post"
         },
         {
-          "action": "/admin/users/7b81627c-7816-45e6-988c-2c8c8c9eee73/status",
+          "action": "/admin/users/3a965e17-df85-4f3b-af5a-05a5543babbd/status",
           "method": "post"
         },
         {
-          "action": "/admin/users/7b81627c-7816-45e6-988c-2c8c8c9eee73/password",
+          "action": "/admin/users/3a965e17-df85-4f3b-af5a-05a5543babbd/password",
           "method": "post"
         },
         {
@@ -779,15 +1147,107 @@
         "visible": true,
         "focusVisible": true,
         "outline": 2
+      },
+      {
+        "tag": "INPUT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "SELECT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "SELECT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "SELECT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "INPUT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "SELECT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
       }
     ],
+    "keyboardSequence": {
+      "cancelHandoff": true,
+      "cancelRestoredTrigger": true,
+      "confirmationSubmitted": true,
+      "destructiveSelection": "USER",
+      "errorRecoveryVisible": true,
+      "fullTraversalCount": 18
+    },
     "severeAxe": [],
     "confirmation": true
   },
   {
     "colorScheme": "dark",
     "width": 375,
-    "screenshot": "artifacts/admin/20260717125713/admin-dark-375.png",
+    "screenshot": "artifacts/admin/20260717132036/admin-dark-375.png",
     "measured": {
       "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
       "overflow": false,
@@ -889,15 +1349,15 @@
           "method": "post"
         },
         {
-          "action": "/admin/users/7b81627c-7816-45e6-988c-2c8c8c9eee73/role",
+          "action": "/admin/users/3a965e17-df85-4f3b-af5a-05a5543babbd/role",
           "method": "post"
         },
         {
-          "action": "/admin/users/7b81627c-7816-45e6-988c-2c8c8c9eee73/status",
+          "action": "/admin/users/3a965e17-df85-4f3b-af5a-05a5543babbd/status",
           "method": "post"
         },
         {
-          "action": "/admin/users/7b81627c-7816-45e6-988c-2c8c8c9eee73/password",
+          "action": "/admin/users/3a965e17-df85-4f3b-af5a-05a5543babbd/password",
           "method": "post"
         },
         {
@@ -936,15 +1396,107 @@
         "visible": true,
         "focusVisible": true,
         "outline": 2
+      },
+      {
+        "tag": "INPUT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "SELECT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "SELECT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "SELECT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "INPUT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "SELECT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
       }
     ],
+    "keyboardSequence": {
+      "cancelHandoff": true,
+      "cancelRestoredTrigger": true,
+      "confirmationSubmitted": true,
+      "destructiveSelection": "USER",
+      "errorRecoveryVisible": true,
+      "fullTraversalCount": 18
+    },
     "severeAxe": [],
     "confirmation": true
   },
   {
     "colorScheme": "dark",
     "width": 768,
-    "screenshot": "artifacts/admin/20260717125713/admin-dark-768.png",
+    "screenshot": "artifacts/admin/20260717132036/admin-dark-768.png",
     "measured": {
       "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
       "overflow": false,
@@ -1046,15 +1598,15 @@
           "method": "post"
         },
         {
-          "action": "/admin/users/7b81627c-7816-45e6-988c-2c8c8c9eee73/role",
+          "action": "/admin/users/3a965e17-df85-4f3b-af5a-05a5543babbd/role",
           "method": "post"
         },
         {
-          "action": "/admin/users/7b81627c-7816-45e6-988c-2c8c8c9eee73/status",
+          "action": "/admin/users/3a965e17-df85-4f3b-af5a-05a5543babbd/status",
           "method": "post"
         },
         {
-          "action": "/admin/users/7b81627c-7816-45e6-988c-2c8c8c9eee73/password",
+          "action": "/admin/users/3a965e17-df85-4f3b-af5a-05a5543babbd/password",
           "method": "post"
         },
         {
@@ -1093,15 +1645,107 @@
         "visible": true,
         "focusVisible": true,
         "outline": 2
+      },
+      {
+        "tag": "INPUT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "SELECT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "SELECT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "SELECT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "INPUT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "SELECT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
       }
     ],
+    "keyboardSequence": {
+      "cancelHandoff": true,
+      "cancelRestoredTrigger": true,
+      "confirmationSubmitted": true,
+      "destructiveSelection": "USER",
+      "errorRecoveryVisible": true,
+      "fullTraversalCount": 18
+    },
     "severeAxe": [],
     "confirmation": true
   },
   {
     "colorScheme": "dark",
     "width": 1440,
-    "screenshot": "artifacts/admin/20260717125713/admin-dark-1440.png",
+    "screenshot": "artifacts/admin/20260717132036/admin-dark-1440.png",
     "measured": {
       "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
       "overflow": false,
@@ -1203,15 +1847,15 @@
           "method": "post"
         },
         {
-          "action": "/admin/users/7b81627c-7816-45e6-988c-2c8c8c9eee73/role",
+          "action": "/admin/users/3a965e17-df85-4f3b-af5a-05a5543babbd/role",
           "method": "post"
         },
         {
-          "action": "/admin/users/7b81627c-7816-45e6-988c-2c8c8c9eee73/status",
+          "action": "/admin/users/3a965e17-df85-4f3b-af5a-05a5543babbd/status",
           "method": "post"
         },
         {
-          "action": "/admin/users/7b81627c-7816-45e6-988c-2c8c8c9eee73/password",
+          "action": "/admin/users/3a965e17-df85-4f3b-af5a-05a5543babbd/password",
           "method": "post"
         },
         {
@@ -1250,8 +1894,100 @@
         "visible": true,
         "focusVisible": true,
         "outline": 2
+      },
+      {
+        "tag": "INPUT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "SELECT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "SELECT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "SELECT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "INPUT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "SELECT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
+      },
+      {
+        "tag": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": 2
       }
     ],
+    "keyboardSequence": {
+      "cancelHandoff": true,
+      "cancelRestoredTrigger": true,
+      "confirmationSubmitted": true,
+      "destructiveSelection": "USER",
+      "errorRecoveryVisible": true,
+      "fullTraversalCount": 18
+    },
     "severeAxe": [],
     "confirmation": true
   }

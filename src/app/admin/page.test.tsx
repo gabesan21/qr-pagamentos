@@ -43,6 +43,8 @@ describe("admin page contract", () => {
     const markup = renderToStaticMarkup(await AdminPage({ searchParams: Promise.resolve({}) }));
 
     expect(markup).toContain(locale === "en" ? "Administrator accounts" : "Contas administrativas");
+    expect(markup).toContain(locale === "en" ? 'aria-label="Administrator navigation"' : 'aria-label="Navegação da administração"');
+    expect(markup).toContain(locale === "en" ? ">Home</a>" : ">Início</a>");
     expect(markup).toContain(locale === "en" ? "No user accounts are available." : "Nenhuma conta de usuário está disponível.");
     expect(markup).toContain('action="/admin/users"');
     expect(markup).toContain('method="post"');
@@ -51,6 +53,10 @@ describe("admin page contract", () => {
     expect(markup).toContain("disabled=\"\"");
     expect(markup).toContain(locale === "en" ? "Global payment settings" : "Configurações globais de pagamento");
     expect(markup).toContain('type="checkbox"');
+    expect(markup).toContain(`value="${locale}" selected=""`);
+    expect(markup).toContain('action="/language-preference"');
+    expect(markup).toContain('action="/logout"');
+    expect(markup).toContain(locale === "en" ? "Sign out" : "Sair");
   });
 
   it("renders populated account facts and preserves every mutation route and field name", async () => {
@@ -80,5 +86,23 @@ describe("admin page contract", () => {
     expect(markup).toContain('role="alert"');
     expect(markup).toContain('aria-live="assertive"');
     expect(markup).toContain("Review the details and try again.");
+  });
+
+  it.each([
+    ["en", "Account change saved.", "Review the details and try again."],
+    ["pt-BR", "Alteração da conta salva.", "Revise os dados e tente novamente."],
+  ] as const)("renders deterministic success and recovery states in %s", async (locale, success, recovery) => {
+    requireAdmin.mockResolvedValue(admin);
+    resolveLocale.mockResolvedValue(locale);
+    listUsers.mockResolvedValue([]);
+    listSettings.mockResolvedValue({ currencies: ["BRL"], paymentMethods: ["PIX"] });
+
+    const successMarkup = renderToStaticMarkup(await AdminPage({ searchParams: Promise.resolve({ success: "changed" }) }));
+    expect(successMarkup).toContain('role="status"');
+    expect(successMarkup).toContain(success);
+
+    const errorMarkup = renderToStaticMarkup(await AdminPage({ searchParams: Promise.resolve({ error: "change-failed" }) }));
+    expect(errorMarkup).toContain('role="alert"');
+    expect(errorMarkup).toContain(recovery);
   });
 });

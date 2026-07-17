@@ -10,6 +10,13 @@ const sha256 = (value) => createHash("sha256").update(value).digest("hex");
 if (manifest.runId !== current.runId || manifest.pngs.length !== 8) throw new Error("Admin evidence manifest does not name exactly eight current captures.");
 const assertions = await readFile(join(root, manifest.assertions));
 if (sha256(assertions) !== manifest.assertionsSha256) throw new Error("Admin evidence assertions hash mismatch.");
+const results = JSON.parse(assertions);
+for (const result of results) {
+  const sequence = result.keyboardSequence;
+  if (!sequence || sequence.fullTraversalCount !== result.focusTraversal?.length || !sequence.cancelHandoff || !sequence.cancelRestoredTrigger || !sequence.confirmationSubmitted || !sequence.errorRecoveryVisible) {
+    throw new Error(`Admin keyboard evidence is incomplete for ${result.colorScheme}-${result.width}.`);
+  }
+}
 for (const png of manifest.pngs) {
   const [contents, metadata] = await Promise.all([readFile(join(root, png.path)), stat(join(root, png.path))]);
   if (metadata.size === 0 || sha256(contents) !== png.sha256 || metadata.mtimeMs < Date.parse(manifest.startedAt)) throw new Error(`Invalid admin capture: ${png.path}`);
