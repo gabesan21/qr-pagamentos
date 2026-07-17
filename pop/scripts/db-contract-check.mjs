@@ -33,13 +33,13 @@ assert(runtimeClient.includes("process.env.DATABASE_URL") && !runtimeClient.incl
 const gitignore = await readFile(".gitignore", "utf8");
 assert(gitignore.split("\n").includes("src/generated/prisma/"), "Generated Prisma output is not ignored");
 const schema = await readFile("prisma/schema.prisma", "utf8");
-for (const model of ["DatabaseFoundationFixture", "User", "PasswordCredential", "NauttCredential", "DeploymentBootstrap", "Session", "GlobalPaymentSettings"]) {
+for (const model of ["DatabaseFoundationFixture", "User", "PasswordCredential", "NauttCredential", "DeploymentBootstrap", "Session", "GlobalPaymentSettings", "ProviderQuote", "ProviderOrder"]) {
   assert(schema.includes(`model ${model}`), `Schema is missing ${model}`);
 }
 assert(schema.includes('output   = "../src/generated/prisma"'), "Generated output changed");
 
 const migrationDirectories = (await readdir("prisma/migrations", { withFileTypes: true })).filter((entry) => entry.isDirectory()).map((entry) => entry.name);
-assert(JSON.stringify(migrationDirectories) === JSON.stringify(["20260714000000_foundation_baseline", "20260714190000_local_identities", "20260716110000_database_sessions", "20260716160000_user_language_preference", "20260716180000_global_payment_settings", "20260716210000_restrict_global_payment_settings_runtime", "20260717190000_nautt_credentials", "20260717210000_nautt_webhook_registration", "20260717230000_nautt_credential_revision"]), "Migration history name/count changed");
+assert(JSON.stringify(migrationDirectories) === JSON.stringify(["20260714000000_foundation_baseline", "20260714190000_local_identities", "20260716110000_database_sessions", "20260716160000_user_language_preference", "20260716180000_global_payment_settings", "20260716210000_restrict_global_payment_settings_runtime", "20260717190000_nautt_credentials", "20260717210000_nautt_webhook_registration", "20260717230000_nautt_credential_revision", "20260718010000_provider_orders"]), "Migration history name/count changed");
 const migration = await readFile("prisma/migrations/20260714000000_foundation_baseline/migration.sql", "utf8");
 for (const constraint of ["database_foundation_fixture_key_key", "database_foundation_fixture_key_nonblank", "database_foundation_fixture_quantity_nonnegative"]) {
   assert(migration.includes(constraint), `Migration lost ${constraint}`);
@@ -90,6 +90,13 @@ for (const contract of ["credential_revision", "gen_random_uuid()", "SET NOT NUL
 }
 assert(schema.includes("credentialRevision") && schema.includes('@db.Uuid'), "Schema is missing the UUID credential revision");
 assert(!/GRANT|ALTER\s+(?:TABLE|SCHEMA).*OWNER/i.test(nauttRevisionMigration), "Nautt revision migration must not change grants or ownership");
+
+const providerOrderMigration = await readFile("prisma/migrations/20260718010000_provider_orders/migration.sql", "utf8");
+for (const contract of ["provider_quote_pkey", "provider_quote_quote_uuid_owner_id_key", "provider_order_quote_uuid_key", "provider_order_provider_order_uuid_key", "provider_order_quote_owner_fkey", "provider_order_creation_state_closed", "provider_order_status_closed", "provider_order_decimal_lexemes", "provider_order_creation_tuple", "provider_order_version_nonnegative", "provider_order_owner_status_idx", "GRANT SELECT, INSERT, UPDATE, DELETE"]) {
+  assert(providerOrderMigration.includes(contract), `Provider order migration lost ${contract}`);
+}
+assert(schema.includes("model ProviderQuote") && schema.includes("model ProviderOrder") && schema.includes("reconciliationVersion"), "Schema is missing durable provider orders");
+assert(!/GRANT\s+(?:TRUNCATE|REFERENCES|TRIGGER)|ALTER\s+(?:TABLE|SCHEMA).*OWNER/i.test(providerOrderMigration), "Provider order migration grants excess privileges or changes ownership");
 
 const bootstrap = await readFile("prisma/bootstrap.sql", "utf8");
 assert(bootstrap.includes("GRANT CONNECT ON DATABASE qr_pagamentos TO qr_migrator, qr_runtime"), "Both roles require explicit CONNECT");

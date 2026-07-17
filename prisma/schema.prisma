@@ -29,6 +29,8 @@ model User {
   updatedAt       DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
   credential       PasswordCredential?
   nauttCredential  NauttCredential?
+  providerQuotes   ProviderQuote[]
+  providerOrders   ProviderOrder[]
   sessions         Session[]
 
   @@map("user")
@@ -92,5 +94,46 @@ model GlobalPaymentSettings {
   updatedAt      DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   @@map("global_payment_settings")
+  @@schema("app")
+}
+
+model ProviderQuote {
+  quoteUuid String          @id @map("quote_uuid") @db.Uuid
+  ownerId   String          @map("owner_id") @db.Uuid
+  expiresAt DateTime        @map("expires_at") @db.Timestamptz(3)
+  claimedAt DateTime?       @map("claimed_at") @db.Timestamptz(3)
+  createdAt DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
+  owner     User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  order     ProviderOrder?
+
+  @@unique([quoteUuid, ownerId], map: "provider_quote_quote_uuid_owner_id_key")
+  @@index([ownerId, expiresAt], map: "provider_quote_owner_expires_at_idx")
+  @@map("provider_quote")
+  @@schema("app")
+}
+
+model ProviderOrder {
+  id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId               String    @map("owner_id") @db.Uuid
+  quoteUuid             String    @unique(map: "provider_order_quote_uuid_key") @map("quote_uuid") @db.Uuid
+  providerOrderUuid     String?   @unique(map: "provider_order_provider_order_uuid_key") @map("provider_order_uuid") @db.Uuid
+  creationState         String    @default("CREATING") @map("creation_state") @db.VarChar(13)
+  status                String?   @db.VarChar(10)
+  fiatAmount            String?   @map("fiat_amount") @db.Text
+  cryptoAmount          String?   @map("crypto_amount") @db.Text
+  nauttQuote             String?   @map("nautt_quote") @db.Text
+  providerExpiresAt     DateTime? @map("provider_expires_at") @db.Timestamptz(3)
+  paymentMethod         String?   @map("payment_method") @db.Text
+  pixCopyPaste          String?   @map("pix_copy_paste") @db.Text
+  pixQrcodeUrl          String?   @map("pix_qrcode_url") @db.Text
+  reconciliationVersion Int       @default(0) @map("reconciliation_version") @db.Integer
+  createdAt             DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt             DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  owner                 User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  quote                 ProviderQuote @relation(fields: [quoteUuid, ownerId], references: [quoteUuid, ownerId], onDelete: Cascade)
+
+  @@index([ownerId, status], map: "provider_order_owner_status_idx")
+  @@unique([quoteUuid, ownerId], map: "provider_order_quote_uuid_owner_id_key")
+  @@map("provider_order")
   @@schema("app")
 }

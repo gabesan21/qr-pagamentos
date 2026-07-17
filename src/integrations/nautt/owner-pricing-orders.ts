@@ -1,6 +1,7 @@
 import "server-only";
 
 import { getNauttCredentialService } from "../../auth/nautt-credential";
+import { getDatabaseClient } from "../../db/client";
 
 import { isExactPositiveDecimal, isUuid } from "./decimal";
 import {
@@ -11,8 +12,9 @@ import {
   type NauttOrderView,
   type NauttQuote,
   type NauttQuoteAmount,
+  NauttOrderValidationError,
 } from "./pricing-orders-client";
-import { createInMemoryQuoteOwnershipStore, type QuoteOwnershipStore } from "./quote-ownership";
+import { createPrismaProviderOrderStore, storedOrderView, type ProviderOrderStore } from "./provider-order-store";
 
 export class OwnerPricingOrdersError extends Error {
   constructor() {
@@ -59,7 +61,7 @@ function isValidQuoteInput(input: OwnerQuoteInput): boolean {
 export function createOwnerPricingOrdersService(
   credentialPort: OwnerNauttCredentialPort,
   adapter: PricingOrdersAdapter,
-  quoteStore: QuoteOwnershipStore,
+  orderStore: ProviderOrderStore,
   now: () => Date = () => new Date(),
 ) {
   return {
@@ -77,7 +79,7 @@ export function createOwnerPricingOrdersService(
         const issued = await adapter.createQuote({ apiKey, ...input });
         let registered: boolean;
         try {
-          registered = await quoteStore.register({
+          registered = await orderStore.register({
             quoteUuid: issued.quoteUuid,
             ownerId,
             expiresAt: issued.expiresAt,
@@ -107,23 +109,41 @@ export function createOwnerPricingOrdersService(
         throw new OwnerPricingOrdersError();
       }
 
-      let claim: Awaited<ReturnType<QuoteOwnershipStore["claimForCreation"]>>;
+      let claim: Awaited<ReturnType<ProviderOrderStore["claimForCreation"]>>;
       try {
-        claim = await quoteStore.claimForCreation({ quoteUuid: quoteReference.quoteUuid, ownerId, now: now() });
+        claim = await orderStore.claimForCreation({ quoteUuid: quoteReference.quoteUuid, ownerId, now: now() });
       } catch {
         throw new OwnerPricingOrdersError();
       }
-      if (claim !== "claimed") throw new OwnerPricingOrdersError();
+      if (claim.kind !== "claimed") throw new OwnerPricingOrdersError();
 
       let apiKey: string;
       try {
         apiKey = await credentialPort.getDecryptedApiKey(ownerId);
       } catch {
+        await orderStore.releasePreDispatch(claim.attempt).catch(() => undefined);
         throw new OwnerPricingOrdersError();
       }
 
       try {
-        return await adapter.createOnrampOrder({ apiKey, quoteUuid: quoteReference.quoteUuid, ...input });
+        let order: NauttOrderView;
+        try {
+          order = await adapter.createOnrampOrder({ apiKey, quoteUuid: quoteReference.quoteUuid, ...input });
+        } catch (error) {
+          if (error instanceof NauttOrderValidationError) {
+            await orderStore.releasePreDispatch(claim.attempt).catch(() => undefined);
+          } else {
+            await orderStore.markIndeterminate(claim.attempt).catch(() => undefined);
+          }
+          throw error;
+        }
+        try {
+          await orderStore.completeCreation(claim.attempt, order);
+        } catch {
+          await orderStore.markIndeterminate(claim.attempt, order.orderUuid).catch(() => undefined);
+          throw new OwnerPricingOrdersError();
+        }
+        return order;
       } finally {
         apiKey = "";
       }
@@ -145,11 +165,57 @@ export function createOwnerPricingOrdersService(
         apiKey = "";
       }
     },
+
+    async pollOrder(ownerId: string, localOrderId: string): Promise<NauttOrderView> {
+      return reconcileOne("poll", ownerId, localOrderId, credentialPort, adapter, orderStore);
+    },
+
+    async recoverOrder(ownerId: string, localOrderId: string): Promise<NauttOrderView> {
+      return reconcileOne("recover", ownerId, localOrderId, credentialPort, adapter, orderStore);
+    },
   };
 }
 
-const sharedQuoteOwnershipStore = createInMemoryQuoteOwnershipStore();
+async function reconcileOne(
+  mode: "poll" | "recover",
+  ownerId: string,
+  localOrderId: string,
+  credentialPort: OwnerNauttCredentialPort,
+  adapter: PricingOrdersAdapter,
+  orderStore: ProviderOrderStore,
+): Promise<NauttOrderView> {
+  if (!isUuid(ownerId) || !isUuid(localOrderId)) throw new OwnerPricingOrdersError();
+  let observed;
+  try {
+    observed = mode === "poll"
+      ? await orderStore.findPollable(ownerId, localOrderId)
+      : await orderStore.findRecoverable(ownerId, localOrderId);
+  } catch {
+    throw new OwnerPricingOrdersError();
+  }
+  if (!observed?.providerOrderUuid) throw new OwnerPricingOrdersError();
+
+  let apiKey: string;
+  try {
+    apiKey = await credentialPort.getDecryptedApiKey(ownerId);
+  } catch {
+    throw new OwnerPricingOrdersError();
+  }
+  try {
+    const fetched = await adapter.getOrder({ apiKey, orderUuid: observed.providerOrderUuid });
+    if (fetched.orderUuid !== observed.providerOrderUuid) throw new OwnerPricingOrdersError();
+    return storedOrderView(await orderStore.reconcile(observed, fetched));
+  } catch (error) {
+    if (error instanceof OwnerPricingOrdersError) throw error;
+    throw new OwnerPricingOrdersError();
+  } finally {
+    apiKey = "";
+  }
+}
+
+let sharedProviderOrderStore: ProviderOrderStore | undefined;
 
 export function getOwnerPricingOrdersService() {
-  return createOwnerPricingOrdersService(getNauttCredentialService(), getPricingOrdersAdapter(), sharedQuoteOwnershipStore);
+  sharedProviderOrderStore ??= createPrismaProviderOrderStore(getDatabaseClient());
+  return createOwnerPricingOrdersService(getNauttCredentialService(), getPricingOrdersAdapter(), sharedProviderOrderStore);
 }
