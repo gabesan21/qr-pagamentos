@@ -330,7 +330,7 @@ if (process.argv.includes("--clean-clone") && !process.env.CONTAINER_TEST_CLEAN_
       const sql = (statement) => run("docker", ["exec", dbId, "psql", "-U", "postgres", "-d", "qr_pagamentos", "-Atc", statement]).trim();
       const before = sql(`SELECT u.id || '|' || u.username || '|' || COALESCE(u.email, '<null>') || '|' || u.role || '|' || u.status FROM app.deployment_bootstrap b JOIN app."user" u ON u.id=b.initial_admin_user_id WHERE b.id=1`);
       assert(before.split("|").slice(1).join("|") === "admin.user|admin@example.com|ADMIN|ACTIVE", "present-email seed differs");
-      sql(`ALTER TABLE app.deployment_bootstrap DISABLE TRIGGER deployment_bootstrap_immutable; TRUNCATE app.password_credential, app.deployment_bootstrap, app."user"; ALTER TABLE app.deployment_bootstrap ENABLE TRIGGER deployment_bootstrap_immutable`);
+      sql(`ALTER TABLE app.deployment_bootstrap DISABLE TRIGGER deployment_bootstrap_immutable; TRUNCATE app.session, app.password_credential, app.deployment_bootstrap, app."user"; ALTER TABLE app.deployment_bootstrap ENABLE TRIGGER deployment_bootstrap_immutable`);
       await writeFile(usernameFile, "second.admin\n", { mode: 0o600 });
       await writeFile(emailFile, "", { mode: 0o600 });
       await chmod(usernameFile, 0o600);
