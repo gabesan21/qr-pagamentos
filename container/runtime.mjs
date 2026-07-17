@@ -5,6 +5,10 @@ import { databaseUrl, readSecret, safeFailure } from "./lib.mjs";
 const { Client } = pg;
 
 async function main() {
+  const callbackUrl = new URL(process.env.NAUTT_WEBHOOK_CALLBACK_URL ?? "invalid:");
+  if (callbackUrl.protocol !== "https:" || callbackUrl.username || callbackUrl.password || callbackUrl.hash) {
+    throw new Error("invalid Nautt webhook callback configuration");
+  }
   const password = await readSecret("/run/secrets/runtime_password");
   const preflightUrl = databaseUrl({ username: "qr_runtime", password });
   const applicationUrl = databaseUrl({ username: "qr_runtime", password, schema: true });
@@ -18,7 +22,7 @@ async function main() {
   }
   console.log("PASS runtime-db-preflight");
   const nauttEncryptionKey = await readSecret("/run/secrets/nautt_encryption_key");
-  const env = { ...process.env, DATABASE_URL: applicationUrl, NAUTT_ENCRYPTION_KEY: nauttEncryptionKey };
+  const env = { ...process.env, DATABASE_URL: applicationUrl, NAUTT_ENCRYPTION_KEY: nauttEncryptionKey, NAUTT_WEBHOOK_CALLBACK_URL: callbackUrl.toString() };
   delete env.MIGRATION_DATABASE_URL;
   const child = spawn(process.execPath, ["server.js"], { env, stdio: "inherit", shell: false });
   child.once("error", (error) => safeFailure("application", error));

@@ -8,18 +8,24 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { LanguagePreferenceSubmit } from "./language-preference/language-preference-form";
+import { getOwnerOnboardingService } from "@/integrations/nautt/owner-onboarding";
+import { NauttCredentialSurface } from "./nautt-credential-surface";
 
-export default async function Home({ searchParams }: Readonly<{ searchParams: Promise<{ language?: string }> }>) {
+export default async function Home({ searchParams }: Readonly<{ searchParams: Promise<{ language?: string; nautt?: string }> }>) {
   const principal = await getAuthorizationService().resolve((await cookies()).get("qr_session")?.value);
   if (!principal) redirect("/login");
-  const locale = await getLocalePreferenceService().resolve(principal.id);
+  const [locale, nauttStatus] = await Promise.all([
+    getLocalePreferenceService().resolve(principal.id),
+    getOwnerOnboardingService().readStatus(principal),
+  ]);
   const dictionary = getDictionary(locale);
-  const notice = (await searchParams).language;
+  const notices = await searchParams;
   return (
-    <main>
-      <h1>{dictionary.heading}</h1><p>{dictionary.introduction}</p>
-      {notice === "saved" ? <Alert role="status" variant="success"><AlertTitle>{dictionary.languageHeading}</AlertTitle><AlertDescription>{dictionary.languageSaved}</AlertDescription></Alert> : null}
-      {notice === "error" ? <Alert variant="destructive"><AlertTitle>{dictionary.languageHeading}</AlertTitle><AlertDescription>{dictionary.languageError}</AlertDescription></Alert> : null}
+    <main className="admin-shell">
+      <header className="receipt-rail"><span className="receipt-rail__label">QR Pagamentos</span><h1>{dictionary.heading}</h1></header><p className="admin-shell__intro">{dictionary.introduction}</p>
+      <NauttCredentialSurface dictionary={dictionary} notice={notices.nautt} status={nauttStatus} />
+      {notices.language === "saved" ? <Alert role="status" variant="success"><AlertTitle>{dictionary.languageHeading}</AlertTitle><AlertDescription>{dictionary.languageSaved}</AlertDescription></Alert> : null}
+      {notices.language === "error" ? <Alert variant="destructive"><AlertTitle>{dictionary.languageHeading}</AlertTitle><AlertDescription>{dictionary.languageError}</AlertDescription></Alert> : null}
       <Card>
         <CardHeader><CardTitle>{dictionary.languageHeading}</CardTitle><CardDescription>{dictionary.adminLanguageDescription}</CardDescription></CardHeader>
         <CardContent>

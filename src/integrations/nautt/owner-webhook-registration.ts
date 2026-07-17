@@ -1,6 +1,6 @@
 import "server-only";
 
-import { normalizeNauttCredentialRecord, type NauttCredentialRecord } from "../../auth/nautt-credential";
+import { type NauttCredentialRecord, type NauttWebhookRegistrationState } from "../../auth/nautt-credential";
 import { getDatabaseClient } from "../../db/client";
 import { decrypt, encrypt, loadEncryptionKey } from "../../lib/nautt-crypto";
 
@@ -17,14 +17,23 @@ export type RedactedOwnerWebhookRegistration = {
 };
 
 export interface OwnerWebhookRegistrationStore {
-  find(userId: string): Promise<NauttCredentialRecord | null>;
-  claim(userId: string, expectedUpdatedAt: Date): Promise<boolean>;
+  findMetadata(userId: string): Promise<OwnerWebhookRegistrationMetadata | null>;
+  claimAndReadEncryptedApiKey(userId: string, expectedRevision: string): Promise<string | null>;
   markIndeterminate(userId: string): Promise<void>;
   activate(
     userId: string,
     registration: { providerWebhookId: string; encryptedWebhookSecret: string; registeredAt: Date },
   ): Promise<boolean>;
 }
+
+export type OwnerWebhookRegistrationMetadata = Pick<
+  NauttCredentialRecord,
+  | "credentialRevision"
+  | "webhookRegistrationState"
+  | "providerWebhookId"
+  | "encryptedWebhookSecret"
+  | "webhookRegisteredAt"
+>;
 
 type RegistrationAdapter = {
   register(input: { apiKey: string; callbackUrl: string }): Promise<RegisteredNauttWebhook>;
@@ -39,7 +48,7 @@ type CryptoAdapter = {
 export class OwnerWebhookRegistrationError extends Error {}
 export class OwnerWebhookRegistrationRecoveryRequiredError extends Error {}
 
-function activeMetadata(record: NauttCredentialRecord): RedactedOwnerWebhookRegistration | null {
+function activeMetadata(record: OwnerWebhookRegistrationMetadata): RedactedOwnerWebhookRegistration | null {
   if (
     record.webhookRegistrationState !== "ACTIVE" ||
     !record.providerWebhookId ||
@@ -67,8 +76,12 @@ export function createOwnerWebhookRegistrationService(
   }
 
   return {
-    async register(userId: string, callbackCandidate: string): Promise<RedactedOwnerWebhookRegistration> {
-      const credential = await store.find(userId);
+    async register(
+      userId: string,
+      callbackCandidate: string,
+      expectedRevision?: string,
+    ): Promise<RedactedOwnerWebhookRegistration> {
+      const credential = await store.findMetadata(userId);
       if (!credential) throw new OwnerWebhookRegistrationError("Webhook registration is unavailable");
 
       const active = activeMetadata(credential);
@@ -76,24 +89,33 @@ export function createOwnerWebhookRegistrationService(
       if (credential.webhookRegistrationState !== "UNREGISTERED") throw recoveryRequired();
 
       let callbackUrl: string;
-      let apiKey: string;
       try {
         callbackUrl = validateNauttWebhookCallbackUrl(callbackCandidate);
-        apiKey = crypto.decrypt(credential.encryptedApiKey, crypto.loadKey());
       } catch {
         throw new OwnerWebhookRegistrationError("Webhook registration is unavailable");
       }
 
-      let claimed: boolean;
+      let encryptedApiKey: string | null;
       try {
-        claimed = await store.claim(userId, credential.updatedAt);
+        encryptedApiKey = await store.claimAndReadEncryptedApiKey(
+          userId,
+          expectedRevision ?? credential.credentialRevision,
+        );
       } catch {
         throw recoveryRequired();
       }
-      if (!claimed) {
-        const current = await store.find(userId);
+      if (!encryptedApiKey) {
+        const current = await store.findMetadata(userId);
         const winner = current ? activeMetadata(current) : null;
         if (winner) return winner;
+        throw recoveryRequired();
+      }
+
+      let apiKey: string;
+      try {
+        apiKey = crypto.decrypt(encryptedApiKey, crypto.loadKey());
+      } catch {
+        await preserveIndeterminate(userId);
         throw recoveryRequired();
       }
 
@@ -141,16 +163,33 @@ export function createOwnerWebhookRegistrationService(
 function prismaStore(): OwnerWebhookRegistrationStore {
   const db = getDatabaseClient();
   return {
-    async find(userId) {
-      const record = await db.nauttCredential.findUnique({ where: { userId } });
-      return record ? normalizeNauttCredentialRecord(record) : null;
-    },
-    async claim(userId, expectedUpdatedAt) {
-      const result = await db.nauttCredential.updateMany({
-        where: { userId, updatedAt: expectedUpdatedAt, webhookRegistrationState: "UNREGISTERED" },
-        data: { webhookRegistrationState: "REGISTERING" },
+    async findMetadata(userId) {
+      const record = await db.nauttCredential.findUnique({
+        where: { userId },
+        select: {
+          credentialRevision: true,
+          webhookRegistrationState: true,
+          providerWebhookId: true,
+          encryptedWebhookSecret: true,
+          webhookRegisteredAt: true,
+        },
       });
-      return result.count === 1;
+      if (!record) return null;
+      return { ...record, webhookRegistrationState: record.webhookRegistrationState as NauttWebhookRegistrationState };
+    },
+    async claimAndReadEncryptedApiKey(userId, expectedRevision) {
+      return db.$transaction(async (transaction) => {
+        const result = await transaction.nauttCredential.updateMany({
+          where: { userId, credentialRevision: expectedRevision, webhookRegistrationState: "UNREGISTERED" },
+          data: { webhookRegistrationState: "REGISTERING" },
+        });
+        if (result.count !== 1) return null;
+        const claimed = await transaction.nauttCredential.findUnique({
+          where: { userId },
+          select: { encryptedApiKey: true },
+        });
+        return claimed?.encryptedApiKey ?? null;
+      });
     },
     async markIndeterminate(userId) {
       await db.nauttCredential.updateMany({

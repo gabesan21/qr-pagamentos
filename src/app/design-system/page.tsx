@@ -17,6 +17,7 @@ import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, Tabl
 import { getDictionary } from "@/i18n/dictionaries";
 import { getLocalePreferenceService } from "@/i18n/locale-preference";
 import { defaultLocale } from "@/i18n/locales";
+import { NauttCredentialSurface } from "@/app/nautt-credential-surface";
 
 export default async function DesignSystemPage() {
   const token = (await cookies()).get("qr_session")?.value;
@@ -72,5 +73,10 @@ export default async function DesignSystemPage() {
       <Table className="ds-facts"><TableCaption>{dictionary.designSystemStatuses}</TableCaption><TableHeader><TableRow><TableHead>PIX</TableHead><TableHead>{dictionary.designSystemState}</TableHead><TableHead>BRL</TableHead></TableRow></TableHeader><TableBody><TableRow><TableCell>PIX-0716</TableCell><TableCell>{dictionary.designSystemSuccess}</TableCell><TableCell>128,40</TableCell></TableRow><TableRow><TableCell>PIX-0715</TableCell><TableCell>{dictionary.designSystemWarning}</TableCell><TableCell>72,00</TableCell></TableRow></TableBody></Table>
       <span className="sr-only"><LoaderCircleIcon />{dictionary.designSystemLoadingAction}</span>
     </section>
+    <NauttCredentialSurface dictionary={dictionary} idPrefix="specimen-empty" notice="invalid" status={{ credential: { hasCredential: false, credentialRevision: null, webhookRegistrationState: null, updatedAt: null }, balance: null, balanceUnavailable: false }} />
+    <NauttCredentialSurface dictionary={dictionary} idPrefix="specimen-pending" notice="changed" status={{ credential: { hasCredential: true, credentialRevision: "00000000-0000-4000-8000-000000000001", webhookRegistrationState: "UNREGISTERED", updatedAt: new Date("2026-07-17T20:00:00Z") }, balance: null, balanceUnavailable: false }} />
+    <NauttCredentialSurface dictionary={dictionary} idPrefix="specimen-recovery" status={{ credential: { hasCredential: true, credentialRevision: "00000000-0000-4000-8000-000000000002", webhookRegistrationState: "INDETERMINATE", updatedAt: new Date("2026-07-17T20:00:00Z") }, balance: null, balanceUnavailable: false }} />
+    <NauttCredentialSurface dictionary={dictionary} idPrefix="specimen-balance" notice="configured" status={{ credential: { hasCredential: true, credentialRevision: "00000000-0000-4000-8000-000000000003", webhookRegistrationState: "ACTIVE", updatedAt: new Date("2026-07-17T20:00:00Z") }, balance: { tokenSymbol: "USDT", tokenName: "Tether USD", networkName: "Polygon Mainnet", balance: "17.271189" }, balanceUnavailable: false }} />
+    <NauttCredentialSurface dictionary={dictionary} idPrefix="specimen-unavailable" status={{ credential: { hasCredential: true, credentialRevision: "00000000-0000-4000-8000-000000000004", webhookRegistrationState: "ACTIVE", updatedAt: new Date("2026-07-17T20:00:00Z") }, balance: null, balanceUnavailable: true }} />
   </main>;
 }

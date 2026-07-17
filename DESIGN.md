@@ -80,6 +80,13 @@ wide action table at narrow widths. Empty, loading, recovery,
 pending/disabled, success, error, and inline destructive-confirmation states are
 explicit without page-local variants or compatibility sources.
 
+The authenticated home also owns the bilingual Nautt onboarding ledger. Its
+password input never echoes a submitted key; validation, pending/disabled,
+setup-changed, provider-unavailable, `UNREGISTERED` completion, non-retryable
+recovery, configured balance, and manual balance-retry states compose the same
+`Card`, `Alert`, `Field`/`Input`, `Button`, and `Spinner` inventory. Wallet facts
+use labelled, tabular rows, and ambiguous webhook states expose no action.
+
 The unauthenticated `/login` page consumes the same inventory as a single
 restrained credential `Card`: `Field`/`Input` with labels above the native
 controls, a destructive `Alert` for the generic invalid-credential recovery,
@@ -95,6 +102,8 @@ introduces no page-specific variant, token, or adapter.
 run-bound manifest with light/dark captures at 320, 375, 768, and 1440 CSS
 pixels. It rejects external requests, serious/critical axe findings, overflow,
 font drift, target/action/status/prose violations, and console failures.
+The specimen includes every Nautt onboarding, balance, conflict, and recovery
+state without runtime provider calls or a test-only production backdoor.
 `pnpm design-system:evidence:verify` requires the exact review and hashes.
 
 `pnpm login:evidence` and `pnpm login:evidence:verify` provide the same
