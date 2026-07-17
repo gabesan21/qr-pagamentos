@@ -39,7 +39,7 @@ for (const model of ["DatabaseFoundationFixture", "User", "PasswordCredential", 
 assert(schema.includes('output   = "../src/generated/prisma"'), "Generated output changed");
 
 const migrationDirectories = (await readdir("prisma/migrations", { withFileTypes: true })).filter((entry) => entry.isDirectory()).map((entry) => entry.name);
-assert(JSON.stringify(migrationDirectories) === JSON.stringify(["20260714000000_foundation_baseline", "20260714190000_local_identities", "20260716110000_database_sessions", "20260716160000_user_language_preference", "20260716180000_global_payment_settings", "20260716210000_restrict_global_payment_settings_runtime", "20260717190000_nautt_credentials"]), "Migration history name/count changed");
+assert(JSON.stringify(migrationDirectories) === JSON.stringify(["20260714000000_foundation_baseline", "20260714190000_local_identities", "20260716110000_database_sessions", "20260716160000_user_language_preference", "20260716180000_global_payment_settings", "20260716210000_restrict_global_payment_settings_runtime", "20260717190000_nautt_credentials", "20260717210000_nautt_webhook_registration"]), "Migration history name/count changed");
 const migration = await readFile("prisma/migrations/20260714000000_foundation_baseline/migration.sql", "utf8");
 for (const constraint of ["database_foundation_fixture_key_key", "database_foundation_fixture_key_nonblank", "database_foundation_fixture_quantity_nonnegative"]) {
   assert(migration.includes(constraint), `Migration lost ${constraint}`);
@@ -76,6 +76,14 @@ assert(schema.includes("model NauttCredential") && schema.includes("nauttCredent
 for (const contract of ["nautt_credential_pkey", "nautt_credential_user_fkey", "encrypted_api_key", "GRANT SELECT, INSERT, UPDATE, DELETE"]) {
   assert(nauttCredentialMigration.includes(contract), `Nautt credential migration lost ${contract}`);
 }
+const nauttWebhookMigration = await readFile("prisma/migrations/20260717210000_nautt_webhook_registration/migration.sql", "utf8");
+for (const contract of ["webhook_registration_state", "provider_webhook_id", "encrypted_webhook_secret", "webhook_registered_at", "nautt_credential_webhook_registration_state_closed", "nautt_credential_webhook_active_tuple_complete"]) {
+  assert(nauttWebhookMigration.includes(contract), `Nautt webhook migration lost ${contract}`);
+}
+for (const field of ["webhookRegistrationState", "providerWebhookId", "encryptedWebhookSecret", "webhookRegisteredAt"]) {
+  assert(schema.includes(field), `Schema is missing Nautt webhook field ${field}`);
+}
+assert(!/GRANT|ALTER\s+(?:TABLE|SCHEMA).*OWNER/i.test(nauttWebhookMigration), "Nautt webhook migration must not change grants or ownership");
 
 const bootstrap = await readFile("prisma/bootstrap.sql", "utf8");
 assert(bootstrap.includes("GRANT CONNECT ON DATABASE qr_pagamentos TO qr_migrator, qr_runtime"), "Both roles require explicit CONNECT");

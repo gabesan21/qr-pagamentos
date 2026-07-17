@@ -121,7 +121,7 @@ try {
   const migrationEnv = { ...process.env, MIGRATION_DATABASE_URL: migratorUrl };
   delete migrationEnv.DATABASE_URL;
   const firstDeploy = run("pnpm", ["exec", "prisma", "migrate", "deploy"], { env: migrationEnv });
-  assert(firstDeploy.includes("7 migrations found"), "Fresh deploy did not discover exactly seven migrations");
+  assert(firstDeploy.includes("8 migrations found"), "Fresh deploy did not discover exactly eight migrations");
 
   const admin = new Client({ connectionString: adminUrl });
   await admin.connect();
@@ -129,7 +129,7 @@ try {
     SELECT migration_name, checksum, finished_at IS NOT NULL AS finished, rolled_back_at
     FROM app._prisma_migrations
   `);
-  const expectedMigrations = ["20260714000000_foundation_baseline", "20260714190000_local_identities", "20260716110000_database_sessions", "20260716160000_user_language_preference", "20260716180000_global_payment_settings", "20260716210000_restrict_global_payment_settings_runtime", "20260717190000_nautt_credentials"];
+  const expectedMigrations = ["20260714000000_foundation_baseline", "20260714190000_local_identities", "20260716110000_database_sessions", "20260716160000_user_language_preference", "20260716180000_global_payment_settings", "20260716210000_restrict_global_payment_settings_runtime", "20260717190000_nautt_credentials", "20260717210000_nautt_webhook_registration"];
   assert(history.rows.length === expectedMigrations.length, "Migration history row count changed");
   for (const migrationName of expectedMigrations) {
     const migrationSql = await readFile(`prisma/migrations/${migrationName}/migration.sql`);
@@ -277,6 +277,10 @@ try {
     { column_name: "encrypted_api_key", data_type: "text", udt_name: "text", is_nullable: "NO" },
     { column_name: "created_at", data_type: "timestamp with time zone", udt_name: "timestamptz", is_nullable: "NO" },
     { column_name: "updated_at", data_type: "timestamp with time zone", udt_name: "timestamptz", is_nullable: "NO" },
+    { column_name: "webhook_registration_state", data_type: "character varying", udt_name: "varchar", is_nullable: "NO" },
+    { column_name: "provider_webhook_id", data_type: "uuid", udt_name: "uuid", is_nullable: "YES" },
+    { column_name: "encrypted_webhook_secret", data_type: "text", udt_name: "text", is_nullable: "YES" },
+    { column_name: "webhook_registered_at", data_type: "timestamp with time zone", udt_name: "timestamptz", is_nullable: "YES" },
   ]), "Nautt credential columns differ from the contract");
   const nauttCredentialConstraints = await runtime.query(`
     SELECT c.conname, c.contype, pg_get_userbyid(t.relowner) AS owner
@@ -287,14 +291,24 @@ try {
     ORDER BY c.conname
   `);
   const nauttConstraintNames = new Set(nauttCredentialConstraints.rows.map((row) => row.conname));
-  for (const name of ["nautt_credential_pkey", "nautt_credential_user_fkey"]) {
+  for (const name of ["nautt_credential_pkey", "nautt_credential_user_fkey", "nautt_credential_webhook_registration_state_closed", "nautt_credential_webhook_active_tuple_complete"]) {
     assert(nauttConstraintNames.has(name), `Missing constraint ${name}`);
   }
   assert(nauttCredentialConstraints.rows.every((row) => row.owner === "qr_migrator"), "Runtime owns the nautt credential table");
   const nauttUserId = randomUUID();
   await runtime.query(`INSERT INTO app."user" (id, username, email, role, status) VALUES ($1, 'nautt.user', NULL, 'USER', 'ACTIVE')`, [nauttUserId]);
   await runtime.query(`INSERT INTO app.nautt_credential (user_id, encrypted_api_key) VALUES ($1, 'encrypted-value')`, [nauttUserId]);
+  const defaultRegistration = await runtime.query(`SELECT webhook_registration_state FROM app.nautt_credential WHERE user_id = $1`, [nauttUserId]);
+  assert(defaultRegistration.rows[0]?.webhook_registration_state === "UNREGISTERED", "Existing credential did not default to UNREGISTERED");
   await runtime.query(`UPDATE app.nautt_credential SET encrypted_api_key = 'replaced-value' WHERE user_id = $1`, [nauttUserId]);
+  await runtime.query(`UPDATE app.nautt_credential SET webhook_registration_state = 'REGISTERING' WHERE user_id = $1`, [nauttUserId]);
+  await runtime.query(`UPDATE app.nautt_credential SET webhook_registration_state = 'INDETERMINATE' WHERE user_id = $1`, [nauttUserId]);
+  await expectSqlState(runtime, `UPDATE app.nautt_credential SET webhook_registration_state = 'UNKNOWN' WHERE user_id = '${nauttUserId}'`, { code: "23514", constraint: "nautt_credential_webhook_registration_state_closed" });
+  await expectSqlState(runtime, `UPDATE app.nautt_credential SET webhook_registration_state = 'ACTIVE' WHERE user_id = '${nauttUserId}'`, { code: "23514", constraint: "nautt_credential_webhook_active_tuple_complete" });
+  await expectSqlState(runtime, `UPDATE app.nautt_credential SET provider_webhook_id = '${randomUUID()}' WHERE user_id = '${nauttUserId}'`, { code: "23514", constraint: "nautt_credential_webhook_active_tuple_complete" });
+  const providerWebhookId = randomUUID();
+  await runtime.query(`UPDATE app.nautt_credential SET webhook_registration_state = 'ACTIVE', provider_webhook_id = $2, encrypted_webhook_secret = 'encrypted-webhook-secret', webhook_registered_at = CURRENT_TIMESTAMP WHERE user_id = $1`, [nauttUserId, providerWebhookId]);
+  await expectSqlState(runtime, `UPDATE app.nautt_credential SET encrypted_webhook_secret = NULL WHERE user_id = '${nauttUserId}'`, { code: "23514", constraint: "nautt_credential_webhook_active_tuple_complete" });
   await runtime.query(`DELETE FROM app."user" WHERE id = $1`, [nauttUserId]);
   const cascadedCredential = await runtime.query(`SELECT count(*)::int AS count FROM app.nautt_credential WHERE user_id = $1`, [nauttUserId]);
   assert(cascadedCredential.rows[0].count === 0, "Nautt credential did not cascade with its user");

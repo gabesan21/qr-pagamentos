@@ -6,12 +6,18 @@ import { ForbiddenError, type Principal } from "./authorization";
 export type NauttCredentialRecord = {
   userId: string;
   encryptedApiKey: string;
+  webhookRegistrationState: NauttWebhookRegistrationState;
+  providerWebhookId: string | null;
+  encryptedWebhookSecret: string | null;
+  webhookRegisteredAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 };
 
+export type NauttWebhookRegistrationState = "UNREGISTERED" | "REGISTERING" | "ACTIVE" | "INDETERMINATE";
+
 export interface NauttCredentialStore {
-  upsert(userId: string, encryptedApiKey: string): Promise<void>;
+  saveIfUnregistered(userId: string, encryptedApiKey: string): Promise<boolean>;
   find(userId: string): Promise<NauttCredentialRecord | null>;
   exists(userId: string): Promise<boolean>;
 }
@@ -23,6 +29,21 @@ export type NauttCredentialRedacted = {
 
 export class NauttCredentialValidationError extends Error {}
 export class NauttCredentialNotFoundError extends Error {}
+export class NauttCredentialReplacementBlockedError extends Error {}
+
+export function normalizeNauttCredentialRecord(
+  record: Omit<NauttCredentialRecord, "webhookRegistrationState"> & { webhookRegistrationState: string },
+): NauttCredentialRecord {
+  switch (record.webhookRegistrationState) {
+    case "UNREGISTERED":
+    case "REGISTERING":
+    case "ACTIVE":
+    case "INDETERMINATE":
+      return { ...record, webhookRegistrationState: record.webhookRegistrationState };
+    default:
+      throw new Error("Invalid persisted Nautt webhook registration state");
+  }
+}
 
 type CryptoAdapter = {
   encrypt(plaintext: string, key: Buffer): string;
@@ -48,7 +69,9 @@ export function createNauttCredentialService(store: NauttCredentialStore, crypto
         throw new NauttCredentialValidationError("API key is required");
       }
       const encrypted = crypto.encrypt(trimmed, crypto.loadKey());
-      await store.upsert(targetUserId, encrypted);
+      if (!(await store.saveIfUnregistered(targetUserId, encrypted))) {
+        throw new NauttCredentialReplacementBlockedError("Credential replacement is unavailable");
+      }
     },
 
     async getRedacted(actor: Principal, targetUserId: string): Promise<NauttCredentialRedacted> {
@@ -70,15 +93,27 @@ export function createNauttCredentialService(store: NauttCredentialStore, crypto
 function prismaStore(): NauttCredentialStore {
   const db = getDatabaseClient();
   return {
-    async upsert(userId, encryptedApiKey) {
-      await db.nauttCredential.upsert({
-        where: { userId },
-        create: { userId, encryptedApiKey },
-        update: { encryptedApiKey },
+    async saveIfUnregistered(userId, encryptedApiKey) {
+      const updated = await db.nauttCredential.updateMany({
+        where: { userId, webhookRegistrationState: "UNREGISTERED" },
+        data: { encryptedApiKey },
       });
+      if (updated.count === 1) return true;
+
+      const existing = await db.nauttCredential.findUnique({ where: { userId }, select: { userId: true } });
+      if (existing) return false;
+
+      try {
+        await db.nauttCredential.create({ data: { userId, encryptedApiKey } });
+        return true;
+      } catch (error) {
+        if (typeof error === "object" && error !== null && "code" in error && error.code === "P2002") return false;
+        throw error;
+      }
     },
     async find(userId) {
-      return db.nauttCredential.findUnique({ where: { userId } });
+      const record = await db.nauttCredential.findUnique({ where: { userId } });
+      return record ? normalizeNauttCredentialRecord(record) : null;
     },
     async exists(userId) {
       const record = await db.nauttCredential.findUnique({ where: { userId }, select: { userId: true } });

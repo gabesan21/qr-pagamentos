@@ -4,6 +4,7 @@ import { ForbiddenError } from "./authorization";
 import {
   createNauttCredentialService,
   NauttCredentialNotFoundError,
+  NauttCredentialReplacementBlockedError,
   NauttCredentialValidationError,
   type NauttCredentialRecord,
   type NauttCredentialStore,
@@ -26,15 +27,21 @@ function store(): NauttCredentialStore & { records: Map<string, NauttCredentialR
   const records = new Map<string, NauttCredentialRecord>();
   return {
     records,
-    async upsert(userId, encryptedApiKey) {
+    async saveIfUnregistered(userId, encryptedApiKey) {
       const existing = records.get(userId);
+      if (existing && existing.webhookRegistrationState !== "UNREGISTERED") return false;
       const now = new Date();
       records.set(userId, {
         userId,
         encryptedApiKey,
+        webhookRegistrationState: "UNREGISTERED",
+        providerWebhookId: null,
+        encryptedWebhookSecret: null,
+        webhookRegisteredAt: null,
         createdAt: existing?.createdAt ?? now,
         updatedAt: now,
       });
+      return true;
     },
     async find(userId) {
       return records.get(userId) ?? null;
@@ -98,6 +105,37 @@ describe("nautt credential service", () => {
     expect(second.encryptedApiKey).toBe(`enc:second-key:${testKey.toString("base64url")}`);
     expect(second.createdAt.getTime()).toBe(first.createdAt.getTime());
     expect(second.updatedAt.getTime()).toBeGreaterThanOrEqual(first.updatedAt.getTime());
+  });
+
+  it.each(["REGISTERING", "ACTIVE", "INDETERMINATE"] as const)(
+    "preserves every field when replacement is blocked in %s",
+    async (webhookRegistrationState) => {
+      const repository = store();
+      await repository.saveIfUnregistered(owner.id, "enc:original");
+      const record = repository.records.get(owner.id)!;
+      Object.assign(record, {
+        webhookRegistrationState,
+        providerWebhookId: webhookRegistrationState === "ACTIVE" ? "provider-id" : null,
+        encryptedWebhookSecret: webhookRegistrationState === "ACTIVE" ? "enc:webhook-secret" : null,
+        webhookRegisteredAt: webhookRegistrationState === "ACTIVE" ? new Date("2026-07-17T20:00:00Z") : null,
+      });
+      const before = structuredClone(record);
+      const service = createNauttCredentialService(repository, crypto);
+
+      await expect(service.save(owner, owner.id, "replacement-key")).rejects.toBeInstanceOf(NauttCredentialReplacementBlockedError);
+      expect(repository.records.get(owner.id)).toEqual(before);
+    },
+  );
+
+  it("preserves the complete row when replacement loses an atomic claim race", async () => {
+    const repository = store();
+    await repository.saveIfUnregistered(owner.id, "enc:original");
+    const before = structuredClone(repository.records.get(owner.id)!);
+    repository.saveIfUnregistered = vi.fn(async () => false);
+    const service = createNauttCredentialService(repository, crypto);
+
+    await expect(service.save(owner, owner.id, "replacement-key")).rejects.toBeInstanceOf(NauttCredentialReplacementBlockedError);
+    expect(repository.records.get(owner.id)).toEqual(before);
   });
 
   it("returns the original plaintext only through the server-only helper", async () => {
