@@ -8,6 +8,7 @@ import { verifyPassword } from "./password";
 export const SESSION_IDLE_MS = 30 * 60 * 1000;
 export const SESSION_ABSOLUTE_MS = 12 * 60 * 60 * 1000;
 export const SESSION_LIMIT = 5;
+const UNKNOWN_CREDENTIAL_RECORD = "scrypt$v=1$N=131072,r=8,p=1$AAECAwQFBgcICQoLDA0ODw$GylG2nH0EXnoO5ncM4QtFXQbh8QSHIx_N4HB34ZPtYs";
 
 type StoredSession = { id: string; userId: string; tokenDigest: string; createdAt: Date; lastSeenAt: Date; absoluteExpiresAt: Date };
 type Credential = { id: string; status: string; passwordHash: string };
@@ -37,13 +38,17 @@ function expired(session: StoredSession, now: Date) {
   return now.getTime() - session.lastSeenAt.getTime() >= SESSION_IDLE_MS || now >= session.absoluteExpiresAt;
 }
 
-export function createSessionService(store: SessionStore, clock: () => Date = () => new Date()) {
+export function createSessionService(
+  store: SessionStore,
+  clock: () => Date = () => new Date(),
+  verifyCredential: (plaintext: string, record: string) => Promise<boolean> = verifyPassword,
+) {
   return {
     async signIn(usernameInput: string, password: string) {
-      let username: string;
-      try { username = normalizeUsername(usernameInput); } catch { return null; }
-      const credential = await store.findCredential(username);
-      if (!credential || credential.status !== "ACTIVE" || !(await verifyPassword(password, credential.passwordHash))) return null;
+      let credential: Credential | null = null;
+      try { credential = await store.findCredential(normalizeUsername(usernameInput)); } catch { /* Preserve the generic credential path. */ }
+      const passwordMatches = await verifyCredential(password, credential?.passwordHash ?? UNKNOWN_CREDENTIAL_RECORD);
+      if (!credential || credential.status !== "ACTIVE" || !passwordMatches) return null;
       return this.create(credential.id);
     },
 

@@ -29,6 +29,7 @@
     "admin:contract-check": "node scripts/check-admin-contract-sync.mjs",
     "admin:evidence": "node scripts/run-admin-evidence.mjs",
     "admin:evidence:verify": "node scripts/verify-admin-evidence.mjs",
+    "epoch1:source-check": "node scripts/check-epoch1-source.mjs",
     "precheck": "pnpm db:generate",
     "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm build"
   },

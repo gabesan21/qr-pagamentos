@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { getSessionService } from "@/auth/session";
+import { getAuthorizationService } from "@/auth/authorization";
 import { getDictionary } from "@/i18n/dictionaries";
 import { getLocalePreferenceService } from "@/i18n/locale-preference";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -10,9 +10,9 @@ import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { LanguagePreferenceSubmit } from "./language-preference/language-preference-form";
 
 export default async function Home({ searchParams }: Readonly<{ searchParams: Promise<{ language?: string }> }>) {
-  const principal = await getSessionService().validate((await cookies()).get("qr_session")?.value);
+  const principal = await getAuthorizationService().resolve((await cookies()).get("qr_session")?.value);
   if (!principal) redirect("/login");
-  const locale = await getLocalePreferenceService().resolve(principal.userId);
+  const locale = await getLocalePreferenceService().resolve(principal.id);
   const dictionary = getDictionary(locale);
   const notice = (await searchParams).language;
   return (

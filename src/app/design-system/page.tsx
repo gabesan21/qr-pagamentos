@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { AlertCircleIcon, CheckCircle2Icon, LoaderCircleIcon, TriangleAlertIcon } from "lucide-react";
 
-import { getSessionService } from "@/auth/session";
+import { getAuthorizationService } from "@/auth/authorization";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,8 +20,8 @@ import { defaultLocale } from "@/i18n/locales";
 
 export default async function DesignSystemPage() {
   const token = (await cookies()).get("qr_session")?.value;
-  const principal = token ? await getSessionService().validate(token) : null;
-  const locale = principal ? await getLocalePreferenceService().resolve(principal.userId) : defaultLocale;
+  const principal = token ? await getAuthorizationService().resolve(token) : null;
+  const locale = principal ? await getLocalePreferenceService().resolve(principal.id) : defaultLocale;
   const dictionary = getDictionary(locale);
 
   return <main className="ds-ledger">

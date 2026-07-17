@@ -1,6 +1,6 @@
 "use client";
 
-import { useFormStatus } from "react-dom";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -12,7 +12,16 @@ type LoginSubmitProps = {
 };
 
 export function LoginSubmit({ form, label, pendingLabel }: Readonly<LoginSubmitProps>) {
-  const { pending } = useFormStatus();
+  const [pending, setPending] = useState(false);
+
+  useEffect(() => {
+    const loginForm = document.getElementById(form);
+    if (!(loginForm instanceof HTMLFormElement)) return;
+
+    const observeNativeSubmit = () => setPending(true);
+    loginForm.addEventListener("submit", observeNativeSubmit);
+    return () => loginForm.removeEventListener("submit", observeNativeSubmit);
+  }, [form]);
 
   return <Button aria-busy={pending || undefined} className="w-full" disabled={pending} form={form} type="submit">
     {pending && <Spinner data-icon="inline-start" />}
