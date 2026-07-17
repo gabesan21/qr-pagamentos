@@ -2,7 +2,7 @@
 
 - **Project:** [[PROJECT|QR Pagamentos]] - read for product and harness decisions.
 - **Roadmap:** [[ROADMAP|Roadmap]] - read for epoch boundaries.
-- **Status:** em andamento
+- **Status:** concluída
 - **Yolo:** yes
 - **Description:** Establish the self-hosted runtime, identity, access control, global settings, and bilingual admin shell.
 - **Pause if:** first-party authentication cannot satisfy revocation, authorization, and session-security acceptance tests without revisiting the no-library constraint.
@@ -60,7 +60,7 @@
 
 ## Phase 1.4 - Design-system and quality hardening
 
-- **Status:** em andamento
+- **Status:** concluída
 - **Description:** Repair the login failure and turn the existing administrative UI into a professional, modular, reusable shadcn-based system with independently verified code and UX quality.
 - **Yolo:** yes
 - **Specs:** [[specs/administrative-foundation|Administrative foundation]] - follow for authentication, bilingual UI, accessibility, component-state, and design-system boundaries.
@@ -72,5 +72,5 @@
 | [[1.4.1-repair-login-submit-reliability]] | Reproduce and repair the `/login/submit` 500 through the real database/runtime path while preserving opaque credential failures, secure sessions, and bilingual preference resolution. · size: M | concluída |
 | [[1.4.2-rebuild-design-system-with-shadcn]] | Audit and rebuild the shared visual foundation with shadcn, professional offline-safe typography, semantic tokens, intentional component APIs/states, and an authoritative specimen. · size: L | concluída |
 | [[1.4.3-redesign-login-experience]] | Recompose the bilingual login experience with the shared shadcn system, intentional hierarchy, complete interaction states, and responsive browser evidence. · size: M | concluída |
-| [[1.4.4-refactor-admin-surfaces-onto-design-system]] | Modularize and migrate the existing administration surfaces onto the approved shared components without changing authorization or locale behavior. · size: L | 001_initial_task |
-| [[1.4.5-audit-and-harden-epoch1-code-and-ui]] | Independently audit and remediate Epoch 1 clean-code, React, component-drift, accessibility, responsive, visual, and regression findings before phase closeout. · size: M | 001_initial_task |
+| [[1.4.4-refactor-admin-surfaces-onto-design-system]] | Modularize and migrate the existing administration surfaces onto the approved shared components without changing authorization or locale behavior. · size: L | concluída |
+| [[1.4.5-audit-and-harden-epoch1-code-and-ui]] | Independently audit and remediate Epoch 1 clean-code, React, component-drift, accessibility, responsive, visual, and regression findings before phase closeout. · size: M | concluída |
