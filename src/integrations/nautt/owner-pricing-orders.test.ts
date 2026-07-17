@@ -11,7 +11,7 @@ import {
   NauttOrderCreationIndeterminateError,
   NauttPricingAdapterError,
 } from "./pricing-orders-client";
-import { createInMemoryQuoteOwnershipStore, type QuoteOwnershipStore } from "./quote-ownership";
+import { createInMemoryProviderOrderStore, type ProviderOrderStore } from "./provider-order-store";
 
 const ownerA = "110e8400-e29b-41d4-a716-446655440011";
 const ownerB = "220e8400-e29b-41d4-a716-446655440022";
@@ -87,10 +87,10 @@ function fakeCredentialPort(keys: Record<string, string>) {
   };
 }
 
-function harness(options: { now?: () => Date; adapterNow?: () => Date; store?: QuoteOwnershipStore } = {}) {
+function harness(options: { now?: () => Date; adapterNow?: () => Date; store?: ProviderOrderStore } = {}) {
   const fetch = vi.fn();
   const credentials = fakeCredentialPort({ [ownerA]: keyA, [ownerB]: keyB });
-  const store = options.store ?? createInMemoryQuoteOwnershipStore();
+  const store = options.store ?? createInMemoryProviderOrderStore();
   const adapter = createPricingOrdersAdapter({ fetch, now: options.adapterNow ?? (() => T0) });
   const service = createOwnerPricingOrdersService(credentials, adapter, store, options.now ?? (() => T0));
   return { fetch, credentials, store, service };
@@ -160,7 +160,8 @@ describe("owner quote issuance", () => {
 
   it("maps a rejected quote registration to the opaque owner error", async () => {
     const rawStoreError = `database register failed with ${keyA}`;
-    const store: QuoteOwnershipStore = {
+    const store: ProviderOrderStore = {
+      ...createInMemoryProviderOrderStore(),
       register: vi.fn().mockRejectedValue(new Error(rawStoreError)),
       claimForCreation: vi.fn(),
     };
@@ -225,7 +226,8 @@ describe("owner order creation with quote ownership claims", () => {
 
   it("maps a rejected quote claim to the opaque owner error before decryption or order dispatch", async () => {
     const rawStoreError = `database claim failed with ${keyA}`;
-    const store: QuoteOwnershipStore = {
+    const store: ProviderOrderStore = {
+      ...createInMemoryProviderOrderStore(),
       register: vi.fn().mockResolvedValue(true),
       claimForCreation: vi.fn().mockRejectedValue(new Error(rawStoreError)),
     };
@@ -326,6 +328,24 @@ describe("owner order creation with quote ownership claims", () => {
     expect(credentials.calls).toEqual([ownerA, ownerA]);
     expect(fetch).toHaveBeenCalledTimes(2);
   });
+
+  it("retains a validated provider UUID when complete local persistence fails and never posts twice", async () => {
+    const base = createInMemoryProviderOrderStore();
+    const store: ProviderOrderStore = {
+      ...base,
+      completeCreation: vi.fn().mockRejectedValue(new Error("database unavailable")),
+      markIndeterminate: vi.fn().mockResolvedValue(undefined),
+    };
+    const { fetch, service } = harness({ store });
+    fetch.mockResolvedValueOnce(quoteSuccess());
+    await service.quote(ownerA, fiatQuoteInput);
+    fetch.mockResolvedValueOnce(orderCreated());
+
+    await expect(service.createOrder(ownerA, { quoteUuid }, {})).rejects.toBeInstanceOf(OwnerPricingOrdersError);
+    expect(store.markIndeterminate).toHaveBeenCalledWith(expect.objectContaining({ quoteUuid }), orderUuid);
+    await expect(service.createOrder(ownerA, { quoteUuid }, {})).rejects.toBeInstanceOf(OwnerPricingOrdersError);
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
 });
 
 describe("owner order read", () => {
@@ -355,22 +375,22 @@ describe("owner order read", () => {
 
 describe("in-memory quote ownership store", () => {
   it("does not overwrite or reassign an existing quote UUID on duplicate register", async () => {
-    const store = createInMemoryQuoteOwnershipStore();
+    const store = createInMemoryProviderOrderStore();
     const expiresAt = new Date("2026-07-17T20:05:00.000Z");
 
     expect(await store.register({ quoteUuid, ownerId: ownerA, expiresAt })).toBe(true);
     expect(await store.register({ quoteUuid, ownerId: ownerB, expiresAt })).toBe(false);
 
-    expect(await store.claimForCreation({ quoteUuid, ownerId: ownerB, now: T0 })).toBe("unavailable");
-    expect(await store.claimForCreation({ quoteUuid, ownerId: ownerA, now: T0 })).toBe("claimed");
+    expect(await store.claimForCreation({ quoteUuid, ownerId: ownerB, now: T0 })).toEqual({ kind: "unavailable" });
+    expect((await store.claimForCreation({ quoteUuid, ownerId: ownerA, now: T0 })).kind).toBe("claimed");
   });
 
   it("checks owner before consuming: a cross-owner miss leaves the quote claimable", async () => {
-    const store = createInMemoryQuoteOwnershipStore();
+    const store = createInMemoryProviderOrderStore();
     await store.register({ quoteUuid, ownerId: ownerA, expiresAt: new Date("2026-07-17T20:05:00.000Z") });
 
-    expect(await store.claimForCreation({ quoteUuid, ownerId: ownerB, now: T0 })).toBe("unavailable");
-    expect(await store.claimForCreation({ quoteUuid, ownerId: ownerA, now: T0 })).toBe("claimed");
-    expect(await store.claimForCreation({ quoteUuid, ownerId: ownerA, now: T0 })).toBe("unavailable");
+    expect(await store.claimForCreation({ quoteUuid, ownerId: ownerB, now: T0 })).toEqual({ kind: "unavailable" });
+    expect((await store.claimForCreation({ quoteUuid, ownerId: ownerA, now: T0 })).kind).toBe("claimed");
+    expect(await store.claimForCreation({ quoteUuid, ownerId: ownerA, now: T0 })).toEqual({ kind: "unavailable" });
   });
 });

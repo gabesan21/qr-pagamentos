@@ -23,6 +23,8 @@
 - Never use `db push`; create and review a new versioned migration instead.
 - Keep deterministic names for database constraints that verification asserts.
 - `nautt_credential.credential_revision` is the collision-proof UUID identity for credential CAS and registration claims; never replace it with `updated_at` or read ciphertext before an exact revision claim.
+- `provider_quote` claim and `provider_order` creation are one transaction; never split them or weaken the composite owner FK.
+- Provider monetary lexemes remain text protected by database checks; reconciliation must match owner, local ID, provider UUID, version, and current state in one conditional write.
 - The foundation fixture is infrastructure proof only; never attach domain semantics or routes to it.
 - `deployment_bootstrap` is an immutable no-FK locator for the originally seeded UUID; never retarget it, add a user FK, or make it block ordinary user mutation/deletion.
 

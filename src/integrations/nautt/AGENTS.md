@@ -29,7 +29,9 @@
 - Normalize `pix_qrcode ?? qrcode` as optional copy-and-paste data and keep `pix_qrcode_url` optional; when neither payload exists, leave the field absent instead of inventing a URL.
 - Return only the minimal redacted quote/order DTO; never expose raw envelopes, payer/user objects, keys, or provider error bodies.
 - Accept the owner identifier only from a trusted server caller; claim the quote UUID atomically for the same owner and fresh expiry before decrypting that owner's key, and clear local plaintext key references in `finally`.
-- Keep the quote-ownership store replaceable behind its port; the in-memory implementation fails closed after restart and never falls back to provider ownership checks. Durable persistence and idempotency belong to task 2.2.2.
+- Keep quote/order persistence replaceable behind `ProviderOrderStore`; production uses the Prisma store, and tests may use the process-local implementation only as an injected double.
+- Never release a quote after dispatch starts. Persist `INDETERMINATE` even when the provider UUID is unknown; only a durable known UUID authorizes explicit one-read recovery.
+- Poll and recover only by trusted owner plus local order UUID. Final rows and unknown-ID ambiguity perform zero decryption/GET; versioned reconciliation discards stale responses without a second GET.
 
 ## Verification
 
