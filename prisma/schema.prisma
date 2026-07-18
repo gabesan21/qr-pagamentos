@@ -133,6 +133,7 @@ model ProviderOrder {
   owner                 User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   quote                 ProviderQuote @relation(fields: [quoteUuid, ownerId], references: [quoteUuid, ownerId], onDelete: Cascade)
   webhookDeliveries     WebhookDelivery[]
+  webhookRecoveryLease  WebhookRecoveryLease?
 
   @@index([ownerId, status], map: "provider_order_owner_status_idx")
   @@unique([id, ownerId], map: "provider_order_id_owner_id_key")
@@ -149,7 +150,11 @@ model WebhookDelivery {
   eventType             String                   @map("event_type") @db.VarChar(32)
   providerCreatedAt     DateTime                 @map("provider_created_at") @db.Timestamptz(3)
   providerAttemptNumber Int?                     @map("provider_attempt_number") @db.Integer
-  payloadDigest         String                   @map("payload_digest") @db.Char(64)
+  evidenceSource        String                   @default("INTAKE") @map("evidence_source") @db.VarChar(8)
+  providerWebhookUuid   String?                  @map("provider_webhook_uuid") @db.Uuid
+  providerIsDelivered   Boolean?                 @map("provider_is_delivered")
+  providerIsPermanentlyFailed Boolean?           @map("provider_is_permanently_failed")
+  payloadDigest         String?                  @map("payload_digest") @db.Char(64)
   decision              String                   @default("RETRYABLE") @db.VarChar(10)
   leaseExpiresAt        DateTime?                @map("lease_expires_at") @db.Timestamptz(3)
   processingAttemptNumber Int?                   @map("processing_attempt_number") @db.Integer
@@ -171,7 +176,11 @@ model WebhookDeliveryAttempt {
   attemptNumber         Int             @map("attempt_number") @db.Integer
   outcome               String          @db.VarChar(10)
   providerAttemptNumber Int?            @map("provider_attempt_number") @db.Integer
-  payloadDigest         String          @map("payload_digest") @db.Char(64)
+  evidenceSource        String          @default("INTAKE") @map("evidence_source") @db.VarChar(8)
+  providerWebhookUuid   String?         @map("provider_webhook_uuid") @db.Uuid
+  providerIsDelivered   Boolean?        @map("provider_is_delivered")
+  providerIsPermanentlyFailed Boolean?  @map("provider_is_permanently_failed")
+  payloadDigest         String?         @map("payload_digest") @db.Char(64)
   createdAt             DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
   completedAt           DateTime?       @map("completed_at") @db.Timestamptz(3)
   delivery              WebhookDelivery @relation(fields: [deliveryUuid], references: [deliveryUuid], onDelete: Cascade)
@@ -179,5 +188,20 @@ model WebhookDeliveryAttempt {
   @@unique([deliveryUuid, attemptNumber], map: "webhook_delivery_attempt_delivery_number_key")
   @@index([deliveryUuid, createdAt], map: "webhook_delivery_attempt_delivery_created_idx")
   @@map("webhook_delivery_attempt")
+  @@schema("app")
+}
+
+model WebhookRecoveryLease {
+  providerOrderId String        @id @map("provider_order_id") @db.Uuid
+  ownerId         String        @map("owner_id") @db.Uuid
+  fenceToken      String        @map("fence_token") @db.Uuid
+  leaseExpiresAt  DateTime      @map("lease_expires_at") @db.Timestamptz(3)
+  createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  providerOrder   ProviderOrder @relation(fields: [providerOrderId, ownerId], references: [id, ownerId], onDelete: Cascade)
+
+  @@unique([providerOrderId, ownerId], map: "webhook_recovery_lease_order_owner_key")
+  @@index([leaseExpiresAt], map: "webhook_recovery_lease_expiry_idx")
+  @@map("webhook_recovery_lease")
   @@schema("app")
 }

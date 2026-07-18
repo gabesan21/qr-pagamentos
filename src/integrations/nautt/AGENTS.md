@@ -41,6 +41,14 @@
 - Treat notification status as untrusted. An actionable delivery performs at most one owner-bound `GET /orders/{uuid}` and reuses the shared versioned CAS before durable delivery finalization.
 - Return `204` only after a durable processed/ignored decision; malformed authenticated input is `400`, authentication is `401`, oversize is `413`, and busy/retryable work is `503`, always with an empty no-store body.
 
+## Webhook delivery recovery
+
+- Recovery is an explicit trusted owner/local-order operation; never add an automatic scheduler, route, UI, or browser-selected provider identity without a separate approved task.
+- Keep delivery-history transport behind the normalized injected port. Never infer an HTTP status, response envelope, wrapper, pagination rule, or failed-field nullability absent from the supplied provider material.
+- Enforce one selected history call with a service-issued 10-second abort deadline; cancellation-ignoring late settlement must remain inert, with no retry, order GET, or persistence.
+- Reject order-history lists above the application-local 128-record bound before validation/reconciliation/writes. Known specific UUIDs must stop before lease, secret, network, and write work.
+- Keep the 30-second recovery lease fenced around the 25-second accepted budget. All new failed deliveries for one order share at most one authoritative order GET; final orders record ignored evidence with zero GET.
+
 ## Verification
 
 - Inject network and timeout boundaries in tests; never call Nautt during automated tests.

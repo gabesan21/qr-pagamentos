@@ -5,6 +5,7 @@ vi.mock("server-only", () => ({}));
 import { getDatabaseClient } from "../../src/db/client";
 import { createPrismaProviderOrderStore } from "../../src/integrations/nautt/provider-order-store";
 import { createPrismaWebhookDeliveryStore } from "../../src/integrations/nautt/webhook-delivery-store";
+import { createPrismaWebhookDeliveryRecoveryStore } from "../../src/integrations/nautt/webhook-delivery-recovery-store";
 
 const hasDatabase = Boolean(process.env.DATABASE_URL);
 const describeDatabase = hasDatabase ? describe : describe.skip;
@@ -114,5 +115,51 @@ describeDatabase("runtime Prisma contract", () => {
     ]);
     await prisma.user.delete({ where: { id: ownerId } });
     console.log("PASS webhook-delivery-runtime");
+  });
+
+  it("fences recovery and atomically records distinct recovery evidence", async () => {
+    if (!prisma) throw new Error("DATABASE_URL is required for this database probe");
+    const ownerId = crypto.randomUUID();
+    const quoteUuid = crypto.randomUUID();
+    await prisma.user.create({ data: { id: ownerId, username: `recovery.${process.pid}`, role: "USER", status: "ACTIVE" } });
+    const orderStore = createPrismaProviderOrderStore(prisma);
+    await orderStore.register({ quoteUuid, ownerId, expiresAt: new Date(Date.now() + 60_000) });
+    const creation = await orderStore.claimForCreation({ quoteUuid, ownerId, now: new Date() });
+    if (creation.kind !== "claimed") throw new Error("recovery fixture claim unavailable");
+    const providerOrderUuid = crypto.randomUUID();
+    const order = await orderStore.completeCreation(creation.attempt, {
+      orderUuid: providerOrderUuid, status: "new", fiatAmount: "1000.0000", cryptoAmount: "196.0784", nauttQuote: "5.1000",
+      expiresAt: new Date(Date.now() + 60_000), paymentMethod: "pix",
+    });
+    const firstToken = crypto.randomUUID();
+    const secondToken = crypto.randomUUID();
+    let tokenIndex = 0;
+    const recoveryStore = createPrismaWebhookDeliveryRecoveryStore(prisma, () => tokenIndex++ === 0 ? firstToken : secondToken);
+    const target = await recoveryStore.findTarget(ownerId, order.id);
+    expect(target).toMatchObject({ ownerId, localOrderId: order.id, providerOrderUuid, terminal: false });
+    if (!target) throw new Error("recovery target unavailable");
+    const first = await recoveryStore.claimLease(target, new Date("2026-07-17T20:00:00Z"), new Date("2026-07-17T20:00:30Z"));
+    const busy = await recoveryStore.claimLease(target, new Date("2026-07-17T20:00:24.999Z"), new Date("2026-07-17T20:00:54.999Z"));
+    expect(first).toEqual({ kind: "claimed", fenceToken: firstToken });
+    expect(busy).toEqual({ kind: "busy" });
+    const reclaimed = await recoveryStore.claimLease(target, new Date("2026-07-17T20:00:30Z"), new Date("2026-07-17T20:01:00Z"));
+    expect(reclaimed).toEqual({ kind: "claimed", fenceToken: secondToken });
+    await expect(recoveryStore.releaseLease(target, firstToken)).resolves.toBe(false);
+    const valid = {
+      deliveryUuid: crypto.randomUUID(), webhookUuid: crypto.randomUUID(), orderUuid: providerOrderUuid,
+      eventType: "order.failed" as const, isDelivered: false, isPermanentlyFailed: true, attemptNumber: 5,
+      createdAt: new Date("2026-07-17T20:00:00Z"), decision: "PROCESSED" as const,
+    };
+    const invalid = { ...valid, deliveryUuid: crypto.randomUUID(), eventType: "order.not-real" as "order.failed" };
+    await expect(recoveryStore.complete(target, secondToken, [valid, invalid], new Date())).rejects.toThrow();
+    await expect(prisma.webhookDelivery.findUnique({ where: { deliveryUuid: valid.deliveryUuid } })).resolves.toBeNull();
+    await expect(recoveryStore.complete(target, secondToken, [valid], new Date())).resolves.toBe(1);
+    await expect(recoveryStore.classifyKnownDelivery(valid.deliveryUuid, ownerId, order.id)).resolves.toBe("same-bound");
+    const evidence = await prisma.webhookDelivery.findUniqueOrThrow({ where: { deliveryUuid: valid.deliveryUuid }, include: { attempts: true } });
+    expect(evidence).toMatchObject({ evidenceSource: "RECOVERY", payloadDigest: null, providerWebhookUuid: valid.webhookUuid, providerIsPermanentlyFailed: true, decision: "PROCESSED" });
+    expect(evidence.attempts).toHaveLength(1);
+    expect(evidence.attempts[0]).toMatchObject({ evidenceSource: "RECOVERY", payloadDigest: null, outcome: "PROCESSED" });
+    await prisma.user.delete({ where: { id: ownerId } });
+    console.log("PASS webhook-recovery-runtime");
   });
 });
