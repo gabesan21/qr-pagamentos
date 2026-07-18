@@ -33,9 +33,18 @@
 - Never release a quote after dispatch starts. Persist `INDETERMINATE` even when the provider UUID is unknown; only a durable known UUID authorizes explicit one-read recovery.
 - Poll and recover only by trusted owner plus local order UUID. Final rows and unknown-ID ambiguity perform zero decryption/GET; versioned reconciliation discards stale responses without a second GET.
 
+## Webhook intake
+
+- Bound the body at 256 KiB while streaming once; never parse, decode, concatenate an oversized stream, or call `arrayBuffer()`/`json()` before authentication.
+- Accept only one lowercase `sha256=<64 hex>` signature and compare the exact raw bytes against every active encrypted owner secret without early exit; zero or multiple matches disclose nothing and change no state.
+- Persist normalized delivery/attempt evidence only after authentication. Terminal replay, unknown/final order, and a live lease perform zero API-key decryption and provider GETs.
+- Treat notification status as untrusted. An actionable delivery performs at most one owner-bound `GET /orders/{uuid}` and reuses the shared versioned CAS before durable delivery finalization.
+- Return `204` only after a durable processed/ignored decision; malformed authenticated input is `400`, authentication is `401`, oversize is `413`, and busy/retryable work is `503`, always with an empty no-store body.
+
 ## Verification
 
 - Inject network and timeout boundaries in tests; never call Nautt during automated tests.
 - Cover exact request shape, complete success parsing, timeout/transport ambiguity, response redaction, and no-retry transitions.
 - For credential onboarding, validate the submitted key through the main-wallet read before an atomic ciphertext+fresh-UUID CAS; a stale UUID performs zero ciphertext read, decryption, or dispatch.
 - Cover the claim matrix (unknown, cross-owner, expired, consumed, duplicate register) with zero-decryption/zero-fetch assertions.
+- Cover byte mutation, all-candidate comparison, bounded-stream cancellation, delivery races/lease reclaim, terminal replay, and the 15-second/one-GET economic bound.

@@ -31,7 +31,8 @@ model User {
   nauttCredential  NauttCredential?
   providerQuotes   ProviderQuote[]
   providerOrders   ProviderOrder[]
-  sessions         Session[]
+  webhookDeliveries WebhookDelivery[]
+  sessions          Session[]
 
   @@map("user")
   @@schema("app")
@@ -131,9 +132,52 @@ model ProviderOrder {
   updatedAt             DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
   owner                 User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   quote                 ProviderQuote @relation(fields: [quoteUuid, ownerId], references: [quoteUuid, ownerId], onDelete: Cascade)
+  webhookDeliveries     WebhookDelivery[]
 
   @@index([ownerId, status], map: "provider_order_owner_status_idx")
+  @@unique([id, ownerId], map: "provider_order_id_owner_id_key")
   @@unique([quoteUuid, ownerId], map: "provider_order_quote_uuid_owner_id_key")
   @@map("provider_order")
+  @@schema("app")
+}
+
+model WebhookDelivery {
+  deliveryUuid          String                   @id @map("delivery_uuid") @db.Uuid
+  ownerId               String                   @map("owner_id") @db.Uuid
+  providerOrderId       String?                  @map("provider_order_id") @db.Uuid
+  providerOrderUuid     String                   @map("provider_order_uuid") @db.Uuid
+  eventType             String                   @map("event_type") @db.VarChar(32)
+  providerCreatedAt     DateTime                 @map("provider_created_at") @db.Timestamptz(3)
+  providerAttemptNumber Int?                     @map("provider_attempt_number") @db.Integer
+  payloadDigest         String                   @map("payload_digest") @db.Char(64)
+  decision              String                   @default("RETRYABLE") @db.VarChar(10)
+  leaseExpiresAt        DateTime?                @map("lease_expires_at") @db.Timestamptz(3)
+  processingAttemptNumber Int?                   @map("processing_attempt_number") @db.Integer
+  createdAt             DateTime                 @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt             DateTime                 @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  owner                 User                     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  providerOrder         ProviderOrder?           @relation(fields: [providerOrderId, ownerId], references: [id, ownerId], onDelete: Cascade)
+  attempts              WebhookDeliveryAttempt[]
+
+  @@index([ownerId, providerOrderUuid], map: "webhook_delivery_owner_provider_order_idx")
+  @@index([decision, leaseExpiresAt], map: "webhook_delivery_decision_lease_idx")
+  @@map("webhook_delivery")
+  @@schema("app")
+}
+
+model WebhookDeliveryAttempt {
+  id                    BigInt          @id @default(autoincrement()) @db.BigInt
+  deliveryUuid          String          @map("delivery_uuid") @db.Uuid
+  attemptNumber         Int             @map("attempt_number") @db.Integer
+  outcome               String          @db.VarChar(10)
+  providerAttemptNumber Int?            @map("provider_attempt_number") @db.Integer
+  payloadDigest         String          @map("payload_digest") @db.Char(64)
+  createdAt             DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
+  completedAt           DateTime?       @map("completed_at") @db.Timestamptz(3)
+  delivery              WebhookDelivery @relation(fields: [deliveryUuid], references: [deliveryUuid], onDelete: Cascade)
+
+  @@unique([deliveryUuid, attemptNumber], map: "webhook_delivery_attempt_delivery_number_key")
+  @@index([deliveryUuid, createdAt], map: "webhook_delivery_attempt_delivery_created_idx")
+  @@map("webhook_delivery_attempt")
   @@schema("app")
 }

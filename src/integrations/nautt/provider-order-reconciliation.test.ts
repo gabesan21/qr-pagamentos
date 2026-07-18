@@ -58,6 +58,7 @@ function harness(observed: StoredProviderOrder | null, reconciled = view()) {
     completeCreation: vi.fn(),
     findPollable: vi.fn().mockResolvedValue(observed),
     findRecoverable: vi.fn().mockResolvedValue(observed),
+    findWebhookActionable: vi.fn().mockResolvedValue(observed),
     reconcile: vi.fn().mockResolvedValue(row({
       creationState: "CREATED",
       status: reconciled.status,
@@ -90,6 +91,29 @@ describe("provider order transition lattice", () => {
     expect(getOrder).toHaveBeenCalledOnce();
     expect(getOrder).toHaveBeenCalledWith({ apiKey: "owner-secret", orderUuid: providerOrderUuid });
     expect(store.reconcile).toHaveBeenCalledWith(observed, expect.objectContaining({ status: "processing" }));
+  });
+
+  it("reconciles an actionable webhook through the same authoritative GET and CAS", async () => {
+    const { service, store, credentials, getOrder } = harness(row());
+
+    await expect(service.reconcileWebhookOrder(ownerId, providerOrderUuid)).resolves.toEqual({
+      kind: "processed",
+      localOrderId,
+    });
+
+    expect(store.findWebhookActionable).toHaveBeenCalledWith(ownerId, providerOrderUuid);
+    expect(credentials.getDecryptedApiKey).toHaveBeenCalledOnce();
+    expect(getOrder).toHaveBeenCalledOnce();
+    expect(store.reconcile).toHaveBeenCalledOnce();
+  });
+
+  it("ignores unknown or final webhook orders before key decryption or provider GET", async () => {
+    const { service, credentials, getOrder } = harness(null);
+
+    await expect(service.reconcileWebhookOrder(ownerId, providerOrderUuid)).resolves.toEqual({ kind: "ignored" });
+
+    expect(credentials.getDecryptedApiKey).not.toHaveBeenCalled();
+    expect(getOrder).not.toHaveBeenCalled();
   });
 
   it("returns the fresh terminal row after a stale CAS without a second provider read", async () => {

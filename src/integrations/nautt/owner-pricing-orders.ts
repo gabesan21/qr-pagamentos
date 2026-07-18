@@ -173,6 +173,19 @@ export function createOwnerPricingOrdersService(
     async recoverOrder(ownerId: string, localOrderId: string): Promise<NauttOrderView> {
       return reconcileOne("recover", ownerId, localOrderId, credentialPort, adapter, orderStore);
     },
+
+    async reconcileWebhookOrder(ownerId: string, providerOrderUuid: string): Promise<{ kind: "ignored" } | { kind: "processed"; localOrderId: string }> {
+      if (!isUuid(ownerId) || !isUuid(providerOrderUuid)) throw new OwnerPricingOrdersError();
+      let observed;
+      try {
+        observed = await orderStore.findWebhookActionable(ownerId, providerOrderUuid);
+      } catch {
+        throw new OwnerPricingOrdersError();
+      }
+      if (!observed) return { kind: "ignored" };
+      await reconcileObserved(observed, credentialPort, adapter, orderStore);
+      return { kind: "processed", localOrderId: observed.id };
+    },
   };
 }
 
@@ -195,9 +208,19 @@ async function reconcileOne(
   }
   if (!observed?.providerOrderUuid) throw new OwnerPricingOrdersError();
 
+  return reconcileObserved(observed, credentialPort, adapter, orderStore);
+}
+
+async function reconcileObserved(
+  observed: NonNullable<Awaited<ReturnType<ProviderOrderStore["findPollable"]>>>,
+  credentialPort: OwnerNauttCredentialPort,
+  adapter: PricingOrdersAdapter,
+  orderStore: ProviderOrderStore,
+): Promise<NauttOrderView> {
+  if (!observed.providerOrderUuid) throw new OwnerPricingOrdersError();
   let apiKey: string;
   try {
-    apiKey = await credentialPort.getDecryptedApiKey(ownerId);
+    apiKey = await credentialPort.getDecryptedApiKey(observed.ownerId);
   } catch {
     throw new OwnerPricingOrdersError();
   }
