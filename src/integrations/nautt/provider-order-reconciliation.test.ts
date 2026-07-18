@@ -107,6 +107,19 @@ describe("provider order transition lattice", () => {
     expect(store.reconcile).toHaveBeenCalledOnce();
   });
 
+  it("rejects a mismatched authoritative provider UUID without invoking the CAS", async () => {
+    const { service, store, getOrder } = harness(row());
+    getOrder.mockResolvedValueOnce({
+      ...view("finished"),
+      orderUuid: "550e8400-e29b-41d4-a716-446655440099",
+    });
+
+    await expect(service.reconcileWebhookOrder(ownerId, providerOrderUuid)).rejects.toBeInstanceOf(OwnerPricingOrdersError);
+
+    expect(getOrder).toHaveBeenCalledOnce();
+    expect(store.reconcile).not.toHaveBeenCalled();
+  });
+
   it("ignores unknown or final webhook orders before key decryption or provider GET", async () => {
     const { service, credentials, getOrder } = harness(null);
 

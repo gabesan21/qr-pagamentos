@@ -2,7 +2,12 @@ import "server-only";
 
 import { createHash } from "node:crypto";
 
-import { parseRejectedWebhookIdentity, parseWebhookEnvelope } from "./webhook-envelope";
+import {
+  parseRejectedWebhookIdentity,
+  parseWebhookEnvelope,
+  type NauttWebhookEnvelope,
+  type RejectedWebhookIdentity,
+} from "./webhook-envelope";
 import type { WebhookDeliveryStore } from "./webhook-delivery-store";
 import { parseWebhookSignature, verifyWebhookOwner, type WebhookSecretCandidate } from "./webhook-signature";
 
@@ -21,10 +26,14 @@ export type WebhookIntakeDependencies = {
   readonly deliveryStore: WebhookDeliveryStore;
   readonly orderReconciler: WebhookOrderReconciler;
   readonly now?: () => Date;
+  readonly parseEnvelope?: (rawBody: Buffer, delivery: string | null, event: string | null) => NauttWebhookEnvelope | null;
+  readonly parseRejectedIdentity?: (rawBody: Buffer, delivery: string | null, event: string | null) => RejectedWebhookIdentity | null;
 };
 
 export function createWebhookIntake(dependencies: WebhookIntakeDependencies) {
   const now = dependencies.now ?? (() => new Date());
+  const parseEnvelope = dependencies.parseEnvelope ?? parseWebhookEnvelope;
+  const parseRejectedIdentity = dependencies.parseRejectedIdentity ?? parseRejectedWebhookIdentity;
   return async function intake(input: {
     readonly rawBody: Buffer;
     readonly signature: string | null;
@@ -44,9 +53,9 @@ export function createWebhookIntake(dependencies: WebhookIntakeDependencies) {
     if (!ownerId) return { status: 401 };
 
     const payloadDigest = createHash("sha256").update(input.rawBody).digest("hex");
-    const envelope = parseWebhookEnvelope(input.rawBody, input.delivery, input.event);
+    const envelope = parseEnvelope(input.rawBody, input.delivery, input.event);
     if (!envelope) {
-      const rejected = parseRejectedWebhookIdentity(input.rawBody, input.delivery, input.event);
+      const rejected = parseRejectedIdentity(input.rawBody, input.delivery, input.event);
       if (rejected) {
         const rejectedAt = now();
         try {

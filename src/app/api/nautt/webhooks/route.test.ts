@@ -37,6 +37,28 @@ describe("POST /api/nautt/webhooks", () => {
     expect(handleNauttWebhook.mock.calls[0][0].rawBody).toEqual(Buffer.concat(chunks));
   });
 
+  it.each([400, 401, 503] as const)("returns an empty no-store %i intake outcome", async (status) => {
+    handleNauttWebhook.mockResolvedValueOnce({ status });
+    const { request } = requestFromChunks([Buffer.from("{}")]);
+
+    const response = await POST(request);
+
+    expect(response.status).toBe(status);
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(await response.text()).toBe("");
+  });
+
+  it("maps an unexpected intake failure to an empty no-store 503", async () => {
+    handleNauttWebhook.mockRejectedValueOnce(new Error("intake failed"));
+    const { request } = requestFromChunks([Buffer.from("{}")]);
+
+    const response = await POST(request);
+
+    expect(response.status).toBe(503);
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(await response.text()).toBe("");
+  });
+
   it("rejects declared oversize before intake and cancels the untouched stream", async () => {
     const harness = requestFromChunks([new Uint8Array(1)], { "content-length": String(MAX_WEBHOOK_BODY_BYTES + 1) });
     const response = await POST(harness.request);
