@@ -2,7 +2,7 @@
 
 - **Project:** [[PROJECT|QR Pagamentos]]
 - **Epoch/Phase:** [[roadmap/2-nautt-finance-integration|Epoch 2]]
-- **Status:** aprovada
+- **Status:** implementada
 - **Created:** 2026-07-13
 
 ## What it covers
@@ -34,7 +34,8 @@ This spec defines the allowed boundary between QR Pagamentos and Nautt Finance f
 - The unlocalized, sessionless webhook route reads at most 256 KiB through a bounded raw-byte stream before authentication. It returns empty `Cache-Control: no-store` responses: `401` for unauthenticated input, `400` for authenticated malformed input, `413` for an oversized body, `503` for busy/retryable work, and `204` only for a durably processed, ignored, duplicate, or no-op delivery.
 - Webhook handling persists and uniquely deduplicates `X-Nautt-Delivery`; every authenticated attempt records normalized evidence without storing the raw body, signature, API key, or secret. A 16-second processing lease excludes concurrent work beyond the accepted 14.5-second request budget; expired work is reclaimable, stale workers are fenced, and terminal finalization clears the lease. It accepts Nautt's five retry attempts at 10, 20, 40, 80, and 160 seconds after failure.
 - The handler treats `X-Nautt-Event` and the JSON envelope only as a notification, then performs at most one `GET /orders/{uuid}` with the correct owner's key as the authoritative state. Processed/ignored replays, unknown orders, and terminal local orders perform zero provider reads; a provider UUID mismatch cannot reach the compare-and-swap, and notification status never reaches the mutation boundary. `order.failed` is an event type, not an order status, and triggers the same authoritative read; the table and polling classify `paid`, `processing`, and `finished` as payment-confirmed while only final states stop reconciliation.
-- The integration reconciles documented webhook-delivery history, including permanently failed deliveries, without reprocessing a known delivery UUID or regressing a local terminal order state.
+- Delivery-history recovery is an explicit injected server-only operation, not a scheduler, route, or UI. It resolves trusted owner/local-order identity, stops a known specific delivery before lease, secret, or provider work, accepts at most 128 normalized records, enforces one cancelable 10-second history-port call, and makes late settlement inert. A fenced 30-second recovery lease contains a 25-second accepted-work budget and permits reclaim only after expiry.
+- Recovered evidence is typed separately from authenticated live intake: it carries no fabricated HMAC digest, imports only directly evidenced permanently failed records, preserves a known delivery UUID byte-for-byte, and inserts the new batch atomically. Terminal local orders record evidence with zero authoritative reads; actionable batches share at most one owner-bound order GET and the existing versioned compare-and-swap, regardless of delivery count.
 - Fiat amounts, currencies, provider fees, conversion results, and USDT settlement data use exact decimal representations.
 - Provider failures produce bounded retries and observable error states without leaking credentials or raw sensitive payloads.
 
@@ -52,6 +53,7 @@ This spec defines the allowed boundary between QR Pagamentos and Nautt Finance f
 - Bilingual owner onboarding with validate-before-save UUID revision pinning, exact-claim webhook registration, and redacted main-wallet balance, unavailable, retry, and recovery states (task 2.1.2).
 - Durable owner-bound quote and provider-order persistence with atomic one-shot creation claims, exact-decimal redacted order fields, known-UUID explicit recovery, injected one-order polling, and shared versioned compare-and-swap reconciliation that prevents stale or final-state regression (task 2.2.2).
 - Unlocalized central webhook intake with bounded raw-byte streaming, strict all-owner HMAC verification, durable delivery/attempt deduplication, a fenced 16-second processing lease, empty no-store protocol responses, and one-read owner-bound authoritative reconciliation that excludes notification status from state mutation (task 2.3.1).
+- Explicit owner/order-scoped recovery for permanently failed webhook deliveries through an injected eight-field normalized history port, with pre-lease known-UUID dedupe, an application-local 128-record cap, service-owned 10-second cancellation, typed `RECOVERY` evidence, a fenced 30-second lease, atomic collision preservation, terminal safety, and at most one authoritative reconciliation per batch (task 2.3.2).
 
 ## Open
 
@@ -59,6 +61,7 @@ This spec defines the allowed boundary between QR Pagamentos and Nautt Finance f
 - Webhook list/delete/recreate operations and the key-rotation/lost-secret recovery procedure.
 - Provider-side idempotency and recovery after a timed-out creation with no known provider UUID; until documented, the attempt stays indeterminate/manual and never retries automatically. Known UUIDs may use only the existing authoritative owner-bound order read.
 - Exact `deposit_fields` required for each configured UUID pair, quote-refresh behavior, monetary-field semantics/rounding, rate limits, and polling interval.
+- Nautt's exact delivery-history HTTP success status, response envelope, list wrapper/cardinality, pagination, and permanently-failed field nullability. No production HTTP decoder is claimed; recovery currently requires an injected normalized history port limited to the eight directly evidenced delivery fields.
 
 ## Related specs
 

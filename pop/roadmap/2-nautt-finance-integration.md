@@ -2,9 +2,9 @@
 
 - **Project:** [[PROJECT|QR Pagamentos]] - read for local identity, authorization, i18n, runtime, and secret constraints.
 - **Roadmap:** [[ROADMAP|Roadmap]] - read for epoch boundaries.
-- **Status:** em andamento
+- **Status:** concluída
 - **Yolo:** yes
-- **Description:** Onboard encrypted per-user Nautt API keys with main-wallet balance, then provide server-side pricing, orders, polling, and central webhook intake without Nautt-hosted links.
+- **Description:** Onboard encrypted per-user Nautt API keys with main-wallet balance, then provide server-side pricing, orders, polling, authenticated central webhook intake, and failed-delivery recovery without Nautt-hosted links.
 
 ## Recon and forks
 
@@ -39,11 +39,11 @@
 
 ## Phase 2.3 - Trusted event reconciliation
 
-- **Status:** em andamento
+- **Status:** concluída
 - **Description:** Authenticate, deduplicate, acknowledge, and reconcile owner-scoped provider events against authoritative order reads.
 - **Specs:** [[specs/nautt-finance-integration|Nautt Finance integration]]
 
 | Task | Description | Status |
 |------|-------------|--------|
 | [[2.3.1-verify-and-handle-nautt-webhooks]] | Verify the raw request body with HMAC-SHA256 and constant-time comparison, deduplicate `X-Nautt-Delivery`, persist evidence, acknowledge within 15 seconds, and reconcile every event from the authoritative provider order read. · size: L | concluída |
-| [[2.3.2-recover-nautt-webhook-deliveries]] | Reconcile documented delivery history and permanently failed deliveries without reprocessing a known delivery UUID or regressing a local terminal order state. · size: M | 001_initial_task |
+| [[2.3.2-recover-nautt-webhook-deliveries]] | Reconcile documented delivery history and permanently failed deliveries without reprocessing a known delivery UUID or regressing a local terminal order state. · size: M | concluída |
