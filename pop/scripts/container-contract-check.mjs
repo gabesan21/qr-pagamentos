@@ -57,7 +57,7 @@ for (const expected of ["identity-seed", "initial_admin_username", "initial_admi
 }
 assert(!compose.includes("initial_admin_recovery_password"), "Base Compose must not require the recovery secret");
 assert(recoveryCompose.includes("profiles: [\"recovery\"]"), "Recovery service must remain opt-in");
-assert(!/5432:5432|ports:\s*\n\s*-.*5432/m.test(compose), "database port must not be published");
+assert(!/(?:5432|5433):(?:5432|5433)|ports:\s*\n\s*-.*(?:5432|5433)/m.test(compose), "database port must not be published");
 assert(!compose.includes("MIGRATION_DATABASE_URL:") && !compose.includes("DATABASE_URL:"), "Compose must not render credential URLs");
 assert(compose.includes("NAUTT_WEBHOOK_CALLBACK_URL: ${NAUTT_WEBHOOK_CALLBACK_URL:?set NAUTT_WEBHOOK_CALLBACK_URL}"), "Compose must require the canonical Nautt callback");
 const bootstrap = await readFile("container/bootstrap.mjs", "utf8");
