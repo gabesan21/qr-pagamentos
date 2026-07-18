@@ -159,7 +159,79 @@ describeDatabase("runtime Prisma contract", () => {
     expect(evidence).toMatchObject({ evidenceSource: "RECOVERY", payloadDigest: null, providerWebhookUuid: valid.webhookUuid, providerIsPermanentlyFailed: true, decision: "PROCESSED" });
     expect(evidence.attempts).toHaveLength(1);
     expect(evidence.attempts[0]).toMatchObject({ evidenceSource: "RECOVERY", payloadDigest: null, outcome: "PROCESSED" });
+
+    const existingDeliveryUuid = crypto.randomUUID();
+    const intakeStore = createPrismaWebhookDeliveryStore(prisma);
+    const intakeClaim = await intakeStore.claim({
+      deliveryUuid: existingDeliveryUuid,
+      ownerId,
+      providerOrderUuid,
+      eventType: "order.paid",
+      providerCreatedAt: new Date("2026-07-17T19:00:00Z"),
+      providerAttemptNumber: 2,
+      payloadDigest: "a".repeat(64),
+      now: new Date("2026-07-17T19:00:01Z"),
+      leaseExpiresAt: new Date("2026-07-17T19:00:17Z"),
+    });
+    if (intakeClaim.kind !== "claimed") throw new Error("collision fixture claim unavailable");
+    await intakeStore.bindOrder(existingDeliveryUuid, ownerId, order.id);
+    await intakeStore.finalize({ deliveryUuid: existingDeliveryUuid, attemptNumber: intakeClaim.attemptNumber, decision: "PROCESSED", now: new Date("2026-07-17T19:00:02Z") });
+    const captureKnownTuple = () => prisma.$queryRawUnsafe<Array<{ delivery_bytes: string; attempt_bytes: string }>>(
+      `SELECT row_to_json(d)::text AS delivery_bytes,
+              COALESCE((SELECT json_agg(row_to_json(a) ORDER BY a.id)::text
+                          FROM app.webhook_delivery_attempt a
+                         WHERE a.delivery_uuid = d.delivery_uuid), '[]') AS attempt_bytes
+         FROM app.webhook_delivery d
+        WHERE d.delivery_uuid = $1::uuid`,
+      existingDeliveryUuid,
+    );
+    const knownBefore = await captureKnownTuple();
+    expect(knownBefore).toHaveLength(1);
+    const collisionFence = await recoveryStore.claimLease(target, new Date("2026-07-17T20:02:00Z"), new Date("2026-07-17T20:02:30Z"));
+    if (collisionFence.kind !== "claimed") throw new Error("collision recovery lease unavailable");
+    const collisionRecord = {
+      ...valid,
+      deliveryUuid: existingDeliveryUuid,
+      webhookUuid: crypto.randomUUID(),
+      eventType: "order.failed" as const,
+      attemptNumber: 5,
+      createdAt: new Date("2026-07-17T20:02:00Z"),
+      decision: "IGNORED" as const,
+    };
+    const newBatchRecord = { ...collisionRecord, deliveryUuid: crypto.randomUUID() };
+    await expect(recoveryStore.complete(target, collisionFence.fenceToken, [collisionRecord, newBatchRecord], new Date("2026-07-17T20:02:05Z"))).resolves.toBe(1);
+    const knownAfter = await captureKnownTuple();
+    expect(knownAfter).toEqual(knownBefore);
+    const newBatchEvidence = await prisma.webhookDelivery.findUniqueOrThrow({
+      where: { deliveryUuid: newBatchRecord.deliveryUuid },
+      include: { attempts: { orderBy: { id: "asc" } } },
+    });
+    expect(newBatchEvidence).toMatchObject({
+      deliveryUuid: newBatchRecord.deliveryUuid,
+      ownerId,
+      providerOrderId: order.id,
+      providerOrderUuid,
+      eventType: "order.failed",
+      evidenceSource: "RECOVERY",
+      providerWebhookUuid: newBatchRecord.webhookUuid,
+      providerIsDelivered: false,
+      providerIsPermanentlyFailed: true,
+      providerAttemptNumber: 5,
+      payloadDigest: null,
+      decision: "IGNORED",
+    });
+    expect(newBatchEvidence.attempts).toHaveLength(1);
+    expect(newBatchEvidence.attempts[0]).toMatchObject({
+      attemptNumber: 1,
+      outcome: "IGNORED",
+      evidenceSource: "RECOVERY",
+      providerWebhookUuid: newBatchRecord.webhookUuid,
+      providerIsDelivered: false,
+      providerIsPermanentlyFailed: true,
+      providerAttemptNumber: 5,
+      payloadDigest: null,
+    });
     await prisma.user.delete({ where: { id: ownerId } });
-    console.log("PASS webhook-recovery-runtime");
+    console.log("PASS webhook-recovery-runtime-collision");
   });
 });

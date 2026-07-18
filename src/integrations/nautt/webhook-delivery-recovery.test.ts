@@ -178,6 +178,73 @@ describe("webhook delivery recovery", () => {
     expect(effects.store.releaseLease).toHaveBeenCalledTimes(1);
   });
 
+  it("accepted budget completes history by 10s, order by 20s, and durable persistence by 25s", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(0);
+    const observedAt: { history?: number; order?: number; durable?: number } = {};
+    let lease: { token: string; expiresAt: number } | undefined;
+    const target = { ownerId, localOrderId, providerOrderUuid: orderUuid, terminal: false };
+    const store = {
+      findTarget: vi.fn(async () => target),
+      classifyKnownDelivery: vi.fn(async () => "absent" as const),
+      claimLease: vi.fn(async (_target, now, expiresAt) => {
+        if (lease && lease.expiresAt > now.getTime()) return { kind: "busy" as const };
+        lease = { token: fenceToken, expiresAt: expiresAt.getTime() };
+        return { kind: "claimed" as const, fenceToken };
+      }),
+      releaseLease: vi.fn(async (_target, token) => {
+        if (lease?.token !== token) return false;
+        lease = undefined;
+        return true;
+      }),
+      knownDeliveryUuids: vi.fn(async () => new Set<string>()),
+      complete: vi.fn(async (_target, token, records) => {
+        await new Promise<void>((resolve) => setTimeout(resolve, 5_001));
+        if (lease?.token !== token) throw new Error("stale token");
+        observedAt.durable = Date.now();
+        lease = undefined;
+        return records.length;
+      }),
+    } satisfies WebhookDeliveryRecoveryStore;
+    const history = {
+      listOrderDeliveries: vi.fn(async () => {
+        await new Promise<void>((resolve) => setTimeout(resolve, 9_999));
+        observedAt.history = Date.now();
+        return [record()];
+      }),
+      getDelivery: vi.fn(),
+    } as unknown as WebhookDeliveryHistoryPort;
+    const orderReconciler = {
+      reconcileWebhookOrder: vi.fn(async () => {
+        await new Promise<void>((resolve) => setTimeout(resolve, 10_000));
+        observedAt.order = Date.now();
+        return { kind: "processed" as const, localOrderId };
+      }),
+    };
+    const service = createWebhookDeliveryRecoveryService({
+      store,
+      history,
+      credentials: { loadActive: vi.fn(async () => ({ apiKey: "sensitive-api-key", webhookUuid })) },
+      orderReconciler,
+    }, () => new Date(Date.now()));
+
+    const successful = service.recoverWebhookDeliveries(ownerId, localOrderId, { kind: "order-history" });
+    await vi.advanceTimersByTimeAsync(9_999);
+    expect(observedAt.history).toBe(9_999);
+    await vi.advanceTimersByTimeAsync(10_000);
+    expect(observedAt.order).toBe(19_999);
+    await vi.advanceTimersByTimeAsync(5_000);
+    expect(Date.now()).toBe(24_999);
+    await expect(service.recoverWebhookDeliveries(ownerId, localOrderId, { kind: "order-history" })).resolves.toEqual({ kind: "unavailable", recordedCount: 0 });
+    expect(history.listOrderDeliveries).toHaveBeenCalledTimes(1);
+    expect(orderReconciler.reconcileWebhookOrder).toHaveBeenCalledTimes(1);
+    expect(store.complete).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(1);
+    await expect(successful).resolves.toEqual({ kind: "reconciled", recordedCount: 1 });
+    expect(observedAt).toEqual({ history: 9_999, order: 19_999, durable: RECOVERY_ACCEPTED_WORK_BUDGET_MS });
+    expect(store.claimLease).toHaveBeenNthCalledWith(1, target, new Date(0), new Date(RECOVERY_LEASE_MS));
+  });
+
   it("accepted budget duplicate stays busy until lease expiry and a stale token cannot complete", async () => {
     expect(HISTORY_DEADLINE_MS * 2 + 5_000).toBe(RECOVERY_ACCEPTED_WORK_BUDGET_MS);
     expect(RECOVERY_ACCEPTED_WORK_BUDGET_MS).toBeLessThan(RECOVERY_LEASE_MS);
