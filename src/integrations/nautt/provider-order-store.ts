@@ -33,6 +33,7 @@ export interface ProviderOrderStore extends QuoteOwnershipStore {
   completeCreation(attempt: ClaimedOrderAttempt, order: NauttOrderView): Promise<StoredProviderOrder>;
   findPollable(ownerId: string, localOrderId: string): Promise<StoredProviderOrder | null>;
   findRecoverable(ownerId: string, localOrderId: string): Promise<StoredProviderOrder | null>;
+  findWebhookActionable(ownerId: string, providerOrderUuid: string): Promise<StoredProviderOrder | null>;
   reconcile(observed: StoredProviderOrder, order: NauttOrderView): Promise<StoredProviderOrder>;
 }
 
@@ -117,6 +118,20 @@ export function createPrismaProviderOrderStore(prisma: PrismaClient): ProviderOr
     async findRecoverable(ownerId, localOrderId): Promise<StoredProviderOrder | null> {
       const row = await prisma.providerOrder.findFirst({
         where: { id: localOrderId, ownerId, creationState: "INDETERMINATE", providerOrderUuid: { not: null } },
+      });
+      return row ? asStored(row) : null;
+    },
+
+    async findWebhookActionable(ownerId, providerOrderUuid): Promise<StoredProviderOrder | null> {
+      const row = await prisma.providerOrder.findFirst({
+        where: {
+          ownerId,
+          providerOrderUuid,
+          OR: [
+            { creationState: "CREATED", status: { in: [...ACTIVE_ORDER_STATUSES] } },
+            { creationState: "INDETERMINATE", status: null },
+          ],
+        },
       });
       return row ? asStored(row) : null;
     },
@@ -232,6 +247,15 @@ export function createInMemoryProviderOrderStore(): ProviderOrderStore {
     findRecoverable(ownerId, localOrderId) {
       const order = orders.get(localOrderId);
       return Promise.resolve(order?.ownerId === ownerId && order.creationState === "INDETERMINATE" && order.providerOrderUuid ? order : null);
+    },
+    findWebhookActionable(ownerId, providerOrderUuid) {
+      const order = [...orders.values()].find((candidate) =>
+        candidate.ownerId === ownerId &&
+        candidate.providerOrderUuid === providerOrderUuid &&
+        ((candidate.creationState === "CREATED" && ACTIVE_ORDER_STATUSES.includes(candidate.status as never)) ||
+          (candidate.creationState === "INDETERMINATE" && candidate.status === null)),
+      );
+      return Promise.resolve(order ?? null);
     },
     reconcile(observed, order) {
       const current = orders.get(observed.id);

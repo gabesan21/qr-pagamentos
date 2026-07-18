@@ -75,7 +75,7 @@ Aggregate gate: `pnpm check` (lint + typecheck + test + build) — see Applicati
 
 Username and password are the only login credentials; email is optional and never used for login.
 
-- `src/app/` owns App Router pages and endpoints; localized UI routes are unprefixed and resolve only the persisted `pt-BR` or `en` preference, while `/api/health` stays unlocalized. Never reintroduce `/{locale}` UI or mutation routes.
+- `src/app/` owns App Router pages and endpoints; localized UI routes are unprefixed and resolve only the persisted `pt-BR` or `en` preference, while `/api/health` and `/api/nautt/webhooks` stay unlocalized. The Nautt callback is sessionless and returns only empty, no-store protocol statuses; never reintroduce `/{locale}` UI or mutation routes.
 - `src/app/admin/` owns the administrator shell plus account and global-payment-settings mutations; every read and POST must re-authorize the cookie principal, return only the documented empty `401`/`403` protected outcomes, and never disclose a target account or settings value to unauthorized callers.
 - `src/i18n/` owns the closed locale set and server dictionary loader; never add a locale without matching dictionary keys and contract tests.
 - Use the exact Node and pnpm pins in `.node-version` and `package.json`; install with `pnpm install --frozen-lockfile`.

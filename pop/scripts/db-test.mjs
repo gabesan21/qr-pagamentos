@@ -121,7 +121,7 @@ try {
   const migrationEnv = { ...process.env, MIGRATION_DATABASE_URL: migratorUrl };
   delete migrationEnv.DATABASE_URL;
   const firstDeploy = run("pnpm", ["exec", "prisma", "migrate", "deploy"], { env: migrationEnv });
-  assert(firstDeploy.includes("10 migrations found"), "Fresh deploy did not discover exactly ten migrations");
+  assert(firstDeploy.includes("11 migrations found"), "Fresh deploy did not discover exactly eleven migrations");
 
   const admin = new Client({ connectionString: adminUrl });
   await admin.connect();
@@ -129,7 +129,7 @@ try {
     SELECT migration_name, checksum, finished_at IS NOT NULL AS finished, rolled_back_at
     FROM app._prisma_migrations
   `);
-  const expectedMigrations = ["20260714000000_foundation_baseline", "20260714190000_local_identities", "20260716110000_database_sessions", "20260716160000_user_language_preference", "20260716180000_global_payment_settings", "20260716210000_restrict_global_payment_settings_runtime", "20260717190000_nautt_credentials", "20260717210000_nautt_webhook_registration", "20260717230000_nautt_credential_revision", "20260718010000_provider_orders"];
+  const expectedMigrations = ["20260714000000_foundation_baseline", "20260714190000_local_identities", "20260716110000_database_sessions", "20260716160000_user_language_preference", "20260716180000_global_payment_settings", "20260716210000_restrict_global_payment_settings_runtime", "20260717190000_nautt_credentials", "20260717210000_nautt_webhook_registration", "20260717230000_nautt_credential_revision", "20260718010000_provider_orders", "20260718030000_nautt_webhook_deliveries"];
   assert(history.rows.length === expectedMigrations.length, "Migration history row count changed");
   for (const migrationName of expectedMigrations) {
     const migrationSql = await readFile(`prisma/migrations/${migrationName}/migration.sql`);
@@ -181,8 +181,10 @@ try {
   const runtimeProbe = run("pnpm", ["exec", "vitest", "run", "pop/scripts/db-runtime.test.ts", "--reporter=dot"], { env: runtimeProbeEnv });
   assert(runtimeProbe.includes("PASS runtime-crud"), "Prisma runtime CRUD probe did not pass");
   assert(runtimeProbe.includes("PASS provider-order-runtime"), "Prisma provider order concurrency/CAS probe did not pass");
+  assert(runtimeProbe.includes("PASS webhook-delivery-runtime"), "Prisma webhook delivery concurrency/lease probe did not pass");
   console.log("PASS runtime-crud");
   console.log("PASS provider-order-runtime");
+  console.log("PASS webhook-delivery-runtime");
 
   await expectSqlState(runtime, `INSERT INTO app._database_foundation_fixture (key, quantity) VALUES (NULL, 0)`, { code: "23502", column: "key" });
   await runtime.query(`INSERT INTO app._database_foundation_fixture (key, quantity) VALUES ('constraint-duplicate', 0)`);
@@ -349,8 +351,15 @@ try {
   await expectSqlState(runtime, `INSERT INTO app.provider_order (owner_id, quote_uuid) VALUES ('${providerOtherOwnerId}', '${providerQuoteUuid}')`, { code: "23503", constraint: "provider_order_quote_owner_fkey" });
   await expectSqlState(runtime, `INSERT INTO app.provider_order (owner_id, quote_uuid, provider_order_uuid, creation_state, status, fiat_amount, crypto_amount, nautt_quote, provider_expires_at, payment_method) VALUES ('${providerOwnerId}', '${providerQuoteUuid}', '${providerOrderUuid}', 'CREATED', 'new', '-1.00', '2.00', '3.00', CURRENT_TIMESTAMP, 'pix')`, { code: "23514", constraint: "provider_order_decimal_lexemes" });
   await expectSqlState(runtime, `INSERT INTO app.provider_order (owner_id, quote_uuid, creation_state) VALUES ('${providerOwnerId}', '${providerQuoteUuid}', 'CREATED')`, { code: "23514", constraint: "provider_order_creation_tuple" });
-  await runtime.query(`INSERT INTO app.provider_order (owner_id, quote_uuid, provider_order_uuid, creation_state, status, fiat_amount, crypto_amount, nautt_quote, provider_expires_at, payment_method) VALUES ($1, $2, $3, 'CREATED', 'new', '1000.0000', '196.0784', '5.1000', CURRENT_TIMESTAMP + INTERVAL '5 minutes', 'pix')`, [providerOwnerId, providerQuoteUuid, providerOrderUuid]);
+  const providerOrder = await runtime.query(`INSERT INTO app.provider_order (owner_id, quote_uuid, provider_order_uuid, creation_state, status, fiat_amount, crypto_amount, nautt_quote, provider_expires_at, payment_method) VALUES ($1, $2, $3, 'CREATED', 'new', '1000.0000', '196.0784', '5.1000', CURRENT_TIMESTAMP + INTERVAL '5 minutes', 'pix') RETURNING id`, [providerOwnerId, providerQuoteUuid, providerOrderUuid]);
   await expectSqlState(runtime, `UPDATE app.provider_order SET status = 'unknown' WHERE quote_uuid = '${providerQuoteUuid}'`, { code: "23514", constraint: "provider_order_status_closed" });
+  const deliveryUuid = randomUUID();
+  await runtime.query(`INSERT INTO app.webhook_delivery (delivery_uuid, owner_id, provider_order_id, provider_order_uuid, event_type, provider_created_at, payload_digest, decision, lease_expires_at, processing_attempt_number) VALUES ($1, $2, $3, $4, 'order.paid', CURRENT_TIMESTAMP, $5, 'PROCESSING', CURRENT_TIMESTAMP + INTERVAL '14 seconds', 1)`, [deliveryUuid, providerOwnerId, providerOrder.rows[0].id, providerOrderUuid, "a".repeat(64)]);
+  await runtime.query(`INSERT INTO app.webhook_delivery_attempt (delivery_uuid, attempt_number, outcome, payload_digest) VALUES ($1, 1, 'CLAIMED', $2)`, [deliveryUuid, "a".repeat(64)]);
+  await expectSqlState(runtime, `INSERT INTO app.webhook_delivery_attempt (delivery_uuid, attempt_number, outcome, payload_digest, completed_at) VALUES ('${deliveryUuid}', 0, 'BUSY', '${"b".repeat(64)}', CURRENT_TIMESTAMP)`, { code: "23514", constraint: "webhook_delivery_attempt_number_positive" });
+  await expectSqlState(runtime, `UPDATE app.webhook_delivery SET payload_digest = '${"A".repeat(64)}' WHERE delivery_uuid = '${deliveryUuid}'`, { code: "23514", constraint: "webhook_delivery_digest_lower_hex" });
+  await expectSqlState(runtime, `UPDATE app.webhook_delivery SET decision = 'PROCESSED' WHERE delivery_uuid = '${deliveryUuid}'`, { code: "23514", constraint: "webhook_delivery_lease_consistent" });
+  console.log("PASS webhook-delivery-schema");
   await runtime.query(`DELETE FROM app."user" WHERE id = $1`, [providerOwnerId]);
   const cascadedProvider = await runtime.query(`SELECT (SELECT count(*)::int FROM app.provider_quote WHERE owner_id = $1) AS quotes, (SELECT count(*)::int FROM app.provider_order WHERE owner_id = $1) AS orders`, [providerOwnerId]);
   assert(cascadedProvider.rows[0].quotes === 0 && cascadedProvider.rows[0].orders === 0, "Provider quote/order did not cascade with owner");
@@ -369,6 +378,8 @@ try {
       has_table_privilege(current_user, 'app.nautt_credential', 'SELECT,INSERT,UPDATE,DELETE') AS nautt_credential_dml,
       has_table_privilege(current_user, 'app.provider_quote', 'SELECT,INSERT,UPDATE,DELETE') AS provider_quote_dml,
       has_table_privilege(current_user, 'app.provider_order', 'SELECT,INSERT,UPDATE,DELETE') AS provider_order_dml,
+      has_table_privilege(current_user, 'app.webhook_delivery', 'SELECT,INSERT,UPDATE,DELETE') AS webhook_delivery_dml,
+      has_table_privilege(current_user, 'app.webhook_delivery_attempt', 'SELECT,INSERT,UPDATE,DELETE') AS webhook_attempt_dml,
       has_table_privilege(current_user, 'app.global_payment_settings', 'SELECT') AS settings_select,
       has_column_privilege(current_user, 'app.global_payment_settings', 'currencies', 'UPDATE')
         AND has_column_privilege(current_user, 'app.global_payment_settings', 'payment_methods', 'UPDATE')
@@ -379,8 +390,10 @@ try {
       has_table_privilege(current_user, 'app._database_foundation_fixture', 'REFERENCES') AS table_references,
       has_table_privilege(current_user, 'app._database_foundation_fixture', 'TRIGGER') AS table_trigger,
       has_table_privilege(current_user, 'app.provider_order', 'TRUNCATE,REFERENCES,TRIGGER') AS provider_order_excess,
+      has_table_privilege(current_user, 'app.webhook_delivery', 'TRUNCATE,REFERENCES,TRIGGER') AS webhook_delivery_excess,
       has_table_privilege(current_user, 'app._database_foundation_fixture', 'MAINTAIN') AS table_maintain,
       has_sequence_privilege(current_user, 'app._database_foundation_fixture_id_seq', 'USAGE') AS sequence_usage,
+      has_sequence_privilege(current_user, 'app.webhook_delivery_attempt_id_seq', 'USAGE') AS webhook_sequence_usage,
       has_sequence_privilege(current_user, 'app._database_foundation_fixture_id_seq', 'SELECT') AS sequence_select,
       has_sequence_privilege(current_user, 'app._database_foundation_fixture_id_seq', 'UPDATE') AS sequence_update,
       has_table_privilege(current_user, 'app._prisma_migrations', 'SELECT,INSERT,UPDATE,DELETE') AS migration_access,
@@ -388,8 +401,8 @@ try {
       pg_has_role(current_user, 'qr_migrator', 'SET') AS migrator_set
   `);
   const acl = privilege.rows[0];
-  assert(acl.current_user === "qr_runtime" && acl.schema_usage && acl.table_dml && acl.user_dml && acl.credential_dml && acl.bootstrap_dml && acl.session_dml && acl.nautt_credential_dml && acl.provider_quote_dml && acl.provider_order_dml && acl.settings_select && acl.settings_column_update && acl.sequence_usage, "Runtime lacks intended privileges");
-  assert(!acl.settings_table_update && !acl.settings_write_extra && !acl.schema_create && !acl.table_truncate && !acl.table_references && !acl.table_trigger && !acl.provider_order_excess && !acl.table_maintain && !acl.sequence_select && !acl.sequence_update && !acl.migration_access && !acl.migrator_member && !acl.migrator_set, "Runtime has excess privileges");
+  assert(acl.current_user === "qr_runtime" && acl.schema_usage && acl.table_dml && acl.user_dml && acl.credential_dml && acl.bootstrap_dml && acl.session_dml && acl.nautt_credential_dml && acl.provider_quote_dml && acl.provider_order_dml && acl.webhook_delivery_dml && acl.webhook_attempt_dml && acl.settings_select && acl.settings_column_update && acl.sequence_usage && acl.webhook_sequence_usage, "Runtime lacks intended privileges");
+  assert(!acl.settings_table_update && !acl.settings_write_extra && !acl.schema_create && !acl.table_truncate && !acl.table_references && !acl.table_trigger && !acl.provider_order_excess && !acl.webhook_delivery_excess && !acl.table_maintain && !acl.sequence_select && !acl.sequence_update && !acl.migration_access && !acl.migrator_member && !acl.migrator_set, "Runtime has excess privileges");
   const ownership = await admin.query(`
     SELECT
       (SELECT count(*)::int FROM pg_class WHERE relowner = 'qr_runtime'::regrole) AS objects,

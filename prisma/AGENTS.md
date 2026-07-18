@@ -25,6 +25,8 @@
 - `nautt_credential.credential_revision` is the collision-proof UUID identity for credential CAS and registration claims; never replace it with `updated_at` or read ciphertext before an exact revision claim.
 - `provider_quote` claim and `provider_order` creation are one transaction; never split them or weaken the composite owner FK.
 - Provider monetary lexemes remain text protected by database checks; reconciliation must match owner, local ID, provider UUID, version, and current state in one conditional write.
+- Webhook delivery UUIDs are globally unique and owner-bound; never store raw bodies/signatures/secrets, weaken the optional composite owner/order FK, or allow runtime privileges beyond delivery/attempt DML and attempt-sequence usage.
+- A delivery claim must serialize attempt numbering, terminal replay, live-lease exclusion, and expired-lease recovery; its processing lease must outlive the accepted request-work budget, and finalization must match the current processing attempt so an expired worker is fenced. Preserve terminal evidence when reclaiming the expired attempt. Never hold its transaction across provider I/O or finalize before authoritative reconciliation succeeds.
 - The foundation fixture is infrastructure proof only; never attach domain semantics or routes to it.
 - `deployment_bootstrap` is an immutable no-FK locator for the originally seeded UUID; never retarget it, add a user FK, or make it block ordinary user mutation/deletion.
 

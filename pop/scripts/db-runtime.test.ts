@@ -4,6 +4,7 @@ vi.mock("server-only", () => ({}));
 
 import { getDatabaseClient } from "../../src/db/client";
 import { createPrismaProviderOrderStore } from "../../src/integrations/nautt/provider-order-store";
+import { createPrismaWebhookDeliveryStore } from "../../src/integrations/nautt/webhook-delivery-store";
 
 const hasDatabase = Boolean(process.env.DATABASE_URL);
 const describeDatabase = hasDatabase ? describe : describe.skip;
@@ -75,5 +76,43 @@ describeDatabase("runtime Prisma contract", () => {
     expect(staleResult.reconciliationVersion).toBe(final.reconciliationVersion);
     await prisma.user.delete({ where: { id: ownerId } });
     console.log("PASS provider-order-runtime");
+  });
+
+  it("claims one durable webhook worker and reclaims an expired lease", async () => {
+    if (!prisma) throw new Error("DATABASE_URL is required for this database probe");
+    const ownerId = crypto.randomUUID();
+    await prisma.user.create({ data: { id: ownerId, username: `webhook.${process.pid}`, role: "USER", status: "ACTIVE" } });
+    const store = createPrismaWebhookDeliveryStore(prisma);
+    const input = {
+      deliveryUuid: crypto.randomUUID(), ownerId, providerOrderUuid: crypto.randomUUID(), eventType: "order.paid",
+      providerCreatedAt: new Date("2026-07-17T20:00:00Z"), payloadDigest: "a".repeat(64),
+      providerAttemptNumber: 1,
+      now: new Date("2026-07-17T20:00:01Z"), leaseExpiresAt: new Date("2026-07-17T20:00:17Z"),
+    };
+    const results = await Promise.all([store.claim(input), store.claim(input)]);
+    expect(results.map((result) => result.kind).sort()).toEqual(["busy", "claimed"]);
+    const initial = results.find((result) => result.kind === "claimed");
+    const reclaimed = await store.claim({ ...input, now: new Date("2026-07-17T20:00:17.001Z"), leaseExpiresAt: new Date("2026-07-17T20:00:33.001Z") });
+    expect(reclaimed).toMatchObject({ kind: "claimed", attemptNumber: 3 });
+    if (!initial || initial.kind !== "claimed" || reclaimed.kind !== "claimed") throw new Error("claim evidence missing");
+    await expect(store.finalize({ deliveryUuid: input.deliveryUuid, attemptNumber: initial.attemptNumber, decision: "PROCESSED", now: new Date() })).rejects.toThrow("finalization changed");
+    await expect(store.finalize({ deliveryUuid: input.deliveryUuid, attemptNumber: reclaimed.attemptNumber, decision: "PROCESSED", now: new Date() })).resolves.toBeUndefined();
+    const durableDelivery = await prisma.webhookDelivery.findUniqueOrThrow({
+      where: { deliveryUuid: input.deliveryUuid },
+      include: { attempts: { orderBy: { attemptNumber: "asc" } } },
+    });
+    expect(durableDelivery).toMatchObject({ decision: "PROCESSED", leaseExpiresAt: null, processingAttemptNumber: null });
+    expect(durableDelivery.attempts.map(({ attemptNumber, outcome, providerAttemptNumber, payloadDigest }) => ({
+      attemptNumber,
+      outcome,
+      providerAttemptNumber,
+      payloadDigest,
+    }))).toEqual([
+      { attemptNumber: 1, outcome: "RETRYABLE", providerAttemptNumber: 1, payloadDigest: input.payloadDigest },
+      { attemptNumber: 2, outcome: "BUSY", providerAttemptNumber: 1, payloadDigest: input.payloadDigest },
+      { attemptNumber: 3, outcome: "PROCESSED", providerAttemptNumber: 1, payloadDigest: input.payloadDigest },
+    ]);
+    await prisma.user.delete({ where: { id: ownerId } });
+    console.log("PASS webhook-delivery-runtime");
   });
 });
