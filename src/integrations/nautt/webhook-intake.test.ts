@@ -1,14 +1,22 @@
-import { createHash, createHmac } from "node:crypto";
+import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 
 import { parseRejectedWebhookIdentity, parseWebhookEnvelope } from "./webhook-envelope";
 import { createInMemoryWebhookDeliveryStore, type WebhookDeliveryStore } from "./webhook-delivery-store";
-import { createWebhookIntake, type WebhookOrderReconciler } from "./webhook-intake";
+import {
+  createWebhookIntake,
+  WEBHOOK_ACCEPTED_PROCESSING_BUDGET_MS,
+  WEBHOOK_PROCESSING_LEASE_MS,
+  type WebhookOrderReconciler,
+} from "./webhook-intake";
 import { createOwnerPricingOrdersService } from "./owner-pricing-orders";
 import { createInMemoryProviderOrderStore, type ProviderOrderStore } from "./provider-order-store";
 import type { NauttOrderView } from "./pricing-orders-client";
+import { decrypt, encrypt } from "../../lib/nautt-crypto";
+import { createWebhookSecretCandidateLoader } from "./webhook-secret-candidates";
+import { verifyWebhookOwner } from "./webhook-signature";
 
 const ownerId = "550e8400-e29b-41d4-a716-446655440010";
 const delivery = "550e8400-e29b-41d4-a716-446655440011";
@@ -22,6 +30,8 @@ function harness(options: {
   candidates?: readonly { ownerId: string; secret: string }[];
   deliveryStore?: WebhookDeliveryStore;
   now?: () => Date;
+  loadCandidates?: () => Promise<readonly { ownerId: string; secret: Buffer }[]>;
+  verifyOwner?: typeof verifyWebhookOwner;
 } = {}) {
   const backingStore = options.deliveryStore ?? createInMemoryWebhookDeliveryStore();
   const deliveryStore = {
@@ -37,7 +47,7 @@ function harness(options: {
     return { kind: "processed" as const, localOrderId: "550e8400-e29b-41d4-a716-446655440013" };
   });
   const candidateValues = options.candidates ?? [{ ownerId, secret }];
-  const loadCandidates = vi.fn(async () => candidateValues.map((candidate) => ({ ownerId: candidate.ownerId, secret: Buffer.from(candidate.secret) })));
+  const loadCandidates = vi.fn(options.loadCandidates ?? (async () => candidateValues.map((candidate) => ({ ownerId: candidate.ownerId, secret: Buffer.from(candidate.secret) }))));
   const parseEnvelope = vi.fn(parseWebhookEnvelope);
   const parseRejectedIdentity = vi.fn(parseRejectedWebhookIdentity);
   const intake = createWebhookIntake({
@@ -47,6 +57,7 @@ function harness(options: {
     now: options.now,
     parseEnvelope,
     parseRejectedIdentity,
+    verifyOwner: options.verifyOwner,
   });
   return { intake, reconcile, loadCandidates, parseEnvelope, parseRejectedIdentity, deliveryStore, apiKeyDecrypt, providerFetch };
 }
@@ -125,6 +136,36 @@ describe("webhook intake decisions, deadline, capacity, and cost", () => {
     expect(effects.providerFetch).not.toHaveBeenCalled();
   });
 
+  it("keeps a boundary duplicate busy and reclaims only after the safe processing lease", async () => {
+    const startedAt = new Date("2026-07-17T20:00:00Z");
+    let currentTime = startedAt;
+    let releaseHeld!: (value: { kind: "ignored" }) => void;
+    const held = new Promise<{ kind: "ignored" }>((resolve) => { releaseHeld = resolve; });
+    const providerGet = vi.fn()
+      .mockImplementationOnce(() => held)
+      .mockResolvedValue({ kind: "ignored" });
+    const deliveryStore = createInMemoryWebhookDeliveryStore();
+    const effects = harness({
+      deliveryStore,
+      now: () => currentTime,
+      reconcile: providerGet,
+    });
+
+    const first = effects.intake({ rawBody: body, signature: validSignature, delivery, event: "order.paid" });
+    await vi.waitFor(() => expect(providerGet).toHaveBeenCalledOnce());
+
+    currentTime = new Date(startedAt.getTime() + WEBHOOK_ACCEPTED_PROCESSING_BUDGET_MS - 1);
+    await expect(effects.intake({ rawBody: body, signature: validSignature, delivery, event: "order.paid" })).resolves.toEqual({ status: 503 });
+    expect(providerGet).toHaveBeenCalledOnce();
+
+    currentTime = new Date(startedAt.getTime() + WEBHOOK_PROCESSING_LEASE_MS + 1);
+    await expect(effects.intake({ rawBody: body, signature: validSignature, delivery, event: "order.paid" })).resolves.toEqual({ status: 204 });
+    expect(providerGet).toHaveBeenCalledTimes(2);
+
+    releaseHeld({ kind: "ignored" });
+    await expect(first).resolves.toEqual({ status: 503 });
+  });
+
   it("durably ignores an unknown/final owner-bound order with zero provider GET", async () => {
     const reconcile = vi.fn().mockResolvedValue({ kind: "ignored" });
     const { intake } = harness({ reconcile });
@@ -183,14 +224,74 @@ describe("webhook intake decisions, deadline, capacity, and cost", () => {
     expect(reconcile).toHaveBeenCalledTimes(2);
   });
 
-  it("checks 1,000 candidates and leaves more than 500ms around an injected 10s GET", async () => {
-    const candidates = Array.from({ length: 1_000 }, (_, index) => ({ ownerId: `owner-${index}`, secret: index === 999 ? secret : `wrong-${index}` }));
-    candidates[999] = { ownerId, secret };
-    const start = performance.now();
-    const { intake, reconcile } = harness({ candidates });
-    await expect(intake({ rawBody: body, signature: validSignature, delivery, event: "order.paid" })).resolves.toEqual({ status: 204 });
-    const localWorkMs = performance.now() - start;
-    expect(localWorkMs + 10_000).toBeLessThan(14_500);
-    expect(reconcile).toHaveBeenCalledOnce();
+  it("advances a production-equivalent 1,000-secret, 10s GET, and durable-work timeline below 14.5s", async () => {
+    const encryptionKey = Buffer.alloc(32, 7);
+    const encryptedRows = Array.from({ length: 1_000 }, (_, index) => ({
+      ownerId: index === 999 ? ownerId : `owner-${index}`,
+      encryptedWebhookSecret: encrypt(index === 999 ? secret : `wrong-${index}`, encryptionKey),
+    }));
+    let elapsedMs = 0;
+    let decryptions = 0;
+    let comparisons = 0;
+    const loadCandidates = createWebhookSecretCandidateLoader(
+      async () => encryptedRows,
+      {
+        loadKey: () => Buffer.from(encryptionKey),
+        decryptSecret: (encrypted, key) => {
+          decryptions += 1;
+          elapsedMs += 1;
+          return decrypt(encrypted, key);
+        },
+      },
+    );
+    const verifyOwner = (rawBody: Buffer, signature: string | null, candidates: readonly { ownerId: string; secret: Buffer }[]) =>
+      verifyWebhookOwner(rawBody, signature, candidates, {
+        compare: (actual, expected) => {
+          comparisons += 1;
+          elapsedMs += 1;
+          return timingSafeEqual(actual, expected);
+        },
+      });
+    const persisted = createInMemoryWebhookDeliveryStore();
+    const durableEvidence = { claims: 0, binds: 0, finalizes: 0 };
+    const timedStore: WebhookDeliveryStore = {
+      async claim(input) {
+        const result = await persisted.claim(input);
+        durableEvidence.claims += 1;
+        elapsedMs += 250;
+        return result;
+      },
+      async bindOrder(deliveryUuid, boundOwnerId, localOrderId) {
+        await persisted.bindOrder(deliveryUuid, boundOwnerId, localOrderId);
+        durableEvidence.binds += 1;
+        elapsedMs += 100;
+      },
+      async finalize(input) {
+        await persisted.finalize(input);
+        durableEvidence.finalizes += 1;
+        elapsedMs += 250;
+      },
+    };
+    const providerGet = vi.fn(async () => {
+      elapsedMs += 10_000;
+      return { kind: "processed" as const, localOrderId: "550e8400-e29b-41d4-a716-446655440013" };
+    });
+    const epoch = Date.parse("2026-07-17T20:00:00Z");
+    const effects = harness({
+      deliveryStore: timedStore,
+      loadCandidates,
+      verifyOwner,
+      reconcile: providerGet,
+      now: () => new Date(epoch + elapsedMs),
+    });
+
+    await expect(effects.intake({ rawBody: body, signature: validSignature, delivery, event: "order.paid" })).resolves.toEqual({ status: 204 });
+
+    expect(decryptions).toBe(1_000);
+    expect(comparisons).toBe(1_000);
+    expect(providerGet).toHaveBeenCalledOnce();
+    expect(durableEvidence).toEqual({ claims: 1, binds: 1, finalizes: 1 });
+    expect(elapsedMs).toBe(12_600);
+    expect(elapsedMs).toBeLessThan(WEBHOOK_ACCEPTED_PROCESSING_BUDGET_MS);
   });
 });

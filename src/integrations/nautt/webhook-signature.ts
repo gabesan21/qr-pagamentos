@@ -23,7 +23,10 @@ export function verifyWebhookOwner(
   dependencies: SignatureVerificationDependencies = {},
 ): string | null {
   const expected = parseWebhookSignature(signatureValue);
-  if (!expected || expected.length !== 32) return null;
+  if (!expected || expected.length !== 32) {
+    for (const candidate of candidates) candidate.secret.fill(0);
+    return null;
+  }
   const compare = dependencies.compare ?? timingSafeEqual;
   const matches: string[] = [];
   for (const candidate of candidates) {

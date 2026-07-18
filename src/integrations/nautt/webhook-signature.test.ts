@@ -18,8 +18,20 @@ describe("Nautt webhook signature", () => {
   });
 
   it.each([null, "", "sha256=AA", `sha256=${"A".repeat(64)}`, `sha256=${"a".repeat(63)}`, `sha256=${"a".repeat(64)},sha256=${"b".repeat(64)}`])(
-    "rejects malformed single-value grammar: %s",
-    (value) => expect(parseWebhookSignature(value)).toBeNull(),
+    "rejects malformed grammar without comparison and clears candidate secrets: %s",
+    (value) => {
+      const compare = vi.fn(() => false);
+      const candidates = [
+        { ownerId: "owner-a", secret: Buffer.from("secret-a") },
+        { ownerId: "owner-b", secret: Buffer.from("secret-b") },
+      ];
+
+      expect(parseWebhookSignature(value)).toBeNull();
+      expect(verifyWebhookOwner(body, value, candidates, { compare })).toBeNull();
+      expect(compare).not.toHaveBeenCalled();
+      expect(candidates[0].secret).toEqual(Buffer.alloc("secret-a".length));
+      expect(candidates[1].secret).toEqual(Buffer.alloc("secret-b".length));
+    },
   );
 
   it("compares every fixed-length candidate without early exit and rejects ambiguity", () => {

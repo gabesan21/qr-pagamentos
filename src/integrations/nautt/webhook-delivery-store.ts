@@ -42,6 +42,7 @@ type LockedDelivery = {
   payload_digest: string;
   decision: string;
   lease_expires_at: Date | null;
+  processing_attempt_number: number | null;
 };
 
 export function createPrismaWebhookDeliveryStore(prisma: PrismaClient): WebhookDeliveryStore {
@@ -62,7 +63,7 @@ export function createPrismaWebhookDeliveryStore(prisma: PrismaClient): WebhookD
           input.payloadDigest,
         );
         const rows = await tx.$queryRawUnsafe<LockedDelivery[]>(
-          `SELECT owner_id, provider_order_uuid, event_type, provider_created_at, provider_attempt_number, payload_digest, decision, lease_expires_at
+          `SELECT owner_id, provider_order_uuid, event_type, provider_created_at, provider_attempt_number, payload_digest, decision, lease_expires_at, processing_attempt_number
              FROM app.webhook_delivery WHERE delivery_uuid = $1::uuid FOR UPDATE`,
           input.deliveryUuid,
         );
@@ -89,6 +90,18 @@ export function createPrismaWebhookDeliveryStore(prisma: PrismaClient): WebhookD
             data: { deliveryUuid: input.deliveryUuid, attemptNumber, outcome: "BUSY", providerAttemptNumber: input.providerAttemptNumber, payloadDigest: input.payloadDigest, completedAt: input.now },
           });
           return { kind: "busy", attemptNumber };
+        }
+        if (row.decision === "PROCESSING" && row.processing_attempt_number !== null) {
+          const expired = await tx.webhookDeliveryAttempt.updateMany({
+            where: {
+              deliveryUuid: input.deliveryUuid,
+              attemptNumber: row.processing_attempt_number,
+              outcome: "CLAIMED",
+              completedAt: null,
+            },
+            data: { outcome: "RETRYABLE", completedAt: input.now },
+          });
+          if (expired.count !== 1) throw new Error("expired webhook attempt evidence changed");
         }
         await tx.webhookDelivery.update({
           where: { deliveryUuid: input.deliveryUuid },
@@ -163,6 +176,11 @@ export function createInMemoryWebhookDeliveryStore(): WebhookDeliveryStore {
       if (entry.decision === "PROCESSING" && entry.leaseExpiresAt && entry.leaseExpiresAt > input.now) {
         entry.attempts.push({ outcome: "BUSY", providerAttemptNumber: input.providerAttemptNumber, payloadDigest: input.payloadDigest });
         return Promise.resolve({ kind: "busy", attemptNumber });
+      }
+      if (entry.decision === "PROCESSING" && entry.processingAttemptNumber !== null) {
+        const expiredAttempt = entry.attempts[entry.processingAttemptNumber - 1];
+        if (expiredAttempt?.outcome !== "CLAIMED") return Promise.reject(new Error("expired webhook attempt evidence changed"));
+        expiredAttempt.outcome = "RETRYABLE";
       }
       entry.decision = "PROCESSING";
       entry.leaseExpiresAt = input.leaseExpiresAt;

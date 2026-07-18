@@ -11,7 +11,9 @@ import {
 import type { WebhookDeliveryStore } from "./webhook-delivery-store";
 import { parseWebhookSignature, verifyWebhookOwner, type WebhookSecretCandidate } from "./webhook-signature";
 
-const PROCESSING_LEASE_MS = 14_000;
+export const WEBHOOK_ACCEPTED_PROCESSING_BUDGET_MS = 14_500;
+export const WEBHOOK_LEASE_SAFETY_MARGIN_MS = 1_500;
+export const WEBHOOK_PROCESSING_LEASE_MS = WEBHOOK_ACCEPTED_PROCESSING_BUDGET_MS + WEBHOOK_LEASE_SAFETY_MARGIN_MS;
 
 export type WebhookIntakeResult = { readonly status: 204 | 400 | 401 | 503 };
 
@@ -28,12 +30,14 @@ export type WebhookIntakeDependencies = {
   readonly now?: () => Date;
   readonly parseEnvelope?: (rawBody: Buffer, delivery: string | null, event: string | null) => NauttWebhookEnvelope | null;
   readonly parseRejectedIdentity?: (rawBody: Buffer, delivery: string | null, event: string | null) => RejectedWebhookIdentity | null;
+  readonly verifyOwner?: typeof verifyWebhookOwner;
 };
 
 export function createWebhookIntake(dependencies: WebhookIntakeDependencies) {
   const now = dependencies.now ?? (() => new Date());
   const parseEnvelope = dependencies.parseEnvelope ?? parseWebhookEnvelope;
   const parseRejectedIdentity = dependencies.parseRejectedIdentity ?? parseRejectedWebhookIdentity;
+  const verifyOwner = dependencies.verifyOwner ?? verifyWebhookOwner;
   return async function intake(input: {
     readonly rawBody: Buffer;
     readonly signature: string | null;
@@ -48,7 +52,7 @@ export function createWebhookIntake(dependencies: WebhookIntakeDependencies) {
     } catch {
       return { status: 503 };
     }
-    const ownerId = verifyWebhookOwner(input.rawBody, input.signature, candidates);
+    const ownerId = verifyOwner(input.rawBody, input.signature, candidates);
     candidates = [];
     if (!ownerId) return { status: 401 };
 
@@ -68,7 +72,7 @@ export function createWebhookIntake(dependencies: WebhookIntakeDependencies) {
             ownerId,
             payloadDigest,
             now: rejectedAt,
-            leaseExpiresAt: new Date(rejectedAt.getTime() + PROCESSING_LEASE_MS),
+            leaseExpiresAt: new Date(rejectedAt.getTime() + WEBHOOK_PROCESSING_LEASE_MS),
           });
           if (rejectedClaim.kind === "claimed") {
             await dependencies.deliveryStore.finalize({
@@ -96,7 +100,7 @@ export function createWebhookIntake(dependencies: WebhookIntakeDependencies) {
         providerAttemptNumber: envelope.providerAttemptNumber,
         payloadDigest,
         now: acceptedAt,
-        leaseExpiresAt: new Date(acceptedAt.getTime() + PROCESSING_LEASE_MS),
+        leaseExpiresAt: new Date(acceptedAt.getTime() + WEBHOOK_PROCESSING_LEASE_MS),
       });
     } catch {
       return { status: 503 };
