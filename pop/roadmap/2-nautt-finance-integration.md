@@ -5,7 +5,6 @@
 - **Status:** em andamento
 - **Yolo:** yes
 - **Description:** Onboard encrypted per-user Nautt API keys with main-wallet balance, then provide server-side pricing, orders, polling, and central webhook intake without Nautt-hosted links.
-- **Pause if:** Nautt's documented HMAC verification cannot be reproduced against the production dispatcher before an order-state-changing receiver is implemented.
 
 ## Recon and forks
 
@@ -13,7 +12,6 @@
 - [[specs/nautt-finance-integration|Nautt Finance integration]] - records the application/provider boundary and security requirements.
 - [ ] RECON NEEDED: ambiguous provider-order creation recovery - check: obtain Nautt's idempotency/header and timeout-recovery contract before allowing a retried checkout request to create an onramp order.
 - [ ] RECON NEEDED: webhook lifecycle recovery - check: obtain Nautt's list/delete/recreate contract before supporting lost-secret recovery or key-rotation cleanup.
-- Fork: if the production dispatcher fails the documented raw-body HMAC contract -> retain polling and do not accept an order-state-changing callback.
 - Fork: if documented `/exchange-currencies` metadata becomes available -> validate administrator-entered currency/payment-method UUID pairings; otherwise retain explicit UUID validation only and keep unsupported pairs out of checkout.
 
 ## Phase 2.1 - Per-user provider access
@@ -41,11 +39,11 @@
 
 ## Phase 2.3 - Trusted event reconciliation
 
-- **Status:** pending
+- **Status:** em andamento
 - **Description:** Authenticate, deduplicate, acknowledge, and reconcile owner-scoped provider events against authoritative order reads.
 - **Specs:** [[specs/nautt-finance-integration|Nautt Finance integration]]
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[2.3.1-verify-and-handle-nautt-webhooks]] | Verify the raw request body with HMAC-SHA256 and constant-time comparison, deduplicate `X-Nautt-Delivery`, persist evidence, acknowledge within 15 seconds, and reconcile every event from the authoritative provider order read. · size: L | 001_initial_task |
+| [[2.3.1-verify-and-handle-nautt-webhooks]] | Verify the raw request body with HMAC-SHA256 and constant-time comparison, deduplicate `X-Nautt-Delivery`, persist evidence, acknowledge within 15 seconds, and reconcile every event from the authoritative provider order read. · size: L | concluída |
 | [[2.3.2-recover-nautt-webhook-deliveries]] | Reconcile documented delivery history and permanently failed deliveries without reprocessing a known delivery UUID or regressing a local terminal order state. · size: M | 001_initial_task |
