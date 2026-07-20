@@ -1,8 +1,8 @@
 import "server-only";
 
+import { loadNauttApiBaseUrl } from "./config";
 import { isExactDecimal, isExactPositiveDecimal, isUuid } from "./decimal";
 
-const PRODUCTION_BASE_URL = "https://api.nauttfinance.com/api/v2";
 const DEFAULT_TIMEOUT_MS = 10_000;
 const QUOTE_TTL_MS = 5 * 60 * 1000;
 const MAX_DEPOSIT_FIELDS = 32;
@@ -280,7 +280,7 @@ export function createPricingOrdersAdapter(dependencies: AdapterDependencies = {
       }
 
       try {
-        const response = await fetch(`${PRODUCTION_BASE_URL}/pricing/panel/buy`, {
+        const response = await fetch(`${loadNauttApiBaseUrl()}/pricing/panel/buy`, {
           method: "POST",
           headers: { "Content-Type": "application/json", "X-API-Key": apiKey },
           body,
@@ -319,7 +319,7 @@ export function createPricingOrdersAdapter(dependencies: AdapterDependencies = {
 
       let response: Response;
       try {
-        response = await fetch(`${PRODUCTION_BASE_URL}/orders/onramp`, {
+        response = await fetch(`${loadNauttApiBaseUrl()}/orders/onramp`, {
           method: "POST",
           headers: { "Content-Type": "application/json", "X-API-Key": apiKey },
           body,
@@ -344,7 +344,7 @@ export function createPricingOrdersAdapter(dependencies: AdapterDependencies = {
 
       let response: Response;
       try {
-        response = await fetch(`${PRODUCTION_BASE_URL}/orders/${input.orderUuid}`, {
+        response = await fetch(`${loadNauttApiBaseUrl()}/orders/${input.orderUuid}`, {
           method: "GET",
           headers: { "X-API-Key": apiKey },
           signal: createTimeoutSignal(DEFAULT_TIMEOUT_MS),

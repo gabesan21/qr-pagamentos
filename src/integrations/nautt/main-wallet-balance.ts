@@ -1,8 +1,8 @@
 import "server-only";
 
+import { loadNauttApiBaseUrl } from "./config";
 import { isExactDecimal } from "./decimal";
 
-const PRODUCTION_BASE_URL = "https://api.nauttfinance.com/api/v2";
 const DEFAULT_TIMEOUT_MS = 10_000;
 
 export type MainWalletBalance = {
@@ -61,7 +61,7 @@ export function createMainWalletBalanceAdapter(dependencies: Dependencies = {}) 
       const apiKey = apiKeyCandidate.trim();
       if (!apiKey) throw new MainWalletBalanceError();
       try {
-        const response = await fetch(`${PRODUCTION_BASE_URL}/users/wallets/main/balances`, {
+        const response = await fetch(`${loadNauttApiBaseUrl()}/users/wallets/main/balances`, {
           method: "GET",
           headers: { "X-API-Key": apiKey },
           signal: createTimeoutSignal(DEFAULT_TIMEOUT_MS),

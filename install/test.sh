@@ -69,6 +69,15 @@ if "$INSTALL_DIR/install.sh" --dry-run --env-file "$TMP/invalid-callback.env" >/
 sed '/^NAUTT_WEBHOOK_CALLBACK_URL=/d' "$TMP/install.env" > "$TMP/missing-callback.env"
 if "$INSTALL_DIR/install.sh" --dry-run --env-file "$TMP/missing-callback.env" >/dev/null 2>&1; then fail 'missing Nautt callback succeeded'; fi
 
+# Optional Nautt API base URL override path
+expect_contains "$INSTALL_DIR/install.sh" 'NAUTT_API_BASE_URL'
+expect_contains "$INSTALL_DIR/.env.example" 'NAUTT_API_BASE_URL'
+sed '$a NAUTT_API_BASE_URL=https://api-stage.nauttfinance.com/api/v2' "$TMP/install.env" > "$TMP/base-url.env"
+"$INSTALL_DIR/install.sh" --dry-run --env-file "$TMP/base-url.env" >/dev/null || fail 'valid Nautt API base URL override failed'
+"$INSTALL_DIR/uninstall.sh" --dry-run --env-file "$TMP/base-url.env" >/dev/null || fail 'uninstall rejected the optional Nautt API base URL'
+sed '$a NAUTT_API_BASE_URL=http://api-stage.nauttfinance.com/api/v2' "$TMP/install.env" > "$TMP/invalid-base-url.env"
+if "$INSTALL_DIR/install.sh" --dry-run --env-file "$TMP/invalid-base-url.env" >/dev/null 2>&1; then fail 'invalid Nautt API base URL succeeded'; fi
+
 git -C "$INSTALL_DIR/.." check-ignore -q install/.env || fail 'install/.env is not ignored by Git'
 
 sed 's/^APP_PORT=.*/APP_PORT="33013"/' "$TMP/install.env" > "$TMP/quoted.env"
