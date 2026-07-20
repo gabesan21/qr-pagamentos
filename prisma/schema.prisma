@@ -27,8 +27,12 @@ model User {
   preferredLocale String?             @map("preferred_locale") @db.VarChar(5)
   createdAt       DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt       DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
-  credential PasswordCredential?
-  sessions   Session[]
+  credential       PasswordCredential?
+  nauttCredential  NauttCredential?
+  providerQuotes   ProviderQuote[]
+  providerOrders   ProviderOrder[]
+  webhookDeliveries WebhookDelivery[]
+  sessions          Session[]
 
   @@map("user")
   @@schema("app")
@@ -59,6 +63,22 @@ model PasswordCredential {
   @@schema("app")
 }
 
+model NauttCredential {
+  userId                   String    @id @map("user_id") @db.Uuid
+  encryptedApiKey          String    @map("encrypted_api_key") @db.Text
+  credentialRevision       String    @unique(map: "nautt_credential_credential_revision_key") @default(dbgenerated("gen_random_uuid()")) @map("credential_revision") @db.Uuid
+  webhookRegistrationState String    @default("UNREGISTERED") @map("webhook_registration_state") @db.VarChar(13)
+  providerWebhookId        String?   @map("provider_webhook_id") @db.Uuid
+  encryptedWebhookSecret  String?   @map("encrypted_webhook_secret") @db.Text
+  webhookRegisteredAt     DateTime? @map("webhook_registered_at") @db.Timestamptz(3)
+  createdAt                DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt                DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  user                     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("nautt_credential")
+  @@schema("app")
+}
+
 model DeploymentBootstrap {
   id                 Int      @id @db.SmallInt
   initialAdminUserId String   @map("initial_admin_user_id") @db.Uuid
@@ -75,5 +95,113 @@ model GlobalPaymentSettings {
   updatedAt      DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   @@map("global_payment_settings")
+  @@schema("app")
+}
+
+model ProviderQuote {
+  quoteUuid String          @id @map("quote_uuid") @db.Uuid
+  ownerId   String          @map("owner_id") @db.Uuid
+  expiresAt DateTime        @map("expires_at") @db.Timestamptz(3)
+  claimedAt DateTime?       @map("claimed_at") @db.Timestamptz(3)
+  createdAt DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
+  owner     User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  order     ProviderOrder?
+
+  @@unique([quoteUuid, ownerId], map: "provider_quote_quote_uuid_owner_id_key")
+  @@index([ownerId, expiresAt], map: "provider_quote_owner_expires_at_idx")
+  @@map("provider_quote")
+  @@schema("app")
+}
+
+model ProviderOrder {
+  id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId               String    @map("owner_id") @db.Uuid
+  quoteUuid             String    @unique(map: "provider_order_quote_uuid_key") @map("quote_uuid") @db.Uuid
+  providerOrderUuid     String?   @unique(map: "provider_order_provider_order_uuid_key") @map("provider_order_uuid") @db.Uuid
+  creationState         String    @default("CREATING") @map("creation_state") @db.VarChar(13)
+  status                String?   @db.VarChar(10)
+  fiatAmount            String?   @map("fiat_amount") @db.Text
+  cryptoAmount          String?   @map("crypto_amount") @db.Text
+  nauttQuote             String?   @map("nautt_quote") @db.Text
+  providerExpiresAt     DateTime? @map("provider_expires_at") @db.Timestamptz(3)
+  paymentMethod         String?   @map("payment_method") @db.Text
+  pixCopyPaste          String?   @map("pix_copy_paste") @db.Text
+  pixQrcodeUrl          String?   @map("pix_qrcode_url") @db.Text
+  reconciliationVersion Int       @default(0) @map("reconciliation_version") @db.Integer
+  createdAt             DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt             DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  owner                 User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  quote                 ProviderQuote @relation(fields: [quoteUuid, ownerId], references: [quoteUuid, ownerId], onDelete: Cascade)
+  webhookDeliveries     WebhookDelivery[]
+  webhookRecoveryLease  WebhookRecoveryLease?
+
+  @@index([ownerId, status], map: "provider_order_owner_status_idx")
+  @@unique([id, ownerId], map: "provider_order_id_owner_id_key")
+  @@unique([quoteUuid, ownerId], map: "provider_order_quote_uuid_owner_id_key")
+  @@map("provider_order")
+  @@schema("app")
+}
+
+model WebhookDelivery {
+  deliveryUuid          String                   @id @map("delivery_uuid") @db.Uuid
+  ownerId               String                   @map("owner_id") @db.Uuid
+  providerOrderId       String?                  @map("provider_order_id") @db.Uuid
+  providerOrderUuid     String                   @map("provider_order_uuid") @db.Uuid
+  eventType             String                   @map("event_type") @db.VarChar(32)
+  providerCreatedAt     DateTime                 @map("provider_created_at") @db.Timestamptz(3)
+  providerAttemptNumber Int?                     @map("provider_attempt_number") @db.Integer
+  evidenceSource        String                   @default("INTAKE") @map("evidence_source") @db.VarChar(8)
+  providerWebhookUuid   String?                  @map("provider_webhook_uuid") @db.Uuid
+  providerIsDelivered   Boolean?                 @map("provider_is_delivered")
+  providerIsPermanentlyFailed Boolean?           @map("provider_is_permanently_failed")
+  payloadDigest         String?                  @map("payload_digest") @db.Char(64)
+  decision              String                   @default("RETRYABLE") @db.VarChar(10)
+  leaseExpiresAt        DateTime?                @map("lease_expires_at") @db.Timestamptz(3)
+  processingAttemptNumber Int?                   @map("processing_attempt_number") @db.Integer
+  createdAt             DateTime                 @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt             DateTime                 @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  owner                 User                     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  providerOrder         ProviderOrder?           @relation(fields: [providerOrderId, ownerId], references: [id, ownerId], onDelete: Cascade)
+  attempts              WebhookDeliveryAttempt[]
+
+  @@index([ownerId, providerOrderUuid], map: "webhook_delivery_owner_provider_order_idx")
+  @@index([decision, leaseExpiresAt], map: "webhook_delivery_decision_lease_idx")
+  @@map("webhook_delivery")
+  @@schema("app")
+}
+
+model WebhookDeliveryAttempt {
+  id                    BigInt          @id @default(autoincrement()) @db.BigInt
+  deliveryUuid          String          @map("delivery_uuid") @db.Uuid
+  attemptNumber         Int             @map("attempt_number") @db.Integer
+  outcome               String          @db.VarChar(10)
+  providerAttemptNumber Int?            @map("provider_attempt_number") @db.Integer
+  evidenceSource        String          @default("INTAKE") @map("evidence_source") @db.VarChar(8)
+  providerWebhookUuid   String?         @map("provider_webhook_uuid") @db.Uuid
+  providerIsDelivered   Boolean?        @map("provider_is_delivered")
+  providerIsPermanentlyFailed Boolean?  @map("provider_is_permanently_failed")
+  payloadDigest         String?         @map("payload_digest") @db.Char(64)
+  createdAt             DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
+  completedAt           DateTime?       @map("completed_at") @db.Timestamptz(3)
+  delivery              WebhookDelivery @relation(fields: [deliveryUuid], references: [deliveryUuid], onDelete: Cascade)
+
+  @@unique([deliveryUuid, attemptNumber], map: "webhook_delivery_attempt_delivery_number_key")
+  @@index([deliveryUuid, createdAt], map: "webhook_delivery_attempt_delivery_created_idx")
+  @@map("webhook_delivery_attempt")
+  @@schema("app")
+}
+
+model WebhookRecoveryLease {
+  providerOrderId String        @id @map("provider_order_id") @db.Uuid
+  ownerId         String        @map("owner_id") @db.Uuid
+  fenceToken      String        @map("fence_token") @db.Uuid
+  leaseExpiresAt  DateTime      @map("lease_expires_at") @db.Timestamptz(3)
+  createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  providerOrder   ProviderOrder @relation(fields: [providerOrderId, ownerId], references: [id, ownerId], onDelete: Cascade)
+
+  @@unique([providerOrderId, ownerId], map: "webhook_recovery_lease_order_owner_key")
+  @@index([leaseExpiresAt], map: "webhook_recovery_lease_expiry_idx")
+  @@map("webhook_recovery_lease")
   @@schema("app")
 }

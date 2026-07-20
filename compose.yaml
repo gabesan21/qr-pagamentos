@@ -3,6 +3,7 @@ name: qr-pagamentos
 services:
   db:
     image: postgres:18.4-bookworm@sha256:1961f96e6029a02c3812d7cb329a3b03a3ac2bb067058dec17b0f5596aca9296
+    command: ["postgres", "-p", "${POSTGRES_PORT:-5433}"]
     environment:
       POSTGRES_DB: qr_pagamentos
       POSTGRES_PASSWORD_FILE: /run/secrets/postgres_admin_password
@@ -13,7 +14,7 @@ services:
     networks:
       - database
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d qr_pagamentos"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d qr_pagamentos -p ${POSTGRES_PORT:-5433}"]
       interval: 3s
       timeout: 3s
       retries: 20
@@ -28,6 +29,7 @@ services:
     user: "1000:1000"
     environment:
       POSTGRES_HOST: db
+      POSTGRES_PORT: ${POSTGRES_PORT:-5433}
     secrets:
       - source: admin_password
         target: admin_password
@@ -50,6 +52,7 @@ services:
     user: "1000:1000"
     environment:
       POSTGRES_HOST: db
+      POSTGRES_PORT: ${POSTGRES_PORT:-5433}
     secrets:
       - source: migrator_password
         target: migrator_password
@@ -68,6 +71,7 @@ services:
     user: "1000:1000"
     environment:
       POSTGRES_HOST: db
+      POSTGRES_PORT: ${POSTGRES_PORT:-5433}
     secrets:
       - source: runtime_password
         target: runtime_password
@@ -96,9 +100,14 @@ services:
       - /tmp:uid=1000,gid=1000,mode=0700
     environment:
       POSTGRES_HOST: db
+      POSTGRES_PORT: ${POSTGRES_PORT:-5433}
+      NAUTT_WEBHOOK_CALLBACK_URL: ${NAUTT_WEBHOOK_CALLBACK_URL:?set NAUTT_WEBHOOK_CALLBACK_URL}
+      NAUTT_API_BASE_URL: ${NAUTT_API_BASE_URL:-https://api.nauttfinance.com/api/v2}
     secrets:
       - source: runtime_password
         target: runtime_password
+      - source: nautt_encryption_key
+        target: nautt_encryption_key
     networks:
       - database
       - edge
@@ -132,3 +141,5 @@ secrets:
     file: ${STAGED_SECRETS_DIR:-.container-secrets}/initial_admin_email
   initial_admin_password:
     file: ${STAGED_SECRETS_DIR:-.container-secrets}/initial_admin_password
+  nautt_encryption_key:
+    file: ${STAGED_SECRETS_DIR:-.container-secrets}/nautt_encryption_key

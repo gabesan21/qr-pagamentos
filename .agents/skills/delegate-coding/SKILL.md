@@ -49,7 +49,7 @@ Desempate: use a ferramenta **instalada** (`command -v cursor-agent opencode cod
 
 ## Modelo por effort
 
-Modelo se escolhe pelo tier da task, não por hábito: consulte **`scripts/models.json`** (`cheap | medium | strong`) com a matriz papel × size da Orquestração do [[WORKFLOW|WORKFLOW]]. Executor de plano wargameado raramente precisa do strong — o plano existe para ser executável às cegas. A flag de modelo de cada ferramenta está na skill dela (seção "Modelo"); disponibilidade se confere com o comando de listagem da ferramenta (lookup pontual).
+Modelo se escolhe pelo tier da task, não por hábito: consulte **`pop/scripts/models.json`** (`cheap | medium | strong`) com a matriz papel × size da Orquestração do [[WORKFLOW|WORKFLOW]]. O executor recebe objetivo, contexto, specs, skill, ownership e critérios suficientes para agir com autonomia; não precisa de reasoning persistido nem microinstruções do planejador. A flag de modelo de cada ferramenta está na skill dela (seção "Modelo"); disponibilidade se confere com o comando de listagem da ferramenta (lookup pontual).
 
 ## Skills desta família
 

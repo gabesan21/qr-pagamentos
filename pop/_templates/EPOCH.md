@@ -10,7 +10,7 @@
 
 > Uma phase por seção; sob cada phase, suas tasks — **sempre descrições de uma linha**. Detalhe vai para a spec ou para a pasta da task no kanban. Task iniciada ganha link `[[<id>]]` para o card (ver [[WORKFLOW|WORKFLOW]]).
 > **Yolo herda:** epoch yolo → phases e tasks herdam; phase yolo → tasks herdam. Opt-out/opt-in por task: anexe ` · yolo: não` (ou ` · yolo: sim`) ao fim da célula Descrição — sem coluna nova. O `new-task` resolve a herança e estampa o card (seção Yolo do [[WORKFLOW|WORKFLOW]]).
-> **Size:** o agente **sugere** o effort da task anexando ` · size: S|M|L` à célula Descrição (mesma convenção do yolo); o `new-task` estampa `size:` no card e o humano corrige à vontade em 001 — cerimônia por size na Orquestração do [[WORKFLOW|WORKFLOW]].
+> **Size:** o agente sugere `S|M|L` na Descrição; `new-task` estampa no card e o humano corrige em 001. Size orienta tier/esforço; risco, skills, dependências e write sets determinam a topologia no [[WORKFLOW|WORKFLOW]].
 
 ## Recon e forks
 

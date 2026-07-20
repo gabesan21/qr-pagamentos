@@ -3,15 +3,24 @@ task: <id>-<slug>
 project: <categoria>/<projeto>
 started: AAAA-MM-DD
 finished: AAAA-MM-DD
-commit: <hash do commit final (merge)>
+commit: <hash do commit final>
 pr: <link do PR, se houver>
 ---
 
 # <id>-<slug> — <título curto>
 
-Resumo da implementação em até **2000 caracteres**: o que mudou e onde, decisões tomadas, desvios do plano e ponteiros (arquivos, specs, PR). Escrito ao finalizar `006_done`, **após o merge** — é o registro durável da task: a pasta `pop/kanban/006_done/` (no meta-projeto da raiz do vault: sem o prefixo `pop/`) pode ser limpa periodicamente, este arquivo fica e serve de prova de conclusão para o gate de dependências (`depends_on`).
+> Ledger durável, escrito no fechamento antes de apagar `kanban/006_done/<id>/`. Limite total: **2000 caracteres**. Registre fatos e ponteiros, não refaça a narrativa do plano ou da execução.
 
-Links com gatilho (1 linha cada — *quando segui-lo*):
+- **Entrega:** <o que passou a existir ou mudou>.
+- **Áreas alteradas:** `<subtree/arquivo>` — <uma linha>.
+- **Verificação:** <gate agregado e resultado>.
+- **Decisões duráveis:** nenhuma | <decisão e justificativa curta>.
+- **Desvios relevantes:** nenhum | <diferença autorizada em relação ao brief>.
 
-- **Spec afetada:** [[pop/specs/<spec>|<spec>]] — *siga se <condição>*.
-- **Learning gerado:** [[pop/notes/learnings/<nota>|<nota>]] — *siga se <condição>*.
+## Links
+
+> Cada link leva um gatilho: quando vale segui-lo.
+
+- **Spec afetada:** [[pop/specs/<spec>|<spec>]] — *siga para conhecer <contrato alterado>*.
+- **Learning:** [[pop/notes/learnings/<nota>|<nota>]] — *siga se <situação reutilizável>*.
+- **PR/commit:** <link ou hash> — *siga para inspecionar o diff final*.

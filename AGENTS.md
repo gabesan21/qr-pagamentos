@@ -3,7 +3,8 @@
 > Project managed by the **ProjectOfProjects (PoP)** workflow. `CLAUDE.md` is a symlink to this file; always edit this file.
 
 - **Type:** included - see [[TYPES|TYPES]].
-- **Project language:** English - specs, notes, research, code comments, and the entire kanban flow use English.
+- **Project language:** English - project-specific specs, notes, research, code comments, and kanban artifacts use English.
+- **Vendored PoP language:** copied core workflow files and skills remain in upstream pt-BR; do not translate the shared source during project work.
 - **Supported application languages (i18n):** Brazilian Portuguese (`pt-BR`) and English (`en`).
 - **Project brief:** [[PROJECT|PROJECT]] - read when the task needs product purpose or harness decisions.
 - **Roadmap:** [[ROADMAP|ROADMAP]] - read when selecting or sequencing work.
@@ -14,18 +15,20 @@
 |------|-----|------------|-----------|
 | qr-pagamentos | https://github.com/gabesan21/qr-pagamentos.git | repository root | main |
 
-Yolo phases integrate task PRs into `develop`. At the end of each phase, the human tests the deliverable and merges the final `develop` -> `main` PR.
+In yolo phases, the orchestrator mechanically integrates task branches into `develop`; there is no PR per task. At the end of each phase, the human tests the deliverable and decides whether to open and merge the final `develop` -> `main` PR.
 
 ## Workflow
 
 Every change to the application passes through `kanban/001_initial_task` -> `kanban/006_done`:
 
 1. **001** - create the task with `new-task` and explicit `depends_on` prerequisites.
-2. **002** - write a plan with acceptance criteria and linked specs using `advance-task`, `write-spec`, and `sync-specs`.
-3. **003** - obtain approval from the human or the yolo critic.
-4. **004** - implement in `pop/worktrees/<id>/` on branch `task/<id>` only after every dependency is complete.
-5. **005** - verify every criterion in the worktree; human verification is required only when `critical: true`.
-6. **006** - open the task PR and write `memory/<id>.md`; yolo task PRs target `develop`, while the final phase PR targets `main`.
+2. **002** - a planner separate from execution writes a concise brief with objective, strategy, fronts, dependencies, contracts, risks, and acceptance criteria.
+3. **003** - obtain approval from the human or, in yolo, from the independent reviewer.
+4. **004** - an execution orchestrator chooses one executor, sequential specialists, parallel waves, or a hybrid in isolated worktrees; every front declares `owns`, `may_read`, `must_not_edit`, `depends_on`, expected input, skill, and criteria.
+5. **005** - one fresh-context independent reviewer compares the objective and specs with the integrated diff, tests, and code quality; `critical: true` increases depth and still requires human approval outside yolo.
+6. **006** - the orchestrator opens the task PR and writes `memory/<id>.md`; in yolo it mechanically integrates task branches into `develop`, while the final phase PR targets `main` only when requested by the human.
+
+Parallel execution requires both logical and write independence. A missing or incompatible dependency is `BLOCKED`; a consuming front must never implement it opportunistically. Only the execution orchestrator validates ownership and integrates specialist branches.
 
 One execution continues until the next real gate. The complete state machine is in [[WORKFLOW|WORKFLOW]].
 
@@ -39,13 +42,14 @@ One execution continues until the next real gate. The complete state machine is 
 
 ## Skills
 
-- **PoP workflow:** `.agents/skills/` contains `new-task`, `advance-task`, `plan-roadmap`, `write-spec`, and `sync-specs`.
+- **PoP workflow:** `.agents/skills/` contains `new-task`, `advance-task`, `plan-roadmap`, `write-spec`, `sync-specs`, and `yolo-critic` (the independent yolo reviewer role).
 - **Project operations:** `skills/` will contain reusable build, test, run, migration, and deployment procedures as they become real.
 
 ## DOX index
 
 - [`src/components/ui/AGENTS.md`](src/components/ui/AGENTS.md) — follow when
   changing owned Radix/nova shadcn source, its inventory, or its state contract.
+- [`src/integrations/nautt/AGENTS.md`](src/integrations/nautt/AGENTS.md) — follow when changing Nautt HTTP adapters or owner-bound provider orchestration.
 
 ### Clean code
 
@@ -74,8 +78,9 @@ Aggregate gate: `pnpm check` (lint + typecheck + test + build) — see Applicati
 
 Username and password are the only login credentials; email is optional and never used for login.
 
-- `src/app/` owns App Router pages and endpoints; localized UI routes are unprefixed and resolve only the persisted `pt-BR` or `en` preference, while `/api/health` stays unlocalized. Never reintroduce `/{locale}` UI or mutation routes.
+- `src/app/` owns App Router pages and endpoints; localized UI routes are unprefixed and resolve only the persisted `pt-BR` or `en` preference, while `/api/health` and `/api/nautt/webhooks` stay unlocalized. The Nautt callback is sessionless and returns only empty, no-store protocol statuses; never reintroduce `/{locale}` UI or mutation routes.
 - `src/app/admin/` owns the administrator shell plus account and global-payment-settings mutations; every read and POST must re-authorize the cookie principal, return only the documented empty `401`/`403` protected outcomes, and never disclose a target account or settings value to unauthorized callers.
+- `src/app/nautt-credentials/reset/` owns the owner-initiated local-only webhook-registration reset (`REGISTERING`/`INDETERMINATE` → `UNREGISTERED`, provider fields nulled, zero provider calls and zero decryption); it re-authorizes the cookie principal and returns only an empty `401` or opaque relative redirects (`?nautt=reset`/`changed`/`unavailable`), never distinguishing "no credential" from "wrong state".
 - `src/i18n/` owns the closed locale set and server dictionary loader; never add a locale without matching dictionary keys and contract tests.
 - Use the exact Node and pnpm pins in `.node-version` and `package.json`; install with `pnpm install --frozen-lockfile`.
 - Run `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm build` independently, or `pnpm check` for the aggregate gate.
@@ -86,6 +91,8 @@ Username and password are the only login credentials; email is optional and neve
 - `install/` owns operator install/uninstall and initial-admin recovery for any Linux host with Docker Engine + Compose v2 already installed and the invoking user already in the `docker` group (documented prerequisites, not installed or granted by the script — never reintroduce `sudo`/root escalation or ownership rewrites here); passwords live only in ignored source/staged files, recovery uses the existing Compose helper, and default uninstall never removes PostgreSQL data.
 - Run `install/test.sh` after changing installer commands, secret validation, Compose deployment, health waiting, or uninstall flags.
 - `MIGRATION_DATABASE_URL` is migration-only and `DATABASE_URL` is runtime-only; never share credentials or commit usable URLs.
+- `NAUTT_WEBHOOK_CALLBACK_URL` is required non-secret server configuration; accept only canonical absolute HTTPS and never derive it from browser fields or request headers.
+- `NAUTT_API_BASE_URL` is optional non-secret server configuration; accept only canonical absolute HTTPS without credentials or a fragment and default to `https://api.nauttfinance.com/api/v2` when unset.
 - Generated Prisma code lives in ignored `src/generated/prisma/`; never edit or commit it.
 - Never edit generated `next-env.d.ts`, `.next/`, `node_modules/`, coverage output, or TypeScript build-info files by hand.
 - [`prisma/AGENTS.md`](prisma/AGENTS.md) — follow before changing the schema, bootstrap SQL, or immutable migration history.
@@ -119,7 +126,7 @@ Código sem árvore DOX → varredura recursiva e construção da árvore: AGENT
 
 ### No fluxo do PoP
 
-- **002 (wargame):** o recon inclui os AGENTS.md aplicáveis aos caminhos que a task toca; o plano lista os contratos que precisarão de atualização.
+- **002 (brief):** o recon inclui os AGENTS.md aplicáveis aos caminhos que a task toca; o brief lista os contratos que precisarão de atualização, sem microedições ou trechos de implementação.
 - **004:** edite só depois de caminhar a árvore; os AGENTS.md alterados entram na mesma worktree/PR da task.
 - **005:** a verificação confere que os contratos afetados foram atualizados — critério de aceite implícito de toda task de aplicação.
 - **Type `default` com repo externo que deve ficar limpo de arquivos de IA:** decida com o usuário na entrevista — commitar a árvore DOX no repo (padrão do PoP) ou manter apenas o contrato raiz no AGENTS.md do projeto, dentro do PoP.

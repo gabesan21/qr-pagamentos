@@ -21,28 +21,28 @@ updated: AAAA-MM-DD
 
 # <id>-<slug> — <título curto>
 
-> Blockquotes deste template são instruções de preenchimento — **apague-os ao preencher**. Caminhos de harness levam o prefixo `pop/` — no claim (004), `worktree:` recebe `pop/worktrees/<id>-<slug>` (no meta-projeto da raiz do vault: sem o prefixo `pop/`).
+> Blockquotes deste template são instruções de preenchimento — **apague-os ao preencher**. Caminhos de harness levam o prefixo `pop/`; no meta-projeto da raiz do vault, não.
 
 - **Phase:** [[pop/roadmap/<n>-<slug-da-epoch>|Phase <n>.<m>]]
 - **Plano:** [[<id>-<slug>.plan]] · **Aprovação:** [[<id>-<slug>.approval]] · **Verificação:** [[<id>-<slug>.verify]]
 
 ## O quê
 
-Uma ou duas frases: o que esta task entrega.
+Uma ou duas frases sobre a entrega observável, sem antecipar a implementação.
 
 ## Por quê
 
-Uma frase: por que agora, e o que destrava.
+Uma frase: por que agora e o que destrava.
 
 ## Liberação (user)
 
-> Só o humano marca (ou o agente, **sob comando explícito** do humano, registrando no Log). Sem `[x]`, a task não sai de 001 — o card é seu para editar; o `pop_move` recusa 001→002. **Exceção yolo:** task `yolo: true` nasce com o checkbox marcado pelo agente — a marca no roadmap é a liberação antecipada (Log: `liberada por yolo (marcado no roadmap)`); ver seção Yolo do [[WORKFLOW|WORKFLOW]].
+> Só o humano marca, salvo comando explícito registrado no Log. Sem `[x]`, a task não sai de 001. Em `yolo: true`, a liberação antecipada do roadmap permite ao agente marcar e registrar `liberada por yolo`; ver [[WORKFLOW|WORKFLOW]].
 
 - [ ] Pronto para planejar
 
 ## Skills por etapa
 
-> Linha de 002 preenchida na criação da task (001); linhas de 004/005 preenchidas em 002_planning. Responsáveis por estágio: ver [[WORKFLOW|WORKFLOW]].
+> 002 é preenchida na criação; 004/005, pelo planejador. Liste apenas skills que mudem como o responsável deve trabalhar.
 
 | Etapa | Skills do projeto | Responsável |
 |-------|-------------------|-------------|
@@ -52,17 +52,17 @@ Uma frase: por que agora, e o que destrava.
 
 ## Dependências
 
-> Espelha `depends_on:` do frontmatter. A task só entra em `004_processing` quando toda dependência está concluída — `pop/memory/<id>*.md` existente é o sinal padrão (a pasta em `006_done` é apagada ao fechar); card ainda em `006_done` também conta, para a janela curta antes do apagamento. Vazio = pode rodar em paralelo com as demais.
+> Espelha `depends_on:`. Dependência ausente bloqueia a execução; não autoriza o agente a implementá-la. Vazio = a task não tem pré-requisito no kanban.
 
-- [[<id-de-task-pré-requisito>]] — o que ela entrega que esta task precisa.
+- [[<id-de-task-pré-requisito>]] — entrega necessária para iniciar esta task.
 
 ## Links
 
-> Cada link leva 1 linha de gatilho — *quando* vale segui-lo. Link sem gatilho é ignorado com razão.
+> Cada link leva um gatilho: quando vale segui-lo.
 
-- **Specs:** [[pop/specs/<spec>|<spec>]] — *siga se <condição>*.
-- **Tasks relacionadas:** [[<id-de-outra-task>]] — *siga se <condição>*.
+- **Spec:** [[pop/specs/<spec>|<spec>]] — *siga para conhecer <contrato/invariante>*.
+- **Task relacionada:** [[<id-de-outra-task>]] — *siga se <condição>*.
 
 ## Log
 
-- AAAA-MM-DD — criada em 001_initial_task — <motivo/origem>
+- AAAA-MM-DD — criada em 001_initial_task — <motivo/origem>.

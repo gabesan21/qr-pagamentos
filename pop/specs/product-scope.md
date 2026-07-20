@@ -11,10 +11,10 @@ This spec defines the user-visible MVP boundaries for QR Pagamentos. Detailed pr
 
 ## Requirements
 
-- An administrator can configure the central webhook destination, globally allowed currencies, and globally allowed payment methods.
+- An administrator can configure the central webhook destination and database-backed Nautt currency/payment-method records; each enabled record carries the exact provider UUID required by pricing, and no provider UUID is sourced from environment variables.
 - An administrator can create, read, update, and disable users and inspect their orders.
 - A user can store a Nautt API key, automatically register the system's central webhook, and view the Nautt main-wallet balance on the same settings screen.
-- A user can create, update, and remove products in currencies enabled by the administrator.
+- A user can create, update, and remove products in currencies enabled by the administrator's active Nautt currency records.
 - A user can create, activate, and deactivate owned payment links.
 - A payment link contains products in exactly one currency; products with different currencies cannot coexist in one link.
 - A single-use link accepts at most one successful payment.
@@ -34,7 +34,7 @@ This spec defines the user-visible MVP boundaries for QR Pagamentos. Detailed pr
 ## Open
 
 - Is the admin-configured webhook URL the public receiver registered with Nautt, or a downstream destination that receives forwarded events?
-- Which international currencies and QR-code payment methods are enabled at launch?
+- Which names, display metadata, enablement rules, and uniqueness constraints accompany the administrator-entered Nautt currency/payment-method UUID records?
 - Can a product price be edited after links already reference the product, or must links snapshot name and price?
 - What customer data is required to create an order?
 - What happens to in-flight orders when a reusable link is disabled?

@@ -7,6 +7,7 @@ ENV_FILE="$INSTALL_DIR/.env"
 DRY_RUN=false
 RECOVER_INITIAL_ADMIN=false
 NODE_HELPER='node:26.4.0-bookworm-slim@sha256:ec82d089a8ae2cf02628da7b34ea57dc357b24db724d557fe2d240e6beb659c1'
+POSTGRES_PORT=5433
 DOCKER=(docker)
 
 die() { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
@@ -43,12 +44,12 @@ load_install_env() {
     key=${line%%=*}
     value=$(strip_quotes "${line#*=}")
     case "$key" in
-      APP_PORT|POSTGRES_ADMIN_PASSWORD|MIGRATOR_PASSWORD|RUNTIME_PASSWORD|INITIAL_ADMIN_USERNAME|INITIAL_ADMIN_EMAIL)
+      APP_PORT|POSTGRES_ADMIN_PASSWORD|MIGRATOR_PASSWORD|RUNTIME_PASSWORD|INITIAL_ADMIN_USERNAME|INITIAL_ADMIN_EMAIL|NAUTT_ENCRYPTION_KEY|NAUTT_WEBHOOK_CALLBACK_URL|NAUTT_API_BASE_URL)
         printf -v "$key" '%s' "$value" ;;
       *) die "unsupported variable in $ENV_FILE: $key" ;;
     esac
   done < "$ENV_FILE"
-  for key in APP_PORT POSTGRES_ADMIN_PASSWORD MIGRATOR_PASSWORD RUNTIME_PASSWORD INITIAL_ADMIN_USERNAME; do
+  for key in APP_PORT POSTGRES_ADMIN_PASSWORD MIGRATOR_PASSWORD RUNTIME_PASSWORD INITIAL_ADMIN_USERNAME NAUTT_WEBHOOK_CALLBACK_URL; do
     [[ -n ${!key:-} ]] || die "required variable is missing: $key"
   done
   [[ $APP_PORT =~ ^[1-9][0-9]{0,4}$ ]] && ((10#$APP_PORT <= 65535)) || die 'APP_PORT must be between 1 and 65535'
@@ -115,6 +116,41 @@ write_secret_sources() {
   RUNTIME_PASSWORD_FILE=$source_dir/runtime_password
 }
 
+run_node_helper() {
+  if command -v node >/dev/null 2>&1; then
+    node "$@"
+  else
+    "${DOCKER[@]}" run --rm --network none --read-only --tmpfs /tmp \
+      --user "$(id -u):$(id -g)" -v "$ROOT_DIR:/workspace:ro" \
+      "$NODE_HELPER" node "$@"
+  fi
+}
+
+write_nautt_encryption_key_source() {
+  local source_dir=$ROOT_DIR/.install-secrets
+  run mkdir -p -m 0700 "$source_dir"
+  if [[ -n ${NAUTT_ENCRYPTION_KEY:-} ]]; then
+    if "$DRY_RUN"; then
+      printf 'DRY-RUN validate and stage provided nautt_encryption_key\n'
+    else
+      if ! run_node_helper -e 'const b = Buffer.from(process.argv[1], "base64url"); process.exit(b.length === 32 ? 0 : 1)' "$NAUTT_ENCRYPTION_KEY" >/dev/null; then
+        die 'NAUTT_ENCRYPTION_KEY must decode to exactly 32 bytes using base64url'
+      fi
+      (umask 077; printf '%s' "$NAUTT_ENCRYPTION_KEY" > "$source_dir/nautt_encryption_key")
+      chmod 0600 "$source_dir/nautt_encryption_key"
+    fi
+  else
+    if "$DRY_RUN"; then
+      printf 'DRY-RUN generate nautt_encryption_key and warn operator to back it up\n'
+    else
+      (umask 077; run_node_helper -e 'const crypto = require("node:crypto"); process.stdout.write(crypto.randomBytes(32).toString("base64url"))' > "$source_dir/nautt_encryption_key")
+      chmod 0600 "$source_dir/nautt_encryption_key"
+      printf 'WARN: a new NAUTT_ENCRYPTION_KEY was generated; back up %s/nautt_encryption_key outside this host. Losing it makes every stored Nautt API key irrecoverable.\n' "$source_dir" >&2
+    fi
+  fi
+  NAUTT_ENCRYPTION_KEY_FILE=$source_dir/nautt_encryption_key
+}
+
 stage_secrets() {
   local staged=$ROOT_DIR/.container-secrets variable source target actual
   run mkdir -p -m 0700 "$staged"
@@ -122,6 +158,7 @@ stage_secrets() {
     "POSTGRES_ADMIN_PASSWORD_FILE:admin_password" \
     "MIGRATOR_PASSWORD_FILE:migrator_password" \
     "RUNTIME_PASSWORD_FILE:runtime_password" \
+    "NAUTT_ENCRYPTION_KEY_FILE:nautt_encryption_key" \
     "INITIAL_ADMIN_USERNAME_FILE:initial_admin_username" \
     "INITIAL_ADMIN_EMAIL_FILE:initial_admin_email" \
     "INITIAL_ADMIN_PASSWORD_FILE:initial_admin_password"; do
@@ -152,8 +189,10 @@ stage_secrets() {
 }
 
 compose() {
-  APP_PORT=$APP_PORT POSTGRES_ADMIN_PASSWORD_FILE=$POSTGRES_ADMIN_PASSWORD_FILE \
+  APP_PORT=$APP_PORT POSTGRES_PORT=$POSTGRES_PORT POSTGRES_ADMIN_PASSWORD_FILE=$POSTGRES_ADMIN_PASSWORD_FILE \
     MIGRATOR_PASSWORD_FILE=$MIGRATOR_PASSWORD_FILE RUNTIME_PASSWORD_FILE=$RUNTIME_PASSWORD_FILE \
+    NAUTT_WEBHOOK_CALLBACK_URL=$NAUTT_WEBHOOK_CALLBACK_URL \
+    NAUTT_API_BASE_URL=${NAUTT_API_BASE_URL:-} \
     STAGED_SECRETS_DIR=$STAGED_SECRETS_DIR INITIAL_ADMIN_RECOVERY_PASSWORD_FILE=${INITIAL_ADMIN_RECOVERY_PASSWORD_FILE:-} \
     "${DOCKER[@]}" compose -f "$ROOT_DIR/compose.yaml" -p qr-pagamentos "$@"
 }
@@ -197,8 +236,17 @@ deploy() {
 
 check_docker
 load_install_env
+if ! run_node_helper -e 'const u = new URL(process.argv[1]); process.exit(u.protocol === "https:" && !u.username && !u.password && !u.hash ? 0 : 1)' "$NAUTT_WEBHOOK_CALLBACK_URL" >/dev/null 2>&1; then
+  die 'NAUTT_WEBHOOK_CALLBACK_URL must be an absolute HTTPS URL without credentials or a fragment'
+fi
+if [[ -n ${NAUTT_API_BASE_URL:-} ]]; then
+  if ! run_node_helper -e 'const u = new URL(process.argv[1]); process.exit(u.protocol === "https:" && !u.username && !u.password && !u.hash ? 0 : 1)' "$NAUTT_API_BASE_URL" >/dev/null 2>&1; then
+    die 'NAUTT_API_BASE_URL must be an absolute HTTPS URL without credentials or a fragment'
+  fi
+fi
 [[ $POSTGRES_ADMIN_PASSWORD != "$MIGRATOR_PASSWORD" && $POSTGRES_ADMIN_PASSWORD != "$RUNTIME_PASSWORD" && $MIGRATOR_PASSWORD != "$RUNTIME_PASSWORD" ]] || die 'passwords must be distinct'
 write_secret_sources
+write_nautt_encryption_key_source
 write_identity_sources
 "$RECOVER_INITIAL_ADMIN" && write_recovery_source
 stage_secrets

@@ -2,144 +2,137 @@
 
 Regras gerais do vault: [[AGENTS|AGENTS]] · Caixa de entrada: [[INBOX|INBOX]]
 
-Toda task é uma **pasta** com o id `<epoch>.<phase>.<task>-<slug>` (ex.: `1.1.1-user-table-creation`) que se move entre os estágios do `kanban/` do seu projeto. Mover de estágio = mover a pasta inteira.
+Toda task é uma pasta com id `<epoch>.<phase>.<task>-<slug>` que se move inteira entre os estágios do `kanban/` do projeto.
 
 ## Responsável por estágio
 
 | Estágio | Responsável | Executa | O que acontece |
 |---------|-------------|---------|----------------|
-| 001_initial_task | agent (**+ user** libera) | orquestrador | Task nasce do roadmap, card mínimo; só sai de 001 com `- [x] Pronto para planejar` do humano. |
-| 002_planning | agent | subagente planejador | Wargame proporcional ao `size`: recon orçado, plano com forks/abortos, specs da mudança, red-team. |
-| 003_human_approval | **user** | orquestrador prepara | Humano lê o `.approval.md` e marca `- [ ] Feito`. |
-| 004_processing | agent | subagente executor | Executa subtasks `(agent)`; pausa nas `(user)`. |
-| 005_verifying | agent (**+ user** se `critical: true`; em yolo, crítico) | subagente verificador | Checa critérios de aceite com evidência, na worktree. |
-| 006_done | agent (**+ user** no merge) | orquestrador | PR, merge humano, memory, encerramento. |
+| 001_initial_task | agent (**+ user** libera) | orquestrador | Card mínimo nasce do roadmap; só sai com liberação humana. |
+| 002_planning | agent | planejador separado | Produz um brief: objetivo, estratégia, frentes, contratos, riscos e critérios. |
+| 003_human_approval | **user** | orquestrador prepara | Humano aprova o brief; em yolo, o revisor independente assume o gate. |
+| 004_processing | agent | orquestrador de execução | Escolhe executor único ou especialistas em sequência/ondas e integra os resultados. |
+| 005_verifying | agent (**+ user** se `critical: true`) | revisor independente | Compara objetivo, specs, diff, testes e qualidade; aprova ou devolve. |
+| 006_done | agent (**+ user** no merge) | orquestrador | Integração/PR, memory, specs e encerramento. |
 
-Cada arquivo de etapa declara seu responsável no topo. Agentes **nunca** executam item `(user)` nem marcam `- [ ] Feito` no lugar do humano. O INBOX é gerado por Dataview a partir do frontmatter (`stage`, `critical`, `blocked`) — **mantenha o frontmatter correto e o INBOX se mantém sozinho**.
+Cada artefato declara seu responsável. Agentes nunca executam item `(user)` nem marcam `- [ ] Feito` no lugar do humano. O INBOX deriva do frontmatter; mantenha `stage`, `critical`, `blocked` e `awaiting_merge` fiéis.
 
 ## Orquestração
 
-O agente principal é o **orquestrador**: lê o card, resolve os gates e faz as transições (frontmatter, Log, mover a pasta). Cada estágio de trabalho roda em **subagente dedicado**, equipado só com a skill daquela etapa (tabela "Skills por etapa" do card) + o contexto mínimo do estágio — contrato sempre com teto de resposta ("escreva o arquivo, devolva caminho + resumo ≤10 linhas") e **sem web** (ver 002):
+O agente principal controla claim, gates e transições. O raciocínio pesado, os prompts operacionais e a coordenação entre especialistas são **efêmeros**: o kanban guarda decisões, contratos e evidências, não transcrições do pensamento.
 
-- **002 — planejador:** recebe card + pesquisas e specs linkadas → devolve o `.plan.md` (abre a própria onda de recon **orçada** — ver 002; workers de recon são folha: reportam "Lacunas / Não encontrado", nunca disparam subagentes).
-- **004 — executor:** recebe plano + seção "Contexto mínimo do executor" → trabalha na worktree, devolve checkboxes marcados + divergências.
-- **005 — verificador:** recebe a tabela de verificação do plano → devolve o `.verify.md` com evidências. Verificador ≠ executor **por design**: julga sem o viés de quem fez.
-- **001 e 006** ficam com o próprio orquestrador (são baratos: criar card, PR, memory).
-- **Via rápida (`size: S`):** o orquestrador executa ele mesmo o **002** (mini-plano — ver 002) e o **004**, registrando a via rápida no Log. O **005 continua em subagente verificador**: olhos frescos não se dispensam (verificador ≠ executor vale também aqui).
+Contrato durável: [[pop/specs/multi-agent-orchestration|multi-agent orchestration]] — *follow when changing roles, ownership, parallelism, or artifacts*.
 
-**Cerimônia e modelo proporcionais ao `size`** (`S | M | L`, sugerido na criação e corrigível pelo humano — ver 001). Tiers de modelo por papel (`cheap | medium | strong`, resolvidos por ferramenta em `scripts/models.json`); o executor nunca precisa do strong **por design** — o wargame existe para o plano ser executável às cegas:
+- **002 — planejador sempre separado:** recebe card + links pertinentes e devolve o `.plan.md`. Recon delegado só existe para pergunta específica acima do piso da regra 18; zero workers é normal.
+- **004 — execução adaptativa:** um subagente orquestrador de execução lê o brief e escolhe executor único, especialistas sequenciais ou ondas paralelas. Planejador nunca executa.
+- **005 — um revisor independente:** contexto fresco, distinto de planejador e executores; verifica comportamento e qualidade. `critical` aumenta profundidade/modelo, não cria um segundo revisor.
+- **001 e 006:** ficam com o orquestrador principal; em yolo, a integração em `develop` também é mecânica dele.
 
-| Papel | S | M | L |
-|-------|---|---|---|
-| planejador 002 | (orquestrador) | strong | strong |
+Modelos são escolhidos pelo papel e pelo risco, via `pop/scripts/models.json`:
+
+| Papel | S | M | L / critical |
+|-------|---|---|--------------|
+| planejador 002 | medium | strong | strong |
 | worker de recon | — | cheap | cheap |
-| executor 004 | (orquestrador) | medium | medium |
-| verificador 005 | medium | medium | strong |
-| crítico yolo | strong | strong | strong |
+| orquestrador de execução 004 | medium | medium | strong |
+| especialista de execução | cheap/medium | medium | medium |
+| revisor independente | medium | medium | strong |
 
-Assim a janela do principal cresce por **resultados** (plano pronto, verify preenchido), não por processo — e o Log registra os **contextos lançados** por estágio (ver Regras transversais).
+`size` estima esforço, não autoriza cerimônia automática. Incerteza, risco, quantidade de skills e independência das frentes decidem a topologia. O Log registra apenas os contextos realmente lançados.
 
 ## Conteúdo da pasta da task
 
 ```
-1.1.1-user-table-creation/
-├── 1.1.1-user-table-creation.md            ← card: frontmatter + skills por etapa + log
-├── 1.1.1-user-table-creation.plan.md       ← 002 · responsável: agent
-├── 1.1.1-user-table-creation.approval.md   ← 003 · responsável: user
-├── 1.1.1-user-table-creation.verify.md     ← 005 · responsável: agent (+ user se crítica)
-└── subtasks/
-    └── 1.1.1-user-table-creation.g01-<slug>.md  ← itens marcados (agent) ou (user)
+<id>/
+├── <id>.md                 ← card
+├── <id>.plan.md            ← brief de 002
+├── <id>.approval.md        ← rodadas de 003/006
+├── <id>.verify.md          ← revisão independente de 005
+└── subtasks/               ← frentes persistidas somente quando ajudam ownership/gates
+    └── <id>.g01-<slug>.md
 ```
 
-Templates: [[_templates/TASK|TASK]] · [[_templates/TASK-PLAN|TASK-PLAN]] · [[_templates/TASK-APPROVAL|TASK-APPROVAL]] · [[_templates/TASK-VERIFY|TASK-VERIFY]] · [[_templates/SUBTASKS|SUBTASKS]] · [[_templates/MEMORY|MEMORY]] (escrito em `memory/`, fora da pasta da task)
+Templates: [[_templates/TASK|TASK]] · [[_templates/TASK-PLAN|TASK-PLAN]] · [[_templates/TASK-APPROVAL|TASK-APPROVAL]] · [[_templates/TASK-VERIFY|TASK-VERIFY]] · [[_templates/SUBTASKS|SUBTASKS]] · [[_templates/MEMORY|MEMORY]].
 
 ## Estágios
 
 ### 001_initial_task — nascimento (agent, + user libera)
 
-- Crie a pasta com o card ([[_templates/TASK|TASK]]): frontmatter, "O quê / Por quê", link para a phase.
-- **Liberação (user):** o card nasce **não liberado** e, enquanto assim estiver, é território do humano — ele edita à vontade, o agente só lê. A task só vai a 002 com `- [x] Pronto para planejar` marcado (seção "Liberação" do card); o `pop_move` recusa 001→002 sem a marca. Só o humano marca — **exceção:** comando explícito do humano na conversa ("cria e já avança") permite ao agente marcar, registrando no Log (`liberada por comando do humano`). Automação nunca marca sozinha.
-- **Declare as dependências:** `depends_on:` no frontmatter com os ids das tasks pré-requisito (e a seção "Dependências" do card). Vazio = pode rodar em paralelo com as demais — é isso que orienta a paralelização.
-- **Tamanho:** mudança complexa demais para um plano só (muitas frentes, plano estouraria 200 linhas) → **proponha dividir em mais tasks** encadeadas por `depends_on`, antes de planejar.
-- **Effort (`size:`):** proponha `S | M | L` no frontmatter ao criar, com justificativa de 1 linha no Log — o humano corrige à vontade enquanto o card é dele. `S` = via rápida (ver Orquestração); o planejador de 002 pode contestar (reclassifique com Log; em yolo, plano incompatível com o size é devolvido pelo crítico).
-- Adicione o link `[[<id-da-task>]]` na linha da task no arquivo da epoch.
+- Crie card mínimo: frontmatter, “O quê / Por quê”, phase, dependências e links com gatilho.
+- O card é do humano até `- [x] Pronto para planejar`. Comando explícito permite ao agente marcar com Log; `yolo: true` herda a liberação do roadmap.
+- Declare `depends_on:`. Vazio significa que a task pode concorrer com outras, respeitando WIP.
+- Sugira `size: S | M | L`; task ampla demais para um brief coeso deve ser dividida.
+- Linke `[[<id>]]` na epoch.
 
-### 002_planning — wargame (agent)
+### 002_planning — brief de execução (agent)
 
-Você não executa a task aqui — **wargameia** a execução, para que um executor mais simples rode o plano em 004 sem perguntar nada. Template: [[_templates/TASK-PLAN|TASK-PLAN]]. Cerimônia proporcional ao `size` (ver Orquestração).
+O planejador não implementa. Ele decide e resume; não persiste chain-of-thought, pseudocódigo, trechos especulativos nem microedições.
 
-- **`size: S` — mini-plano (via rápida):** o orquestrador escreve ele mesmo um plano de **≤40 linhas** — rota, preflight e critérios com run+pass (o gate agregado do projeto costuma bastar) — sem onda de recon, sem red-team e sem forks obrigatórios (registre as dispensas). Não coube em 40 linhas → reclassifique para M com Log.
-- **Recon primeiro, read-only, orçado:** leia **antes de tudo** as pesquisas e specs linkadas no card. Depois liste as perguntas que o plano precisa e você não sabe responder: só pergunta cuja resposta exige leitura acima do piso da regra 18 (~5K tokens) vira worker — **0 workers é resultado válido** (repo vazio, resposta já nas pesquisas linkadas). O que o recon não resolver vira **RECON NEEDED** no plano, com o check exato que resolve.
-- **Sem web no fluxo de task:** planejador e workers não usam busca/fetch web. **Lacuna de conhecimento** (decisão técnica sem pesquisa que a embase) → escreva o prompt no `RESEARCHES.md` do projeto ([[_templates/RESEARCHES|template]]), marque `blocked: true` (`aguarda pesquisa <tema>`) e pare — o humano roda e ingere (`ingest-research`). **Lookup pontual** de fato verificável (ex.: `npm view next version`) é permitido via comando, registrado no plano: pesquisa produz conhecimento de decisão; lookup produz um valor que o plano já decidiu como usar.
-- **Preflight de ambiente:** rode direto uma bateria barata de comandos (versões de runtime, ferramentas de que o plano depende) e registre no plano — suposição de ambiente não verificada é a causa clássica de retorno 004→002.
-- Escreva o `.plan.md` (≤200 linhas): rota, **forks com gatilho** ("se observar X, rota B"), **condições de aborto** e a tabela de **critérios de aceite com run, aparência do pass e marcação `re-run | evidência`** (ver 005). Prefira o **gate agregado** do projeto (ex.: `pnpm check`) a N runs separados — run individual só para o que ele não cobre. Movimentos detalhados vão para os grupos em `subtasks/`, cada movimento `(agent)` com observação esperada e falha provável → contra-jogada.
-- **Monte as specs da mudança:** toda spec afetada linkada e, tema sem spec, rascunho criado via `write-spec` refletindo a mudança planejada (`sync-specs`). Plano sem as specs montadas não está pronto.
-- **Red-team:** ataque o próprio plano antes de 003 e registre no plano o ataque que falhou e o patch nascido do que passou. Obrigatório em M/L; dispensado em S (registre a dispensa).
-- Preencha no card a tabela **Skills por etapa** (004/005). Plano que não couber em 200 linhas → volte a 001 e proponha dividir a task.
-- **Gate de prontidão 002→003** — só avance quando tudo valer: movimentos com observação esperada e falha→contra-jogada; forks com gatilho; RECON NEEDED com check; abortos definidos; verificação com runs, pass e marcação `re-run | evidência`; preflight registrado; specs montadas; red-team registrado (ou dispensado); executável às cegas. Em `S`, vale o subconjunto do mini-plano.
-- Se voltou de 003 com pedido de mudanças, ajuste respondendo ao feedback. Plano pronto → `003_human_approval`.
+- Comece por card, pesquisas, specs e memory linkadas. Pergunta ainda aberta que exige >~5K tokens de leitura pode virar worker de recon; lacuna vira `RECON NEEDED` com check exato.
+- Sem web: lacuna de conhecimento vira prompt no `RESEARCHES.md` + `blocked`; lookup pontual de valor já decidido é permitido e registrado.
+- Preflight só quando runtime, ferramenta ou serviço participa da mudança; não repita fingerprint de ambiente irrelevante.
+- Escreva o `.plan.md`: objetivo refinado, estratégia, áreas afetadas, frentes, dependências, specs/skills, riscos/abortos relevantes e critérios com run + pass observável.
+- Cada frente persistida descreve **entrega e fronteira**, nunca implementação: `owns`, `may_read`, `must_not_edit`, `depends_on`, entrada esperada, skill e critérios. Detalhe operacional pertence ao prompt efêmero do executor.
+- Specs são criadas/alteradas apenas quando a task muda contrato durável; correção que restaura uma spec existente só a referencia.
+- Red-team pode acontecer no raciocínio do planejador ou por worker quando risco justificar, mas sua transcrição não é artefato obrigatório.
+- Gate 002→003: objetivo verificável; estratégia e frentes coerentes; dependências explícitas; contratos suficientes; riscos materiais cobertos; critérios executáveis; nenhuma decisão indispensável escondida no reasoning.
 
 ### 003_human_approval — gate humano (user)
 
-- Crie/atualize o `.approval.md` com **nova rodada**: resumo do plano, "Resposta do humano" e `- [ ] Feito`.
-- **O agente só age quando `- [x] Feito`** — caso contrário, pare e informe. Então: pediu mudanças → `002_planning`; aprovou (ou vazio) → `004_processing`. A aprovação vale também para as specs propostas no plano: `rascunho` → `aprovada`.
-- **Gate de dependências:** só mova para 004 quando **toda** task em `depends_on` estiver concluída — `memory/<id>*.md` existente é o sinal padrão (a pasta em `006_done` é apagada ao final do fechamento, ver passo 7 de 006); card ainda em `006_done` também conta, cobrindo a janela curta entre o merge e o apagamento. Dependência pendente → informe e aguarde (a task pode esperar aprovada em 003).
-- **Limite de WIP:** antes de mover para 004, se o projeto já tem **3** tasks lá, avise o usuário e pergunte qual priorizar. **Escopo yolo:** o orquestrador prioriza sozinho, por ordem de `depends_on`, sem perguntar.
+- Crie uma rodada enxuta no `.approval.md`: resumo, riscos materiais, critérios principais, resposta e `- [ ] Feito`.
+- Só prossiga com `- [x] Feito`: mudanças pedidas → 002; aprovado/vazio → 004. Em yolo, o revisor independente faz esse sanity check em sessão própria.
+- Só entre em 004 quando toda `depends_on` tiver `memory/<id>*.md` ou card na janela transitória de 006.
+- WIP máximo de três tasks em 004; no yolo o orquestrador prioriza por dependências.
 
-### 004_processing — execução (agent)
+### 004_processing — execução orquestrada (agent)
 
-- **Crie a worktree da task ao entrar:** `git worktree add pop/worktrees/<id-da-task> -b task/<id-da-task>` (meta-projeto e projetos ainda não migrados: `worktrees/<id-da-task>`), no repositório onde o trabalho mora (declarado no AGENTS.md do projeto — ver [[TYPES|TYPES]]; projeto sem repo próprio usa o repositório do PoP; `multi-repo`: uma worktree por repo afetado, em `pop/worktrees/<id>/<repo>/`; `full-multi-repo`: task de repo → worktree no próprio repo; task cross no kanban central → como `multi-repo`, uma worktree por repo afetado). Registre `worktree:` no frontmatter. **Todo o trabalho da task acontece dentro dela** — é o que permite tasks em paralelo sem conflito. Projetos sem repositório git podem dispensar (declarado no harness da ficha).
-- Execute os grupos respeitando `Depende de:`/`(após ...)` — grupos e itens sem pré-requisito pendente podem ser paralelizados; os demais, em ordem. A cada movimento, confira a **observação esperada**; falhou → aplique a contra-jogada do plano; gatilho de fork observado → siga a rota pré-autorizada. Marque os checkboxes. Use as skills listadas no card para esta etapa.
-- **Capture evidência:** registre a saída relevante de cada gate/run executado nas notas do grupo em `subtasks/` — é o que o 005 audita nos critérios `evidência`.
-- **Aplicações seguem o processo DOX** do AGENTS.md do projeto: caminhe a árvore de AGENTS.md do código até cada local de edição antes de editar e atualize os contratos afetados no fechamento (entram na mesma worktree/PR).
-- Item `(user)`: pare, sinalize no card (`blocked: true` + `blocked_reason:` se o item travar o resto) e informe.
-- **Condição de aborto atingida** (ou situação sem fork nem contra-jogada prevista) → pare, `blocked: true` + motivo — não improvise.
-- Realidade divergiu de uma spec → registre na seção "Aberto" da spec, nunca a reescreva silenciosamente (`sync-specs`).
-- Descoberta que muda o plano de forma relevante → volte para `002_planning` (novo ciclo de aprovação).
-- Tudo concluído → `005_verifying`.
+- Crie a worktree de integração da task, branch `task/<id>`, no repo dono do trabalho; projetos multi-repo criam uma por repo afetado.
+- O orquestrador de execução escolhe:
+  - **executor único:** uma frente coesa, uma skill predominante e um conjunto de escrita;
+  - **especialistas sequenciais:** ownership distinto, mas dependência lógica entre frentes;
+  - **ondas paralelas:** contratos estáveis, dependência satisfeita e conjuntos de escrita independentes.
+- Todo contrato efêmero de frente declara: `owns`, `may_read`, `must_not_edit`, `depends_on`, `expected_input`, skill, critério de conclusão e “dependência ausente → reporte BLOCKED; nunca a implemente”.
+- Agentes paralelos usam branches/worktrees próprias derivadas da branch da task. Eles nunca integram outros workers; o orquestrador centraliza merge/cherry-pick na worktree de integração.
+- Antes de integrar, valide o diff contra `owns`/`must_not_edit` com `python3 pop/scripts/pop_check_scope.py --allow ... --deny ...`; alteração fora do escopo é devolvida, mesmo correta.
+- Dependência interna não pronta não é lançada. Se um worker encontrar entrada ausente/incompatível, ele reporta; não cria a dependência por conta própria.
+- Caminhe o DOX aplicável antes da primeira edição de cada frente. Reuse o extrato se base/hash não mudou; não faça duas caminhadas narrativas iguais.
+- Rode o gate agregado após integrar. Item `(user)`, aborto ou ausência de rota autorizada → `blocked`; descoberta que muda objetivo/contrato → 002.
+- Registre apenas resultados, desvios, commits e evidências relevantes. Tudo integrado e limpo → 005.
 
-### 005_verifying — verificação (agent, + user se crítica)
+### 005_verifying — revisão independente (agent, + user se crítica)
 
-- Crie o `.verify.md` a partir da tabela de verificação do plano — **na worktree da task**, não na branch principal. Critério `re-run`: execute o run e compare com o "Pass é". Critério `evidência`: audite a saída capturada pelo executor (notas em `subtasks/`); evidência ausente ou inconclusiva → trate como `re-run`.
-- Algum critério falhou → volte para `004_processing` com notas.
-- **`critical: true`:** preencha a seção de aprovação humana e aguarde o `- [x] Feito` antes de avançar. **Task `yolo: true`:** essa verificação é do **crítico** (gate 005 da [[.agents/skills/yolo-critic/SKILL|yolo-critic]]) — não para no humano; a task é destacada no fechamento de escopo.
-- Tudo passou (e aprovado, se crítica) → `006_done`.
+- Abra contexto fresco e leia nesta ordem: objetivo, specs/contratos, testes e diff. O relato de execução é apoio, não fonte de verdade.
+- Reexecute critérios `re-run`; audite `evidência`, promovendo a re-run quando inconclusiva; rode o gate agregado quando aplicável.
+- Revise comportamento, bordas, testes, complexidade, acoplamento, nomes, erros, segurança, documentação, specs e DOX tocados. Em código, siga `clean-code-review`.
+- Cada achado traz trecho/evidência, impacto e severidade: **bloqueante**, **sugestão** ou **nit**. Só bloqueante devolve a 004/002.
+- Há exatamente um revisor por rodada. `critical: true` usa revisão strong/profunda e ainda aguarda aprovação humana; em yolo, o mesmo papel assume o gate, sem segundo crítico.
+- Grave resultado/evidência por ID de critério; não copie o plano inteiro. Tudo passou → 006.
 
-### 006_done — PR, merge humano e encerramento (agent + user)
+### 006_done — integração, merge e encerramento (agent + user)
 
-1. **Abra o PR:** branch `task/<id>` → branch de PR declarada no AGENTS.md do projeto. Registre `pr:` e `awaiting_merge: true` no frontmatter, crie a rodada **Merge** no `.approval.md` ([[_templates/TASK-APPROVAL|TASK-APPROVAL]]) e **pare** — a task aparece no INBOX. Sem repositório git: a rodada de merge é a aprovação final da entrega, sem PR. **Task `yolo: true`: sem PR** — o crítico integra `task/<id>` em `develop` por merge local (não sete `pr:` nem `awaiting_merge:`) e assina a rodada Merge; ver seção Yolo mode.
-2. **O humano merga:** ele mesmo no repositório, ou comandando na rodada de merge (aí o agente executa o comando dele). Conflito de merge resolvido (sob comando do humano ou pela regra yolo) → re-verifique **só os critérios tocados pelo conflito**, não a suíte inteira.
-3. **Após o merge, finalize:** escreva `memory/<id>.md` ([[_templates/MEMORY|MEMORY]]) — resumo ≤2000 chars, commit final do merge, datas de início e fim; remova a worktree (`git worktree remove pop/worktrees/<id>`); limpe `awaiting_merge:` e `worktree:`. É o registro durável que sobrevive à pasta do kanban (ver passo 7). **Task cross-repo de projeto `full-multi-repo`:** a memória vai para o `memory/` de **cada repo afetado** (não há memory central) e o card central linka cada uma.
-4. **Sincronize as specs na mesma finalização da memory:** as specs da mudança montadas em 002 são incorporadas às specs do projeto (`sync-specs`), refletindo o que foi **realmente** feito — resolva itens "Aberto", status → `implementada`. Em `full-multi-repo`, sempre nas `specs/` dos repos afetados (não há specs central). **Não é opcional** — é parte da conclusão.
-5. **Status derivado:** marque a task como concluída na epoch; se todas as tasks da phase concluíram, a phase conclui; se todas as phases, a epoch. Atualize os `INDEX.md` se o status do projeto mudou.
-6. **Extraia aprendizados:** o reutilizável vira skill (`skills/`) ou nota (`notes/learnings/`), linkada no card.
-7. **Apague a pasta da task:** só depois dos passos 3-6 feitos, apague `kanban/006_done/<id>-<slug>/` inteira (card, `.plan.md`, `.approval.md`, `.verify.md`, `subtasks/`). Não é limpeza periódica — é o último passo obrigatório do fechamento de 006; a pasta só existe de forma transitória enquanto os passos 3-6 rodam. A memória (passo 3) é o que fica como prova.
+1. Fora de yolo, abra PR `task/<id>` → branch de PR, registre `pr:`/`awaiting_merge:` e aguarde o humano. Sem repo, a rodada é aprovação final.
+2. Em yolo, o orquestrador sincroniza e integra mecanicamente `task/<id>` em `develop`; conflito → `blocked`, nunca resolução autônoma. O revisor não opera Git.
+3. Após merge/integração, escreva `memory/<id>.md` como ledger curto: resultado, commit, datas, specs, decisões/desvios e ponteiros.
+4. Sincronize apenas specs/DOX realmente afetados com o estado entregue; atualize status da task/phase/epoch e índices se necessário.
+5. Extraia learning somente quando houver conhecimento reutilizável; remova todas as worktrees/branches efêmeras da task.
+6. Apague `kanban/006_done/<id>/` somente após os passos anteriores; a memory é a prova durável.
 
 ## Regras transversais
 
-- **Comando explícito do humano vence o fluxo.** Os estágios, gates e pausas descrevem o **caminho padrão** — existem para impedir o **agente** de agir no lugar do humano, nunca para cercar o dono do processo. Instrução direta e inequívoca do humano na conversa **sobrescreve qualquer padrão** (testar onde/como quiser, mergear fora de 006, avançar, pausar, pular uma parada). O agente **obedece**, **não reinterpreta** o comando para caber no fluxo (mergear em `develop` é mergear em `develop` — não é "avançar para 006") e registra o desvio no Log (`desvio por comando do humano: <o quê>`). Diante de um comando só há duas saídas legítimas: **executá-lo**, ou — se for genuinamente ambíguo ou destrutivo/irreversível — fazer **uma** pergunta e então executar. Nunca trocar silenciosamente o pedido pela leitura que o agente faz do fluxo. (Já valia em pontos isolados — liberação de 001, marca yolo; aqui vira geral.)
-- **Uma execução = até o próximo gate humano:** o agente encadeia os estágios de responsável `agent` numa mesma chamada e só para onde uma decisão humana é aguardada, informando o estado. **Gates humanos:** liberação em `001` (`- [x] Pronto para planejar`); aprovação em `003`; verificação humana quando `critical: true` em `005`; item `(user)` de subtask; `blocked: true`; rodada de merge em `006`. Nenhum gate é pulado — eliminam-se só as paradas que não esperavam ninguém. **Task `yolo: true`:** os gates de julgamento (001, 003, 005 crítico e integração de task) são delegados ao agente crítico — restam humanos só item `(user)`, `blocked: true` e a **revisão final do escopo**; ver a seção Yolo mode. Chamadas típicas:
-  - **A:** cria o card em 001 e **para** (aguarda a liberação do humano) — salvo comando explícito de seguir direto.
-  - **B (pós-liberação):** 002 → prepara o `.approval.md` em 003 e **para** (aguarda aprovação).
-  - **C (pós-aprovação):** 004 → 005 → abre o PR em 006 e **para** (aguarda merge) — pausando antes se item `(user)`, `critical: true` em 005, condição de aborto, bloqueio ou retorno a 002.
-  - **D (pós-merge):** memory, sync-specs, status derivado, encerramento.
-- **Nenhum trabalho fora de task:** alterações no conteúdo do projeto (tudo fora de `pop/`, `.agents/` e `AGENTS.md` — na raiz da pasta do projeto ou em repositório externo) só acontecem dentro de `004_processing`, com plano aprovado em 003, **na worktree da task**. Sem task, não há alteração.
-- **Dependências pilotam o paralelismo:** tasks (e grupos/itens de subtasks) sem pré-requisito pendente podem rodar em paralelo, cada task na sua worktree — respeitando o WIP de 3.
-- **Merge é do humano:** o agente nunca merga PR de task por conta própria — só quando comandado na rodada de merge. O humano pode comandar merge a qualquer momento, inclusive **fora de 006** e para testar o entregável (ver "Comando explícito do humano vence o fluxo"). Exceção: task yolo — o crítico integra `task/<id>` em `develop` por merge local, sem PR; o PR `develop` → branch de PR só existe **se o humano pedir** no fechamento do escopo (seção Yolo mode).
-- **Log de transições:** toda mudança de estágio adiciona **uma** linha no Log do card, com os **contextos lançados** no estágio — a medida de custo do fluxo: `AAAA-MM-DD — 002→003 — motivo curto — contextos: planejador + 2 recon`. Use `pop_move --reason "motivo — contextos: ..."`; não escreva linha manual duplicando a do script.
-- **Frontmatter sempre atualizado:** ao mover, atualize `stage:` e `updated:`; ao travar/destravar, `blocked:` e `blocked_reason:`.
-- **Claim de task — um agente por task:** ao assumir uma task o orquestrador registra `claimed_by:`/`claimed_at:` no card (`scripts/pop_claim.py <id>`) e **libera ao parar** num gate (`--release`). Claim ativo de outro agente = task ocupada — não toque em **nenhum arquivo da pasta** (card, `.plan.md`, `.verify.md`, `subtasks/`): leitura ok, escrita proibida. O `pop_move` também recusa transição de task com claim ativo de outro agente (`--by` identifica quem pede). Lease de ~2h: claim mais velho que isso é órfão e pode ser tomado (o script decide).
-- **Arquivos de task são linkados só pelo nome** (`[[1.1.1-user-table-creation]]`) — nunca pelo caminho, pois a pasta se move.
-- **Nunca pule estágios.** Retornos permitidos: 003→002, 004→002, 005→004. Comando explícito do humano pode desviar desse caminho padrão (ver "Comando explícito do humano vence o fluxo").
+- **Comando explícito do humano vence o fluxo:** execute ou faça uma única pergunta se houver ambiguidade/destrutividade; registre o desvio.
+- **Uma execução vai até o próximo gate humano:** 001, 003, 005 critical, item `(user)`, `blocked` ou merge em 006. Subagente de estágio é colhido antes de encerrar.
+- **Nenhum trabalho fora de task:** conteúdo do projeto só muda em 004, após 003, na worktree apropriada.
+- **Paralelismo exige duas independências:** lógica (não depende do resultado alheio) e escrita (não disputa arquivos/contratos). Especialização pode ser sequencial.
+- **Claim é por task:** `pop_claim.py` protege a pasta contra outro orquestrador; ownership de frentes protege workers dentro dela.
+- **Log de transições:** uma linha por movimento, com contextos realmente lançados; frontmatter sempre fiel.
+- Arquivos móveis usam wikilink só pelo nome. Retornos normais: 003→002, 004→002, 005→004.
 
 ## Yolo mode
 
-Delegação dos **gates de julgamento** ao **agente crítico** ([[.agents/skills/yolo-critic/SKILL|yolo-critic]]) quando a task tem `yolo: true` — mesma máquina de estados, mesmos artefatos, só muda o assinante. *(Não confundir com o "yolo" de CLI headless da `delegate-coding`.)*
+`yolo: true` delega julgamentos ao papel de revisor independente e mantém a mesma máquina de estados.
 
-- **Marcação (humano, no roadmap):** bullet `**Yolo:** sim` na epoch ou na phase, ou marcador ` · yolo: sim` na linha da task ([[_templates/EPOCH|template]]). **Herança com opt-out:** epoch → phases → tasks; task pode marcar ` · yolo: não`. Só o humano marca (ou o agente sob comando explícito dele).
-- **Estampagem (card):** ao materializar a task (`new-task`), a herança é resolvida e o card recebe `yolo: true` no frontmatter + Log com a origem (`yolo herdado da phase X.Y`). O frontmatter é a fonte em runtime (INBOX, `pop_move`). Remoção da marca mid-flight vale a partir do **próximo** gate.
-- **Escopo se auto-materializa:** o orquestrador cria os cards das tasks listadas no roadmap **sem entrevista**, em ordem de `depends_on`, respeitando o WIP de 3 — e para quando o escopo (phase/epoch) termina. Escopo fechado: dividir task pode (regra do 001); inventar phase/task nova, não.
-- **Gates delegados ao crítico:** liberação em 001 (a marca no roadmap é a liberação antecipada — o `pop_move` aceita 001→002 com `yolo: true`); aprovação em 003 (leitura adversarial; **teto de 2 devoluções**, a 3ª vira `blocked`; critério de aceite sem run executável e pass observável é devolvido); verificação de `critical: true` em 005 (adversarial reforçada, task destacada no fechamento); integração da task em `develop` no 006.
-- **Gates que continuam humanos:** item `(user)` de capacidade — instalação de software, liberação de serviço, credencial, decisão de negócio nova (→ `blocked`); `blocked: true` (inclui teto de devoluções e lacuna de pesquisa em 002); **revisão final do escopo**.
-- **Integração via `develop`, sem PR por task:** `develop` é criada da branch de PR do projeto (multi-repo: uma por repo afetado); o crítico integra `task/<id>` em `develop` por **merge local**, sincronizando `develop` com a branch de PR antes de cada merge — nenhum PR e nenhum `awaiting_merge:` por task.
-- **Fechamento de escopo (task avulsa, phase ou epoch — idêntico nos três):** o agente **não abre PR**. Cria open_question (aparece no INBOX) com resumo do entregue, **como testar** (`git checkout develop`), as tasks `critical` verificadas pelo crítico (atenção extra) e a pergunta: abrir PR `develop` → branch de PR? O humano testa e decide — o agente só abre o PR sob comando dele. Sem git: a open_question pede a aprovação final da entrega.
+- A marca vem do roadmap e pode ser herdada; só o humano a define. O escopo auto-materializa tasks existentes, respeitando `depends_on` e WIP 3.
+- Em 003, o revisor faz sanity check do brief: objetivo, contratos, dependências, riscos e critérios. Teto de duas devoluções; terceira → `blocked`.
+- Em 005 nasce **nova sessão limpa do mesmo papel**. Ela revisa implementação e qualidade; `critical` torna a revisão strong e destaca a task no fechamento, sem criar outro agente.
+- Continuam humanos: item `(user)`, lacuna de pesquisa/`blocked` e revisão final do escopo.
+- O orquestrador, não o revisor, integra cada task em `develop`, sem PR por task. No fim do escopo cria open_question com resumo, como testar e criticals; PR `develop` → branch de PR só sob comando humano.

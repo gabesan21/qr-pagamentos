@@ -1,20 +1,44 @@
-# Verificação — [[<id>-<slug>]]
+# Verificação e crítica — [[<id>-<slug>]]
 
 > Blockquotes deste template são instruções de preenchimento — **apague-os ao preencher**.
 
-- **Etapa:** 005_verifying · **Responsável:** agent (+ user se `critical: true`)
+- **Etapa:** 005_verifying · **Responsável:** revisor independente
 
-> Copie a tabela "Critérios de aceite e verificação" do [[<id>-<slug>.plan|plano]] e siga o **modo 005** de cada critério, **na worktree da task**: `re-run` → execute o run e compare com o "Pass é"; `evidência` → audite a saída capturada pelo executor (notas em `subtasks/`), e trate como `re-run` se ausente ou inconclusiva. Critério falhou → task volta para `004_processing` — ver [[WORKFLOW|WORKFLOW]].
+> Um único agente com contexto fresco verifica comportamento e qualidade. Leia objetivo, specs, contratos DOX e diff; não dependa da narrativa da execução. Reexecute critérios em modo `re-run`; em `evidência`, audite a prova e reexecute se ela estiver ausente ou inconclusiva. `critical: true` aumenta profundidade/modelo, não cria outro revisor.
 
 ## Rodada 1 — AAAA-MM-DD
 
-| # | Critério | Modo | Run executado / evidência auditada | Resultado | Evidência |
-|---|----------|------|------------------------------------|-----------|-----------|
-| 1 | <critério do plano> | re-run \| evidência | `<run do plano>` ou <nota auditada> | ✅ passou / ❌ falhou | O que foi observado vs. o "Pass é", em uma linha. |
+### Conformidade com objetivo e specs
 
-**Veredito:** aprovada → 006_done | reprovada → 004_processing (<o que falta>)
+| # | Critério | Modo | Verificação executada | Resultado | Evidência |
+|---|----------|------|------------------------|-----------|-----------|
+| 1 | <critério do plano> | re-run \| evidência | `<run>` ou <artefato auditado> | passou \| falhou | <observado versus esperado> |
 
-## Aprovação humana (apenas se `critical: true`)
+### Qualidade da implementação
+
+> Revise o diff com a skill de revisão aplicável: correção, complexidade, acoplamento, nomes, erros, testes, segurança, contratos DOX, documentação e specs. Registre somente achados acionáveis, com fonte.
+
+| Severidade | Achado | Evidência | Correção necessária |
+|------------|--------|-----------|---------------------|
+| bloqueante \| sugestão \| nit | <problema> | `<arquivo:linha>` ou run | <ação objetiva> |
+
+### Escopo e integração
+
+- [ ] Alterações respeitam `Owns` e `Must not edit` de cada frente.
+- [ ] Dependências não foram implementadas oportunisticamente por consumidores.
+- [ ] Gate agregado passou após a integração.
+- [ ] Specs, documentação e contratos DOX afetados estão coerentes.
+
+## Veredito
+
+- **Decisão:** aprovada → 006_done | reprovada → 004_processing.
+- **Bloqueantes:** nenhum | <lista curta>.
+- **Sugestões/nits:** <não bloqueiam; registrar somente se úteis>.
+- **Resumo:** <comparação breve entre objetivo inicial e resultado implementado>.
+
+## Aprovação humana (somente `critical: true` fora do yolo)
+
+> O revisor termina seu julgamento antes deste gate. O humano aprova, pede correção ou registra ressalvas; em yolo esta seção não é usada.
 
 ### Resposta do humano
 

@@ -16,6 +16,7 @@ INITIAL_ADMIN_EMAIL=Admin.Example+ops@Example.COM
 POSTGRES_ADMIN_PASSWORD=reserved-!:/?#[]@-admin
 MIGRATOR_PASSWORD=reserved-!:/?#[]@-migrator
 RUNTIME_PASSWORD=reserved-!:/?#[]@-runtime
+NAUTT_WEBHOOK_CALLBACK_URL=https://payments.example.com/api/nautt/webhooks
 EOF
 chmod 0600 "$TMP/install.env"
 
@@ -30,6 +31,9 @@ done
 expect_contains "$INSTALL_DIR/install.sh" 'chown 1000:1000'
 expect_contains "$INSTALL_DIR/install.sh" 'chmod 0400'
 expect_contains "$INSTALL_DIR/install.sh" '.install-secrets'
+expect_contains "$INSTALL_DIR/install.sh" 'POSTGRES_PORT=5433'
+expect_contains "$INSTALL_DIR/../compose.yaml" 'command: ["postgres", "-p", "${POSTGRES_PORT:-5433}"]'
+expect_contains "$INSTALL_DIR/../compose.yaml" 'POSTGRES_PORT: ${POSTGRES_PORT:-5433}'
 expect_absent "$output" 'reserved-!:/?#[]@-admin'
 expect_absent "$output" 'sudo'
 expect_absent "$output" 'Admin.Example+ops@Example.COM'
@@ -37,6 +41,43 @@ expect_absent "$output" 'Admin.User'
 expect_absent "$INSTALL_DIR/install.sh" 'curl '
 expect_absent "$INSTALL_DIR/install.sh" 'SUDO'
 expect_absent "$INSTALL_DIR/uninstall.sh" 'SUDO'
+
+# Nautt encryption key generation/validation path
+expect_contains "$INSTALL_DIR/install.sh" 'NAUTT_ENCRYPTION_KEY'
+expect_contains "$output" 'nautt_encryption_key'
+valid_nautt_key=$(node -e 'process.stdout.write(crypto.randomBytes(32).toString("base64url"))')
+[[ ${#valid_nautt_key} -ge 32 ]] || fail 'generated Nautt key is unexpectedly short'
+node -e 'process.exit(Buffer.from(process.argv[1], "base64url").length === 32 ? 0 : 1)' "$valid_nautt_key" || fail 'valid Nautt key length check failed'
+node -e 'process.exit(Buffer.from(process.argv[1], "base64url").length === 32 ? 0 : 1)' 'aG9zdA' && fail 'invalid Nautt key length check succeeded' || true
+cat > "$TMP/nautt-valid.env" <<EOF
+APP_PORT=33013
+INITIAL_ADMIN_USERNAME=Admin.User
+INITIAL_ADMIN_EMAIL=
+POSTGRES_ADMIN_PASSWORD=reserved-!:/?#[]@-admin
+MIGRATOR_PASSWORD=reserved-!:/?#[]@-migrator
+RUNTIME_PASSWORD=reserved-!:/?#[]@-runtime
+NAUTT_ENCRYPTION_KEY=$valid_nautt_key
+NAUTT_WEBHOOK_CALLBACK_URL=https://payments.example.com/api/nautt/webhooks
+EOF
+chmod 0600 "$TMP/nautt-valid.env"
+nautt_valid_out=$TMP/nautt-valid.out
+"$INSTALL_DIR/install.sh" --dry-run --env-file "$TMP/nautt-valid.env" > "$nautt_valid_out"
+expect_contains "$nautt_valid_out" 'nautt_encryption_key'
+expect_absent "$nautt_valid_out" "$valid_nautt_key"
+sed 's|^NAUTT_WEBHOOK_CALLBACK_URL=.*|NAUTT_WEBHOOK_CALLBACK_URL=http://payments.example/webhook|' "$TMP/install.env" > "$TMP/invalid-callback.env"
+if "$INSTALL_DIR/install.sh" --dry-run --env-file "$TMP/invalid-callback.env" >/dev/null 2>&1; then fail 'invalid Nautt callback succeeded'; fi
+sed '/^NAUTT_WEBHOOK_CALLBACK_URL=/d' "$TMP/install.env" > "$TMP/missing-callback.env"
+if "$INSTALL_DIR/install.sh" --dry-run --env-file "$TMP/missing-callback.env" >/dev/null 2>&1; then fail 'missing Nautt callback succeeded'; fi
+
+# Optional Nautt API base URL override path
+expect_contains "$INSTALL_DIR/install.sh" 'NAUTT_API_BASE_URL'
+expect_contains "$INSTALL_DIR/.env.example" 'NAUTT_API_BASE_URL'
+sed '$a NAUTT_API_BASE_URL=https://api-stage.nauttfinance.com/api/v2' "$TMP/install.env" > "$TMP/base-url.env"
+"$INSTALL_DIR/install.sh" --dry-run --env-file "$TMP/base-url.env" >/dev/null || fail 'valid Nautt API base URL override failed'
+"$INSTALL_DIR/uninstall.sh" --dry-run --env-file "$TMP/base-url.env" >/dev/null || fail 'uninstall rejected the optional Nautt API base URL'
+sed '$a NAUTT_API_BASE_URL=http://api-stage.nauttfinance.com/api/v2' "$TMP/install.env" > "$TMP/invalid-base-url.env"
+if "$INSTALL_DIR/install.sh" --dry-run --env-file "$TMP/invalid-base-url.env" >/dev/null 2>&1; then fail 'invalid Nautt API base URL succeeded'; fi
+
 git -C "$INSTALL_DIR/.." check-ignore -q install/.env || fail 'install/.env is not ignored by Git'
 
 sed 's/^APP_PORT=.*/APP_PORT="33013"/' "$TMP/install.env" > "$TMP/quoted.env"

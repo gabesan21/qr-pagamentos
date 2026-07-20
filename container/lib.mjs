@@ -9,7 +9,7 @@ export async function readSecret(path) {
 export function databaseUrl({ username, password, schema = false }) {
   const url = new URL("postgresql://invalid/qr_pagamentos");
   url.hostname = process.env.POSTGRES_HOST ?? "db";
-  url.port = process.env.POSTGRES_PORT ?? "5432";
+  url.port = process.env.POSTGRES_PORT ?? "5433";
   url.username = username;
   url.password = password;
   url.pathname = "/qr_pagamentos";

@@ -1,0 +1,57 @@
+{
+  "runId": "20260717222201",
+  "startedAt": "2026-07-17T22:22:01.100Z",
+  "gitHead": "07ff38e9e902b4db822253088a5d51162217f124",
+  "assertions": "artifacts/design-system/20260717222201/assertions.json",
+  "assertionsSha256": "35eab100e33672f06c53b3871c19d3c8f8d39e0b471b9299871f2fcc70ea06f5",
+  "pngs": [
+    {
+      "path": "artifacts/design-system/20260717222201/design-system-light-320.png",
+      "bytes": 237244,
+      "sha256": "2af98acd921d35d3b843b0bb497c013af22b3a81fcf208cc1f63e1e5b5c8f065",
+      "mtimeMs": 1784326922747.6482
+    },
+    {
+      "path": "artifacts/design-system/20260717222201/design-system-light-375.png",
+      "bytes": 232890,
+      "sha256": "64dc46c76e4da41e8b8cf3abb741d784ff1a7704dc14657bccadbefea6480ce4",
+      "mtimeMs": 1784326924124.3318
+    },
+    {
+      "path": "artifacts/design-system/20260717222201/design-system-light-768.png",
+      "bytes": 237808,
+      "sha256": "b9bd19c61836412b0f63161ec6f5e4e8faa7f3bfb8c49efba0499422f1f22d18",
+      "mtimeMs": 1784326925557.6826
+    },
+    {
+      "path": "artifacts/design-system/20260717222201/design-system-light-1440.png",
+      "bytes": 252367,
+      "sha256": "d000d25b1f6cfd18279462073225f1d721b10e23abc99a0cfb64d254fe7ff2ca",
+      "mtimeMs": 1784326927051.0342
+    },
+    {
+      "path": "artifacts/design-system/20260717222201/design-system-dark-320.png",
+      "bytes": 240865,
+      "sha256": "13d66821e2ed2a53170e3b088ca12f934f9d07174772bba51104f0c5a1e5fbb2",
+      "mtimeMs": 1784326928414.3843
+    },
+    {
+      "path": "artifacts/design-system/20260717222201/design-system-dark-375.png",
+      "bytes": 233522,
+      "sha256": "061a394c2b2046290169439377242ad964306928919074671e0cecdf47fdbac3",
+      "mtimeMs": 1784326929757.734
+    },
+    {
+      "path": "artifacts/design-system/20260717222201/design-system-dark-768.png",
+      "bytes": 239154,
+      "sha256": "a33b250f829a496b7c26352506b0a3e5efe36793831759f15ffc50327993ef6e",
+      "mtimeMs": 1784326931137.7507
+    },
+    {
+      "path": "artifacts/design-system/20260717222201/design-system-dark-1440.png",
+      "bytes": 253675,
+      "sha256": "4ee4e032f04ffe734409cf01479bdde8aab8d36d1b46d4209c806e42eb033981",
+      "mtimeMs": 1784326932617.7688
+    }
+  ]
+}

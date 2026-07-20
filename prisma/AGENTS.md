@@ -22,6 +22,13 @@
 - Exception: task `1.2.2-establish-local-identities` may rewrite only `20260714190000_local_identities` after explicit human confirmation that it is unshipped and every non-disposable database with the old checksum will be purged; this does not authorize any later in-place rewrite.
 - Never use `db push`; create and review a new versioned migration instead.
 - Keep deterministic names for database constraints that verification asserts.
+- `nautt_credential.credential_revision` is the collision-proof UUID identity for credential CAS and registration claims; never replace it with `updated_at` or read ciphertext before an exact revision claim.
+- `provider_quote` claim and `provider_order` creation are one transaction; never split them or weaken the composite owner FK.
+- Provider monetary lexemes remain text protected by database checks; reconciliation must match owner, local ID, provider UUID, version, and current state in one conditional write.
+- Webhook delivery UUIDs are globally unique and owner-bound; never store raw bodies/signatures/secrets, weaken the optional composite owner/order FK, or allow runtime privileges beyond delivery/attempt DML and attempt-sequence usage.
+- A delivery claim must serialize attempt numbering, terminal replay, live-lease exclusion, and expired-lease recovery; its processing lease must outlive the accepted request-work budget, and finalization must match the current processing attempt so an expired worker is fenced. Preserve terminal evidence when reclaiming the expired attempt. Never hold its transaction across provider I/O or finalize before authoritative reconciliation succeeds.
+- Recovery evidence is distinct from intake evidence: only `RECOVERY` may have a null payload digest, and it must carry the provider webhook UUID, delivery flags, and positive provider attempt. Never weaken the intake digest invariant or overwrite a known delivery UUID.
+- Explicit history recovery uses one 30-second owner/order-bound fenced lease. Never hold its transaction across history/order reads, let a stale token insert/complete, or grant runtime privileges beyond lease-table DML.
 - The foundation fixture is infrastructure proof only; never attach domain semantics or routes to it.
 - `deployment_bootstrap` is an immutable no-FK locator for the originally seeded UUID; never retarget it, add a user FK, or make it block ordinary user mutation/deletion.
 

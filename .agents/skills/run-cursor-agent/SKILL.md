@@ -49,7 +49,7 @@ cursor-agent -p --force --output-format json "..." | jq -r '.result, .summary'
 
 - `--model/-m <id>`; liste com `cursor-agent models` ou `--list-models`.
 - **`--model default`/`auto` falha em alguns planos — sempre especifique** (ex.: `composer-2`, `claude-sonnet-4.6`, `gpt-5.4-low`, `gemini-3.1-pro`).
-- **Qual modelo:** o tier do effort da task em `scripts/models.json` (entrada `cursor-agent`) — matriz papel × size na Orquestração do [[WORKFLOW|WORKFLOW]].
+- **Qual modelo:** o tier do effort da task em `pop/scripts/models.json` (entrada `cursor-agent`) — matriz papel × size na Orquestração do [[WORKFLOW|WORKFLOW]].
 
 ## MCP
 

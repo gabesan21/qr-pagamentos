@@ -317,7 +317,7 @@ if (process.argv.includes("--clean-clone") && !process.env.CONTAINER_TEST_CLEAN_
       assert(dbMounts.includes("postgres_admin_password") && !dbMounts.includes("runtime_password"), "DB secret grant changed");
       assert(appMounts.includes("runtime_password") && !appMounts.includes("admin_password"), "app secret grant changed");
       const config = compose(["config"]);
-      assert(!/0\.0\.0\.0:.*3000/.test(config) && !config.includes("5432:5432"), "public listener detected");
+      assert(!/0\.0\.0\.0:.*3000/.test(config) && !/(?:5432|5433):(?:5432|5433)/.test(config), "public listener detected");
       assertRedacted(captured + config + compose(["logs", "--no-color"]));
       console.log("PASS db-initialization-identity");
       console.log("PASS db-secret-consumed-once");

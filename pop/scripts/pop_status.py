@@ -5,7 +5,7 @@ Mostra, por projeto, a contagem de tasks por estágio do kanban e as listas
 que pedem atenção humana: aguardando liberação (001), aguardando aprovação
 (003), verificação crítica (005 + critical), aguardando merge, bloqueadas
 e alerta de WIP > 3 em 004. Tasks `yolo: true` ficam fora das listas de
-aprovação/crítica/merge — esses gates são delegados ao agente crítico
+aprovação/revisão/merge — os julgamentos são delegados ao revisor independente
 (seção Yolo mode do WORKFLOW).
 
 Uso:

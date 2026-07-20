@@ -24,17 +24,17 @@ _Sem repositório externo: o trabalho vive no repositório do PoP e os PRs de ta
 Toda alteração no projeto passa pelo kanban (`pop/kanban/001_initial_task → … → 006_done`):
 
 1. **001** — task nasce (skill `new-task`), com `depends_on:` listando as tasks pré-requisito.
-2. **002** — plano com critérios de aceite e specs linkadas (skills `advance-task`, `write-spec`, `sync-specs`).
+2. **002** — planejador separado produz brief com estratégia, frentes, contratos e critérios.
 3. **003** — gate humano: o agente só avança com `- [x] Feito`.
-4. **004** — execução **em worktree própria** (`pop/worktrees/<id>/`, branch `task/<id>`); só entra quando toda `depends_on` concluiu.
-5. **005** — verificação dos critérios na worktree (+ aprovação humana se `critical: true`).
+4. **004** — orquestrador escolhe executor único ou especialistas em sequência/ondas; paralelos usam worktrees e ownership isolados.
+5. **005** — um revisor independente compara objetivo/specs com diff, testes e qualidade (+ humano se `critical`).
 6. **006** — PR para a branch de PR acima → **o humano merga** → agente escreve `pop/memory/<id>.md`, remove a worktree e conclui.
 
-**Uma execução = até o próximo gate humano:** o agente atua como orquestrador — subagente dedicado por etapa — e encadeia estágios até um gate: aprovação em 003, verificação se `critical`, item `(user)`, bloqueio ou rodada de merge em 006. Detalhe completo: [[WORKFLOW|WORKFLOW]] (na raiz do PoP; copiado para este repositório quando o type é `included`).
+**Uma execução = até o próximo gate humano:** planejador, execução e revisão usam contextos separados. O plano guarda decisões, não reasoning; o 004 especializa por frente quando houver skills/ownership distintos. Detalhe: [[WORKFLOW|WORKFLOW]].
 
 ## Protocolo de contexto
 
-1. Comece pelo card e pelo plano: leia **só** o que eles listam.
+1. Comece pelo card/brief e leia **só** specs, skills e contratos que eles acionam.
 2. Faltou contexto → subagente com pergunta específica, nunca "ler a pasta para se ambientar".
 3. Pare de buscar quando souber responder *o que muda e onde* — mais que isso é overthinking.
 4. Dúvida que a busca não resolveu = **RECON NEEDED** no plano ou `blocked:` no card — nunca suposição.
@@ -73,4 +73,4 @@ Toda alteração no projeto passa pelo kanban (`pop/kanban/001_initial_task → 
 - **Nunca** alterar o projeto real fora de uma task em `004_processing` cujo plano foi aprovado em 003.
 - **Nunca** marcar `- [ ] Feito` nem executar itens `(user)` — são exclusivos do humano.
 - **Nunca** fazer merge de PR de task — o merge é do humano (ou comandado por ele na rodada de merge).
-- Toda task concluída gera `pop/memory/<id>.md` (≤2000 chars, commit final, datas) — a pasta `pop/kanban/006_done/` pode ser limpa; a memória fica.
+- Toda task concluída gera `pop/memory/<id>.md` (ledger ≤2000 chars, commit final, datas); a pasta em `006_done` é apagada no fechamento.

@@ -10,7 +10,7 @@ describe("POST /logout", () => {
   it("redirects relatively when the container request URL uses its bind address", async () => {
     logout.mockResolvedValueOnce(undefined);
 
-    const response = await POST(new Request("http://0.0.0.0:3000/logout", { method: "POST" }));
+    const response = await POST();
 
     expect(response.status).toBe(303);
     expect(response.headers.get("location")).toBe("/login");
