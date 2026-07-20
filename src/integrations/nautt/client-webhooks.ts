@@ -56,7 +56,7 @@ function hasExactEvents(value: unknown): boolean {
 }
 
 function parseSuccess(payload: unknown, callbackUrl: string): RegisteredNauttWebhook {
-  if (typeof payload !== "object" || payload === null || !("success" in payload) || payload.success !== true || !("data" in payload)) {
+  if (typeof payload !== "object" || payload === null || !("data" in payload) || ("success" in payload && payload.success !== true)) {
     throw new NauttWebhookAdapterError("Nautt webhook registration failed");
   }
   const data = payload.data;

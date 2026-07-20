@@ -58,7 +58,7 @@
 ## Webhook registration and intake
 
 - `POST /client-webhooks` requires an HTTPS `url`; optional `event_types` subscribes to selected events, while omitted/empty subscribes to all (`raw/webhook-registering.md:29-39`).
-- The `201` response returns webhook UUID, URL, event types, active status, and a secret that is shown only once (`raw/webhook-registering.md:59-80`).
+- The `201` response returns webhook UUID, URL, event types, active status, and a secret that is shown only once (`raw/webhook-registering.md:59-80`). Observed live against production on 2026-07-20: the real envelope is `{"message", "data", "code"}` with **no `success` field**, a fractional-seconds `created_at` (for example `2026-07-20T19:09:15.962135Z`), and a localized/placeholder `message` such as "Missing translation: order.webhook_created" — diverging from the documented `success: true` envelope at `raw/webhook-registering.md:65`. The adapter therefore accepts `success` absent or strictly `true` and ignores `code`/`message`.
 - Delivery posts contain a stable top-level delivery `id`, event, creation timestamp, order UUID/status, and attempt evidence; the handler must re-fetch `GET /orders/{uuid}` for the authoritative order object (`raw/webhook.md`).
 - Delivery verification uses the encrypted one-time webhook secret: calculate `hex(HMAC-SHA256(secret, rawBody))`, compare it in constant time with `X-Nautt-Signature: sha256=<hex>`, and parse only after verification. `X-Nautt-Delivery` is the durable unique deduplication key and `X-Nautt-Event` identifies the event. This dispatcher contract was supplied from Nautt's `webhook_dispatcher` source on 2026-07-17.
 - A receiver must return `2xx` within 15 seconds; Nautt retries failed deliveries five times at 10, 20, 40, 80, and 160 seconds. Delivery-history reads cover an order's deliveries and a specific delivery, including permanently failed attempts (`raw/webhook.md`).
@@ -72,6 +72,7 @@
 > Contradiz: [[notes/decisions/2026-07-13-project-foundation|Project foundation decisions]] - the original boundary lists order opening/query and webhooks only; the later UUID decision explicitly admits pricing as a required preparatory operation.
 
 - The sandbox guide says `api-stage.nauttfinance.com`, while webhook examples use `stage.nauttfinance.com`; the correct host requires confirmation (`raw/index.md:5-8`; `raw/webhook-registering.md:107-124`).
+- The webhook-registration docs claim a `success: true` envelope with message "Webhook created successfully", but the live production 201 on 2026-07-20 omits `success` entirely and returns the placeholder message "Missing translation: order.webhook_created" (`raw/webhook-registering.md:65` vs. live evidence).
 - `order.failed` appears in registration documentation but not the delivered event table; it is an event type rather than an order status and requires no status mapping.
 - The creation docs claim parity with the GET object, but one creation example omits the GET field described as always present.
 - A card example uses status `New`, while the documented enum is lowercase `new`.

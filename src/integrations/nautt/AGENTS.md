@@ -10,7 +10,7 @@
 - Resolve the provider base URL per call through the optional `NAUTT_API_BASE_URL` ENV, validated as canonical absolute HTTPS without credentials or a fragment and defaulting to `https://api.nauttfinance.com/api/v2`; send owner API keys only as `X-API-Key`.
 - Never create or consume Nautt-hosted payment links.
 - Validate operator-selected callback URLs before provider dispatch; require absolute HTTPS without embedded credentials or fragments.
-- Keep documented request and response fields explicit; reject incomplete or contradictory success payloads.
+- Keep documented request and response fields explicit; reject incomplete or contradictory success payloads. For `POST /client-webhooks`, "documented" tracks observed production behavior: the 201 envelope may omit `success` (accept absent or strictly `true`, reject any other present value), `data` remains fully strict, and `code`/`message` are ignored.
 
 ## Non-idempotent webhook registration
 
