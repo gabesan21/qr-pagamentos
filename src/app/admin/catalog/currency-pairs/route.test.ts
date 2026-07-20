@@ -1,9 +1,16 @@
 import { randomUUID } from "node:crypto";
 import { describe, expect, it, vi } from "vitest";
 
-const { requireAdminFromCookie, protectedMutationResponse, createCurrencyPair } = vi.hoisted(() => ({ requireAdminFromCookie: vi.fn(), protectedMutationResponse: vi.fn(), createCurrencyPair: vi.fn() }));
+const { requireAdminFromCookie, protectedMutationResponse } = vi.hoisted(() => ({ requireAdminFromCookie: vi.fn(), protectedMutationResponse: vi.fn() }));
 vi.mock("@/app/admin/guard", () => ({ requireAdminFromCookie, protectedMutationResponse }));
-vi.mock("@/auth/nautt-catalog", () => ({ getNauttCatalogService: () => ({ createCurrencyPair }) }));
+vi.mock(import("@/auth/nautt-catalog"), async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/auth/nautt-catalog")>();
+  const { createTestNauttCatalogStore } = await import("@/auth/nautt-catalog-test-store");
+  return {
+    ...actual,
+    getNauttCatalogService: () => actual.createNauttCatalogService(createTestNauttCatalogStore()),
+  };
+});
 
 import { POST } from "./route";
 
@@ -21,14 +28,22 @@ describe("catalog currency pairs create route", () => {
     }
   });
 
-  it("creates a currency pair and redirects opaquely", async () => {
+  it("creates a currency pair with valid UUIDs and redirects opaquely", async () => {
     requireAdminFromCookie.mockResolvedValue(actor);
     protectedMutationResponse.mockReturnValue(null);
-    createCurrencyPair.mockResolvedValue(undefined);
     const currencyUuid = randomUUID();
     const exchangeCurrencyUuid = randomUUID();
     const response = await POST(request(new URLSearchParams({ label: "BRL/USDT", currencyUuid, exchangeCurrencyUuid })));
-    expect(createCurrencyPair).toHaveBeenCalledWith(actor, { label: "BRL/USDT", currencyUuid, exchangeCurrencyUuid });
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toBe("/admin?success=catalog-created");
+  });
+
+  it("normalizes uppercase UUIDs to lowercase before persistence", async () => {
+    requireAdminFromCookie.mockResolvedValue(actor);
+    protectedMutationResponse.mockReturnValue(null);
+    const currencyUuid = randomUUID().toUpperCase();
+    const exchangeCurrencyUuid = randomUUID().toUpperCase();
+    const response = await POST(request(new URLSearchParams({ label: "BRL/USDT", currencyUuid, exchangeCurrencyUuid })));
     expect(response.status).toBe(303);
     expect(response.headers.get("location")).toBe("/admin?success=catalog-created");
   });
@@ -36,9 +51,16 @@ describe("catalog currency pairs create route", () => {
   it("redirects validation failures without value disclosure", async () => {
     requireAdminFromCookie.mockResolvedValue(actor);
     protectedMutationResponse.mockReturnValue(null);
-    createCurrencyPair.mockRejectedValue(new Error("validation"));
-    const response = await POST(request(new URLSearchParams({ label: "BRL/USDT", currencyUuid: "not-a-uuid", exchangeCurrencyUuid: randomUUID() })));
-    expect(response.status).toBe(303);
-    expect(response.headers.get("location")).toBe("/admin?error=catalog-create-failed");
+    const validUuid = randomUUID();
+
+    const malformed = await POST(request(new URLSearchParams({ label: "BRL/USDT", currencyUuid: "not-a-uuid", exchangeCurrencyUuid: validUuid })));
+    expect(malformed.status).toBe(303);
+    expect(malformed.headers.get("location")).toBe("/admin?error=catalog-create-failed");
+
+    const empty = await POST(request(new URLSearchParams({ label: "BRL/USDT", currencyUuid: validUuid, exchangeCurrencyUuid: "" })));
+    expect(empty.headers.get("location")).toBe("/admin?error=catalog-create-failed");
+
+    const missing = await POST(request(new URLSearchParams({ label: "BRL/USDT", currencyUuid: validUuid })));
+    expect(missing.headers.get("location")).toBe("/admin?error=catalog-create-failed");
   });
 });
