@@ -17,10 +17,12 @@ function Notice({ code, dictionary }: Readonly<{ code?: string; dictionary: Dict
     : code === "invalid" ? dictionary.nauttInvalid
       : code === "changed" ? dictionary.nauttChanged
         : code === "recovery" ? dictionary.nauttRecoveryRequired
-          : code === "unavailable" ? dictionary.nauttUnavailable
-            : null;
+          : code === "reset" ? dictionary.nauttResetDone
+            : code === "unavailable" ? dictionary.nauttUnavailable
+              : null;
   if (!copy) return null;
-  return <Alert role={code === "configured" ? "status" : "alert"} variant={code === "configured" ? "success" : "destructive"}>
+  const success = code === "configured" || code === "reset";
+  return <Alert role={success ? "status" : "alert"} variant={success ? "success" : "destructive"}>
     <AlertTitle>{dictionary.nauttHeading}</AlertTitle><AlertDescription>{copy}</AlertDescription>
   </Alert>;
 }
@@ -59,7 +61,10 @@ export function NauttCredentialSurface({ dictionary, idPrefix = "nautt", notice,
       <form action="/nautt-credentials/register" id={`${idPrefix}-registration-form`} method="post"><NauttCredentialSubmit form={`${idPrefix}-registration-form`} label={dictionary.nauttCompleteRegistration} pendingLabel={dictionary.nauttCompletingRegistration} /></form>
       <Card><CardHeader><CardTitle>{dictionary.nauttApiKeyLabel}</CardTitle><CardDescription>{dictionary.nauttApiKeyHelp}</CardDescription></CardHeader><CardContent><CredentialForm dictionary={dictionary} idPrefix={idPrefix} secondary /></CardContent></Card>
     </> : null}
-    {state === "REGISTERING" || state === "INDETERMINATE" ? <Alert variant="destructive"><AlertTitle>{dictionary.nauttRecoveryRequired}</AlertTitle><AlertDescription>{dictionary.nauttUnavailable}</AlertDescription></Alert> : null}
+    {state === "REGISTERING" || state === "INDETERMINATE" ? <>
+      <Alert variant="destructive"><AlertTitle>{dictionary.nauttRecoveryRequired}</AlertTitle><AlertDescription>{dictionary.nauttResetDisclosure}</AlertDescription></Alert>
+      <form action="/nautt-credentials/reset" id={`${idPrefix}-reset-form`} method="post"><NauttCredentialSubmit form={`${idPrefix}-reset-form`} label={dictionary.nauttReset} pendingLabel={dictionary.nauttResetting} variant="outline" /></form>
+    </> : null}
     {state === "ACTIVE" ? <Card>
       <CardHeader><CardTitle>{dictionary.nauttBalanceHeading}</CardTitle><CardDescription>{dictionary.nauttConfigured}</CardDescription></CardHeader>
       <CardContent>

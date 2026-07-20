@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("server-only", () => ({}));
 
 import { NauttCredentialReplacementBlockedError } from "../../auth/nautt-credential";
-import { OwnerWebhookRegistrationRecoveryRequiredError } from "./owner-webhook-registration";
+import { OwnerWebhookRegistrationError, OwnerWebhookRegistrationRecoveryRequiredError } from "./owner-webhook-registration";
 import {
   createOwnerOnboardingService,
   OwnerOnboardingChangedError,
@@ -23,7 +23,7 @@ function ports() {
       getDecryptedApiKey: vi.fn(async () => "validated-key"),
     },
     wallet: { read: vi.fn(async () => balance) },
-    registration: { register: vi.fn(async () => ({})) },
+    registration: { register: vi.fn(async () => ({})), reset: vi.fn(async () => true) },
   };
 }
 
@@ -89,7 +89,7 @@ describe("owner onboarding", () => {
       const trace = expectedRevision === "revision-a" ? staleTrace : winnerTrace;
       if (expectedRevision !== current.revision) throw new OwnerWebhookRegistrationRecoveryRequiredError();
       trace.ciphertextReads += 1; trace.decrypts += 1; trace.dispatches += 1;
-    }) };
+    }), reset: vi.fn(async () => false) };
     const service = createOwnerOnboardingService(credentials, wallet, registration);
 
     const requestA = service.onboard(actor, actor.id, "key-a", "https://payments.example/webhooks");
@@ -103,5 +103,27 @@ describe("owner onboarding", () => {
     expect(staleTrace).toEqual({ ciphertextReads: 0, decrypts: 0, dispatches: 0 });
     expect(winnerTrace).toEqual({ ciphertextReads: 1, decrypts: 1, dispatches: 1 });
     expect(status.balance?.tokenName).toBe("key-b");
+  });
+
+  it("resets only the actor's own registration", async () => {
+    const dependency = ports();
+    const service = createOwnerOnboardingService(dependency.credentials, dependency.wallet, dependency.registration);
+    await service.resetRegistration(actor);
+    expect(dependency.registration.reset).toHaveBeenCalledWith(actor.id);
+  });
+
+  it("maps a refused reset to an opaque changed outcome", async () => {
+    const dependency = ports();
+    dependency.registration.reset.mockResolvedValue(false);
+    const service = createOwnerOnboardingService(dependency.credentials, dependency.wallet, dependency.registration);
+    await expect(service.resetRegistration(actor)).rejects.toBeInstanceOf(OwnerOnboardingChangedError);
+  });
+
+  it("propagates an uncertain reset outcome without wrapping it", async () => {
+    const dependency = ports();
+    const failure = new OwnerWebhookRegistrationError("reset outcome unknown");
+    dependency.registration.reset.mockRejectedValue(failure);
+    const service = createOwnerOnboardingService(dependency.credentials, dependency.wallet, dependency.registration);
+    await expect(service.resetRegistration(actor)).rejects.toBe(failure);
   });
 });

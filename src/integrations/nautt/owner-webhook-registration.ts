@@ -24,6 +24,7 @@ export interface OwnerWebhookRegistrationStore {
     userId: string,
     registration: { providerWebhookId: string; encryptedWebhookSecret: string; registeredAt: Date },
   ): Promise<boolean>;
+  resetToUnregistered(userId: string): Promise<boolean>;
 }
 
 export type OwnerWebhookRegistrationMetadata = Pick<
@@ -157,6 +158,16 @@ export function createOwnerWebhookRegistrationService(
         registeredAt: registration.registeredAt,
       };
     },
+
+    // Local-only owner-initiated recovery: one atomic CAS on REGISTERING/INDETERMINATE,
+    // zero provider calls and zero decryption. Returns false when nothing was reset.
+    async reset(userId: string): Promise<boolean> {
+      try {
+        return await store.resetToUnregistered(userId);
+      } catch {
+        throw new OwnerWebhookRegistrationError("Webhook registration reset is unavailable");
+      }
+    },
   };
 }
 
@@ -205,6 +216,18 @@ function prismaStore(): OwnerWebhookRegistrationStore {
           providerWebhookId: registration.providerWebhookId,
           encryptedWebhookSecret: registration.encryptedWebhookSecret,
           webhookRegisteredAt: registration.registeredAt,
+        },
+      });
+      return result.count === 1;
+    },
+    async resetToUnregistered(userId) {
+      const result = await db.nauttCredential.updateMany({
+        where: { userId, webhookRegistrationState: { in: ["REGISTERING", "INDETERMINATE"] } },
+        data: {
+          webhookRegistrationState: "UNREGISTERED",
+          providerWebhookId: null,
+          encryptedWebhookSecret: null,
+          webhookRegisteredAt: null,
         },
       });
       return result.count === 1;

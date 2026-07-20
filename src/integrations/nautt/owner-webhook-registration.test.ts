@@ -38,6 +38,7 @@ function store(initial: NauttCredentialRecord | null = record()): OwnerWebhookRe
   failClaim?: boolean;
   loseClaim?: boolean;
   failActivate?: boolean;
+  failReset?: boolean;
 } {
   return {
     current: initial,
@@ -63,6 +64,19 @@ function store(initial: NauttCredentialRecord | null = record()): OwnerWebhookRe
         providerWebhookId: registration.providerWebhookId,
         encryptedWebhookSecret: registration.encryptedWebhookSecret,
         webhookRegisteredAt: registration.registeredAt,
+      });
+      return true;
+    },
+    async resetToUnregistered() {
+      if (this.failReset) throw new Error("reset outcome unknown");
+      if (!this.current) return false;
+      const state = this.current.webhookRegistrationState;
+      if (state !== "REGISTERING" && state !== "INDETERMINATE") return false;
+      Object.assign(this.current, {
+        webhookRegistrationState: "UNREGISTERED",
+        providerWebhookId: null,
+        encryptedWebhookSecret: null,
+        webhookRegisteredAt: null,
       });
       return true;
     },
@@ -240,5 +254,75 @@ describe("owner webhook registration", () => {
     await expect(service.register(ownerId, callbackUrl)).rejects.toBeInstanceOf(OwnerWebhookRegistrationRecoveryRequiredError);
     expect(repository.current?.webhookRegistrationState).toBe("INDETERMINATE");
     expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it.each(["REGISTERING", "INDETERMINATE"] as const)("resets %s to UNREGISTERED with zero decryption and zero provider calls", async (state) => {
+    const repository = store(record(state));
+    Object.assign(repository.current!, {
+      providerWebhookId,
+      encryptedWebhookSecret: "encrypted-webhook-secret",
+      webhookRegisteredAt: registeredAt,
+    });
+    const fetch = vi.fn();
+    const cryptography = crypto();
+    const service = createOwnerWebhookRegistrationService(repository, createClientWebhooksAdapter({ fetch }), cryptography);
+    await expect(service.reset(ownerId)).resolves.toBe(true);
+    expect(repository.current).toMatchObject({
+      webhookRegistrationState: "UNREGISTERED",
+      providerWebhookId: null,
+      encryptedWebhookSecret: null,
+      webhookRegisteredAt: null,
+      encryptedApiKey: "encrypted-api-key",
+      credentialRevision: "revision-a",
+    });
+    expect(cryptography.decrypt).not.toHaveBeenCalled();
+    expect(cryptography.encrypt).not.toHaveBeenCalled();
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["ACTIVE", record("ACTIVE")],
+    ["UNREGISTERED", record("UNREGISTERED")],
+    ["missing credential", null],
+  ])("refuses reset from %s without changing the row", async (_label, initial) => {
+    const repository = store(initial);
+    const before = structuredClone(repository.current);
+    const fetch = vi.fn();
+    const cryptography = crypto();
+    const service = createOwnerWebhookRegistrationService(repository, createClientWebhooksAdapter({ fetch }), cryptography);
+    await expect(service.reset(ownerId)).resolves.toBe(false);
+    expect(repository.current).toEqual(before);
+    expect(cryptography.decrypt).not.toHaveBeenCalled();
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("maps an uncertain reset outcome to an opaque error without retrying", async () => {
+    const repository = store(record("INDETERMINATE"));
+    repository.failReset = true;
+    const service = createOwnerWebhookRegistrationService(repository, createClientWebhooksAdapter({ fetch: vi.fn() }), crypto());
+    await expect(service.reset(ownerId)).rejects.toBeInstanceOf(OwnerWebhookRegistrationError);
+    expect(repository.current?.webhookRegistrationState).toBe("INDETERMINATE");
+  });
+
+  it("keeps a reset row consistent when an in-flight REGISTERING attempt settles afterwards", async () => {
+    const repository = store();
+    let settle!: (response: Response) => void;
+    const fetch = vi.fn(async () => new Promise<Response>((resolve) => { settle = resolve; }));
+    const service = createOwnerWebhookRegistrationService(repository, createClientWebhooksAdapter({ fetch }), crypto());
+
+    const inFlight = service.register(ownerId, callbackUrl);
+    await vi.waitFor(() => expect(repository.current?.webhookRegistrationState).toBe("REGISTERING"));
+
+    await expect(service.reset(ownerId)).resolves.toBe(true);
+    expect(repository.current?.webhookRegistrationState).toBe("UNREGISTERED");
+
+    settle(providerSuccess());
+    await expect(inFlight).rejects.toBeInstanceOf(OwnerWebhookRegistrationRecoveryRequiredError);
+    expect(repository.current).toMatchObject({
+      webhookRegistrationState: "UNREGISTERED",
+      providerWebhookId: null,
+      encryptedWebhookSecret: null,
+      webhookRegisteredAt: null,
+    });
   });
 });
