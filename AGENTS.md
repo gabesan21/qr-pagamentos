@@ -80,6 +80,7 @@ Username and password are the only login credentials; email is optional and neve
 
 - `src/app/` owns App Router pages and endpoints; localized UI routes are unprefixed and resolve only the persisted `pt-BR` or `en` preference, while `/api/health` and `/api/nautt/webhooks` stay unlocalized. The Nautt callback is sessionless and returns only empty, no-store protocol statuses; never reintroduce `/{locale}` UI or mutation routes.
 - `src/app/admin/` owns the administrator shell plus account and global-payment-settings mutations; every read and POST must re-authorize the cookie principal, return only the documented empty `401`/`403` protected outcomes, and never disclose a target account or settings value to unauthorized callers.
+- `src/app/nautt-credentials/reset/` owns the owner-initiated local-only webhook-registration reset (`REGISTERING`/`INDETERMINATE` → `UNREGISTERED`, provider fields nulled, zero provider calls and zero decryption); it re-authorizes the cookie principal and returns only an empty `401` or opaque relative redirects (`?nautt=reset`/`changed`/`unavailable`), never distinguishing "no credential" from "wrong state".
 - `src/i18n/` owns the closed locale set and server dictionary loader; never add a locale without matching dictionary keys and contract tests.
 - Use the exact Node and pnpm pins in `.node-version` and `package.json`; install with `pnpm install --frozen-lockfile`.
 - Run `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm build` independently, or `pnpm check` for the aggregate gate.

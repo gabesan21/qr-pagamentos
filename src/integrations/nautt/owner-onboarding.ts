@@ -21,7 +21,10 @@ type CredentialService = {
 };
 
 type WalletAdapter = { read(apiKey: string): Promise<MainWalletBalance> };
-type RegistrationService = { register(userId: string, callbackUrl: string, expectedRevision: string): Promise<unknown> };
+type RegistrationService = {
+  register(userId: string, callbackUrl: string, expectedRevision: string): Promise<unknown>;
+  reset(userId: string): Promise<boolean>;
+};
 
 export class OwnerOnboardingInvalidKeyError extends Error {}
 export class OwnerOnboardingChangedError extends Error {}
@@ -78,6 +81,11 @@ export function createOwnerOnboardingService(
         }
         throw error;
       }
+    },
+
+    async resetRegistration(actor: Principal): Promise<void> {
+      const resetApplied = await registration.reset(actor.id);
+      if (!resetApplied) throw new OwnerOnboardingChangedError("Credential setup changed");
     },
 
     async readStatus(actor: Principal): Promise<OwnerNauttStatus> {

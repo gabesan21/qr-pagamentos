@@ -16,10 +16,10 @@
 
 - Never automatically retry `POST /client-webhooks`; provider idempotency and pre-commit error classes are undocumented.
 - Claim `owner + UNREGISTERED + credential_revision` in durable state before reading ciphertext, decrypting, or dispatching registration; never use millisecond timestamps as revision identity.
-- Only local failures with a proven provider call count of zero may remain `UNREGISTERED`.
+- Only local failures with a proven provider call count of zero may remain `UNREGISTERED`; the documented owner-initiated local reset below is the sole other return to `UNREGISTERED`.
 - Once dispatch starts, preserve an ambiguous result as `INDETERMINATE` or `REGISTERING`; never authorize another POST from that state.
 - Encrypt the one-time webhook secret immediately after parsing and return only redacted UUID, state, and timestamp metadata.
-- Never invent list, get, delete, recreate, or key-rotation recovery semantics.
+- Never invent list, get, delete, recreate, or key-rotation recovery semantics against the provider. The single documented recovery is the owner-initiated local-only reset: one atomic CAS from `REGISTERING`/`INDETERMINATE` to `UNREGISTERED` that nulls `providerWebhookId`/`encryptedWebhookSecret`/`webhookRegisteredAt` with zero provider calls and zero decryption, never touches `ACTIVE`, keeps the API key, and leaves any provider-side orphan webhook inert (its unknown secret fails HMAC). A concurrent in-flight claim must lose its `activate()`/`markIndeterminate` CAS after a reset.
 
 ## Pricing and order boundary
 
@@ -55,4 +55,5 @@
 - Cover exact request shape, complete success parsing, timeout/transport ambiguity, response redaction, and no-retry transitions.
 - For credential onboarding, validate the submitted key through the main-wallet read before an atomic ciphertext+fresh-UUID CAS; a stale UUID performs zero ciphertext read, decryption, or dispatch.
 - Cover the claim matrix (unknown, cross-owner, expired, consumed, duplicate register) with zero-decryption/zero-fetch assertions.
+- Cover the reset state matrix (`REGISTERING`/`INDETERMINATE` reset with provider fields nulled; `ACTIVE`/`UNREGISTERED`/missing refused unchanged) with zero-decryption/zero-fetch assertions, plus the reset-versus-in-flight-claim race.
 - Cover byte mutation, malformed-signature zero-comparison cleanup, all-candidate comparison, bounded-stream cancellation, delivery races/safe lease reclaim, terminal replay, and the 15-second/one-GET economic bound.
