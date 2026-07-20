@@ -125,6 +125,23 @@ model CatalogPaymentMethod {
   @@schema("app")
 }
 
+model Product {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  internalName    String   @map("internal_name") @db.VarChar(128)
+  titlePtBr       String   @map("title_pt_br") @db.VarChar(160)
+  titleEn         String   @map("title_en") @db.VarChar(160)
+  descriptionPtBr String   @map("description_pt_br") @db.VarChar(2000)
+  descriptionEn   String   @map("description_en") @db.VarChar(2000)
+  price           String   @db.Text
+  active          Boolean  @default(true)
+  version         Int      @default(0) @db.Integer
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@map("product")
+  @@schema("app")
+}
+
 model ProviderQuote {
   quoteUuid String          @id @map("quote_uuid") @db.Uuid
   ownerId   String          @map("owner_id") @db.Uuid
