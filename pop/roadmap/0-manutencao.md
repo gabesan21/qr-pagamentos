@@ -17,4 +17,4 @@
 | Task | Description | Status |
 |------|-------------|--------|
 | [[0.1.1-configurable-nautt-base-url]] | Move the Nautt provider base URL from hardcoded constant to validated server ENV so operators can point at production or sandbox. · size: S · yolo: sim | concluída |
-| [[0.1.2-reset-nautt-credential-onboarding]] | Let an authenticated owner reset a failed or ambiguous Nautt credential/webhook onboarding back to a retryable state. · size: M · critical: sim · yolo: sim | 001_initial_task |
+| [[0.1.2-reset-nautt-credential-onboarding]] | Let an authenticated owner reset a failed or ambiguous Nautt credential/webhook onboarding back to a retryable state. · size: M · critical: sim · yolo: sim | concluída |
