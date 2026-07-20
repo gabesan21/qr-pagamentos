@@ -91,6 +91,7 @@ Username and password are the only login credentials; email is optional and neve
 - Run `install/test.sh` after changing installer commands, secret validation, Compose deployment, health waiting, or uninstall flags.
 - `MIGRATION_DATABASE_URL` is migration-only and `DATABASE_URL` is runtime-only; never share credentials or commit usable URLs.
 - `NAUTT_WEBHOOK_CALLBACK_URL` is required non-secret server configuration; accept only canonical absolute HTTPS and never derive it from browser fields or request headers.
+- `NAUTT_API_BASE_URL` is optional non-secret server configuration; accept only canonical absolute HTTPS without credentials or a fragment and default to `https://api.nauttfinance.com/api/v2` when unset.
 - Generated Prisma code lives in ignored `src/generated/prisma/`; never edit or commit it.
 - Never edit generated `next-env.d.ts`, `.next/`, `node_modules/`, coverage output, or TypeScript build-info files by hand.
 - [`prisma/AGENTS.md`](prisma/AGENTS.md) — follow before changing the schema, bootstrap SQL, or immutable migration history.

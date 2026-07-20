@@ -1,6 +1,7 @@
 import "server-only";
 
-const PRODUCTION_BASE_URL = "https://api.nauttfinance.com/api/v2";
+import { loadNauttApiBaseUrl } from "./config";
+
 const DEFAULT_TIMEOUT_MS = 10_000;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -95,7 +96,7 @@ export function createClientWebhooksAdapter(dependencies: AdapterDependencies = 
       }
 
       try {
-        const response = await fetch(`${PRODUCTION_BASE_URL}/client-webhooks`, {
+        const response = await fetch(`${loadNauttApiBaseUrl()}/client-webhooks`, {
           method: "POST",
           headers: { "Content-Type": "application/json", "X-API-Key": apiKey },
           body,

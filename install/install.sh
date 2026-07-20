@@ -44,7 +44,7 @@ load_install_env() {
     key=${line%%=*}
     value=$(strip_quotes "${line#*=}")
     case "$key" in
-      APP_PORT|POSTGRES_ADMIN_PASSWORD|MIGRATOR_PASSWORD|RUNTIME_PASSWORD|INITIAL_ADMIN_USERNAME|INITIAL_ADMIN_EMAIL|NAUTT_ENCRYPTION_KEY|NAUTT_WEBHOOK_CALLBACK_URL)
+      APP_PORT|POSTGRES_ADMIN_PASSWORD|MIGRATOR_PASSWORD|RUNTIME_PASSWORD|INITIAL_ADMIN_USERNAME|INITIAL_ADMIN_EMAIL|NAUTT_ENCRYPTION_KEY|NAUTT_WEBHOOK_CALLBACK_URL|NAUTT_API_BASE_URL)
         printf -v "$key" '%s' "$value" ;;
       *) die "unsupported variable in $ENV_FILE: $key" ;;
     esac
@@ -192,6 +192,7 @@ compose() {
   APP_PORT=$APP_PORT POSTGRES_PORT=$POSTGRES_PORT POSTGRES_ADMIN_PASSWORD_FILE=$POSTGRES_ADMIN_PASSWORD_FILE \
     MIGRATOR_PASSWORD_FILE=$MIGRATOR_PASSWORD_FILE RUNTIME_PASSWORD_FILE=$RUNTIME_PASSWORD_FILE \
     NAUTT_WEBHOOK_CALLBACK_URL=$NAUTT_WEBHOOK_CALLBACK_URL \
+    NAUTT_API_BASE_URL=${NAUTT_API_BASE_URL:-} \
     STAGED_SECRETS_DIR=$STAGED_SECRETS_DIR INITIAL_ADMIN_RECOVERY_PASSWORD_FILE=${INITIAL_ADMIN_RECOVERY_PASSWORD_FILE:-} \
     "${DOCKER[@]}" compose -f "$ROOT_DIR/compose.yaml" -p qr-pagamentos "$@"
 }
@@ -237,6 +238,11 @@ check_docker
 load_install_env
 if ! run_node_helper -e 'const u = new URL(process.argv[1]); process.exit(u.protocol === "https:" && !u.username && !u.password && !u.hash ? 0 : 1)' "$NAUTT_WEBHOOK_CALLBACK_URL" >/dev/null 2>&1; then
   die 'NAUTT_WEBHOOK_CALLBACK_URL must be an absolute HTTPS URL without credentials or a fragment'
+fi
+if [[ -n ${NAUTT_API_BASE_URL:-} ]]; then
+  if ! run_node_helper -e 'const u = new URL(process.argv[1]); process.exit(u.protocol === "https:" && !u.username && !u.password && !u.hash ? 0 : 1)' "$NAUTT_API_BASE_URL" >/dev/null 2>&1; then
+    die 'NAUTT_API_BASE_URL must be an absolute HTTPS URL without credentials or a fragment'
+  fi
 fi
 [[ $POSTGRES_ADMIN_PASSWORD != "$MIGRATOR_PASSWORD" && $POSTGRES_ADMIN_PASSWORD != "$RUNTIME_PASSWORD" && $MIGRATOR_PASSWORD != "$RUNTIME_PASSWORD" ]] || die 'passwords must be distinct'
 write_secret_sources

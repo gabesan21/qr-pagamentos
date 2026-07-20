@@ -22,6 +22,19 @@ describe("main wallet balance adapter", () => {
     expect(createTimeoutSignal).toHaveBeenCalledWith(10_000);
   });
 
+  it("targets the validated NAUTT_API_BASE_URL override when set", async () => {
+    const previous = process.env.NAUTT_API_BASE_URL;
+    process.env.NAUTT_API_BASE_URL = "https://api-stage.nauttfinance.com/api/v2";
+    try {
+      const fetch = vi.fn(async () => success());
+      await createMainWalletBalanceAdapter({ fetch }).read(apiKey);
+      expect(fetch).toHaveBeenCalledWith("https://api-stage.nauttfinance.com/api/v2/users/wallets/main/balances", expect.anything());
+    } finally {
+      if (previous === undefined) delete process.env.NAUTT_API_BASE_URL;
+      else process.env.NAUTT_API_BASE_URL = previous;
+    }
+  });
+
   it.each([
     ["non-200", async () => new Response(JSON.stringify({ apiKey }), { status: 401 })],
     ["malformed", async () => new Response("not-json", { status: 200 })],

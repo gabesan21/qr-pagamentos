@@ -22,7 +22,7 @@ assert(packageJson.scripts?.["db:test"] === "node pop/scripts/db-test.mjs", "db:
 
 const envExample = await readFile(".env.example", "utf8");
 assert(
-  envExample === "MIGRATION_DATABASE_URL=<postgresql-migrator-url>\nDATABASE_URL=<postgresql-runtime-url>\nNAUTT_ENCRYPTION_KEY=<32-byte-base64url-key>\nNAUTT_WEBHOOK_CALLBACK_URL=https://payments.example.com/api/nautt/webhooks\n",
+  envExample === "MIGRATION_DATABASE_URL=<postgresql-migrator-url>\nDATABASE_URL=<postgresql-runtime-url>\nNAUTT_ENCRYPTION_KEY=<32-byte-base64url-key>\nNAUTT_WEBHOOK_CALLBACK_URL=https://payments.example.com/api/nautt/webhooks\nNAUTT_API_BASE_URL=<optional-https-override-default-https://api.nauttfinance.com/api/v2>\n",
   ".env.example must contain only the documented non-usable placeholders",
 );
 const prismaConfig = await readFile("prisma.config.ts", "utf8");

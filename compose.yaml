@@ -102,6 +102,7 @@ services:
       POSTGRES_HOST: db
       POSTGRES_PORT: ${POSTGRES_PORT:-5433}
       NAUTT_WEBHOOK_CALLBACK_URL: ${NAUTT_WEBHOOK_CALLBACK_URL:?set NAUTT_WEBHOOK_CALLBACK_URL}
+      NAUTT_API_BASE_URL: ${NAUTT_API_BASE_URL:-https://api.nauttfinance.com/api/v2}
     secrets:
       - source: runtime_password
         target: runtime_password
