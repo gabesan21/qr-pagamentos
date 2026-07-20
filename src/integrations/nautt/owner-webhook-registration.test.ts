@@ -69,7 +69,8 @@ function store(initial: NauttCredentialRecord | null = record()): OwnerWebhookRe
     },
     async resetToUnregistered() {
       if (this.failReset) throw new Error("reset outcome unknown");
-      const state = this.current?.webhookRegistrationState;
+      if (!this.current) return false;
+      const state = this.current.webhookRegistrationState;
       if (state !== "REGISTERING" && state !== "INDETERMINATE") return false;
       Object.assign(this.current, {
         webhookRegistrationState: "UNREGISTERED",

@@ -89,7 +89,7 @@ describe("owner onboarding", () => {
       const trace = expectedRevision === "revision-a" ? staleTrace : winnerTrace;
       if (expectedRevision !== current.revision) throw new OwnerWebhookRegistrationRecoveryRequiredError();
       trace.ciphertextReads += 1; trace.decrypts += 1; trace.dispatches += 1;
-    }) };
+    }), reset: vi.fn(async () => false) };
     const service = createOwnerOnboardingService(credentials, wallet, registration);
 
     const requestA = service.onboard(actor, actor.id, "key-a", "https://payments.example/webhooks");

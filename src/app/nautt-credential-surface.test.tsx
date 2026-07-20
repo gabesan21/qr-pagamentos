@@ -42,4 +42,29 @@ describe("Nautt credential surface", () => {
     else expect(html).not.toContain('action="/nautt-credentials/register"');
     expect(html).not.toContain("revision");
   });
+
+  it.each(["en", "pt-BR"] as const)("shows the local-only reset affordance with disclosure only in stuck states in %s", (locale) => {
+    const dictionary = getDictionary(locale);
+    for (const state of ["REGISTERING", "INDETERMINATE"] as const) {
+      const html = markup(locale, { credential: { ...emptyCredential, hasCredential: true, credentialRevision: "revision", webhookRegistrationState: state, updatedAt: new Date() }, balance: null, balanceUnavailable: true }, "recovery");
+      expect(html).toContain('action="/nautt-credentials/reset"');
+      expect(html).toContain('form="nautt-reset-form"');
+      expect(html).toContain(dictionary.nauttResetDisclosure);
+      expect(html).toContain(dictionary.nauttReset);
+    }
+    for (const state of ["UNREGISTERED", "ACTIVE"] as const) {
+      const html = markup(locale, { credential: { ...emptyCredential, hasCredential: true, credentialRevision: "revision", webhookRegistrationState: state, updatedAt: new Date() }, balance: null, balanceUnavailable: true });
+      expect(html).not.toContain('action="/nautt-credentials/reset"');
+      expect(html).not.toContain(dictionary.nauttResetDisclosure);
+    }
+  });
+
+  it.each(["en", "pt-BR"] as const)("renders the post-reset success notice in %s", (locale) => {
+    const dictionary = getDictionary(locale);
+    const credential = { ...emptyCredential, hasCredential: true, credentialRevision: "revision", webhookRegistrationState: "UNREGISTERED" as const, updatedAt: new Date() };
+    const html = markup(locale, { credential, balance: null, balanceUnavailable: true }, "reset");
+    expect(html).toContain('role="status"');
+    expect(html).toContain(dictionary.nauttResetDone);
+    expect(html).toContain('action="/nautt-credentials/register"');
+  });
 });
