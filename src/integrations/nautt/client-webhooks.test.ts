@@ -90,6 +90,47 @@ describe("Nautt client webhooks adapter", () => {
     expect(JSON.stringify(error)).not.toContain(secret);
   });
 
+  it("accepts the observed 2026-07-20 production envelope without a success field", async () => {
+    // Fixture mirrors the 2026-07-20 production envelope with redacted/fabricated values.
+    const productionCallbackUrl = "https://example.com/webhooks/nautt";
+    const productionSecret = "nautt_whsec_TEST_ONLY_not_a_real_secret_0000000000";
+    const productionUuid = "00000000-0000-4000-8000-000000000000";
+    const productionBody = {
+      message: "Missing translation: order.webhook_created",
+      data: {
+        created_at: "2026-07-20T19:09:15.962135Z",
+        event_types: [...NAUTT_WEBHOOK_EVENT_TYPES],
+        is_active: true,
+        secret: productionSecret,
+        url: productionCallbackUrl,
+        uuid: productionUuid,
+      },
+      code: "order.webhook_created",
+    };
+    const fetch = vi.fn(async () => new Response(JSON.stringify(productionBody), { status: 201 }));
+    const adapter = createClientWebhooksAdapter({ fetch });
+
+    const result = await adapter.register({ apiKey, callbackUrl: productionCallbackUrl });
+
+    expect(result).toEqual({
+      providerWebhookId: productionUuid,
+      secret: productionSecret,
+      registeredAt: new Date("2026-07-20T19:09:15.962135Z"),
+    });
+  });
+
+  it.each([["explicit false", false], ["string", "true"], ["number", 1], ["null", null]])(
+    "rejects a 201 with a present non-true success value: %s",
+    async (_label, successValue) => {
+      const body = JSON.parse(await success().text()) as Record<string, unknown>;
+      const fetch = vi.fn(async () => new Response(JSON.stringify({ ...body, success: successValue }), { status: 201 }));
+      const adapter = createClientWebhooksAdapter({ fetch });
+      const error = await adapter.register({ apiKey, callbackUrl }).catch((caught: unknown) => caught);
+      expect(error).toBeInstanceOf(NauttWebhookAdapterError);
+      expect(JSON.stringify(error)).not.toContain(secret);
+    },
+  );
+
   it.each([401, 403, 404, 422, 429, 500, 599])("redacts non-201 response %s", async (status) => {
     const fetch = vi.fn(async () => new Response(JSON.stringify({ secret, apiKey }), { status }));
     const adapter = createClientWebhooksAdapter({ fetch });
