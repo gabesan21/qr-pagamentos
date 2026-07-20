@@ -64,14 +64,16 @@ deliberately small inventory is the only foundation introduced:
 
 | Primitive | Purpose | States |
 | --- | --- | --- |
-| `Button`, `Field`/`Input`, `NativeSelect`, `Checkbox` | current action and native form controls | default, loading where applicable, disabled, error, hover/focus; empty is not applicable to a control |
+| `Button`, `Field`/`Input`, `Textarea`, `NativeSelect`, `Checkbox` | current action and native form controls, including multiline descriptions | default, populated, loading where applicable, disabled, invalid, hover/focus; empty is not applicable to a control |
 | `Card`, `Alert`, `Badge`, `Separator`, `Skeleton`, `Table`, `Spinner` | grouped content, feedback, loading, and facts | documented default, empty/error/recovery, or loading state as applicable |
 
 The deterministic `/design-system` exercise surface resolves its dictionary from
 the same server preference contract as the authenticated shell and presents all
-applicable states. Its keyboard order is primary action,
-field, error recovery, then secondary action. Enabled controls use a visible
-two-pixel semantic focus outline; disabled controls are not focusable.
+applicable states, including labelled default, populated, disabled, and invalid
+`Textarea` controls. Its keyboard order follows the rendered controls from the
+primary action through fields and recovery actions. Enabled controls use a visible
+semantic focus outline or ring at least two pixels wide; disabled controls are not
+focusable.
 
 The `/admin` shell and authenticated home consume this inventory directly for
 account creation, account mutations, global BRL/PIX payment settings, language
