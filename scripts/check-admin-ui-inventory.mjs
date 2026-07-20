@@ -6,6 +6,7 @@ const entrypoints = ["src/app/page.tsx", "src/app/admin", "src/app/language-pref
 const rawControls = new Set(["button", "input", "select", "textarea"]);
 const allowedClasses = new Set([
   "admin-account", "admin-account-list", "admin-account__actions", "admin-account__facts",
+  "admin-catalog-item", "admin-catalog-item__facts", "admin-catalog-list",
   "admin-confirm-actions", "admin-navigation", "admin-shell", "admin-shell__intro", "admin-skeletons",
   "h-11 w-full", "receipt-rail", "receipt-rail__facts", "receipt-rail__label",
 ]);

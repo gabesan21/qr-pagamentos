@@ -263,6 +263,14 @@ p { text-wrap: pretty; }
 .admin-account__facts dd { margin: 0; overflow-wrap: anywhere; }
 .admin-account__actions { display: flex; flex-direction: column; gap: var(--space-5); }
 .admin-confirm-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); grid-column: 1 / -1; margin-block-start: var(--space-2); }
+.admin-catalog-list { display: flex; flex-direction: column; gap: var(--space-6); }
+.admin-catalog-item { display: flex; flex-direction: column; gap: var(--space-4); }
+.admin-catalog-item h3 { margin: 0; }
+.admin-catalog-item__facts { display: flex; flex-direction: column; gap: var(--space-3); }
+.admin-catalog-item__facts dl { display: flex; flex-wrap: wrap; gap: var(--space-5); margin: 0; }
+.admin-catalog-item__facts dl div { display: flex; flex-direction: column; gap: var(--space-1); }
+.admin-catalog-item__facts dt { color: var(--text-secondary); font-size: var(--type-small); font-weight: var(--font-weight-strong); }
+.admin-catalog-item__facts dd { margin: 0; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
 .admin-skeletons { display: flex; flex-direction: column; gap: var(--space-3); }
 .sr-only { clip: rect(0 0 0 0); clip-path: inset(50%); height: var(--space-1); overflow: hidden; position: absolute; white-space: nowrap; width: var(--space-1); }
 .ds-ledger { display: grid; gap: var(--space-8); }

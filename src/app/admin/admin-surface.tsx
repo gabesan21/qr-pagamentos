@@ -18,9 +18,11 @@ import type { SupportedLocale } from "@/i18n/locales";
 type Dictionary = ReturnType<typeof getDictionary>;
 type AdminUser = Readonly<{ id: string; username: string; email: string | null; role: "ADMIN" | "USER"; status: "ACTIVE" | "DISABLED" }>;
 type Settings = Readonly<{ currencies: string[]; paymentMethods: string[] }>;
+type CurrencyPair = Readonly<{ id: string; label: string; currencyUuid: string; exchangeCurrencyUuid: string; active: boolean }>;
+type PaymentMethod = Readonly<{ id: string; label: string; paymentMethodUuid: string; active: boolean }>;
 type Notice = Readonly<{ tone: "success" | "error"; text: string }> | null;
 
-export function AdminSurface({ actorUsername, dictionary, locale, notice, settings, users }: Readonly<{ actorUsername: string; dictionary: Dictionary; locale: SupportedLocale; notice: Notice; settings: Settings; users: AdminUser[] }>) {
+export function AdminSurface({ actorUsername, currencyPairs, dictionary, locale, notice, paymentMethods, settings, users }: Readonly<{ actorUsername: string; currencyPairs: CurrencyPair[]; dictionary: Dictionary; locale: SupportedLocale; notice: Notice; paymentMethods: PaymentMethod[]; settings: Settings; users: AdminUser[] }>) {
   return (
     <main className="admin-shell">
       <header className="receipt-rail">
@@ -41,6 +43,8 @@ export function AdminSurface({ actorUsername, dictionary, locale, notice, settin
       <CreateAccount dictionary={dictionary} />
       <Accounts dictionary={dictionary} users={users} />
       <PaymentSettings dictionary={dictionary} settings={settings} />
+      <CatalogCurrencyPairs dictionary={dictionary} pairs={currencyPairs} />
+      <CatalogPaymentMethods dictionary={dictionary} methods={paymentMethods} />
       <LanguagePreference dictionary={dictionary} locale={locale} />
     </main>
   );
@@ -121,6 +125,85 @@ function PaymentSettings({ dictionary, settings }: Readonly<{ dictionary: Dictio
             <AdminSubmit label={dictionary.adminSavePaymentSettings} />
           </FieldGroup>
         </form>
+      </CardContent>
+    </Card>
+  );
+}
+
+function CatalogCurrencyPairs({ dictionary, pairs }: Readonly<{ dictionary: Dictionary; pairs: CurrencyPair[] }>) {
+  return (
+    <Card>
+      <CardHeader><CardTitle>{dictionary.adminCatalogCurrencyPairsHeading}</CardTitle><CardDescription>{dictionary.adminCatalogDescription}</CardDescription></CardHeader>
+      <CardContent>
+        <form action="/admin/catalog/currency-pairs" method="post">
+          <FieldGroup>
+            <Field><FieldLabel htmlFor="currency-pair-label">{dictionary.adminCatalogLabelLabel}</FieldLabel><Input id="currency-pair-label" name="label" required /></Field>
+            <Field><FieldLabel htmlFor="currency-uuid">{dictionary.adminCatalogCurrencyUuidLabel}</FieldLabel><Input aria-describedby="currency-uuid-help" id="currency-uuid" name="currencyUuid" required /><FieldDescription id="currency-uuid-help">{dictionary.adminCatalogUuidHelp}</FieldDescription></Field>
+            <Field><FieldLabel htmlFor="exchange-currency-uuid">{dictionary.adminCatalogExchangeCurrencyUuidLabel}</FieldLabel><Input id="exchange-currency-uuid" name="exchangeCurrencyUuid" required /></Field>
+            <AdminSubmit label={dictionary.adminCatalogCreateCurrencyPair} />
+          </FieldGroup>
+        </form>
+        <Separator />
+        {pairs.length === 0 ? <Alert><AlertTitle>{dictionary.adminCatalogEmptyCurrencyPairs}</AlertTitle><AlertDescription>{dictionary.adminCatalogEmptyDescription}</AlertDescription></Alert> : (
+          <div className="admin-catalog-list" role="list">
+            {pairs.map((pair) => (
+              <section key={pair.id} aria-labelledby={`currency-pair-${pair.id}`} className="admin-catalog-item">
+                <div className="admin-catalog-item__facts">
+                  <h3 id={`currency-pair-${pair.id}`}>{pair.label}</h3>
+                  <dl><div><dt>{dictionary.adminCatalogCurrencyUuidLabel}</dt><dd>{pair.currencyUuid}</dd></div><div><dt>{dictionary.adminCatalogExchangeCurrencyUuidLabel}</dt><dd>{pair.exchangeCurrencyUuid}</dd></div><div><dt>{dictionary.adminCatalogActiveLabel}</dt><dd><Badge variant={pair.active ? "secondary" : "destructive"}>{pair.active ? dictionary.adminActive : dictionary.adminDisabled}</Badge></dd></div></dl>
+                </div>
+                <form action={`/admin/catalog/currency-pairs/${pair.id}`} method="post">
+                  <FieldGroup>
+                    <Field><FieldLabel htmlFor={`currency-pair-label-${pair.id}`}>{dictionary.adminCatalogLabelLabel}</FieldLabel><Input defaultValue={pair.label} id={`currency-pair-label-${pair.id}`} name="label" required /></Field>
+                    <AdminSubmit label={dictionary.adminCatalogSave} tone="secondary" />
+                  </FieldGroup>
+                </form>
+                <form action={`/admin/catalog/currency-pairs/${pair.id}`} method="post">
+                  <Button name="intent" type="submit" value={pair.active ? "toggle-inactive" : "toggle-active"} variant="outline">{pair.active ? dictionary.adminCatalogToggleInactive : dictionary.adminCatalogToggleActive}</Button>
+                </form>
+              </section>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function CatalogPaymentMethods({ dictionary, methods }: Readonly<{ dictionary: Dictionary; methods: PaymentMethod[] }>) {
+  return (
+    <Card>
+      <CardHeader><CardTitle>{dictionary.adminCatalogPaymentMethodsHeading}</CardTitle><CardDescription>{dictionary.adminCatalogDescription}</CardDescription></CardHeader>
+      <CardContent>
+        <form action="/admin/catalog/payment-methods" method="post">
+          <FieldGroup>
+            <Field><FieldLabel htmlFor="payment-method-label">{dictionary.adminCatalogLabelLabel}</FieldLabel><Input id="payment-method-label" name="label" required /></Field>
+            <Field><FieldLabel htmlFor="payment-method-uuid">{dictionary.adminCatalogPaymentMethodUuidLabel}</FieldLabel><Input aria-describedby="payment-method-uuid-help" id="payment-method-uuid" name="paymentMethodUuid" required /><FieldDescription id="payment-method-uuid-help">{dictionary.adminCatalogUuidHelp}</FieldDescription></Field>
+            <AdminSubmit label={dictionary.adminCatalogCreatePaymentMethod} />
+          </FieldGroup>
+        </form>
+        <Separator />
+        {methods.length === 0 ? <Alert><AlertTitle>{dictionary.adminCatalogEmptyPaymentMethods}</AlertTitle><AlertDescription>{dictionary.adminCatalogEmptyDescription}</AlertDescription></Alert> : (
+          <div className="admin-catalog-list" role="list">
+            {methods.map((method) => (
+              <section key={method.id} aria-labelledby={`payment-method-${method.id}`} className="admin-catalog-item">
+                <div className="admin-catalog-item__facts">
+                  <h3 id={`payment-method-${method.id}`}>{method.label}</h3>
+                  <dl><div><dt>{dictionary.adminCatalogPaymentMethodUuidLabel}</dt><dd>{method.paymentMethodUuid}</dd></div><div><dt>{dictionary.adminCatalogActiveLabel}</dt><dd><Badge variant={method.active ? "secondary" : "destructive"}>{method.active ? dictionary.adminActive : dictionary.adminDisabled}</Badge></dd></div></dl>
+                </div>
+                <form action={`/admin/catalog/payment-methods/${method.id}`} method="post">
+                  <FieldGroup>
+                    <Field><FieldLabel htmlFor={`payment-method-label-${method.id}`}>{dictionary.adminCatalogLabelLabel}</FieldLabel><Input defaultValue={method.label} id={`payment-method-label-${method.id}`} name="label" required /></Field>
+                    <AdminSubmit label={dictionary.adminCatalogSave} tone="secondary" />
+                  </FieldGroup>
+                </form>
+                <form action={`/admin/catalog/payment-methods/${method.id}`} method="post">
+                  <Button name="intent" type="submit" value={method.active ? "toggle-inactive" : "toggle-active"} variant="outline">{method.active ? dictionary.adminCatalogToggleInactive : dictionary.adminCatalogToggleActive}</Button>
+                </form>
+              </section>
+            ))}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

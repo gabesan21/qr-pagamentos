@@ -1,8 +1,8 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
-const { requireAdmin, listUsers, listSettings, resolveLocale, redirect } = vi.hoisted(() => ({
-  requireAdmin: vi.fn(), listUsers: vi.fn(), listSettings: vi.fn(), resolveLocale: vi.fn(),
+const { requireAdmin, listUsers, listSettings, listCurrencyPairs, listPaymentMethods, resolveLocale, redirect } = vi.hoisted(() => ({
+  requireAdmin: vi.fn(), listUsers: vi.fn(), listSettings: vi.fn(), listCurrencyPairs: vi.fn(), listPaymentMethods: vi.fn(), resolveLocale: vi.fn(),
   redirect: vi.fn((location: string) => { throw new Error(`redirect:${location}`); }),
 }));
 
@@ -15,6 +15,7 @@ vi.mock("@/auth/authorization", () => ({
 }));
 vi.mock("@/auth/administration", () => ({ getAdministrationService: () => ({ listUsers }) }));
 vi.mock("@/auth/payment-settings", () => ({ getPaymentSettingsService: () => ({ list: listSettings }), SUPPORTED_CURRENCIES: ["BRL"], SUPPORTED_PAYMENT_METHODS: ["PIX"] }));
+vi.mock("@/auth/nautt-catalog", () => ({ getNauttCatalogService: () => ({ listCurrencyPairs, listPaymentMethods }) }));
 vi.mock("@/i18n/locale-preference", () => ({ getLocalePreferenceService: () => ({ resolve: resolveLocale }) }));
 vi.mock("@/i18n/dictionaries", async () => {
   const [{ en }, { ptBR }] = await Promise.all([import("../../i18n/dictionaries/en"), import("../../i18n/dictionaries/pt-BR")]);
@@ -47,6 +48,8 @@ describe("admin page contract", () => {
     resolveLocale.mockResolvedValue(locale);
     listUsers.mockResolvedValue([]);
     listSettings.mockResolvedValue({ currencies: ["BRL"], paymentMethods: ["PIX"] });
+    listCurrencyPairs.mockResolvedValue([]);
+    listPaymentMethods.mockResolvedValue([]);
     const markup = renderToStaticMarkup(await AdminPage({ searchParams: Promise.resolve({}) }));
 
     expect(markup).toContain(locale === "en" ? "Administrator accounts" : "Contas administrativas");
@@ -59,6 +62,15 @@ describe("admin page contract", () => {
     expect(markup).toContain('type="password"');
     expect(markup).toContain("disabled=\"\"");
     expect(markup).toContain(locale === "en" ? "Global payment settings" : "Configurações globais de pagamento");
+    expect(markup).toContain(locale === "en" ? "Nautt currency pairs" : "Pares de moedas da Nautt");
+    expect(markup).toContain(locale === "en" ? "Nautt payment methods" : "Métodos de pagamento da Nautt");
+    expect(markup).toContain(locale === "en" ? "No currency pairs are configured." : "Nenhum par de moedas está configurado.");
+    expect(markup).toContain(locale === "en" ? "No payment methods are configured." : "Nenhum método de pagamento está configurado.");
+    expect(markup).toContain('action="/admin/catalog/currency-pairs"');
+    expect(markup).toContain('action="/admin/catalog/payment-methods"');
+    expect(markup).toContain('name="currencyUuid"');
+    expect(markup).toContain('name="exchangeCurrencyUuid"');
+    expect(markup).toContain('name="paymentMethodUuid"');
     expect(markup).toContain('type="checkbox"');
     expect(markup).toContain(`value="${locale}" selected=""`);
     expect(markup).toContain('action="/language-preference"');
@@ -71,15 +83,18 @@ describe("admin page contract", () => {
     resolveLocale.mockResolvedValue("en");
     listUsers.mockResolvedValue([admin, { ...admin, id: "user", username: "cashier", email: "cashier@example.com", role: "USER", status: "DISABLED" }]);
     listSettings.mockResolvedValue({ currencies: ["BRL"], paymentMethods: ["PIX"] });
+    listCurrencyPairs.mockResolvedValue([{ id: "pair-1", label: "BRL/USDT", currencyUuid: "currency-uuid", exchangeCurrencyUuid: "exchange-uuid", active: true }]);
+    listPaymentMethods.mockResolvedValue([{ id: "method-1", label: "PIX", paymentMethodUuid: "method-uuid", active: false }]);
     const markup = renderToStaticMarkup(await AdminPage({ searchParams: Promise.resolve({ success: "changed" }) }));
 
     expect(markup).toContain("cashier@example.com");
-    for (const action of ["/admin/users/user/role", "/admin/users/user/status", "/admin/users/user/password", "/admin/payment-settings", "/language-preference", "/logout"]) {
+    for (const action of ["/admin/users/user/role", "/admin/users/user/status", "/admin/users/user/password", "/admin/payment-settings", "/admin/catalog/currency-pairs/pair-1", "/admin/catalog/payment-methods/method-1", "/language-preference", "/logout"]) {
       expect(markup).toContain(`action="${action}"`);
     }
-    for (const name of ["username", "email", "password", "role", "status", "currencies", "paymentMethods", "locale"]) {
+    for (const name of ["username", "email", "password", "role", "status", "currencies", "paymentMethods", "label", "currencyUuid", "exchangeCurrencyUuid", "paymentMethodUuid", "intent", "locale"]) {
       expect(markup).toContain(`name="${name}"`);
     }
+    expect(markup).toContain('value="toggle-inactive"');
     expect(markup).toContain('role="status"');
     expect(markup).toContain("Account change saved.");
   });
@@ -89,6 +104,8 @@ describe("admin page contract", () => {
     resolveLocale.mockResolvedValue("en");
     listUsers.mockResolvedValue([]);
     listSettings.mockResolvedValue({ currencies: ["BRL"], paymentMethods: ["PIX"] });
+    listCurrencyPairs.mockResolvedValue([]);
+    listPaymentMethods.mockResolvedValue([]);
     const markup = renderToStaticMarkup(await AdminPage({ searchParams: Promise.resolve({ error: "change-failed" }) }));
     expect(markup).toContain('role="alert"');
     expect(markup).toContain('aria-live="assertive"');
@@ -96,19 +113,21 @@ describe("admin page contract", () => {
   });
 
   it.each([
-    ["en", "Account change saved.", "Review the details and try again."],
-    ["pt-BR", "Alteração da conta salva.", "Revise os dados e tente novamente."],
+    ["en", "Account change saved.", "The catalog change could not be saved. Review the values and try again."],
+    ["pt-BR", "Alteração da conta salva.", "Não foi possível salvar a alteração do catálogo. Revise os valores e tente novamente."],
   ] as const)("renders deterministic success and recovery states in %s", async (locale, success, recovery) => {
     requireAdmin.mockResolvedValue(admin);
     resolveLocale.mockResolvedValue(locale);
     listUsers.mockResolvedValue([]);
     listSettings.mockResolvedValue({ currencies: ["BRL"], paymentMethods: ["PIX"] });
+    listCurrencyPairs.mockResolvedValue([]);
+    listPaymentMethods.mockResolvedValue([]);
 
     const successMarkup = renderToStaticMarkup(await AdminPage({ searchParams: Promise.resolve({ success: "changed" }) }));
     expect(successMarkup).toContain('role="status"');
     expect(successMarkup).toContain(success);
 
-    const errorMarkup = renderToStaticMarkup(await AdminPage({ searchParams: Promise.resolve({ error: "change-failed" }) }));
+    const errorMarkup = renderToStaticMarkup(await AdminPage({ searchParams: Promise.resolve({ error: "catalog-change-failed" }) }));
     expect(errorMarkup).toContain('role="alert"');
     expect(errorMarkup).toContain(recovery);
   });

@@ -121,7 +121,7 @@ try {
   const migrationEnv = { ...process.env, MIGRATION_DATABASE_URL: migratorUrl };
   delete migrationEnv.DATABASE_URL;
   const firstDeploy = run("pnpm", ["exec", "prisma", "migrate", "deploy"], { env: migrationEnv });
-  assert(firstDeploy.includes("12 migrations found"), "Fresh deploy did not discover exactly twelve migrations");
+  assert(firstDeploy.includes("13 migrations found"), "Fresh deploy did not discover exactly thirteen migrations");
 
   const admin = new Client({ connectionString: adminUrl });
   await admin.connect();
@@ -129,7 +129,7 @@ try {
     SELECT migration_name, checksum, finished_at IS NOT NULL AS finished, rolled_back_at
     FROM app._prisma_migrations
   `);
-  const expectedMigrations = ["20260714000000_foundation_baseline", "20260714190000_local_identities", "20260716110000_database_sessions", "20260716160000_user_language_preference", "20260716180000_global_payment_settings", "20260716210000_restrict_global_payment_settings_runtime", "20260717190000_nautt_credentials", "20260717210000_nautt_webhook_registration", "20260717230000_nautt_credential_revision", "20260718010000_provider_orders", "20260718030000_nautt_webhook_deliveries", "20260718050000_nautt_webhook_recovery"];
+  const expectedMigrations = ["20260714000000_foundation_baseline", "20260714190000_local_identities", "20260716110000_database_sessions", "20260716160000_user_language_preference", "20260716180000_global_payment_settings", "20260716210000_restrict_global_payment_settings_runtime", "20260717190000_nautt_credentials", "20260717210000_nautt_webhook_registration", "20260717230000_nautt_credential_revision", "20260718010000_provider_orders", "20260718030000_nautt_webhook_deliveries", "20260718050000_nautt_webhook_recovery", "20260720230000_nautt_catalog"];
   assert(history.rows.length === expectedMigrations.length, "Migration history row count changed");
   for (const migrationName of expectedMigrations) {
     const migrationSql = await readFile(`prisma/migrations/${migrationName}/migration.sql`);
@@ -270,6 +270,46 @@ try {
   console.log("PASS global-payment-settings-schema");
   console.log("PASS global-payment-settings-runtime-denials");
 
+  const currencyPairColumns = await runtime.query(`
+    SELECT column_name, data_type, udt_name, is_nullable
+    FROM information_schema.columns
+    WHERE table_schema = 'app' AND table_name = 'catalog_currency_pair'
+    ORDER BY ordinal_position
+  `);
+  assert(JSON.stringify(currencyPairColumns.rows) === JSON.stringify([
+    { column_name: "id", data_type: "uuid", udt_name: "uuid", is_nullable: "NO" },
+    { column_name: "label", data_type: "character varying", udt_name: "varchar", is_nullable: "NO" },
+    { column_name: "currency_uuid", data_type: "uuid", udt_name: "uuid", is_nullable: "NO" },
+    { column_name: "exchange_currency_uuid", data_type: "uuid", udt_name: "uuid", is_nullable: "NO" },
+    { column_name: "active", data_type: "boolean", udt_name: "bool", is_nullable: "NO" },
+    { column_name: "created_at", data_type: "timestamp with time zone", udt_name: "timestamptz", is_nullable: "NO" },
+    { column_name: "updated_at", data_type: "timestamp with time zone", udt_name: "timestamptz", is_nullable: "NO" },
+  ]), "Catalog currency pair columns differ from the contract");
+  const paymentMethodColumns = await runtime.query(`
+    SELECT column_name, data_type, udt_name, is_nullable
+    FROM information_schema.columns
+    WHERE table_schema = 'app' AND table_name = 'catalog_payment_method'
+    ORDER BY ordinal_position
+  `);
+  assert(JSON.stringify(paymentMethodColumns.rows) === JSON.stringify([
+    { column_name: "id", data_type: "uuid", udt_name: "uuid", is_nullable: "NO" },
+    { column_name: "label", data_type: "character varying", udt_name: "varchar", is_nullable: "NO" },
+    { column_name: "payment_method_uuid", data_type: "uuid", udt_name: "uuid", is_nullable: "NO" },
+    { column_name: "active", data_type: "boolean", udt_name: "bool", is_nullable: "NO" },
+    { column_name: "created_at", data_type: "timestamp with time zone", udt_name: "timestamptz", is_nullable: "NO" },
+    { column_name: "updated_at", data_type: "timestamp with time zone", udt_name: "timestamptz", is_nullable: "NO" },
+  ]), "Catalog payment method columns differ from the contract");
+  const currencyPairUuid = randomUUID();
+  const exchangeCurrencyUuid = randomUUID();
+  const paymentMethodUuid = randomUUID();
+  await runtime.query(`INSERT INTO app.catalog_currency_pair (label, currency_uuid, exchange_currency_uuid) VALUES ($1, $2, $3)`, ["BRL/USDT", currencyPairUuid, exchangeCurrencyUuid]);
+  await expectSqlState(runtime, `INSERT INTO app.catalog_currency_pair (label, currency_uuid, exchange_currency_uuid) VALUES ('duplicate pair', '${currencyPairUuid}', '${exchangeCurrencyUuid}')`, { code: "23505", constraint: "catalog_currency_pair_uuids_key" });
+  await runtime.query(`INSERT INTO app.catalog_payment_method (label, payment_method_uuid) VALUES ($1, $2)`, ["PIX", paymentMethodUuid]);
+  await expectSqlState(runtime, `INSERT INTO app.catalog_payment_method (label, payment_method_uuid) VALUES ('duplicate method', '${paymentMethodUuid}')`, { code: "23505", constraint: "catalog_payment_method_uuid_key" });
+  await runtime.query(`UPDATE app.catalog_currency_pair SET active = false WHERE currency_uuid = $1`, [currencyPairUuid]);
+  await runtime.query(`UPDATE app.catalog_payment_method SET active = false WHERE payment_method_uuid = $1`, [paymentMethodUuid]);
+  console.log("PASS catalog-schema");
+
   const backfillUserId = randomUUID();
   const revisionMigrator = new Client({ connectionString: migratorUrl });
   await revisionMigrator.connect();
@@ -399,6 +439,8 @@ try {
       has_table_privilege(current_user, 'app.webhook_delivery', 'SELECT,INSERT,UPDATE,DELETE') AS webhook_delivery_dml,
       has_table_privilege(current_user, 'app.webhook_delivery_attempt', 'SELECT,INSERT,UPDATE,DELETE') AS webhook_attempt_dml,
       has_table_privilege(current_user, 'app.webhook_recovery_lease', 'SELECT,INSERT,UPDATE,DELETE') AS webhook_recovery_lease_dml,
+      has_table_privilege(current_user, 'app.catalog_currency_pair', 'SELECT,INSERT,UPDATE,DELETE') AS catalog_currency_pair_dml,
+      has_table_privilege(current_user, 'app.catalog_payment_method', 'SELECT,INSERT,UPDATE,DELETE') AS catalog_payment_method_dml,
       has_table_privilege(current_user, 'app.global_payment_settings', 'SELECT') AS settings_select,
       has_column_privilege(current_user, 'app.global_payment_settings', 'currencies', 'UPDATE')
         AND has_column_privilege(current_user, 'app.global_payment_settings', 'payment_methods', 'UPDATE')
@@ -421,7 +463,7 @@ try {
       pg_has_role(current_user, 'qr_migrator', 'SET') AS migrator_set
   `);
   const acl = privilege.rows[0];
-  assert(acl.current_user === "qr_runtime" && acl.schema_usage && acl.table_dml && acl.user_dml && acl.credential_dml && acl.bootstrap_dml && acl.session_dml && acl.nautt_credential_dml && acl.provider_quote_dml && acl.provider_order_dml && acl.webhook_delivery_dml && acl.webhook_attempt_dml && acl.webhook_recovery_lease_dml && acl.settings_select && acl.settings_column_update && acl.sequence_usage && acl.webhook_sequence_usage, "Runtime lacks intended privileges");
+  assert(acl.current_user === "qr_runtime" && acl.schema_usage && acl.table_dml && acl.user_dml && acl.credential_dml && acl.bootstrap_dml && acl.session_dml && acl.nautt_credential_dml && acl.provider_quote_dml && acl.provider_order_dml && acl.webhook_delivery_dml && acl.webhook_attempt_dml && acl.webhook_recovery_lease_dml && acl.catalog_currency_pair_dml && acl.catalog_payment_method_dml && acl.settings_select && acl.settings_column_update && acl.sequence_usage && acl.webhook_sequence_usage, "Runtime lacks intended privileges");
   assert(!acl.settings_table_update && !acl.settings_write_extra && !acl.schema_create && !acl.table_truncate && !acl.table_references && !acl.table_trigger && !acl.provider_order_excess && !acl.webhook_delivery_excess && !acl.webhook_recovery_lease_excess && !acl.table_maintain && !acl.sequence_select && !acl.sequence_update && !acl.migration_access && !acl.migrator_member && !acl.migrator_set, "Runtime has excess privileges");
   const ownership = await admin.query(`
     SELECT

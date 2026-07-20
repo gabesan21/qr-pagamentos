@@ -98,6 +98,33 @@ model GlobalPaymentSettings {
   @@schema("app")
 }
 
+model CatalogCurrencyPair {
+  id                   String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  label                String   @db.VarChar(128)
+  currencyUuid         String   @map("currency_uuid") @db.Uuid
+  exchangeCurrencyUuid String   @map("exchange_currency_uuid") @db.Uuid
+  active               Boolean  @default(true)
+  createdAt            DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt            DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@unique([currencyUuid, exchangeCurrencyUuid], map: "catalog_currency_pair_uuids_key")
+  @@map("catalog_currency_pair")
+  @@schema("app")
+}
+
+model CatalogPaymentMethod {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  label             String   @db.VarChar(128)
+  paymentMethodUuid String   @map("payment_method_uuid") @db.Uuid
+  active            Boolean  @default(true)
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@unique([paymentMethodUuid], map: "catalog_payment_method_uuid_key")
+  @@map("catalog_payment_method")
+  @@schema("app")
+}
+
 model ProviderQuote {
   quoteUuid String          @id @map("quote_uuid") @db.Uuid
   ownerId   String          @map("owner_id") @db.Uuid
