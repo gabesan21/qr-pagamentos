@@ -1,5 +1,5 @@
 ---
-status: aberta
+status: respondida
 origem: sessão
 created: 2026-07-20
 ---
@@ -23,3 +23,4 @@ Decisão pendente do humano: testar o deliverable e autorizar (ou não) o PR `de
 
 ## Resposta (user)
 
+2026-07-20 — Testado e aprovado em ambiente local (cadastro da key + webhook conclui em `ACTIVE`). Sem PR: o humano autorizou merge direto `develop` → `main` (sistema ainda não está em produção).
