@@ -93,7 +93,7 @@ O planejador não implementa. Ele decide e resume; não persiste chain-of-though
   - **ondas paralelas:** contratos estáveis, dependência satisfeita e conjuntos de escrita independentes.
 - Todo contrato efêmero de frente declara: `owns`, `may_read`, `must_not_edit`, `depends_on`, `expected_input`, skill, critério de conclusão e “dependência ausente → reporte BLOCKED; nunca a implemente”.
 - Agentes paralelos usam branches/worktrees próprias derivadas da branch da task. Eles nunca integram outros workers; o orquestrador centraliza merge/cherry-pick na worktree de integração.
-- Antes de integrar, valide o diff contra `owns`/`must_not_edit` com `pop/scripts/pop_check_scope.py --allow ... --deny ...`; alteração fora do escopo é devolvida, mesmo correta.
+- Antes de integrar, valide o diff contra `owns`/`must_not_edit` com `python3 pop/scripts/pop_check_scope.py --allow ... --deny ...`; alteração fora do escopo é devolvida, mesmo correta.
 - Dependência interna não pronta não é lançada. Se um worker encontrar entrada ausente/incompatível, ele reporta; não cria a dependência por conta própria.
 - Caminhe o DOX aplicável antes da primeira edição de cada frente. Reuse o extrato se base/hash não mudou; não faça duas caminhadas narrativas iguais.
 - Rode o gate agregado após integrar. Item `(user)`, aborto ou ausência de rota autorizada → `blocked`; descoberta que muda objetivo/contrato → 002.

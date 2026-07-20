@@ -18,7 +18,7 @@ Scripts em **Python 3 (≥3.9), só stdlib** — agent-agnostic e multiplataform
 Exemplo:
 
 ```
-python3 pop/scripts/pop_task.py agents/meu-projeto 1.1.1-user-table-creation --title "Tabela de usuários"
+python3 pop/scripts/pop_task.py pop 1.1.1-user-table-creation --title "Tabela de usuários"
 python3 pop/scripts/pop_move.py 1.1.1-user-table-creation 002_planning --reason "plano iniciado"
 python3 pop/scripts/pop_status.py
 ```

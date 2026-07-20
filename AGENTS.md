@@ -3,7 +3,8 @@
 > Project managed by the **ProjectOfProjects (PoP)** workflow. `CLAUDE.md` is a symlink to this file; always edit this file.
 
 - **Type:** included - see [[TYPES|TYPES]].
-- **Project language:** English - specs, notes, research, code comments, and the entire kanban flow use English.
+- **Project language:** English - project-specific specs, notes, research, code comments, and kanban artifacts use English.
+- **Vendored PoP language:** copied core workflow files and skills remain in upstream pt-BR; do not translate the shared source during project work.
 - **Supported application languages (i18n):** Brazilian Portuguese (`pt-BR`) and English (`en`).
 - **Project brief:** [[PROJECT|PROJECT]] - read when the task needs product purpose or harness decisions.
 - **Roadmap:** [[ROADMAP|ROADMAP]] - read when selecting or sequencing work.
@@ -14,7 +15,7 @@
 |------|-----|------------|-----------|
 | qr-pagamentos | https://github.com/gabesan21/qr-pagamentos.git | repository root | main |
 
-Yolo phases integrate task PRs into `develop`. At the end of each phase, the human tests the deliverable and merges the final `develop` -> `main` PR.
+In yolo phases, the orchestrator mechanically integrates task branches into `develop`; there is no PR per task. At the end of each phase, the human tests the deliverable and decides whether to open and merge the final `develop` -> `main` PR.
 
 ## Workflow
 
