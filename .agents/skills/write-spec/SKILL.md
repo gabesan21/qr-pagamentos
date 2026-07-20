@@ -21,6 +21,7 @@ Cria uma spec em `pop/specs/` (meta-projeto da raiz do vault e projetos ainda n�
 3. **Escreva requisitos verificáveis:** cada requisito deve permitir responder "isso é verdade?" com sim/não. "Texto bom" não é requisito; "cada capítulo ≤3.000 palavras com abertura narrativa" é.
 4. **Incertezas não travam:** o que o usuário não sabe vai para a seção "Aberto" — a spec nasce como `rascunho` e evolui.
 5. **Linke:** phase do roadmap, tasks relacionadas, outras specs. Nome do arquivo em kebab-case.
+6. **Pare no contrato:** registre comportamento, invariantes, interfaces, erros e conformidade. Estratégia desta mudança fica no plano; procedimento reutilizável, em skill; código só entra quando é a própria interface prometida.
 
 ## Ciclo de vida (ver skill `sync-specs`)
 
@@ -30,4 +31,5 @@ Cria uma spec em `pop/specs/` (meta-projeto da raiz do vault e projetos ainda n�
 
 - ≤150 linhas; se crescer, extraia specs auxiliares e linke.
 - Fora de escopo explícito evita a spec inchar depois.
+- Não antecipe classes, funções, camadas ou sequência de implementação que o contrato não exige.
 - Nunca deixe placeholder `<...>` sobrando.

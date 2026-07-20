@@ -21,11 +21,13 @@ Yolo phases integrate task PRs into `develop`. At the end of each phase, the hum
 Every change to the application passes through `kanban/001_initial_task` -> `kanban/006_done`:
 
 1. **001** - create the task with `new-task` and explicit `depends_on` prerequisites.
-2. **002** - write a plan with acceptance criteria and linked specs using `advance-task`, `write-spec`, and `sync-specs`.
-3. **003** - obtain approval from the human or the yolo critic.
-4. **004** - implement in `pop/worktrees/<id>/` on branch `task/<id>` only after every dependency is complete.
-5. **005** - verify every criterion in the worktree; human verification is required only when `critical: true`.
-6. **006** - open the task PR and write `memory/<id>.md`; yolo task PRs target `develop`, while the final phase PR targets `main`.
+2. **002** - a planner separate from execution writes a concise brief with objective, strategy, fronts, dependencies, contracts, risks, and acceptance criteria.
+3. **003** - obtain approval from the human or, in yolo, from the independent reviewer.
+4. **004** - an execution orchestrator chooses one executor, sequential specialists, parallel waves, or a hybrid in isolated worktrees; every front declares `owns`, `may_read`, `must_not_edit`, `depends_on`, expected input, skill, and criteria.
+5. **005** - one fresh-context independent reviewer compares the objective and specs with the integrated diff, tests, and code quality; `critical: true` increases depth and still requires human approval outside yolo.
+6. **006** - the orchestrator opens the task PR and writes `memory/<id>.md`; in yolo it mechanically integrates task branches into `develop`, while the final phase PR targets `main` only when requested by the human.
+
+Parallel execution requires both logical and write independence. A missing or incompatible dependency is `BLOCKED`; a consuming front must never implement it opportunistically. Only the execution orchestrator validates ownership and integrates specialist branches.
 
 One execution continues until the next real gate. The complete state machine is in [[WORKFLOW|WORKFLOW]].
 
@@ -39,7 +41,7 @@ One execution continues until the next real gate. The complete state machine is 
 
 ## Skills
 
-- **PoP workflow:** `.agents/skills/` contains `new-task`, `advance-task`, `plan-roadmap`, `write-spec`, and `sync-specs`.
+- **PoP workflow:** `.agents/skills/` contains `new-task`, `advance-task`, `plan-roadmap`, `write-spec`, `sync-specs`, and `yolo-critic` (the independent yolo reviewer role).
 - **Project operations:** `skills/` will contain reusable build, test, run, migration, and deployment procedures as they become real.
 
 ## DOX index
@@ -121,7 +123,7 @@ Código sem árvore DOX → varredura recursiva e construção da árvore: AGENT
 
 ### No fluxo do PoP
 
-- **002 (wargame):** o recon inclui os AGENTS.md aplicáveis aos caminhos que a task toca; o plano lista os contratos que precisarão de atualização.
+- **002 (brief):** o recon inclui os AGENTS.md aplicáveis aos caminhos que a task toca; o brief lista os contratos que precisarão de atualização, sem microedições ou trechos de implementação.
 - **004:** edite só depois de caminhar a árvore; os AGENTS.md alterados entram na mesma worktree/PR da task.
 - **005:** a verificação confere que os contratos afetados foram atualizados — critério de aceite implícito de toda task de aplicação.
 - **Type `default` com repo externo que deve ficar limpo de arquivos de IA:** decida com o usuário na entrevista — commitar a árvore DOX no repo (padrão do PoP) ou manter apenas o contrato raiz no AGENTS.md do projeto, dentro do PoP.

@@ -17,9 +17,9 @@ Materializa uma task do roadmap como pasta no kanban, no estágio `001_initial_t
 2. **O quê e por quê:** o que a task entrega, em uma linha? Por que agora — o que ela destrava?
 3. **Dependências:** quais tasks precisam estar concluídas antes desta (`depends_on`)? Olhe as tasks da epoch e proponha; vazio = pode rodar em paralelo com as demais. (Gate: só entra em 004 com todas concluídas — ver WORKFLOW.)
 4. **Criticidade:** esta task exige aprovação humana também na verificação (`critical: true`)? Considere o padrão do projeto na ficha (PROJECT.md).
-5. **Specs e pesquisas:** quais specs ela afeta? Tema sem spec → ofereça criar rascunho com a skill `write-spec` (obrigatório antes do plano ir a 003 — ver `sync-specs`). Task de **decisão técnica sem pesquisa** em `pop/researches/` que a embase → **sugira o prompt no `RESEARCHES.md`** antes de liberar para 002 (o planejador não pesquisa na web — seção 002 do WORKFLOW).
-6. **Tamanho:** a mudança cabe em **um** plano wargame (≤200 linhas — ver WORKFLOW)? Se tem frentes demais, **proponha dividir em mais de uma task**, encadeadas por `depends_on` — melhor N boards enxutos que um plano inchado.
-7. **Effort (`size`):** **proponha** `S | M | L` pela complexidade (S = via rápida: mini-plano e execução pelo orquestrador; M/L = cerimônia da Orquestração do WORKFLOW), justificando em 1 linha — o usuário confirma ou corrige, e pode ajustar depois no card em 001.
+5. **Specs e pesquisas:** quais contratos duráveis ela afeta? Linke spec existente; tema sem spec só recebe rascunho via `write-spec` se introduzir comportamento, interface ou invariante durável. Decisão técnica sem pesquisa prévia → sugira prompt no `RESEARCHES.md` antes de 002.
+6. **Tamanho:** a mudança cabe em **um brief coeso** (≤~150 linhas, preferencialmente muito menos — ver WORKFLOW)? Se reúne objetivos independentes ou frentes demais para uma DAG legível, **proponha dividir em tasks** encadeadas por `depends_on`.
+7. **Effort (`size`):** **proponha** `S | M | L` pelo volume da entrega, justificando em 1 linha. Size não escolhe sozinho a topologia: risco, skills, dependências e write sets determinam executor único ou frentes/ondas; planejador e revisor continuam separados.
 8. Proponha **id e slug** (`<n>.<m>.<t>-<slug>`: `t` é o próximo número livre na phase; slug kebab-case, único no vault) e confirme.
 
 ## Procedimento
@@ -33,7 +33,7 @@ Materializa uma task do roadmap como pasta no kanban, no estágio `001_initial_t
    - A seção **Liberação** fica com `- [ ] Pronto para planejar` **desmarcado** — o card nasce não liberado. **Exceção:** task `yolo: true` nasce **marcada**, com Log `liberada por yolo (marcado no roadmap)`.
 3. Na tabela da epoch, transforme o id da task em wikilink `[[<id>-<slug>]]` e atualize o status para `001_initial_task`.
 4. Se for a primeira task ativa do projeto, verifique se o status do projeto nos INDEX (categoria + raiz) deve mudar para "em andamento".
-5. Feche informando o **gate de liberação**: o card fica em 001 aguardando o humano editar e marcar `- [x] Pronto para planejar` (seção Liberação) — o avanço para 002 (`advance-task`) só acontece depois. **Exceções:** o usuário mandou explicitamente na conversa seguir direto ("cria e já avança") → marque o checkbox por ele, registre no Log (`liberada por comando do humano`) e encadeie na `advance-task` até o `.approval.md` em 003; task `yolo: true` → encadeie direto na `advance-task` (o gate de 003 é do crítico).
+5. Feche informando o **gate de liberação**: o card fica em 001 aguardando o humano editar e marcar `- [x] Pronto para planejar` (seção Liberação) — o avanço para 002 (`advance-task`) só acontece depois. **Exceções:** comando explícito “cria e já avança” permite marcar com Log e encadear até 003; `yolo: true` encadeia e delega o gate de 003 ao revisor independente.
 
 ## Cuidados
 

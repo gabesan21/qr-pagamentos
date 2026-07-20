@@ -52,7 +52,7 @@ codex exec --json "..." | jq 'select(.type=="turn.completed") | .usage'         
 - `-m/--model <nome>` sobrescreve o config: `gpt-5.5`, `gpt-5.4-mini`, `gpt-5.3-codex`, `gpt-5.1-codex-mini`…
 - `--oss` usa provider open-source local; providers alternativos (Azure etc.) via `model_provider` + `env_key` no `config.toml`.
 - GPT-5.5 pode não estar disponível com auth por API key em algumas configurações — teste antes de fixar o modelo.
-- **Qual modelo:** o tier do effort da task em `scripts/models.json` (entrada `codex`) — matriz papel × size na Orquestração do [[WORKFLOW|WORKFLOW]].
+- **Qual modelo:** o tier do effort da task em `pop/scripts/models.json` (entrada `codex`) — matriz papel × size na Orquestração do [[WORKFLOW|WORKFLOW]].
 
 ## MCP
 

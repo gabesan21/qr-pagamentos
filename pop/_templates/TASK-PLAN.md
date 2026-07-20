@@ -1,77 +1,79 @@
-# Plano (wargame) — [[<id>-<slug>]]
+# Plano — [[<id>-<slug>]]
 
 > Blockquotes deste template são instruções de preenchimento — **apague-os ao preencher**.
 
-- **Etapa:** 002_planning · **Responsável:** agent
+- **Etapa:** 002_planning · **Responsável:** agent planejador
 
-> Você não está executando a task — está **wargameando** a execução. Quem roda o plano em 004 pode ser um executor mais simples: escreva para que ele execute **sem fazer uma única pergunta**. Cerimônia proporcional ao `size` do card: **S = mini-plano de ≤40 linhas** (rota, preflight, critérios — sem recon delegado, red-team e forks obrigatórios). Limite geral: **200 linhas** (exceção documentada à regra de ~150); movimentos detalhados moram nos grupos em `subtasks/`. Estourou 200 → a task é grande demais: proponha dividi-la em mais tasks encadeadas por `depends_on`.
+> O planejador é separado do executor. Este arquivo guarda o resultado do planejamento: um brief suficiente para orientar agentes capazes, sem reasoning, pseudocódigo, trechos de implementação ou edição passo a passo. Alvo: ≤80 linhas; teto ~150. Se as frentes não couberem, proponha tasks encadeadas por `depends_on`.
 
-## Recon
+## Objetivo e resultado esperado
 
-> Leitura prévia, read-only, **orçada**: comece pelas pesquisas e specs linkadas no card; depois liste as perguntas que o plano precisa e você não sabe responder — só pergunta acima do piso da regra 18 (~5K tokens de leitura) vira worker, em ondas de **até 3-5**; **0 workers é válido**. Cada relatório traz **fonte (arquivo/linha) por achado** e a seção **"Lacunas / Não encontrado"** (alimenta o RECON NEEDED); workers não disparam subagentes. **Sem web** — lacuna de conhecimento vira prompt no `RESEARCHES.md` + `blocked` (ver WORKFLOW 002); lookup pontual via comando é permitido e registrado aqui.
+- **Objetivo:** <o que deve mudar>.
+- **Resultado observável:** <como o usuário ou sistema percebe a entrega>.
 
-- <fonte lida> — o que ela estabeleceu, em uma linha.
+## Estratégia
 
-### RECON NEEDED
+Poucos parágrafos sobre a abordagem base, decisões que restringem a execução e ordem geral. Detalhes duráveis pertencem às specs; detalhes operacionais ficam a cargo dos executores.
 
-> Suposições que o recon não resolveu. Cada uma com o **check exato** que a resolve e em que movimento ele roda.
+## Áreas afetadas
 
-- [ ] <suposição> — check: <comando/leitura que a confirma ou derruba> (no grupo <gNN>).
+- `<subtree, módulo ou artefato>` — por que pode mudar.
 
-### Preflight de ambiente
+## Lacunas e preflight (somente se aplicável)
 
-> Bateria barata, rodada **direto** pelo planejador: versões de runtime e ferramentas de que o plano depende. Suposição de ambiente não verificada é a causa clássica de retorno 004→002.
+- **RECON NEEDED:** <suposição> — check: <leitura/comando exato>.
+- **Preflight:** `<comando>` → <ambiente necessário observado>.
 
-- `<comando>` → <o que foi observado> (ex.: `node --version` → v24.x).
+## Frentes de execução
 
-## Rota
+> Uma frente é uma unidade de ownership, não uma lista de edições. Use [[_templates/SUBTASKS|SUBTASKS]] somente quando uma frente precisar de arquivo próprio. Frentes sem dependência lógica **e** sem sobreposição de escrita podem rodar em paralelo; as demais rodam em ondas.
 
-Como a task será executada, em poucos parágrafos. Alternativas descartadas em uma linha cada, se relevante.
+### <F01> — <nome>
 
-## Forks
+- **Entrega:** <resultado desta frente>.
+- **Escopo:** <limite funcional>.
+- **Owns:** `<arquivos ou padrões que pode alterar>`.
+- **May read:** `<contexto permitido/recomendado>`.
+- **Must not edit:** `<fronteiras de escrita>`.
+- **Depends on:** `<Fxx>` | nenhuma.
+- **Entrada esperada:** <contrato ou artefato produzido pela dependência> | nenhuma.
+- **Skills:** [[pop/skills/<skill>|<skill>]] — *use para <gatilho>*.
+- **Critérios:** <IDs dos critérios abaixo atendidos por esta frente>.
 
-> Rotas alternativas **pré-autorizadas**, cada uma com gatilho objetivo. Sem gatilho não é fork — é retorno ao humano (002).
+> Dependência ou entrada esperada ausente/incompatível → reporte `BLOCKED` ao orquestrador. Nunca implemente, simule ou corrija a dependência por conta própria.
 
-- Se observar <X> (no movimento <ref>) → <rota B, em uma linha>.
+## Ordem e paralelismo
 
-## Condições de aborto
+> Represente a DAG em ondas. Paralelismo exige independência lógica e de escrita.
 
-> Os momentos de **parar e sinalizar** (`blocked: true` + motivo) em vez de improvisar.
+1. **Onda 1:** F01.
+2. **Onda 2:** F02 e F03 em paralelo após F01.
+3. **Integração:** orquestrador valida ownership, integra resultados e roda o gate agregado.
 
-- <condição objetiva que encerra a execução>.
+## Riscos e condições de aborto
 
-## Critérios de aceite e verificação
+> Registre apenas riscos materiais e condições objetivas que exigem parar; não enumere falha/contra-jogada para cada ação.
 
-> É contra esta tabela que o 005 roda — cada critério com o run exato, a aparência do pass e o **modo 005**: `re-run` (comportamento externo observável — o verificador re-executa) ou `evidência` (o verificador audita a saída capturada pelo executor). Task com superfície de runtime exige **≥1 `re-run`**. Prefira o **gate agregado** do projeto a N runs separados — run individual só para o que ele não cobre. O `.verify.md` nasce dela. **Task yolo:** critério sem run executável e "Pass é" observável será **devolvido pelo crítico** em 003 — nada subjetivo.
+- **Risco:** <impacto> — mitigação: <controle>.
+- **Abortar se:** <condição objetiva> — sinalizar `blocked: true` com <evidência>.
 
-| # | Critério | Run de verificação | Pass é | 005 |
-|---|----------|--------------------|--------|-----|
-| 1 | <objetivo e checável> | `<comando>` ou leitura de <onde> | <o que deve ser observado> | re-run \| evidência |
+## Critérios de aceite
 
-## Specs da mudança
+> Critérios observáveis, comparados pelo revisor independente em 005. Prefira o gate agregado. Superfície de runtime exige ao menos um `re-run`.
 
-> Montadas **aqui** (rascunho via `write-spec`), aprovadas junto com o gate 003, sincronizadas com as specs do projeto em 006 (`sync-specs`).
+| # | Critério | Verificação | Pass é | Modo 005 |
+|---|----------|-------------|--------|----------|
+| 1 | <comportamento ou contrato> | `<comando>` ou leitura de <artefato> | <observação objetiva> | re-run \| evidência |
 
-- [[pop/specs/<spec>|<spec>]] — o que muda nela, em uma linha.
+## Specs e contratos
 
-## Contexto mínimo do executor
+> Linke contratos duráveis; não copie seu conteúdo. Crie ou altere spec apenas quando a entrega mudar comportamento, interface ou invariante durável.
 
-> Lista **fechada**, montada no wargame: tudo que o executor de 004 lê. Fora dela, só com gatilho de fork.
+- [[pop/specs/<spec>|<spec>]] — *siga para <contrato>; mudança esperada: <uma linha ou nenhuma>*.
+- [`<subtree>/AGENTS.md`](../<caminho-no-repo>/AGENTS.md) — *siga antes de alterar <área>*.
 
-- <arquivo/spec/contrato> — o que ele responde, em uma linha.
+## Topologia de execução
 
-## Grupos de subtasks
-
-Um arquivo por grupo em `subtasks/` ([[_templates/SUBTASKS|template]]), com os movimentos detalhados (observação esperada, falha provável → contra-jogada):
-
-> **Task yolo:** evite itens `(user)` — o crítico não faz ação de humano no mundo real; item `(user)` inevitável trava a task (`blocked: true`) e devolve ao humano via INBOX.
-
-1. [[<id>-<slug>.g01-<slug-do-grupo>]] — uma linha sobre o grupo.
-2. [[<id>-<slug>.g02-<slug-do-grupo>]] — ...
-
-## Red-team
-
-> **Obrigatório em size M/L**, antes de 003 — em S é dispensado, registrando a dispensa em uma linha. Ataque o próprio plano (ou peça a um subagente com contexto limpo) e registre:
-
-- **Ataque que falhou contra o plano:** <o ataque e por que o plano resistiu>.
-- **Ataque que passou → patch:** <o que furou> → <o que mudou no plano por causa disso>.
+- **Forma:** executor único | especialistas sequenciais | especialistas paralelos | ondas híbridas.
+- **Justificativa:** <skills, dependências e limites de escrita que determinam a forma>.
+- **Modelo/tier por papel:** <somente quando houver escolha relevante>.

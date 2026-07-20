@@ -19,6 +19,11 @@ from pathlib import Path
 
 SOURCE = Path(__file__).resolve().parent.parent
 MANIFEST = SOURCE / "_templates" / "included-manifest.json"
+SKILLS_SOURCE = SOURCE / ".agents" / "skills"
+if not SKILLS_SOURCE.is_dir():
+    # Inside an installed v2 repository, the harness is under pop/ while
+    # standalone workflow skills remain at the repository root.
+    SKILLS_SOURCE = SOURCE.parent / ".agents" / "skills"
 EXTERNAL_LINK = re.compile(r"\[\[categories/[^/]+/[^/]+/([^\]|#]+)([^\]]*)\]\]")
 
 
@@ -77,7 +82,7 @@ def audit() -> list[str]:
     for name in data["directories"]:
         if not (SOURCE / name).is_dir(): missing.append(name)
     for name in data["skills"]:
-        if not (SOURCE / ".agents/skills" / name / "SKILL.md").is_file(): missing.append(f"skill:{name}")
+        if not (SKILLS_SOURCE / name / "SKILL.md").is_file(): missing.append(f"skill:{name}")
     return missing
 
 
@@ -98,7 +103,7 @@ def install(target: Path) -> None:
     for name in data["directories"]:
         copy_tree(SOURCE / name, hb / name)
     for name in data["skills"]:
-        copy_tree(SOURCE / ".agents/skills" / name, target / ".agents/skills" / name)
+        copy_tree(SKILLS_SOURCE / name, target / ".agents/skills" / name)
     copy_file(MANIFEST, hb / ".included-harness.json")
     for rel in data["anatomy"]:
         (hb / rel).mkdir(parents=True, exist_ok=True)

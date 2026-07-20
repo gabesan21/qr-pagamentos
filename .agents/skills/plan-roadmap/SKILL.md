@@ -29,7 +29,7 @@ Constrói o roadmap **junto com o usuário**, por entrevista — nunca invente o
 ## Cuidados
 
 - Descrições **sempre de uma linha** — detalhe vai para spec.
-- O wargame completo (movimentos, contra-jogadas) é do plano de task (002) — no roadmap entram só recon, RECON NEEDED, forks e condição de abandono.
+- O brief de execução (estratégia, frentes, ownership, riscos e critérios) é do plano da task em 002 — no roadmap entram apenas descrição, dependências e contexto que muda a priorização.
 - Aplicações: os **idiomas suportados (i18n)** declarados no AGENTS.md do projeto entram no planejamento — nenhuma epoch/phase de UI ou conteúdo ignora i18n.
 - Não detalhe epochs futuras "para adiantar": roadmap é elaborado progressivamente; revisite esta skill a cada epoch concluída.
 - IDs seguem a hierarquia (`1`, `1.1`, `1.1.1-<slug>`); links de arquivos fixos com caminho completo + alias.

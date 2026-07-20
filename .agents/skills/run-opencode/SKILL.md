@@ -47,7 +47,7 @@ Yolo é o modo padrão desta família de skills (decisão de 2026-07-12); o cont
 - `--model/-m provider/model` — multi-provider é o ponto forte: `anthropic/claude-sonnet-4-6`, `openai/gpt-5`, `google/gemini-3-pro`...
 - `--variant` controla esforço de raciocínio (Anthropic: `high`/`max`; OpenAI: `none`…`xhigh`; Google: `low`/`high`).
 - `opencode models [provider]` lista; config persistente em `opencode.json` (`model`, `small_model`).
-- **Qual modelo:** o tier do effort da task em `scripts/models.json` (entrada `opencode`) — matriz papel × size na Orquestração do [[WORKFLOW|WORKFLOW]].
+- **Qual modelo:** o tier do effort da task em `pop/scripts/models.json` (entrada `opencode`) — matriz papel × size na Orquestração do [[WORKFLOW|WORKFLOW]].
 
 ## MCP
 
