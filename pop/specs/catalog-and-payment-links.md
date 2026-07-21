@@ -4,7 +4,7 @@
 - **Epoch/Phase:** [[roadmap/3-catalog-and-payment-links|Epoch 3]]
 - **Status:** aprovada
 - **Created:** 2026-07-20
-- **Updated:** 2026-07-20 — task 3.2.2 integrated in yolo; server-only redacted product reads delivered.
+- **Updated:** 2026-07-20 — task 3.3.1 integrated in yolo; admin payment-link persistence, generation, and manual revocation delivered.
 
 ## What it covers
 
@@ -40,14 +40,15 @@ This spec defines the administrator-facing catalog of Nautt provider UUIDs, the 
 
 - **Task 3.2.1:** PostgreSQL/Prisma versioned products, canonical positive 18/6 decimal-string pricing, trimmed Unicode-code-point text constraints, re-authorized opaque administrator CRUD with compare-and-swap conflicts, and a localized multiline admin UI that preserves description line breaks.
 - **Task 3.2.2:** Active-only, localized server read with exactly the redacted `{ title, description, price }` product projection and uniform `null` for malformed, missing, or inactive input. Payment-link binding and checkout remain future work.
+- **Task 3.3.1:** PaymentLink persistence with a unique 24-character server-generated URL-safe identifier, type, restrictive product/pair references, nullable expiry, active/created metadata, and commit-boundary active dependency enforcement serialized with deactivation. Active administrators can list, create, and one-way manually revoke links through opaque protected mutations and localized `/admin` management. Public resolution/`href`, checkout/orders/provider requests, automatic expiry inactivation, and automatic `SINGLE_USE` consumption remain future work.
 
 ### Payment links
 
-- Administrators generate payment links bound to exactly one active product and one active currency pair.
-- Links may be **reusable** (many checkouts, e.g. a donation link) or **single-use** (one checkout, then automatically inactivated after first successful order creation or explicit manual revocation).
+- Administrators generate payment links bound to exactly one active product and one active currency pair. Creation atomically checks both dependencies at its commit boundary and mutually serializes with their activation-state changes: a deactivation committed first rejects generation, while a deactivation that follows a successful creation leaves the existing link intact.
+- Links may be **reusable** (many checkouts, e.g. a donation link) or **single-use**; automatic single-use consumption after order creation belongs to later checkout work, while manual revocation is already available.
 - Each link carries: slug/identifier, optional expiration timestamp, active/inactive flag, created-at metadata.
 - The link identifier is unique, URL-safe, and non-sequential; it is derived server-side and never editable.
-- A sessionless public GET endpoint resolves a link identifier to its redacted product and currency pair, returning `404` for inactive, expired, or non-existent links.
+- **Future Task 3.3.2:** a sessionless public GET endpoint resolves a link identifier to its redacted product and currency pair, returning `404` for inactive, expired, or non-existent links.
 - Link resolution exposes no internal IDs, no admin-only fields, and no Nautt UUIDs beyond the currency pair needed for checkout quoting.
 
 ## Out of scope

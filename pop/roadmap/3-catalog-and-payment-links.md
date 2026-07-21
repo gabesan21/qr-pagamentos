@@ -41,7 +41,7 @@
 
 ## Phase 3.3 - Payment links
 
-- **Status:** pendente
+- **Status:** em andamento
 - **Description:** Let administrators generate single-use or reusable payment links bound to one product and one configured currency pair.
 - **Yolo:** yes
 - **Specs:** [[specs/catalog-and-payment-links|Catalog and payment links]]
@@ -49,5 +49,5 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[3.3.1-payment-link-schema-and-admin-generation]] | Persist payment links with type (single-use/reusable), product reference, currency pair, optional expiration, active flag, and admin generation UI. · size: M | não iniciada |
+| [[3.3.1-payment-link-schema-and-admin-generation]] | Persist payment links with type (single-use/reusable), product reference, currency pair, optional expiration, active flag, and admin generation UI. · size: M | concluída |
 | [[3.3.2-public-link-resolution]] | Provide a sessionless public endpoint that resolves an active payment link to its redacted product and currency pair. · size: M | não iniciada |
