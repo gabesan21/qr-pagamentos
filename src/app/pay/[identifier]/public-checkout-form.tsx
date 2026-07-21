@@ -19,12 +19,68 @@ type FieldName = "name" | "email" | "cpf" | "street" | "number" | "district" | "
 type FormValues = Record<FieldName | "complement", string>;
 type Payment = Readonly<{ state: PaymentLinkOrderState; pixCopyPaste?: string; pixQrCodeUrl?: string }>;
 type CheckoutAttempt = Readonly<{ idempotencyKey: string; customer: CustomerSnapshotV1 }>;
+type PollContext = Readonly<{ signal: AbortSignal; isCurrent: () => boolean; schedule: (delay: number) => void }>;
+type VisibilityDocument = Pick<Document, "visibilityState"> & Readonly<{
+  addEventListener: (type: "visibilitychange", listener: () => void) => void;
+  removeEventListener: (type: "visibilitychange", listener: () => void) => void;
+}>;
 
 const ADDRESS_FIELDS: readonly FieldName[] = ["street", "number", "district", "city", "stateUf", "postalCode"];
 const PAYMENT_STATES = new Set<PaymentLinkOrderState>(["CREATED", "PENDING", "INDETERMINATE", "CONFIRMED", "REJECTED", "CANCELLED", "EXPIRED", "REFUNDED"]);
 const TERMINAL_STATES = new Set<PaymentLinkOrderState>(["CONFIRMED", "REJECTED", "CANCELLED", "EXPIRED", "REFUNDED"]);
 const INITIAL_VALUES: FormValues = { name: "", email: "", cpf: "", street: "", number: "", district: "", city: "", stateUf: "", postalCode: "", complement: "" };
 const BRAZILIAN_UFS = ["AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"] as const;
+
+export function createPollingController(document: VisibilityDocument, poll: (context: PollContext) => Promise<void>) {
+  let stopped = false;
+  let polling = false;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  let controller: AbortController | undefined;
+  let activePoll = 0;
+
+  const clearTimer = () => {
+    if (timer) clearTimeout(timer);
+    timer = undefined;
+  };
+  const isVisible = () => document.visibilityState !== "hidden";
+  const pause = () => {
+    activePoll += 1;
+    clearTimer();
+    controller?.abort();
+    controller = undefined;
+    polling = false;
+  };
+  const schedule = (delay: number) => {
+    if (stopped || !isVisible()) return;
+    clearTimer();
+    timer = setTimeout(() => {
+      timer = undefined;
+      void run();
+    }, delay);
+  };
+  const run = async () => {
+    if (stopped || polling || !isVisible()) return;
+    polling = true;
+    const requestController = new AbortController();
+    controller = requestController;
+    const pollId = ++activePoll;
+    const isCurrent = () => !stopped && isVisible() && pollId === activePoll;
+    try {
+      await poll({ signal: requestController.signal, isCurrent, schedule: (delay) => { if (isCurrent()) schedule(delay); } });
+    } finally {
+      if (pollId === activePoll) polling = false;
+    }
+  };
+  const onVisibilityChange = () => {
+    if (!isVisible()) { pause(); return; }
+    schedule(0);
+  };
+
+  return {
+    start: () => { document.addEventListener("visibilitychange", onVisibilityChange); schedule(0); },
+    stop: () => { stopped = true; pause(); document.removeEventListener("visibilitychange", onVisibilityChange); },
+  };
+}
 
 function requiredFields(policy: CheckoutDataPolicy): readonly FieldName[] {
   if (policy === "NONE") return [];
@@ -92,33 +148,19 @@ export function PublicCheckoutForm({ dictionary, identifier, policy }: Readonly<
   const [statusError, setStatusError] = useState(false);
   const [copyState, setCopyState] = useState<"success" | "error" | null>(null);
   const [statusRetry, setStatusRetry] = useState(0);
-  const pollingRef = useRef(false);
   const terminalRef = useRef(false);
 
   useEffect(() => {
     if (!capability || terminalRef.current) return;
-    let cancelled = false;
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    let controller: AbortController | undefined;
     let failures = 0;
-    let activePoll = 0;
-
-    const schedule = (delay: number) => {
-      if (cancelled || document.visibilityState === "hidden") return;
-      timer = setTimeout(() => { void poll(); }, delay);
-    };
-    const poll = async () => {
-      if (cancelled || pollingRef.current || document.visibilityState === "hidden") return;
-      pollingRef.current = true;
-      controller = new AbortController();
-      const pollId = ++activePoll;
+    const polling = createPollingController(document, async ({ signal, isCurrent, schedule }) => {
       try {
-        const response = await fetch(`/api/payment-links/${identifier}/checkout/status`, { method: "POST", cache: "no-store", credentials: "omit", headers: { "content-type": "application/json" }, body: JSON.stringify({ statusCapability: capability }), signal: controller.signal });
-        if (cancelled || document.visibilityState === "hidden" || pollId !== activePoll) return;
+        const response = await fetch(`/api/payment-links/${identifier}/checkout/status`, { method: "POST", cache: "no-store", credentials: "omit", headers: { "content-type": "application/json" }, body: JSON.stringify({ statusCapability: capability }), signal });
+        if (!isCurrent()) return;
         if (response.status === 404) { setUnavailable(true); return; }
         if (!response.ok) throw new Error("status-read-failed");
         const body: unknown = await response.json();
-        if (cancelled || document.visibilityState === "hidden" || pollId !== activePoll) return;
+        if (!isCurrent()) return;
         const next = body && typeof body === "object" && "payment" in body ? paymentFromResponse((body as { payment?: unknown }).payment) : null;
         if (!next) throw new Error("status-read-failed");
         setPayment(next);
@@ -127,30 +169,15 @@ export function PublicCheckoutForm({ dictionary, identifier, policy }: Readonly<
         failures = 0;
         if (!terminalRef.current) schedule(5_000);
       } catch (error) {
-        if (!cancelled && document.visibilityState !== "hidden" && pollId === activePoll && !(error instanceof DOMException && error.name === "AbortError")) {
+        if (isCurrent() && !(error instanceof DOMException && error.name === "AbortError")) {
           failures += 1;
           if (failures >= 3) setStatusError(true);
           else schedule(1_000 * 2 ** failures);
         }
-      } finally {
-        if (pollId === activePoll) pollingRef.current = false;
       }
-    };
-    const onVisibilityChange = () => {
-      if (document.visibilityState === "hidden") {
-        activePoll += 1;
-        if (timer) clearTimeout(timer);
-        timer = undefined;
-        controller?.abort();
-        controller = undefined;
-        pollingRef.current = false;
-        return;
-      }
-      schedule(0);
-    };
-    document.addEventListener("visibilitychange", onVisibilityChange);
-    schedule(0);
-    return () => { cancelled = true; if (timer) clearTimeout(timer); controller?.abort(); document.removeEventListener("visibilitychange", onVisibilityChange); pollingRef.current = false; };
+    });
+    polling.start();
+    return polling.stop;
   }, [capability, identifier, statusRetry]);
 
   const update = (field: keyof FormValues, value: string) => {
