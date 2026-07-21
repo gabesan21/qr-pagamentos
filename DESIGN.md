@@ -116,6 +116,15 @@ status-recovery, terminal, and unavailable states remain explicit and use no
 page-specific visual primitive or token. QR images carry alternative text and
 copy/status feedback is announced politely.
 
+The authenticated `/orders` owner ledger and the read-only `/admin/orders`
+administrator ledger reuse the same receipt rail, `admin-navigation`, ruled
+`admin-account` fact sections, `Badge` state vocabulary, and `Card`/`Alert`
+empty and unavailable states. Order states reuse the checkout state labels;
+the policy-exact customer snapshot renders as labelled facts. Cross-owner or
+missing order identities render one opaque destructive-`Alert` unavailable
+view with a single back action; no order surface owns a mutation control or
+page-specific visual variant.
+
 ## Evidence and composition
 
 `pnpm design-system:evidence` builds production output and creates a fresh

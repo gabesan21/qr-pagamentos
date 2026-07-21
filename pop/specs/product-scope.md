@@ -4,7 +4,7 @@
 - **Epoch/Phase:** [[ROADMAP|Epochs 1-5]]
 - **Status:** aprovada
 - **Created:** 2026-07-13
-- **Updated:** 2026-07-21 — task 4.1.1 delivered owner isolation and the account checkout-data policy.
+- **Updated:** 2026-07-21 — task 4.1.1 delivered owner isolation and the account checkout-data policy; task 4.3.1 delivered owner order inspection and read-only administrator order inspection.
 
 ## What it covers
 
