@@ -1,12 +1,22 @@
+---
+id: <id-unico-em-kebab-case>
+project: <label-do-projeto>
+domain: <dominio-em-kebab-case>
+kind: contract
+status: draft
+implementation: planned
+origin: "<phase-de-origem>"
+created: AAAA-MM-DD
+updated: AAAA-MM-DD
+supersedes: []
+superseded_by:
+---
+
 # Spec — <nome do contrato/tema>
 
 > Blockquotes deste template são instruções de preenchimento — **apague-os ao preencher**.
 
-- **Projeto:** [[pop/PROJECT|<Nome do projeto>]]
-- **Epoch/Phase:** [[pop/roadmap/<n>-<slug>|Phase <n>.<m>]]
-- **Status:** rascunho | aprovada | implementada | obsoleta
-- **Criada em:** AAAA-MM-DD
-- **Atualizada em:** AAAA-MM-DD
+> Campos e enums do frontmatter permanecem em inglês. `kind`: `contract | overview`; `status`: `draft | active | superseded`; `implementation`: `planned | partial | implemented | not_applicable`. `origin` registra a phase de nascimento, não ownership atual. Relações de substituição usam IDs.
 
 ## Contrato
 
@@ -52,4 +62,4 @@ Descrição objetiva do comportamento ou tema durável coberto. Uma spec respond
 - [[pop/specs/<outra-spec>|<outra-spec>]] — *siga se <condição>*.
 - [`<subtree>/AGENTS.md`](../<caminho-no-repo>/AGENTS.md) — *siga antes de alterar <área>*.
 
-> Não registre solução interna, sequência de edição, reasoning ou pseudocódigo. Estratégia de uma mudança pertence ao plano; procedimento reutilizável pertence a uma skill.
+> Não registre solução interna, sequência de edição, reasoning, pseudocódigo, changelog ou lista de tasks entregues. Estratégia pertence ao plano; acontecimento, commit e datas de execução pertencem à `memory/`; procedimento reutilizável pertence a uma skill.

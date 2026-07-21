@@ -25,9 +25,6 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[1.1.1-scaffold-next-platform]] | Create the typed Next.js/pnpm baseline, quality commands, health endpoint, and root DOX contract. | concluída |
-| [[1.1.2-establish-prisma-database]] | Add Prisma, PostgreSQL constraints, versioned migrations, and isolated migration/runtime roles. | concluída |
-| [[1.1.3-containerize-self-hosted-runtime]] | Deliver non-root production images and Compose startup ordered by database health and migrations. | concluída |
 
 ## Phase 1.2 - Local identity and access
 
@@ -38,10 +35,6 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[1.2.1-review-clean-code-baseline]] | Review the Phase 1.1 codebase against the clean-code contracts and remediate confirmed issues before identity and access work begins. · size: M | concluída |
-| [[1.2.2-establish-local-identities]] | Add required unique usernames, optional email profile data, password credentials, closed roles, deployment-seeded administration, and secure operator recovery. · size: M | concluída |
-| [[1.2.3-implement-database-sessions]] | Deliver bilingual username-and-password sign-in and logout with opaque PostgreSQL sessions, secure cookies, expiry limits, and concurrency enforcement; never fall back to email lookup. · size: M | concluída |
-| [[1.2.4-enforce-access-control]] | Enforce deny-by-default server authorization, username-bearing safe user projections with nullable email, session revocation, and final-active-admin protection end to end. · size: M | concluída |
 
 ## Phase 1.3 - Administrative control plane
 
@@ -53,10 +46,6 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[1.3.1-establish-admin-design-system]] | Define the admin tone, semantic tokens, `DESIGN.md`, lintable no-raw-value contract, shared primitive inventory, and required component states before building admin screens. · size: M | concluída |
-| [[1.3.2-user-language-preference]] | Persist each user's language preference and resolve localized UI without locale-prefixed URLs. · size: M | concluída |
-| [[1.3.3-manage-administrative-users]] | Deliver the authenticated, accessible admin shell and user management for accounts, roles, and account status, including protection of the final active administrator. · size: L | concluída |
-| [[1.3.4-manage-global-payment-settings]] | Deliver accessible administrator management of the approved global currency and payment-method allowlists. · size: M | concluída |
 
 ## Phase 1.4 - Design-system and quality hardening
 
@@ -69,8 +58,3 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[1.4.1-repair-login-submit-reliability]] | Reproduce and repair the `/login/submit` 500 through the real database/runtime path while preserving opaque credential failures, secure sessions, and bilingual preference resolution. · size: M | concluída |
-| [[1.4.2-rebuild-design-system-with-shadcn]] | Audit and rebuild the shared visual foundation with shadcn, professional offline-safe typography, semantic tokens, intentional component APIs/states, and an authoritative specimen. · size: L | concluída |
-| [[1.4.3-redesign-login-experience]] | Recompose the bilingual login experience with the shared shadcn system, intentional hierarchy, complete interaction states, and responsive browser evidence. · size: M | concluída |
-| [[1.4.4-refactor-admin-surfaces-onto-design-system]] | Modularize and migrate the existing administration surfaces onto the approved shared components without changing authorization or locale behavior. · size: L | concluída |
-| [[1.4.5-audit-and-harden-epoch1-code-and-ui]] | Independently audit and remediate Epoch 1 clean-code, React, component-drift, accessibility, responsive, visual, and regression findings before phase closeout. · size: M | concluída |

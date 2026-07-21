@@ -3,7 +3,9 @@
 
 `add` cria a worktree no harness do projeto da task (`pop/worktrees/<task-id>`
 na anatomia nova, `worktrees/<task-id>` na legada), com a branch
-`task/<task-id>`. Repositório alvo: `--repo`, ou a própria pasta do projeto
+`task/<task-id>`. A rota vem de `poplib.delivery_route`: meta PoP recusa
+worktree e fica em `main`; task yolo externa parte de `develop` e declara PR
+final para `main`. Repositório alvo: `--repo`, ou a própria pasta do projeto
 quando ela é um repo git (clone `included` / repo embutido de
 `full-multi-repo`), senão a raiz do vault. `--repo <nome>` que case com um
 clone do projeto — `<nome>/` na anatomia nova, `project/<nome>/` na legada —
@@ -13,6 +15,7 @@ afetado). `remove` desfaz a worktree e apaga a branch se já estiver mergeada
 (`--delete-branch` força a exclusão).
 
 Uso:
+    python3 scripts/pop_worktree.py route <task-id>
     python3 scripts/pop_worktree.py add    <task-id> [--repo DIR|NOME] [--base BRANCH]
     python3 scripts/pop_worktree.py remove <task-id> [--repo DIR|NOME] [--delete-branch]
 """
@@ -83,8 +86,8 @@ def main():
     parser = argparse.ArgumentParser(
         description="Cria ou remove a worktree git de uma task "
                     "(worktrees/<id>, branch task/<id>).")
-    parser.add_argument("action", choices=["add", "remove"],
-                        help="add: cria worktree e branch; remove: desfaz")
+    parser.add_argument("action", choices=["add", "remove", "route"],
+                        help="add/remove: gere worktree; route: mostra rota Git")
     parser.add_argument("task_id", help="id da task (nome da pasta no kanban)")
     parser.add_argument("--repo", metavar="DIR|NOME",
                         help="repositório git alvo: caminho, ou nome de clone "
@@ -105,9 +108,23 @@ def main():
     if not found:
         print(f"Task não encontrada em nenhum projeto: {args.task_id}")
         return 1
-    project, stage, _ = found
+    project, stage, task_dir = found
+    card = task_dir / f"{args.task_id}.md"
+    meta = poplib.read_card(card)
+    route = poplib.delivery_route(root, project, yolo=bool(meta.get("yolo")))
     print(f"Task {args.task_id} em {poplib.project_label(root, project)} "
           f"({stage}).")
+    if args.action == "route":
+        print(f"worktree={'sim' if route['worktree'] else 'não'}")
+        print(f"integration_branch={route['task_branch']}")
+        print(f"final_pr={'sim' if route['scope_pr'] else 'não'}")
+        print(f"target_branch={route['target_branch'] or 'configurada-no-projeto'}")
+        print(f"merge_owner={route['merge_owner']}")
+        return 0
+    if not route["worktree"]:
+        print("Operação recusada: meta PoP trabalha direto em main, sem "
+              "branch/worktree/PR próprios da task.")
+        return 1
 
     worktree = poplib.harness_root(project) / "worktrees" / args.task_id
     if args.repo:
@@ -130,7 +147,17 @@ def main():
         return 1
     branch = f"task/{args.task_id}"
     if args.action == "add":
-        return cmd_add(repo, worktree, branch, args.base,
+        base = args.base
+        if meta.get("yolo"):
+            if base and base != route["task_branch"]:
+                print("Operação recusada: task yolo externa deve partir de "
+                      f"{route['task_branch']} e fechar PR para "
+                      f"{route['target_branch']}.")
+                return 1
+            base = route["task_branch"]
+            print(f"Rota yolo: integração em {base}; PR final automático "
+                  f"para {route['target_branch']}; merge {route['merge_owner']}.")
+        return cmd_add(repo, worktree, branch, base,
                        worktree.relative_to(project).as_posix())
     return cmd_remove(repo, worktree, branch, args.delete_branch)
 

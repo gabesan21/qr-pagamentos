@@ -36,7 +36,7 @@ def collect(project):
     """Coleta contagens e listas de atenção de um projeto."""
     counts = {stage: 0 for stage in poplib.STAGES}
     attention = {"release": [], "approval": [], "critical": [], "merge": [],
-                 "blocked": [], "stale": [], "claimed": []}
+                 "blocked": [], "circuit": [], "stale": [], "claimed": []}
     for stage, task_dir, card in poplib.iter_cards(project):
         counts[stage] += 1
         meta = poplib.read_card(card)
@@ -53,6 +53,11 @@ def collect(project):
         if meta.get("blocked") is True:
             reason = meta.get("blocked_reason") or "sem motivo registrado"
             attention["blocked"].append(f"{tid} — {reason}")
+        if meta.get("circuit_breaker") is True:
+            r003 = meta.get("yolo_003_returns") or 0
+            r005 = meta.get("yolo_005_returns") or 0
+            attention["circuit"].append(
+                f"{tid} — devoluções 003={r003}, 005={r005}")
         if stage != "006_done":
             days = _stale_since(meta)
             if days is not None and days > STALE_DAYS:
@@ -110,7 +115,7 @@ def main():
         return 0
 
     merged = {"release": [], "approval": [], "critical": [], "merge": [],
-              "blocked": [], "stale": [], "claimed": []}
+              "blocked": [], "circuit": [], "stale": [], "claimed": []}
     print(f"Vault: {root}")
     for project in projects:
         label = poplib.project_label(root, project)
@@ -125,6 +130,7 @@ def main():
     print_list("Verificação crítica pendente (005, critical)", merged["critical"])
     print_list("Aguardando merge (awaiting_merge)", merged["merge"])
     print_list("Bloqueadas", merged["blocked"])
+    print_list("Circuit breakers yolo (intervenção humana)", merged["circuit"])
     print_list(f"Paradas (sem update há >{STALE_DAYS} dias, fora de 006)",
                merged["stale"])
     print_list("Em execução (claim ativo — não pegue estas tasks)",

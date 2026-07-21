@@ -11,7 +11,9 @@ obrigatório dos cards de task e coerência do `stage:` com a pasta; worktrees
 órfãs (aviso); wikilinks quebrados (aviso — link para nota futura é
 legítimo); e anotações `<!-- pop-hash: <caminho> sha256=<hash> -->` de
 citação de código (fail-closed: arquivo citado inexistente ou hash
-divergente é violação — ver regra 9 do DOX). Exit 1 se houver violação;
+divergente é violação — ver regra 9 do DOX). Coleções com `specs/INDEX.md`
+também recebem validação estrita de metadados, estrutura, supersessão e
+descoberta; coleções sem índice permanecem legadas. Exit 1 se houver violação;
 avisos não falham.
 
 Uso:
@@ -19,12 +21,14 @@ Uso:
 """
 
 import argparse
-import json
+import datetime
 import hashlib
+import json
 import re
 import sys
 
 import poplib
+import pop_roadmap
 
 MAX_ROOT_DESC = 144
 MAX_CAT_DESC = 600
@@ -32,6 +36,17 @@ MAX_NOTE_LINES = 150
 EXEMPT_NAMES = {"AGENTS.md", "WORKFLOW.md", "README.md"}
 CARD_REQUIRED = ("id", "project", "stage", "created", "updated")
 SIZE_VALUES = {"S", "M", "L"}
+SPEC_REQUIRED = (
+    "id", "project", "domain", "kind", "status", "implementation",
+    "origin", "created", "updated", "supersedes", "superseded_by",
+)
+SPEC_ENUMS = {
+    "kind": {"contract", "overview"},
+    "status": {"draft", "active", "superseded"},
+    "implementation": {"planned", "partial", "implemented",
+                       "not_applicable"},
+}
+KEBAB_CASE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 
 ROOT_ENTRY = re.compile(r"^- \[\[.*?\]\]\s*—\s*(.+)$")
 TASK_DIR = re.compile(r"^\d+\.\d+\.\d+-")
@@ -45,6 +60,215 @@ LINK_SKIP_PARTS = {"external-repository", ".obsidian", ".git", "worktrees",
 # nasceram — link de navegação esperado, não quebra real (ver [[WORKFLOW]]).
 STAGE_ARTIFACT_SUFFIXES = (".plan", ".approval", ".verify")
 EXTERNAL_PROJECT_LINK = re.compile(r"\[\[categories/[^/]+/[^/]+/")
+
+
+def _spec_links(path):
+    """Retorna alvos de wikilinks fora de fences, sem alias ou heading."""
+    links = []
+    for _, line in lines_outside_fences(path):
+        for match in WIKILINK.finditer(INLINE_CODE.sub("", line)):
+            target = match.group(1).strip().rstrip("\\").split("#", 1)[0]
+            if target:
+                links.append(target)
+    return links
+
+
+def _spec_aliases(root, specs_dir, path):
+    """Formas de wikilink aceitas para um documento da coleção."""
+    rel_collection = path.relative_to(specs_dir).with_suffix("").as_posix()
+    rel_root = path.relative_to(root).with_suffix("").as_posix()
+    return {path.stem, rel_collection, rel_root}
+
+
+def _linked_specs(root, specs_dir, source, documents):
+    """Resolve links de `source` somente contra documentos desta coleção."""
+    aliases = {}
+    for path in documents:
+        for alias in _spec_aliases(root, specs_dir, path):
+            aliases.setdefault(alias, set()).add(path)
+    resolved = set()
+    for target in _spec_links(source):
+        matches = aliases.get(target.removesuffix(".md"), set())
+        if len(matches) == 1:
+            resolved.update(matches)
+    return resolved
+
+
+def _valid_iso_date(value):
+    """Valida data canônica AAAA-MM-DD e devolve date, ou None."""
+    raw = str(value or "")
+    try:
+        parsed = datetime.date.fromisoformat(raw)
+    except ValueError:
+        return None
+    return parsed if parsed.isoformat() == raw else None
+
+
+def check_spec_collections(root, projects, violations):
+    """Valida o contrato opt-in das coleções que possuem `specs/INDEX.md`.
+
+    Uma coleção sem índice é legada. Depois da adoção, todo Markdown exceto o
+    índice é spec canônica; contratos atuais devem ser alcançáveis diretamente
+    pelo índice ou por um overview que ele referencia diretamente.
+    """
+    for project in projects:
+        specs_dir = poplib.harness_root(project) / "specs"
+        index = specs_dir / "INDEX.md"
+        if not index.is_file():
+            continue
+
+        documents = sorted(path for path in specs_dir.rglob("*.md")
+                           if path != index)
+        metadata = {}
+        ids = {}
+        expected_project = poplib.project_label(root, project)
+
+        for path in documents:
+            rel = path.relative_to(specs_dir)
+            if len(rel.parts) > 2:
+                violations.append(
+                    f"{path}:1: spec em profundidade inválida; use no máximo "
+                    "`specs/<domain>/arquivo.md`")
+
+            meta, _ = poplib.parse_frontmatter(
+                path.read_text(encoding="utf-8"))
+            metadata[path] = meta
+            for field in SPEC_REQUIRED:
+                if field not in meta:
+                    violations.append(
+                        f"{path}:1: frontmatter sem `{field}`")
+                elif (field not in {"supersedes", "superseded_by"}
+                      and meta[field] in (None, "")):
+                    violations.append(
+                        f"{path}:1: frontmatter com `{field}` vazio")
+
+            spec_id = meta.get("id")
+            if not isinstance(spec_id, str) or not KEBAB_CASE.fullmatch(spec_id):
+                violations.append(f"{path}:1: `id` inválido `{spec_id}` "
+                                  "(use kebab-case)")
+            elif spec_id in ids:
+                violations.append(f"{path}:1: `id` duplicado `{spec_id}` "
+                                  f"(também em {ids[spec_id]})")
+            else:
+                ids[spec_id] = path
+
+            if meta.get("project") != expected_project:
+                violations.append(
+                    f"{path}:1: `project` `{meta.get('project')}` difere do "
+                    f"label do escopo `{expected_project}`")
+
+            domain = meta.get("domain")
+            if not isinstance(domain, str) or not KEBAB_CASE.fullmatch(domain):
+                violations.append(f"{path}:1: `domain` inválido `{domain}` "
+                                  "(use kebab-case)")
+            elif len(rel.parts) == 2 and domain != rel.parts[0]:
+                violations.append(
+                    f"{path}:1: `domain` `{domain}` difere da pasta "
+                    f"`{rel.parts[0]}`")
+
+            for field, accepted in SPEC_ENUMS.items():
+                if meta.get(field) not in accepted:
+                    options = " | ".join(sorted(accepted))
+                    violations.append(
+                        f"{path}:1: `{field}` inválido `{meta.get(field)}` "
+                        f"(use {options})")
+
+            created = _valid_iso_date(meta.get("created"))
+            updated = _valid_iso_date(meta.get("updated"))
+            if created is None:
+                violations.append(f"{path}:1: `created` inválido "
+                                  f"`{meta.get('created')}` (use AAAA-MM-DD)")
+            if updated is None:
+                violations.append(f"{path}:1: `updated` inválido "
+                                  f"`{meta.get('updated')}` (use AAAA-MM-DD)")
+            if created and updated and updated < created:
+                violations.append(f"{path}:1: `updated` anterior a `created`")
+
+            supersedes_value = meta.get("supersedes")
+            if not isinstance(supersedes_value, list):
+                violations.append(f"{path}:1: `supersedes` deve ser lista")
+            else:
+                for old_id in supersedes_value:
+                    if (not isinstance(old_id, str)
+                            or not KEBAB_CASE.fullmatch(old_id)):
+                        violations.append(
+                            f"{path}:1: ID inválido em `supersedes`: "
+                            f"`{old_id}`")
+
+            replacement_value = meta.get("superseded_by")
+            if (replacement_value is not None
+                    and (not isinstance(replacement_value, str)
+                         or not KEBAB_CASE.fullmatch(replacement_value))):
+                violations.append(
+                    f"{path}:1: `superseded_by` inválido "
+                    f"`{replacement_value}` (use um ID em kebab-case)")
+
+        for path, meta in metadata.items():
+            spec_id = meta.get("id")
+            status = meta.get("status")
+            replacement_value = meta.get("superseded_by")
+            replacement = (replacement_value
+                           if isinstance(replacement_value, str) else None)
+            supersedes = meta.get("supersedes")
+            supersedes = supersedes if isinstance(supersedes, list) else []
+
+            if status == "superseded" and not replacement:
+                violations.append(
+                    f"{path}:1: spec `superseded` sem `superseded_by`")
+            if status in {"draft", "active"} and replacement:
+                violations.append(
+                    f"{path}:1: spec `{status}` não pode ter `superseded_by`")
+            if supersedes and status not in {"draft", "active"}:
+                violations.append(
+                    f"{path}:1: spec que substitui outra deve ser draft ou active")
+
+            if replacement:
+                replacement_path = ids.get(replacement)
+                if replacement_path is None:
+                    violations.append(
+                        f"{path}:1: `superseded_by` referencia ID inexistente "
+                        f"`{replacement}`")
+                else:
+                    replacement_meta = metadata[replacement_path]
+                    if replacement_meta.get("status") not in {"draft", "active"}:
+                        violations.append(
+                            f"{path}:1: substituta `{replacement}` deve ser "
+                            "draft ou active")
+                    if spec_id not in (replacement_meta.get("supersedes") or []):
+                        violations.append(
+                            f"{path}:1: supersessão não recíproca com "
+                            f"`{replacement}`")
+
+            for old_id in supersedes:
+                if not isinstance(old_id, str):
+                    continue
+                old_path = ids.get(old_id)
+                if old_path is None:
+                    violations.append(
+                        f"{path}:1: `supersedes` referencia ID inexistente "
+                        f"`{old_id}`")
+                    continue
+                old_meta = metadata[old_path]
+                if old_meta.get("status") != "superseded":
+                    violations.append(
+                        f"{path}:1: spec substituída `{old_id}` deve ter status "
+                        "superseded")
+                if old_meta.get("superseded_by") != spec_id:
+                    violations.append(
+                        f"{path}:1: supersessão não recíproca com `{old_id}`")
+
+        direct = _linked_specs(root, specs_dir, index, documents)
+        via_overview = set()
+        for path in direct:
+            if metadata[path].get("kind") == "overview":
+                via_overview.update(
+                    _linked_specs(root, specs_dir, path, documents))
+        reachable = direct | via_overview
+        for path, meta in metadata.items():
+            if meta.get("status") in {"draft", "active"} and path not in reachable:
+                violations.append(
+                    f"{path}:1: spec `{meta.get('status')}` inalcançável por "
+                    "`specs/INDEX.md` diretamente ou via overview")
 
 
 def lines_outside_fences(path):
@@ -139,6 +363,25 @@ def check_cards(root, projects, violations):
             if size not in (None, "") and str(size) not in SIZE_VALUES:
                 violations.append(f"{card}:1: `size` inválido `{size}` "
                                   f"(use S | M | L)")
+            for gate in ("003", "005"):
+                key = f"yolo_{gate}_returns"
+                if key not in meta:
+                    continue
+                try:
+                    count = int(meta[key])
+                except (TypeError, ValueError):
+                    count = -1
+                if count < 0 or count > poplib.YOLO_RETURN_LIMIT:
+                    violations.append(
+                        f"{card}:1: `{key}` inválido `{meta[key]}` (use 0..2)")
+            if meta.get("circuit_breaker") is True and meta.get("blocked") is not True:
+                violations.append(
+                    f"{card}:1: circuit breaker exige `blocked: true`")
+            telemetry = poplib.telemetry_path(task_dir)
+            if telemetry.is_file():
+                data = poplib.read_telemetry(task_dir)
+                if not data["events"] and telemetry.stat().st_size:
+                    violations.append(f"{telemetry}: telemetria inválida")
 
 
 def check_release(root, projects, warnings):
@@ -165,6 +408,20 @@ def check_worktrees(root, projects, warnings):
             if not (harness / "kanban" / "004_processing" / wt.name).is_dir():
                 warnings.append(f"{wt}: worktree sem task correspondente em "
                                 f"004_processing")
+
+
+def check_roadmap_residuals(root, violations):
+    """Task com memory já concluída não pode permanecer no roadmap."""
+    for scope, path, number, task_id in pop_roadmap.residuals(root):
+        memory = pop_roadmap.memory_path(root, scope, task_id)
+        # O escopo raiz é o próprio repo validado (meta PoP ou included
+        # standalone). Escopos aninhados só contam com prova versionada pelo
+        # vault, evitando mutar clones externos gitignorados.
+        if scope != root and not pop_roadmap.tracked(root, memory):
+            continue
+        violations.append(
+            f"{path}:{number}: task concluída residual `{task_id}` — "
+            "remova a linha após validar a memory")
 
 
 # Marcadores inequívocos de harness do PoP fora de `pop/`: um projeto legado
@@ -331,7 +588,8 @@ def main():
     parser = argparse.ArgumentParser(
         description="Valida limites do vault: 144/600 chars, 150 linhas, "
                     "frontmatter dos cards, worktrees órfãs, wikilinks "
-                    "quebrados e anotações pop-hash de citação de código.")
+                    "quebrados, specs adotadas e anotações pop-hash de "
+                    "citação de código.")
     parser.add_argument("--vault", metavar="DIR",
                         help="raiz do vault (default: pasta acima de scripts/)")
     parser.add_argument("--standalone", action="store_true",
@@ -350,7 +608,9 @@ def main():
     check_cards(root, projects, violations)
     check_release(root, projects, warnings)
     check_worktrees(root, projects, warnings)
+    check_roadmap_residuals(root, violations)
     check_strict_anatomy(root, violations)
+    check_spec_collections(root, projects, violations)
     check_wikilinks(root, warnings)
     check_hash_pins(root, violations)
     if args.standalone:

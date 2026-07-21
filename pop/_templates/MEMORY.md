@@ -9,11 +9,12 @@ pr: <link do PR, se houver>
 
 # <id>-<slug> — <título curto>
 
-> Ledger durável, escrito no fechamento antes de apagar `kanban/006_done/<id>/`. Limite total: **2000 caracteres**. Registre fatos e ponteiros, não refaça a narrativa do plano ou da execução.
+> Ledger durável, escrito e validado antes de retirar a task do roadmap e apagar `kanban/006_done/<id>/`. Limite total: **2000 caracteres**. Registre fatos e ponteiros, não refaça a narrativa do plano ou da execução; use [[.agents/skills/optimize-memory/SKILL|optimize-memory]] se crescer sem perder cronologia ou decisões críticas.
 
 - **Entrega:** <o que passou a existir ou mudou>.
 - **Áreas alteradas:** `<subtree/arquivo>` — <uma linha>.
 - **Verificação:** <gate agregado e resultado>.
+- **Telemetria final:** <contextos por estágio; devoluções 003/005; differential|full; testes finais — sem reasoning>.
 - **Decisões duráveis:** nenhuma | <decisão e justificativa curta>.
 - **Desvios relevantes:** nenhum | <diferença autorizada em relação ao brief>.
 

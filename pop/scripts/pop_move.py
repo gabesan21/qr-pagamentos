@@ -38,19 +38,28 @@ def transition_allowed(src, dst):
     return (src, dst) in RETURNS
 
 
-def update_card(card, new_stage, reason):
+def update_card(card, new_stage, reason, fields=None):
     """Atualiza stage:/updated: no frontmatter e appenda no ## Log."""
     lines = card.read_text(encoding="utf-8").splitlines()
     date = poplib.today()
+    fields = fields or {}
+    found = set()
     if lines and lines[0].strip() == "---":
         for i in range(1, len(lines)):
             if lines[i].strip() == "---":
+                end = i
                 break
             key = lines[i].split(":", 1)[0].strip()
             if key == "stage":
                 lines[i] = f"stage: {new_stage}"
             elif key == "updated":
                 lines[i] = f"updated: {date}"
+            elif key in fields:
+                lines[i] = f"{key}: {fields[key]}"
+                found.add(key)
+        for key, value in fields.items():
+            if key not in found:
+                lines.insert(end, f"{key}: {value}")
     card.write_text(append_log(lines, f"- {date} — {reason}") + "\n",
                     encoding="utf-8")
 
@@ -80,6 +89,10 @@ def main():
                         help="estágio de destino")
     parser.add_argument("--reason", default="transição via pop_move",
                         help="motivo curto registrado no Log do card")
+    parser.add_argument("--context", action="append", default=[],
+                        help="contexto de agente colhido neste estágio; repetível")
+    parser.add_argument("--test-seconds", type=float, default=0,
+                        help="tempo de testes associado à transição")
     parser.add_argument("--by", default=poplib.default_agent(),
                         help="identificador do agente (default: usuario@host; "
                              "mesmo do pop_claim)")
@@ -107,8 +120,8 @@ def main():
         return 1
 
     card_src = task_dir / f"{args.task_id}.md"
+    meta = poplib.read_card(card_src) if card_src.is_file() else {}
     if card_src.is_file() and not args.force:
-        meta = poplib.read_card(card_src)
         by, at = poplib.parse_claim(meta)
         if by and by != args.by and not poplib.claim_expired(at):
             print(f"OCUPADA: {args.task_id} tem claim ativo de {by} desde "
@@ -123,6 +136,32 @@ def main():
                   f"o humano libera a saída de 001 (use --force para exceções).")
             return 1
 
+    return_gate = None
+    if (src, args.stage) == ("003_human_approval", "002_planning"):
+        return_gate = "003"
+    elif (src, args.stage) == ("005_verifying", "004_processing"):
+        return_gate = "005"
+    fields = {}
+    if meta.get("yolo") is True and return_gate:
+        key = f"yolo_{return_gate}_returns"
+        try:
+            attempts = int(meta.get(key) or 0)
+        except (TypeError, ValueError):
+            attempts = 0
+        if attempts >= poplib.YOLO_RETURN_LIMIT and not args.force:
+            reason = (f"circuit breaker yolo no {return_gate}: terceira "
+                      "reprovação exige diagnóstico humano")
+            update_card(card_src, src, reason, {
+                "blocked": "true", "blocked_reason": reason,
+                "circuit_breaker": "true"})
+            poplib.record_telemetry(task_dir, {
+                "event": "circuit_breaker", "stage": src,
+                "gate": return_gate, "contexts": args.context,
+                "test_seconds": args.test_seconds, "result": "blocked"})
+            print(f"BLOQUEADA: {args.task_id} — {reason}.")
+            return 1
+        fields[key] = attempts + 1
+
     dest_dir = poplib.harness_root(project) / "kanban" / args.stage
     dest_dir.mkdir(parents=True, exist_ok=True)
     dest = dest_dir / args.task_id
@@ -133,7 +172,11 @@ def main():
 
     card = dest / f"{args.task_id}.md"
     if card.is_file():
-        update_card(card, args.stage, f"{src}→{args.stage} — {args.reason}")
+        update_card(card, args.stage, f"{src}→{args.stage} — {args.reason}", fields)
+        poplib.record_telemetry(dest, {
+            "event": "transition", "from": src, "to": args.stage,
+            "contexts": args.context, "test_seconds": args.test_seconds,
+            "result": "returned" if return_gate else "advanced"})
     else:
         print(f"[AVISO] card não encontrado para atualizar: {card}")
     print(f"OK: {args.task_id} ({label}) movida {src} → {args.stage}.")

@@ -4,7 +4,7 @@
 
 - **Etapa:** 003_human_approval · **Responsável:** user | revisor independente em yolo
 
-> Uma rodada por ida a 003. O gate aprova o brief, não reasoning ou detalhes de implementação. Rodadas antigas nunca são apagadas. Em `yolo: true`, substitua a subseção humana por `### Resposta do revisor (yolo)`, preserve o checkbox e use assinatura auditável; teto em [[WORKFLOW|WORKFLOW]].
+> Uma rodada por ida a 003. Em yolo, crítico **strong** assina; devoluções 1–2 retornam automaticamente a 002 e a 3ª falha ativa `circuit_breaker`. Rodadas nunca são apagadas.
 
 ## Rodada 1 — AAAA-MM-DD
 
@@ -26,6 +26,13 @@ _(escreva aqui: aprovado, ou o que mudar)_
 ### Decisão do agente
 
 _(após o Feito: `aprovado → 004` ou `mudanças pedidas → 002: <resumo>`)_
+
+### Resposta do crítico (yolo)
+
+- **Contexto:** strong independente.
+- **Devolução:** 0 | 1 | 2 de 2.
+- **Decisão:** aprovado → 004 | devolvido → 002 | circuit breaker.
+- **Motivo/evidência:** <objetivo, sem reasoning>.
 
 ## Merge — 006 — AAAA-MM-DD
 

@@ -22,9 +22,6 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[2.1.1-secure-per-user-nautt-credentials]] | Persist one owner-bound Nautt API key encrypted at rest with server-only decryption, redacted observability, safe replacement, and authorization tests. · size: L | concluída |
-| [[2.1.2-onboard-nautt-key-and-wallet-balance]] | Deliver bilingual authenticated key onboarding that validates the caller-owned main wallet and presents balance, unavailable, and retry states without revealing the key. · size: M | concluída |
-| [[2.1.3-register-owner-webhooks]] | Register the central HTTPS callback with each validated owner key, explicitly subscribe to documented lifecycle events, and persist the one-time provider webhook secret encrypted. · size: M | concluída |
 
 ## Phase 2.2 - Provider order boundary
 
@@ -34,8 +31,6 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[2.2.1-build-nautt-pricing-and-order-adapter]] | Implement server-side exact-decimal quotes and owner-bound onramp/provider-order operations with five-minute quote expiry and no hosted-link calls. · size: L | concluída |
-| [[2.2.2-model-provider-orders-and-safe-polling]] | Persist provider identifiers and non-final reconciliation state, preventing an older provider read from overwriting a final local state. · size: L | concluída |
 
 ## Phase 2.3 - Trusted event reconciliation
 
@@ -45,5 +40,3 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[2.3.1-verify-and-handle-nautt-webhooks]] | Verify the raw request body with HMAC-SHA256 and constant-time comparison, deduplicate `X-Nautt-Delivery`, persist evidence, acknowledge within 15 seconds, and reconcile every event from the authoritative provider order read. · size: L | concluída |
-| [[2.3.2-recover-nautt-webhook-deliveries]] | Reconcile documented delivery history and permanently failed deliveries without reprocessing a known delivery UUID or regressing a local terminal order state. · size: M | concluída |

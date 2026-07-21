@@ -15,6 +15,9 @@ claimed_at:
 worktree:
 pr:
 awaiting_merge: false
+yolo_003_returns: 0
+yolo_005_returns: 0
+circuit_breaker: false
 created: AAAA-MM-DD
 updated: AAAA-MM-DD
 ---
@@ -66,3 +69,11 @@ Uma frase: por que agora e o que destrava.
 ## Log
 
 - AAAA-MM-DD — criada em 001_initial_task — <motivo/origem>.
+
+## Telemetria mínima
+
+> Uma linha por estágio concluído/retornado. Registre custo observável, nunca reasoning, prompts ou tentativas.
+
+| Estágio | Contextos | Devoluções | Testes/estratégia | Resultado |
+|---------|-----------|------------|-------------------|-----------|
+| 002 | planejador: 1 | 0 | n/a | plano criado |

@@ -21,8 +21,6 @@
 
 | Task | Description (≤1 line) | Status |
 |------|----------------------|--------|
-| [[4.1.1-owner-isolation-and-checkout-policy]] | Add required product/link ownership and the account-level customer-data policy with `NONE` as default. · size: L | 006_done |
-| [[4.1.2-payment-link-order-lifecycle]] | Persist owner-bound checkout orders, field snapshots, status transitions, expiry, and single-use settlement rules. · size: L | 006_done |
 
 ## Phase 4.2 — Public checkout
 
@@ -32,8 +30,6 @@
 
 | Task | Description (≤1 line) | Status |
 |------|----------------------|--------|
-| [[4.2.1-public-checkout-orchestration]] | Create orders from active owner-bound links and generate Nautt QR payments without exposing trusted inputs. · size: L | 006_done |
-| [[4.2.2-public-checkout-experience]] | Deliver the bilingual policy-driven checkout, QR payment state, and customer-facing status updates. · size: L | 006_done |
 
 ## Phase 4.3 — Order operations
 

@@ -28,5 +28,10 @@
     "cheap": "gpt-5.4-mini",
     "medium": "gpt-5.3-codex",
     "strong": "gpt-5.5"
+  },
+  "droid": {
+    "cheap": "claude-haiku-4-5-20251001",
+    "medium": "claude-sonnet-4-6",
+    "strong": "claude-opus-4-8"
   }
 }

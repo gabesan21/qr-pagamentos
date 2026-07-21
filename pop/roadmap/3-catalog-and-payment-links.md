@@ -23,8 +23,6 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[3.1.1-design-catalog-schema-and-admin-ui]] | Add Prisma tables and admin CRUD UI for Nautt currency pairs and payment methods, with UUID format validation, active/inactive flag, and i18n. · size: M | concluída |
-| [[3.1.2-validate-catalog-uuids-server-side]] | Harden server-side validation and authorization for catalog mutations; reject malformed UUIDs and unauthorized access without disclosing records. · size: S | concluída |
 
 ## Phase 3.2 - Product management
 
@@ -36,8 +34,6 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[3.2.1-product-schema-and-admin-crud]] | Persist products with internal name, i18n public title/description, exact-decimal price, active flag, and admin CRUD UI. · size: M | concluída |
-| [[3.2.2-product-public-read-boundary]] | Provide a redacted, product-scoped server read model for later checkout consumption. · size: S | concluída |
 
 ## Phase 3.3 - Payment links
 
@@ -49,5 +45,3 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[3.3.1-payment-link-schema-and-admin-generation]] | Persist payment links with type (single-use/reusable), product reference, currency pair, optional expiration, active flag, and admin generation UI. · size: M | concluída |
-| [[3.3.2-public-link-resolution]] | Provide a sessionless public endpoint that resolves an active payment link to its redacted product and currency pair. · size: M | concluída |

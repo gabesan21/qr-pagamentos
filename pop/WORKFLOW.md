@@ -21,12 +21,12 @@ Cada artefato declara seu responsável. Agentes nunca executam item `(user)` nem
 
 O agente principal controla claim, gates e transições. O raciocínio pesado, os prompts operacionais e a coordenação entre especialistas são **efêmeros**: o kanban guarda decisões, contratos e evidências, não transcrições do pensamento.
 
-Contrato durável: [[pop/specs/multi-agent-orchestration|multi-agent orchestration]] — *follow when changing roles, ownership, parallelism, or artifacts*.
+Contrato durável: [[specs/orquestracao-multiagente|orquestração multiagente]] — *siga ao mudar papéis, ownership, paralelismo ou artefatos*.
 
 - **002 — planejador sempre separado:** recebe card + links pertinentes e devolve o `.plan.md`. Recon delegado só existe para pergunta específica acima do piso da regra 18; zero workers é normal.
-- **004 — execução adaptativa:** um subagente orquestrador de execução lê o brief e escolhe executor único, especialistas sequenciais ou ondas paralelas. Planejador nunca executa.
+- **004 — execução adaptativa:** frente coesa (uma skill/write set, sem DAG) vai direto a um executor; só topologia complexa recebe suborquestrador para especialistas sequenciais/ondas. Planejador nunca executa.
 - **005 — um revisor independente:** contexto fresco, distinto de planejador e executores; verifica comportamento e qualidade. `critical` aumenta profundidade/modelo, não cria um segundo revisor.
-- **001 e 006:** ficam com o orquestrador principal; em yolo, a integração em `develop` também é mecânica dele.
+- **001 e 006:** ficam com o orquestrador principal; em yolo externo, integração em `develop` e abertura do PR final também são mecânicas dele. O meta PoP local (`project: pop` na raiz) opera direto em `main`.
 
 Modelos são escolhidos pelo papel e pelo risco, via `pop/scripts/models.json`:
 
@@ -39,6 +39,8 @@ Modelos são escolhidos pelo papel e pelo risco, via `pop/scripts/models.json`:
 | revisor independente | medium | medium | strong |
 
 `size` estima esforço, não autoriza cerimônia automática. Incerteza, risco, quantidade de skills e independência das frentes decidem a topologia. O Log registra apenas os contextos realmente lançados.
+
+Em yolo, os revisores de 003 e 005 usam sempre tier **strong**, independentemente de `size`/`critical`.
 
 ## Conteúdo da pasta da task
 
@@ -80,20 +82,22 @@ O planejador não implementa. Ele decide e resume; não persiste chain-of-though
 ### 003_human_approval — gate humano (user)
 
 - Crie uma rodada enxuta no `.approval.md`: resumo, riscos materiais, critérios principais, resposta e `- [ ] Feito`.
-- Só prossiga com `- [x] Feito`: mudanças pedidas → 002; aprovado/vazio → 004. Em yolo, o revisor independente faz esse sanity check em sessão própria.
+- Só prossiga com `- [x] Feito`: mudanças pedidas → 002; aprovado/vazio → 004. Em yolo, crítico strong independente julga; até duas devoluções retornam automaticamente a 002 e a 3ª falha ativa `circuit_breaker`.
 - Só entre em 004 quando toda `depends_on` tiver `memory/<id>*.md` ou card na janela transitória de 006.
 - WIP máximo de três tasks em 004; no yolo o orquestrador prioriza por dependências.
 
 ### 004_processing — execução orquestrada (agent)
 
-- Crie a worktree de integração da task, branch `task/<id>`, no repo dono do trabalho; projetos multi-repo criam uma por repo afetado.
-- O orquestrador de execução escolhe:
-  - **executor único:** uma frente coesa, uma skill predominante e um conjunto de escrita;
+- Se o card é `project: pop` no root vault, execute diretamente em `main`, sem branch/worktree/PR próprios; valide explicitamente os limites das frentes antes de integrar cada resultado.
+- Nos demais escopos, crie a worktree de integração da task, branch `task/<id>`, no repo dono do trabalho; projetos multi-repo criam uma por repo afetado.
+- O orquestrador principal classifica a topologia:
+  - **executor direto:** uma frente coesa, uma skill predominante e um conjunto de escrita;
+  - **suborquestrador:** somente quando há DAG, múltiplas skills ou write sets;
   - **especialistas sequenciais:** ownership distinto, mas dependência lógica entre frentes;
   - **ondas paralelas:** contratos estáveis, dependência satisfeita e conjuntos de escrita independentes.
 - Todo contrato efêmero de frente declara: `owns`, `may_read`, `must_not_edit`, `depends_on`, `expected_input`, skill, critério de conclusão e “dependência ausente → reporte BLOCKED; nunca a implemente”.
 - Agentes paralelos usam branches/worktrees próprias derivadas da branch da task. Eles nunca integram outros workers; o orquestrador centraliza merge/cherry-pick na worktree de integração.
-- Antes de integrar, valide o diff contra `owns`/`must_not_edit` com `python3 pop/scripts/pop_check_scope.py --allow ... --deny ...`; alteração fora do escopo é devolvida, mesmo correta.
+- Antes de integrar, valide o diff contra `owns`/`must_not_edit` com `pop/scripts/pop_check_scope.py --allow ... --deny ...`; alteração fora do escopo é devolvida, mesmo correta.
 - Dependência interna não pronta não é lançada. Se um worker encontrar entrada ausente/incompatível, ele reporta; não cria a dependência por conta própria.
 - Caminhe o DOX aplicável antes da primeira edição de cada frente. Reuse o extrato se base/hash não mudou; não faça duas caminhadas narrativas iguais.
 - Rode o gate agregado após integrar. Item `(user)`, aborto ou ausência de rota autorizada → `blocked`; descoberta que muda objetivo/contrato → 002.
@@ -102,37 +106,38 @@ O planejador não implementa. Ele decide e resume; não persiste chain-of-though
 ### 005_verifying — revisão independente (agent, + user se crítica)
 
 - Abra contexto fresco e leia nesta ordem: objetivo, specs/contratos, testes e diff. O relato de execução é apoio, não fonte de verdade.
-- Reexecute critérios `re-run`; audite `evidência`, promovendo a re-run quando inconclusiva; rode o gate agregado quando aplicável.
+- O crítico escolhe `differential` ou `full` e registra motivo/superfície/testes; `full` é obrigatório em `critical: true` ou após retorno anterior. Evidência inconclusiva é reexecutada.
 - Revise comportamento, bordas, testes, complexidade, acoplamento, nomes, erros, segurança, documentação, specs e DOX tocados. Em código, siga `clean-code-review`.
 - Cada achado traz trecho/evidência, impacto e severidade: **bloqueante**, **sugestão** ou **nit**. Só bloqueante devolve a 004/002.
-- Há exatamente um revisor por rodada. `critical: true` usa revisão strong/profunda e ainda aguarda aprovação humana; em yolo, o mesmo papel assume o gate, sem segundo crítico.
+- Há exatamente um revisor por rodada. Fora de yolo, `critical` usa revisão strong e aguarda humano; em yolo, crítico strong assume o gate. Até duas reprovações voltam automaticamente a 004; a 3ª ativa `circuit_breaker`.
 - Grave resultado/evidência por ID de critério; não copie o plano inteiro. Tudo passou → 006.
 
 ### 006_done — integração, merge e encerramento (agent + user)
 
-1. Fora de yolo, abra PR `task/<id>` → branch de PR, registre `pr:`/`awaiting_merge:` e aguarde o humano. Sem repo, a rodada é aprovação final.
-2. Em yolo, o orquestrador sincroniza e integra mecanicamente `task/<id>` em `develop`; conflito → `blocked`, nunca resolução autônoma. O revisor não opera Git.
-3. Após merge/integração, escreva `memory/<id>.md` como ledger curto: resultado, commit, datas, specs, decisões/desvios e ponteiros.
-4. Sincronize apenas specs/DOX realmente afetados com o estado entregue; atualize status da task/phase/epoch e índices se necessário.
-5. Extraia learning somente quando houver conhecimento reutilizável; remova todas as worktrees/branches efêmeras da task.
-6. Apague `kanban/006_done/<id>/` somente após os passos anteriores; a memory é a prova durável.
+1. Resolva a rota Git: meta PoP local já está em `main`; fora de yolo, abra PR da task e aguarde o humano; em yolo externo, integre mecanicamente em `develop`. Cada passo do 006 é idempotente: valide o estado, pule efeito já concluído e aborte preservando card/roadmap diante de falha técnica.
+2. Após merge/integração, escreva `memory/<id>.md` como ledger curto e canônico: ID, projeto, datas, commit, PR, resultado, specs, decisões/desvios e ponteiros. Memory inválida aborta o fechamento.
+3. Sincronize apenas specs/DOX realmente afetados com o estado entregue; atualize status da task/phase/epoch e índices se necessário.
+4. Remova a linha da task no arquivo da epoch com `python3 pop/scripts/pop_roadmap.py close <id>`; a operação exige card em 006 e memory válida. Preserve epoch, phase e tasks abertas — inclusive na Epoch 0.
+5. Extraia learning somente quando houver conhecimento reutilizável; nos escopos externos, remova todas as worktrees/branches efêmeras da task.
+6. Se esta foi a última task de escopo yolo externo, abra automaticamente PR `develop` → `main`. Falha, conflito ou branch ausente → `blocked`; o merge é sempre humano. Sem Git, crie a rodada de aprovação final.
+7. Apague `kanban/006_done/<id>/` somente após os passos anteriores; memory + Git preservam a prova durável.
 
 ## Regras transversais
 
 - **Comando explícito do humano vence o fluxo:** execute ou faça uma única pergunta se houver ambiguidade/destrutividade; registre o desvio.
-- **Uma execução vai até o próximo gate humano:** 001, 003, 005 critical, item `(user)`, `blocked` ou merge em 006. Subagente de estágio é colhido antes de encerrar.
+- **Uma execução vai até a parada legítima:** fora de yolo valem os gates humanos; em yolo só bloqueio técnico, item `(user)` ou `circuit_breaker` interrompem antes do merge final. Subagente de estágio é colhido.
 - **Nenhum trabalho fora de task:** conteúdo do projeto só muda em 004, após 003, na worktree apropriada.
 - **Paralelismo exige duas independências:** lógica (não depende do resultado alheio) e escrita (não disputa arquivos/contratos). Especialização pode ser sequencial.
 - **Claim é por task:** `pop_claim.py` protege a pasta contra outro orquestrador; ownership de frentes protege workers dentro dela.
-- **Log de transições:** uma linha por movimento, com contextos realmente lançados; frontmatter sempre fiel.
+- **Telemetria mínima:** por estágio registre contextos lançados, nº de devoluções, testes/estratégia e resultado; nunca reasoning, prompts ou transcrição.
 - Arquivos móveis usam wikilink só pelo nome. Retornos normais: 003→002, 004→002, 005→004.
 
 ## Yolo mode
 
 `yolo: true` delega julgamentos ao papel de revisor independente e mantém a mesma máquina de estados.
 
-- A marca vem do roadmap e pode ser herdada; só o humano a define. O escopo auto-materializa tasks existentes, respeitando `depends_on` e WIP 3.
-- Em 003, o revisor faz sanity check do brief: objetivo, contratos, dependências, riscos e critérios. Teto de duas devoluções; terceira → `blocked`.
-- Em 005 nasce **nova sessão limpa do mesmo papel**. Ela revisa implementação e qualidade; `critical` torna a revisão strong e destaca a task no fechamento, sem criar outro agente.
-- Continuam humanos: item `(user)`, lacuna de pesquisa/`blocked` e revisão final do escopo.
-- O orquestrador, não o revisor, integra cada task em `develop`, sem PR por task. No fim do escopo cria open_question com resumo, como testar e criticals; PR `develop` → branch de PR só sob comando humano.
+- A marca vem do roadmap e pode ser herdada; só o humano a define. O escopo auto-materializa waves de até três tasks independentes: dependências satisfeitas e escrita/repos isolados; colisão serializa.
+- Em 003, crítico **strong** revisa o brief. Duas devoluções são permitidas; a 3ª falha ativa o circuit breaker.
+- Em 005 nasce sessão limpa **strong**. O crítico decide `differential|full`; `full` é obrigatório em critical/retorno. Duas devoluções são permitidas; a 3ª falha ativa o circuit breaker.
+- Só bloqueio técnico, item `(user)` ou circuit breaker interrompem; devolução normal reentra automaticamente no fluxo. O humano permanece no merge/revisão final.
+- Fora do meta PoP local, o orquestrador, não o revisor, integra cada task em `develop`, sem PR por task. No fim do escopo abre automaticamente o PR `develop` → `main`, registra resumo/testes/criticals e aguarda o merge humano. No meta PoP local tudo permanece em `main`, sem branch/worktree/PR da task ou do escopo.
