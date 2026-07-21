@@ -1,5 +1,10 @@
 import { getPublicPaymentLinkService } from "@/auth/public-payment-link";
 import { negotiateLocale } from "@/i18n/locales";
+import {
+  allowPublicPaymentLinkRequest,
+  publicPaymentLinkRateLimitSurface,
+  publicRateLimitResponse,
+} from "@/security/public-rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -9,6 +14,10 @@ export async function GET(
   request: Request,
   { params }: Readonly<{ params: Promise<{ identifier: string }> }>,
 ) {
+  if (!allowPublicPaymentLinkRequest(request, publicPaymentLinkRateLimitSurface.read)) {
+    return publicRateLimitResponse();
+  }
+
   const paymentLink = await getPublicPaymentLinkService().read(
     (await params).identifier,
     negotiateLocale(request.headers.get("accept-language")),

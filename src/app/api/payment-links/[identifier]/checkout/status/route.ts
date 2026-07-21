@@ -1,10 +1,19 @@
 import { getPublicPaymentStatusService } from "@/checkout/payment-status";
+import {
+  allowPublicPaymentLinkRequest,
+  publicPaymentLinkRateLimitSurface,
+  publicRateLimitResponse,
+} from "@/security/public-rate-limit";
 
 export const dynamic = "force-dynamic";
 
 const noStoreHeaders = { "Cache-Control": "no-store" };
 
 export async function POST(request: Request) {
+  if (!allowPublicPaymentLinkRequest(request, publicPaymentLinkRateLimitSurface.status)) {
+    return publicRateLimitResponse();
+  }
+
   let body: unknown;
   try { body = await request.json(); } catch { return new Response(null, { status: 400, headers: noStoreHeaders }); }
   const statusCapability = body && typeof body === "object" && !Array.isArray(body)
