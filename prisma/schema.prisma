@@ -25,12 +25,15 @@ model User {
   role            String              @db.VarChar(5)
   status          String              @default("ACTIVE") @db.VarChar(8)
   preferredLocale String?             @map("preferred_locale") @db.VarChar(5)
+  checkoutDataPolicy String            @default("NONE") @map("checkout_data_policy") @db.VarChar(22)
   createdAt       DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt       DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
   credential       PasswordCredential?
   nauttCredential  NauttCredential?
   providerQuotes   ProviderQuote[]
   providerOrders   ProviderOrder[]
+  products         Product[]
+  paymentLinks     PaymentLink[]
   webhookDeliveries WebhookDelivery[]
   sessions          Session[]
 
@@ -128,6 +131,7 @@ model CatalogPaymentMethod {
 
 model Product {
   id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId         String   @map("owner_id") @db.Uuid
   internalName    String   @map("internal_name") @db.VarChar(128)
   titlePtBr       String   @map("title_pt_br") @db.VarChar(160)
   titleEn         String   @map("title_en") @db.VarChar(160)
@@ -138,8 +142,11 @@ model Product {
   version         Int      @default(0) @db.Integer
   createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  owner           User     @relation(fields: [ownerId], references: [id], onDelete: Restrict)
   paymentLinks    PaymentLink[]
 
+  @@unique([id, ownerId], map: "product_id_owner_id_key")
+  @@index([ownerId, internalName, id], map: "product_owner_internal_name_id_idx")
   @@map("product")
   @@schema("app")
 }
@@ -147,16 +154,19 @@ model Product {
 model PaymentLink {
   id             String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   identifier     String              @unique(map: "payment_link_identifier_key") @db.VarChar(24)
+  ownerId        String              @map("owner_id") @db.Uuid
   productId      String              @map("product_id") @db.Uuid
   currencyPairId String              @map("currency_pair_id") @db.Uuid
   linkType       String              @map("link_type") @db.VarChar(10)
   expiresAt      DateTime?           @map("expires_at") @db.Timestamptz(3)
   active         Boolean             @default(true)
   createdAt      DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
-  product        Product             @relation(fields: [productId], references: [id], onDelete: Restrict)
+  owner          User                @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  product        Product             @relation(fields: [productId, ownerId], references: [id, ownerId], onDelete: Restrict)
   currencyPair   CatalogCurrencyPair @relation(fields: [currencyPairId], references: [id], onDelete: Restrict)
 
   @@index([createdAt, id], map: "payment_link_created_at_id_idx")
+  @@index([ownerId, createdAt, id], map: "payment_link_owner_created_at_id_idx")
   @@index([productId], map: "payment_link_product_id_idx")
   @@index([currencyPairId], map: "payment_link_currency_pair_id_idx")
   @@map("payment_link")
