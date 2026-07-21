@@ -26,7 +26,7 @@ export function PaymentLinkManagement({ data, dictionary, locale }: Readonly<{ d
       <CardContent>
         {hasPrerequisites ? <PaymentLinkForm data={data} dictionary={dictionary} locale={locale} /> : <Alert><AlertTitle>{dictionary.adminPaymentLinksUnavailable}</AlertTitle><AlertDescription>{dictionary.adminPaymentLinksUnavailableDescription}</AlertDescription></Alert>}
         <Separator />
-        {data.links.length === 0 ? <Alert><AlertTitle>{dictionary.adminPaymentLinksEmpty}</AlertTitle><AlertDescription>{dictionary.adminPaymentLinksEmptyDescription}</AlertDescription></Alert> : <div className="admin-payment-link-list" role="list">{data.links.map((link) => <PaymentLink data={link} dictionary={dictionary} key={link.id} locale={locale} />)}</div>}
+        {data.links.length === 0 ? <Alert><AlertTitle>{dictionary.adminPaymentLinksEmpty}</AlertTitle><AlertDescription>{dictionary.adminPaymentLinksEmptyDescription}</AlertDescription></Alert> : <div className="admin-product-list" role="list">{data.links.map((link) => <PaymentLink data={link} dictionary={dictionary} key={link.id} locale={locale} />)}</div>}
       </CardContent>
     </Card>
   );
@@ -50,8 +50,8 @@ function PaymentLinkForm({ data, dictionary, locale }: Readonly<{ data: PaymentL
 function PaymentLink({ data, dictionary, locale }: Readonly<{ data: PaymentLinkAdminData["links"][number]; dictionary: Dictionary; locale: SupportedLocale }>) {
   const formId = `payment-link-${data.id}-revoke`;
   return (
-    <section aria-labelledby={`payment-link-${data.id}`} className="admin-payment-link" role="listitem">
-      <div className="admin-payment-link__facts">
+    <section aria-labelledby={`payment-link-${data.id}`} className="admin-product" role="listitem">
+      <div className="admin-product__facts">
         <h3 id={`payment-link-${data.id}`}>{data.identifier}</h3>
         <Badge variant={data.active ? "secondary" : "destructive"}>{data.active ? dictionary.adminActive : dictionary.adminDisabled}</Badge>
         <dl>

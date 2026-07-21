@@ -102,9 +102,10 @@ function isIdentifierCollision(error: unknown): boolean {
 
 function isInactiveDependency(error: unknown): boolean {
   if (!error || typeof error !== "object") return false;
-  const candidate = error as { code?: unknown; constraint?: unknown; meta?: { constraint?: unknown } };
-  const constraint = candidate.constraint ?? candidate.meta?.constraint;
-  return candidate.code === "P2003" || constraint === "payment_link_product_active" || constraint === "payment_link_currency_pair_active";
+  const candidate = error as { code?: unknown; meta?: { database_error?: unknown } };
+  if (candidate.code !== "P2004" || typeof candidate.meta?.database_error !== "string") return false;
+  return candidate.meta.database_error.includes("payment_link_product_active")
+    || candidate.meta.database_error.includes("payment_link_currency_pair_active");
 }
 
 export function createPaymentLinkService(store: PaymentLinkStore, dependencies: Dependencies = activeDependencies) {

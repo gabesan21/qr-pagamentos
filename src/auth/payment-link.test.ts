@@ -88,7 +88,7 @@ describe("payment-link service", () => {
     expect(store.created).toHaveLength(0);
   });
 
-  it("retries bounded identifier collisions and maps trigger dependency failures without persisting", async () => {
+  it("retries bounded identifier collisions without persisting the failed attempt", async () => {
     const store = testStore();
     let calls = 0;
     store.create = async (values) => {
@@ -100,8 +100,25 @@ describe("payment-link service", () => {
     await expect(service.create(admin, input())).resolves.toMatchObject({ active: true });
     expect(calls).toBe(2);
 
-    store.create = async () => { throw { code: "23514", constraint: "payment_link_product_active" }; };
-    await expect(service.create(admin, input())).rejects.toBeInstanceOf(PaymentLinkDependencyError);
+  });
+
+  it.each(["payment_link_product_active", "payment_link_currency_pair_active"])("maps Prisma P2004 %s trigger failures to an opaque dependency outcome", async (constraint) => {
+    const store = testStore();
+    store.create = async () => {
+      throw { code: "P2004", meta: { database_error: `ERROR: constraint ${constraint}` } };
+    };
+
+    await expect(createPaymentLinkService(store).create(admin, input())).rejects.toBeInstanceOf(PaymentLinkDependencyError);
+    expect(store.created).toHaveLength(0);
+  });
+
+  it("does not treat an unrelated Prisma P2004 failure as an inactive dependency", async () => {
+    const store = testStore();
+    store.create = async () => {
+      throw { code: "P2004", meta: { database_error: "ERROR: unrelated check constraint" } };
+    };
+
+    await expect(createPaymentLinkService(store).create(admin, input())).rejects.toBeInstanceOf(PaymentLinkConflictError);
   });
 
   it("fails opaquely after bounded collisions and makes revocation one-way", async () => {
