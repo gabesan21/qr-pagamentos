@@ -4,6 +4,7 @@
 - **Epoch/Phase:** [[ROADMAP|Epochs 1-5]]
 - **Status:** rascunho
 - **Created:** 2026-07-13
+- **Updated:** 2026-07-21
 
 ## What it covers
 
@@ -16,7 +17,8 @@ This spec defines the user-visible MVP boundaries for QR Pagamentos. Detailed pr
 - A user can store a Nautt API key, automatically register the system's central webhook, and view the Nautt main-wallet balance on the same settings screen.
 - A user can create, update, and remove products in currencies enabled by the administrator's active Nautt currency records.
 - A user can create, activate, and deactivate owned payment links.
-- Every product and payment link has exactly one user owner; no user can read or mutate another user's products, links, checkout policy, or orders.
+- Every product and payment link has exactly one user owner. A payment link may reference only a product with that same owner; no user can read or mutate another user's products, links, checkout policy, or orders.
+- Administrators manage users and the global Nautt catalog, but that authority does not create an implicit cross-owner product or payment-link management path.
 - A payment link contains products in exactly one currency; products with different currencies cannot coexist in one link.
 - A single-use link remains available through unsuccessful or pending attempts, accepts at most one confirmed successful payment, and cannot start checkout after its expiry.
 - A reusable link accepts payments from multiple customers until its owner disables it.

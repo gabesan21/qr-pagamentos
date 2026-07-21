@@ -12,7 +12,7 @@ This spec defines the durable owner, customer-data, and payment-state contract f
 
 ## Requirements
 
-- Every product, payment link, and link-generated order has one persisted owner account. A non-administrator may access only records belonging to the authenticated account; public access is limited to an active link's checkout and its opaque payment-status capability.
+- Every product, payment link, and link-generated order has one persisted owner account. A payment link may reference only a product with the same persisted owner; persistence and server operations reject an owner mismatch. An authenticated account may access only its own products, links, checkout policy, and orders. Administrator authority over users, global settings/catalog, and protected order inspection does not create an implicit cross-owner product or payment-link management path; public access is limited to an active link's checkout and its opaque payment-status capability.
 - The account-level checkout data policy defaults to `NONE`. The only supported policies are `NONE`, `NAME_EMAIL`, `EMAIL`, `NAME_EMAIL_CPF`, and `NAME_EMAIL_CPF_ADDRESS`.
 - Public checkout renders and validates exactly the fields required by the link owner's policy. Trusted server state, rather than browser input, determines the owner, products, currency, amount, policy, and provider credential.
 - A link-generated order persists the payment-link identity, owner identity, amount and currency values used for the provider attempt, the policy applied, and the customer data accepted for that attempt.

@@ -4,17 +4,18 @@
 - **Epoch/Phase:** [[roadmap/3-catalog-and-payment-links|Epoch 3]]
 - **Status:** aprovada
 - **Created:** 2026-07-20
-- **Updated:** 2026-07-20 — task 3.3.2 integrated in yolo; sessionless public payment-link resolution delivered.
+- **Updated:** 2026-07-21 — task 4.1.1 planning revision records the pending owner-management contract while preserving Epoch 3 delivery facts.
 
 ## What it covers
 
-This spec defines the administrator-facing catalog of Nautt provider UUIDs, the products sold through the application, and the payment links that expose those products to buyers.
+This spec defines the administrator-managed catalog of Nautt provider UUIDs, account-owned products, and payment links that expose those products to buyers.
 
 ## Requirements
 
 - Only authenticated administrators may create, update, deactivate, or delete catalog records.
+- Authenticated account owners create, update, deactivate, or delete only their own products and create, activate, deactivate, or revoke only their own payment links. Administrators retain the separate global catalog role but have no implicit cross-owner product or payment-link management path.
 - Catalog records live in PostgreSQL and are versioned through normal Prisma migrations.
-- Every admin-mutating route re-authorizes the cookie principal and returns only empty `401`/`403` protected outcomes, never disclosing a target record to unauthorized callers.
+- Every protected catalog or owner-mutating route re-authorizes the cookie principal and returns only its documented empty `401`/`403` protected outcomes or opaque owner outcome, never disclosing a target record to an unauthorized caller.
 - The application remains bilingual (`pt-BR`/`en`); all user-visible labels, validation messages, and empty states are dictionary-backed.
 
 ### Nautt currency and payment-method catalog
@@ -27,9 +28,9 @@ This spec defines the administrator-facing catalog of Nautt provider UUIDs, the 
 
 ### Products
 
-- Administrators manage products with: internal name, public title (i18n), description (i18n), exact-decimal price, active/inactive status.
+- Authenticated account owners manage only their own products with: internal name, public title (i18n), description (i18n), exact-decimal price, active/inactive status.
 - A product price is persisted and exchanged inside the server as one canonical positive ASCII decimal string. Its grammar is `^(?:0|[1-9][0-9]{0,11})(?:\.[0-9]{0,5}[1-9])?$`, with the all-zero value excluded: no sign, exponent, comma, grouping separator, surrounding whitespace, leading integer zero, or trailing fractional zero is accepted. This gives at most 12 integer digits, 6 fractional digits, and 18 total digits; values outside those precision/scale limits are rejected rather than rounded. The application never converts the value through JavaScript `Number`.
-- The admin form accepts that canonical dot-decimal contract; it does not silently trim or rewrite malformed prices. Presentation alone formats the exact value according to the persisted `pt-BR` or `en` locale and never changes the stored canonical value.
+- The protected product form accepts that canonical dot-decimal contract; it does not silently trim or rewrite malformed prices. Presentation alone formats the exact value according to the persisted `pt-BR` or `en` locale and never changes the stored canonical value.
 - Internal names are required and limited to 128 Unicode code points; each public title is required and limited to 160 Unicode code points; each public description is required and limited to 2,000 Unicode code points.
 - Text fields are validated after removing leading and trailing Unicode whitespace. The trimmed value is persisted; whitespace-only values are rejected. Internal whitespace is preserved, but internal names and public titles reject CR/LF and therefore remain single-line; descriptions preserve internal spaces and line breaks. Limits apply to the trimmed persisted value.
 - A product can be deactivated; inactive products cannot be linked to new payment links.
@@ -38,14 +39,14 @@ This spec defines the administrator-facing catalog of Nautt provider UUIDs, the 
 
 ## Implemented slices
 
-- **Task 3.2.1:** PostgreSQL/Prisma versioned products, canonical positive 18/6 decimal-string pricing, trimmed Unicode-code-point text constraints, re-authorized opaque administrator CRUD with compare-and-swap conflicts, and a localized multiline admin UI that preserves description line breaks.
+- **Task 3.2.1:** PostgreSQL/Prisma versioned products, canonical positive 18/6 decimal-string pricing, trimmed Unicode-code-point text constraints, re-authorized opaque administrator CRUD with compare-and-swap conflicts, and a localized multiline admin UI that preserves description line breaks. Task 4.1.1 supersedes only that initial administrator-only product-management boundary.
 - **Task 3.2.2:** Active-only, localized server read with exactly the redacted `{ title, description, price }` product projection and uniform `null` for malformed, missing, or inactive input. Payment-link binding and checkout remain future work.
-- **Task 3.3.1:** PaymentLink persistence with a unique 24-character server-generated URL-safe identifier, type, restrictive product/pair references, nullable expiry, active/created metadata, and commit-boundary active dependency enforcement serialized with deactivation. Active administrators can list, create, and one-way manually revoke links through opaque protected mutations and localized `/admin` management. Public `href`, checkout/orders/provider requests, automatic expiry inactivation, and automatic `SINGLE_USE` consumption remain future work.
+- **Task 3.3.1:** PaymentLink persistence with a unique 24-character server-generated URL-safe identifier, type, restrictive product/pair references, nullable expiry, active/created metadata, and commit-boundary active dependency enforcement serialized with deactivation. Active administrators can list, create, and one-way manually revoke links through opaque protected mutations and localized `/admin` management. Task 4.1.1 supersedes only that initial administrator-only payment-link-management boundary. Public `href`, checkout/orders/provider requests, automatic expiry inactivation, and automatic `SINGLE_USE` consumption remain future work.
 - **Task 3.3.2:** Sessionless exact-token public resolution with a localized, redacted DTO, strict read-time expiry, and uniform empty `404` plus `no-store` for unavailable input. It performs no write, provider request, checkout, order, or automatic consumption.
 
 ### Payment links
 
-- Administrators generate payment links bound to exactly one active product and one active currency pair. Creation atomically checks both dependencies at its commit boundary and mutually serializes with their activation-state changes: a deactivation committed first rejects generation, while a deactivation that follows a successful creation leaves the existing link intact.
+- An authenticated account owner generates a payment link bound to exactly one active product with that same owner and one active currency pair. Creation atomically persists the matching owner and checks both dependencies at its commit boundary; it mutually serializes with their activation-state changes: a deactivation committed first rejects generation, while a deactivation that follows a successful creation leaves the existing link intact.
 - Links may be **reusable** (many checkouts, e.g. a donation link) or **single-use**; automatic single-use consumption after order creation belongs to later checkout work, while manual revocation is already available.
 - Each link carries: slug/identifier, optional expiration timestamp, active/inactive flag, created-at metadata.
 - The link identifier is unique, URL-safe, and non-sequential; it is derived server-side and never editable.
