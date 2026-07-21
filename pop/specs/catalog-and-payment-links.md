@@ -4,7 +4,7 @@
 - **Epoch/Phase:** [[roadmap/3-catalog-and-payment-links|Epoch 3]]
 - **Status:** aprovada
 - **Created:** 2026-07-20
-- **Updated:** 2026-07-20 — task 3.3.1 integrated in yolo; admin payment-link persistence, generation, and manual revocation delivered.
+- **Updated:** 2026-07-20 — task 3.3.2 integrated in yolo; sessionless public payment-link resolution delivered.
 
 ## What it covers
 
@@ -40,7 +40,8 @@ This spec defines the administrator-facing catalog of Nautt provider UUIDs, the 
 
 - **Task 3.2.1:** PostgreSQL/Prisma versioned products, canonical positive 18/6 decimal-string pricing, trimmed Unicode-code-point text constraints, re-authorized opaque administrator CRUD with compare-and-swap conflicts, and a localized multiline admin UI that preserves description line breaks.
 - **Task 3.2.2:** Active-only, localized server read with exactly the redacted `{ title, description, price }` product projection and uniform `null` for malformed, missing, or inactive input. Payment-link binding and checkout remain future work.
-- **Task 3.3.1:** PaymentLink persistence with a unique 24-character server-generated URL-safe identifier, type, restrictive product/pair references, nullable expiry, active/created metadata, and commit-boundary active dependency enforcement serialized with deactivation. Active administrators can list, create, and one-way manually revoke links through opaque protected mutations and localized `/admin` management. Public resolution/`href`, checkout/orders/provider requests, automatic expiry inactivation, and automatic `SINGLE_USE` consumption remain future work.
+- **Task 3.3.1:** PaymentLink persistence with a unique 24-character server-generated URL-safe identifier, type, restrictive product/pair references, nullable expiry, active/created metadata, and commit-boundary active dependency enforcement serialized with deactivation. Active administrators can list, create, and one-way manually revoke links through opaque protected mutations and localized `/admin` management. Public `href`, checkout/orders/provider requests, automatic expiry inactivation, and automatic `SINGLE_USE` consumption remain future work.
+- **Task 3.3.2:** Sessionless exact-token public resolution with a localized, redacted DTO, strict read-time expiry, and uniform empty `404` plus `no-store` for unavailable input. It performs no write, provider request, checkout, order, or automatic consumption.
 
 ### Payment links
 
@@ -48,8 +49,7 @@ This spec defines the administrator-facing catalog of Nautt provider UUIDs, the 
 - Links may be **reusable** (many checkouts, e.g. a donation link) or **single-use**; automatic single-use consumption after order creation belongs to later checkout work, while manual revocation is already available.
 - Each link carries: slug/identifier, optional expiration timestamp, active/inactive flag, created-at metadata.
 - The link identifier is unique, URL-safe, and non-sequential; it is derived server-side and never editable.
-- **Future Task 3.3.2:** a sessionless public GET endpoint resolves a link identifier to its redacted product and currency pair, returning `404` for inactive, expired, or non-existent links.
-- Link resolution exposes no internal IDs, no admin-only fields, and no Nautt UUIDs beyond the currency pair needed for checkout quoting.
+- **Task 3.3.2 public-resolution contract — approved at yolo 003:** `GET /api/payment-links/[identifier]` is unlocalized and sessionless. It accepts only the exact persisted 24-character URL-safe identifier, without trimming, case-folding, or other transformation, chooses only `pt-BR` or `en` through the request `Accept-Language` negotiation, and returns `Cache-Control: no-store` on every outcome. An active, unexpired link whose product remains publicly active returns exactly `{ product: { title, description, price }, currencyPair: { currencyUuid, exchangeCurrencyUuid } }`; `price` stays the exact canonical decimal string. The two currency UUIDs are the sole provider identifiers permitted because later checkout quoting needs the configured pair. No cookies, session/principal lookup, dictionary, UI, route-localized preference, IDs, link metadata, admin fields, pair label/status, timestamps, type, or other provider data may be read or returned. Malformed, absent, inactive, expired, and product-unavailable links all return the same empty `404` with `no-store`; expiry is evaluated at read time only. This endpoint makes no mutation, including automatic expiry inactivation or `SINGLE_USE` consumption, and makes no checkout, order, or provider request.
 
 ## Out of scope
 
