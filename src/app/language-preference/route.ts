@@ -2,9 +2,12 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getAuthorizationService } from "@/auth/authorization";
 import { getLocalePreferenceService } from "@/i18n/locale-preference";
+import { rejectCrossOrigin } from "@/app/origin-guard";
 import { relativeRedirect } from "@/app/relative-redirect";
 
 export async function POST(request: Request) {
+  const crossOrigin = rejectCrossOrigin(request);
+  if (crossOrigin) return crossOrigin;
   const principal = await getAuthorizationService().resolve((await cookies()).get("qr_session")?.value);
   if (!principal) return new NextResponse(null, { status: 401 });
   const locale = (await request.formData()).get("locale");

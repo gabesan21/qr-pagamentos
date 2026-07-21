@@ -34,7 +34,7 @@ describe("POST /login/submit", () => {
 
     const response = await POST(new Request("https://example.test/login/submit", {
       method: "POST",
-      headers: { "accept-language": "en-US,en;q=0.9" },
+      headers: { "accept-language": "en-US,en;q=0.9", origin: "https://example.test", host: "example.test" },
       body: new URLSearchParams({ username: "admin", password: "correct-password" }),
     }));
 
@@ -50,6 +50,7 @@ describe("POST /login/submit", () => {
 
     const response = await POST(new Request("http://0.0.0.0:3000/login/submit", {
       method: "POST",
+      headers: { origin: "http://0.0.0.0:3000", host: "0.0.0.0:3000" },
       body: new URLSearchParams({ username: "admin", password: "wrong-password" }),
     }));
 
@@ -65,6 +66,7 @@ describe("POST /login/submit", () => {
 
     await expect(POST(new Request("https://example.test/login/submit", {
       method: "POST",
+      headers: { origin: "https://example.test", host: "example.test" },
       body: new URLSearchParams({ username: "admin", password: "correct-password" }),
     }))).rejects.toThrow("database unavailable");
 

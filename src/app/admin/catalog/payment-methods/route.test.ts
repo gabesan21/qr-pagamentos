@@ -15,7 +15,7 @@ vi.mock(import("@/auth/nautt-catalog"), async (importOriginal) => {
 import { POST } from "./route";
 
 const actor = { id: "admin", username: "admin", email: null, role: "ADMIN" as const, status: "ACTIVE" as const, createdAt: new Date() };
-const request = (body = new URLSearchParams()) => new Request("http://0.0.0.0:3000/admin/catalog/payment-methods", { method: "POST", body });
+const request = (body = new URLSearchParams()) => new Request("http://0.0.0.0:3000/admin/catalog/payment-methods", { method: "POST", headers: { origin: "http://0.0.0.0:3000", host: "0.0.0.0:3000" }, body });
 
 describe("catalog payment methods create route", () => {
   it("returns empty protected outcomes", async () => {
