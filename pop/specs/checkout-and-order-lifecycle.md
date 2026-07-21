@@ -2,9 +2,9 @@
 
 - **Project:** [[PROJECT|QR Pagamentos]]
 - **Epoch/Phase:** [[roadmap/4-checkout-and-orders|Phase 4.1-4.3]]
-- **Status:** draft — task 4.1.2 contract revision awaiting renewed yolo 003 approval
+- **Status:** approved — task 4.1.2 contract revision approved by yolo 003, round 2
 - **Created:** 2026-07-21
-- **Updated:** 2026-07-21 — task 4.1.2 proposes the address-snapshot and settlement-reconciliation contracts; they are not approved or implemented yet.
+- **Updated:** 2026-07-21 — yolo 003, round 2 approved the `CustomerSnapshotV1` Brazil address and `SettlementMapV1` contracts; 005 verification returned only for this stale status correction.
 
 ## What it covers
 
