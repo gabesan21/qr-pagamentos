@@ -34,7 +34,7 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| `5.2.1-public-storefront-page` | Add the public `/store/[slug]` page listing active products with active payment links under the owner's branding, redacted and bilingual. · size: L | not started |
+| [[5.2.1-public-storefront-page]] | Add the public `/store/[slug]` page listing active products with active payment links under the owner's branding, redacted and bilingual. · size: L | 001_initial_task |
 
 ## Phase 5.3 — Hardening
 
@@ -44,7 +44,7 @@
 | Task | Description | Status |
 |------|-------------|--------|
 | [[5.3.1-security-headers-and-origin-checks]] | Add response security headers and origin verification on session and owner mutation routes. · size: M | 001_initial_task |
-| `5.3.2-public-endpoint-rate-limiting` | Add bounded in-memory rate limiting to public checkout/storefront endpoints with opaque 429 outcomes. · size: M | not started |
+| [[5.3.2-public-endpoint-rate-limiting]] | Add bounded in-memory rate limiting to public checkout/storefront endpoints with opaque 429 outcomes. · size: M | 001_initial_task |
 
 ## Phase 5.4 — Observability
 
@@ -53,7 +53,7 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| `5.4.1-structured-server-logging` | Add a first-party JSON logger with request-id propagation on API/mutation routes, never logging secrets or customer snapshots. · size: M | not started |
+| [[5.4.1-structured-server-logging]] | Add a first-party JSON logger with request-id propagation on API/mutation routes, never logging secrets or customer snapshots. · size: M | 001_initial_task |
 
 ## Phase 5.5 — Production release
 
@@ -62,4 +62,4 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| `5.5.1-production-runbook-and-release-evidence` | Write the production runbook (TLS reverse proxy, backups, upgrade) and run install/container/full-gate evidence for the release. · size: M | not started |
+| [[5.5.1-production-runbook-and-release-evidence]] | Write the production runbook (TLS reverse proxy, backups, upgrade) and run install/container/full-gate evidence for the release. · size: M | 001_initial_task |
