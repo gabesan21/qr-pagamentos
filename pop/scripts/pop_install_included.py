@@ -19,11 +19,9 @@ from pathlib import Path
 
 SOURCE = Path(__file__).resolve().parent.parent
 MANIFEST = SOURCE / "_templates" / "included-manifest.json"
-SKILLS_SOURCE = SOURCE / ".agents" / "skills"
-if not SKILLS_SOURCE.is_dir():
-    # Inside an installed v2 repository, the harness is under pop/ while
-    # standalone workflow skills remain at the repository root.
-    SKILLS_SOURCE = SOURCE.parent / ".agents" / "skills"
+SKILLS_SOURCE = (SOURCE.parent / ".agents" / "skills"
+                 if (SOURCE / ".included-harness.json").is_file()
+                 else SOURCE / ".agents" / "skills")
 EXTERNAL_LINK = re.compile(r"\[\[categories/[^/]+/[^/]+/([^\]|#]+)([^\]]*)\]\]")
 
 
@@ -31,28 +29,36 @@ def manifest():
     return json.loads(MANIFEST.read_text(encoding="utf-8"))
 
 
-def localize(text: str) -> str:
+def localize(text: str, *, included_paths: bool = False) -> str:
     """Remove o prefixo de vault pai de wikilinks de um projeto included."""
-    return EXTERNAL_LINK.sub(lambda m: "[[" + m.group(1) + m.group(2) + "]]", text)
+    rendered = EXTERNAL_LINK.sub(
+        lambda m: "[[" + m.group(1) + m.group(2) + "]]", text)
+    if included_paths:
+        rendered = re.sub(r"(?<!pop/)scripts/", "pop/scripts/", rendered)
+    return rendered
 
 
-def copy_file(source: Path, dest: Path, *, overwrite: bool = True) -> None:
+def copy_file(source: Path, dest: Path, *, overwrite: bool = True,
+              included_paths: bool = False) -> None:
     if dest.exists() and dest.is_dir():
         raise RuntimeError(f"colisão com diretório: {dest}")
     if dest.exists() and not overwrite:
         return
     dest.parent.mkdir(parents=True, exist_ok=True)
     if source.suffix in {".md", ".py", ".json"}:
-        dest.write_text(localize(source.read_text(encoding="utf-8")), encoding="utf-8")
+        text = source.read_text(encoding="utf-8")
+        dest.write_text(localize(text, included_paths=(included_paths and source.suffix == ".md")),
+                        encoding="utf-8")
     else:
         shutil.copy2(source, dest)
 
 
-def copy_tree(source: Path, dest: Path) -> None:
+def copy_tree(source: Path, dest: Path, *, included_paths: bool = False) -> None:
     for path in source.rglob("*"):
         if path.is_dir() or "__pycache__" in path.parts:
             continue
-        copy_file(path, dest / path.relative_to(source))
+        copy_file(path, dest / path.relative_to(source),
+                  included_paths=included_paths)
 
 
 def preserve_worktree_marker(target: Path, prefix: str = "") -> None:
@@ -99,11 +105,12 @@ def install(target: Path) -> None:
     hb = target / hr if hr else target
     # Preflight: somente caminhos explicitamente geridos podem ser escritos.
     for name in data["files"]:
-        copy_file(SOURCE / name, hb / name)
+        copy_file(SOURCE / name, hb / name, included_paths=True)
     for name in data["directories"]:
-        copy_tree(SOURCE / name, hb / name)
+        copy_tree(SOURCE / name, hb / name, included_paths=True)
     for name in data["skills"]:
-        copy_tree(SKILLS_SOURCE / name, target / ".agents/skills" / name)
+        copy_tree(SKILLS_SOURCE / name, target / ".agents/skills" / name,
+                  included_paths=True)
     copy_file(MANIFEST, hb / ".included-harness.json")
     for rel in data["anatomy"]:
         (hb / rel).mkdir(parents=True, exist_ok=True)

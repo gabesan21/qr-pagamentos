@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import datetime
 import getpass
+import json
 import re
 import socket
 from pathlib import Path
@@ -29,9 +30,10 @@ STAGES = [
 
 # Lease padrão do claim de task (ver pop_claim.py).
 DEFAULT_LEASE_HOURS = 2
+YOLO_RETURN_LIMIT = 2
 
 # Checkbox de liberação humana no card (gate de saída do 001).
-RELEASE_MARK = re.compile(r"^\s*[-*]\s*\[[xX]\]\s*(?:Pronto para planejar|Ready to plan)")
+RELEASE_MARK = re.compile(r"^\s*[-*]\s*\[[xX]\]\s*Pronto para planejar")
 
 def vault_root(override: Optional[str] = None) -> Path:
     """Raiz do vault: `--vault` se dado, senão a pasta acima de `scripts/`.
@@ -219,6 +221,24 @@ def project_dir(root: Path, label: str) -> Path:
     return root.joinpath("categories", *parts)
 
 
+def delivery_route(root: Path, project: Path, *, yolo: bool) -> dict:
+    """Rota Git invariável; só o fluxo não-yolo usa target configurável."""
+    # Meta PoP é a exceção com kanban na raiz. Um clone included aberto como
+    # vault também tem project == root, mas seu kanban vive em `pop/` e segue
+    # a rota externa develop → main.
+    if project.resolve() == root.resolve() and (root / "kanban").is_dir():
+        return {"task_branch": "main", "scope_pr": False,
+                "target_branch": "main", "worktree": False,
+                "merge_owner": "none"}
+    if yolo:
+        return {"task_branch": "develop", "scope_pr": True,
+                "target_branch": "main", "worktree": True,
+                "merge_owner": "user"}
+    return {"task_branch": "task", "scope_pr": False,
+            "target_branch": None, "worktree": True,
+            "merge_owner": "user"}
+
+
 def iter_cards(project: Path) -> Iterator[Tuple[str, Path, Path]]:
     """Itera (estágio, pasta_da_task, card.md) de um projeto."""
     for stage in STAGES:
@@ -256,6 +276,59 @@ def default_agent() -> str:
 
 def now() -> datetime.datetime:
     return datetime.datetime.now().astimezone()
+
+
+def telemetry_path(task_dir: Path) -> Path:
+    """Sidecar efêmero da task; o 006 resume e descarta junto com o card."""
+    return task_dir / f"{task_dir.name}.telemetry.json"
+
+
+def read_telemetry(task_dir: Path) -> dict:
+    path = telemetry_path(task_dir)
+    if not path.is_file():
+        return {"version": 1, "events": []}
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return {"version": 1, "events": []}
+    if not isinstance(data, dict) or not isinstance(data.get("events"), list):
+        return {"version": 1, "events": []}
+    return data
+
+
+def record_telemetry(task_dir: Path, event: dict) -> None:
+    """Acrescenta evento operacional mínimo, nunca reasoning ou prompts."""
+    data = read_telemetry(task_dir)
+    payload = {"at": now().isoformat(timespec="seconds"), **event}
+    data["events"].append(payload)
+    path = telemetry_path(task_dir)
+    path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n",
+                    encoding="utf-8")
+
+
+def telemetry_summary(task_dir: Path) -> dict:
+    """Resumo pequeno para a memory e para comparação na weekly-review."""
+    events = read_telemetry(task_dir)["events"]
+    contexts = sum(len(e.get("contexts") or []) for e in events)
+    returns = {"003": 0, "005": 0}
+    test_seconds = 0.0
+    for event in events:
+        if event.get("from") == "003_human_approval" and event.get("to") == "002_planning":
+            returns["003"] += 1
+        if event.get("from") == "005_verifying" and event.get("to") == "004_processing":
+            returns["005"] += 1
+        test_seconds += float(event.get("test_seconds") or 0)
+    duration = None
+    if len(events) >= 2:
+        try:
+            start = datetime.datetime.fromisoformat(events[0]["at"])
+            end = datetime.datetime.fromisoformat(events[-1]["at"])
+            duration = int((end - start).total_seconds())
+        except (KeyError, TypeError, ValueError):
+            pass
+    return {"duration_seconds": duration, "contexts": contexts,
+            "returns_003": returns["003"], "returns_005": returns["005"],
+            "test_seconds": test_seconds, "events": len(events)}
 
 
 def parse_claim(meta: dict) -> Tuple[Optional[str], Optional[datetime.datetime]]:

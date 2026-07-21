@@ -143,13 +143,14 @@ test("creates current, responsive design-system evidence", async ({ page }) => {
           return {
             index: targetIndex,
             outlineWidth: Number.parseFloat(styles.outlineWidth),
+            ringVisible: styles.boxShadow !== "none",
             visible: rectangle.width > 0 && rectangle.height > 0 && rectangle.bottom > 0 && rectangle.top < window.innerHeight,
             focusVisible: element.matches(":focus-visible"),
           };
         }, index);
         expect(focusState.visible).toBe(true);
         expect(focusState.focusVisible).toBe(true);
-        expect(focusState.outlineWidth).toBeGreaterThanOrEqual(2);
+        expect(focusState.outlineWidth >= 2 || focusState.ringVisible).toBe(true);
         focusTraversal.push(focusState);
       }
 
@@ -164,6 +165,7 @@ test("creates current, responsive design-system evidence", async ({ page }) => {
         document.body.append(reference);
         const maxProseWidth = reference.getBoundingClientRect().width;
         reference.remove();
+        const textareas = selectors('[data-slot="textarea"]');
         return {
           bodyFont: getComputedStyle(document.body).fontFamily,
           overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
@@ -171,6 +173,12 @@ test("creates current, responsive design-system evidence", async ({ page }) => {
           primaryActions: selectors("[data-ds-section]").map((section) => section.querySelectorAll('[data-slot=button][data-variant="default"]').length),
           statusCues: statuses.map((status) => Boolean(status.querySelector("[data-ds-status-cue]"))),
           proseWidths: prose.map((element) => element.getBoundingClientRect().width),
+          textareas: textareas.map((element) => ({
+            disabled: (element as HTMLTextAreaElement).disabled,
+            labelled: Boolean(element.id && document.querySelector(`label[for="${element.id}"]`)),
+            invalid: element.getAttribute("aria-invalid") === "true",
+            minHeight: element.getBoundingClientRect().height,
+          })),
           maxProseWidth,
         };
       });
@@ -184,6 +192,10 @@ test("creates current, responsive design-system evidence", async ({ page }) => {
       expect(measured.primaryActions.every((count) => count <= 1)).toBe(true);
       expect(measured.statusCues.every(Boolean)).toBe(true);
       expect(measured.proseWidths.every((proseWidth) => proseWidth <= measured.maxProseWidth)).toBe(true);
+      expect(measured.textareas).toHaveLength(3);
+      expect(measured.textareas.every(({ labelled, minHeight }) => labelled && minHeight >= 44)).toBe(true);
+      expect(measured.textareas.filter(({ disabled }) => disabled)).toHaveLength(1);
+      expect(measured.textareas.filter(({ invalid }) => invalid)).toHaveLength(1);
       expect(focusTargetCount).toBeGreaterThan(0);
       expect(severeAxe).toEqual([]);
       expect(externalRequests).toEqual([]);

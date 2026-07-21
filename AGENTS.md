@@ -15,7 +15,7 @@
 |------|-----|------------|-----------|
 | qr-pagamentos | https://github.com/gabesan21/qr-pagamentos.git | repository root | main |
 
-In yolo phases, the orchestrator mechanically integrates task branches into `develop`; there is no PR per task. At the end of each phase, the human tests the deliverable and decides whether to open and merge the final `develop` -> `main` PR.
+In yolo scopes, the orchestrator mechanically integrates task branches into `develop`; there is no PR per task. At scope close it automatically opens the final `develop` -> `main` PR; the human tests and merges it.
 
 ## Workflow
 
@@ -23,12 +23,12 @@ Every change to the application passes through `kanban/001_initial_task` -> `kan
 
 1. **001** - create the task with `new-task` and explicit `depends_on` prerequisites.
 2. **002** - a planner separate from execution writes a concise brief with objective, strategy, fronts, dependencies, contracts, risks, and acceptance criteria.
-3. **003** - obtain approval from the human or, in yolo, from the independent reviewer.
-4. **004** - an execution orchestrator chooses one executor, sequential specialists, parallel waves, or a hybrid in isolated worktrees; every front declares `owns`, `may_read`, `must_not_edit`, `depends_on`, expected input, skill, and criteria.
-5. **005** - one fresh-context independent reviewer compares the objective and specs with the integrated diff, tests, and code quality; `critical: true` increases depth and still requires human approval outside yolo.
-6. **006** - the orchestrator opens the task PR and writes `memory/<id>.md`; in yolo it mechanically integrates task branches into `develop`, while the final phase PR targets `main` only when requested by the human.
+3. **003** - obtain human approval or, in yolo, a strong independent critic's decision; two returns are allowed before the third failure trips the circuit breaker.
+4. **004** - send a cohesive front directly to one executor; use an execution orchestrator only for a DAG, multiple skills, or multiple write sets.
+5. **005** - one fresh strong critic reviews yolo delivery, choosing differential or full verification; full is mandatory for critical tasks or after a return, and the third rejection trips the circuit breaker.
+6. **006** - mechanically integrate yolo tasks into `develop`, write memory and telemetry summary, clean the task, and automatically open the final scope PR to `main`.
 
-Parallel execution requires both logical and write independence. A missing or incompatible dependency is `BLOCKED`; a consuming front must never implement it opportunistically. Only the execution orchestrator validates ownership and integrates specialist branches.
+Up to three independent yolo tasks may advance as a wave. Parallel execution requires logical and write independence plus repository/worktree isolation; any collision serializes. A missing dependency is `BLOCKED` and is never implemented opportunistically.
 
 One execution continues until the next real gate. The complete state machine is in [[WORKFLOW|WORKFLOW]].
 
@@ -42,7 +42,7 @@ One execution continues until the next real gate. The complete state machine is 
 
 ## Skills
 
-- **PoP workflow:** `.agents/skills/` contains `new-task`, `advance-task`, `plan-roadmap`, `write-spec`, `sync-specs`, and `yolo-critic` (the independent yolo reviewer role).
+- **PoP workflow:** `.agents/skills/` contains task/roadmap/spec skills, `weekly-review`, `optimize-memory`, and `yolo-critic` (the strong independent yolo critic).
 - **Project operations:** `skills/` will contain reusable build, test, run, migration, and deployment procedures as they become real.
 
 ## DOX index
@@ -50,6 +50,7 @@ One execution continues until the next real gate. The complete state machine is 
 - [`src/components/ui/AGENTS.md`](src/components/ui/AGENTS.md) — follow when
   changing owned Radix/nova shadcn source, its inventory, or its state contract.
 - [`src/integrations/nautt/AGENTS.md`](src/integrations/nautt/AGENTS.md) — follow when changing Nautt HTTP adapters or owner-bound provider orchestration.
+- [`src/checkout/AGENTS.md`](src/checkout/AGENTS.md) — follow when changing sessionless public checkout reservation, replay, or capability issuance.
 
 ### Clean code
 

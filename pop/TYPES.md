@@ -24,9 +24,9 @@ O padrão do PoP. A pasta do projeto no vault carrega o harness em `pop/` e o co
 
 ## included
 
-A raiz do projeto **é o repositório externo**: o `pop/` inteiro (incluindo `WORKFLOW.md`, `TYPES.md`, `INBOX.md`, `_templates/` e `scripts/`) é commitado no repo, com `AGENTS.md` e `.agents/skills/` na raiz. É o type para quem quer o workflow do PoP viajando com o próprio repo, funcionando standalone para quem nem usa o PoP — e o dev vê só `AGENTS.md`, `.agents/` e uma pasta `pop/`.
+A raiz do projeto **é o repositório externo**: o `pop/` inteiro (incluindo `WORKFLOW.md`, `TYPES.md`, `INBOX.md`, `_templates/` e `pop/scripts/`) é commitado no repo, com `AGENTS.md` e `.agents/skills/` na raiz. É o type para quem quer o workflow do PoP viajando com o próprio repo, funcionando standalone para quem nem usa o PoP — e o dev vê só `AGENTS.md`, `.agents/` e uma pasta `pop/`.
 
-- **Com repo:** o repo é clonado em `categories/<categoria>/<projeto>/` e listado em **Repositórios agregados** no [[INDEX|INDEX]] raiz; o caminho do clone entra no `.gitignore` **raiz** do PoP (o PoP não versiona o conteúdo — só o registro no índice). A materialização usa `python3 scripts/pop_install_included.py <repo>`; o manifesto é a única lista do pacote e a atualização repete o mesmo comando.
+- **Com repo:** o repo é clonado em `categories/<categoria>/<projeto>/` e listado em **Repositórios agregados** no [[INDEX|INDEX]] raiz; o caminho do clone entra no `.gitignore` **raiz** do PoP (o PoP não versiona o conteúdo — só o registro no índice). A materialização usa `python3 pop/scripts/pop_install_included.py <repo>`; o manifesto é a única lista do pacote e a atualização repete o mesmo comando.
 - **Sem repo:** a pasta do projeto no PoP é a própria raiz do projeto, versionada no PoP.
 
 ## multi-repo

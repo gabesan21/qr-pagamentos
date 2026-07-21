@@ -1,10 +1,13 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
-const { readStatus, resolveLocale, resolvePrincipal, redirect } = vi.hoisted(() => ({
+const { readStatus, resolveLocale, resolvePrincipal, listProducts, listPaymentLinks, getCheckoutPolicy, redirect } = vi.hoisted(() => ({
   readStatus: vi.fn(),
   resolveLocale: vi.fn(),
   resolvePrincipal: vi.fn(),
+  listProducts: vi.fn(),
+  listPaymentLinks: vi.fn(),
+  getCheckoutPolicy: vi.fn(),
   redirect: vi.fn((location: string) => { throw new Error(`redirect:${location}`); }),
 }));
 
@@ -14,6 +17,9 @@ vi.mock("server-only", () => ({}));
 vi.mock("@/auth/authorization", () => ({ getAuthorizationService: () => ({ resolve: resolvePrincipal }) }));
 vi.mock("@/i18n/locale-preference", () => ({ getLocalePreferenceService: () => ({ resolve: resolveLocale }) }));
 vi.mock("@/integrations/nautt/owner-onboarding", () => ({ getOwnerOnboardingService: () => ({ readStatus }) }));
+vi.mock("@/auth/product", () => ({ getProductService: () => ({ listForOwner: listProducts }) }));
+vi.mock("@/auth/payment-link", () => ({ getPaymentLinkService: () => ({ listForOwner: listPaymentLinks }) }));
+vi.mock("@/auth/checkout-policy", () => ({ getCheckoutPolicyService: () => ({ getForOwner: getCheckoutPolicy }) }));
 vi.mock("@/app/language-preference/language-preference-form", () => ({ LanguagePreferenceSubmit: ({ label }: { label: string }) => <button type="submit">{label}</button> }));
 
 import Home from "./page";
@@ -31,12 +37,18 @@ describe("authenticated home states", () => {
     resolvePrincipal.mockResolvedValue({ id: "admin" });
     resolveLocale.mockResolvedValue(locale);
     readStatus.mockResolvedValue({ credential: { hasCredential: false, credentialRevision: null, webhookRegistrationState: null, updatedAt: null }, balance: null, balanceUnavailable: false });
+    listProducts.mockResolvedValue([]);
+    listPaymentLinks.mockResolvedValue({ links: [], activeProducts: [{ id: "product", internalName: "Donation", titlePtBr: "Doação", titleEn: "Donation", price: "1" }], activeCurrencyPairs: [{ id: "pair", label: "BRL/USDT" }] });
+    getCheckoutPolicy.mockResolvedValue({ checkoutDataPolicy: "NONE" });
 
     const defaultMarkup = renderToStaticMarkup(await Home({ searchParams: Promise.resolve({}) }));
     expect(defaultMarkup).toContain(`value="${locale}" selected=""`);
     expect(defaultMarkup).toContain('action="/language-preference"');
     expect(defaultMarkup).toContain('action="/logout"');
     expect(defaultMarkup).toContain(signOut);
+    expect(defaultMarkup).toContain('action="/products"');
+    expect(defaultMarkup).toContain('action="/payment-links"');
+    expect(defaultMarkup).toContain('action="/checkout-policy"');
 
     const successMarkup = renderToStaticMarkup(await Home({ searchParams: Promise.resolve({ language: "saved" }) }));
     expect(successMarkup).toContain('role="status"');

@@ -64,14 +64,16 @@ deliberately small inventory is the only foundation introduced:
 
 | Primitive | Purpose | States |
 | --- | --- | --- |
-| `Button`, `Field`/`Input`, `NativeSelect`, `Checkbox` | current action and native form controls | default, loading where applicable, disabled, error, hover/focus; empty is not applicable to a control |
+| `Button`, `Field`/`Input`, `Textarea`, `NativeSelect`, `Checkbox` | current action and native form controls, including multiline descriptions | default, populated, loading where applicable, disabled, invalid, hover/focus; empty is not applicable to a control |
 | `Card`, `Alert`, `Badge`, `Separator`, `Skeleton`, `Table`, `Spinner` | grouped content, feedback, loading, and facts | documented default, empty/error/recovery, or loading state as applicable |
 
 The deterministic `/design-system` exercise surface resolves its dictionary from
 the same server preference contract as the authenticated shell and presents all
-applicable states. Its keyboard order is primary action,
-field, error recovery, then secondary action. Enabled controls use a visible
-two-pixel semantic focus outline; disabled controls are not focusable.
+applicable states, including labelled default, populated, disabled, and invalid
+`Textarea` controls. Its keyboard order follows the rendered controls from the
+primary action through fields and recovery actions. Enabled controls use a visible
+semantic focus outline or ring at least two pixels wide; disabled controls are not
+focusable.
 
 The `/admin` shell and authenticated home consume this inventory directly for
 account creation, account mutations, global BRL/PIX payment settings, language
@@ -91,6 +93,12 @@ active action immediately exposes localized spinner/`aria-busy` feedback, and a
 shared scope disables the password input plus competing setup actions after the
 first payload is formed so a second provider mutation cannot be dispatched.
 
+The authenticated home also owns each account's product, payment-link, and
+checkout-data-policy ledger. These owner-only forms reuse the same cards,
+fields, selects, alerts, buttons, separators, badges, and spinners: they show
+empty prerequisites, success/recovery notices, native pending/disabled actions,
+and visible keyboard focus without creating a home-specific visual variant.
+
 The unauthenticated `/login` page consumes the same inventory as a single
 restrained credential `Card`: `Field`/`Input` with labels above the native
 controls, a destructive `Alert` for the generic invalid-credential recovery,
@@ -99,6 +107,14 @@ by observing the associated native form's `submit` event. It never intercepts
 or replaces the `/login/submit` POST. Its default, pending/disabled,
 error/recovery, and hover/focus states all come from the owned primitives; it
 introduces no page-specific variant, token, or adapter.
+
+The sessionless `/pay/[identifier]` checkout uses the same receipt rail and
+existing `Card`, `Field`/`Input`, `NativeSelect`, `Alert`, `Badge`, `Separator`,
+`Button`, and `Spinner` inventory. The policy decides the only visible customer
+fields; initial, local-validation, submitting/disabled, QR/copy, waiting,
+status-recovery, terminal, and unavailable states remain explicit and use no
+page-specific visual primitive or token. QR images carry alternative text and
+copy/status feedback is announced politely.
 
 ## Evidence and composition
 

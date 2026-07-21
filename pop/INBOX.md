@@ -79,6 +79,8 @@ SORT claimed_at ASC
 
 Relatórios da skill `weekly-review` são linkados aqui, mais recente primeiro.
 
+- [[notes/weekly-review-2026-07-21|Weekly review — 2026-07-21]]
+
 ---
 
-Agentes: nada a manter aqui além da seção **Revisões** — as listas acima derivam do frontmatter (`stage`, `critical`, `yolo`, `blocked`, `awaiting_merge` dos cards; `status` das questões abertas) e do checkbox de liberação nos cards de 001. Para localizar gates sem Obsidian, rode `python3 scripts/pop_status.py` (grep em `stage:`/`awaiting_merge:` serve de fallback).
+Agentes: nada a manter aqui além da seção **Revisões** — as listas acima derivam do frontmatter (`stage`, `critical`, `yolo`, `blocked`, `awaiting_merge` dos cards; `status` das questões abertas) e do checkbox de liberação nos cards de 001. Para localizar gates sem Obsidian, rode `python3 pop/scripts/pop_status.py` (grep em `stage:`/`awaiting_merge:` serve de fallback).

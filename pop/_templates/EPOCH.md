@@ -8,7 +8,7 @@
 - **Yolo:** sim | não — bullet **opcional** (ausente = não); só o humano marca.
 - **Abandonar/pausar se:** condição objetiva, se houver (auditada pela `weekly-review`).
 
-> Uma phase por seção; sob cada phase, suas tasks — **sempre descrições de uma linha**. Detalhe vai para a spec ou para a pasta da task no kanban. Task iniciada ganha link `[[<id>]]` para o card (ver [[WORKFLOW|WORKFLOW]]).
+> Uma phase por seção; sob cada phase, somente suas tasks ainda abertas — **sempre descrições de uma linha**. Detalhe vai para a spec ou para a pasta da task no kanban. Task iniciada ganha link `[[<id>]]`; ao concluir 006, sai da tabela depois de sua memory válida (ver [[WORKFLOW|WORKFLOW]]).
 > **Yolo herda:** epoch yolo → phases e tasks herdam; phase yolo → tasks herdam. Opt-out/opt-in por task: anexe ` · yolo: não` (ou ` · yolo: sim`) ao fim da célula Descrição — sem coluna nova. O `new-task` resolve a herança e estampa o card (seção Yolo do [[WORKFLOW|WORKFLOW]]).
 > **Size:** o agente sugere `S|M|L` na Descrição; `new-task` estampa no card e o humano corrige em 001. Size orienta tier/esforço; risco, skills, dependências e write sets determinam a topologia no [[WORKFLOW|WORKFLOW]].
 

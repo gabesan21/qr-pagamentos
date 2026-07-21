@@ -28,7 +28,7 @@ Toda alteração no projeto passa pelo kanban (`pop/kanban/001_initial_task → 
 3. **003** — gate humano: o agente só avança com `- [x] Feito`.
 4. **004** — orquestrador escolhe executor único ou especialistas em sequência/ondas; paralelos usam worktrees e ownership isolados.
 5. **005** — um revisor independente compara objetivo/specs com diff, testes e qualidade (+ humano se `critical`).
-6. **006** — PR para a branch de PR acima → **o humano merga** → agente escreve `pop/memory/<id>.md`, remove a worktree e conclui.
+6. **006** — fora de yolo, PR da task → branch de PR declarada e **o humano merga**; em yolo, tasks integram `develop` e o fechamento abre PR automático `develop` → `main`, sempre com merge humano. Depois o agente valida `pop/memory/<id>.md`, retira a task do roadmap, remove a worktree e conclui.
 
 **Uma execução = até o próximo gate humano:** planejador, execução e revisão usam contextos separados. O plano guarda decisões, não reasoning; o 004 especializa por frente quando houver skills/ownership distintos. Detalhe: [[WORKFLOW|WORKFLOW]].
 
@@ -73,4 +73,4 @@ Toda alteração no projeto passa pelo kanban (`pop/kanban/001_initial_task → 
 - **Nunca** alterar o projeto real fora de uma task em `004_processing` cujo plano foi aprovado em 003.
 - **Nunca** marcar `- [ ] Feito` nem executar itens `(user)` — são exclusivos do humano.
 - **Nunca** fazer merge de PR de task — o merge é do humano (ou comandado por ele na rodada de merge).
-- Toda task concluída gera `pop/memory/<id>.md` (ledger ≤2000 chars, commit final, datas); a pasta em `006_done` é apagada no fechamento.
+- Toda task concluída gera `pop/memory/<id>.md` (ledger ≤2000 chars, commit final, datas); após validar a memory, 006 remove a linha da task do roadmap e apaga a pasta em `006_done`.

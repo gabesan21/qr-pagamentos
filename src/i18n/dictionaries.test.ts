@@ -28,6 +28,10 @@ describe("language dictionaries", () => {
       expect(dictionary.languageError).not.toBe("");
       expect(dictionary.adminPaymentSettingsHeading).not.toBe("");
       expect(dictionary.adminSavePaymentSettings).not.toBe("");
+      expect(dictionary.adminCatalogCurrencyPairsHeading).not.toBe("");
+      expect(dictionary.adminCatalogPaymentMethodsHeading).not.toBe("");
+      expect(dictionary.adminCatalogCreateCurrencyPair).not.toBe("");
+      expect(dictionary.adminCatalogCreatePaymentMethod).not.toBe("");
       expect(dictionary.designSystemHeading).not.toBe("");
       expect(dictionary.designSystemRetry).not.toBe("");
     }
@@ -40,6 +44,8 @@ describe("language dictionaries", () => {
       "adminDisableTitle", "adminDisableDescription", "adminConfirmDisable",
       "adminLoadingHeading", "adminLoadingDescription", "adminReadErrorHeading",
       "adminReadErrorDescription", "adminRetry",
+      "adminProductsHeading", "adminProductsEmpty", "adminProductCreate",
+      "adminProductDeleteConfirm", "adminProductConflict", "adminProductMutationFailed",
     ] as const;
 
     for (const locale of ["pt-BR", "en"] as const) {

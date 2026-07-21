@@ -1,6 +1,6 @@
 ---
 name: delegate-coding
-description: Delega trabalho de código a um CLI de coding agent headless (Cursor CLI, opencode ou Codex CLI) - contrato de invocação, escolha da ferramenta e regras de yolo/auth. Use quando for executar uma tarefa de código através de outra ferramenta agêntica em vez de fazê-la diretamente.
+description: Delega trabalho de código a um CLI de coding agent headless (Cursor CLI, opencode, Codex CLI ou droid) - contrato de invocação, escolha da ferramenta e regras de yolo/auth. Use quando for executar uma tarefa de código através de outra ferramenta agêntica em vez de fazê-la diretamente.
 ---
 
 # delegate-coding
@@ -9,7 +9,7 @@ description: Delega trabalho de código a um CLI de coding agent headless (Curso
 
 > **Claude Code está fora desta família de propósito** (decisão de 2026-07-16): o uso headless do CLI implica custos adicionais, contra o objetivo das skills — não adicione `run-claude-code` de volta sem decisão do humano.
 
-## Contrato de invocação (vale para as 3 ferramentas)
+## Contrato de invocação (vale para as 4 ferramentas)
 
 1. **Yolo mode sempre.** O CLI delegado roda com auto-aprovação total (flags na tabela abaixo). Nunca configure permissionamento fino no CLI — planejamento e permissões são responsabilidade do orquestrador.
 2. **Login é pré-condição.** As ferramentas já estão autenticadas na máquina. **Erro de autenticação (menção a credencial/login/API key/401/403 na saída) aborta completamente a task do orquestrador** — sem retry, sem fallback para outra ferramenta, sem seguir com a implementação. Reporte ao humano e pare. Falha imediata **sem** sinal de auth (flag desconhecida, uso incorreto) é **erro de invocação**, não de login: confira o `--help`, corrija o comando e reinvoque.
@@ -26,8 +26,9 @@ description: Delega trabalho de código a um CLI de coding agent headless (Curso
 | Modelos do Cursor (composer) ou multi-modelo com worktree pronta na flag | Cursor CLI | `run-cursor-agent` |
 | Multi-provider (`provider/model`), agents custom leves em markdown, config inline por env | opencode | `run-opencode` |
 | Ecossistema OpenAI: plano ChatGPT/modelos GPT-5.x-codex, AGENTS.md nativo, resposta validada por JSON Schema | Codex CLI | `run-codex` |
+| Catálogo multi-provider da Factory (incl. open models baratos), fail-fast de autonomia, worktree nativa na flag | droid CLI | `run-droid` |
 
-Desempate: use a ferramenta **instalada** (`command -v cursor-agent opencode codex`); entre instaladas, a que já tem contexto no repo (`.cursor/rules/` → cursor; `.opencode/` → opencode; AGENTS.md → codex).
+Desempate: use a ferramenta **instalada** (`command -v cursor-agent opencode codex droid`); entre instaladas, a que já tem contexto no repo (`.cursor/rules/` → cursor; `.opencode/` → opencode; `.factory/` → droid; AGENTS.md → codex ou droid).
 
 ## Flags de yolo por ferramenta
 
@@ -36,6 +37,7 @@ Desempate: use a ferramenta **instalada** (`command -v cursor-agent opencode cod
 | Cursor CLI | `--force` | sem ela o agente é read-only; com MCP some `--trust --approve-mcps` |
 | opencode | `--auto` | flag da instalação local; a fonte documenta `--dangerously-skip-permissions` — confirme no `--help`; `deny` explícito em `opencode.json` ainda vence |
 | Codex CLI | `--dangerously-bypass-approvals-and-sandbox` | alias `--yolo`; bypassa aprovações **e** sandbox; sem cap de custo local — o breaker é o `timeout` |
+| droid CLI | `--skip-permissions-unsafe` | não combina com `--auto low\|medium\|high` (escadinha nativa, não usada aqui); sem flag alguma o droid é read-only |
 
 ## Checklist antes de invocar
 
@@ -56,5 +58,6 @@ Modelo se escolhe pelo tier da task, não por hábito: consulte **`pop/scripts/m
 - `run-cursor-agent` — siga para invocar o Cursor CLI headless.
 - `run-opencode` — siga para invocar o opencode headless.
 - `run-codex` — siga para invocar o Codex CLI headless.
+- `run-droid` — siga para invocar o droid CLI (Factory) headless.
 
-Fontes: sínteses em [[researches/cursor-cli-headless/cursor-cli-headless|cursor-cli-headless]], [[researches/opencode-headless/opencode-headless|opencode-headless]] e [[researches/codex-cli-headless/codex-cli-headless|codex-cli-headless]] — siga para rastrear um fato até o bruto.
+Fontes: sínteses em [[researches/cursor-cli-headless/cursor-cli-headless|cursor-cli-headless]], [[researches/opencode-headless/opencode-headless|opencode-headless]] e [[researches/codex-cli-headless/codex-cli-headless|codex-cli-headless]] — siga para rastrear um fato até o bruto; o droid não tem síntese (skill escrita direto das docs oficiais em 2026-07-16).

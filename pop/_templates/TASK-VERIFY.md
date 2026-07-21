@@ -4,9 +4,13 @@
 
 - **Etapa:** 005_verifying · **Responsável:** revisor independente
 
-> Um único agente com contexto fresco verifica comportamento e qualidade. Leia objetivo, specs, contratos DOX e diff; não dependa da narrativa da execução. Reexecute critérios em modo `re-run`; em `evidência`, audite a prova e reexecute se ela estiver ausente ou inconclusiva. `critical: true` aumenta profundidade/modelo, não cria outro revisor.
+> Um único agente fresco verifica comportamento/qualidade. Em yolo ele é sempre **strong** e decide `differential|full`; `full` é obrigatório em critical ou após retorno. Evidência inconclusiva é reexecutada.
 
 ## Rodada 1 — AAAA-MM-DD
+
+- **Estratégia:** differential | full — <motivo>.
+- **Superfície:** <diff/riscos cobertos>.
+- **Devolução yolo:** 0 | 1 | 2 de 2 — 3ª reprovação ativa circuit breaker.
 
 ### Conformidade com objetivo e specs
 
@@ -31,7 +35,7 @@
 
 ## Veredito
 
-- **Decisão:** aprovada → 006_done | reprovada → 004_processing.
+- **Decisão:** aprovada → 006_done | reprovada → 004_processing | circuit breaker.
 - **Bloqueantes:** nenhum | <lista curta>.
 - **Sugestões/nits:** <não bloqueiam; registrar somente se úteis>.
 - **Resumo:** <comparação breve entre objetivo inicial e resultado implementado>.

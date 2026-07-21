@@ -5,6 +5,7 @@ import { AdminSurface } from "@/app/admin/admin-surface";
 import { ForbiddenError, UnauthenticatedError, getAuthorizationService } from "@/auth/authorization";
 import { getAdministrationService } from "@/auth/administration";
 import { getPaymentSettingsService } from "@/auth/payment-settings";
+import { getNauttCatalogService } from "@/auth/nautt-catalog";
 import { getDictionary } from "@/i18n/dictionaries";
 import { getLocalePreferenceService } from "@/i18n/locale-preference";
 
@@ -17,15 +18,25 @@ export default async function AdminPage({ searchParams }: Readonly<{ searchParam
     if (error instanceof UnauthenticatedError) redirect("/login");
     throw error;
   }
-  const [locale, users, settings, query] = await Promise.all([
+  const [locale, users, settings, currencyPairs, paymentMethods, query] = await Promise.all([
     getLocalePreferenceService().resolve(actor.id),
     getAdministrationService().listUsers(actor),
     getPaymentSettingsService().list(actor),
+    getNauttCatalogService().listCurrencyPairs(actor),
+    getNauttCatalogService().listPaymentMethods(actor),
     searchParams,
   ]);
   const dictionary = getDictionary(locale);
   const noticeTone = query.success ? "success" : query.error ? "error" : null;
-  const noticeText = query.success === "created" ? dictionary.adminCreated : query.success ? dictionary.adminChanged : query.error === "create-failed" ? dictionary.adminCreateFailed : query.error === "settings-failed" ? dictionary.adminSettingsFailed : dictionary.adminChangeFailed;
+  const noticeText = query.success === "created" ? dictionary.adminCreated
+    : query.success === "catalog-created" ? dictionary.adminCatalogCreated
+    : query.success === "catalog-changed" ? dictionary.adminCatalogChanged
+    : query.success ? dictionary.adminChanged
+    : query.error === "create-failed" ? dictionary.adminCreateFailed
+    : query.error === "settings-failed" ? dictionary.adminSettingsFailed
+    : query.error === "catalog-create-failed" ? dictionary.adminCatalogCreateFailed
+    : query.error === "catalog-change-failed" ? dictionary.adminCatalogChangeFailed
+    : dictionary.adminChangeFailed;
 
-  return <AdminSurface actorUsername={actor.username} dictionary={dictionary} locale={locale} notice={noticeTone ? { tone: noticeTone, text: noticeText } : null} settings={settings} users={users} />;
+  return <AdminSurface actorUsername={actor.username} currencyPairs={currencyPairs} dictionary={dictionary} locale={locale} notice={noticeTone ? { tone: noticeTone, text: noticeText } : null} paymentMethods={paymentMethods} settings={settings} users={users} />;
 }

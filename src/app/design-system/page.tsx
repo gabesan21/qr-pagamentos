@@ -14,6 +14,7 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Textarea } from "@/components/ui/textarea";
 import { getDictionary } from "@/i18n/dictionaries";
 import { getLocalePreferenceService } from "@/i18n/locale-preference";
 import { defaultLocale } from "@/i18n/locales";
@@ -48,6 +49,9 @@ export default async function DesignSystemPage() {
       <FieldGroup className="ds-form">
         <Field><FieldLabel htmlFor="receipt-reference">{dictionary.designSystemFieldLabel}</FieldLabel><Input data-ds-hit-target id="receipt-reference" placeholder="PIX-2026-0716" /><FieldDescription>{dictionary.designSystemFieldHelp}</FieldDescription></Field>
         <Field data-invalid><FieldLabel htmlFor="receipt-reference-error">{dictionary.designSystemFieldLabel}</FieldLabel><Input aria-describedby="receipt-error" aria-invalid data-ds-hit-target id="receipt-reference-error" /><FieldError id="receipt-error">{dictionary.designSystemFieldError}</FieldError></Field>
+        <Field><FieldLabel htmlFor="receipt-notes">{dictionary.designSystemContentHeading}</FieldLabel><Textarea data-ds-hit-target defaultValue={dictionary.designSystemIntroduction} id="receipt-notes" /><FieldDescription>{dictionary.designSystemFieldHelp}</FieldDescription></Field>
+        <Field data-disabled><FieldLabel htmlFor="receipt-notes-disabled">{dictionary.designSystemDisabledAction}</FieldLabel><Textarea disabled id="receipt-notes-disabled" value={dictionary.designSystemIntroduction} /></Field>
+        <Field data-invalid><FieldLabel htmlFor="receipt-notes-error">{dictionary.designSystemError}</FieldLabel><Textarea aria-describedby="receipt-notes-error-message" aria-invalid data-ds-hit-target id="receipt-notes-error" /><FieldError id="receipt-notes-error-message">{dictionary.designSystemFieldError}</FieldError></Field>
         <Field><FieldLabel htmlFor="receipt-state">{dictionary.designSystemStatuses}</FieldLabel><NativeSelect data-ds-hit-target defaultValue="active" id="receipt-state"><NativeSelectOption value="active">{dictionary.designSystemState}</NativeSelectOption><NativeSelectOption value="review">{dictionary.designSystemWarning}</NativeSelectOption></NativeSelect></Field>
         <Field orientation="horizontal"><Checkbox data-ds-hit-target defaultChecked id="confirm-review" /><FieldLabel htmlFor="confirm-review">{dictionary.designSystemWarning}</FieldLabel></Field>
       </FieldGroup>

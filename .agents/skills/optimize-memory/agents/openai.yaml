@@ -1,0 +1,4 @@
+interface:
+  display_name: "Otimizar memories"
+  short_description: "Compacta memories sem perder prova cronológica"
+  default_prompt: "Use $optimize-memory para compactar memories preservando identidade, cronologia e decisões críticas."

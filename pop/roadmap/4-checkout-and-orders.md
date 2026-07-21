@@ -1,7 +1,42 @@
 # Epoch 4 - Checkout and order lifecycle
 
 - **Project:** [[PROJECT|QR Pagamentos]]
-- **Status:** pendente
-- **Description:** Deliver public checkout, QR payment generation, status updates, and user/admin order views.
+- **Status:** em andamento
+- **Description:** Deliver owner-isolated public checkout, QR payment generation, account-level customer-data policies, and order views.
+- **Yolo:** sim
 
-Phases and candidate tasks will be detailed after the previous epoch is complete.
+## Recon and decisions
+
+- Existing products and payment links have no production data, so Epoch 4 introduces required ownership without a legacy-data migration path.
+- Every product and payment link belongs to exactly one user; users cannot read or mutate another user's records, while administrators retain their global operational role.
+- A single-use link remains available through unsuccessful and pending attempts, is consumed only by a confirmed successful payment, and cannot begin checkout after its expiry.
+- Each account configures the customer data requested by its public checkouts. The default is `NONE`; supported policies are `NAME_EMAIL`, `EMAIL`, `NAME_EMAIL_CPF`, and `NAME_EMAIL_CPF_ADDRESS`.
+- The public checkout derives its provider credential and all payable values from persistent owner-bound records, never browser input.
+
+## Phase 4.1 — Ownership and order contracts
+
+- **Status:** concluída
+- **Description:** Establish owner isolation, account checkout policy, and durable payment-link order lifecycle records.
+- **Specs:** [[specs/product-scope|Product scope]], [[specs/checkout-and-order-lifecycle|Checkout and order lifecycle]]
+
+| Task | Description (≤1 line) | Status |
+|------|----------------------|--------|
+
+## Phase 4.2 — Public checkout
+
+- **Status:** concluída
+- **Description:** Create the secure public payment flow and its bilingual QR status experience.
+- **Specs:** [[specs/checkout-and-order-lifecycle|Checkout and order lifecycle]], [[specs/nautt-finance-integration|Nautt Finance integration]]
+
+| Task | Description (≤1 line) | Status |
+|------|----------------------|--------|
+
+## Phase 4.3 — Order operations
+
+- **Status:** pending
+- **Description:** Provide protected order visibility for owners and administrators.
+- **Specs:** [[specs/product-scope|Product scope]], [[specs/checkout-and-order-lifecycle|Checkout and order lifecycle]]
+
+| Task | Description (≤1 line) | Status |
+|------|----------------------|--------|
+| `4.3.1-owner-and-admin-order-views` | Add owner-scoped and administrator order views with protected customer-data access. · size: L | not started |

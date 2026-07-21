@@ -193,6 +193,12 @@ class IncludedInstallV2Test(unittest.TestCase):
         gitignore = (self.target / ".gitignore").read_text(encoding="utf-8")
         self.assertIn("pop/worktrees/*", gitignore)
         self.assertIn("!pop/worktrees/.gitkeep", gitignore)
+        workflow = (pop / "WORKFLOW.md").read_text(encoding="utf-8")
+        advance = (self.target / ".agents/skills/advance-task/SKILL.md").read_text(
+            encoding="utf-8")
+        self.assertIn("pop/scripts/pop_roadmap.py", workflow)
+        self.assertIn("pop/scripts/pop_move.py", advance)
+        self.assertNotIn("`scripts/pop_move.py", advance)
 
         # pop_validate --standalone rodando DE DENTRO do repo (exercita
         # vault_root com scripts em pop/scripts, sem --vault)
@@ -202,6 +208,14 @@ class IncludedInstallV2Test(unittest.TestCase):
             capture_output=True, text=True, cwd=self.target)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn("standalone válido", result.stdout)
+
+        # O instalador copiado também precisa encontrar skills na raiz do repo,
+        # não em `pop/.agents/`, para permitir updates standalone futuros.
+        result = subprocess.run(
+            [sys.executable, str(pop / "scripts" / "pop_install_included.py"),
+             "--audit-manifest"], capture_output=True, text=True,
+            cwd=self.target)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
 
 if __name__ == "__main__":
