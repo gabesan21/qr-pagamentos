@@ -341,7 +341,7 @@ describe("owner order creation with quote ownership claims", () => {
     await service.quote(ownerA, fiatQuoteInput);
     fetch.mockResolvedValueOnce(orderCreated());
 
-    await expect(service.createOrder(ownerA, { quoteUuid }, {})).rejects.toBeInstanceOf(OwnerPricingOrdersError);
+    await expect(service.createOrder(ownerA, { quoteUuid }, {})).rejects.toBeInstanceOf(NauttOrderCreationIndeterminateError);
     expect(store.markIndeterminate).toHaveBeenCalledWith(expect.objectContaining({ quoteUuid }), orderUuid);
     await expect(service.createOrder(ownerA, { quoteUuid }, {})).rejects.toBeInstanceOf(OwnerPricingOrdersError);
     expect(fetch).toHaveBeenCalledTimes(2);

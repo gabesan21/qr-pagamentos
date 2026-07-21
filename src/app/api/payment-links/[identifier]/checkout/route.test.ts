@@ -20,6 +20,13 @@ describe("POST /api/payment-links/[identifier]/checkout", () => {
     await expect(response.json()).resolves.toEqual({ payment: { state: "PENDING", pixCopyPaste: "000201" }, statusCapability: "opaque-bearer" });
     expect(checkout).toHaveBeenCalledWith(identifier, body);
   });
+  it("returns a redacted indeterminate capability with 202", async () => {
+    checkout.mockResolvedValueOnce({ kind: "accepted", status: 202, payment: { state: "INDETERMINATE" }, statusCapability: "opaque-bearer" });
+    const response = await POST(new Request("https://example.test", { method: "POST", body: JSON.stringify(body) }), context);
+    expect(response.status).toBe(202);
+    expect(response.headers.get("cache-control")).toContain("no-store");
+    await expect(response.json()).resolves.toEqual({ payment: { state: "INDETERMINATE" }, statusCapability: "opaque-bearer" });
+  });
   it.each([["invalid", 400], ["unavailable", 404], ["provider-unavailable", 503]] as const)("returns an empty no-store %s outcome", async (kind, status) => {
     checkout.mockResolvedValueOnce({ kind });
     const response = await POST(new Request("https://example.test", { method: "POST", body: JSON.stringify(body) }), context);

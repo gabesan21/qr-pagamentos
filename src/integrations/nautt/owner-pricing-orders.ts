@@ -10,6 +10,7 @@ import {
   type NauttOnrampOrderInput,
   type NauttOnrampOrderOptions,
   type NauttOrderView,
+  NauttOrderCreationIndeterminateError,
   type NauttQuote,
   type NauttQuoteAmount,
   NauttOrderValidationError,
@@ -142,7 +143,7 @@ export function createOwnerPricingOrdersService(
           await orderStore.completeCreation(claim.attempt, order);
         } catch {
           await orderStore.markIndeterminate(claim.attempt, order.orderUuid).catch(() => undefined);
-          throw new OwnerPricingOrdersError();
+          throw new NauttOrderCreationIndeterminateError();
         }
         return order;
       } finally {

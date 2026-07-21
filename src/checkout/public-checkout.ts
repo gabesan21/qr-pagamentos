@@ -7,7 +7,7 @@ import { getDatabaseClient } from "@/db/client";
 import { loadEncryptionKey } from "@/lib/nautt-crypto";
 import { normalizeCustomerSnapshotV1, type CheckoutDataPolicy, type CustomerSnapshotV1 } from "@/orders/payment-link-order";
 import { createOwnerPricingOrdersService } from "@/integrations/nautt/owner-pricing-orders";
-import { getPricingOrdersAdapter } from "@/integrations/nautt/pricing-orders-client";
+import { getPricingOrdersAdapter, NauttOrderCreationIndeterminateError } from "@/integrations/nautt/pricing-orders-client";
 import { createPrismaProviderOrderStore } from "@/integrations/nautt/provider-order-store";
 
 const IDENTIFIER_PATTERN = /^[A-Za-z0-9_-]{24}$/;
@@ -41,7 +41,7 @@ type AttemptRecord = Readonly<{
 
 type LockedLink = Readonly<{
   id: string; ownerId: string; productId: string; productPrice: string; currencyUuid: string; exchangeCurrencyUuid: string;
-  checkoutDataPolicy: CheckoutDataPolicy; expiresAt: Date | null;
+  checkoutDataPolicy: CheckoutDataPolicy; expiresAt: Date | null; linkType: "SINGLE_USE" | "REUSABLE";
 }>;
 
 type Reservation = Readonly<{ kind: "created"; attempt: AttemptRecord; ownerId: string; amount: string; currencyUuid: string; exchangeCurrencyUuid: string }>
@@ -53,7 +53,7 @@ type CheckoutStore = Readonly<{
   reserve(input: { identifier: string; retryKey: string; customer: unknown; now: Date }): Promise<Reservation>;
   markCreating(attempt: AttemptRecord["id"]): Promise<boolean>;
   markPending(attempt: AttemptRecord["id"]): Promise<AttemptRecord | null>;
-  markIndeterminate(attempt: AttemptRecord["id"]): Promise<void>;
+  markIndeterminate(attempt: AttemptRecord["id"]): Promise<AttemptRecord | null>;
 }>;
 
 type Dependencies = Readonly<{
@@ -105,7 +105,11 @@ export function createPublicCheckoutService(store: CheckoutStore, dependencies: 
         await dependencies.provider.createOrder(reservation.ownerId, { quoteUuid: quote.quoteUuid }, {}, reservation.attempt.paymentLinkOrderId);
         const completed = await store.markPending(reservation.attempt.id);
         return completed ? accepted(completed, dependencies.capabilityKey(), dependencies.now()) : { kind: "unavailable" };
-      } catch {
+      } catch (error) {
+        if (error instanceof NauttOrderCreationIndeterminateError) {
+          const indeterminate = await store.markIndeterminate(reservation.attempt.id).catch(() => null);
+          return indeterminate ? accepted(indeterminate, dependencies.capabilityKey(), dependencies.now()) : { kind: "provider-unavailable" };
+        }
         await store.markIndeterminate(reservation.attempt.id).catch(() => undefined);
         return { kind: "provider-unavailable" };
       }
@@ -113,18 +117,16 @@ export function createPublicCheckoutService(store: CheckoutStore, dependencies: 
   };
 }
 
-function prismaCheckoutStore(): CheckoutStore {
-  const db = getDatabaseClient();
+export function createPrismaCheckoutStore(db = getDatabaseClient(), key = loadEncryptionKey()): CheckoutStore {
   const record = { include: { paymentLink: { select: { active: true, expiresAt: true } }, paymentLinkOrder: { include: { providerOrder: { select: { status: true, pixCopyPaste: true, pixQrcodeUrl: true } } } } } } as const;
   const toAttempt = (value: unknown) => value as AttemptRecord;
-  const key = loadEncryptionKey();
   return {
     async reserve({ identifier, retryKey, customer, now }) {
       return db.$transaction(async (tx) => {
         const locked = await tx.$queryRaw<LockedLink[]>`
           SELECT l."id", l."owner_id" AS "ownerId", l."product_id" AS "productId", p."price" AS "productPrice",
                  c."currency_uuid" AS "currencyUuid", c."exchange_currency_uuid" AS "exchangeCurrencyUuid",
-                 u."checkout_data_policy" AS "checkoutDataPolicy", l."expires_at" AS "expiresAt"
+                 u."checkout_data_policy" AS "checkoutDataPolicy", l."expires_at" AS "expiresAt", l."link_type" AS "linkType"
           FROM "app"."payment_link" l JOIN "app"."product" p ON p."id" = l."product_id" AND p."owner_id" = l."owner_id"
           JOIN "app"."catalog_currency_pair" c ON c."id" = l."currency_pair_id" JOIN "app"."user" u ON u."id" = l."owner_id"
           WHERE l."identifier" = ${identifier} AND l."active" = true AND p."active" = true AND (l."expires_at" IS NULL OR l."expires_at" > ${now})
@@ -132,6 +134,8 @@ function prismaCheckoutStore(): CheckoutStore {
         `;
         const link = locked[0];
         if (!link) return { kind: "unavailable" } as const;
+        // Settlement claims acquire this link lock before insert; a new statement observes a claim committed while this lock waited.
+        if (link.linkType === "SINGLE_USE" && await tx.paymentLinkSingleUseSettlement.findUnique({ where: { paymentLinkId: link.id }, select: { paymentLinkId: true } })) return { kind: "unavailable" } as const;
         const snapshot = normalizeCustomerSnapshotV1(link.checkoutDataPolicy, customer);
         if (!snapshot) return { kind: "invalid" } as const;
         const retryKeyVerifier = digest(key, `checkout-retry:${retryKey}`);
@@ -164,12 +168,14 @@ function prismaCheckoutStore(): CheckoutStore {
         const updated = await tx.checkoutAttempt.updateMany({ where: { id, state: { in: ["RESERVED", "CREATING"] } }, data: { state: "INDETERMINATE" } });
         if (updated.count === 1) await tx.paymentLinkOrder.updateMany({ where: { checkoutAttempt: { is: { id } }, state: "CREATED" }, data: { state: "INDETERMINATE" } });
       });
+      const attempt = await db.checkoutAttempt.findUnique({ where: { id }, ...record });
+      return attempt ? toAttempt(attempt) : null;
     },
   };
 }
 
 let shared: ReturnType<typeof createPublicCheckoutService> | undefined;
 export function getPublicCheckoutService() {
-  shared ??= createPublicCheckoutService(prismaCheckoutStore(), { now: () => new Date(), capabilityKey: loadEncryptionKey, provider: createOwnerPricingOrdersService(getNauttCredentialService(), getPricingOrdersAdapter(), createPrismaProviderOrderStore(getDatabaseClient())) });
+  shared ??= createPublicCheckoutService(createPrismaCheckoutStore(), { now: () => new Date(), capabilityKey: loadEncryptionKey, provider: createOwnerPricingOrdersService(getNauttCredentialService(), getPricingOrdersAdapter(), createPrismaProviderOrderStore(getDatabaseClient())) });
   return shared;
 }
