@@ -108,6 +108,14 @@ or replaces the `/login/submit` POST. Its default, pending/disabled,
 error/recovery, and hover/focus states all come from the owned primitives; it
 introduces no page-specific variant, token, or adapter.
 
+The sessionless `/pay/[identifier]` checkout uses the same receipt rail and
+existing `Card`, `Field`/`Input`, `NativeSelect`, `Alert`, `Badge`, `Separator`,
+`Button`, and `Spinner` inventory. The policy decides the only visible customer
+fields; initial, local-validation, submitting/disabled, QR/copy, waiting,
+status-recovery, terminal, and unavailable states remain explicit and use no
+page-specific visual primitive or token. QR images carry alternative text and
+copy/status feedback is announced politely.
+
 ## Evidence and composition
 
 `pnpm design-system:evidence` builds production output and creates a fresh

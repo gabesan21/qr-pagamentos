@@ -301,4 +301,14 @@ p { text-wrap: pretty; }
 .login-page { display: grid; min-height: 100svh; place-items: center; }
 .login-card { max-width: var(--layout-max); width: 100%; }
 .login-form { display: grid; gap: var(--space-5); }
+.checkout-shell { display: grid; gap: var(--space-8); max-width: var(--layout-max); }
+.checkout-description { color: var(--text-secondary); margin: 0; max-width: var(--layout-max); white-space: pre-wrap; }
+.checkout-card { width: 100%; }
+.checkout-form, .checkout-payment { display: grid; gap: var(--space-6); }
+.checkout-payment__heading { align-items: center; display: flex; flex-wrap: wrap; gap: var(--space-3); justify-content: space-between; }
+.checkout-payment__heading h2 { font-size: var(--type-title); margin: 0; }
+.checkout-copy { align-items: start; display: flex; flex-wrap: wrap; gap: var(--space-3); }
+.checkout-copy [data-slot="input"] { font-variant-numeric: tabular-nums; }
+.checkout-qr { border: var(--focus-width) solid var(--border-subtle); border-radius: var(--radius-control); max-width: 100%; }
+.checkout-privacy { color: var(--text-secondary); margin: 0; max-width: var(--layout-max); }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto; transition: none; animation: none; } }
