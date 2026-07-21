@@ -1,7 +1,7 @@
 # Epoch 4 - Checkout and order lifecycle
 
 - **Project:** [[PROJECT|QR Pagamentos]]
-- **Status:** concluída
+- **Status:** em andamento
 - **Description:** Deliver owner-isolated public checkout, QR payment generation, account-level customer-data policies, and order views.
 - **Yolo:** sim
 
@@ -15,7 +15,7 @@
 
 ## Phase 4.1 — Ownership and order contracts
 
-- **Status:** em andamento
+- **Status:** concluída
 - **Description:** Establish owner isolation, account checkout policy, and durable payment-link order lifecycle records.
 - **Specs:** [[specs/product-scope|Product scope]], [[specs/checkout-and-order-lifecycle|Checkout and order lifecycle]]
 
@@ -26,14 +26,14 @@
 
 ## Phase 4.2 — Public checkout
 
-- **Status:** pending
+- **Status:** concluída
 - **Description:** Create the secure public payment flow and its bilingual QR status experience.
 - **Specs:** [[specs/checkout-and-order-lifecycle|Checkout and order lifecycle]], [[specs/nautt-finance-integration|Nautt Finance integration]]
 
 | Task | Description (≤1 line) | Status |
 |------|----------------------|--------|
 | [[4.2.1-public-checkout-orchestration]] | Create orders from active owner-bound links and generate Nautt QR payments without exposing trusted inputs. · size: L | 006_done |
-| [[4.2.2-public-checkout-experience]] | Deliver the bilingual policy-driven checkout, QR payment state, and customer-facing status updates. · size: L | 001_initial_task |
+| [[4.2.2-public-checkout-experience]] | Deliver the bilingual policy-driven checkout, QR payment state, and customer-facing status updates. · size: L | 006_done |
 
 ## Phase 4.3 — Order operations
 

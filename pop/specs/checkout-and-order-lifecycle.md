@@ -4,7 +4,7 @@
 - **Epoch/Phase:** [[roadmap/4-checkout-and-orders|Phase 4.1-4.3]]
 - **Status:** aprovada
 - **Created:** 2026-07-21
-- **Updated:** 2026-07-21 — task 4.2.1 delivered the sessionless checkout and durable capability contract; yolo 003 approved the 4.2.2 page/status amendment.
+- **Updated:** 2026-07-21 — task 4.2.1 delivered the sessionless checkout and durable capability contract; task 4.2.2 delivered the approved public page and status slice.
 
 ## What it covers
 
@@ -33,6 +33,10 @@ This spec defines the durable owner, customer-data, and payment-state contract f
 - **Settlement map V1:** this is a closed provider-to-local mapping based solely on an owner-bound authoritative `GET /orders/{uuid}` reconciliation already defined by the Nautt contract. Provider notification payloads, event names, recovered-history fields, and unknown provider status strings are not settlement evidence and cause no local transition. `new → PENDING`; `processing`, `paid`, and `finished → CONFIRMED`; `rejected → REJECTED`; `canceled → CANCELLED`; `expired → EXPIRED`; and `refunded → REFUNDED`. No other provider status is mapped. `CONFIRMED` is the only successful local state; only the three explicitly listed authoritative provider statuses may enter it.
 - A reconciliation may apply this map only through one transaction that matches the attached provider order's owner, immutable provider UUID, observed reconciliation version, and current authoritative mapped status, then conditionally matches the local order's current version and eligible state. `CREATED` never reconciles because it has no attached provider order. `PENDING` and `INDETERMINATE` may move to `PENDING`, `CONFIRMED`, `REJECTED`, `CANCELLED`, or `EXPIRED`; `CONFIRMED` may move only to `REFUNDED`; all other terminal states are immutable. A version/current-state mismatch, an unattached or cross-owner provider order, an unknown status, or a losing single-use claim is a fenced no-op/opaque loser outcome, not a retry or alternate success. The successful mapping atomically records the one single-use claim before marking `CONFIRMED`; an already matching state is idempotent and never creates another claim.
 - Task 4.1.2 creates persistence and the server-only reconciliation seam only. It makes no Nautt request and changes no polling, webhook, or recovery execution; a later task supplies those existing authoritative reads to this seam.
+
+## Implemented slices
+
+- **Task 4.2.2:** Bilingual `/pay/[identifier]` renders the redacted product and only the policy-required customer fields, submits the opaque checkout request, presents QR/copy-paste data, and polls the capability-bound status endpoint without exposing order or customer data. The page uses the persisted/default locale and cancels pending polls while hidden or unmounted.
 
 ## Out of scope
 

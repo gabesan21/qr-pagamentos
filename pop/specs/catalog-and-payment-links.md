@@ -4,7 +4,7 @@
 - **Epoch/Phase:** [[roadmap/3-catalog-and-payment-links|Epoch 3]]
 - **Status:** aprovada
 - **Created:** 2026-07-20
-- **Updated:** 2026-07-21 — task 4.1.1 delivered the owner-management boundary while preserving Epoch 3 delivery facts.
+- **Updated:** 2026-07-21 — closeout ledger records the delivered catalog slices; task 4.1.1 preserves the owner-management boundary.
 
 ## What it covers
 
@@ -39,6 +39,8 @@ This spec defines the administrator-managed catalog of Nautt provider UUIDs, acc
 
 ## Implemented slices
 
+- **Task 3.1.1:** Versioned Nautt currency-pair and payment-method catalog persistence, canonical UUID validation, protected administrator mutations, and bilingual management UI with active/inactive state.
+- **Task 3.1.2:** Route-level authorization and malformed-UUID hardening for every catalog mutation, including lowercase normalization and opaque protected failure outcomes.
 - **Task 3.2.1:** PostgreSQL/Prisma versioned products, canonical positive 18/6 decimal-string pricing, trimmed Unicode-code-point text constraints, re-authorized opaque administrator CRUD with compare-and-swap conflicts, and a localized multiline admin UI that preserves description line breaks. Task 4.1.1 supersedes only that initial administrator-only product-management boundary.
 - **Task 3.2.2:** Active-only, localized server read with exactly the redacted `{ title, description, price }` product projection and uniform `null` for malformed, missing, or inactive input. Payment-link binding and checkout remain future work.
 - **Task 3.3.1:** PaymentLink persistence with a unique 24-character server-generated URL-safe identifier, type, restrictive product/pair references, nullable expiry, active/created metadata, and commit-boundary active dependency enforcement serialized with deactivation. Active administrators can list, create, and one-way manually revoke links through opaque protected mutations and localized `/admin` management. Task 4.1.1 supersedes only that initial administrator-only payment-link-management boundary. Public `href`, checkout/orders/provider requests, automatic expiry inactivation, and automatic `SINGLE_USE` consumption remain future work.
