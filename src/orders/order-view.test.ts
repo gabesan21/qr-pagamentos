@@ -84,6 +84,11 @@ describe("policy-exact customer snapshot projection", () => {
     expect(toPolicySnapshot("EMAIL", stored({ name: "stray", cpf: "52998224725" }))).toEqual({ name: null, email: "ada@example.test", cpf: null, address: null });
     expect(toPolicySnapshot("NAME_EMAIL_CPF_ADDRESS", stored({ street: null })).address).toBeNull();
   });
+
+  it("exposes no customer data when the persisted policy is outside the closed enum", () => {
+    const corrupted = "NAME_EMAIL_CPF_ADDRESS_TAX_ID" as CheckoutDataPolicy;
+    expect(toPolicySnapshot(corrupted, stored())).toEqual({ name: null, email: null, cpf: null, address: null });
+  });
 });
 
 describe("order view service", () => {

@@ -77,13 +77,15 @@ function storedAddress(stored: StoredOrderView): CustomerAddressV1 | null {
 }
 
 // The projection exposes exactly the policy tuple, even if stray columns were persisted.
+// Fail-closed: a persisted policy outside the closed enum exposes no customer data.
 export function toPolicySnapshot(policy: CheckoutDataPolicy, stored: StoredOrderView): CustomerSnapshotV1 {
   const blank: CustomerSnapshotV1 = { name: null, email: null, cpf: null, address: null };
   if (policy === "NONE") return blank;
   if (policy === "EMAIL") return { ...blank, email: stored.email };
   if (policy === "NAME_EMAIL") return { ...blank, name: stored.name, email: stored.email };
   if (policy === "NAME_EMAIL_CPF") return { ...blank, name: stored.name, email: stored.email, cpf: stored.cpf };
-  return { name: stored.name, email: stored.email, cpf: stored.cpf, address: storedAddress(stored) };
+  if (policy === "NAME_EMAIL_CPF_ADDRESS") return { name: stored.name, email: stored.email, cpf: stored.cpf, address: storedAddress(stored) };
+  return blank;
 }
 
 function toOrderView(stored: StoredOrderView): OrderView {
