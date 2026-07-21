@@ -1,12 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { read } = vi.hoisted(() => ({ read: vi.fn() }));
+const { allowRateLimit, read } = vi.hoisted(() => ({ allowRateLimit: vi.fn(), read: vi.fn() }));
 vi.mock("@/checkout/payment-status", () => ({ getPublicPaymentStatusService: () => ({ read }) }));
+vi.mock("@/security/public-rate-limit", () => ({
+  allowPublicPaymentLinkRequest: allowRateLimit,
+  publicPaymentLinkRateLimitSurface: { status: "public-payment-status-poll" },
+  publicRateLimitResponse: () => new Response(null, { status: 429, headers: { "Cache-Control": "no-store" } }),
+}));
 
 import { dynamic, POST } from "./route";
 
 describe("POST /api/payment-links/[identifier]/checkout/status", () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    allowRateLimit.mockReturnValue(true);
+  });
 
   it("is dynamic, sessionless and returns only the closed redacted payment body", async () => {
     read.mockResolvedValueOnce({ state: "PENDING", pixCopyPaste: "000201" });
@@ -33,6 +41,15 @@ describe("POST /api/payment-links/[identifier]/checkout/status", () => {
     const response = await POST(new Request("https://example.test", { method: "POST", body: "{" }));
     expect(response.status).toBe(400);
     expect(response.headers.get("cache-control")).toContain("no-store");
+    expect(read).not.toHaveBeenCalled();
+  });
+
+  it("returns an empty no-store 429 before parsing the body or reading status", async () => {
+    allowRateLimit.mockReturnValueOnce(false);
+    const response = await POST(new Request("https://example.test", { method: "POST", body: "{" }));
+    expect(response.status).toBe(429);
+    expect(response.headers.get("cache-control")).toContain("no-store");
+    await expect(response.text()).resolves.toBe("");
     expect(read).not.toHaveBeenCalled();
   });
 });
