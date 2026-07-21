@@ -1,5 +1,5 @@
 ---
-status: aberta
+status: respondida
 origem: projeto
 created: 2026-07-20
 ---
@@ -16,4 +16,8 @@ Please decide:
 
 ## Response (user)
 
-<blank — waiting for user response>
+2026-07-21:
+
+1. Products and payment links are owned by the user who creates them. Users cannot view each other's products or payment links. There is no released or existing data to migrate.
+2. A single-use link is consumed when the final customer makes a confirmed payment, or it expires if an expiry applies. Failed and pending attempts do not consume it.
+3. Customer data is configured in the owner's administrative area. The default policy requests no data. Available choices are no data; name and email; email only; name, email, and CPF; and name, email, CPF, and address.
