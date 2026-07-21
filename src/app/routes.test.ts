@@ -20,4 +20,11 @@ describe("unprefixed route contract", () => {
       expect(await readFile(path, "utf8")).toContain("notFound()");
     }
   });
+
+  it("keeps public payment-link resolution as an unlocalized API route", async () => {
+    const source = await readFile("src/app/api/payment-links/[identifier]/route.ts", "utf8");
+
+    expect(source).toContain("export async function GET");
+    expect(source).toContain('export const dynamic = "force-dynamic"');
+  });
 });
