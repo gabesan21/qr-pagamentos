@@ -4,17 +4,20 @@ import { getAuthorizationService, UnauthenticatedError } from "@/auth/authorizat
 import { rejectCrossOrigin } from "@/app/origin-guard";
 import { relativeRedirect } from "@/app/relative-redirect";
 import { getOwnerOnboardingService, OwnerOnboardingChangedError } from "@/integrations/nautt/owner-onboarding";
+import { serverRequestRoutes, withServerRequestLog } from "@/observability/server-request-log";
 
 export async function POST(request: Request) {
-  const crossOrigin = rejectCrossOrigin(request);
-  if (crossOrigin) return crossOrigin;
-  try {
-    const principal = await getAuthorizationService().requireAuthenticated((await cookies()).get("qr_session")?.value);
-    await getOwnerOnboardingService().resetRegistration(principal);
-    return relativeRedirect("/?nautt=reset");
-  } catch (error) {
-    if (error instanceof UnauthenticatedError) return new Response(null, { status: 401 });
-    if (error instanceof OwnerOnboardingChangedError) return relativeRedirect("/?nautt=changed");
-    return relativeRedirect("/?nautt=unavailable");
-  }
+  return withServerRequestLog(request.headers.get("x-request-id"), { method: "POST", route: serverRequestRoutes.nauttCredentialsReset }, async () => {
+    const crossOrigin = rejectCrossOrigin(request);
+    if (crossOrigin) return crossOrigin;
+    try {
+      const principal = await getAuthorizationService().requireAuthenticated((await cookies()).get("qr_session")?.value);
+      await getOwnerOnboardingService().resetRegistration(principal);
+      return relativeRedirect("/?nautt=reset");
+    } catch (error) {
+      if (error instanceof UnauthenticatedError) return new Response(null, { status: 401 });
+      if (error instanceof OwnerOnboardingChangedError) return relativeRedirect("/?nautt=changed");
+      return relativeRedirect("/?nautt=unavailable");
+    }
+  });
 }

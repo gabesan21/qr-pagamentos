@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
+vi.mock("server-only", () => ({}));
+
 const { signIn, resolvePrincipal, resolveLocale } = vi.hoisted(() => ({ signIn: vi.fn(), resolvePrincipal: vi.fn(), resolveLocale: vi.fn() }));
 vi.mock("@/auth/session", () => ({ getSessionService: () => ({ signIn }), SESSION_ABSOLUTE_MS: 3_600_000 }));
 vi.mock("@/auth/authorization", () => ({ getAuthorizationService: () => ({ resolve: resolvePrincipal }) }));

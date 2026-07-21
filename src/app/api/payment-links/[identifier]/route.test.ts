@@ -2,6 +2,8 @@ import { readFile } from "node:fs/promises";
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+vi.mock("server-only", () => ({}));
+
 const { allowRateLimit, read } = vi.hoisted(() => ({ allowRateLimit: vi.fn(), read: vi.fn() }));
 
 vi.mock("@/auth/public-payment-link", () => ({ getPublicPaymentLinkService: () => ({ read }) }));

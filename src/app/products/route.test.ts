@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
+vi.mock("server-only", () => ({}));
+
 const { requireOwnerFromCookie, ownerProtectedMutationResponse, create, update, setActive, remove } = vi.hoisted(() => ({ requireOwnerFromCookie: vi.fn(), ownerProtectedMutationResponse: vi.fn(), create: vi.fn(), update: vi.fn(), setActive: vi.fn(), remove: vi.fn() }));
 vi.mock("@/app/owner-guard", () => ({ requireOwnerFromCookie, ownerProtectedMutationResponse }));
 vi.mock("@/auth/product", async (original) => ({ ...(await original<typeof import("@/auth/product")>()), getProductService: () => ({ create, update, setActive, delete: remove }) }));

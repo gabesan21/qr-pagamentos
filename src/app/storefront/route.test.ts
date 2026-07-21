@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
+vi.mock("server-only", () => ({}));
+
 const { requireOwnerFromCookie, ownerProtectedMutationResponse, update, StorefrontSettingsConflictError } = vi.hoisted(() => {
   class StorefrontSettingsConflictError extends Error {}
   return { requireOwnerFromCookie: vi.fn(), ownerProtectedMutationResponse: vi.fn(), update: vi.fn(), StorefrontSettingsConflictError };
