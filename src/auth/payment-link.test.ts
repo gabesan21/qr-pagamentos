@@ -1,7 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
 
-import { ForbiddenError } from "./authorization";
 import {
   createPaymentLinkService,
   PaymentLinkConflictError,
@@ -19,33 +18,42 @@ const currencyPairId = "22222222-2222-4222-8222-222222222222";
 const product = { id: productId, internalName: "Donation", titlePtBr: "Doação", titleEn: "Donation", price: "999999999999.999999" };
 const pair = { id: currencyPairId, label: "BRL/USDT" };
 
-function testStore(): PaymentLinkStore & { created: Array<PaymentLinkCreateValues & { ownerId: string }>; active: boolean } {
-  const created: Array<PaymentLinkCreateValues & { ownerId: string }> = [];
-  let active = true;
+type TestPaymentLink = PaymentLinkCreateValues & { id: string; ownerId: string };
+
+function testStore(): PaymentLinkStore & { created: TestPaymentLink[] } {
+  const created: TestPaymentLink[] = [];
+  const activeLinkIds = new Set<string>();
+  const toOwnerPaymentLink = (values: TestPaymentLink): OwnerPaymentLink => ({
+    id: values.id,
+    identifier: values.identifier,
+    linkType: values.linkType,
+    expiresAt: values.expiresAt,
+    active: activeLinkIds.has(values.id),
+    createdAt: new Date("2026-07-20T12:00:00.000Z"),
+    product,
+    currencyPair: pair,
+  });
   return {
     created,
-    get active() { return active; },
     async list(ownerId) {
-      return created.filter((values) => values.ownerId === ownerId).map((values, index) => ({
-        id: `${index + 1}`.padStart(8, "0") + "-0000-4000-8000-000000000000",
-        identifier: values.identifier,
-        linkType: values.linkType,
-        expiresAt: values.expiresAt,
-        active,
-        createdAt: new Date("2026-07-20T12:00:00.000Z"),
-        product,
-        currencyPair: pair,
-      })) as OwnerPaymentLink[];
+      return created.filter((values) => values.ownerId === ownerId).map(toOwnerPaymentLink);
     },
     async listActiveProducts(ownerId) { return ownerId === owner.id ? [product] : []; },
     async listActiveCurrencyPairs() { return [pair]; },
     async create(ownerId, values) {
-      created.push({ ...values, ownerId });
-      return (await this.list(ownerId))[created.length - 1]!;
+      const link = {
+        ...values,
+        id: `${created.length + 1}`.padStart(8, "0") + "-0000-4000-8000-000000000000",
+        ownerId,
+      };
+      created.push(link);
+      activeLinkIds.add(link.id);
+      return toOwnerPaymentLink(link);
     },
-    async deactivate(_ownerId, _id) {
-      if (!active) return false;
-      active = false;
+    async deactivate(ownerId, id) {
+      const link = created.find((candidate) => candidate.id === id && candidate.ownerId === ownerId);
+      if (!link || !activeLinkIds.has(link.id)) return false;
+      activeLinkIds.delete(link.id);
       return true;
     },
   };
@@ -138,7 +146,7 @@ describe("payment-link service", () => {
     await expect(createPaymentLinkService(store).create(owner, input())).rejects.toBeInstanceOf(PaymentLinkConflictError);
   });
 
-  it("fails opaquely after bounded collisions and makes revocation one-way", async () => {
+  it("fails opaquely after bounded collisions and revokes only the actor's link", async () => {
     const store = testStore();
     store.create = async () => { throw { code: "P2002", meta: { target: "payment_link_identifier_key" } }; };
     const service = createPaymentLinkService(store);
@@ -146,7 +154,15 @@ describe("payment-link service", () => {
 
     const activeStore = testStore();
     const activeService = createPaymentLinkService(activeStore);
-    await expect(activeService.deactivate(owner, productId)).resolves.toBeUndefined();
-    await expect(activeService.deactivate(secondOwner, productId)).rejects.toBeInstanceOf(PaymentLinkConflictError);
+    const ownerLink = await activeService.create(owner, input());
+    const foreignLink = await activeService.create(secondOwner, input());
+
+    await expect(activeService.deactivate(secondOwner, ownerLink.id)).rejects.toBeInstanceOf(PaymentLinkConflictError);
+    await expect(activeService.listForOwner(owner)).resolves.toMatchObject({ links: [{ id: ownerLink.id, active: true }] });
+    await expect(activeService.listForOwner(secondOwner)).resolves.toMatchObject({ links: [{ id: foreignLink.id, active: true }] });
+
+    await expect(activeService.deactivate(owner, ownerLink.id)).resolves.toBeUndefined();
+    await expect(activeService.listForOwner(owner)).resolves.toMatchObject({ links: [{ id: ownerLink.id, active: false }] });
+    await expect(activeService.listForOwner(secondOwner)).resolves.toMatchObject({ links: [{ id: foreignLink.id, active: true }] });
   });
 });
