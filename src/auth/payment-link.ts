@@ -14,7 +14,7 @@ export type PaymentLinkProduct = Readonly<{
   price: string;
 }>;
 export type PaymentLinkCurrencyPair = Readonly<{ id: string; label: string }>;
-export type AdminPaymentLink = Readonly<{
+export type OwnerPaymentLink = Readonly<{
   id: string;
   identifier: string;
   linkType: PaymentLinkType;
@@ -24,8 +24,8 @@ export type AdminPaymentLink = Readonly<{
   product: PaymentLinkProduct;
   currencyPair: PaymentLinkCurrencyPair;
 }>;
-export type PaymentLinkAdminData = Readonly<{
-  links: AdminPaymentLink[];
+export type PaymentLinkOwnerData = Readonly<{
+  links: OwnerPaymentLink[];
   activeProducts: PaymentLinkProduct[];
   activeCurrencyPairs: PaymentLinkCurrencyPair[];
 }>;
@@ -43,11 +43,11 @@ export class PaymentLinkConflictError extends Error {}
 export class PaymentLinkDependencyError extends Error {}
 
 export type PaymentLinkStore = {
-  list(): Promise<AdminPaymentLink[]>;
-  listActiveProducts(): Promise<PaymentLinkProduct[]>;
+  list(ownerId: string): Promise<OwnerPaymentLink[]>;
+  listActiveProducts(ownerId: string): Promise<PaymentLinkProduct[]>;
   listActiveCurrencyPairs(): Promise<PaymentLinkCurrencyPair[]>;
-  create(values: PaymentLinkCreateValues): Promise<AdminPaymentLink>;
-  deactivate(id: string): Promise<boolean>;
+  create(ownerId: string, values: PaymentLinkCreateValues): Promise<OwnerPaymentLink>;
+  deactivate(ownerId: string, id: string): Promise<boolean>;
 };
 
 type Dependencies = Readonly<{
@@ -64,9 +64,9 @@ const ACTIVE_DEPENDENCY_DATABASE_ERRORS = new Set([
 ]);
 const activeDependencies: Dependencies = { randomBytes, now: () => new Date() };
 
-function requireAdmin(actor: Principal) {
-  if (actor.role !== "ADMIN" || actor.status !== "ACTIVE") {
-    throw new ForbiddenError("Administrator access is required");
+function requireActiveActor(actor: Principal) {
+  if (actor.status !== "ACTIVE") {
+    throw new ForbiddenError("Active account access is required");
   }
 }
 
@@ -113,17 +113,17 @@ function isInactiveDependency(error: unknown): boolean {
 
 export function createPaymentLinkService(store: PaymentLinkStore, dependencies: Dependencies = activeDependencies) {
   return {
-    async listForAdmin(actor: Principal): Promise<PaymentLinkAdminData> {
-      requireAdmin(actor);
+    async listForOwner(actor: Principal): Promise<PaymentLinkOwnerData> {
+      requireActiveActor(actor);
       const [links, activeProducts, activeCurrencyPairs] = await Promise.all([
-        store.list(),
-        store.listActiveProducts(),
+        store.list(actor.id),
+        store.listActiveProducts(actor.id),
         store.listActiveCurrencyPairs(),
       ]);
       return { links, activeProducts, activeCurrencyPairs };
     },
     async create(actor: Principal, input: Readonly<Record<string, unknown>>) {
-      requireAdmin(actor);
+      requireActiveActor(actor);
       const productId = validateUuid(input.productId, "Product identifier");
       const currencyPairId = validateUuid(input.currencyPairId, "Currency-pair identifier");
       const linkType = validateType(input.linkType);
@@ -132,7 +132,7 @@ export function createPaymentLinkService(store: PaymentLinkStore, dependencies: 
       for (let attempt = 0; attempt < IDENTIFIER_ATTEMPTS; attempt += 1) {
         const identifier = dependencies.randomBytes(18).toString("base64url");
         try {
-          return await store.create({ identifier, productId, currencyPairId, linkType, expiresAt, active: true });
+          return await store.create(actor.id, { identifier, productId, currencyPairId, linkType, expiresAt, active: true });
         } catch (error) {
           if (isInactiveDependency(error)) throw new PaymentLinkDependencyError("Payment-link dependency is unavailable");
           if (!isIdentifierCollision(error) || attempt === IDENTIFIER_ATTEMPTS - 1) break;
@@ -141,8 +141,8 @@ export function createPaymentLinkService(store: PaymentLinkStore, dependencies: 
       throw new PaymentLinkConflictError("Payment-link generation could not be completed");
     },
     async deactivate(actor: Principal, id: unknown) {
-      requireAdmin(actor);
-      const changed = await store.deactivate(validateUuid(id, "Payment-link identifier"));
+      requireActiveActor(actor);
+      const changed = await store.deactivate(actor.id, validateUuid(id, "Payment-link identifier"));
       if (!changed) throw new PaymentLinkConflictError("Payment-link revocation could not be completed");
     },
   };
@@ -160,18 +160,18 @@ function prismaStore(): PaymentLinkStore {
     product: { select: { id: true, internalName: true, titlePtBr: true, titleEn: true, price: true } },
     currencyPair: { select: { id: true, label: true } },
   } as const;
-  type PrismaAdminPaymentLink = Omit<AdminPaymentLink, "linkType"> & { linkType: string };
-  function toAdminPaymentLink(link: PrismaAdminPaymentLink): AdminPaymentLink {
+  type PrismaOwnerPaymentLink = Omit<OwnerPaymentLink, "linkType"> & { linkType: string };
+  function toOwnerPaymentLink(link: PrismaOwnerPaymentLink): OwnerPaymentLink {
     return { ...link, linkType: link.linkType as PaymentLinkType };
   }
   return {
-    async list() {
-      const links = await db.paymentLink.findMany({ orderBy: [{ createdAt: "desc" }, { id: "desc" }], select: projection });
-      return links.map(toAdminPaymentLink);
+    async list(ownerId) {
+      const links = await db.paymentLink.findMany({ where: { ownerId }, orderBy: [{ createdAt: "desc" }, { id: "desc" }], select: projection });
+      return links.map(toOwnerPaymentLink);
     },
-    listActiveProducts() {
+    listActiveProducts(ownerId) {
       return db.product.findMany({
-        where: { active: true },
+        where: { ownerId, active: true },
         orderBy: [{ internalName: "asc" }, { id: "asc" }],
         select: { id: true, internalName: true, titlePtBr: true, titleEn: true, price: true },
       });
@@ -183,11 +183,11 @@ function prismaStore(): PaymentLinkStore {
         select: { id: true, label: true },
       });
     },
-    async create(values) {
-      return toAdminPaymentLink(await db.paymentLink.create({ data: values, select: projection }));
+    async create(ownerId, values) {
+      return toOwnerPaymentLink(await db.paymentLink.create({ data: { ownerId, ...values }, select: projection }));
     },
-    async deactivate(id) {
-      const result = await db.paymentLink.updateMany({ where: { id, active: true }, data: { active: false } });
+    async deactivate(ownerId, id) {
+      const result = await db.paymentLink.updateMany({ where: { id, ownerId, active: true }, data: { active: false } });
       return result.count === 1;
     },
   };

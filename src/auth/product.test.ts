@@ -18,6 +18,7 @@ const admin = {
   createdAt: new Date(),
 };
 const user = { ...admin, role: "USER" as const };
+const secondUser = { ...user, id: "second-user" };
 const disabledAdmin = { ...admin, status: "DISABLED" as const };
 
 const validValues = (overrides: Partial<Record<keyof ProductValues, unknown>> = {}) => ({
@@ -31,12 +32,23 @@ const validValues = (overrides: Partial<Record<keyof ProductValues, unknown>> = 
 });
 
 describe("product service", () => {
-  it("allows only active administrators to read or mutate products", async () => {
+  it("allows active accounts to manage their own products", async () => {
     const service = createProductService(createTestProductStore());
 
-    await expect(service.list(admin)).resolves.toEqual([]);
-    await expect(service.list(user)).rejects.toThrow("Administrator access is required");
-    await expect(service.create(disabledAdmin, validValues())).rejects.toThrow("Administrator access is required");
+    await expect(service.listForOwner(admin)).resolves.toEqual([]);
+    await expect(service.create(user, validValues())).resolves.toMatchObject({ internalName: "Donation" });
+    await expect(service.create(disabledAdmin, validValues())).rejects.toThrow("Active account access is required");
+  });
+
+  it("keeps lists and mutations inside the actor's persisted owner boundary", async () => {
+    const store = createTestProductStore();
+    const service = createProductService(store);
+    const product = await service.create(user, validValues());
+
+    await expect(service.listForOwner(secondUser)).resolves.toEqual([]);
+    await expect(service.update(secondUser, product.id, 0, validValues())).rejects.toBeInstanceOf(ProductConflictError);
+    await expect(service.delete(secondUser, product.id, 0)).rejects.toBeInstanceOf(ProductConflictError);
+    expect(store.products).toHaveLength(1);
   });
 
   it("trims Unicode boundary whitespace, preserves internal content, and measures code points", async () => {

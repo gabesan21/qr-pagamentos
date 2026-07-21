@@ -7,26 +7,26 @@ import {
   PaymentLinkConflictError,
   PaymentLinkDependencyError,
   PaymentLinkValidationError,
-  type AdminPaymentLink,
+  type OwnerPaymentLink,
   type PaymentLinkCreateValues,
   type PaymentLinkStore,
 } from "./payment-link";
 
-const admin = { id: "admin", username: "admin", email: null, role: "ADMIN" as const, status: "ACTIVE" as const, createdAt: new Date() };
-const user = { ...admin, role: "USER" as const };
+const owner = { id: "owner", username: "owner", email: null, role: "USER" as const, status: "ACTIVE" as const, createdAt: new Date() };
+const secondOwner = { ...owner, id: "second-owner" };
 const productId = "11111111-1111-4111-8111-111111111111";
 const currencyPairId = "22222222-2222-4222-8222-222222222222";
 const product = { id: productId, internalName: "Donation", titlePtBr: "Doação", titleEn: "Donation", price: "999999999999.999999" };
 const pair = { id: currencyPairId, label: "BRL/USDT" };
 
-function testStore(): PaymentLinkStore & { created: PaymentLinkCreateValues[]; active: boolean } {
-  const created: PaymentLinkCreateValues[] = [];
+function testStore(): PaymentLinkStore & { created: Array<PaymentLinkCreateValues & { ownerId: string }>; active: boolean } {
+  const created: Array<PaymentLinkCreateValues & { ownerId: string }> = [];
   let active = true;
   return {
     created,
     get active() { return active; },
-    async list() {
-      return created.map((values, index) => ({
+    async list(ownerId) {
+      return created.filter((values) => values.ownerId === ownerId).map((values, index) => ({
         id: `${index + 1}`.padStart(8, "0") + "-0000-4000-8000-000000000000",
         identifier: values.identifier,
         linkType: values.linkType,
@@ -35,15 +35,15 @@ function testStore(): PaymentLinkStore & { created: PaymentLinkCreateValues[]; a
         createdAt: new Date("2026-07-20T12:00:00.000Z"),
         product,
         currencyPair: pair,
-      })) as AdminPaymentLink[];
+      })) as OwnerPaymentLink[];
     },
-    async listActiveProducts() { return [product]; },
+    async listActiveProducts(ownerId) { return ownerId === owner.id ? [product] : []; },
     async listActiveCurrencyPairs() { return [pair]; },
-    async create(values) {
-      created.push(values);
-      return (await this.list())[created.length - 1]!;
+    async create(ownerId, values) {
+      created.push({ ...values, ownerId });
+      return (await this.list(ownerId))[created.length - 1]!;
     },
-    async deactivate() {
+    async deactivate(_ownerId, _id) {
       if (!active) return false;
       active = false;
       return true;
@@ -54,28 +54,29 @@ function testStore(): PaymentLinkStore & { created: PaymentLinkCreateValues[]; a
 const input = (overrides: Record<string, unknown> = {}) => ({ productId, currencyPairId, linkType: "REUSABLE", expiresAt: "", ...overrides });
 
 describe("payment-link service", () => {
-  it("allows only active administrators to inspect or mutate payment links", async () => {
+  it("allows active accounts to inspect and mutate only their own payment links", async () => {
     const service = createPaymentLinkService(testStore());
-    await expect(service.listForAdmin(admin)).resolves.toMatchObject({ activeProducts: [product], activeCurrencyPairs: [pair] });
-    await expect(service.create(user, input())).rejects.toBeInstanceOf(ForbiddenError);
+    await expect(service.listForOwner(owner)).resolves.toMatchObject({ activeProducts: [product], activeCurrencyPairs: [pair] });
+    await expect(service.create(owner, input())).resolves.toMatchObject({ active: true });
+    await expect(service.listForOwner(secondOwner)).resolves.toMatchObject({ links: [], activeProducts: [] });
   });
 
   it("creates only active links with CSPRNG URL-safe identifiers and preserves exact prices by reference", async () => {
     const store = testStore();
     const service = createPaymentLinkService(store, { randomBytes: () => Buffer.alloc(18, 255), now: () => new Date("2026-07-20T12:00:00.000Z") });
-    const link = await service.create(admin, input({ linkType: "SINGLE_USE", expiresAt: "2026-07-20T12:01" }));
+    const link = await service.create(owner, input({ linkType: "SINGLE_USE", expiresAt: "2026-07-20T12:01" }));
 
     expect(link.identifier).toMatch(/^[A-Za-z0-9_-]{24}$/);
-    expect(store.created[0]).toMatchObject({ active: true, linkType: "SINGLE_USE", productId, currencyPairId });
+    expect(store.created[0]).toMatchObject({ ownerId: owner.id, active: true, linkType: "SINGLE_USE", productId, currencyPairId });
     expect(store.created[0]?.expiresAt?.toISOString()).toBe("2026-07-20T12:01:00.000Z");
-    expect((await service.listForAdmin(admin)).links[0]?.product.price).toBe("999999999999.999999");
+    expect((await service.listForOwner(owner)).links[0]?.product.price).toBe("999999999999.999999");
   });
 
   it("accepts blank expiry as null and rejects malformed, non-round-trippable, and non-future expiry", async () => {
     const service = createPaymentLinkService(testStore(), { randomBytes: () => Buffer.alloc(18), now: () => new Date("2026-07-20T12:00:00.000Z") });
-    await expect(service.create(admin, input())).resolves.toMatchObject({ expiresAt: null });
+    await expect(service.create(owner, input())).resolves.toMatchObject({ expiresAt: null });
     for (const expiresAt of ["2026-07-20", "2026-02-30T12:00", "2026-07-20T12:00", "2026-07-20T12:00:01"]) {
-      await expect(service.create(admin, input({ expiresAt }))).rejects.toBeInstanceOf(PaymentLinkValidationError);
+      await expect(service.create(owner, input({ expiresAt }))).rejects.toBeInstanceOf(PaymentLinkValidationError);
     }
   });
 
@@ -83,7 +84,7 @@ describe("payment-link service", () => {
     const store = testStore();
     const service = createPaymentLinkService(store);
     for (const values of [input({ productId: "nope" }), input({ currencyPairId: ` ${currencyPairId}` }), input({ linkType: "MANY" })]) {
-      await expect(service.create(admin, values)).rejects.toBeInstanceOf(PaymentLinkValidationError);
+      await expect(service.create(owner, values)).rejects.toBeInstanceOf(PaymentLinkValidationError);
     }
     expect(store.created).toHaveLength(0);
   });
@@ -91,13 +92,13 @@ describe("payment-link service", () => {
   it("retries bounded identifier collisions without persisting the failed attempt", async () => {
     const store = testStore();
     let calls = 0;
-    store.create = async (values) => {
+    store.create = async (_ownerId, values) => {
       calls += 1;
       if (calls === 1) throw { code: "P2002", meta: { target: "payment_link_identifier_key" } };
       return { id: randomUUID(), ...values, createdAt: new Date(), product, currencyPair: pair };
     };
     const service = createPaymentLinkService(store, { randomBytes: () => Buffer.alloc(18, calls), now: () => new Date("2026-07-20T12:00:00.000Z") });
-    await expect(service.create(admin, input())).resolves.toMatchObject({ active: true });
+    await expect(service.create(owner, input())).resolves.toMatchObject({ active: true });
     expect(calls).toBe(2);
 
   });
@@ -108,7 +109,7 @@ describe("payment-link service", () => {
       throw { code: "P2004", meta: { database_error: `ERROR: constraint ${constraint}` } };
     };
 
-    await expect(createPaymentLinkService(store).create(admin, input())).rejects.toBeInstanceOf(PaymentLinkDependencyError);
+    await expect(createPaymentLinkService(store).create(owner, input())).rejects.toBeInstanceOf(PaymentLinkDependencyError);
     expect(store.created).toHaveLength(0);
   });
 
@@ -123,7 +124,7 @@ describe("payment-link service", () => {
       throw { code: "P2004", meta: { database_error: databaseError } };
     };
 
-    await expect(createPaymentLinkService(store).create(admin, input())).rejects.toBeInstanceOf(PaymentLinkConflictError);
+    await expect(createPaymentLinkService(store).create(owner, input())).rejects.toBeInstanceOf(PaymentLinkConflictError);
   });
 
   it.each([
@@ -134,18 +135,18 @@ describe("payment-link service", () => {
     const store = testStore();
     store.create = async () => { throw error; };
 
-    await expect(createPaymentLinkService(store).create(admin, input())).rejects.toBeInstanceOf(PaymentLinkConflictError);
+    await expect(createPaymentLinkService(store).create(owner, input())).rejects.toBeInstanceOf(PaymentLinkConflictError);
   });
 
   it("fails opaquely after bounded collisions and makes revocation one-way", async () => {
     const store = testStore();
     store.create = async () => { throw { code: "P2002", meta: { target: "payment_link_identifier_key" } }; };
     const service = createPaymentLinkService(store);
-    await expect(service.create(admin, input())).rejects.toBeInstanceOf(PaymentLinkConflictError);
+    await expect(service.create(owner, input())).rejects.toBeInstanceOf(PaymentLinkConflictError);
 
     const activeStore = testStore();
     const activeService = createPaymentLinkService(activeStore);
-    await expect(activeService.deactivate(admin, productId)).resolves.toBeUndefined();
-    await expect(activeService.deactivate(admin, productId)).rejects.toBeInstanceOf(PaymentLinkConflictError);
+    await expect(activeService.deactivate(owner, productId)).resolves.toBeUndefined();
+    await expect(activeService.deactivate(secondOwner, productId)).rejects.toBeInstanceOf(PaymentLinkConflictError);
   });
 });
