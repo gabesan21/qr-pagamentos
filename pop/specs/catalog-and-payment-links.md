@@ -4,7 +4,7 @@
 - **Epoch/Phase:** [[roadmap/3-catalog-and-payment-links|Epoch 3]]
 - **Status:** aprovada
 - **Created:** 2026-07-20
-- **Updated:** 2026-07-20 — task 3.2.1 integrated in yolo; product persistence and protected admin CRUD delivered.
+- **Updated:** 2026-07-20 — task 3.2.2 integrated in yolo; server-only redacted product reads delivered.
 
 ## What it covers
 
@@ -34,11 +34,12 @@ This spec defines the administrator-facing catalog of Nautt provider UUIDs, the 
 - Text fields are validated after removing leading and trailing Unicode whitespace. The trimmed value is persisted; whitespace-only values are rejected. Internal whitespace is preserved, but internal names and public titles reject CR/LF and therefore remain single-line; descriptions preserve internal spaces and line breaks. Limits apply to the trimmed persisted value.
 - A product can be deactivated; inactive products cannot be linked to new payment links.
 - Product mutations are atomic and idempotent where practical; concurrent edits are rejected with an opaque conflict outcome.
-- Public read surfaces for checkout expose only redacted product fields: public title, description, and price.
+- Public read surfaces for checkout expose only redacted product fields: public title, description, and price. The application-internal public-product read boundary is server-only and accepts a trusted canonical product UUID plus the closed `pt-BR` or `en` locale. Each uncached read must query only an active product and return either `null` (malformed, absent, or inactive are indistinguishable) or exactly `{ title, description, price }`, selecting the requested locale's persisted public title/description. `price` remains the unchanged canonical positive ASCII decimal string; it is never converted through `Number`, formatted, rounded, or paired with a currency here. The result excludes every identifier, internal/admin field, state/version/timestamp, and provider field. This boundary creates no HTTP route, UI, dictionary copy, payment-link binding, or checkout behavior.
 
 ## Implemented slices
 
-- **Task 3.2.1:** PostgreSQL/Prisma versioned products, canonical positive 18/6 decimal-string pricing, trimmed Unicode-code-point text constraints, re-authorized opaque administrator CRUD with compare-and-swap conflicts, and a localized multiline admin UI that preserves description line breaks. Public product reads, payment-link binding, and checkout remain future work.
+- **Task 3.2.1:** PostgreSQL/Prisma versioned products, canonical positive 18/6 decimal-string pricing, trimmed Unicode-code-point text constraints, re-authorized opaque administrator CRUD with compare-and-swap conflicts, and a localized multiline admin UI that preserves description line breaks.
+- **Task 3.2.2:** Active-only, localized server read with exactly the redacted `{ title, description, price }` product projection and uniform `null` for malformed, missing, or inactive input. Payment-link binding and checkout remain future work.
 
 ### Payment links
 

@@ -28,7 +28,7 @@
 
 ## Phase 3.2 - Product management
 
-- **Status:** em andamento
+- **Status:** concluída
 - **Description:** Let administrators create and manage products with bilingual fields, exact-decimal pricing, and active status.
 - **Yolo:** yes
 - **Specs:** [[specs/catalog-and-payment-links|Catalog and payment links]]
@@ -37,7 +37,7 @@
 | Task | Description | Status |
 |------|-------------|--------|
 | [[3.2.1-product-schema-and-admin-crud]] | Persist products with internal name, i18n public title/description, exact-decimal price, active flag, and admin CRUD UI. · size: M | concluída |
-| [[3.2.2-product-public-read-boundary]] | Provide a redacted, product-scoped server read model for later checkout consumption. · size: S | não iniciada |
+| [[3.2.2-product-public-read-boundary]] | Provide a redacted, product-scoped server read model for later checkout consumption. · size: S | concluída |
 
 ## Phase 3.3 - Payment links
 
