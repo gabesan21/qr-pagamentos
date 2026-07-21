@@ -2,8 +2,9 @@
 
 - **Project:** [[PROJECT|QR Pagamentos]]
 - **Epoch/Phase:** [[roadmap/3-catalog-and-payment-links|Epoch 3]]
-- **Status:** pendente
+- **Status:** aprovada
 - **Created:** 2026-07-20
+- **Updated:** 2026-07-20 — task 3.2.1 integrated in yolo; product persistence and protected admin CRUD delivered.
 
 ## What it covers
 
@@ -27,10 +28,17 @@ This spec defines the administrator-facing catalog of Nautt provider UUIDs, the 
 ### Products
 
 - Administrators manage products with: internal name, public title (i18n), description (i18n), exact-decimal price, active/inactive status.
-- Product price uses a decimal representation; the UI formats it according to the configured locale.
+- A product price is persisted and exchanged inside the server as one canonical positive ASCII decimal string. Its grammar is `^(?:0|[1-9][0-9]{0,11})(?:\.[0-9]{0,5}[1-9])?$`, with the all-zero value excluded: no sign, exponent, comma, grouping separator, surrounding whitespace, leading integer zero, or trailing fractional zero is accepted. This gives at most 12 integer digits, 6 fractional digits, and 18 total digits; values outside those precision/scale limits are rejected rather than rounded. The application never converts the value through JavaScript `Number`.
+- The admin form accepts that canonical dot-decimal contract; it does not silently trim or rewrite malformed prices. Presentation alone formats the exact value according to the persisted `pt-BR` or `en` locale and never changes the stored canonical value.
+- Internal names are required and limited to 128 Unicode code points; each public title is required and limited to 160 Unicode code points; each public description is required and limited to 2,000 Unicode code points.
+- Text fields are validated after removing leading and trailing Unicode whitespace. The trimmed value is persisted; whitespace-only values are rejected. Internal whitespace is preserved, but internal names and public titles reject CR/LF and therefore remain single-line; descriptions preserve internal spaces and line breaks. Limits apply to the trimmed persisted value.
 - A product can be deactivated; inactive products cannot be linked to new payment links.
 - Product mutations are atomic and idempotent where practical; concurrent edits are rejected with an opaque conflict outcome.
 - Public read surfaces for checkout expose only redacted product fields: public title, description, and price.
+
+## Implemented slices
+
+- **Task 3.2.1:** PostgreSQL/Prisma versioned products, canonical positive 18/6 decimal-string pricing, trimmed Unicode-code-point text constraints, re-authorized opaque administrator CRUD with compare-and-swap conflicts, and a localized multiline admin UI that preserves description line breaks. Public product reads, payment-link binding, and checkout remain future work.
 
 ### Payment links
 

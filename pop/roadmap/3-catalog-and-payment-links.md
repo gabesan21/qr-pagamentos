@@ -15,7 +15,7 @@
 
 ## Phase 3.1 - Nautt currency and payment-method catalog
 
-- **Status:** em andamento
+- **Status:** concluída
 - **Description:** Let administrators manage the approved Nautt currency_uuid / exchange_currency_uuid and payment-method UUID pairs that later products and payment links may use.
 - **Yolo:** yes
 - **Specs:** [[specs/catalog-and-payment-links|Catalog and payment links]]
@@ -23,12 +23,12 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[3.1.1-design-catalog-schema-and-admin-ui]] | Add Prisma tables and admin CRUD UI for Nautt currency pairs and payment methods, with UUID format validation, active/inactive flag, and i18n. · size: M | não iniciada |
-| [[3.1.2-validate-catalog-uuids-server-side]] | Harden server-side validation and authorization for catalog mutations; reject malformed UUIDs and unauthorized access without disclosing records. · size: S | não iniciada |
+| [[3.1.1-design-catalog-schema-and-admin-ui]] | Add Prisma tables and admin CRUD UI for Nautt currency pairs and payment methods, with UUID format validation, active/inactive flag, and i18n. · size: M | concluída |
+| [[3.1.2-validate-catalog-uuids-server-side]] | Harden server-side validation and authorization for catalog mutations; reject malformed UUIDs and unauthorized access without disclosing records. · size: S | concluída |
 
 ## Phase 3.2 - Product management
 
-- **Status:** pendente
+- **Status:** em andamento
 - **Description:** Let administrators create and manage products with bilingual fields, exact-decimal pricing, and active status.
 - **Yolo:** yes
 - **Specs:** [[specs/catalog-and-payment-links|Catalog and payment links]]
@@ -36,7 +36,7 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[3.2.1-product-schema-and-admin-crud]] | Persist products with internal name, i18n public title/description, exact-decimal price, active flag, and admin CRUD UI. · size: M | não iniciada |
+| [[3.2.1-product-schema-and-admin-crud]] | Persist products with internal name, i18n public title/description, exact-decimal price, active flag, and admin CRUD UI. · size: M | concluída |
 | [[3.2.2-product-public-read-boundary]] | Provide a redacted, product-scoped server read model for later checkout consumption. · size: S | não iniciada |
 
 ## Phase 3.3 - Payment links
