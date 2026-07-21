@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
 import { chmod, copyFile, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -15,6 +15,8 @@ const sources = path.join(temporary, "sources");
 const staged = path.join(temporary, "staged");
 await mkdir(sources, { mode: 0o700 });
 const values = { admin: `Adm!n-${token}`, migrator: `Migrator-${token}`, runtime: `Runtime-${token}`, initial: `Initial-Admin-${token}-Password` };
+const nauttEncryptionKey = randomBytes(32).toString("base64url");
+const sensitiveValues = [...Object.values(values), nauttEncryptionKey];
 const files = Object.fromEntries(Object.keys(values).map((name) => [name, path.join(sources, name)]));
 for (const name of Object.keys(values)) { await writeFile(files[name], `${values[name]}\n`, { mode: 0o600 }); await chmod(files[name], 0o600); }
 const usernameFile = path.join(sources, "initial-username");
@@ -41,6 +43,9 @@ let failure;
 try {
   const prepared = execute(process.execPath, ["pop/scripts/container-prepare-secrets.mjs"], { env });
   assert(prepared.status === 0, `secret preparation failed\n${prepared.stderr}`);
+  const nauttEncryptionKeyFile = path.join(staged, "nautt_encryption_key");
+  await writeFile(nauttEncryptionKeyFile, nauttEncryptionKey, { mode: 0o400 });
+  await chmod(nauttEncryptionKeyFile, 0o400);
   await copyFile(recoveryFile, env.INITIAL_ADMIN_RECOVERY_PASSWORD_FILE);
   await chmod(env.INITIAL_ADMIN_RECOVERY_PASSWORD_FILE, 0o400);
   const started = compose(["up", "-d", "--build"]);
@@ -67,7 +72,7 @@ try {
   if (status !== 0) {
     const logs = compose(["logs", "--no-color", "app"]);
     let redacted = `${logs.stdout}${logs.stderr}`;
-    for (const value of Object.values(values)) redacted = redacted.replaceAll(value, "[REDACTED]");
+    for (const value of sensitiveValues) redacted = redacted.replaceAll(value, "[REDACTED]");
     console.error(redacted);
   }
   assert(status === 0, `admin evidence Playwright failed with status ${status}`);

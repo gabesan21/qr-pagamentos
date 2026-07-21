@@ -33,13 +33,13 @@ assert(runtimeClient.includes("process.env.DATABASE_URL") && !runtimeClient.incl
 const gitignore = await readFile(".gitignore", "utf8");
 assert(gitignore.split("\n").includes("src/generated/prisma/"), "Generated Prisma output is not ignored");
 const schema = await readFile("prisma/schema.prisma", "utf8");
-for (const model of ["DatabaseFoundationFixture", "User", "PasswordCredential", "NauttCredential", "DeploymentBootstrap", "Session", "GlobalPaymentSettings", "ProviderQuote", "ProviderOrder", "WebhookDelivery", "WebhookDeliveryAttempt", "WebhookRecoveryLease", "CatalogCurrencyPair", "CatalogPaymentMethod"]) {
+for (const model of ["DatabaseFoundationFixture", "User", "PasswordCredential", "NauttCredential", "DeploymentBootstrap", "Session", "GlobalPaymentSettings", "ProviderQuote", "ProviderOrder", "WebhookDelivery", "WebhookDeliveryAttempt", "WebhookRecoveryLease", "CatalogCurrencyPair", "CatalogPaymentMethod", "Product"]) {
   assert(schema.includes(`model ${model}`), `Schema is missing ${model}`);
 }
 assert(schema.includes('output   = "../src/generated/prisma"'), "Generated output changed");
 
 const migrationDirectories = (await readdir("prisma/migrations", { withFileTypes: true })).filter((entry) => entry.isDirectory()).map((entry) => entry.name);
-assert(JSON.stringify(migrationDirectories) === JSON.stringify(["20260714000000_foundation_baseline", "20260714190000_local_identities", "20260716110000_database_sessions", "20260716160000_user_language_preference", "20260716180000_global_payment_settings", "20260716210000_restrict_global_payment_settings_runtime", "20260717190000_nautt_credentials", "20260717210000_nautt_webhook_registration", "20260717230000_nautt_credential_revision", "20260718010000_provider_orders", "20260718030000_nautt_webhook_deliveries", "20260718050000_nautt_webhook_recovery", "20260720230000_nautt_catalog"]), "Migration history name/count changed");
+assert(JSON.stringify(migrationDirectories) === JSON.stringify(["20260714000000_foundation_baseline", "20260714190000_local_identities", "20260716110000_database_sessions", "20260716160000_user_language_preference", "20260716180000_global_payment_settings", "20260716210000_restrict_global_payment_settings_runtime", "20260717190000_nautt_credentials", "20260717210000_nautt_webhook_registration", "20260717230000_nautt_credential_revision", "20260718010000_provider_orders", "20260718030000_nautt_webhook_deliveries", "20260718050000_nautt_webhook_recovery", "20260720230000_nautt_catalog", "20260721010000_products"]), "Migration history name/count changed");
 const migration = await readFile("prisma/migrations/20260714000000_foundation_baseline/migration.sql", "utf8");
 for (const constraint of ["database_foundation_fixture_key_key", "database_foundation_fixture_key_nonblank", "database_foundation_fixture_quantity_nonnegative"]) {
   assert(migration.includes(constraint), `Migration lost ${constraint}`);
@@ -119,6 +119,16 @@ for (const contract of ["catalog_currency_pair_pkey", "catalog_currency_pair_uui
   assert(nauttCatalogMigration.includes(contract), `Nautt catalog migration lost ${contract}`);
 }
 assert(!/GRANT\s+(?:TRUNCATE|REFERENCES|TRIGGER)|ALTER\s+(?:TABLE|SCHEMA).*OWNER/i.test(nauttCatalogMigration), "Nautt catalog migration grants excess privileges or changes ownership");
+
+const productMigration = await readFile("prisma/migrations/20260721010000_products/migration.sql", "utf8");
+for (const contract of ["product_pkey", "product_internal_name_bounds", "product_internal_name_single_line", "product_title_pt_br_bounds", "product_title_pt_br_single_line", "product_title_en_bounds", "product_title_en_single_line", "product_description_pt_br_bounds", "product_description_en_bounds", "product_price_canonical", "product_version_nonnegative", "GRANT SELECT, INSERT, UPDATE, DELETE"]) {
+  assert(productMigration.includes(contract), `Product migration lost ${contract}`);
+}
+for (const field of ["internalName", "titlePtBr", "titleEn", "descriptionPtBr", "descriptionEn", "price", "active", "version"]) {
+  assert(schema.includes(field), `Schema is missing product field ${field}`);
+}
+assert(productMigration.includes("[1-9][0-9]{0,11}") && productMigration.includes("[0-9]{0,5}[1-9]"), "Product price grammar lost its 18/6 canonical bounds");
+assert(!/GRANT\s+(?:TRUNCATE|REFERENCES|TRIGGER)|ALTER\s+(?:TABLE|SCHEMA).*OWNER/i.test(productMigration), "Product migration grants excess privileges or changes ownership");
 
 const bootstrap = await readFile("prisma/bootstrap.sql", "utf8");
 assert(bootstrap.includes("GRANT CONNECT ON DATABASE qr_pagamentos TO qr_migrator, qr_runtime"), "Both roles require explicit CONNECT");
