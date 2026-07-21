@@ -93,11 +93,15 @@ active action immediately exposes localized spinner/`aria-busy` feedback, and a
 shared scope disables the password input plus competing setup actions after the
 first payload is formed so a second provider mutation cannot be dispatched.
 
-The authenticated home also owns each account's product, payment-link, and
-checkout-data-policy ledger. These owner-only forms reuse the same cards,
-fields, selects, alerts, buttons, separators, badges, and spinners: they show
+The authenticated home also owns each account's product, payment-link,
+checkout-data-policy, and storefront-settings ledger. These owner-only forms
+reuse the same cards, fields, selects, checkboxes, alerts, buttons, separators,
+badges, and spinners: they show
 empty prerequisites, success/recovery notices, native pending/disabled actions,
 and visible keyboard focus without creating a home-specific visual variant.
+The storefront card composes labelled `Input` text controls and one horizontal
+`Checkbox` enablement toggle; its save posts to `/storefront` and reports only
+the shared opaque success/conflict alert.
 
 The unauthenticated `/login` page consumes the same inventory as a single
 restrained credential `Card`: `Field`/`Input` with labels above the native

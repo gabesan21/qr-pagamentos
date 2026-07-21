@@ -18,20 +18,23 @@ import { CheckoutPolicyManagement } from "./checkout-policy-management";
 import { getProductService } from "@/auth/product";
 import { getPaymentLinkService } from "@/auth/payment-link";
 import { getCheckoutPolicyService } from "@/auth/checkout-policy";
+import { getStorefrontSettingsService } from "@/auth/storefront-settings";
+import { StorefrontSettingsManagement } from "./storefront-settings-management";
 
-export default async function Home({ searchParams }: Readonly<{ searchParams: Promise<{ language?: string; nautt?: string; products?: string; "payment-links"?: string; "checkout-policy"?: string }> }>) {
+export default async function Home({ searchParams }: Readonly<{ searchParams: Promise<{ language?: string; nautt?: string; products?: string; "payment-links"?: string; "checkout-policy"?: string; storefront?: string }> }>) {
   const principal = await getAuthorizationService().resolve((await cookies()).get("qr_session")?.value);
   if (!principal) redirect("/login");
-  const [locale, nauttStatus, products, paymentLinks, checkoutPolicy] = await Promise.all([
+  const [locale, nauttStatus, products, paymentLinks, checkoutPolicy, storefrontSettings] = await Promise.all([
     getLocalePreferenceService().resolve(principal.id),
     getOwnerOnboardingService().readStatus(principal),
     getProductService().listForOwner(principal),
     getPaymentLinkService().listForOwner(principal),
     getCheckoutPolicyService().getForOwner(principal),
+    getStorefrontSettingsService().getForOwner(principal),
   ]);
   const dictionary = getDictionary(locale);
   const notices = await searchParams;
-  const ownerNotice = notices.products ?? notices["payment-links"] ?? notices["checkout-policy"];
+  const ownerNotice = notices.products ?? notices["payment-links"] ?? notices["checkout-policy"] ?? notices.storefront;
   const ownerNoticeFailed = ownerNotice === "failed" || ownerNotice === "conflict";
   return (
     <main className="admin-shell">
@@ -41,6 +44,7 @@ export default async function Home({ searchParams }: Readonly<{ searchParams: Pr
       <OwnerProductManagement dictionary={dictionary} locale={locale} products={products} />
       <OwnerPaymentLinkManagement data={paymentLinks} dictionary={dictionary} locale={locale} />
       <CheckoutPolicyManagement dictionary={dictionary} policy={checkoutPolicy.checkoutDataPolicy} />
+      <StorefrontSettingsManagement dictionary={dictionary} settings={storefrontSettings} />
       {notices.language === "saved" ? <Alert role="status" variant="success"><AlertTitle>{dictionary.languageHeading}</AlertTitle><AlertDescription>{dictionary.languageSaved}</AlertDescription></Alert> : null}
       {notices.language === "error" ? <Alert variant="destructive"><AlertTitle>{dictionary.languageHeading}</AlertTitle><AlertDescription>{dictionary.languageError}</AlertDescription></Alert> : null}
       <Card>
