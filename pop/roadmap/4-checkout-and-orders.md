@@ -39,4 +39,4 @@
 
 | Task | Description (≤1 line) | Status |
 |------|----------------------|--------|
-| `4.3.1-owner-and-admin-order-views` | Add owner-scoped and administrator order views with protected customer-data access. · size: L | not started |
+| [[4.3.1-owner-and-admin-order-views]] | Add owner-scoped and administrator order views with protected customer-data access. · size: L | 001_initial_task |
