@@ -27,6 +27,28 @@
       "contexts": [],
       "test_seconds": 0,
       "result": "advanced"
+    },
+    {
+      "at": "2026-07-21T18:19:12-03:00",
+      "event": "transition",
+      "from": "004_processing",
+      "to": "005_verifying",
+      "contexts": [
+        "executor: execute_storefront_settings"
+      ],
+      "test_seconds": 0,
+      "result": "advanced"
+    },
+    {
+      "at": "2026-07-21T18:21:38-03:00",
+      "event": "transition",
+      "from": "005_verifying",
+      "to": "004_processing",
+      "contexts": [
+        "critic: review_storefront_settings"
+      ],
+      "test_seconds": 0,
+      "result": "returned"
     }
   ]
 }

@@ -27,6 +27,28 @@
       "contexts": [],
       "test_seconds": 0,
       "result": "advanced"
+    },
+    {
+      "at": "2026-07-21T18:17:45-03:00",
+      "event": "transition",
+      "from": "004_processing",
+      "to": "005_verifying",
+      "contexts": [
+        "executor: execute_security_hardening"
+      ],
+      "test_seconds": 0,
+      "result": "advanced"
+    },
+    {
+      "at": "2026-07-21T18:20:37-03:00",
+      "event": "transition",
+      "from": "005_verifying",
+      "to": "006_done",
+      "contexts": [
+        "critic: review_security_hardening"
+      ],
+      "test_seconds": 0,
+      "result": "advanced"
     }
   ]
 }
