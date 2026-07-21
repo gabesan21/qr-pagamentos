@@ -101,6 +101,7 @@ export function PublicCheckoutForm({ dictionary, identifier, policy }: Readonly<
     let timer: ReturnType<typeof setTimeout> | undefined;
     let controller: AbortController | undefined;
     let failures = 0;
+    let activePoll = 0;
 
     const schedule = (delay: number) => {
       if (cancelled || document.visibilityState === "hidden") return;
@@ -110,11 +111,14 @@ export function PublicCheckoutForm({ dictionary, identifier, policy }: Readonly<
       if (cancelled || pollingRef.current || document.visibilityState === "hidden") return;
       pollingRef.current = true;
       controller = new AbortController();
+      const pollId = ++activePoll;
       try {
         const response = await fetch(`/api/payment-links/${identifier}/checkout/status`, { method: "POST", cache: "no-store", credentials: "omit", headers: { "content-type": "application/json" }, body: JSON.stringify({ statusCapability: capability }), signal: controller.signal });
+        if (cancelled || document.visibilityState === "hidden" || pollId !== activePoll) return;
         if (response.status === 404) { setUnavailable(true); return; }
         if (!response.ok) throw new Error("status-read-failed");
         const body: unknown = await response.json();
+        if (cancelled || document.visibilityState === "hidden" || pollId !== activePoll) return;
         const next = body && typeof body === "object" && "payment" in body ? paymentFromResponse((body as { payment?: unknown }).payment) : null;
         if (!next) throw new Error("status-read-failed");
         setPayment(next);
@@ -123,16 +127,27 @@ export function PublicCheckoutForm({ dictionary, identifier, policy }: Readonly<
         failures = 0;
         if (!terminalRef.current) schedule(5_000);
       } catch (error) {
-        if (!cancelled && !(error instanceof DOMException && error.name === "AbortError")) {
+        if (!cancelled && document.visibilityState !== "hidden" && pollId === activePoll && !(error instanceof DOMException && error.name === "AbortError")) {
           failures += 1;
           if (failures >= 3) setStatusError(true);
           else schedule(1_000 * 2 ** failures);
         }
       } finally {
-        pollingRef.current = false;
+        if (pollId === activePoll) pollingRef.current = false;
       }
     };
-    const onVisibilityChange = () => { if (document.visibilityState === "visible") schedule(0); };
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        activePoll += 1;
+        if (timer) clearTimeout(timer);
+        timer = undefined;
+        controller?.abort();
+        controller = undefined;
+        pollingRef.current = false;
+        return;
+      }
+      schedule(0);
+    };
     document.addEventListener("visibilitychange", onVisibilityChange);
     schedule(0);
     return () => { cancelled = true; if (timer) clearTimeout(timer); controller?.abort(); document.removeEventListener("visibilitychange", onVisibilityChange); pollingRef.current = false; };

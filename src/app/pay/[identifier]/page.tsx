@@ -1,17 +1,21 @@
-import { headers } from "next/headers";
+import { cookies } from "next/headers";
 
+import { getAuthorizationService } from "@/auth/authorization";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getPublicCheckoutPresentationService } from "@/checkout/public-checkout-presentation";
 import { getDictionary } from "@/i18n/dictionaries";
-import { negotiateLocale } from "@/i18n/locales";
+import { getLocalePreferenceService } from "@/i18n/locale-preference";
+import { defaultLocale } from "@/i18n/locales";
 
 import { PublicCheckoutForm } from "./public-checkout-form";
 
 export const dynamic = "force-dynamic";
 
 export default async function PublicCheckoutPage({ params }: Readonly<{ params: Promise<{ identifier: string }> }>) {
-  const locale = negotiateLocale((await headers()).get("accept-language"));
+  const token = (await cookies()).get("qr_session")?.value;
+  const principal = token ? await getAuthorizationService().resolve(token) : null;
+  const locale = principal ? await getLocalePreferenceService().resolve(principal.id) : defaultLocale;
   const dictionary = getDictionary(locale);
   const identifier = (await params).identifier;
   const presentation = await getPublicCheckoutPresentationService().read(identifier, locale);

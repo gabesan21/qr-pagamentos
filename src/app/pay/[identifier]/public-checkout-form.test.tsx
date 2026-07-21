@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
@@ -37,5 +39,13 @@ describe("public checkout form", () => {
     expect(rendered).toContain('type="submit"');
     expect(rendered).toContain('for="checkout-stateUf"');
     expect(markup("NONE")).toContain('role="status"');
+  });
+
+  it("cancels hidden-tab polling and ignores a stale status response", async () => {
+    const source = await readFile(new URL("./public-checkout-form.tsx", import.meta.url), "utf8");
+
+    expect(source).toContain('if (document.visibilityState === "hidden") {');
+    expect(source).toContain("controller?.abort();");
+    expect(source).toContain("if (cancelled || document.visibilityState === \"hidden\" || pollId !== activePoll) return;");
   });
 });
