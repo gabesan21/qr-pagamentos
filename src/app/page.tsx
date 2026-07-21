@@ -1,9 +1,11 @@
 import { cookies } from "next/headers";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getAuthorizationService } from "@/auth/authorization";
 import { getDictionary } from "@/i18n/dictionaries";
 import { getLocalePreferenceService } from "@/i18n/locale-preference";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
@@ -33,7 +35,7 @@ export default async function Home({ searchParams }: Readonly<{ searchParams: Pr
   const ownerNoticeFailed = ownerNotice === "failed" || ownerNotice === "conflict";
   return (
     <main className="admin-shell">
-      <header className="receipt-rail"><span className="receipt-rail__label">QR Pagamentos</span><h1>{dictionary.heading}</h1></header><p className="admin-shell__intro">{dictionary.introduction}</p>
+      <header className="receipt-rail"><span className="receipt-rail__label">QR Pagamentos</span><h1>{dictionary.heading}</h1><nav aria-label={dictionary.ordersHeading} className="admin-navigation"><Button asChild variant="outline"><Link href="/orders">{dictionary.ordersHeading}</Link></Button></nav></header><p className="admin-shell__intro">{dictionary.introduction}</p>
       <NauttCredentialSurface dictionary={dictionary} notice={notices.nautt} status={nauttStatus} />
       {ownerNotice ? <Alert role={ownerNoticeFailed ? "alert" : "status"} variant={ownerNoticeFailed ? "destructive" : "success"}><AlertTitle>{ownerNoticeFailed ? dictionary.adminErrorHeading : dictionary.adminSuccessHeading}</AlertTitle><AlertDescription>{ownerNoticeFailed ? dictionary.ownerSettingsFailed : dictionary.ownerSettingsUpdated}</AlertDescription></Alert> : null}
       <OwnerProductManagement dictionary={dictionary} locale={locale} products={products} />

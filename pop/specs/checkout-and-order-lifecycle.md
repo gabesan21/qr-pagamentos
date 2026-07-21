@@ -4,7 +4,7 @@
 - **Epoch/Phase:** [[roadmap/4-checkout-and-orders|Phase 4.1-4.3]]
 - **Status:** aprovada
 - **Created:** 2026-07-21
-- **Updated:** 2026-07-21 — task 4.2.1 delivered the sessionless checkout and durable capability contract; task 4.2.2 delivered the approved public page and status slice.
+- **Updated:** 2026-07-21 — task 4.2.1 delivered the sessionless checkout and durable capability contract; task 4.2.2 delivered the approved public page and status slice; task 4.3.1 delivered the re-authorized owner/administrator order read projection and its bilingual views.
 
 ## What it covers
 
@@ -36,6 +36,7 @@ This spec defines the durable owner, customer-data, and payment-state contract f
 
 ## Implemented slices
 
+- **Task 4.3.1:** The server-only `src/orders/order-view.ts` projection is the single re-authorized seam through which order data leaves persistence: a bounded most-recent owner list/detail and a global administrator list/detail. It exposes only order identity, payment-link identifier, bilingual product title, amount/currency-pair label, state, lifecycle timestamps, applied policy, and the exact policy-shaped `CustomerSnapshotV1` — never verifiers, nonce, key material, or provider data. Cross-owner, malformed, and missing order identities share one opaque "unavailable" outcome. The bilingual `/orders` owner views and read-only `/admin/orders` views re-resolve the cookie principal on every read and hold no mutation surface.
 - **Task 4.2.2:** Bilingual `/pay/[identifier]` renders the redacted product and only the policy-required customer fields, submits the opaque checkout request, presents QR/copy-paste data, and polls the capability-bound status endpoint without exposing order or customer data. The page uses the persisted/default locale and cancels pending polls while hidden or unmounted.
 
 ## Out of scope

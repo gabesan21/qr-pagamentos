@@ -35,6 +35,7 @@ export function AdminSurface({ actorUsername, currencyPairs, dictionary, locale,
         </div>
         <nav aria-label={dictionary.adminNavigationLabel} className="admin-navigation">
           <Button asChild variant="outline"><Link href="/">{dictionary.adminHome}</Link></Button>
+          <Button asChild variant="outline"><Link href="/admin/orders">{dictionary.ordersHeading}</Link></Button>
           <form action="/logout" method="post"><AdminSubmit label={dictionary.signOut} tone="secondary" /></form>
         </nav>
       </header>
