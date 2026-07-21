@@ -24,7 +24,6 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[5.1.1-storefront-settings-and-customization]] | Add per-owner storefront settings (slug, bilingual display name, accent color, enabled flag) with schema migration and owner settings UI. · size: M | 001_initial_task |
 
 ## Phase 5.2 — Public storefront
 
