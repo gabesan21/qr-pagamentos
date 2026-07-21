@@ -133,7 +133,7 @@ try {
   const migrationEnv = { ...process.env, MIGRATION_DATABASE_URL: migratorUrl };
   delete migrationEnv.DATABASE_URL;
   const firstDeploy = run("pnpm", ["exec", "prisma", "migrate", "deploy"], { env: migrationEnv });
-  assert(firstDeploy.includes("15 migrations found"), "Fresh deploy did not discover exactly fifteen migrations");
+  assert(firstDeploy.includes("19 migrations found"), "Fresh deploy did not discover exactly nineteen migrations");
 
   const admin = new Client({ connectionString: adminUrl });
   await admin.connect();
@@ -141,7 +141,7 @@ try {
     SELECT migration_name, checksum, finished_at IS NOT NULL AS finished, rolled_back_at
     FROM app._prisma_migrations
   `);
-  const expectedMigrations = ["20260714000000_foundation_baseline", "20260714190000_local_identities", "20260716110000_database_sessions", "20260716160000_user_language_preference", "20260716180000_global_payment_settings", "20260716210000_restrict_global_payment_settings_runtime", "20260717190000_nautt_credentials", "20260717210000_nautt_webhook_registration", "20260717230000_nautt_credential_revision", "20260718010000_provider_orders", "20260718030000_nautt_webhook_deliveries", "20260718050000_nautt_webhook_recovery", "20260720230000_nautt_catalog", "20260721010000_products", "20260721020000_payment_links"];
+  const expectedMigrations = ["20260714000000_foundation_baseline", "20260714190000_local_identities", "20260716110000_database_sessions", "20260716160000_user_language_preference", "20260716180000_global_payment_settings", "20260716210000_restrict_global_payment_settings_runtime", "20260717190000_nautt_credentials", "20260717210000_nautt_webhook_registration", "20260717230000_nautt_credential_revision", "20260718010000_provider_orders", "20260718030000_nautt_webhook_deliveries", "20260718050000_nautt_webhook_recovery", "20260720230000_nautt_catalog", "20260721010000_products", "20260721020000_payment_links", "20260721030000_owner_isolation_checkout_policy", "20260721040000_payment_link_orders", "20260721050000_public_checkout_attempts", "20260721060000_storefront_settings"];
   assert(history.rows.length === expectedMigrations.length, "Migration history row count changed");
   for (const migrationName of expectedMigrations) {
     const migrationSql = await readFile(`prisma/migrations/${migrationName}/migration.sql`);
@@ -270,6 +270,35 @@ try {
   await expectSqlState(runtime, `UPDATE app."user" SET preferred_locale = 'es' WHERE id = '${otherUserId}'`, { code: "23514", constraint: "user_preferred_locale_check" });
   console.log("PASS language-preference-schema");
 
+  const storefrontColumns = await runtime.query(`
+    SELECT column_name, data_type, udt_name, is_nullable
+    FROM information_schema.columns
+    WHERE table_schema = 'app' AND table_name = 'user' AND column_name LIKE 'storefront%'
+    ORDER BY column_name
+  `);
+  assert(JSON.stringify(storefrontColumns.rows) === JSON.stringify([
+    { column_name: "storefront_accent_color", data_type: "character varying", udt_name: "varchar", is_nullable: "YES" },
+    { column_name: "storefront_display_name_en", data_type: "character varying", udt_name: "varchar", is_nullable: "YES" },
+    { column_name: "storefront_display_name_pt_br", data_type: "character varying", udt_name: "varchar", is_nullable: "YES" },
+    { column_name: "storefront_enabled", data_type: "boolean", udt_name: "bool", is_nullable: "NO" },
+    { column_name: "storefront_slug", data_type: "character varying", udt_name: "varchar", is_nullable: "YES" },
+  ]), "Storefront columns differ from the contract");
+  const storefrontDefaults = await runtime.query(`SELECT storefront_slug, storefront_display_name_pt_br, storefront_display_name_en, storefront_accent_color, storefront_enabled FROM app."user" WHERE id = $1`, [otherUserId]);
+  assert(JSON.stringify(storefrontDefaults.rows) === JSON.stringify([{ storefront_slug: null, storefront_display_name_pt_br: null, storefront_display_name_en: null, storefront_accent_color: null, storefront_enabled: false }]), "Storefront settings are not disabled and null by default");
+  await runtime.query(`UPDATE app."user" SET storefront_slug = 'second-user-store', storefront_display_name_pt_br = 'Loja', storefront_display_name_en = 'Store', storefront_accent_color = '#1A2B3C', storefront_enabled = TRUE WHERE id = $1`, [otherUserId]);
+  const storefrontOwnerId = randomUUID();
+  await runtime.query(`INSERT INTO app."user" (id, username, role, status) VALUES ($1, 'storefront.user', 'USER', 'ACTIVE')`, [storefrontOwnerId]);
+  await expectSqlState(runtime, `UPDATE app."user" SET storefront_slug = 'second-user-store' WHERE id = '${storefrontOwnerId}'`, { code: "23505", constraint: "user_storefront_slug_key" });
+  await expectSqlState(runtime, `UPDATE app."user" SET storefront_slug = 'Invalid Slug' WHERE id = '${storefrontOwnerId}'`, { code: "23514", constraint: "user_storefront_slug_format" });
+  await expectSqlState(runtime, `UPDATE app."user" SET storefront_slug = '' WHERE id = '${storefrontOwnerId}'`, { code: "23514", constraint: "user_storefront_slug_format" });
+  await expectSqlState(runtime, `UPDATE app."user" SET storefront_display_name_pt_br = E'two\nlines' WHERE id = '${storefrontOwnerId}'`, { code: "23514", constraint: "user_storefront_display_name_pt_br_single_line" });
+  await expectSqlState(runtime, `UPDATE app."user" SET storefront_display_name_en = E'two\nlines' WHERE id = '${storefrontOwnerId}'`, { code: "23514", constraint: "user_storefront_display_name_en_single_line" });
+  await expectSqlState(runtime, `UPDATE app."user" SET storefront_accent_color = '#1a2b3c' WHERE id = '${storefrontOwnerId}'`, { code: "23514", constraint: "user_storefront_accent_color_format" });
+  await expectSqlState(runtime, `UPDATE app."user" SET storefront_slug = NULL, storefront_enabled = TRUE WHERE id = '${storefrontOwnerId}'`, { code: "23514", constraint: "user_storefront_enabled_requires_slug" });
+  await runtime.query(`UPDATE app."user" SET storefront_slug = NULL, storefront_enabled = FALSE WHERE id = $1`, [otherUserId]);
+  await runtime.query(`DELETE FROM app."user" WHERE id = $1`, [storefrontOwnerId]);
+  console.log("PASS storefront-settings-schema");
+
   const paymentSettings = await runtime.query(`SELECT id, currencies, payment_methods FROM app.global_payment_settings`);
   assert(JSON.stringify(paymentSettings.rows) === JSON.stringify([{ id: 1, currencies: ["BRL"], payment_methods: ["PIX"] }]), "Global payment settings seed differs from the contract");
   await runtime.query(`UPDATE app.global_payment_settings SET currencies = ARRAY[]::TEXT[], payment_methods = ARRAY[]::TEXT[] WHERE id = 1`);
@@ -340,6 +369,7 @@ try {
     { column_name: "version", data_type: "integer", udt_name: "int4", is_nullable: "NO" },
     { column_name: "created_at", data_type: "timestamp with time zone", udt_name: "timestamptz", is_nullable: "NO" },
     { column_name: "updated_at", data_type: "timestamp with time zone", udt_name: "timestamptz", is_nullable: "NO" },
+    { column_name: "owner_id", data_type: "uuid", udt_name: "uuid", is_nullable: "NO" },
   ]), "Product columns differ from the contract");
   const productConstraints = await runtime.query(`
     SELECT c.conname, pg_get_userbyid(t.relowner) AS owner
@@ -350,37 +380,37 @@ try {
     ORDER BY c.conname
   `);
   const productConstraintNames = new Set(productConstraints.rows.map((row) => row.conname));
-  for (const name of ["product_pkey", "product_internal_name_bounds", "product_internal_name_single_line", "product_title_pt_br_bounds", "product_title_pt_br_single_line", "product_title_en_bounds", "product_title_en_single_line", "product_description_pt_br_bounds", "product_description_en_bounds", "product_price_canonical", "product_version_nonnegative"]) {
+  for (const name of ["product_pkey", "product_internal_name_bounds", "product_internal_name_single_line", "product_title_pt_br_bounds", "product_title_pt_br_single_line", "product_title_en_bounds", "product_title_en_single_line", "product_description_pt_br_bounds", "product_description_en_bounds", "product_price_canonical", "product_version_nonnegative", "product_owner_fkey", "product_id_owner_id_key"]) {
     assert(productConstraintNames.has(name), `Missing constraint ${name}`);
   }
   assert(productConstraints.rows.every((row) => row.owner === "qr_migrator"), "Runtime owns the product table");
 
   const product = await runtime.query(`
-    INSERT INTO app.product (internal_name, title_pt_br, title_en, description_pt_br, description_en, price)
-    VALUES ($1, $2, $3, $4, $5, $6)
+    INSERT INTO app.product (internal_name, title_pt_br, title_en, description_pt_br, description_en, price, owner_id)
+    VALUES ($1, $2, $3, $4, $5, $6, $7)
     RETURNING id, price, active, version
-  `, ["i".repeat(128), "á".repeat(160), "x".repeat(160), "linha um\n" + "ç".repeat(1991), "line one\n" + "x".repeat(1991), "999999999999.999999"]);
+  `, ["i".repeat(128), "á".repeat(160), "x".repeat(160), "linha um\n" + "ç".repeat(1991), "line one\n" + "x".repeat(1991), "999999999999.999999", otherUserId]);
   const productId = product.rows[0]?.id;
   assert(typeof productId === "string" && product.rows[0].price === "999999999999.999999", "Product UUID or exact price changed");
   assert(product.rows[0].active === true && product.rows[0].version === 0, "Product defaults changed");
-  await expectSqlState(runtime, `INSERT INTO app.product (internal_name, title_pt_br, title_en, description_pt_br, description_en, price) VALUES (' spaced ', 'Título', 'Title', 'Descrição', 'Description', '1')`, { code: "23514", constraint: "product_internal_name_bounds" });
-  await expectSqlState(runtime, `INSERT INTO app.product (internal_name, title_pt_br, title_en, description_pt_br, description_en, price) VALUES (E'line\\nbreak', 'Título', 'Title', 'Descrição', 'Description', '1')`, { code: "23514", constraint: "product_internal_name_single_line" });
-  await expectSqlState(runtime, `INSERT INTO app.product (internal_name, title_pt_br, title_en, description_pt_br, description_en, price) VALUES ('valid', E'Título\\nquebrado', 'Title', 'Descrição', 'Description', '1')`, { code: "23514", constraint: "product_title_pt_br_single_line" });
-  await expectSqlState(runtime, `INSERT INTO app.product (internal_name, title_pt_br, title_en, description_pt_br, description_en, price) VALUES ('valid', 'Título', E'Title\\nbroken', 'Descrição', 'Description', '1')`, { code: "23514", constraint: "product_title_en_single_line" });
-  await expectSqlState(runtime, `INSERT INTO app.product (internal_name, title_pt_br, title_en, description_pt_br, description_en, price) VALUES ('valid', 'Título', 'Title', '', 'Description', '1')`, { code: "23514", constraint: "product_description_pt_br_bounds" });
-  await expectSqlState(runtime, `INSERT INTO app.product (internal_name, title_pt_br, title_en, description_pt_br, description_en, price) VALUES ('valid', chr(160) || 'Título', 'Title', 'Descrição', 'Description', '1')`, { code: "23514", constraint: "product_title_pt_br_bounds" });
-  await expectSqlState(runtime, `INSERT INTO app.product (internal_name, title_pt_br, title_en, description_pt_br, description_en, price) VALUES ('valid', 'Título', 'Title' || chr(160), 'Descrição', 'Description', '1')`, { code: "23514", constraint: "product_title_en_bounds" });
-  await expectSqlState(runtime, `INSERT INTO app.product (internal_name, title_pt_br, title_en, description_pt_br, description_en, price) VALUES ('valid', 'Título', 'Title', 'Descrição', chr(12288) || 'Description', '1')`, { code: "23514", constraint: "product_description_en_bounds" });
-  await expectSqlState(runtime, `INSERT INTO app.product (internal_name, title_pt_br, title_en, description_pt_br, description_en, price) VALUES (repeat('a', 129), 'Título', 'Title', 'Descrição', 'Description', '1')`, { code: "22001" });
-  await expectSqlState(runtime, `INSERT INTO app.product (internal_name, title_pt_br, title_en, description_pt_br, description_en, price) VALUES ('valid', repeat('a', 161), 'Title', 'Descrição', 'Description', '1')`, { code: "22001" });
-  await expectSqlState(runtime, `INSERT INTO app.product (internal_name, title_pt_br, title_en, description_pt_br, description_en, price) VALUES ('valid', 'Título', 'Title', repeat('a', 2001), 'Description', '1')`, { code: "22001" });
+  await expectSqlState(runtime, `INSERT INTO app.product (internal_name, title_pt_br, title_en, description_pt_br, description_en, price, owner_id) VALUES (' spaced ', 'Título', 'Title', 'Descrição', 'Description', '1', '${otherUserId}')`, { code: "23514", constraint: "product_internal_name_bounds" });
+  await expectSqlState(runtime, `INSERT INTO app.product (internal_name, title_pt_br, title_en, description_pt_br, description_en, price, owner_id) VALUES (E'line\\nbreak', 'Título', 'Title', 'Descrição', 'Description', '1', '${otherUserId}')`, { code: "23514", constraint: "product_internal_name_single_line" });
+  await expectSqlState(runtime, `INSERT INTO app.product (internal_name, title_pt_br, title_en, description_pt_br, description_en, price, owner_id) VALUES ('valid', E'Título\\nquebrado', 'Title', 'Descrição', 'Description', '1', '${otherUserId}')`, { code: "23514", constraint: "product_title_pt_br_single_line" });
+  await expectSqlState(runtime, `INSERT INTO app.product (internal_name, title_pt_br, title_en, description_pt_br, description_en, price, owner_id) VALUES ('valid', 'Título', E'Title\\nbroken', 'Descrição', 'Description', '1', '${otherUserId}')`, { code: "23514", constraint: "product_title_en_single_line" });
+  await expectSqlState(runtime, `INSERT INTO app.product (internal_name, title_pt_br, title_en, description_pt_br, description_en, price, owner_id) VALUES ('valid', 'Título', 'Title', '', 'Description', '1', '${otherUserId}')`, { code: "23514", constraint: "product_description_pt_br_bounds" });
+  await expectSqlState(runtime, `INSERT INTO app.product (internal_name, title_pt_br, title_en, description_pt_br, description_en, price, owner_id) VALUES ('valid', chr(160) || 'Título', 'Title', 'Descrição', 'Description', '1', '${otherUserId}')`, { code: "23514", constraint: "product_title_pt_br_bounds" });
+  await expectSqlState(runtime, `INSERT INTO app.product (internal_name, title_pt_br, title_en, description_pt_br, description_en, price, owner_id) VALUES ('valid', 'Título', 'Title' || chr(160), 'Descrição', 'Description', '1', '${otherUserId}')`, { code: "23514", constraint: "product_title_en_bounds" });
+  await expectSqlState(runtime, `INSERT INTO app.product (internal_name, title_pt_br, title_en, description_pt_br, description_en, price, owner_id) VALUES ('valid', 'Título', 'Title', 'Descrição', chr(12288) || 'Description', '1', '${otherUserId}')`, { code: "23514", constraint: "product_description_en_bounds" });
+  await expectSqlState(runtime, `INSERT INTO app.product (internal_name, title_pt_br, title_en, description_pt_br, description_en, price, owner_id) VALUES (repeat('a', 129), 'Título', 'Title', 'Descrição', 'Description', '1', '${otherUserId}')`, { code: "22001" });
+  await expectSqlState(runtime, `INSERT INTO app.product (internal_name, title_pt_br, title_en, description_pt_br, description_en, price, owner_id) VALUES ('valid', repeat('a', 161), 'Title', 'Descrição', 'Description', '1', '${otherUserId}')`, { code: "22001" });
+  await expectSqlState(runtime, `INSERT INTO app.product (internal_name, title_pt_br, title_en, description_pt_br, description_en, price, owner_id) VALUES ('valid', 'Título', 'Title', repeat('a', 2001), 'Description', '1', '${otherUserId}')`, { code: "22001" });
   for (const validPrice of ["0.000001", "1.25", "999999999999"]) {
-    const exactPrice = await runtime.query(`INSERT INTO app.product (internal_name, title_pt_br, title_en, description_pt_br, description_en, price) VALUES ($1, 'Título', 'Title', 'Descrição', 'Description', $2) RETURNING id, price`, [`valid-price-${validPrice}`, validPrice]);
+    const exactPrice = await runtime.query(`INSERT INTO app.product (internal_name, title_pt_br, title_en, description_pt_br, description_en, price, owner_id) VALUES ($1, 'Título', 'Title', 'Descrição', 'Description', $2, $3) RETURNING id, price`, [`valid-price-${validPrice}`, validPrice, otherUserId]);
     assert(exactPrice.rows[0]?.price === validPrice, `Valid product price ${validPrice} was not preserved exactly`);
     await runtime.query(`DELETE FROM app.product WHERE id = $1`, [exactPrice.rows[0].id]);
   }
   for (const invalidPrice of ["0", "00.1", "01", "1.0", "1.230", "0.0000001", "9999999999999", "-1", "+1", "1e2", "1,2", " 1"] ) {
-    await expectSqlState(runtime, `INSERT INTO app.product (internal_name, title_pt_br, title_en, description_pt_br, description_en, price) VALUES ('invalid-price', 'Título', 'Title', 'Descrição', 'Description', '${invalidPrice}')`, { code: "23514", constraint: "product_price_canonical" });
+    await expectSqlState(runtime, `INSERT INTO app.product (internal_name, title_pt_br, title_en, description_pt_br, description_en, price, owner_id) VALUES ('invalid-price', 'Título', 'Title', 'Descrição', 'Description', '${invalidPrice}')`, { code: "23514", constraint: "product_price_canonical" });
   }
   await expectSqlState(runtime, `UPDATE app.product SET version = -1 WHERE id = '${productId}'`, { code: "23514", constraint: "product_version_nonnegative" });
   const staleProductUpdate = await runtime.query(`UPDATE app.product SET price = '2', version = version + 1 WHERE id = $1 AND version = 1`, [productId]);
@@ -401,15 +431,15 @@ try {
     WHERE n.nspname = 'app' AND t.relname = 'payment_link'
   `);
   const paymentLinkConstraintNames = new Set(paymentLinkConstraints.rows.map((row) => row.conname));
-  for (const name of ["payment_link_pkey", "payment_link_identifier_key", "payment_link_identifier_url_safe", "payment_link_type_closed", "payment_link_product_fkey", "payment_link_currency_pair_fkey"]) {
+  for (const name of ["payment_link_pkey", "payment_link_identifier_key", "payment_link_identifier_url_safe", "payment_link_type_closed", "payment_link_owner_fkey", "payment_link_product_owner_fkey", "payment_link_currency_pair_fkey", "payment_link_id_owner_id_key", "payment_link_id_owner_product_id_key"]) {
     assert(paymentLinkConstraintNames.has(name), `Missing constraint ${name}`);
   }
   assert(paymentLinkConstraints.rows.every((row) => row.owner === "qr_migrator"), "Runtime owns the payment-link table");
 
   async function createActiveLinkDependencies(label) {
     const product = await runtime.query(
-      `INSERT INTO app.product (internal_name, title_pt_br, title_en, description_pt_br, description_en, price) VALUES ($1, 'Título', 'Title', 'Descrição', 'Description', '10.25') RETURNING id`,
-      [`payment-link-${label}-${randomUUID()}`],
+      `INSERT INTO app.product (internal_name, title_pt_br, title_en, description_pt_br, description_en, price, owner_id) VALUES ($1, 'Título', 'Title', 'Descrição', 'Description', '10.25', $2) RETURNING id`,
+      [`payment-link-${label}-${randomUUID()}`, otherUserId],
     );
     const pair = await runtime.query(
       `INSERT INTO app.catalog_currency_pair (label, currency_uuid, exchange_currency_uuid) VALUES ($1, $2, $3) RETURNING id`,
@@ -420,15 +450,15 @@ try {
 
   async function insertPaymentLink(client, productId, currencyPairId, identifier = randomUUID().replaceAll("-", "").slice(0, 24)) {
     return client.query(
-      `INSERT INTO app.payment_link (identifier, product_id, currency_pair_id, link_type) VALUES ($1, $2, $3, 'REUSABLE') RETURNING id`,
-      [identifier, productId, currencyPairId],
+      `INSERT INTO app.payment_link (identifier, owner_id, product_id, currency_pair_id, link_type) VALUES ($1, $2, $3, $4, 'REUSABLE') RETURNING id`,
+      [identifier, otherUserId, productId, currencyPairId],
     );
   }
 
   const linkDependencies = await createActiveLinkDependencies("constraints");
   await insertPaymentLink(runtime, linkDependencies.productId, linkDependencies.currencyPairId, "AbCdEfGhIjKlMnOpQrStUvWx");
-  await expectSqlState(runtime, `INSERT INTO app.payment_link (identifier, product_id, currency_pair_id, link_type) VALUES ('not url safe!', '${linkDependencies.productId}', '${linkDependencies.currencyPairId}', 'REUSABLE')`, { code: "23514", constraint: "payment_link_identifier_url_safe" });
-  await expectSqlState(runtime, `INSERT INTO app.payment_link (identifier, product_id, currency_pair_id, link_type) VALUES ('ZbCdEfGhIjKlMnOpQrStUvWx', '${linkDependencies.productId}', '${linkDependencies.currencyPairId}', 'UNLIMITED')`, { code: "23514", constraint: "payment_link_type_closed" });
+  await expectSqlState(runtime, `INSERT INTO app.payment_link (identifier, owner_id, product_id, currency_pair_id, link_type) VALUES ('not url safe!', '${otherUserId}', '${linkDependencies.productId}', '${linkDependencies.currencyPairId}', 'REUSABLE')`, { code: "23514", constraint: "payment_link_identifier_url_safe" });
+  await expectSqlState(runtime, `INSERT INTO app.payment_link (identifier, owner_id, product_id, currency_pair_id, link_type) VALUES ('ZbCdEfGhIjKlMnOpQrStUvWx', '${otherUserId}', '${linkDependencies.productId}', '${linkDependencies.currencyPairId}', 'UNLIMITED')`, { code: "23514", constraint: "payment_link_type_closed" });
 
   const creationClient = new Client({ connectionString: runtimeUrl });
   const deactivationClient = new Client({ connectionString: runtimeUrl });

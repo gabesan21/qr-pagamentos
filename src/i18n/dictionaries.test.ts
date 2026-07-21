@@ -50,6 +50,10 @@ describe("language dictionaries", () => {
       "ordersView", "orderBackToList", "orderPaymentLink", "orderProduct", "orderAmount",
       "orderCurrencyPair", "orderState", "orderCreated", "orderUpdated", "orderSettled",
       "orderUnavailableHeading", "orderUnavailableDescription",
+      "storefrontHeading", "storefrontDescription", "storefrontSlugLabel", "storefrontSlugHelp",
+      "storefrontDisplayNamePtBrLabel", "storefrontDisplayNameEnLabel",
+      "storefrontAccentColorLabel", "storefrontAccentColorHelp",
+      "storefrontEnabledLabel", "storefrontSave",
     ] as const;
 
     for (const locale of ["pt-BR", "en"] as const) {

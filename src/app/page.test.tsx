@@ -1,13 +1,14 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
-const { readStatus, resolveLocale, resolvePrincipal, listProducts, listPaymentLinks, getCheckoutPolicy, redirect } = vi.hoisted(() => ({
+const { readStatus, resolveLocale, resolvePrincipal, listProducts, listPaymentLinks, getCheckoutPolicy, getStorefrontSettings, redirect } = vi.hoisted(() => ({
   readStatus: vi.fn(),
   resolveLocale: vi.fn(),
   resolvePrincipal: vi.fn(),
   listProducts: vi.fn(),
   listPaymentLinks: vi.fn(),
   getCheckoutPolicy: vi.fn(),
+  getStorefrontSettings: vi.fn(),
   redirect: vi.fn((location: string) => { throw new Error(`redirect:${location}`); }),
 }));
 
@@ -20,6 +21,7 @@ vi.mock("@/integrations/nautt/owner-onboarding", () => ({ getOwnerOnboardingServ
 vi.mock("@/auth/product", () => ({ getProductService: () => ({ listForOwner: listProducts }) }));
 vi.mock("@/auth/payment-link", () => ({ getPaymentLinkService: () => ({ listForOwner: listPaymentLinks }) }));
 vi.mock("@/auth/checkout-policy", () => ({ getCheckoutPolicyService: () => ({ getForOwner: getCheckoutPolicy }) }));
+vi.mock("@/auth/storefront-settings", () => ({ getStorefrontSettingsService: () => ({ getForOwner: getStorefrontSettings }) }));
 vi.mock("@/app/language-preference/language-preference-form", () => ({ LanguagePreferenceSubmit: ({ label }: { label: string }) => <button type="submit">{label}</button> }));
 
 import Home from "./page";
@@ -40,6 +42,7 @@ describe("authenticated home states", () => {
     listProducts.mockResolvedValue([]);
     listPaymentLinks.mockResolvedValue({ links: [], activeProducts: [{ id: "product", internalName: "Donation", titlePtBr: "Doação", titleEn: "Donation", price: "1" }], activeCurrencyPairs: [{ id: "pair", label: "BRL/USDT" }] });
     getCheckoutPolicy.mockResolvedValue({ checkoutDataPolicy: "NONE" });
+    getStorefrontSettings.mockResolvedValue({ storefrontSlug: "my-store", storefrontDisplayNamePtBr: null, storefrontDisplayNameEn: null, storefrontAccentColor: null, storefrontEnabled: false });
 
     const defaultMarkup = renderToStaticMarkup(await Home({ searchParams: Promise.resolve({}) }));
     expect(defaultMarkup).toContain(`value="${locale}" selected=""`);
@@ -49,6 +52,8 @@ describe("authenticated home states", () => {
     expect(defaultMarkup).toContain('action="/products"');
     expect(defaultMarkup).toContain('action="/payment-links"');
     expect(defaultMarkup).toContain('action="/checkout-policy"');
+    expect(defaultMarkup).toContain('action="/storefront"');
+    expect(defaultMarkup).toContain('value="my-store"');
 
     const successMarkup = renderToStaticMarkup(await Home({ searchParams: Promise.resolve({ language: "saved" }) }));
     expect(successMarkup).toContain('role="status"');
