@@ -58,6 +58,10 @@ type Dependencies = Readonly<{
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const DATETIME_LOCAL_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
 const IDENTIFIER_ATTEMPTS = 3;
+const ACTIVE_DEPENDENCY_DATABASE_ERRORS = new Set([
+  "ERROR: constraint payment_link_product_active",
+  "ERROR: constraint payment_link_currency_pair_active",
+]);
 const activeDependencies: Dependencies = { randomBytes, now: () => new Date() };
 
 function requireAdmin(actor: Principal) {
@@ -104,8 +108,7 @@ function isInactiveDependency(error: unknown): boolean {
   if (!error || typeof error !== "object") return false;
   const candidate = error as { code?: unknown; meta?: { database_error?: unknown } };
   if (candidate.code !== "P2004" || typeof candidate.meta?.database_error !== "string") return false;
-  return candidate.meta.database_error.includes("payment_link_product_active")
-    || candidate.meta.database_error.includes("payment_link_currency_pair_active");
+  return ACTIVE_DEPENDENCY_DATABASE_ERRORS.has(candidate.meta.database_error);
 }
 
 export function createPaymentLinkService(store: PaymentLinkStore, dependencies: Dependencies = activeDependencies) {

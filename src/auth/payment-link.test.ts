@@ -112,11 +112,27 @@ describe("payment-link service", () => {
     expect(store.created).toHaveLength(0);
   });
 
-  it("does not treat an unrelated Prisma P2004 failure as an inactive dependency", async () => {
+  it.each([
+    "prefix ERROR: constraint payment_link_product_active",
+    "ERROR: constraint payment_link_currency_pair_active suffix",
+    "ERROR: constraint unrelated_payment_link_product_active_context",
+    "ERROR: unrelated check constraint",
+  ])("does not treat non-exact Prisma P2004 diagnostic %j as an inactive dependency", async (databaseError) => {
     const store = testStore();
     store.create = async () => {
-      throw { code: "P2004", meta: { database_error: "ERROR: unrelated check constraint" } };
+      throw { code: "P2004", meta: { database_error: databaseError } };
     };
+
+    await expect(createPaymentLinkService(store).create(admin, input())).rejects.toBeInstanceOf(PaymentLinkConflictError);
+  });
+
+  it.each([
+    { code: "P2003", meta: { database_error: "ERROR: constraint payment_link_product_active" } },
+    { code: "P2004", meta: { database_error: 23514 } },
+    { code: "P2004", meta: {} },
+  ])("does not treat other Prisma error shapes as inactive dependencies", async (error) => {
+    const store = testStore();
+    store.create = async () => { throw error; };
 
     await expect(createPaymentLinkService(store).create(admin, input())).rejects.toBeInstanceOf(PaymentLinkConflictError);
   });
