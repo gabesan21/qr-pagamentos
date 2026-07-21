@@ -120,6 +120,16 @@ status-recovery, terminal, and unavailable states remain explicit and use no
 page-specific visual primitive or token. QR images carry alternative text and
 copy/status feedback is announced politely.
 
+The sessionless `/store/[slug]` storefront follows the same PIX-ledger rail and
+uses the existing `Card`, `Alert`, `Button`, and `Skeleton` primitives. Its
+applicable states are available products, loading skeleton, enabled-but-empty,
+opaque unavailable/error, and visible hover/focus on the checkout action;
+there is no disabled storefront action. The page may declare only the validated
+`--storefront-accent` custom property at its root. Scoped CSS uses
+`--action-primary` as the fallback, and `scripts/check-design-tokens.mjs`
+accepts that exact declaration only in this route; no other inline style or raw
+visual value is allowed.
+
 The authenticated `/orders` owner ledger and the read-only `/admin/orders`
 administrator ledger reuse the same receipt rail, `admin-navigation`, ruled
 `admin-account` fact sections, `Badge` state vocabulary, and `Card`/`Alert`

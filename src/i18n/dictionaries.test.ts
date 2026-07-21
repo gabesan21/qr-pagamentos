@@ -54,6 +54,9 @@ describe("language dictionaries", () => {
       "storefrontDisplayNamePtBrLabel", "storefrontDisplayNameEnLabel",
       "storefrontAccentColorLabel", "storefrontAccentColorHelp",
       "storefrontEnabledLabel", "storefrontSave",
+      "storefrontFallbackName", "storefrontIntroduction", "storefrontProductsHeading", "storefrontPriceLabel",
+      "storefrontViewProduct", "storefrontEmptyHeading", "storefrontEmptyDescription",
+      "storefrontUnavailableHeading", "storefrontUnavailableDescription",
     ] as const;
 
     for (const locale of ["pt-BR", "en"] as const) {
