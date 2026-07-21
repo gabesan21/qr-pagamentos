@@ -186,4 +186,13 @@ export const ptBR = {
   adminReadErrorHeading: "Não foi possível carregar as contas administrativas",
   adminReadErrorDescription: "Nenhum dado de conta ou configuração de pagamento foi exibido. Tente carregar a página novamente.",
   adminRetry: "Tentar novamente",
+  checkoutPolicyHeading: "Política de dados no checkout",
+  checkoutPolicyDescription: "Escolha os dados de cliente que seu checkout futuro solicitará.",
+  checkoutPolicyLabel: "Dados solicitados",
+  checkoutPolicySave: "Salvar política de checkout",
+  checkoutPolicyNone: "Nenhum dado",
+  checkoutPolicyNameEmail: "Nome e e-mail",
+  checkoutPolicyEmail: "E-mail",
+  checkoutPolicyNameEmailCpf: "Nome, e-mail e CPF",
+  checkoutPolicyNameEmailCpfAddress: "Nome, e-mail, CPF e endereço",
 } as const;

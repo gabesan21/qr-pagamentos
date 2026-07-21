@@ -3,10 +3,6 @@ import { CircleCheckIcon, TriangleAlertIcon } from "lucide-react";
 
 import { AccountMutationForm } from "@/app/admin/account-mutation-form";
 import { AdminSubmit } from "@/app/admin/admin-submit";
-import { ProductManagement } from "@/app/admin/product-management";
-import { PaymentLinkManagement } from "@/app/admin/payment-link-management";
-import type { AdminProduct } from "@/auth/product";
-import type { PaymentLinkAdminData } from "@/auth/payment-link";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,7 +22,7 @@ type CurrencyPair = Readonly<{ id: string; label: string; currencyUuid: string; 
 type PaymentMethod = Readonly<{ id: string; label: string; paymentMethodUuid: string; active: boolean }>;
 type Notice = Readonly<{ tone: "success" | "error"; text: string }> | null;
 
-export function AdminSurface({ actorUsername, currencyPairs, dictionary, locale, notice, paymentLinks, paymentMethods, products, settings, users }: Readonly<{ actorUsername: string; currencyPairs: CurrencyPair[]; dictionary: Dictionary; locale: SupportedLocale; notice: Notice; paymentLinks: PaymentLinkAdminData; paymentMethods: PaymentMethod[]; products: AdminProduct[]; settings: Settings; users: AdminUser[] }>) {
+export function AdminSurface({ actorUsername, currencyPairs, dictionary, locale, notice, paymentMethods, settings, users }: Readonly<{ actorUsername: string; currencyPairs: CurrencyPair[]; dictionary: Dictionary; locale: SupportedLocale; notice: Notice; paymentMethods: PaymentMethod[]; settings: Settings; users: AdminUser[] }>) {
   return (
     <main className="admin-shell">
       <header className="receipt-rail">
@@ -44,8 +40,6 @@ export function AdminSurface({ actorUsername, currencyPairs, dictionary, locale,
       </header>
       <p className="admin-shell__intro">{dictionary.adminIntroduction}</p>
       {notice ? <AdminNotice dictionary={dictionary} notice={notice} /> : null}
-      <ProductManagement dictionary={dictionary} locale={locale} products={products} />
-      <PaymentLinkManagement data={paymentLinks} dictionary={dictionary} locale={locale} />
       <CreateAccount dictionary={dictionary} />
       <Accounts dictionary={dictionary} users={users} />
       <PaymentSettings dictionary={dictionary} settings={settings} />

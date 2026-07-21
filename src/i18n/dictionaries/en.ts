@@ -186,4 +186,13 @@ export const en = {
   adminReadErrorHeading: "Administrator accounts could not be loaded",
   adminReadErrorDescription: "No account or payment-setting details were shown. Try loading the page again.",
   adminRetry: "Try again",
+  checkoutPolicyHeading: "Checkout data policy",
+  checkoutPolicyDescription: "Choose the customer data your future checkout will request.",
+  checkoutPolicyLabel: "Requested data",
+  checkoutPolicySave: "Save checkout policy",
+  checkoutPolicyNone: "No data",
+  checkoutPolicyNameEmail: "Name and email",
+  checkoutPolicyEmail: "Email",
+  checkoutPolicyNameEmailCpf: "Name, email, and CPF",
+  checkoutPolicyNameEmailCpfAddress: "Name, email, CPF, and address",
 } as const;
