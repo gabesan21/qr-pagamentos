@@ -16,5 +16,3 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[0.1.4-fix-pay-locale-test-copy]] | Repair the pre-existing `/pay` unavailable-page test failure (asserts English copy while unauthenticated default locale is pt-BR) that breaks the aggregate gate. · size: S · yolo: sim | 001_initial_task |
-| [[0.1.5-fail-closed-customer-policy-snapshot]] | Make `toPolicySnapshot` fail-closed: an unknown checkout policy exposes no customer data. · size: S · yolo: sim | 001_initial_task |
