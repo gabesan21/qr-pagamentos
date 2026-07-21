@@ -2,6 +2,13 @@
 
 Self-hosted Next.js dashboard for products and first-party payment links backed by Nautt Finance PIX and international QR-code orders.
 
+## Production operations
+
+Operators should follow the [production runbook](docs/production-runbook.md) and
+review the redacted [release evidence ledger](docs/release-evidence.md) before
+deploying. The current release ledger is static evidence only: its operational
+checks are explicitly `SKIPPED — user directed` and require human execution.
+
 ## Prerequisites
 
 - Node.js 26.4.0 (also recorded in `.node-version`)
