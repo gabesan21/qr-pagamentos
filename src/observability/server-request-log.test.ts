@@ -14,7 +14,7 @@ describe("server request completion logging", () => {
   });
 
   it("replaces invalid inbound request ids without retaining their values", () => {
-    for (const value of [null, "", "a".repeat(65), " request", "request ", "req\nnext", "req\u00e9", "one,two", ".request", "request/"]) {
+    for (const value of [null, "", "a".repeat(65), " request", "request ", "req\r", "req\n", "req\r\n", "req\nnext", "req\u00e9", "one,two", ".request", "request/"]) {
       expect(normalizeRequestId(value)).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
     }
   });
@@ -46,18 +46,18 @@ describe("server request completion logging", () => {
     });
   });
 
-  it("preserves redirects and cookies while adding the normalized id when the writer fails", async () => {
+  it("preserves redirects and cookies while adding a generated id for a terminal line break", async () => {
     vi.spyOn(console, "info").mockImplementation(() => { throw new Error("logger failure"); });
     const response = new Response(null, { status: 303, headers: { Location: "/login", "Set-Cookie": "qr_session=; Path=/" } });
     const logged = await withServerRequestLog(
-      "safe_id",
+      "safe_id\r\n",
       { method: "POST", route: serverRequestRoutes.logout },
       () => response,
     );
 
     expect(logged.headers.get("location")).toBe("/login");
     expect(logged.headers.get("set-cookie")).toContain("qr_session=");
-    expect(logged.headers.get("x-request-id")).toBe("safe_id");
+    expect(logged.headers.get("x-request-id")).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
   });
 
   it("logs one failed completion, ignores writer failure, and rethrows the original handler failure", async () => {
