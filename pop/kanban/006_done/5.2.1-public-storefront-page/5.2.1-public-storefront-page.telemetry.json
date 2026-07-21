@@ -1,0 +1,80 @@
+{
+  "version": 1,
+  "events": [
+    {
+      "at": "2026-07-21T18:17:04-03:00",
+      "event": "transition",
+      "from": "001_initial_task",
+      "to": "002_planning",
+      "contexts": [],
+      "test_seconds": 0,
+      "result": "advanced"
+    },
+    {
+      "at": "2026-07-21T18:23:59-03:00",
+      "event": "transition",
+      "from": "002_planning",
+      "to": "003_human_approval",
+      "contexts": [
+        "planner: plan_public_storefront"
+      ],
+      "test_seconds": 0,
+      "result": "advanced"
+    },
+    {
+      "at": "2026-07-21T18:25:53-03:00",
+      "event": "transition",
+      "from": "003_human_approval",
+      "to": "002_planning",
+      "contexts": [
+        "critic: approve_public_storefront_plan"
+      ],
+      "test_seconds": 0,
+      "result": "returned"
+    },
+    {
+      "at": "2026-07-21T18:28:40-03:00",
+      "event": "transition",
+      "from": "002_planning",
+      "to": "003_human_approval",
+      "contexts": [
+        "planner: replan_public_storefront_accent"
+      ],
+      "test_seconds": 0,
+      "result": "advanced"
+    },
+    {
+      "at": "2026-07-21T18:30:15-03:00",
+      "event": "transition",
+      "from": "003_human_approval",
+      "to": "004_processing",
+      "contexts": [
+        "critic: reapprove_public_storefront_plan"
+      ],
+      "test_seconds": 0,
+      "result": "advanced"
+    },
+    {
+      "at": "2026-07-21T18:38:11-03:00",
+      "event": "transition",
+      "from": "004_processing",
+      "to": "005_verifying",
+      "contexts": [
+        "executor: execute_public_storefront"
+      ],
+      "test_seconds": 0,
+      "result": "advanced"
+    },
+    {
+      "at": "2026-07-21T18:41:17-03:00",
+      "event": "transition",
+      "from": "005_verifying",
+      "to": "006_done",
+      "contexts": [
+        "critic: review_public_storefront"
+      ],
+      "test_seconds": 0,
+      "result": "advanced"
+    }
+  ]
+}

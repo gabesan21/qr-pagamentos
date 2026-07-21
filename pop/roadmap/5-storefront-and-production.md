@@ -33,7 +33,6 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[5.2.1-public-storefront-page]] | Add the public `/store/[slug]` page listing active products with active payment links under the owner's branding, redacted and bilingual. · size: L | 001_initial_task |
 
 ## Phase 5.3 — Hardening
 
