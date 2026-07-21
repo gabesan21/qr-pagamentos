@@ -11,11 +11,29 @@ import { POST } from "./route";
 
 const owner = { id: "owner", username: "owner", email: null, role: "USER" as const, status: "ACTIVE" as const, createdAt: new Date() };
 
-function request(fields: Record<string, string>) {
-  return new Request("http://local/storefront", { method: "POST", body: new URLSearchParams(fields) });
+const sameOrigin = { origin: "http://local", host: "local" };
+
+function request(fields: Record<string, string>, headers: HeadersInit = sameOrigin) {
+  return new Request("http://local/storefront", { method: "POST", headers, body: new URLSearchParams(fields) });
 }
 
 describe("owner storefront route", () => {
+  it("rejects missing and mismatched Origin before authorization or service work", async () => {
+    for (const headers of [{ host: "local" }, { origin: "https://evil.example", host: "local" }]) {
+      requireOwnerFromCookie.mockClear();
+      ownerProtectedMutationResponse.mockClear();
+      update.mockClear();
+
+      const response = await POST(request({ storefrontSlug: "my-store" }, headers));
+
+      expect(response.status).toBe(403);
+      expect(await response.text()).toBe("");
+      expect(requireOwnerFromCookie).not.toHaveBeenCalled();
+      expect(ownerProtectedMutationResponse).not.toHaveBeenCalled();
+      expect(update).not.toHaveBeenCalled();
+    }
+  });
+
   it("re-authorizes before form parsing and updates only its actor", async () => {
     requireOwnerFromCookie.mockRejectedValueOnce(new Error("protected"));
     ownerProtectedMutationResponse.mockReturnValueOnce(new Response(null, { status: 401 }));
