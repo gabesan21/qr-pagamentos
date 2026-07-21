@@ -24,7 +24,7 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| `5.1.1-storefront-settings-and-customization` | Add per-owner storefront settings (slug, bilingual display name, accent color, enabled flag) with schema migration and owner settings UI. · size: M | not started |
+| [[5.1.1-storefront-settings-and-customization]] | Add per-owner storefront settings (slug, bilingual display name, accent color, enabled flag) with schema migration and owner settings UI. · size: M | 001_initial_task |
 
 ## Phase 5.2 — Public storefront
 
@@ -43,7 +43,7 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| `5.3.1-security-headers-and-origin-checks` | Add response security headers and origin verification on session and owner mutation routes. · size: M | not started |
+| [[5.3.1-security-headers-and-origin-checks]] | Add response security headers and origin verification on session and owner mutation routes. · size: M | 001_initial_task |
 | `5.3.2-public-endpoint-rate-limiting` | Add bounded in-memory rate limiting to public checkout/storefront endpoints with opaque 429 outcomes. · size: M | not started |
 
 ## Phase 5.4 — Observability
