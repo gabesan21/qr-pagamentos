@@ -41,7 +41,6 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[5.3.2-public-endpoint-rate-limiting]] | Add bounded in-memory rate limiting to public checkout/storefront endpoints with opaque 429 outcomes. · size: M | 001_initial_task |
 
 ## Phase 5.4 — Observability
 

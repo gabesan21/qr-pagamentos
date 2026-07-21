@@ -2,7 +2,7 @@
   "version": 1,
   "events": [
     {
-      "at": "2026-07-21T18:30:55-03:00",
+      "at": "2026-07-21T18:31:16-03:00",
       "event": "transition",
       "from": "001_initial_task",
       "to": "002_planning",
@@ -11,23 +11,23 @@
       "result": "advanced"
     },
     {
-      "at": "2026-07-21T18:35:10-03:00",
+      "at": "2026-07-21T18:35:47-03:00",
       "event": "transition",
       "from": "002_planning",
       "to": "003_human_approval",
       "contexts": [
-        "planner: plan_public_rate_limiting"
+        "planner: plan_structured_logging"
       ],
       "test_seconds": 0,
       "result": "advanced"
     },
     {
-      "at": "2026-07-21T18:36:45-03:00",
+      "at": "2026-07-21T18:37:38-03:00",
       "event": "transition",
       "from": "003_human_approval",
       "to": "002_planning",
       "contexts": [
-        "critic: approve_rate_limiting_plan"
+        "critic: approve_structured_logging_plan"
       ],
       "test_seconds": 0,
       "result": "returned"
@@ -38,18 +38,18 @@
       "from": "002_planning",
       "to": "003_human_approval",
       "contexts": [
-        "planner: replan_rate_limiting_api"
+        "planner: replan_logging_request_id"
       ],
       "test_seconds": 0,
       "result": "advanced"
     },
     {
-      "at": "2026-07-21T18:42:26-03:00",
+      "at": "2026-07-21T18:51:19-03:00",
       "event": "transition",
       "from": "003_human_approval",
       "to": "004_processing",
       "contexts": [
-        "critic: reapprove_rate_limiting_api"
+        "critic: reapprove_structured_logging"
       ],
       "test_seconds": 0,
       "result": "advanced"
