@@ -49,7 +49,6 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[5.4.1-structured-server-logging]] | Add a first-party JSON logger with request-id propagation on API/mutation routes, never logging secrets or customer snapshots. · size: M | 001_initial_task |
 
 ## Phase 5.5 — Production release
 

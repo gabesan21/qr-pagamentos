@@ -53,6 +53,50 @@
       ],
       "test_seconds": 0,
       "result": "advanced"
+    },
+    {
+      "at": "2026-07-21T19:04:28-03:00",
+      "event": "transition",
+      "from": "004_processing",
+      "to": "005_verifying",
+      "contexts": [
+        "executor: execute_structured_logging"
+      ],
+      "test_seconds": 0,
+      "result": "advanced"
+    },
+    {
+      "at": "2026-07-21T19:06:57-03:00",
+      "event": "transition",
+      "from": "005_verifying",
+      "to": "004_processing",
+      "contexts": [
+        "critic: review_structured_logging"
+      ],
+      "test_seconds": 0,
+      "result": "returned"
+    },
+    {
+      "at": "2026-07-21T19:08:52-03:00",
+      "event": "transition",
+      "from": "004_processing",
+      "to": "005_verifying",
+      "contexts": [
+        "executor: fix_request_id_regex"
+      ],
+      "test_seconds": 0,
+      "result": "advanced"
+    },
+    {
+      "at": "2026-07-21T19:11:20-03:00",
+      "event": "transition",
+      "from": "005_verifying",
+      "to": "006_done",
+      "contexts": [
+        "critic: recheck_structured_logging"
+      ],
+      "test_seconds": 0,
+      "result": "advanced"
     }
   ]
 }
