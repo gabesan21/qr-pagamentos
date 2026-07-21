@@ -2,11 +2,14 @@ import { getAuthorizationService } from "@/auth/authorization";
 import { getLocalePreferenceService } from "@/i18n/locale-preference";
 import { negotiateLocale } from "@/i18n/locales";
 import { getSessionService, SESSION_ABSOLUTE_MS } from "@/auth/session";
+import { rejectCrossOrigin } from "@/app/origin-guard";
 import { relativeRedirect } from "@/app/relative-redirect";
 
 const cookieOptions = { httpOnly: true, sameSite: "lax" as const, secure: process.env.NODE_ENV === "production", path: "/", maxAge: SESSION_ABSOLUTE_MS / 1000 };
 
 export async function POST(request: Request) {
+  const crossOrigin = rejectCrossOrigin(request);
+  if (crossOrigin) return crossOrigin;
   const form = await request.formData();
   const username = form.get("username"); const password = form.get("password");
   const session = getSessionService();

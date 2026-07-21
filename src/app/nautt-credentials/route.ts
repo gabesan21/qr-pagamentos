@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 
 import { getAuthorizationService, UnauthenticatedError } from "@/auth/authorization";
+import { rejectCrossOrigin } from "@/app/origin-guard";
 import { relativeRedirect } from "@/app/relative-redirect";
 import { loadNauttWebhookCallbackUrl } from "@/integrations/nautt/config";
 import {
@@ -11,6 +12,8 @@ import {
 } from "@/integrations/nautt/owner-onboarding";
 
 export async function POST(request: Request) {
+  const crossOrigin = rejectCrossOrigin(request);
+  if (crossOrigin) return crossOrigin;
   try {
     const principal = await getAuthorizationService().requireAuthenticated((await cookies()).get("qr_session")?.value);
     const apiKey = (await request.formData()).get("apiKey");

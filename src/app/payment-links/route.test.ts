@@ -5,13 +5,14 @@ vi.mock("@/app/owner-guard", () => ({ requireOwnerFromCookie, ownerProtectedMuta
 vi.mock("@/auth/payment-link", () => ({ getPaymentLinkService: () => ({ create }) }));
 import { POST } from "./route";
 const owner = { id: "owner", username: "owner", email: null, role: "USER" as const, status: "ACTIVE" as const, createdAt: new Date() };
+const sameOrigin = { origin: "http://local", host: "local" };
 describe("owner payment-link route", () => {
   it("re-authorizes before form parsing and never trusts a supplied owner", async () => {
     requireOwnerFromCookie.mockRejectedValueOnce(new Error("protected")); ownerProtectedMutationResponse.mockReturnValueOnce(new Response(null, { status: 401 }));
-    const protectedResponse = await POST(new Request("http://local/payment-links", { method: "POST", body: new URLSearchParams() }));
+    const protectedResponse = await POST(new Request("http://local/payment-links", { method: "POST", headers: sameOrigin, body: new URLSearchParams() }));
     expect(protectedResponse.status).toBe(401); expect(await protectedResponse.text()).toBe("");
     requireOwnerFromCookie.mockResolvedValue(owner); ownerProtectedMutationResponse.mockReturnValue(null);
-    const response = await POST(new Request("http://local/payment-links", { method: "POST", body: new URLSearchParams({ productId: "product", currencyPairId: "pair", linkType: "REUSABLE", ownerId: "forged" }) }));
+    const response = await POST(new Request("http://local/payment-links", { method: "POST", headers: sameOrigin, body: new URLSearchParams({ productId: "product", currencyPairId: "pair", linkType: "REUSABLE", ownerId: "forged" }) }));
     expect(create).toHaveBeenCalledWith(owner, { productId: "product", currencyPairId: "pair", linkType: "REUSABLE", expiresAt: null });
     expect(response.headers.get("location")).toBe("/?payment-links=created");
   });

@@ -1,4 +1,5 @@
 import { protectedMutationResponse, requireAdminFromCookie } from "@/app/admin/guard";
+import { rejectCrossOrigin } from "@/app/origin-guard";
 import { getPaymentSettingsService, SUPPORTED_CURRENCIES, SUPPORTED_PAYMENT_METHODS } from "@/auth/payment-settings";
 import { relativeRedirect } from "@/app/relative-redirect";
 
@@ -9,6 +10,8 @@ function selected(form: FormData, field: string, allowed: readonly string[]) {
 }
 
 export async function POST(request: Request) {
+  const crossOrigin = rejectCrossOrigin(request);
+  if (crossOrigin) return crossOrigin;
   try {
     const actor = await requireAdminFromCookie();
     const form = await request.formData();
