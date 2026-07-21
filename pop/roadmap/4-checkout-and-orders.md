@@ -22,7 +22,7 @@
 | Task | Description (≤1 line) | Status |
 |------|----------------------|--------|
 | [[4.1.1-owner-isolation-and-checkout-policy]] | Add required product/link ownership and the account-level customer-data policy with `NONE` as default. · size: L | 006_done |
-| `4.1.2-payment-link-order-lifecycle` | Persist owner-bound checkout orders, field snapshots, status transitions, expiry, and single-use settlement rules. · size: L | not started |
+| [[4.1.2-payment-link-order-lifecycle]] | Persist owner-bound checkout orders, field snapshots, status transitions, expiry, and single-use settlement rules. · size: L | 001_initial_task |
 
 ## Phase 4.2 — Public checkout
 
