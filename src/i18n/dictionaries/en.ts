@@ -195,4 +195,6 @@ export const en = {
   checkoutPolicyEmail: "Email",
   checkoutPolicyNameEmailCpf: "Name, email, and CPF",
   checkoutPolicyNameEmailCpfAddress: "Name, email, CPF, and address",
+  ownerSettingsUpdated: "Account settings updated.",
+  ownerSettingsFailed: "The account settings could not be saved. Review the values and try again.",
 } as const;

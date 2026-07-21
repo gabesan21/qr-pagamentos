@@ -195,4 +195,6 @@ export const ptBR = {
   checkoutPolicyEmail: "E-mail",
   checkoutPolicyNameEmailCpf: "Nome, e-mail e CPF",
   checkoutPolicyNameEmailCpfAddress: "Nome, e-mail, CPF e endereço",
+  ownerSettingsUpdated: "Configurações da conta atualizadas.",
+  ownerSettingsFailed: "Não foi possível salvar as configurações da conta. Revise os valores e tente novamente.",
 } as const;

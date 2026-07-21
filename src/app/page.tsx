@@ -29,11 +29,13 @@ export default async function Home({ searchParams }: Readonly<{ searchParams: Pr
   ]);
   const dictionary = getDictionary(locale);
   const notices = await searchParams;
+  const ownerNotice = notices.products ?? notices["payment-links"] ?? notices["checkout-policy"];
+  const ownerNoticeFailed = ownerNotice === "failed" || ownerNotice === "conflict";
   return (
     <main className="admin-shell">
       <header className="receipt-rail"><span className="receipt-rail__label">QR Pagamentos</span><h1>{dictionary.heading}</h1></header><p className="admin-shell__intro">{dictionary.introduction}</p>
       <NauttCredentialSurface dictionary={dictionary} notice={notices.nautt} status={nauttStatus} />
-      {notices.products || notices["payment-links"] || notices["checkout-policy"] ? <Alert role="status" variant="success"><AlertTitle>Account settings updated</AlertTitle><AlertDescription>Your owner-only settings were processed.</AlertDescription></Alert> : null}
+      {ownerNotice ? <Alert role={ownerNoticeFailed ? "alert" : "status"} variant={ownerNoticeFailed ? "destructive" : "success"}><AlertTitle>{ownerNoticeFailed ? dictionary.adminErrorHeading : dictionary.adminSuccessHeading}</AlertTitle><AlertDescription>{ownerNoticeFailed ? dictionary.ownerSettingsFailed : dictionary.ownerSettingsUpdated}</AlertDescription></Alert> : null}
       <OwnerProductManagement dictionary={dictionary} locale={locale} products={products} />
       <OwnerPaymentLinkManagement data={paymentLinks} dictionary={dictionary} locale={locale} />
       <CheckoutPolicyManagement dictionary={dictionary} policy={checkoutPolicy.checkoutDataPolicy} />
