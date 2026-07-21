@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { formatProductPrice } from "@/app/admin/product-management";
-import type { PaymentLinkAdminData } from "@/auth/payment-link";
+import type { PaymentLinkOwnerData } from "@/auth/payment-link";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,7 @@ import type { SupportedLocale } from "@/i18n/locales";
 
 type Dictionary = ReturnType<typeof getDictionary>;
 
-export function PaymentLinkManagement({ data, dictionary, locale }: Readonly<{ data: PaymentLinkAdminData; dictionary: Dictionary; locale: SupportedLocale }>) {
+export function OwnerPaymentLinkManagement({ data, dictionary, locale }: Readonly<{ data: PaymentLinkOwnerData; dictionary: Dictionary; locale: SupportedLocale }>) {
   const hasPrerequisites = data.activeProducts.length > 0 && data.activeCurrencyPairs.length > 0;
   return (
     <Card>
@@ -32,10 +32,10 @@ export function PaymentLinkManagement({ data, dictionary, locale }: Readonly<{ d
   );
 }
 
-function PaymentLinkForm({ data, dictionary, locale }: Readonly<{ data: PaymentLinkAdminData; dictionary: Dictionary; locale: SupportedLocale }>) {
+function PaymentLinkForm({ data, dictionary, locale }: Readonly<{ data: PaymentLinkOwnerData; dictionary: Dictionary; locale: SupportedLocale }>) {
   const formId = "payment-link-create";
   return (
-    <form action="/admin/payment-links" id={formId} method="post">
+    <form action="/payment-links" id={formId} method="post">
       <FieldGroup>
         <Field><FieldLabel htmlFor="payment-link-product">{dictionary.adminPaymentLinkProduct}</FieldLabel><NativeSelect id="payment-link-product" name="productId" required><NativeSelectOption value="">{dictionary.adminPaymentLinkChooseProduct}</NativeSelectOption>{data.activeProducts.map((product) => <NativeSelectOption key={product.id} value={product.id}>{product.internalName} — {formatProductPrice(product.price, locale)}</NativeSelectOption>)}</NativeSelect></Field>
         <Field><FieldLabel htmlFor="payment-link-currency-pair">{dictionary.adminPaymentLinkCurrencyPair}</FieldLabel><NativeSelect id="payment-link-currency-pair" name="currencyPairId" required><NativeSelectOption value="">{dictionary.adminPaymentLinkChooseCurrencyPair}</NativeSelectOption>{data.activeCurrencyPairs.map((pair) => <NativeSelectOption key={pair.id} value={pair.id}>{pair.label}</NativeSelectOption>)}</NativeSelect></Field>
@@ -47,7 +47,7 @@ function PaymentLinkForm({ data, dictionary, locale }: Readonly<{ data: PaymentL
   );
 }
 
-function PaymentLink({ data, dictionary, locale }: Readonly<{ data: PaymentLinkAdminData["links"][number]; dictionary: Dictionary; locale: SupportedLocale }>) {
+function PaymentLink({ data, dictionary, locale }: Readonly<{ data: PaymentLinkOwnerData["links"][number]; dictionary: Dictionary; locale: SupportedLocale }>) {
   const formId = `payment-link-${data.id}-revoke`;
   return (
     <section aria-labelledby={`payment-link-${data.id}`} className="admin-product" role="listitem">
@@ -61,7 +61,7 @@ function PaymentLink({ data, dictionary, locale }: Readonly<{ data: PaymentLinkA
           <div><dt>{dictionary.adminPaymentLinkExpiry}</dt><dd>{data.expiresAt ? data.expiresAt.toLocaleString(locale) : dictionary.adminPaymentLinkNoExpiry}</dd></div>
         </dl>
       </div>
-      {data.active ? <form action={`/admin/payment-links/${data.id}`} id={formId} method="post"><details><summary>{dictionary.adminPaymentLinkRevokeHeading}</summary><Alert variant="warning"><AlertTitle>{dictionary.adminPaymentLinkRevokeConfirm}</AlertTitle><AlertDescription>{dictionary.adminPaymentLinkRevokeDescription}</AlertDescription><PaymentLinkSubmit form={formId} label={dictionary.adminPaymentLinkRevoke} tone="secondary" /></Alert></details></form> : null}
+      {data.active ? <form action={`/payment-links/${data.id}`} id={formId} method="post"><details><summary>{dictionary.adminPaymentLinkRevokeHeading}</summary><Alert variant="warning"><AlertTitle>{dictionary.adminPaymentLinkRevokeConfirm}</AlertTitle><AlertDescription>{dictionary.adminPaymentLinkRevokeDescription}</AlertDescription><PaymentLinkSubmit form={formId} label={dictionary.adminPaymentLinkRevoke} tone="secondary" /></Alert></details></form> : null}
     </section>
   );
 }

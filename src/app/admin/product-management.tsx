@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import type { AdminProduct } from "@/auth/product";
+import type { OwnerProduct } from "@/auth/product";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -27,7 +27,7 @@ export function formatProductPrice(price: string, locale: SupportedLocale) {
     : `BRL ${grouped}${fraction ? `${decimal}${fraction}` : ""}`;
 }
 
-export function ProductManagement({ dictionary, locale, products }: Readonly<{ dictionary: Dictionary; locale: SupportedLocale; products: AdminProduct[] }>) {
+export function OwnerProductManagement({ dictionary, locale, products }: Readonly<{ dictionary: Dictionary; locale: SupportedLocale; products: OwnerProduct[] }>) {
   return (
     <Card>
       <CardHeader><CardTitle>{dictionary.adminProductsHeading}</CardTitle><CardDescription>{dictionary.adminProductsDescription}</CardDescription></CardHeader>
@@ -46,10 +46,10 @@ export function ProductManagement({ dictionary, locale, products }: Readonly<{ d
   );
 }
 
-function ProductFields({ dictionary, formId, product }: Readonly<{ dictionary: Dictionary; formId: string; product?: AdminProduct }>) {
+function ProductFields({ dictionary, formId, product }: Readonly<{ dictionary: Dictionary; formId: string; product?: OwnerProduct }>) {
   const creating = !product;
   return (
-    <form action="/admin/products" id={formId} method="post">
+    <form action="/products" id={formId} method="post">
       <Input name="action" type="hidden" value={creating ? "create" : "update"} />
       {product ? <><Input name="id" type="hidden" value={product.id} /><Input name="version" type="hidden" value={product.version} /></> : null}
       <FieldGroup>
@@ -65,7 +65,7 @@ function ProductFields({ dictionary, formId, product }: Readonly<{ dictionary: D
   );
 }
 
-function Product({ dictionary, locale, product }: Readonly<{ dictionary: Dictionary; locale: SupportedLocale; product: AdminProduct }>) {
+function Product({ dictionary, locale, product }: Readonly<{ dictionary: Dictionary; locale: SupportedLocale; product: OwnerProduct }>) {
   const activeFormId = `product-${product.id}-active`;
   const deleteFormId = `product-${product.id}-delete`;
   return (
@@ -81,11 +81,11 @@ function Product({ dictionary, locale, product }: Readonly<{ dictionary: Diction
         <p className="admin-product-description">{locale === "pt-BR" ? product.descriptionPtBr : product.descriptionEn}</p>
       </div>
       <ProductFields dictionary={dictionary} formId={`product-${product.id}`} product={product} />
-      <form action="/admin/products" id={activeFormId} method="post">
+      <form action="/products" id={activeFormId} method="post">
         <Input name="action" type="hidden" value="active" /><Input name="id" type="hidden" value={product.id} /><Input name="version" type="hidden" value={product.version} /><Input name="active" type="hidden" value={String(!product.active)} />
         <ProductSubmit form={activeFormId} label={product.active ? dictionary.adminProductDeactivate : dictionary.adminProductReactivate} tone="secondary" />
       </form>
-      <form action="/admin/products" id={deleteFormId} method="post">
+      <form action="/products" id={deleteFormId} method="post">
         <Input name="action" type="hidden" value="delete" /><Input name="id" type="hidden" value={product.id} /><Input name="version" type="hidden" value={product.version} />
         <details>
           <summary>{dictionary.adminProductDeleteHeading}</summary>

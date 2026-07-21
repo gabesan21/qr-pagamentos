@@ -39,7 +39,7 @@ for (const model of ["DatabaseFoundationFixture", "User", "PasswordCredential", 
 assert(schema.includes('output   = "../src/generated/prisma"'), "Generated output changed");
 
 const migrationDirectories = (await readdir("prisma/migrations", { withFileTypes: true })).filter((entry) => entry.isDirectory()).map((entry) => entry.name);
-assert(JSON.stringify(migrationDirectories) === JSON.stringify(["20260714000000_foundation_baseline", "20260714190000_local_identities", "20260716110000_database_sessions", "20260716160000_user_language_preference", "20260716180000_global_payment_settings", "20260716210000_restrict_global_payment_settings_runtime", "20260717190000_nautt_credentials", "20260717210000_nautt_webhook_registration", "20260717230000_nautt_credential_revision", "20260718010000_provider_orders", "20260718030000_nautt_webhook_deliveries", "20260718050000_nautt_webhook_recovery", "20260720230000_nautt_catalog", "20260721010000_products", "20260721020000_payment_links"]), "Migration history name/count changed");
+assert(JSON.stringify(migrationDirectories) === JSON.stringify(["20260714000000_foundation_baseline", "20260714190000_local_identities", "20260716110000_database_sessions", "20260716160000_user_language_preference", "20260716180000_global_payment_settings", "20260716210000_restrict_global_payment_settings_runtime", "20260717190000_nautt_credentials", "20260717210000_nautt_webhook_registration", "20260717230000_nautt_credential_revision", "20260718010000_provider_orders", "20260718030000_nautt_webhook_deliveries", "20260718050000_nautt_webhook_recovery", "20260720230000_nautt_catalog", "20260721010000_products", "20260721020000_payment_links", "20260721030000_owner_isolation_checkout_policy"]), "Migration history name/count changed");
 const migration = await readFile("prisma/migrations/20260714000000_foundation_baseline/migration.sql", "utf8");
 for (const constraint of ["database_foundation_fixture_key_key", "database_foundation_fixture_key_nonblank", "database_foundation_fixture_quantity_nonnegative"]) {
   assert(migration.includes(constraint), `Migration lost ${constraint}`);
@@ -138,6 +138,15 @@ for (const field of ["identifier", "productId", "currencyPairId", "linkType", "e
   assert(schema.includes(field), `Schema is missing payment-link field ${field}`);
 }
 assert(!/GRANT\s+(?:TRUNCATE|REFERENCES|TRIGGER)|ALTER\s+(?:TABLE|SCHEMA).*OWNER/i.test(paymentLinkMigration), "Payment-link migration grants excess privileges or changes ownership");
+
+const ownerIsolationMigration = await readFile("prisma/migrations/20260721030000_owner_isolation_checkout_policy/migration.sql", "utf8");
+for (const contract of ["owner isolation migration requires empty product and payment_link tables", "checkout_data_policy", "user_checkout_data_policy_closed", "product_owner_fkey", "product_id_owner_id_key", "product_owner_internal_name_id_idx", "payment_link_owner_fkey", "payment_link_product_owner_fkey", "payment_link_owner_created_at_id_idx", "GRANT SELECT, UPDATE (\"checkout_data_policy\")"]) {
+  assert(ownerIsolationMigration.includes(contract), `Owner-isolation migration lost ${contract}`);
+}
+for (const field of ["checkoutDataPolicy", "ownerId", "owner           User", "productId, ownerId"]) {
+  assert(schema.includes(field), `Schema is missing owner-isolation field ${field}`);
+}
+assert(!/GRANT\s+(?:TRUNCATE|REFERENCES|TRIGGER)|ALTER\s+(?:TABLE|SCHEMA).*OWNER/i.test(ownerIsolationMigration), "Owner-isolation migration grants excess privileges or changes ownership");
 
 const bootstrap = await readFile("prisma/bootstrap.sql", "utf8");
 assert(bootstrap.includes("GRANT CONNECT ON DATABASE qr_pagamentos TO qr_migrator, qr_runtime"), "Both roles require explicit CONNECT");

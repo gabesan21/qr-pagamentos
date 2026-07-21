@@ -1,7 +1,7 @@
 import { getDatabaseClient } from "../db/client";
 import { ForbiddenError, type Principal } from "./authorization";
 
-export type AdminProduct = {
+export type OwnerProduct = {
   id: string;
   internalName: string;
   titlePtBr: string;
@@ -16,7 +16,7 @@ export type AdminProduct = {
 };
 
 export type ProductValues = Pick<
-  AdminProduct,
+  OwnerProduct,
   "internalName" | "titlePtBr" | "titleEn" | "descriptionPtBr" | "descriptionEn" | "price"
 >;
 
@@ -24,11 +24,11 @@ export class ProductValidationError extends Error {}
 export class ProductConflictError extends Error {}
 
 export type ProductStore = {
-  list(): Promise<AdminProduct[]>;
-  create(values: ProductValues): Promise<AdminProduct>;
-  update(id: string, version: number, values: ProductValues): Promise<AdminProduct | null>;
-  setActive(id: string, version: number, active: boolean): Promise<AdminProduct | null>;
-  delete(id: string, version: number): Promise<boolean>;
+  list(ownerId: string): Promise<OwnerProduct[]>;
+  create(ownerId: string, values: ProductValues): Promise<OwnerProduct>;
+  update(ownerId: string, id: string, version: number, values: ProductValues): Promise<OwnerProduct | null>;
+  setActive(ownerId: string, id: string, version: number, active: boolean): Promise<OwnerProduct | null>;
+  delete(ownerId: string, id: string, version: number): Promise<boolean>;
 };
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -36,9 +36,9 @@ const PRICE_PATTERN = /^(?:0\.[0-9]{0,5}[1-9]|[1-9][0-9]{0,11}(?:\.[0-9]{0,5}[1-
 const VERSION_PATTERN = /^(?:0|[1-9][0-9]*)$/;
 const MAX_DATABASE_INTEGER = 2_147_483_647;
 
-function requireAdmin(actor: Principal) {
-  if (actor.role !== "ADMIN" || actor.status !== "ACTIVE") {
-    throw new ForbiddenError("Administrator access is required");
+function requireActiveActor(actor: Principal) {
+  if (actor.status !== "ACTIVE") {
+    throw new ForbiddenError("Active account access is required");
   }
 }
 
@@ -91,20 +91,20 @@ function validateValues(input: Record<keyof ProductValues, unknown>): ProductVal
   };
 }
 
-function requireMatchedProduct(product: AdminProduct | null): AdminProduct {
+function requireMatchedProduct(product: OwnerProduct | null): OwnerProduct {
   if (!product) throw new ProductConflictError("Product mutation did not match the expected version");
   return product;
 }
 
 export function createProductService(store: ProductStore) {
   return {
-    async list(actor: Principal) {
-      requireAdmin(actor);
-      return store.list();
+    async listForOwner(actor: Principal) {
+      requireActiveActor(actor);
+      return store.list(actor.id);
     },
     async create(actor: Principal, input: Record<keyof ProductValues, unknown>) {
-      requireAdmin(actor);
-      return store.create(validateValues(input));
+      requireActiveActor(actor);
+      return store.create(actor.id, validateValues(input));
     },
     async update(
       actor: Principal,
@@ -112,23 +112,23 @@ export function createProductService(store: ProductStore) {
       version: unknown,
       input: Record<keyof ProductValues, unknown>,
     ) {
-      requireAdmin(actor);
+      requireActiveActor(actor);
       return requireMatchedProduct(
-        await store.update(validateUuid(id), validateVersion(version), validateValues(input)),
+        await store.update(actor.id, validateUuid(id), validateVersion(version), validateValues(input)),
       );
     },
     async setActive(actor: Principal, id: unknown, version: unknown, active: unknown) {
-      requireAdmin(actor);
+      requireActiveActor(actor);
       if (active !== true && active !== false && active !== "true" && active !== "false") {
         throw new ProductValidationError("Product active state is invalid");
       }
       return requireMatchedProduct(
-        await store.setActive(validateUuid(id), validateVersion(version), active === true || active === "true"),
+        await store.setActive(actor.id, validateUuid(id), validateVersion(version), active === true || active === "true"),
       );
     },
     async delete(actor: Principal, id: unknown, version: unknown) {
-      requireAdmin(actor);
-      const deleted = await store.delete(validateUuid(id), validateVersion(version));
+      requireActiveActor(actor);
+      const deleted = await store.delete(actor.id, validateUuid(id), validateVersion(version));
       if (!deleted) throw new ProductConflictError("Product mutation did not match the expected version");
     },
   };
@@ -137,34 +137,34 @@ export function createProductService(store: ProductStore) {
 function prismaStore(): ProductStore {
   const db = getDatabaseClient();
   return {
-    list() {
-      return db.product.findMany({ orderBy: [{ internalName: "asc" }, { id: "asc" }] });
+    list(ownerId) {
+      return db.product.findMany({ where: { ownerId }, orderBy: [{ internalName: "asc" }, { id: "asc" }] });
     },
-    create(values) {
-      return db.product.create({ data: values });
+    create(ownerId, values) {
+      return db.product.create({ data: { ownerId, ...values } });
     },
-    update(id, version, values) {
+    update(ownerId, id, version, values) {
       return db.$transaction(async (transaction) => {
         const result = await transaction.product.updateMany({
-          where: { id, version },
+          where: { id, ownerId, version },
           data: { ...values, version: { increment: 1 } },
         });
         if (result.count !== 1) return null;
-        return transaction.product.findUnique({ where: { id } });
+        return transaction.product.findFirst({ where: { id, ownerId } });
       });
     },
-    setActive(id, version, active) {
+    setActive(ownerId, id, version, active) {
       return db.$transaction(async (transaction) => {
         const result = await transaction.product.updateMany({
-          where: { id, version },
+          where: { id, ownerId, version },
           data: { active, version: { increment: 1 } },
         });
         if (result.count !== 1) return null;
-        return transaction.product.findUnique({ where: { id } });
+        return transaction.product.findFirst({ where: { id, ownerId } });
       });
     },
-    async delete(id, version) {
-      const result = await db.product.deleteMany({ where: { id, version } });
+    async delete(ownerId, id, version) {
+      const result = await db.product.deleteMany({ where: { id, ownerId, version } });
       return result.count === 1;
     },
   };
