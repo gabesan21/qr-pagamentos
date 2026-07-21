@@ -34,6 +34,7 @@ model User {
   providerOrders   ProviderOrder[]
   products         Product[]
   paymentLinks     PaymentLink[]
+  paymentLinkOrders PaymentLinkOrder[]
   webhookDeliveries WebhookDelivery[]
   sessions          Session[]
 
@@ -144,6 +145,7 @@ model Product {
   updatedAt       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
   owner           User     @relation(fields: [ownerId], references: [id], onDelete: Restrict)
   paymentLinks    PaymentLink[]
+  paymentLinkOrders PaymentLinkOrder[]
 
   @@unique([id, ownerId], map: "product_id_owner_id_key")
   @@index([ownerId, internalName, id], map: "product_owner_internal_name_id_idx")
@@ -164,7 +166,11 @@ model PaymentLink {
   owner          User                @relation(fields: [ownerId], references: [id], onDelete: Restrict)
   product        Product             @relation(fields: [productId, ownerId], references: [id, ownerId], onDelete: Restrict)
   currencyPair   CatalogCurrencyPair @relation(fields: [currencyPairId], references: [id], onDelete: Restrict)
+  paymentLinkOrders PaymentLinkOrder[]
+  singleUseSettlement PaymentLinkSingleUseSettlement?
 
+  @@unique([id, ownerId], map: "payment_link_id_owner_id_key")
+  @@unique([id, ownerId, productId], map: "payment_link_id_owner_product_id_key")
   @@index([createdAt, id], map: "payment_link_created_at_id_idx")
   @@index([ownerId, createdAt, id], map: "payment_link_owner_created_at_id_idx")
   @@index([productId], map: "payment_link_product_id_idx")
@@ -202,6 +208,7 @@ model ProviderOrder {
   paymentMethod         String?   @map("payment_method") @db.Text
   pixCopyPaste          String?   @map("pix_copy_paste") @db.Text
   pixQrcodeUrl          String?   @map("pix_qrcode_url") @db.Text
+  paymentLinkOrderId    String?   @unique(map: "provider_order_payment_link_order_id_key") @map("payment_link_order_id") @db.Uuid
   reconciliationVersion Int       @default(0) @map("reconciliation_version") @db.Integer
   createdAt             DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt             DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
@@ -209,11 +216,63 @@ model ProviderOrder {
   quote                 ProviderQuote @relation(fields: [quoteUuid, ownerId], references: [quoteUuid, ownerId], onDelete: Cascade)
   webhookDeliveries     WebhookDelivery[]
   webhookRecoveryLease  WebhookRecoveryLease?
+  paymentLinkOrder      PaymentLinkOrder? @relation("PaymentLinkOrderProviderOrder", fields: [paymentLinkOrderId, ownerId], references: [id, ownerId], onDelete: Restrict)
 
   @@index([ownerId, status], map: "provider_order_owner_status_idx")
   @@unique([id, ownerId], map: "provider_order_id_owner_id_key")
   @@unique([quoteUuid, ownerId], map: "provider_order_quote_uuid_owner_id_key")
+  @@unique([paymentLinkOrderId, ownerId], map: "provider_order_payment_link_order_owner_key")
   @@map("provider_order")
+  @@schema("app")
+}
+
+model PaymentLinkOrder {
+  id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId               String   @map("owner_id") @db.Uuid
+  paymentLinkId         String   @map("payment_link_id") @db.Uuid
+  productId             String   @map("product_id") @db.Uuid
+  productPrice          String   @map("product_price") @db.Text
+  currencyUuid          String   @map("currency_uuid") @db.Uuid
+  exchangeCurrencyUuid  String   @map("exchange_currency_uuid") @db.Uuid
+  checkoutDataPolicy    String   @map("checkout_data_policy") @db.VarChar(22)
+  name                  String?  @db.VarChar(160)
+  email                 String?  @db.VarChar(254)
+  cpf                   String?  @db.Char(11)
+  street                String?  @db.VarChar(160)
+  number                String?  @db.VarChar(32)
+  district              String?  @db.VarChar(120)
+  city                  String?  @db.VarChar(120)
+  stateUf               String?  @map("state_uf") @db.Char(2)
+  postalCode            String?  @map("postal_code") @db.Char(8)
+  country               String?  @db.Char(2)
+  complement            String?  @db.VarChar(160)
+  state                 String   @default("CREATED") @db.VarChar(13)
+  lifecycleVersion      Int      @default(0) @map("lifecycle_version") @db.Integer
+  settledAt             DateTime? @map("settled_at") @db.Timestamptz(3)
+  createdAt             DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt             DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  owner                 User     @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  paymentLink           PaymentLink @relation(fields: [paymentLinkId, ownerId, productId], references: [id, ownerId, productId], onDelete: Restrict)
+  product               Product  @relation(fields: [productId, ownerId], references: [id, ownerId], onDelete: Restrict)
+  providerOrder         ProviderOrder? @relation("PaymentLinkOrderProviderOrder")
+  singleUseSettlement   PaymentLinkSingleUseSettlement?
+
+  @@unique([id, ownerId], map: "payment_link_order_id_owner_id_key")
+  @@map("payment_link_order")
+  @@schema("app")
+}
+
+model PaymentLinkSingleUseSettlement {
+  paymentLinkId      String           @id @map("payment_link_id") @db.Uuid
+  ownerId            String           @map("owner_id") @db.Uuid
+  paymentLinkOrderId String           @unique(map: "payment_link_single_use_settlement_order_key") @map("payment_link_order_id") @db.Uuid
+  claimedAt          DateTime         @default(now()) @map("claimed_at") @db.Timestamptz(3)
+  paymentLink        PaymentLink      @relation(fields: [paymentLinkId, ownerId], references: [id, ownerId], onDelete: Restrict)
+  paymentLinkOrder   PaymentLinkOrder @relation(fields: [paymentLinkOrderId, ownerId], references: [id, ownerId], onDelete: Restrict)
+
+  @@unique([paymentLinkId, ownerId], map: "payment_link_single_use_settlement_link_owner_key")
+  @@unique([paymentLinkOrderId, ownerId], map: "payment_link_single_use_settlement_order_owner_key")
+  @@map("payment_link_single_use_settlement")
   @@schema("app")
 }
 
