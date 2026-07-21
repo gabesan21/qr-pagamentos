@@ -44,4 +44,19 @@ describe("product management surface", () => {
     expect(formatProductPrice("999999999999.000001", "en")).toBe("BRL 999,999,999,999.000001");
     expect(formatProductPrice("999999999999.000001", "pt-BR")).toBe("R$ 999.999.999.999,000001");
   });
+
+  it.each([
+    ["internal name", "internalName", 128],
+    ["Brazilian Portuguese title", "titlePtBr", 160],
+    ["Brazilian Portuguese description", "descriptionPtBr", 2000],
+    ["English title", "titleEn", 160],
+    ["English description", "descriptionEn", 2000],
+  ] as const)("allows a %s at its %i-code-point boundary", (_label, field, limit) => {
+    const value = "😀".repeat(limit);
+    const markup = renderToStaticMarkup(<ProductManagement dictionary={en} locale="en" products={[{ ...product, [field]: value }]} />);
+
+    expect([...value]).toHaveLength(limit);
+    expect(markup).toContain(value);
+    expect(markup).not.toContain("maxlength=");
+  });
 });

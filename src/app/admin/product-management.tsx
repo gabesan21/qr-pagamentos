@@ -53,11 +53,11 @@ function ProductFields({ dictionary, formId, product }: Readonly<{ dictionary: D
       <Input name="action" type="hidden" value={creating ? "create" : "update"} />
       {product ? <><Input name="id" type="hidden" value={product.id} /><Input name="version" type="hidden" value={product.version} /></> : null}
       <FieldGroup>
-        <Field><FieldLabel htmlFor={`${formId}-internal-name`}>{dictionary.adminProductInternalName}</FieldLabel><Input defaultValue={product?.internalName} id={`${formId}-internal-name`} maxLength={128} name="internalName" required /></Field>
-        <Field><FieldLabel htmlFor={`${formId}-title-pt-br`}>{dictionary.adminProductTitlePtBr}</FieldLabel><Input defaultValue={product?.titlePtBr} id={`${formId}-title-pt-br`} maxLength={160} name="titlePtBr" required /></Field>
-        <Field><FieldLabel htmlFor={`${formId}-description-pt-br`}>{dictionary.adminProductDescriptionPtBr}</FieldLabel><Textarea defaultValue={product?.descriptionPtBr} id={`${formId}-description-pt-br`} maxLength={2000} name="descriptionPtBr" required /></Field>
-        <Field><FieldLabel htmlFor={`${formId}-title-en`}>{dictionary.adminProductTitleEn}</FieldLabel><Input defaultValue={product?.titleEn} id={`${formId}-title-en`} maxLength={160} name="titleEn" required /></Field>
-        <Field><FieldLabel htmlFor={`${formId}-description-en`}>{dictionary.adminProductDescriptionEn}</FieldLabel><Textarea defaultValue={product?.descriptionEn} id={`${formId}-description-en`} maxLength={2000} name="descriptionEn" required /></Field>
+        <Field><FieldLabel htmlFor={`${formId}-internal-name`}>{dictionary.adminProductInternalName}</FieldLabel><Input defaultValue={product?.internalName} id={`${formId}-internal-name`} name="internalName" required /></Field>
+        <Field><FieldLabel htmlFor={`${formId}-title-pt-br`}>{dictionary.adminProductTitlePtBr}</FieldLabel><Input defaultValue={product?.titlePtBr} id={`${formId}-title-pt-br`} name="titlePtBr" required /></Field>
+        <Field><FieldLabel htmlFor={`${formId}-description-pt-br`}>{dictionary.adminProductDescriptionPtBr}</FieldLabel><Textarea defaultValue={product?.descriptionPtBr} id={`${formId}-description-pt-br`} name="descriptionPtBr" required /></Field>
+        <Field><FieldLabel htmlFor={`${formId}-title-en`}>{dictionary.adminProductTitleEn}</FieldLabel><Input defaultValue={product?.titleEn} id={`${formId}-title-en`} name="titleEn" required /></Field>
+        <Field><FieldLabel htmlFor={`${formId}-description-en`}>{dictionary.adminProductDescriptionEn}</FieldLabel><Textarea defaultValue={product?.descriptionEn} id={`${formId}-description-en`} name="descriptionEn" required /></Field>
         <Field><FieldLabel htmlFor={`${formId}-price`}>{dictionary.adminProductPrice}</FieldLabel><Input aria-describedby={`${formId}-price-help`} defaultValue={product?.price} id={`${formId}-price`} inputMode="decimal" name="price" required /><FieldDescription id={`${formId}-price-help`}>{dictionary.adminProductPriceHelp}</FieldDescription></Field>
         <ProductSubmit form={formId} label={creating ? dictionary.adminProductCreate : dictionary.adminProductSave} />
       </FieldGroup>
