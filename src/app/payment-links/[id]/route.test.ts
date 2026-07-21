@@ -1,4 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
+
+vi.mock("server-only", () => ({}));
 const { requireOwnerFromCookie, ownerProtectedMutationResponse, deactivate } = vi.hoisted(() => ({ requireOwnerFromCookie: vi.fn(), ownerProtectedMutationResponse: vi.fn(), deactivate: vi.fn() }));
 vi.mock("@/app/owner-guard", () => ({ requireOwnerFromCookie, ownerProtectedMutationResponse }));
 vi.mock("@/auth/payment-link", () => ({ getPaymentLinkService: () => ({ deactivate }) }));

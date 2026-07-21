@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+vi.mock("server-only", () => ({}));
+
 const { allowRateLimit, checkout } = vi.hoisted(() => ({ allowRateLimit: vi.fn(), checkout: vi.fn() }));
 vi.mock("@/checkout/public-checkout", () => ({ getPublicCheckoutService: () => ({ checkout }) }));
 vi.mock("@/security/public-rate-limit", () => ({

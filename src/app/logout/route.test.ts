@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
+vi.mock("server-only", () => ({}));
+
 const logout = vi.fn();
 vi.mock("next/headers", () => ({ cookies: async () => ({ get: () => ({ value: "opaque-token" }) }) }));
 vi.mock("@/auth/session", () => ({ getSessionService: () => ({ logout }) }));

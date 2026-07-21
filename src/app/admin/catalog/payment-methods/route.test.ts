@@ -1,6 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { describe, expect, it, vi } from "vitest";
 
+vi.mock("server-only", () => ({}));
+
 const { requireAdminFromCookie, protectedMutationResponse } = vi.hoisted(() => ({ requireAdminFromCookie: vi.fn(), protectedMutationResponse: vi.fn() }));
 vi.mock("@/app/admin/guard", () => ({ requireAdminFromCookie, protectedMutationResponse }));
 vi.mock(import("@/auth/nautt-catalog"), async (importOriginal) => {

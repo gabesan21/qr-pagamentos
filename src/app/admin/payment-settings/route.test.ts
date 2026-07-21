@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
+vi.mock("server-only", () => ({}));
+
 const { requireAdminFromCookie, protectedMutationResponse, save } = vi.hoisted(() => ({ requireAdminFromCookie: vi.fn(), protectedMutationResponse: vi.fn(), save: vi.fn() }));
 vi.mock("@/app/admin/guard", () => ({ requireAdminFromCookie, protectedMutationResponse }));
 vi.mock("@/auth/payment-settings", () => ({ getPaymentSettingsService: () => ({ save }), SUPPORTED_CURRENCIES: ["BRL"], SUPPORTED_PAYMENT_METHODS: ["PIX"] }));

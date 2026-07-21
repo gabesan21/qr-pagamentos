@@ -10,25 +10,28 @@ import {
   OwnerOnboardingInvalidKeyError,
   OwnerOnboardingRecoveryRequiredError,
 } from "@/integrations/nautt/owner-onboarding";
+import { serverRequestRoutes, withServerRequestLog } from "@/observability/server-request-log";
 
 export async function POST(request: Request) {
-  const crossOrigin = rejectCrossOrigin(request);
-  if (crossOrigin) return crossOrigin;
-  try {
-    const principal = await getAuthorizationService().requireAuthenticated((await cookies()).get("qr_session")?.value);
-    const apiKey = (await request.formData()).get("apiKey");
-    await getOwnerOnboardingService().onboard(
-      principal,
-      principal.id,
-      typeof apiKey === "string" ? apiKey : "",
-      loadNauttWebhookCallbackUrl(),
-    );
-    return relativeRedirect("/?nautt=configured");
-  } catch (error) {
-    if (error instanceof UnauthenticatedError) return new Response(null, { status: 401 });
-    if (error instanceof OwnerOnboardingInvalidKeyError) return relativeRedirect("/?nautt=invalid");
-    if (error instanceof OwnerOnboardingChangedError) return relativeRedirect("/?nautt=changed");
-    if (error instanceof OwnerOnboardingRecoveryRequiredError) return relativeRedirect("/?nautt=recovery");
-    return relativeRedirect("/?nautt=unavailable");
-  }
+  return withServerRequestLog(request.headers.get("x-request-id"), { method: "POST", route: serverRequestRoutes.nauttCredentials }, async () => {
+    const crossOrigin = rejectCrossOrigin(request);
+    if (crossOrigin) return crossOrigin;
+    try {
+      const principal = await getAuthorizationService().requireAuthenticated((await cookies()).get("qr_session")?.value);
+      const apiKey = (await request.formData()).get("apiKey");
+      await getOwnerOnboardingService().onboard(
+        principal,
+        principal.id,
+        typeof apiKey === "string" ? apiKey : "",
+        loadNauttWebhookCallbackUrl(),
+      );
+      return relativeRedirect("/?nautt=configured");
+    } catch (error) {
+      if (error instanceof UnauthenticatedError) return new Response(null, { status: 401 });
+      if (error instanceof OwnerOnboardingInvalidKeyError) return relativeRedirect("/?nautt=invalid");
+      if (error instanceof OwnerOnboardingChangedError) return relativeRedirect("/?nautt=changed");
+      if (error instanceof OwnerOnboardingRecoveryRequiredError) return relativeRedirect("/?nautt=recovery");
+      return relativeRedirect("/?nautt=unavailable");
+    }
+  });
 }
