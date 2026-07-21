@@ -44,6 +44,8 @@ describe("language dictionaries", () => {
       "adminDisableTitle", "adminDisableDescription", "adminConfirmDisable",
       "adminLoadingHeading", "adminLoadingDescription", "adminReadErrorHeading",
       "adminReadErrorDescription", "adminRetry",
+      "adminProductsHeading", "adminProductsEmpty", "adminProductCreate",
+      "adminProductDeleteConfirm", "adminProductConflict", "adminProductMutationFailed",
     ] as const;
 
     for (const locale of ["pt-BR", "en"] as const) {
