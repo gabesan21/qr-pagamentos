@@ -6,6 +6,8 @@ const root = fileURLToPath(new URL("..", import.meta.url));
 const uiRoots = [join(root, "src", "app"), join(root, "src", "components", "ui")];
 const visualValue = /#[\da-f]{3,8}\b|\b\d*\.?\d+(?:px|rem|em|ch)\b|\brgb\(|\bfont-family\s*:(?!\s*var\()|\bfont-weight\s*:(?!\s*var\()|\bline-height\s*:(?!\s*var\()/i;
 const inlineStyle = /\bstyle\s*=/i;
+const storefrontPagePath = "src/app/store/[slug]/page.tsx";
+const storefrontAccentStyle = /style=\{\{ "--storefront-accent": storefront\.accentColor \} as CSSProperties\}/g;
 
 function authoredUiFiles(directory) {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
@@ -27,7 +29,12 @@ export function findDesignTokenViolations(files = uiRoots.flatMap(authoredUiFile
     const inspectedSource = removeTokenSource(path, source);
     const visualMatch = inspectedSource.match(visualValue);
     if (visualMatch) violations.push(`${relative(root, path)}: raw visual value ${visualMatch[0]}`);
-    const inlineStyleMatch = inspectedSource.match(inlineStyle);
+    const relativePath = relative(root, path);
+    const allowedStorefrontStyles = relativePath === storefrontPagePath ? inspectedSource.match(storefrontAccentStyle) : null;
+    const sourceWithoutAllowedStyle = allowedStorefrontStyles?.length === 1
+      ? inspectedSource.replace(storefrontAccentStyle, "")
+      : inspectedSource;
+    const inlineStyleMatch = sourceWithoutAllowedStyle.match(inlineStyle);
     if (inlineStyleMatch) violations.push(`${relative(root, path)}: inline visual style ${inlineStyleMatch[0]}`);
     return violations;
   });
