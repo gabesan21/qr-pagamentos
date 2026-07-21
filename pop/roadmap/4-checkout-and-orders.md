@@ -33,7 +33,7 @@
 | Task | Description (≤1 line) | Status |
 |------|----------------------|--------|
 | [[4.2.1-public-checkout-orchestration]] | Create orders from active owner-bound links and generate Nautt QR payments without exposing trusted inputs. · size: L | 006_done |
-| `4.2.2-public-checkout-experience` | Deliver the bilingual policy-driven checkout, QR payment state, and customer-facing status updates. · size: L | not started |
+| [[4.2.2-public-checkout-experience]] | Deliver the bilingual policy-driven checkout, QR payment state, and customer-facing status updates. · size: L | 001_initial_task |
 
 ## Phase 4.3 — Order operations
 
