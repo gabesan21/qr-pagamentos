@@ -2,9 +2,9 @@
 
 - **Project:** [[PROJECT|QR Pagamentos]]
 - **Epoch/Phase:** [[roadmap/4-checkout-and-orders|Phase 4.1-4.3]]
-- **Status:** draft — task 4.2.1 public checkout amendment pending yolo 003
+- **Status:** aprovada
 - **Created:** 2026-07-21
-- **Updated:** 2026-07-21 — task 4.2.1 round-2 planning adds durable, request-bound safe replay and capability expiry/revocation; pending yolo 003.
+- **Updated:** 2026-07-21 — yolo 003 round 2 approved the sessionless checkout, durable replay, and capability contract; task 4.2.1 implementation is under verification.
 
 ## What it covers
 
