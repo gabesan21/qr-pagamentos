@@ -35,6 +35,7 @@ model User {
   products         Product[]
   paymentLinks     PaymentLink[]
   paymentLinkOrders PaymentLinkOrder[]
+  checkoutAttempts CheckoutAttempt[]
   webhookDeliveries WebhookDelivery[]
   sessions          Session[]
 
@@ -167,6 +168,7 @@ model PaymentLink {
   product        Product             @relation(fields: [productId, ownerId], references: [id, ownerId], onDelete: Restrict)
   currencyPair   CatalogCurrencyPair @relation(fields: [currencyPairId], references: [id], onDelete: Restrict)
   paymentLinkOrders PaymentLinkOrder[]
+  checkoutAttempts CheckoutAttempt[]
   singleUseSettlement PaymentLinkSingleUseSettlement?
 
   @@unique([id, ownerId], map: "payment_link_id_owner_id_key")
@@ -256,9 +258,36 @@ model PaymentLinkOrder {
   product               Product  @relation(fields: [productId, ownerId], references: [id, ownerId], onDelete: Restrict)
   providerOrder         ProviderOrder? @relation("PaymentLinkOrderProviderOrder")
   singleUseSettlement   PaymentLinkSingleUseSettlement?
+  checkoutAttempt       CheckoutAttempt?
 
   @@unique([id, ownerId], map: "payment_link_order_id_owner_id_key")
   @@map("payment_link_order")
+  @@schema("app")
+}
+
+model CheckoutAttempt {
+  id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId               String   @map("owner_id") @db.Uuid
+  paymentLinkId         String   @map("payment_link_id") @db.Uuid
+  paymentLinkOrderId    String   @unique(map: "checkout_attempt_payment_link_order_id_key") @map("payment_link_order_id") @db.Uuid
+  retryKeyVerifier      String   @map("retry_key_verifier") @db.Char(64)
+  requestVerifier       String   @map("request_verifier") @db.Char(64)
+  capabilityNonce       String   @map("capability_nonce") @db.Char(43)
+  capabilityKeyVersion  String   @map("capability_key_version") @db.VarChar(16)
+  capabilityVerifier    String   @map("capability_verifier") @db.Char(64)
+  capabilityExpiresAt   DateTime @map("capability_expires_at") @db.Timestamptz(3)
+  capabilityRevokedAt   DateTime? @map("capability_revoked_at") @db.Timestamptz(3)
+  state                 String   @default("RESERVED") @db.VarChar(13)
+  createdAt             DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt             DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  owner                 User     @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  paymentLink           PaymentLink @relation(fields: [paymentLinkId, ownerId], references: [id, ownerId], onDelete: Restrict)
+  paymentLinkOrder      PaymentLinkOrder @relation(fields: [paymentLinkOrderId, ownerId], references: [id, ownerId], onDelete: Restrict)
+
+  @@unique([paymentLinkId, retryKeyVerifier], map: "checkout_attempt_link_retry_key_verifier_key")
+  @@unique([paymentLinkOrderId, ownerId], map: "checkout_attempt_order_owner_key")
+  @@index([ownerId, capabilityExpiresAt], map: "checkout_attempt_owner_capability_expiry_idx")
+  @@map("checkout_attempt")
   @@schema("app")
 }
 

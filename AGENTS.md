@@ -50,6 +50,7 @@ One execution continues until the next real gate. The complete state machine is 
 - [`src/components/ui/AGENTS.md`](src/components/ui/AGENTS.md) — follow when
   changing owned Radix/nova shadcn source, its inventory, or its state contract.
 - [`src/integrations/nautt/AGENTS.md`](src/integrations/nautt/AGENTS.md) — follow when changing Nautt HTTP adapters or owner-bound provider orchestration.
+- [`src/checkout/AGENTS.md`](src/checkout/AGENTS.md) — follow when changing sessionless public checkout reservation, replay, or capability issuance.
 
 ### Clean code
 

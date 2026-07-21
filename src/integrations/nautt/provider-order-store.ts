@@ -66,14 +66,14 @@ export function createPrismaProviderOrderStore(prisma: PrismaClient): ProviderOr
       }
     },
 
-    async claimForCreation({ quoteUuid, ownerId, now }): Promise<QuoteClaimResult> {
+    async claimForCreation({ quoteUuid, ownerId, now, paymentLinkOrderId }): Promise<QuoteClaimResult> {
       return prisma.$transaction(async (tx) => {
         const claimed = await tx.providerQuote.updateMany({
           where: { quoteUuid, ownerId, claimedAt: null, expiresAt: { gt: now }, order: null },
           data: { claimedAt: now },
         });
         if (claimed.count !== 1) return { kind: "unavailable" };
-        const attempt = await tx.providerOrder.create({ data: { quoteUuid, ownerId } });
+        const attempt = await tx.providerOrder.create({ data: { quoteUuid, ownerId, paymentLinkOrderId } });
         return { kind: "claimed", attempt: { id: attempt.id, ownerId, quoteUuid } };
       });
     },

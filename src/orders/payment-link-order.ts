@@ -80,7 +80,8 @@ function normalizedText(value: unknown, min: number, max: number): string | null
 }
 
 function exactKeys(value: Record<string, unknown>, allowed: readonly string[]): boolean {
-  return Object.keys(value).every((key) => allowed.includes(key));
+  const keys = Object.keys(value);
+  return keys.length === allowed.length && keys.every((key) => allowed.includes(key));
 }
 
 function object(value: unknown): Record<string, unknown> | null {
