@@ -112,7 +112,14 @@ describe("public checkout form", () => {
     requests[1]?.response.resolve(new Response(JSON.stringify({ state: "PENDING" })));
     await flushPromises();
     expect(observedStates).toEqual(["PENDING"]);
+    expect(vi.getTimerCount()).toBe(1);
+    document.setVisibility("hidden");
+    expect(vi.getTimerCount()).toBe(0);
     await vi.advanceTimersByTimeAsync(5_000);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+
+    document.setVisibility("visible");
+    await vi.advanceTimersByTimeAsync(0);
     expect(fetchMock).toHaveBeenCalledTimes(3);
 
     polling.stop();
