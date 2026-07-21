@@ -11,5 +11,5 @@ export type QuoteClaimResult = { readonly kind: "claimed"; readonly attempt: Cla
 
 export interface QuoteOwnershipStore {
   register(registration: QuoteOwnershipRegistration): Promise<boolean>;
-  claimForCreation(input: { quoteUuid: string; ownerId: string; now: Date }): Promise<QuoteClaimResult>;
+  claimForCreation(input: { quoteUuid: string; ownerId: string; now: Date; paymentLinkOrderId?: string }): Promise<QuoteClaimResult>;
 }

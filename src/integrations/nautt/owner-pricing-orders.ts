@@ -10,6 +10,7 @@ import {
   type NauttOnrampOrderInput,
   type NauttOnrampOrderOptions,
   type NauttOrderView,
+  NauttOrderCreationIndeterminateError,
   type NauttQuote,
   type NauttQuoteAmount,
   NauttOrderValidationError,
@@ -98,6 +99,7 @@ export function createOwnerPricingOrdersService(
       ownerId: string,
       quoteReference: NauttQuoteReference,
       input: NauttOnrampOrderOptions,
+      paymentLinkOrderId?: string,
     ): Promise<NauttOrderView> {
       if (
         !isUuid(ownerId) ||
@@ -111,7 +113,7 @@ export function createOwnerPricingOrdersService(
 
       let claim: Awaited<ReturnType<ProviderOrderStore["claimForCreation"]>>;
       try {
-        claim = await orderStore.claimForCreation({ quoteUuid: quoteReference.quoteUuid, ownerId, now: now() });
+        claim = await orderStore.claimForCreation({ quoteUuid: quoteReference.quoteUuid, ownerId, now: now(), paymentLinkOrderId });
       } catch {
         throw new OwnerPricingOrdersError();
       }
@@ -141,7 +143,7 @@ export function createOwnerPricingOrdersService(
           await orderStore.completeCreation(claim.attempt, order);
         } catch {
           await orderStore.markIndeterminate(claim.attempt, order.orderUuid).catch(() => undefined);
-          throw new OwnerPricingOrdersError();
+          throw new NauttOrderCreationIndeterminateError();
         }
         return order;
       } finally {

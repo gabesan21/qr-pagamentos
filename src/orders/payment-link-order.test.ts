@@ -89,10 +89,10 @@ function settlementStore(linkType: "SINGLE_USE" | "REUSABLE" = "SINGLE_USE") {
 
 describe("CustomerSnapshotV1", () => {
   it("normalizes and accepts only the five closed policy tuples", () => {
-    expect(normalizeCustomerSnapshotV1("NONE", {})).toEqual({ name: null, email: null, cpf: null, address: null });
-    expect(normalizeCustomerSnapshotV1("NAME_EMAIL", { name: " Ada ", email: "ada@example.test" })).toEqual({ name: "Ada", email: "ada@example.test", cpf: null, address: null });
-    expect(normalizeCustomerSnapshotV1("EMAIL", { email: "ada@example.test" })).toEqual({ name: null, email: "ada@example.test", cpf: null, address: null });
-    expect(normalizeCustomerSnapshotV1("NAME_EMAIL_CPF", { name: "Ada", email: "ada@example.test", cpf: "529.982.247-25" })).toEqual({ name: "Ada", email: "ada@example.test", cpf: "52998224725", address: null });
+    expect(normalizeCustomerSnapshotV1("NONE", { name: null, email: null, cpf: null, address: null })).toEqual({ name: null, email: null, cpf: null, address: null });
+    expect(normalizeCustomerSnapshotV1("NAME_EMAIL", { name: " Ada ", email: "ada@example.test", cpf: null, address: null })).toEqual({ name: "Ada", email: "ada@example.test", cpf: null, address: null });
+    expect(normalizeCustomerSnapshotV1("EMAIL", { name: null, email: "ada@example.test", cpf: null, address: null })).toEqual({ name: null, email: "ada@example.test", cpf: null, address: null });
+    expect(normalizeCustomerSnapshotV1("NAME_EMAIL_CPF", { name: "Ada", email: "ada@example.test", cpf: "529.982.247-25", address: null })).toEqual({ name: "Ada", email: "ada@example.test", cpf: "52998224725", address: null });
     expect(normalizeCustomerSnapshotV1("NAME_EMAIL_CPF_ADDRESS", { name: "Ada", email: "ada@example.test", cpf: "52998224725", address })).toEqual({
       name: "Ada", email: "ada@example.test", cpf: "52998224725",
       address: { street: "Rua A", number: "10", district: "Centro", city: "São Paulo", stateUf: "SP", postalCode: "01001000", country: "BR", complement: null },
@@ -100,6 +100,7 @@ describe("CustomerSnapshotV1", () => {
   });
 
   it("rejects extra, malformed, foreign, and policy-incompatible customer fields", () => {
+    expect(normalizeCustomerSnapshotV1("NONE", {})).toBeNull();
     expect(normalizeCustomerSnapshotV1("NONE", { email: "ada@example.test" })).toBeNull();
     expect(normalizeCustomerSnapshotV1("EMAIL", { email: "ada@example.test", role: "browser" })).toBeNull();
     expect(normalizeCustomerSnapshotV1("NAME_EMAIL_CPF", { name: "Ada", email: "ada@example.test", cpf: "11111111111" })).toBeNull();
