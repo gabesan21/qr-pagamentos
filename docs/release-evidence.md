@@ -4,11 +4,12 @@
 
 | Field | Value |
 |---|---|
-| Release identifier | `qr-pagamentos-rc-2026-07-21-db400b1` |
-| Source revision | `db400b16ab4ed16737c02deeff6242186664c8a0` |
+| Release identifier | `qr-pagamentos-rc-2026-07-21-5d0f1a7` |
+| Source revision | `5d0f1a771ec615216ca54909b107b031bbae2760` |
 | Scope | Epoch 5, task 5.5.1 production operations documentation |
 | Evidence type | Redacted static source/document audit |
 | Operational certification | Not claimed |
+| Final release integration | Occurs during task merge/closeout; this ledger binds the immutable documentation release commit, not a pre-integration branch state. |
 
 No credentials, account identifiers, customer data, request payloads, proxy
 configuration, or secret-file contents belong in this ledger.
