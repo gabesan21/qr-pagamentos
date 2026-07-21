@@ -9,6 +9,7 @@ const allowedClasses = new Set([
   "admin-catalog-item", "admin-catalog-item__facts", "admin-catalog-list",
   "admin-confirm-actions", "admin-navigation", "admin-shell", "admin-shell__intro", "admin-skeletons",
   "admin-product", "admin-product-description", "admin-product-list", "admin-product__facts",
+  "admin-payment-link", "admin-payment-link-list", "admin-payment-link__facts",
   "h-11 w-full", "receipt-rail", "receipt-rail__facts", "receipt-rail__label",
 ]);
 

@@ -1,8 +1,8 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { requireAdmin, listUsers, listSettings, listCurrencyPairs, listPaymentMethods, listProducts, resolveLocale, redirect } = vi.hoisted(() => ({
-  requireAdmin: vi.fn(), listUsers: vi.fn(), listSettings: vi.fn(), listCurrencyPairs: vi.fn(), listPaymentMethods: vi.fn(), listProducts: vi.fn(), resolveLocale: vi.fn(),
+const { requireAdmin, listUsers, listSettings, listCurrencyPairs, listPaymentMethods, listProducts, listPaymentLinks, resolveLocale, redirect } = vi.hoisted(() => ({
+  requireAdmin: vi.fn(), listUsers: vi.fn(), listSettings: vi.fn(), listCurrencyPairs: vi.fn(), listPaymentMethods: vi.fn(), listProducts: vi.fn(), listPaymentLinks: vi.fn(), resolveLocale: vi.fn(),
   redirect: vi.fn((location: string) => { throw new Error(`redirect:${location}`); }),
 }));
 
@@ -17,6 +17,7 @@ vi.mock("@/auth/administration", () => ({ getAdministrationService: () => ({ lis
 vi.mock("@/auth/payment-settings", () => ({ getPaymentSettingsService: () => ({ list: listSettings }), SUPPORTED_CURRENCIES: ["BRL"], SUPPORTED_PAYMENT_METHODS: ["PIX"] }));
 vi.mock("@/auth/nautt-catalog", () => ({ getNauttCatalogService: () => ({ listCurrencyPairs, listPaymentMethods }) }));
 vi.mock("@/auth/product", () => ({ getProductService: () => ({ list: listProducts }) }));
+vi.mock("@/auth/payment-link", () => ({ getPaymentLinkService: () => ({ listForAdmin: listPaymentLinks }) }));
 vi.mock("@/i18n/locale-preference", () => ({ getLocalePreferenceService: () => ({ resolve: resolveLocale }) }));
 vi.mock("@/i18n/dictionaries", async () => {
   const [{ en }, { ptBR }] = await Promise.all([import("../../i18n/dictionaries/en"), import("../../i18n/dictionaries/pt-BR")]);
@@ -29,7 +30,10 @@ import AdminPage from "./page";
 const admin = { id: "admin", username: "admin", email: null, role: "ADMIN" as const, status: "ACTIVE" as const, createdAt: new Date() };
 
 describe("admin page contract", () => {
-  beforeEach(() => listProducts.mockResolvedValue([]));
+  beforeEach(() => {
+    listProducts.mockResolvedValue([]);
+    listPaymentLinks.mockResolvedValue({ links: [], activeProducts: [], activeCurrencyPairs: [] });
+  });
 
   it("redirects unauthenticated and non-admin visitors without rendering the shell", async () => {
     const { ForbiddenError, UnauthenticatedError } = await import("@/auth/authorization");
@@ -70,6 +74,7 @@ describe("admin page contract", () => {
     expect(markup).toContain(locale === "en" ? "No currency pairs are configured." : "Nenhum par de moedas está configurado.");
     expect(markup).toContain(locale === "en" ? "No payment methods are configured." : "Nenhum método de pagamento está configurado.");
     expect(markup).toContain(locale === "en" ? "No products are available." : "Nenhum produto está disponível.");
+    expect(markup).toContain(locale === "en" ? "An active product and currency pair are required." : "É necessário ter um produto e um par de moedas ativos.");
     expect(markup).toContain('action="/admin/catalog/currency-pairs"');
     expect(markup).toContain('action="/admin/catalog/payment-methods"');
     expect(markup).toContain('name="currencyUuid"');
@@ -118,6 +123,27 @@ describe("admin page contract", () => {
     expect(conflict).not.toContain("product-conflict");
     expect(conflict).toContain("BRL 1,234.56");
     expect(conflict).toContain("Line 1\nLine 2");
+  });
+
+  it("lists payment links through the authorized service and maps payment-link notices opaquely", async () => {
+    requireAdmin.mockResolvedValue(admin);
+    resolveLocale.mockResolvedValue("en");
+    listUsers.mockResolvedValue([]);
+    listSettings.mockResolvedValue({ currencies: ["BRL"], paymentMethods: ["PIX"] });
+    listCurrencyPairs.mockResolvedValue([]);
+    listPaymentMethods.mockResolvedValue([]);
+    listPaymentLinks.mockResolvedValue({
+      activeProducts: [{ id: "product", internalName: "Donation", titlePtBr: "Doação", titleEn: "Donation", price: "10.25" }],
+      activeCurrencyPairs: [{ id: "pair", label: "BRL/USDT" }],
+      links: [{ id: "link", identifier: "AbCdEfGhIjKlMnOpQrStUvWx", linkType: "REUSABLE", expiresAt: null, active: true, createdAt: new Date(), product: { id: "product", internalName: "Donation", titlePtBr: "Doação", titleEn: "Donation", price: "10.25" }, currencyPair: { id: "pair", label: "BRL/USDT" } }],
+    });
+    const markup = renderToStaticMarkup(await AdminPage({ searchParams: Promise.resolve({ error: "payment-link-mutation-failed" }) }));
+    expect(listPaymentLinks).toHaveBeenCalledWith(admin);
+    expect(markup).toContain("AbCdEfGhIjKlMnOpQrStUvWx");
+    expect(markup).toContain('action="/admin/payment-links"');
+    expect(markup).toContain('action="/admin/payment-links/link"');
+    expect(markup).toContain("The payment-link change could not be saved.");
+    expect(markup).not.toContain("payment-link-mutation-failed");
   });
 
   it("announces failed mutations with an assertive alert and recovery text", async () => {

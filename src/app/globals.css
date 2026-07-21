@@ -282,6 +282,16 @@ p { text-wrap: pretty; }
 .admin-product-description { margin: 0; max-width: var(--layout-max); white-space: pre-wrap; }
 .admin-product details { display: grid; gap: var(--space-3); }
 .admin-product summary { cursor: pointer; min-height: var(--control-height); padding-block: var(--space-3); }
+.admin-payment-link-list { display: flex; flex-direction: column; gap: var(--space-6); }
+.admin-payment-link { border-block-start: var(--focus-width) solid var(--border-subtle); display: flex; flex-direction: column; gap: var(--space-4); padding-block-start: var(--space-6); }
+.admin-payment-link h3 { font-variant-numeric: tabular-nums; margin: 0; overflow-wrap: anywhere; }
+.admin-payment-link__facts { display: flex; flex-direction: column; gap: var(--space-3); }
+.admin-payment-link__facts dl { display: flex; flex-wrap: wrap; gap: var(--space-5); margin: 0; }
+.admin-payment-link__facts dl div { display: flex; flex-direction: column; gap: var(--space-1); }
+.admin-payment-link__facts dt { color: var(--text-secondary); font-size: var(--type-small); font-weight: var(--font-weight-strong); }
+.admin-payment-link__facts dd { font-variant-numeric: tabular-nums; margin: 0; overflow-wrap: anywhere; }
+.admin-payment-link details { display: grid; gap: var(--space-3); }
+.admin-payment-link summary { cursor: pointer; min-height: var(--control-height); padding-block: var(--space-3); }
 .admin-skeletons { display: flex; flex-direction: column; gap: var(--space-3); }
 .sr-only { clip: rect(0 0 0 0); clip-path: inset(50%); height: var(--space-1); overflow: hidden; position: absolute; white-space: nowrap; width: var(--space-1); }
 .ds-ledger { display: grid; gap: var(--space-8); }
