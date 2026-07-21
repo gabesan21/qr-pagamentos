@@ -2,9 +2,9 @@
 
 - **Project:** [[PROJECT|QR Pagamentos]]
 - **Epoch/Phase:** [[roadmap/4-checkout-and-orders|Phase 4.1-4.3]]
-- **Status:** rascunho
+- **Status:** aprovada
 - **Created:** 2026-07-21
-- **Updated:** 2026-07-21
+- **Updated:** 2026-07-21 — task 4.1.1 delivered the owner and policy foundation; later tasks deliver orders and public checkout.
 
 ## What it covers
 

@@ -4,7 +4,7 @@
 - **Epoch/Phase:** [[roadmap/3-catalog-and-payment-links|Epoch 3]]
 - **Status:** aprovada
 - **Created:** 2026-07-20
-- **Updated:** 2026-07-21 — task 4.1.1 planning revision records the pending owner-management contract while preserving Epoch 3 delivery facts.
+- **Updated:** 2026-07-21 — task 4.1.1 delivered the owner-management boundary while preserving Epoch 3 delivery facts.
 
 ## What it covers
 
@@ -43,6 +43,7 @@ This spec defines the administrator-managed catalog of Nautt provider UUIDs, acc
 - **Task 3.2.2:** Active-only, localized server read with exactly the redacted `{ title, description, price }` product projection and uniform `null` for malformed, missing, or inactive input. Payment-link binding and checkout remain future work.
 - **Task 3.3.1:** PaymentLink persistence with a unique 24-character server-generated URL-safe identifier, type, restrictive product/pair references, nullable expiry, active/created metadata, and commit-boundary active dependency enforcement serialized with deactivation. Active administrators can list, create, and one-way manually revoke links through opaque protected mutations and localized `/admin` management. Task 4.1.1 supersedes only that initial administrator-only payment-link-management boundary. Public `href`, checkout/orders/provider requests, automatic expiry inactivation, and automatic `SINGLE_USE` consumption remain future work.
 - **Task 3.3.2:** Sessionless exact-token public resolution with a localized, redacted DTO, strict read-time expiry, and uniform empty `404` plus `no-store` for unavailable input. It performs no write, provider request, checkout, order, or automatic consumption.
+- **Task 4.1.1:** Required persisted owner isolation for products and payment links, moved product/link management to the authenticated owner surface, and added the account-level checkout-data policy. The public resolver and checkout/order/provider behavior remain unchanged.
 
 ### Payment links
 

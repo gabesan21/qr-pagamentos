@@ -2,9 +2,9 @@
 
 - **Project:** [[PROJECT|QR Pagamentos]]
 - **Epoch/Phase:** [[ROADMAP|Epochs 1-5]]
-- **Status:** rascunho
+- **Status:** aprovada
 - **Created:** 2026-07-13
-- **Updated:** 2026-07-21
+- **Updated:** 2026-07-21 — task 4.1.1 delivered owner isolation and the account checkout-data policy.
 
 ## What it covers
 
