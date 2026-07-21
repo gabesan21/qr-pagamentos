@@ -39,7 +39,7 @@ describe("public checkout page", () => {
     read.mockResolvedValueOnce(null);
     const markup = renderToStaticMarkup(await PublicCheckoutPage({ params: Promise.resolve({ identifier }) }));
 
-    expect(markup).toContain("This payment link is unavailable");
+    expect(markup).toContain("Este link de pagamento está indisponível");
     expect(markup).not.toContain('data-slot="field-group"');
   });
 
