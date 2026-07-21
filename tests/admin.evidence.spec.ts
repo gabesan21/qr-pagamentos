@@ -58,7 +58,7 @@ test("creates current authenticated responsive admin evidence", async ({ page })
   await page.getByLabel(/Preço|Price/).first().fill("1234.56");
   let releaseProductCreate = () => {};
   productCreateGate = new Promise<void>((resolve) => { releaseProductCreate = resolve; });
-  let reportProductPending = (_state: Record<string, unknown>) => {};
+  let reportProductPending: (state: Record<string, unknown>) => void = () => undefined;
   const observedProductPending = new Promise<Record<string, unknown>>((resolve) => { reportProductPending = resolve; });
   await page.exposeFunction("reportProductPending", reportProductPending);
   await page.evaluate(() => {
