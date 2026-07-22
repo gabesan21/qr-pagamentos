@@ -11,6 +11,7 @@ DRY_RUN=false
 PROJECT=qr-pagamentos
 VOLUME_NAME=qr-pagamentos_postgres-data
 POSTGRES_PORT=5433
+NODE_HELPER='node:26.4.0-bookworm-slim@sha256:ec82d089a8ae2cf02628da7b34ea57dc357b24db724d557fe2d240e6beb659c1'
 
 die() { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
 print_command() { printf 'DRY-RUN'; printf ' %q' "$@"; printf '\n'; }
@@ -59,11 +60,30 @@ load_update_env() {
   done
   [[ $APP_PORT =~ ^[1-9][0-9]{0,4}$ ]] && ((10#$APP_PORT <= 65535)) \
     || die 'APP_PORT must be between 1 and 65535'
-  [[ $NAUTT_WEBHOOK_CALLBACK_URL =~ ^https://[^[:space:]#@]+(/[^[:space:]#]*)?$ ]] \
-    || die 'NAUTT_WEBHOOK_CALLBACK_URL must be an absolute HTTPS URL without credentials or a fragment'
+}
+
+run_node_helper() {
+  if command -v node >/dev/null 2>&1; then
+    node "$@"
+  else
+    docker image inspect "$NODE_HELPER" >/dev/null 2>&1 || return 1
+    docker run --rm --pull=never --network none --read-only --tmpfs /tmp \
+      --user "$(id -u):$(id -g)" -v "$ROOT_DIR:/workspace:ro" \
+      "$NODE_HELPER" node "$@"
+  fi
+}
+
+validate_https_url() {
+  local variable=$1 value=$2
+  if ! run_node_helper -e 'const u = new URL(process.argv[1]); process.exit(u.protocol === "https:" && !u.username && !u.password && !u.hash ? 0 : 1)' "$value" >/dev/null 2>&1; then
+    die "$variable must be an absolute HTTPS URL without credentials or a fragment"
+  fi
+}
+
+validate_update_urls() {
+  validate_https_url NAUTT_WEBHOOK_CALLBACK_URL "$NAUTT_WEBHOOK_CALLBACK_URL"
   if [[ -n ${NAUTT_API_BASE_URL:-} ]]; then
-    [[ $NAUTT_API_BASE_URL =~ ^https://[^[:space:]#@]+(/[^[:space:]#]*)?$ ]] \
-      || die 'NAUTT_API_BASE_URL must be an absolute HTTPS URL without credentials or a fragment'
+    validate_https_url NAUTT_API_BASE_URL "$NAUTT_API_BASE_URL"
   fi
 }
 
@@ -98,7 +118,7 @@ require_protected_file() {
 }
 
 validate_secret_continuity() {
-  local current_uid source_name staged_name
+  local current_uid source_name staged_name source_digest source_key
   current_uid=$(id -u)
   [[ -d $SOURCE_SECRETS_DIR && ! -L $SOURCE_SECRETS_DIR ]] || die 'source secret directory is missing or unsafe'
   [[ -d $STAGED_SECRETS_DIR && ! -L $STAGED_SECRETS_DIR ]] || die 'staged secret directory is missing or unsafe'
@@ -110,12 +130,16 @@ validate_secret_continuity() {
   for staged_name in admin_password migrator_password runtime_password nautt_encryption_key initial_admin_username initial_admin_email initial_admin_password; do
     require_protected_file "$STAGED_SECRETS_DIR/$staged_name" 400 1000
   done
-  local source_key
   source_key=$(<"$SOURCE_SECRETS_DIR/nautt_encryption_key")
   [[ $source_key =~ ^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$ ]] \
     || die 'stored Nautt encryption key is not a canonical 32-byte base64url value'
-  cmp -s "$SOURCE_SECRETS_DIR/nautt_encryption_key" "$STAGED_SECRETS_DIR/nautt_encryption_key" \
-    || die 'source and staged Nautt encryption keys differ'
+  source_digest=$(sha256sum "$SOURCE_SECRETS_DIR/nautt_encryption_key" | cut -d' ' -f1)
+  docker image inspect "$NODE_HELPER" >/dev/null 2>&1 \
+    || die 'the pinned installer helper image is unavailable; refusing to pull it before rollback evidence exists'
+  printf '%s\n' "$source_digest" | docker run --rm -i --pull=never --network none --read-only --tmpfs /tmp --user 1000:1000 \
+    -v "$STAGED_SECRETS_DIR/nautt_encryption_key:/staged-key:ro" "$NODE_HELPER" \
+    sh -eu -c 'IFS= read -r expected; actual=$(sha256sum /staged-key | cut -d" " -f1); test "$actual" = "$expected"' \
+    >/dev/null 2>&1 || die 'source and staged Nautt encryption keys differ'
   if [[ -n ${NAUTT_ENCRYPTION_KEY:-} && $NAUTT_ENCRYPTION_KEY != "$source_key" ]]; then
     die 'NAUTT_ENCRYPTION_KEY does not match the installed key'
   fi
@@ -167,7 +191,7 @@ capture_evidence() {
   temporary_file=$(mktemp "$EVIDENCE_DIR/.update-$run_id.XXXXXX") || die 'cannot create rollback evidence'
   chmod 0600 "$temporary_file"
   git_revision=$(git -C "$ROOT_DIR" rev-parse --verify HEAD) || die 'cannot resolve target Git revision'
-  if [[ -n $(git -C "$ROOT_DIR" status --porcelain --untracked-files=no) ]]; then git_state=dirty; else git_state=clean; fi
+  if [[ -n $(git -C "$ROOT_DIR" status --porcelain) ]]; then git_state=dirty; else git_state=clean; fi
   compose_version=$(docker compose version --short) || die 'cannot capture Compose version'
   config_fingerprint=$(compose config | sha256sum | cut -d' ' -f1) || die 'cannot fingerprint Compose configuration'
   migration_names=$(find "$ROOT_DIR/prisma/migrations" -mindepth 2 -maxdepth 2 -name migration.sql -printf '%P\n' | LC_ALL=C sort)
@@ -225,6 +249,7 @@ dry_run() {
 }
 
 load_update_env
+validate_update_urls
 if "$DRY_RUN"; then dry_run; exit 0; fi
 check_prerequisites
 validate_secret_continuity

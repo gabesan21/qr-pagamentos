@@ -167,10 +167,11 @@ mkdir -p "$update_root/install" "$update_root/prisma/migrations/20260722000000_f
 cp "$INSTALL_DIR/update.sh" "$update_root/install/update.sh"
 cp "$INSTALL_DIR/../compose.yaml" "$update_root/compose.yaml"
 printf '%s\n' 'SELECT 1;' > "$update_root/prisma/migrations/20260722000000_fixture/migration.sql"
+printf '%s\n' '/.install-secrets/' '/.container-secrets/' '/.update-evidence/' '/install/*.env' '/bin/' > "$update_root/.gitignore"
 git -C "$update_root" init -q
 git -C "$update_root" config user.email test@example.invalid
 git -C "$update_root" config user.name 'Contract Test'
-git -C "$update_root" add compose.yaml prisma install/update.sh
+git -C "$update_root" add .gitignore compose.yaml prisma install/update.sh
 git -C "$update_root" commit -qm fixture
 
 update_key=$(node -e 'process.stdout.write(Buffer.alloc(32, 7).toString("base64url"))')
@@ -205,6 +206,18 @@ cat > "$update_root/bin/docker" <<'EOF'
 set -Eeuo pipefail
 printf '%s\n' "$*" >> "$FAKE_DOCKER_LOG"
 if [[ $1 == info ]]; then exit 0; fi
+if [[ $1 == image && $2 == inspect ]]; then exit 0; fi
+if [[ $1 == run ]]; then
+  IFS= read -r expected
+  if [[ ${FAKE_NONOWNER:-false} == true ]]; then exit 0; fi
+  for argument in "$@"; do
+    if [[ $argument == *:/staged-key:ro ]]; then staged_key=${argument%%:/staged-key:ro}; fi
+  done
+  [[ -n ${staged_key:-} ]] || exit 93
+  actual=$(sha256sum "$staged_key" | cut -d' ' -f1)
+  [[ $actual == "$expected" ]]
+  exit
+fi
 if [[ $1 == volume && $2 == inspect ]]; then
   [[ ${FAKE_VOLUME_MISSING:-false} == true ]] && exit 1
   if [[ $4 == *Mountpoint* ]]; then
@@ -249,6 +262,28 @@ case "$1" in
 esac
 EOF
 chmod 0700 "$update_root/bin/docker"
+cat > "$update_root/bin/id" <<'EOF'
+#!/usr/bin/env bash
+if [[ ${FAKE_NONOWNER:-false} == true && ${1:-} == -u ]]; then printf '1001\n'; exit 0; fi
+if [[ ${FAKE_NONOWNER:-false} == true && ${1:-} == -g ]]; then printf '1001\n'; exit 0; fi
+exec /usr/bin/id "$@"
+EOF
+chmod 0700 "$update_root/bin/id"
+cat > "$update_root/bin/stat" <<'EOF'
+#!/usr/bin/env bash
+if [[ ${FAKE_NONOWNER:-false} == true ]]; then
+  target=${@: -1}
+  format=${2:-}
+  case "$target" in
+    */.install-secrets) [[ $format == %u:%a ]] && { printf '1001:700\n'; exit 0; } ;;
+    */.install-secrets/*) [[ $format == %u:%a ]] && { printf '1001:600\n'; exit 0; } ;;
+    */.container-secrets/*) [[ $format == %u:%a ]] && { printf '1000:400\n'; exit 0; } ;;
+    */nonowner-evidence) [[ $format == %u:%a ]] && { printf '1001:700\n'; exit 0; } ;;
+  esac
+fi
+exec /usr/bin/stat "$@"
+EOF
+chmod 0700 "$update_root/bin/stat"
 update_log=$TMP/update-docker.log
 update_out=$TMP/update.out
 update_env=(PATH="$update_root/bin:$PATH" FAKE_DOCKER_LOG="$update_log")
@@ -269,10 +304,29 @@ for field in format captured_at previous_release backup_reference target_git_rev
 done
 expect_contains "$evidence_file" 'migrations_begin'
 expect_contains "$evidence_file" 'images_begin'
+expect_contains "$evidence_file" 'target_git_state=clean'
 expect_absent "$evidence_file" "$update_key"
 expect_absent "$evidence_file" '.install-secrets'
 build_line=$(grep -n 'build --pull' "$update_log" | head -1 | cut -d: -f1)
 [[ -n $build_line && -f $evidence_file ]] || fail 'build/evidence ordering is not observable'
+
+probe_git_dirty_state() {
+  local label=$1 evidence_dir=$2 probe_out=$3
+  env "${update_env[@]}" "$update_root/install/update.sh" "${update_args[@]}" --evidence-dir "$evidence_dir" > "$probe_out" 2>&1 \
+    || fail "$label dirty-state update probe failed"
+  local probe_evidence
+  probe_evidence=$(find "$evidence_dir" -maxdepth 1 -name 'update-*.txt' -type f)
+  expect_contains "$probe_evidence" 'target_git_state=dirty'
+  expect_absent "$probe_evidence" '.install-secrets'
+}
+printf '\n# tracked dirty probe\n' >> "$update_root/compose.yaml"
+probe_git_dirty_state tracked "$TMP/tracked-evidence" "$TMP/tracked-dirty.out"
+git -C "$update_root" restore compose.yaml
+mkdir "$update_root/src"
+printf '%s\n' 'export const untrackedBuildInput = true;' > "$update_root/src/untracked-build-input.ts"
+probe_git_dirty_state untracked "$TMP/untracked-evidence" "$TMP/untracked-dirty.out"
+rm -f "$update_root/src/untracked-build-input.ts"
+rmdir "$update_root/src"
 
 dry_out=$TMP/update-dry.out
 "$update_root/install/update.sh" "${update_args[@]}" --dry-run > "$dry_out"
@@ -280,6 +334,32 @@ for expected in 'validate existing protected' 'volume inspect' 'build --pull' 'u
   expect_contains "$dry_out" "$expected"
 done
 expect_absent "$dry_out" "$update_key"
+
+expect_update_url_refusal() {
+  local label=$1 env_file=$2
+  : > "$update_log"
+  if env "${update_env[@]}" "$update_root/install/update.sh" --env-file "$env_file" --backup-reference backup-v1 --previous-release release-v1 >/dev/null 2>&1; then
+    fail "invalid update URL succeeded: $label"
+  fi
+  expect_absent "$update_log" 'build --pull'
+  expect_absent "$update_log" 'up -d'
+}
+for entry in \
+  'callback-malformed|https://?invalid' \
+  'callback-credentials|https://user:password@payments.example.com/webhook' \
+  'callback-fragment|https://payments.example.com/webhook#secret'; do
+  label=${entry%%|*}; invalid_url=${entry#*|}
+  sed "s|^NAUTT_WEBHOOK_CALLBACK_URL=.*|NAUTT_WEBHOOK_CALLBACK_URL=$invalid_url|" "$update_root/install/update.env" > "$update_root/install/invalid-url.env"
+  expect_update_url_refusal "$label" "$update_root/install/invalid-url.env"
+done
+for entry in \
+  'api-malformed|https://?invalid' \
+  'api-credentials|https://user:password@api.example.com/v2' \
+  'api-fragment|https://api.example.com/v2#secret'; do
+  label=${entry%%|*}; invalid_url=${entry#*|}
+  sed "$ a NAUTT_API_BASE_URL=$invalid_url" "$update_root/install/update.env" > "$update_root/install/invalid-url.env"
+  expect_update_url_refusal "$label" "$update_root/install/invalid-url.env"
+done
 
 expect_refusal() {
   local label=$1; shift
@@ -325,6 +405,16 @@ if env "${update_env[@]}" "$update_root/install/update.sh" --env-file "$update_r
   fail 'mismatched environment Nautt key succeeded'
 fi
 expect_absent "$update_log" 'build --pull'
+
+chmod 0000 "$update_root/.container-secrets/nautt_encryption_key"
+: > "$update_log"
+nonowner_out=$TMP/nonowner.out
+env "${update_env[@]}" FAKE_NONOWNER=true "$update_root/install/update.sh" "${update_args[@]}" --evidence-dir "$TMP/nonowner-evidence" > "$nonowner_out" 2>&1 \
+  || { cat "$nonowner_out" >&2; fail 'non-UID-1000 operator update failed'; }
+expect_contains "$nonowner_out" 'PASS update-complete'
+expect_contains "$update_log" 'run --rm -i --pull=never --network none --read-only --tmpfs /tmp --user 1000:1000'
+expect_absent "$nonowner_out" "$update_key"
+chmod 0400 "$update_root/.container-secrets/nautt_encryption_key"
 
 : > "$update_log"
 before_failure=$(find "$update_root/.update-evidence" -type f | wc -l)
