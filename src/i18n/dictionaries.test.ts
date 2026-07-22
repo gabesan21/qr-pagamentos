@@ -46,6 +46,17 @@ describe("language dictionaries", () => {
       "adminReadErrorDescription", "adminRetry",
       "adminProductsHeading", "adminProductsEmpty", "adminProductCreate",
       "adminProductDeleteConfirm", "adminProductConflict", "adminProductMutationFailed",
+      "ordersHeading", "ordersDescription", "ordersEmpty", "ordersEmptyDescription",
+      "ordersView", "orderBackToList", "orderPaymentLink", "orderProduct", "orderAmount",
+      "orderCurrencyPair", "orderState", "orderCreated", "orderUpdated", "orderSettled",
+      "orderUnavailableHeading", "orderUnavailableDescription",
+      "storefrontHeading", "storefrontDescription", "storefrontSlugLabel", "storefrontSlugHelp",
+      "storefrontDisplayNamePtBrLabel", "storefrontDisplayNameEnLabel",
+      "storefrontAccentColorLabel", "storefrontAccentColorHelp",
+      "storefrontEnabledLabel", "storefrontSave",
+      "storefrontFallbackName", "storefrontIntroduction", "storefrontProductsHeading", "storefrontPriceLabel",
+      "storefrontViewProduct", "storefrontEmptyHeading", "storefrontEmptyDescription",
+      "storefrontUnavailableHeading", "storefrontUnavailableDescription",
     ] as const;
 
     for (const locale of ["pt-BR", "en"] as const) {

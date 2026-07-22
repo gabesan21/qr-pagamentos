@@ -1,6 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { describe, expect, it, vi } from "vitest";
 
+vi.mock("server-only", () => ({}));
+
 const { requireAdminFromCookie, protectedMutationResponse } = vi.hoisted(() => ({ requireAdminFromCookie: vi.fn(), protectedMutationResponse: vi.fn() }));
 vi.mock("@/app/admin/guard", () => ({ requireAdminFromCookie, protectedMutationResponse }));
 vi.mock(import("@/auth/nautt-catalog"), async (importOriginal) => {
@@ -15,7 +17,7 @@ vi.mock(import("@/auth/nautt-catalog"), async (importOriginal) => {
 import { POST } from "./route";
 
 const actor = { id: "admin", username: "admin", email: null, role: "ADMIN" as const, status: "ACTIVE" as const, createdAt: new Date() };
-const request = (body = new URLSearchParams()) => new Request("http://0.0.0.0:3000/admin/catalog/currency-pairs", { method: "POST", body });
+const request = (body = new URLSearchParams()) => new Request("http://0.0.0.0:3000/admin/catalog/currency-pairs", { method: "POST", headers: { origin: "http://0.0.0.0:3000", host: "0.0.0.0:3000" }, body });
 
 describe("catalog currency pairs create route", () => {
   it("returns empty protected outcomes", async () => {

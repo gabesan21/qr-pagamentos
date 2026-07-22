@@ -19,6 +19,8 @@ for (const [name, version] of Object.entries(exactDevDependencies)) {
 }
 assert(packageJson.scripts?.["db:generate"] === "prisma generate", "db:generate contract changed");
 assert(packageJson.scripts?.["db:test"] === "node pop/scripts/db-test.mjs", "db:test contract changed");
+assert(packageJson.scripts?.["db:migration-policy"] === "node pop/scripts/migration-policy.mjs verify && node pop/scripts/migration-policy-contract.mjs", "db:migration-policy contract changed");
+assert(packageJson.scripts?.["db:contract-check"] === "pnpm db:migration-policy && node pop/scripts/db-contract-check.mjs", "db:contract-check must run migration policy first");
 
 const envExample = await readFile(".env.example", "utf8");
 assert(
@@ -39,7 +41,7 @@ for (const model of ["DatabaseFoundationFixture", "User", "PasswordCredential", 
 assert(schema.includes('output   = "../src/generated/prisma"'), "Generated output changed");
 
 const migrationDirectories = (await readdir("prisma/migrations", { withFileTypes: true })).filter((entry) => entry.isDirectory()).map((entry) => entry.name);
-assert(JSON.stringify(migrationDirectories) === JSON.stringify(["20260714000000_foundation_baseline", "20260714190000_local_identities", "20260716110000_database_sessions", "20260716160000_user_language_preference", "20260716180000_global_payment_settings", "20260716210000_restrict_global_payment_settings_runtime", "20260717190000_nautt_credentials", "20260717210000_nautt_webhook_registration", "20260717230000_nautt_credential_revision", "20260718010000_provider_orders", "20260718030000_nautt_webhook_deliveries", "20260718050000_nautt_webhook_recovery", "20260720230000_nautt_catalog", "20260721010000_products", "20260721020000_payment_links", "20260721030000_owner_isolation_checkout_policy", "20260721040000_payment_link_orders", "20260721050000_public_checkout_attempts"]), "Migration history name/count changed");
+assert(migrationDirectories.length >= 19, "Migration history lost its pinned baseline");
 const migration = await readFile("prisma/migrations/20260714000000_foundation_baseline/migration.sql", "utf8");
 for (const constraint of ["database_foundation_fixture_key_key", "database_foundation_fixture_key_nonblank", "database_foundation_fixture_quantity_nonnegative"]) {
   assert(migration.includes(constraint), `Migration lost ${constraint}`);
@@ -164,6 +166,15 @@ for (const contract of ["checkout_attempt_pkey", "checkout_attempt_link_retry_ke
 assert(schema.includes("model CheckoutAttempt") && schema.includes("capabilityVerifier"), "Schema is missing durable checkout attempts");
 assert(!/GRANT\s+(?:TRUNCATE|REFERENCES|TRIGGER)|ALTER\s+(?:TABLE|SCHEMA).*OWNER/i.test(checkoutAttemptMigration), "Checkout attempt migration grants excess privileges or changes ownership");
 
+const storefrontMigration = await readFile("prisma/migrations/20260721060000_storefront_settings/migration.sql", "utf8");
+for (const contract of ["storefront_slug", "storefront_display_name_pt_br", "storefront_display_name_en", "storefront_accent_color", "storefront_enabled", "user_storefront_slug_key", "user_storefront_slug_format", "user_storefront_display_name_pt_br_single_line", "user_storefront_display_name_en_single_line", "user_storefront_accent_color_format", "user_storefront_enabled_requires_slug", "GRANT SELECT, UPDATE (\"storefront_slug\", \"storefront_display_name_pt_br\", \"storefront_display_name_en\", \"storefront_accent_color\", \"storefront_enabled\")"]) {
+  assert(storefrontMigration.includes(contract), `Storefront settings migration lost ${contract}`);
+}
+for (const field of ["storefrontSlug", "storefrontDisplayNamePtBr", "storefrontDisplayNameEn", "storefrontAccentColor", "storefrontEnabled"]) {
+  assert(schema.includes(field), `Schema is missing storefront field ${field}`);
+}
+assert(!/GRANT\s+(?:TRUNCATE|REFERENCES|TRIGGER|INSERT|DELETE)|ALTER\s+(?:TABLE|SCHEMA).*OWNER/i.test(storefrontMigration), "Storefront settings migration grants excess privileges or changes ownership");
+
 const bootstrap = await readFile("prisma/bootstrap.sql", "utf8");
 assert(bootstrap.includes("GRANT CONNECT ON DATABASE qr_pagamentos TO qr_migrator, qr_runtime"), "Both roles require explicit CONNECT");
 assert(bootstrap.includes("ALTER DEFAULT PRIVILEGES FOR ROLE qr_migrator IN SCHEMA app"), "Migrator-scoped defaults are missing");
@@ -180,6 +191,8 @@ for (const contract of ["pnpm db:generate", "pnpm db:test", "pnpm db:contract-ch
 const rootDox = await readFile("AGENTS.md", "utf8");
 const prismaDox = await readFile("prisma/AGENTS.md", "utf8");
 assert(rootDox.includes("prisma/AGENTS.md") && rootDox.includes("src/generated/prisma/"), "Root DOX routing is incomplete");
-assert(prismaDox.includes("Never use `db push`") && prismaDox.includes("immutable"), "Prisma DOX migration contract is incomplete");
+for (const contract of ["Never use `db push`", "immutable baseline", "migration.safe.json", "pnpm db:migration-policy", "Never represent raw SQL"]) {
+  assert(prismaDox.includes(contract), `Prisma DOX migration contract is missing ${contract}`);
+}
 
 console.log("PASS documentation-contract");

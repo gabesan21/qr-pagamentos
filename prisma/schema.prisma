@@ -26,6 +26,11 @@ model User {
   status          String              @default("ACTIVE") @db.VarChar(8)
   preferredLocale String?             @map("preferred_locale") @db.VarChar(5)
   checkoutDataPolicy String            @default("NONE") @map("checkout_data_policy") @db.VarChar(22)
+  storefrontSlug    String?            @unique(map: "user_storefront_slug_key") @map("storefront_slug") @db.VarChar(63)
+  storefrontDisplayNamePtBr String?    @map("storefront_display_name_pt_br") @db.VarChar(160)
+  storefrontDisplayNameEn String?      @map("storefront_display_name_en") @db.VarChar(160)
+  storefrontAccentColor String?        @map("storefront_accent_color") @db.VarChar(7)
+  storefrontEnabled Boolean            @default(false) @map("storefront_enabled")
   createdAt       DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt       DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
   credential       PasswordCredential?

@@ -2,9 +2,16 @@ import { readFile } from "node:fs/promises";
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { read } = vi.hoisted(() => ({ read: vi.fn() }));
+vi.mock("server-only", () => ({}));
+
+const { allowRateLimit, read } = vi.hoisted(() => ({ allowRateLimit: vi.fn(), read: vi.fn() }));
 
 vi.mock("@/auth/public-payment-link", () => ({ getPublicPaymentLinkService: () => ({ read }) }));
+vi.mock("@/security/public-rate-limit", () => ({
+  allowPublicPaymentLinkRequest: allowRateLimit,
+  publicPaymentLinkRateLimitSurface: { read: "public-link-read" },
+  publicRateLimitResponse: () => new Response(null, { status: 429, headers: { "Cache-Control": "no-store" } }),
+}));
 
 import { dynamic, GET } from "./route";
 
@@ -33,6 +40,7 @@ function context(value = identifier) {
 describe("GET /api/payment-links/[identifier]", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    allowRateLimit.mockReturnValue(true);
   });
 
   it("is a forced-dynamic, unlocalized public read that returns the exact DTO with no-store", async () => {
@@ -67,6 +75,17 @@ describe("GET /api/payment-links/[identifier]", () => {
       await expect(response.text()).resolves.toBe("");
     }
     expect(read).toHaveBeenCalledTimes(4);
+  });
+
+  it("returns an empty no-store 429 before locale negotiation or the public read", async () => {
+    allowRateLimit.mockReturnValueOnce(false);
+
+    const response = await GET(request("en"), context());
+
+    expect(response.status).toBe(429);
+    expect(response.headers.get("cache-control")).toContain("no-store");
+    await expect(response.text()).resolves.toBe("");
+    expect(read).not.toHaveBeenCalled();
   });
 
   it("does not import session, authorization, cookie, dictionary, or checkout behavior", async () => {

@@ -1,7 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { checkout } = vi.hoisted(() => ({ checkout: vi.fn() }));
+vi.mock("server-only", () => ({}));
+
+const { allowRateLimit, checkout } = vi.hoisted(() => ({ allowRateLimit: vi.fn(), checkout: vi.fn() }));
 vi.mock("@/checkout/public-checkout", () => ({ getPublicCheckoutService: () => ({ checkout }) }));
+vi.mock("@/security/public-rate-limit", () => ({
+  allowPublicPaymentLinkRequest: allowRateLimit,
+  publicPaymentLinkRateLimitSurface: { checkout: "public-checkout-submit" },
+  publicRateLimitResponse: () => new Response(null, { status: 429, headers: { "Cache-Control": "no-store" } }),
+}));
 
 import { dynamic, POST } from "./route";
 
@@ -10,7 +17,10 @@ const body = { idempotencyKey: "retry-key-with-enough-entropy", customer: { name
 const context = { params: Promise.resolve({ identifier }) };
 
 describe("POST /api/payment-links/[identifier]/checkout", () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    allowRateLimit.mockReturnValue(true);
+  });
   it("is sessionless, dynamic and maps only the redacted accepted capability", async () => {
     checkout.mockResolvedValueOnce({ kind: "accepted", status: 201, payment: { state: "PENDING", pixCopyPaste: "000201" }, statusCapability: "opaque-bearer" });
     const response = await POST(new Request(`https://example.test/api/payment-links/${identifier}/checkout`, { method: "POST", headers: { "content-type": "application/json", cookie: "qr_session=ignored" }, body: JSON.stringify(body) }), context);
@@ -37,6 +47,14 @@ describe("POST /api/payment-links/[identifier]/checkout", () => {
   it("rejects invalid JSON without calling the server service", async () => {
     const response = await POST(new Request("https://example.test", { method: "POST", body: "{" }), context);
     expect(response.status).toBe(400);
+    expect(checkout).not.toHaveBeenCalled();
+  });
+  it("returns an empty no-store 429 before parsing the body or calling checkout", async () => {
+    allowRateLimit.mockReturnValueOnce(false);
+    const response = await POST(new Request("https://example.test", { method: "POST", body: "{" }), context);
+    expect(response.status).toBe(429);
+    expect(response.headers.get("cache-control")).toContain("no-store");
+    await expect(response.text()).resolves.toBe("");
     expect(checkout).not.toHaveBeenCalled();
   });
 });

@@ -1,0 +1,230 @@
+{
+  "version": 1,
+  "id": "20260722000000_policy_fixture",
+  "operations": [
+    {
+      "op": "createTable",
+      "table": {
+        "schema": "app",
+        "name": "_migration_policy_fixture"
+      },
+      "columns": [
+        {
+          "name": "id",
+          "type": {
+            "name": "bigint"
+          },
+          "nullable": false
+        },
+        {
+          "name": "foundation_id",
+          "type": {
+            "name": "bigint"
+          },
+          "nullable": true
+        },
+        {
+          "name": "label",
+          "type": {
+            "name": "varchar",
+            "length": 64
+          },
+          "nullable": false,
+          "default": {
+            "kind": "string",
+            "value": "safe"
+          }
+        }
+      ]
+    },
+    {
+      "op": "addColumn",
+      "table": {
+        "schema": "app",
+        "name": "_database_foundation_fixture"
+      },
+      "column": {
+        "name": "policy_note",
+        "type": {
+          "name": "text"
+        },
+        "nullable": true
+      }
+    },
+    {
+      "op": "addColumn",
+      "table": {
+        "schema": "app",
+        "name": "_database_foundation_fixture"
+      },
+      "column": {
+        "name": "policy_enabled",
+        "type": {
+          "name": "boolean"
+        },
+        "nullable": false,
+        "default": {
+          "kind": "boolean",
+          "value": false
+        }
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "_migration_policy_fixture"
+      },
+      "constraint": {
+        "kind": "primaryKey",
+        "name": "migration_policy_fixture_pkey",
+        "columns": [
+          "id"
+        ]
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "_migration_policy_fixture"
+      },
+      "constraint": {
+        "kind": "unique",
+        "name": "migration_policy_fixture_label_key",
+        "columns": [
+          "label"
+        ]
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "_migration_policy_fixture"
+      },
+      "constraint": {
+        "kind": "check",
+        "name": "migration_policy_fixture_id_positive",
+        "expression": {
+          "op": "and",
+          "items": [
+            {
+              "op": "gt",
+              "left": {
+                "kind": "column",
+                "name": "id"
+              },
+              "right": {
+                "kind": "literal",
+                "literal": {
+                  "kind": "integer",
+                  "value": 0
+                }
+              }
+            },
+            {
+              "op": "isNull",
+              "column": "label",
+              "is": false
+            }
+          ]
+        },
+        "notValid": true
+      }
+    },
+    {
+      "op": "validateConstraint",
+      "table": {
+        "schema": "app",
+        "name": "_migration_policy_fixture"
+      },
+      "name": "migration_policy_fixture_id_positive"
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "_migration_policy_fixture"
+      },
+      "constraint": {
+        "kind": "foreignKey",
+        "name": "migration_policy_fixture_foundation_fkey",
+        "columns": [
+          "foundation_id"
+        ],
+        "references": {
+          "table": {
+            "schema": "app",
+            "name": "_database_foundation_fixture"
+          },
+          "columns": [
+            "id"
+          ]
+        },
+        "onDelete": "RESTRICT",
+        "onUpdate": "NO ACTION",
+        "notValid": true
+      }
+    },
+    {
+      "op": "validateConstraint",
+      "table": {
+        "schema": "app",
+        "name": "_migration_policy_fixture"
+      },
+      "name": "migration_policy_fixture_foundation_fkey"
+    },
+    {
+      "op": "createIndex",
+      "name": "migration_policy_fixture_foundation_idx",
+      "table": {
+        "schema": "app",
+        "name": "_migration_policy_fixture"
+      },
+      "columns": [
+        "foundation_id",
+        "id"
+      ],
+      "unique": false
+    },
+    {
+      "op": "grant",
+      "object": {
+        "kind": "schema",
+        "schema": "app"
+      },
+      "privileges": [
+        "USAGE"
+      ],
+      "role": "qr_runtime"
+    },
+    {
+      "op": "grant",
+      "object": {
+        "kind": "table",
+        "schema": "app",
+        "name": "_migration_policy_fixture"
+      },
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "role": "qr_runtime"
+    },
+    {
+      "op": "revoke",
+      "object": {
+        "kind": "table",
+        "schema": "app",
+        "name": "_migration_policy_fixture"
+      },
+      "privileges": [
+        "DELETE"
+      ],
+      "role": "qr_runtime"
+    }
+  ]
+}

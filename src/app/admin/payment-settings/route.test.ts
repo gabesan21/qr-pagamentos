@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
+vi.mock("server-only", () => ({}));
+
 const { requireAdminFromCookie, protectedMutationResponse, save } = vi.hoisted(() => ({ requireAdminFromCookie: vi.fn(), protectedMutationResponse: vi.fn(), save: vi.fn() }));
 vi.mock("@/app/admin/guard", () => ({ requireAdminFromCookie, protectedMutationResponse }));
 vi.mock("@/auth/payment-settings", () => ({ getPaymentSettingsService: () => ({ save }), SUPPORTED_CURRENCIES: ["BRL"], SUPPORTED_PAYMENT_METHODS: ["PIX"] }));
@@ -7,7 +9,7 @@ vi.mock("@/auth/payment-settings", () => ({ getPaymentSettingsService: () => ({ 
 import { POST } from "./route";
 
 const actor = { id: "admin", username: "admin", email: null, role: "ADMIN" as const, status: "ACTIVE" as const, createdAt: new Date() };
-const request = (body = new URLSearchParams()) => new Request("http://0.0.0.0:3000/admin/payment-settings", { method: "POST", body });
+const request = (body = new URLSearchParams()) => new Request("http://0.0.0.0:3000/admin/payment-settings", { method: "POST", headers: { origin: "http://0.0.0.0:3000", host: "0.0.0.0:3000" }, body });
 
 describe("payment settings route", () => {
   it("returns empty protected outcomes", async () => {

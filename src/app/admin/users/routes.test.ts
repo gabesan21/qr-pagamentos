@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
+vi.mock("server-only", () => ({}));
+
 const { requireAdminFromCookie, protectedMutationResponse, createUser, changePassword, changeRole, changeStatus } = vi.hoisted(() => ({
   requireAdminFromCookie: vi.fn(),
   protectedMutationResponse: vi.fn(),
@@ -18,10 +20,25 @@ import { POST as role } from "./[id]/role/route";
 import { POST as status } from "./[id]/status/route";
 
 const actor = { id: "admin", username: "admin", email: null, role: "ADMIN" as const, status: "ACTIVE" as const, createdAt: new Date() };
-const request = (body = new URLSearchParams()) => new Request("http://0.0.0.0:3000/admin/users/target", { method: "POST", body });
+const request = (body = new URLSearchParams(), headers: Record<string, string> = { origin: "http://0.0.0.0:3000", host: "0.0.0.0:3000" }) =>
+  new Request("http://0.0.0.0:3000/admin/users/target", { method: "POST", headers, body });
 const target = { params: Promise.resolve({ id: "target" }) };
 
 describe("administrative mutation route contract", () => {
+  it.each([
+    ["create", (form: URLSearchParams, headers?: Record<string, string>) => create(request(form, headers)), new URLSearchParams()],
+    ["role", (form: URLSearchParams, headers?: Record<string, string>) => role(request(form, headers), target), new URLSearchParams({ role: "ADMIN" })],
+    ["status", (form: URLSearchParams, headers?: Record<string, string>) => status(request(form, headers), target), new URLSearchParams({ status: "DISABLED" })],
+    ["password", (form: URLSearchParams, headers?: Record<string, string>) => password(request(form, headers), target), new URLSearchParams({ password: "correct horse battery staple" })],
+  ] as const)("rejects cross-origin and missing-Origin posts for %s before any auth or service work", async (_name, handler, form) => {
+    for (const headers of [{ host: "0.0.0.0:3000" }, { origin: "https://evil.example", host: "0.0.0.0:3000" }] as Record<string, string>[]) {
+      const response = await handler(form, headers);
+      expect(response.status).toBe(403);
+      expect(await response.text()).toBe("");
+      expect(response.headers.get("location")).toBeNull();
+    }
+    expect(requireAdminFromCookie).not.toHaveBeenCalled();
+  });
   it.each([
     ["create", (form: URLSearchParams) => create(request(form)), new URLSearchParams()],
     ["role", (form: URLSearchParams) => role(request(form), target), new URLSearchParams({ role: "ADMIN" })],

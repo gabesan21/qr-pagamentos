@@ -1,7 +1,7 @@
 # Epoch 4 - Checkout and order lifecycle
 
 - **Project:** [[PROJECT|QR Pagamentos]]
-- **Status:** em andamento
+- **Status:** concluída
 - **Description:** Deliver owner-isolated public checkout, QR payment generation, account-level customer-data policies, and order views.
 - **Yolo:** sim
 
@@ -33,10 +33,9 @@
 
 ## Phase 4.3 — Order operations
 
-- **Status:** pending
+- **Status:** concluída
 - **Description:** Provide protected order visibility for owners and administrators.
 - **Specs:** [[specs/product-scope|Product scope]], [[specs/checkout-and-order-lifecycle|Checkout and order lifecycle]]
 
 | Task | Description (≤1 line) | Status |
 |------|----------------------|--------|
-| `4.3.1-owner-and-admin-order-views` | Add owner-scoped and administrator order views with protected customer-data access. · size: L | not started |

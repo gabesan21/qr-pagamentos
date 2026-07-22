@@ -54,6 +54,23 @@ describe("design tokens", () => {
     expect(violations).toContain("src/components/ui/line-height-fixture.css: raw visual value line-height:");
   });
 
+  it("permits only the canonical storefront accent declaration at the public storefront root", () => {
+    const storefrontPath = join(process.cwd(), "src/app/store/[slug]/page.tsx");
+    const canonical = '<main style={{ "--storefront-accent": storefront.accentColor } as CSSProperties} />';
+
+    expect(findDesignTokenViolations([{ path: storefrontPath, source: canonical }])).toEqual([]);
+    expect(findDesignTokenViolations([{ path: storefrontPath, source: '<main style={{ "--brand-accent": storefront.accentColor } as CSSProperties} />' }]))
+      .toContain("src/app/store/[slug]/page.tsx: inline visual style style=");
+    expect(findDesignTokenViolations([{ path: storefrontPath, source: '<main style={{ "--storefront-accent": accentColor } as CSSProperties} />' }]))
+      .toContain("src/app/store/[slug]/page.tsx: inline visual style style=");
+    expect(findDesignTokenViolations([{ path: storefrontPath, source: '<main style={{ "--storefront-accent": storefront.accentColor, color: "red" } as CSSProperties} />' }]))
+      .toContain("src/app/store/[slug]/page.tsx: inline visual style style=");
+    expect(findDesignTokenViolations([{ path: storefrontPath, source: `${canonical}${canonical}` }]))
+      .toContain("src/app/store/[slug]/page.tsx: inline visual style style=");
+    expect(findDesignTokenViolations([{ path: join(process.cwd(), "src/app/page.tsx"), source: canonical }]))
+      .toContain("src/app/page.tsx: inline visual style style=");
+  });
+
   it("keeps the token markers in the designated source", () => {
     const source = readFileSync(join(process.cwd(), "src/app/globals.css"), "utf8");
     expect(source).toContain("/* design-tokens:start */");

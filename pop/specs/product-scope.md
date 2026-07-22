@@ -4,7 +4,7 @@
 - **Epoch/Phase:** [[ROADMAP|Epochs 1-5]]
 - **Status:** aprovada
 - **Created:** 2026-07-13
-- **Updated:** 2026-07-21 — task 4.1.1 delivered owner isolation and the account checkout-data policy.
+- **Updated:** 2026-07-21 — task 4.1.1 delivered owner isolation and the account checkout-data policy; task 4.3.1 delivered owner order inspection and read-only administrator order inspection.
 
 ## What it covers
 
@@ -48,3 +48,4 @@ This spec defines the user-visible MVP boundaries for QR Pagamentos. Detailed pr
 - [[specs/administrative-foundation|Administrative foundation]] - follow when implementing runtime, users, settings, or the initial admin UI.
 - [[specs/nautt-finance-integration|Nautt Finance integration]] - follow when work touches API credentials, orders, polling, or webhooks.
 - [[specs/checkout-and-order-lifecycle|Checkout and order lifecycle]] - follow when work touches public checkout, customer data, or order state.
+- [[specs/storefront-and-customization|Storefront and customization]] - follow when work touches storefront settings, slugs, or branding.

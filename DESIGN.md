@@ -93,11 +93,15 @@ active action immediately exposes localized spinner/`aria-busy` feedback, and a
 shared scope disables the password input plus competing setup actions after the
 first payload is formed so a second provider mutation cannot be dispatched.
 
-The authenticated home also owns each account's product, payment-link, and
-checkout-data-policy ledger. These owner-only forms reuse the same cards,
-fields, selects, alerts, buttons, separators, badges, and spinners: they show
+The authenticated home also owns each account's product, payment-link,
+checkout-data-policy, and storefront-settings ledger. These owner-only forms
+reuse the same cards, fields, selects, checkboxes, alerts, buttons, separators,
+badges, and spinners: they show
 empty prerequisites, success/recovery notices, native pending/disabled actions,
 and visible keyboard focus without creating a home-specific visual variant.
+The storefront card composes labelled `Input` text controls and one horizontal
+`Checkbox` enablement toggle; its save posts to `/storefront` and reports only
+the shared opaque success/conflict alert.
 
 The unauthenticated `/login` page consumes the same inventory as a single
 restrained credential `Card`: `Field`/`Input` with labels above the native
@@ -115,6 +119,25 @@ fields; initial, local-validation, submitting/disabled, QR/copy, waiting,
 status-recovery, terminal, and unavailable states remain explicit and use no
 page-specific visual primitive or token. QR images carry alternative text and
 copy/status feedback is announced politely.
+
+The sessionless `/store/[slug]` storefront follows the same PIX-ledger rail and
+uses the existing `Card`, `Alert`, `Button`, and `Skeleton` primitives. Its
+applicable states are available products, loading skeleton, enabled-but-empty,
+opaque unavailable/error, and visible hover/focus on the checkout action;
+there is no disabled storefront action. The page may declare only the validated
+`--storefront-accent` custom property at its root. Scoped CSS uses
+`--action-primary` as the fallback, and `scripts/check-design-tokens.mjs`
+accepts that exact declaration only in this route; no other inline style or raw
+visual value is allowed.
+
+The authenticated `/orders` owner ledger and the read-only `/admin/orders`
+administrator ledger reuse the same receipt rail, `admin-navigation`, ruled
+`admin-account` fact sections, `Badge` state vocabulary, and `Card`/`Alert`
+empty and unavailable states. Order states reuse the checkout state labels;
+the policy-exact customer snapshot renders as labelled facts. Cross-owner or
+missing order identities render one opaque destructive-`Alert` unavailable
+view with a single back action; no order surface owns a mutation control or
+page-specific visual variant.
 
 ## Evidence and composition
 

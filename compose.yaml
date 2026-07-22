@@ -22,9 +22,12 @@ services:
     restart: unless-stopped
 
   bootstrap:
+    image: ${DB_OPS_IMAGE:-qr-pagamentos-db-ops:local}
     build:
       context: .
       target: db-ops
+      args:
+        RELEASE_REVISION: ${RELEASE_REVISION:-development}
     command: ["container/bootstrap.mjs"]
     user: "1000:1000"
     environment:
@@ -45,9 +48,7 @@ services:
     restart: "no"
 
   migrate:
-    build:
-      context: .
-      target: db-ops
+    image: ${DB_OPS_IMAGE:-qr-pagamentos-db-ops:local}
     command: ["container/migrate.mjs"]
     user: "1000:1000"
     environment:
@@ -64,9 +65,7 @@ services:
     restart: "no"
 
   identity-seed:
-    build:
-      context: .
-      target: db-ops
+    image: ${DB_OPS_IMAGE:-qr-pagamentos-db-ops:local}
     command: ["container/identity-admin.mjs", "seed"]
     user: "1000:1000"
     environment:
@@ -89,9 +88,12 @@ services:
     restart: "no"
 
   app:
+    image: ${APP_IMAGE:-qr-pagamentos-app:local}
     build:
       context: .
       target: app
+      args:
+        RELEASE_REVISION: ${RELEASE_REVISION:-development}
     user: "1000:1000"
     read_only: true
     init: true

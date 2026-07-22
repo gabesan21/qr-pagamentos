@@ -13,7 +13,7 @@ vi.mock("@/integrations/nautt/owner-onboarding", () => ({ getOwnerOnboardingServ
 import { POST } from "./route";
 
 const actor = { id: "admin", username: "admin", email: null, role: "ADMIN" as const, status: "ACTIVE" as const, createdAt: new Date() };
-const request = (body = new URLSearchParams()) => new Request("http://0.0.0.0:3000/admin/users/target/nautt-credentials", { method: "POST", body });
+const request = (body = new URLSearchParams()) => new Request("http://0.0.0.0:3000/admin/users/target/nautt-credentials", { method: "POST", headers: { origin: "http://0.0.0.0:3000", host: "0.0.0.0:3000" }, body });
 const target = { params: Promise.resolve({ id: "target" }) };
 
 describe("admin nautt credentials route", () => {

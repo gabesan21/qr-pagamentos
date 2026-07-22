@@ -5,6 +5,7 @@
 - **Etapa:** 005_verifying · **Responsável:** revisor independente
 
 > Um único agente fresco verifica comportamento/qualidade. Em yolo ele é sempre **strong** e decide `differential|full`; `full` é obrigatório em critical ou após retorno. Evidência inconclusiva é reexecutada.
+> **Yolo:** este é o único gate de qualidade (003 só existe em `critical: true`). Responda **primeiro** se o pedido original — o "O quê / Por quê" do card — foi atendido: sem aprovação de plano, o brief é estratégia, não contrato; desvio do plano que atende ao pedido não é falha, aderência ao plano que não atende ao pedido é bloqueante.
 
 ## Rodada 1 — AAAA-MM-DD
 
