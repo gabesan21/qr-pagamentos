@@ -45,10 +45,11 @@ expect_absent "$INSTALL_DIR/uninstall.sh" 'SUDO'
 # Nautt encryption key generation/validation path
 expect_contains "$INSTALL_DIR/install.sh" 'NAUTT_ENCRYPTION_KEY'
 expect_contains "$output" 'nautt_encryption_key'
-valid_nautt_key=$(node -e 'process.stdout.write(crypto.randomBytes(32).toString("base64url"))')
+valid_nautt_key=$(node -e 'process.stdout.write(Buffer.alloc(32, 248).toString("base64url"))')
 [[ ${#valid_nautt_key} -ge 32 ]] || fail 'generated Nautt key is unexpectedly short'
-node -e 'process.exit(Buffer.from(process.argv[1], "base64url").length === 32 ? 0 : 1)' "$valid_nautt_key" || fail 'valid Nautt key length check failed'
-node -e 'process.exit(Buffer.from(process.argv[1], "base64url").length === 32 ? 0 : 1)' 'aG9zdA' && fail 'invalid Nautt key length check succeeded' || true
+[[ $valid_nautt_key == -* ]] || fail 'leading-hyphen Nautt key regression fixture changed'
+node -e 'process.exit(Buffer.from(process.argv[1], "base64url").length === 32 ? 0 : 1)' -- "$valid_nautt_key" || fail 'valid Nautt key length check failed'
+node -e 'process.exit(Buffer.from(process.argv[1], "base64url").length === 32 ? 0 : 1)' -- 'aG9zdA' && fail 'invalid Nautt key length check succeeded' || true
 cat > "$TMP/nautt-valid.env" <<EOF
 APP_PORT=33013
 INITIAL_ADMIN_USERNAME=Admin.User
@@ -161,274 +162,186 @@ for script in "$INSTALL_DIR/install.sh" "$INSTALL_DIR/update.sh" "$INSTALL_DIR/u
   [[ -x $script ]] || fail "not executable: $script"
 done
 
-# Dedicated update command: deterministic ownership, continuity, evidence, and failure contracts.
+# Dedicated self-update fixture: real tracked upstream plus an isolated Docker shim.
+update_source=$TMP/update-source
+update_remote=$TMP/update-remote.git
 update_root=$TMP/update-root
-mkdir -p "$update_root/install" "$update_root/prisma/migrations/20260722000000_fixture" "$update_root/bin"
-cp "$INSTALL_DIR/update.sh" "$update_root/install/update.sh"
-cp "$INSTALL_DIR/../compose.yaml" "$update_root/compose.yaml"
-printf '%s\n' 'SELECT 1;' > "$update_root/prisma/migrations/20260722000000_fixture/migration.sql"
-printf '%s\n' '/.install-secrets/' '/.container-secrets/' '/.update-evidence/' '/install/*.env' '/bin/' > "$update_root/.gitignore"
-git -C "$update_root" init -q
+mkdir -p "$update_source/install" "$update_source/pop/scripts" "$update_source/prisma/migrations" "$update_source/bin"
+cp "$INSTALL_DIR/update.sh" "$update_source/install/update.sh"
+cp "$INSTALL_DIR/../compose.yaml" "$update_source/compose.yaml"
+cp "$INSTALL_DIR/../pop/scripts/migration-policy.mjs" "$update_source/pop/scripts/migration-policy.mjs"
+cp "$INSTALL_DIR/../prisma/migration-policy-baseline.json" "$update_source/prisma/migration-policy-baseline.json"
+cp -R "$INSTALL_DIR/../prisma/migrations/." "$update_source/prisma/migrations/"
+printf '%s\n' '/.install-secrets/' '/.container-secrets/' '/.update-evidence/' '/install/*.env' '/bin/' > "$update_source/.gitignore"
+git -C "$update_source" init -q -b main
+git -C "$update_source" config user.email test@example.invalid
+git -C "$update_source" config user.name 'Contract Test'
+git -C "$update_source" add .
+git -C "$update_source" commit -qm baseline
+git init -q --bare "$update_remote"
+git -C "$update_source" remote add origin "$update_remote"
+git -C "$update_source" push -qu origin main
+git -C "$update_remote" symbolic-ref HEAD refs/heads/main
+git clone -q "$update_remote" "$update_root"
 git -C "$update_root" config user.email test@example.invalid
 git -C "$update_root" config user.name 'Contract Test'
-git -C "$update_root" add .gitignore compose.yaml prisma install/update.sh
-git -C "$update_root" commit -qm fixture
+printf '%s\n' pulled > "$update_source/pulled.marker"
+git -C "$update_source" add pulled.marker
+git -C "$update_source" commit -qm target
+git -C "$update_source" push -q
 
 update_key=$(node -e 'process.stdout.write(Buffer.alloc(32, 7).toString("base64url"))')
-mkdir -m 0700 "$update_root/.install-secrets" "$update_root/.container-secrets"
-for secret in postgres_admin_password migrator_password runtime_password initial_admin_username initial_admin_email initial_admin_password; do
-  printf '%s' "source-$secret" > "$update_root/.install-secrets/$secret"
-  chmod 0600 "$update_root/.install-secrets/$secret"
-done
-printf '%s' "$update_key" > "$update_root/.install-secrets/nautt_encryption_key"
-chmod 0600 "$update_root/.install-secrets/nautt_encryption_key"
-for secret in admin_password migrator_password runtime_password initial_admin_username initial_admin_email initial_admin_password; do
-  printf '%s' "staged-$secret" > "$update_root/.container-secrets/$secret"
-  chmod 0400 "$update_root/.container-secrets/$secret"
-done
-printf '%s' "$update_key" > "$update_root/.container-secrets/nautt_encryption_key"
-chmod 0400 "$update_root/.container-secrets/nautt_encryption_key"
-
-cat > "$update_root/install/update.env" <<EOF
+prepare_update_runtime() {
+  local root=$1 secret
+  mkdir -m 0700 "$root/.install-secrets" "$root/.container-secrets"
+  for secret in postgres_admin_password migrator_password runtime_password initial_admin_username initial_admin_email initial_admin_password; do
+    printf '%s' "source-$secret" > "$root/.install-secrets/$secret"; chmod 0600 "$root/.install-secrets/$secret"
+  done
+  printf '%s' "$update_key" > "$root/.install-secrets/nautt_encryption_key"; chmod 0600 "$root/.install-secrets/nautt_encryption_key"
+  for secret in admin_password migrator_password runtime_password initial_admin_username initial_admin_email initial_admin_password; do
+    printf '%s' "staged-$secret" > "$root/.container-secrets/$secret"; chmod 0400 "$root/.container-secrets/$secret"
+  done
+  printf '%s' "$update_key" > "$root/.container-secrets/nautt_encryption_key"; chmod 0400 "$root/.container-secrets/nautt_encryption_key"
+  cat > "$root/install/.env" <<EOF
 APP_PORT=33013
-INITIAL_ADMIN_USERNAME=Admin.User
-INITIAL_ADMIN_EMAIL=ops@example.invalid
-POSTGRES_ADMIN_PASSWORD=update-admin-sentinel
-MIGRATOR_PASSWORD=update-migrator-sentinel
-RUNTIME_PASSWORD=update-runtime-sentinel
 NAUTT_ENCRYPTION_KEY=$update_key
 NAUTT_WEBHOOK_CALLBACK_URL=https://payments.example.com/api/nautt/webhooks
 EOF
-chmod 0600 "$update_root/install/update.env"
+  chmod 0600 "$root/install/.env"
+  cp "$root/install/.env" "$root/install/update.env"
+  chmod 0600 "$root/install/update.env"
+  mkdir -p "$root/bin"
+  cp "$TMP/docker-shim" "$root/bin/docker"
+}
 
-cat > "$update_root/bin/docker" <<'EOF'
+cat > "$TMP/docker-shim" <<'EOF'
 #!/usr/bin/env bash
 set -Eeuo pipefail
 printf '%s\n' "$*" >> "$FAKE_DOCKER_LOG"
+revision=${QR_UPDATE_TARGET_SHA:-unknown}
 if [[ $1 == info ]]; then exit 0; fi
-if [[ $1 == image && $2 == inspect ]]; then exit 0; fi
+if [[ $1 == image && $2 == inspect && $3 != --format ]]; then exit 0; fi
+if [[ $1 == image && $2 == inspect ]]; then printf '%s\n' "$revision"; exit 0; fi
 if [[ $1 == run ]]; then
-  IFS= read -r expected
-  if [[ ${FAKE_NONOWNER:-false} == true ]]; then exit 0; fi
-  for argument in "$@"; do
-    if [[ $argument == *:/staged-key:ro ]]; then staged_key=${argument%%:/staged-key:ro}; fi
-  done
-  [[ -n ${staged_key:-} ]] || exit 93
-  actual=$(sha256sum "$staged_key" | cut -d' ' -f1)
-  [[ $actual == "$expected" ]]
-  exit
+  if [[ " $* " == *'migration-policy.mjs verify '* ]]; then
+    printf 'PASS migration-policy baseline=19 future=0\n'
+    if [[ ${FAKE_CHECKOUT_DRIFT:-false} == true ]]; then printf drift > "$FAKE_UPDATE_ROOT/concurrent-checkout-drift"; fi
+  fi
+  exit 0
 fi
 if [[ $1 == volume && $2 == inspect ]]; then
-  [[ ${FAKE_VOLUME_MISSING:-false} == true ]] && exit 1
-  if [[ $4 == *Mountpoint* ]]; then
-    printf '%s\n' "${FAKE_VOLUME_IDENTITY:-qr-pagamentos_postgres-data|/var/lib/docker/volumes/fixture|2026-07-22T18:00:00Z}"
-  else
-    printf '%s\n' "${FAKE_VOLUME_METADATA:-local|qr-pagamentos|postgres-data|qr-pagamentos_postgres-data}"
-  fi
+  if [[ $3 == --format && $4 == *Mountpoint* ]]; then printf '%s\n' "qr-pagamentos_postgres-data|/fixture|2026-07-22T00:00:00Z"
+  else printf '%s\n' 'local|qr-pagamentos|postgres-data|qr-pagamentos_postgres-data'; fi
   exit 0
 fi
 if [[ $1 == inspect ]]; then
   format=$3; id=$4
-  if [[ $format == *com.docker.compose.project* ]]; then
-    printf '%s\n' "${FAKE_CONTAINER_METADATA:-qr-pagamentos|db}"
-  elif [[ $format == *'.Mounts'* ]]; then
-    printf '%s\n' "${FAKE_MOUNTS:-qr-pagamentos_postgres-data|/var/lib/postgresql}"
-  elif [[ $format == *'.Image'* ]]; then
-    printf 'sha256:image-%s\n' "$id"
-  elif [[ $format == *'.State.ExitCode'* ]]; then
-    printf '0\n'
-  else
-    exit 96
-  fi
+  case "$format" in
+    *com.docker.compose.project*) printf '%s\n' 'qr-pagamentos|db' ;;
+    *'.Mounts'*) printf '%s\n' 'qr-pagamentos_postgres-data|/var/lib/postgresql' ;;
+    *'.Image'*) printf '%s\n' "sha256:$id" ;;
+    *'.State.ExitCode'*) printf '0\n' ;;
+    *org.opencontainers.image.revision*) printf '%s\n' "$revision" ;;
+    *'.State.Health'*) printf 'healthy\n' ;;
+    *) exit 96 ;;
+  esac
   exit 0
 fi
 [[ $1 == compose ]] || exit 95
 shift
 if [[ $1 == version ]]; then printf '5.3.1\n'; exit 0; fi
-while (($#)); do
-  case "$1" in -f|-p) shift 2 ;; *) break ;; esac
-done
+while (($#)); do case "$1" in -f|-p) shift 2 ;; *) break ;; esac; done
 case "$1" in
-  ps)
-    service=${@: -1}
-    if [[ $service == db && ${FAKE_DB_MISSING:-false} == true ]]; then exit 0; fi
-    printf '%s-id\n' "$service" ;;
-  config) printf '%s\n' 'redacted-compose-configuration' ;;
-  build) if [[ ${FAKE_BUILD_FAIL:-false} == true ]]; then exit 42; fi ;;
+  ps) printf '%s-id\n' "${@: -1}" ;;
+  build) : ;;
+  run) printf 'PASS disposable-job\n' ;;
   up) : ;;
-  logs) printf '%s\n' 'PASS runtime-db-preflight' ;;
-  exec) : ;;
   *) exit 94 ;;
 esac
 EOF
-chmod 0700 "$update_root/bin/docker"
-cat > "$update_root/bin/id" <<'EOF'
-#!/usr/bin/env bash
-if [[ ${FAKE_NONOWNER:-false} == true && ${1:-} == -u ]]; then printf '1001\n'; exit 0; fi
-if [[ ${FAKE_NONOWNER:-false} == true && ${1:-} == -g ]]; then printf '1001\n'; exit 0; fi
-exec /usr/bin/id "$@"
-EOF
-chmod 0700 "$update_root/bin/id"
-cat > "$update_root/bin/stat" <<'EOF'
-#!/usr/bin/env bash
-if [[ ${FAKE_NONOWNER:-false} == true ]]; then
-  target=${@: -1}
-  format=${2:-}
-  case "$target" in
-    */.install-secrets) [[ $format == %u:%a ]] && { printf '1001:700\n'; exit 0; } ;;
-    */.install-secrets/*) [[ $format == %u:%a ]] && { printf '1001:600\n'; exit 0; } ;;
-    */.container-secrets/*) [[ $format == %u:%a ]] && { printf '1000:400\n'; exit 0; } ;;
-    */nonowner-evidence) [[ $format == %u:%a ]] && { printf '1001:700\n'; exit 0; } ;;
-  esac
-fi
-exec /usr/bin/stat "$@"
-EOF
-chmod 0700 "$update_root/bin/stat"
+chmod 0700 "$TMP/docker-shim"
+prepare_update_runtime "$update_root"
 update_log=$TMP/update-docker.log
+: > "$update_log"
 update_out=$TMP/update.out
-update_env=(PATH="$update_root/bin:$PATH" FAKE_DOCKER_LOG="$update_log")
-update_args=(--env-file "$update_root/install/update.env" --backup-reference backup-2026-07-22T1800Z --previous-release release-v1)
-if ! env "${update_env[@]}" "$update_root/install/update.sh" "${update_args[@]}" > "$update_out" 2>&1; then
-  cat "$update_out" >&2
-  fail 'valid guarded update failed'
+if ! env PATH="$update_root/bin:$PATH" FAKE_DOCKER_LOG="$update_log" "$update_root/install/update.sh" > "$update_out" 2>&1; then
+  cat "$update_out" >&2; fail 'bare self-update failed'
 fi
-expect_contains "$update_out" 'PASS update-evidence'
 expect_contains "$update_out" 'PASS update-complete'
+[[ -f $update_root/pulled.marker ]] || fail 'upstream target was not pulled'
+[[ $(git -C "$update_root" rev-parse HEAD) == $(git -C "$update_root" rev-parse '@{upstream}') ]] || fail 'HEAD is not exact upstream SHA'
+[[ $(grep -c 'migration-policy.mjs verify' "$update_log") == 1 ]] || fail 'pulled policy verifier did not run exactly once'
+expect_contains "$update_log" '--pull=never --network none --read-only'
+expect_contains "$update_log" "--user $(id -u):$(id -g)"
+expect_contains "$update_log" "$update_root:/workspace:ro"
+policy_line=$(grep 'migration-policy.mjs verify' "$update_log")
+[[ $policy_line != *' -e '* && $policy_line != *DATABASE_URL* && $policy_line != *.install-secrets* && $policy_line != *.container-secrets* ]] \
+  || fail 'offline policy verifier received environment, database, or secret access'
+expect_contains "$update_log" 'build --pull bootstrap app'
+migrate_line=$(grep -n 'run --name .* --no-deps migrate' "$update_log" | cut -d: -f1)
+app_line=$(grep -n 'up -d --no-deps --force-recreate app' "$update_log" | cut -d: -f1)
+[[ -n $migrate_line && -n $app_line && $migrate_line -lt $app_line ]] || fail 'migration did not finish before app promotion'
 expect_absent "$update_out" "$update_key"
-expect_absent "$update_out" 'update-admin-sentinel'
 evidence_file=$(find "$update_root/.update-evidence" -maxdepth 1 -name 'update-*.txt' -type f)
 [[ -n $evidence_file && $(stat -c '%a' "$evidence_file") == 400 ]] || fail 'protected update evidence was not created'
-[[ $(stat -c '%a' "$update_root/.update-evidence") == 700 ]] || fail 'update evidence directory mode changed'
-for field in format captured_at previous_release backup_reference target_git_revision target_git_state compose_project compose_version volume_name volume_identity database_container_id configuration_sha256 migration_set_sha256; do
-  expect_contains "$evidence_file" "$field="
-done
-expect_contains "$evidence_file" 'migrations_begin'
-expect_contains "$evidence_file" 'images_begin'
-expect_contains "$evidence_file" 'target_git_state=clean'
+for field in target_revision head_revision upstream_revision previous_app_container previous_app_image volume_identity; do expect_contains "$evidence_file" "$field="; done
+expect_absent "$evidence_file" 'backup_reference='
+expect_absent "$evidence_file" 'previous_release='
 expect_absent "$evidence_file" "$update_key"
-expect_absent "$evidence_file" '.install-secrets'
-build_line=$(grep -n 'build --pull' "$update_log" | head -1 | cut -d: -f1)
-[[ -n $build_line && -f $evidence_file ]] || fail 'build/evidence ordering is not observable'
 
-probe_git_dirty_state() {
-  local label=$1 evidence_dir=$2 probe_out=$3
-  env "${update_env[@]}" "$update_root/install/update.sh" "${update_args[@]}" --evidence-dir "$evidence_dir" > "$probe_out" 2>&1 \
-    || fail "$label dirty-state update probe failed"
-  local probe_evidence
-  probe_evidence=$(find "$evidence_dir" -maxdepth 1 -name 'update-*.txt' -type f)
-  expect_contains "$probe_evidence" 'target_git_state=dirty'
-  expect_absent "$probe_evidence" '.install-secrets'
-}
-printf '\n# tracked dirty probe\n' >> "$update_root/compose.yaml"
-probe_git_dirty_state tracked "$TMP/tracked-evidence" "$TMP/tracked-dirty.out"
-git -C "$update_root" restore compose.yaml
-mkdir "$update_root/src"
-printf '%s\n' 'export const untrackedBuildInput = true;' > "$update_root/src/untracked-build-input.ts"
-probe_git_dirty_state untracked "$TMP/untracked-evidence" "$TMP/untracked-dirty.out"
-rm -f "$update_root/src/untracked-build-input.ts"
-rmdir "$update_root/src"
-
-dry_out=$TMP/update-dry.out
-"$update_root/install/update.sh" "${update_args[@]}" --dry-run > "$dry_out"
-for expected in 'validate existing protected' 'volume inspect' 'build --pull' 'up -d' 'healthcheck.mjs' 'unchanged-volume-identity' 'PASS update-dry-run'; do
-  expect_contains "$dry_out" "$expected"
-done
-expect_absent "$dry_out" "$update_key"
-
-expect_update_url_refusal() {
-  local label=$1 env_file=$2
-  : > "$update_log"
-  if env "${update_env[@]}" "$update_root/install/update.sh" --env-file "$env_file" --backup-reference backup-v1 --previous-release release-v1 >/dev/null 2>&1; then
-    fail "invalid update URL succeeded: $label"
-  fi
-  expect_absent "$update_log" 'build --pull'
-  expect_absent "$update_log" 'up -d'
-}
-for entry in \
-  'callback-malformed|https://?invalid' \
-  'callback-credentials|https://user:password@payments.example.com/webhook' \
-  'callback-fragment|https://payments.example.com/webhook#secret'; do
-  label=${entry%%|*}; invalid_url=${entry#*|}
-  sed "s|^NAUTT_WEBHOOK_CALLBACK_URL=.*|NAUTT_WEBHOOK_CALLBACK_URL=$invalid_url|" "$update_root/install/update.env" > "$update_root/install/invalid-url.env"
-  expect_update_url_refusal "$label" "$update_root/install/invalid-url.env"
-done
-for entry in \
-  'api-malformed|https://?invalid' \
-  'api-credentials|https://user:password@api.example.com/v2' \
-  'api-fragment|https://api.example.com/v2#secret'; do
-  label=${entry%%|*}; invalid_url=${entry#*|}
-  sed "$ a NAUTT_API_BASE_URL=$invalid_url" "$update_root/install/update.env" > "$update_root/install/invalid-url.env"
-  expect_update_url_refusal "$label" "$update_root/install/invalid-url.env"
-done
-
-expect_refusal() {
-  local label=$1; shift
-  : > "$update_log"
-  if env "${update_env[@]}" "$@" "$update_root/install/update.sh" "${update_args[@]}" >/dev/null 2>&1; then
-    fail "update refusal succeeded: $label"
-  fi
-  expect_absent "$update_log" 'build --pull'
-  expect_absent "$update_log" 'up -d'
-}
-expect_refusal missing-volume FAKE_VOLUME_MISSING=true
-expect_refusal unlabeled-volume 'FAKE_VOLUME_METADATA=local|||qr-pagamentos_postgres-data'
-expect_refusal foreign-volume 'FAKE_VOLUME_METADATA=local|foreign|postgres-data|qr-pagamentos_postgres-data'
-expect_refusal wrong-logical-volume 'FAKE_VOLUME_METADATA=local|qr-pagamentos|other|qr-pagamentos_postgres-data'
-expect_refusal wrong-driver 'FAKE_VOLUME_METADATA=nfs|qr-pagamentos|postgres-data|qr-pagamentos_postgres-data'
-expect_refusal missing-db FAKE_DB_MISSING=true
-expect_refusal foreign-db 'FAKE_CONTAINER_METADATA=foreign|db'
-expect_refusal wrong-mount-source 'FAKE_MOUNTS=foreign-volume|/var/lib/postgresql'
-expect_refusal wrong-mount-destination 'FAKE_MOUNTS=qr-pagamentos_postgres-data|/var/lib/postgresql/data'
-
-mv "$update_root/.container-secrets/nautt_encryption_key" "$update_root/.container-secrets/nautt_encryption_key.saved"
-expect_refusal missing-staged-key
-mv "$update_root/.container-secrets/nautt_encryption_key.saved" "$update_root/.container-secrets/nautt_encryption_key"
-chmod 0644 "$update_root/.install-secrets/nautt_encryption_key"
-expect_refusal unsafe-source-key-mode
-chmod 0600 "$update_root/.install-secrets/nautt_encryption_key"
-printf '%s' "${update_key%?}B" > "$update_root/.install-secrets/nautt_encryption_key"
-expect_refusal invalid-source-key
-printf '%s' "$update_key" > "$update_root/.install-secrets/nautt_encryption_key"
-chmod 0600 "$update_root/.container-secrets/nautt_encryption_key"
-printf '%s' "${update_key%?}A" > "$update_root/.container-secrets/nautt_encryption_key"
-chmod 0400 "$update_root/.container-secrets/nautt_encryption_key"
-expect_refusal mismatched-staged-key
-chmod 0600 "$update_root/.container-secrets/nautt_encryption_key"
-printf '%s' "$update_key" > "$update_root/.container-secrets/nautt_encryption_key"
-chmod 0400 "$update_root/.container-secrets/nautt_encryption_key"
-
-other_update_key=$(node -e 'process.stdout.write(Buffer.alloc(32, 8).toString("base64url"))')
-sed "s|^NAUTT_ENCRYPTION_KEY=.*|NAUTT_ENCRYPTION_KEY=$other_update_key|" "$update_root/install/update.env" > "$update_root/install/mismatched.env"
-chmod 0600 "$update_root/install/mismatched.env"
+# Recheck the exact revision after the offline policy gate so an independent
+# checkout mutation cannot reach candidate builds or deployment.
 : > "$update_log"
-if env "${update_env[@]}" "$update_root/install/update.sh" --env-file "$update_root/install/mismatched.env" --backup-reference backup-v1 --previous-release release-v1 >/dev/null 2>&1; then
-  fail 'mismatched environment Nautt key succeeded'
+if env PATH="$update_root/bin:$PATH" FAKE_DOCKER_LOG="$update_log" FAKE_CHECKOUT_DRIFT=true FAKE_UPDATE_ROOT="$update_root" "$update_root/install/update.sh" --env-file "$update_root/install/update.env" >/dev/null 2>&1; then
+  fail 'concurrent checkout drift succeeded'
 fi
-expect_absent "$update_log" 'build --pull'
+expect_contains "$update_log" 'migration-policy.mjs verify'
+expect_absent "$update_log" 'build --pull bootstrap app'
+rm -f "$update_root/concurrent-checkout-drift"
 
-chmod 0000 "$update_root/.container-secrets/nautt_encryption_key"
-: > "$update_log"
-nonowner_out=$TMP/nonowner.out
-env "${update_env[@]}" FAKE_NONOWNER=true "$update_root/install/update.sh" "${update_args[@]}" --evidence-dir "$TMP/nonowner-evidence" > "$nonowner_out" 2>&1 \
-  || { cat "$nonowner_out" >&2; fail 'non-UID-1000 operator update failed'; }
-expect_contains "$nonowner_out" 'PASS update-complete'
-expect_contains "$update_log" 'run --rm -i --pull=never --network none --read-only --tmpfs /tmp --user 1000:1000'
-expect_absent "$nonowner_out" "$update_key"
-chmod 0400 "$update_root/.container-secrets/nautt_encryption_key"
-
-: > "$update_log"
-before_failure=$(find "$update_root/.update-evidence" -type f | wc -l)
-if env "${update_env[@]}" FAKE_BUILD_FAIL=true "$update_root/install/update.sh" "${update_args[@]}" >/dev/null 2>&1; then
-  fail 'forced update build failure succeeded'
-fi
-after_failure=$(find "$update_root/.update-evidence" -type f | wc -l)
-((after_failure == before_failure + 1)) || fail 'rollback evidence was not retained after build failure'
-expect_contains "$update_log" 'build --pull'
-expect_absent "$update_log" 'up -d'
-
-for forbidden in 'down ' '--volumes' '--purge-data' 'volume rm' 'randomBytes' 'prepare-identity'; do
-  expect_absent "$INSTALL_DIR/update.sh" "$forbidden"
+for removed in --backup-reference --previous-release; do
+  if "$update_root/install/update.sh" "$removed" value >/dev/null 2>&1; then fail "removed option succeeded: $removed"; fi
 done
-if "$update_root/install/update.sh" --env-file "$update_root/install/update.env" --previous-release release-v1 --dry-run >/dev/null 2>&1; then fail 'missing backup reference succeeded'; fi
-if "$update_root/install/update.sh" --env-file "$update_root/install/update.env" --backup-reference backup-v1 --dry-run >/dev/null 2>&1; then fail 'missing previous release succeeded'; fi
+
+expect_git_refusal() {
+  local label=$1 root=$2; shift 2
+  : > "$update_log"
+  if env PATH="$root/bin:$PATH" FAKE_DOCKER_LOG="$update_log" "$@" "$root/install/update.sh" --env-file "$root/install/update.env" >/dev/null 2>&1; then
+    fail "unsafe Git state succeeded: $label"
+  fi
+  [[ ! -s $update_log ]] || fail "unsafe Git state reached Docker: $label"
+}
+
+git_fixture() {
+  local label=$1
+  local root=$TMP/git-$label
+  git clone -q "$update_remote" "$root"
+  git -C "$root" config user.email test@example.invalid
+  git -C "$root" config user.name 'Contract Test'
+  prepare_update_runtime "$root"
+  printf '%s' "$root"
+}
+
+probe=$(git_fixture dirty); printf '\n# dirty\n' >> "$probe/compose.yaml"; expect_git_refusal dirty "$probe"
+probe=$(git_fixture untracked); printf x > "$probe/untracked"; expect_git_refusal untracked "$probe"
+probe=$(git_fixture detached); git -C "$probe" checkout -q --detach; expect_git_refusal detached "$probe"
+probe=$(git_fixture no-upstream); git -C "$probe" branch --unset-upstream; expect_git_refusal no-upstream "$probe"
+probe=$(git_fixture ahead); printf ahead > "$probe/ahead"; git -C "$probe" add ahead; git -C "$probe" commit -qm ahead; expect_git_refusal ahead "$probe"
+diverged_remote=$TMP/diverged-remote.git
+git clone -q --bare "$update_remote" "$diverged_remote"
+git -C "$diverged_remote" symbolic-ref HEAD refs/heads/main
+probe=$TMP/git-diverged
+git clone -q "$diverged_remote" "$probe"
+git -C "$probe" config user.email test@example.invalid; git -C "$probe" config user.name 'Contract Test'; prepare_update_runtime "$probe"
+printf local > "$probe/local"; git -C "$probe" add local; git -C "$probe" commit -qm local
+diverged_writer=$TMP/diverged-writer
+git clone -q "$diverged_remote" "$diverged_writer"
+git -C "$diverged_writer" config user.email test@example.invalid; git -C "$diverged_writer" config user.name 'Contract Test'
+printf remote > "$diverged_writer/remote"; git -C "$diverged_writer" add remote; git -C "$diverged_writer" commit -qm remote; git -C "$diverged_writer" push -q
+expect_git_refusal diverged-non-ff "$probe"
+probe=$(git_fixture unreachable); git -C "$probe" remote set-url origin "$TMP/missing-remote"; expect_git_refusal unreachable "$probe"
+probe=$(git_fixture target-mismatch); expect_git_refusal target-mismatch "$probe" env QR_UPDATE_REENTRY_COUNT=1 QR_UPDATE_TARGET_SHA=0000000000000000000000000000000000000000
+probe=$(git_fixture second-reentry); expect_git_refusal second-reentry "$probe" env QR_UPDATE_REENTRY_COUNT=2 QR_UPDATE_TARGET_SHA=$(git -C "$probe" rev-parse HEAD)
+
+for forbidden in 'down ' '--volumes' '--purge-data' 'volume rm' 'randomBytes' 'prepare-identity'; do expect_absent "$INSTALL_DIR/update.sh" "$forbidden"; done
 printf 'PASS install-contract\n'

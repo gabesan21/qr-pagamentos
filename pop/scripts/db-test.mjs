@@ -1,8 +1,10 @@
 import { createHash, randomUUID } from "node:crypto";
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
 
 import pg from "pg";
+
+import { generateSql, verifyRepository } from "./migration-policy.mjs";
 
 const { Client } = pg;
 const image = "postgres:18.4-bookworm";
@@ -38,6 +40,56 @@ for (const signal of ["SIGINT", "SIGTERM"]) {
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
+}
+
+function quoteIdentifier(value) {
+  return `"${value.replaceAll('"', '""')}"`;
+}
+
+async function captureExistingApplicationState(client) {
+  const catalog = await client.query(`
+    SELECT c.oid::text AS table_oid, c.relname AS table_name,
+      a.attnum, a.attname AS column_name, a.atttypid::text AS type_oid,
+      a.atttypmod, a.attnotnull
+    FROM pg_class c
+    JOIN pg_namespace n ON n.oid = c.relnamespace
+    JOIN pg_attribute a ON a.attrelid = c.oid
+    WHERE n.nspname = 'app' AND c.relkind = 'r'
+      AND a.attnum > 0 AND NOT a.attisdropped
+    ORDER BY c.oid, a.attnum
+  `);
+  const tables = new Map();
+  for (const row of catalog.rows) {
+    const table = tables.get(row.table_name) ?? { columns: [], rows: [] };
+    table.columns.push(row.column_name);
+    tables.set(row.table_name, table);
+  }
+  for (const [tableName, table] of tables) {
+    const values = table.columns.map((columnName) => `t.${quoteIdentifier(columnName)}`).join(", ");
+    const rows = await client.query(
+      `SELECT jsonb_build_array(${values})::text AS row FROM app.${quoteIdentifier(tableName)} t`,
+    );
+    table.rows = rows.rows.map(({ row }) => row).sort();
+  }
+  return { catalog: catalog.rows, tables };
+}
+
+async function assertExistingApplicationStatePreserved(client, before) {
+  const after = await captureExistingApplicationState(client);
+  const afterCatalog = new Set(after.catalog.map((row) => JSON.stringify(row)));
+  for (const row of before.catalog) {
+    assert(afterCatalog.has(JSON.stringify(row)), `Migration policy changed existing catalog identity/type for ${row.table_name}.${row.column_name}`);
+  }
+  for (const [tableName, table] of before.tables) {
+    const columns = table.columns.map((columnName) => `t.${quoteIdentifier(columnName)}`).join(", ");
+    const rows = await client.query(
+      `SELECT jsonb_build_array(${columns})::text AS row FROM app.${quoteIdentifier(tableName)} t`,
+    );
+    assert(
+      JSON.stringify(rows.rows.map(({ row }) => row).sort()) === JSON.stringify(table.rows),
+      `Migration policy changed existing rows or cells in app.${tableName}`,
+    );
+  }
 }
 
 async function expectSqlState(client, sql, expected) {
@@ -76,6 +128,9 @@ async function waitForLock(observer, backendPid, label) {
   }
   throw new Error(`${label} did not wait on a PostgreSQL lock`);
 }
+
+const policyResult = await verifyRepository();
+console.log(`PASS migration-policy-preflight baseline=${policyResult.baselineCount} future=${policyResult.futureCount}`);
 
 try {
   run("docker", [
@@ -132,8 +187,12 @@ try {
 
   const migrationEnv = { ...process.env, MIGRATION_DATABASE_URL: migratorUrl };
   delete migrationEnv.DATABASE_URL;
+  const expectedMigrations = (await readdir("prisma/migrations", { withFileTypes: true }))
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name)
+    .sort();
   const firstDeploy = run("pnpm", ["exec", "prisma", "migrate", "deploy"], { env: migrationEnv });
-  assert(firstDeploy.includes("19 migrations found"), "Fresh deploy did not discover exactly nineteen migrations");
+  assert(firstDeploy.includes(`${expectedMigrations.length} migrations found`), "Fresh deploy did not discover the policy-approved migration set");
 
   const admin = new Client({ connectionString: adminUrl });
   await admin.connect();
@@ -141,7 +200,6 @@ try {
     SELECT migration_name, checksum, finished_at IS NOT NULL AS finished, rolled_back_at
     FROM app._prisma_migrations
   `);
-  const expectedMigrations = ["20260714000000_foundation_baseline", "20260714190000_local_identities", "20260716110000_database_sessions", "20260716160000_user_language_preference", "20260716180000_global_payment_settings", "20260716210000_restrict_global_payment_settings_runtime", "20260717190000_nautt_credentials", "20260717210000_nautt_webhook_registration", "20260717230000_nautt_credential_revision", "20260718010000_provider_orders", "20260718030000_nautt_webhook_deliveries", "20260718050000_nautt_webhook_recovery", "20260720230000_nautt_catalog", "20260721010000_products", "20260721020000_payment_links", "20260721030000_owner_isolation_checkout_policy", "20260721040000_payment_link_orders", "20260721050000_public_checkout_attempts", "20260721060000_storefront_settings"];
   assert(history.rows.length === expectedMigrations.length, "Migration history row count changed");
   for (const migrationName of expectedMigrations) {
     const migrationSql = await readFile(`prisma/migrations/${migrationName}/migration.sql`);
@@ -683,6 +741,25 @@ try {
   await expectDenied(runtime, `CREATE ROLE runtime_forbidden`);
   await expectDenied(runtime, `SET ROLE qr_migrator`);
   console.log("PASS runtime-denials");
+
+  await runtime.query(`INSERT INTO app._database_foundation_fixture (key, quantity) VALUES ('policy-preservation', 42)`);
+  const stateBeforePolicyMigration = await captureExistingApplicationState(admin);
+  const policyManifest = JSON.parse(await readFile("pop/scripts/fixtures/migration-policy/all-operations.safe.json", "utf8"));
+  const policyMigrator = new Client({ connectionString: migratorUrl });
+  await policyMigrator.connect();
+  await policyMigrator.query(generateSql(policyManifest));
+  await policyMigrator.end();
+  await assertExistingApplicationStatePreserved(admin, stateBeforePolicyMigration);
+  const policyColumns = await admin.query(`
+    SELECT policy_note, policy_enabled
+    FROM app._database_foundation_fixture
+    WHERE key = 'policy-preservation'
+  `);
+  assert(
+    JSON.stringify(policyColumns.rows) === JSON.stringify([{ policy_note: null, policy_enabled: false }]),
+    "Generated add-column operations did not preserve an existing row with safe new values",
+  );
+  console.log("PASS migration-policy-postgresql-preservation");
 
   await runtime.end();
   await admin.end();

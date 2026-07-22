@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "id": "20260722000001_rejected_raw",
+  "operations": [
+    {
+      "op": "rawSql",
+      "sql": "DROP TABLE app.product"
+    }
+  ]
+}

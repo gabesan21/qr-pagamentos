@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "migrations": [
+    { "id": "20260714000000_foundation_baseline", "sha256": "60cc00c150a32f27997b9fe6ad00ce618609df267e30727949caa6c8e138ff81" },
+    { "id": "20260714190000_local_identities", "sha256": "05249ddd65c3e746775b5e5d42195fdc693a2426d790a7ca1f26cec83f7445e2" },
+    { "id": "20260716110000_database_sessions", "sha256": "29db4c9aab698009403bf1da115f2a83df9a8727eb09672e1590838e8b4aa602" },
+    { "id": "20260716160000_user_language_preference", "sha256": "5967c15cf49bc030a03f911103e96a9841704092ffb78a972e78566c1469164b" },
+    { "id": "20260716180000_global_payment_settings", "sha256": "de0fd75aef03b442e56b3b5778ca9ef505c3bff3f1e6ccff50286b362820d890" },
+    { "id": "20260716210000_restrict_global_payment_settings_runtime", "sha256": "aa036fce188d332ea45a0140fa6950f349cd3c896353c9f491c782ce02b97c61" },
+    { "id": "20260717190000_nautt_credentials", "sha256": "473183f2008f1810a6ad60ef441f0255d679859e96df30d58555a16d637d82f2" },
+    { "id": "20260717210000_nautt_webhook_registration", "sha256": "e235f82f6ba92ade1c8b3ddac31af9d6dbab6cd949d05404cd0eebf8a777091c" },
+    { "id": "20260717230000_nautt_credential_revision", "sha256": "6de4d1246334e8bd7fe82d38c3454ec0921dcfe4e7d319359824147feb12b71f" },
+    { "id": "20260718010000_provider_orders", "sha256": "bbffd02172b2651ebc11facee1abf96b2a869602d390b58207ac952c090dd4e0" },
+    { "id": "20260718030000_nautt_webhook_deliveries", "sha256": "22224cee915c9c0ba9a1be70effa76275420c075be55341c4a154c2df387e0b6" },
+    { "id": "20260718050000_nautt_webhook_recovery", "sha256": "75b6d9f3a65946d2d2c3f435d2c640fd6f05356aececb9a530f7001d848b0416" },
+    { "id": "20260720230000_nautt_catalog", "sha256": "3537a3ecb43ed84e21768839191444159ec95cfa19a5f1b79c13394cf786fe6a" },
+    { "id": "20260721010000_products", "sha256": "224a1734779d351733d9c6b6ef8685a87a9168d548095e48f09c22ccb3f5c2bf" },
+    { "id": "20260721020000_payment_links", "sha256": "ec09a39c68a4f08c5a00a5d24aae45b97f2e3ffea1ff2493291c8c6ad80c4655" },
+    { "id": "20260721030000_owner_isolation_checkout_policy", "sha256": "c4879ad2dc04c06e162e61b7fd37ea59eb9388b1c3e84edc2c394580da908a78" },
+    { "id": "20260721040000_payment_link_orders", "sha256": "e90bbdaa1749d0a94cb8b2ba4a1fe624849f68832d625b707ccc651fa635c419" },
+    { "id": "20260721050000_public_checkout_attempts", "sha256": "3c8dcf5b3c2cdc12bcf975bc323ce7711ed316b43c32fb7a831d424182db8a7f" },
+    { "id": "20260721060000_storefront_settings", "sha256": "34ef18988add283e7f51b962450a78528f394d235577879ff21c85413001bb33" }
+  ]
+}

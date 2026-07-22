@@ -52,7 +52,7 @@ configuration, never derived from a request. The Nautt API base is optional;
 when supplied it must be canonical absolute HTTPS with no credentials or
 fragment, otherwise the committed production default applies. The Nautt
 encryption key is a separate protected secret: store an independently protected
-backup outside the host. A database backup without this key cannot recover
+copy outside the host. A database copy without this key cannot recover
 encrypted Nautt credentials.
 
 The deployment seed requires an initial administrator username; its email is
@@ -93,8 +93,8 @@ keep proxy/access logs under a separate reviewed retention policy.
 
 ## Backup and restore
 
-Take a protected logical PostgreSQL backup before every upgrade and on the
-operator's retention schedule. Store with it only redacted metadata: release
+Take protected logical PostgreSQL backups on the operator's retention schedule;
+the updater neither requires nor validates one. Store with each backup only redacted metadata: release
 revision, Compose/image identities, backup time, schema/migration expectation,
 and configuration fingerprint without values. Preserve the separately protected
 Nautt encryption-key backup with an access and retention policy at least as
@@ -116,43 +116,75 @@ are not default backup, restore, upgrade, or rollback actions.
 
 ## Upgrade and rollback
 
-After creating a fresh protected logical backup, update an installer-managed
-deployment from the checked-out target release with:
+Update an installer-managed deployment with:
 
 ```sh
-install/update.sh \
-  --backup-reference backup-2026-07-22T1800Z \
-  --previous-release v1.2.3
+install/update.sh
 ```
 
-The references are non-secret operator identifiers, not paths containing
-credentials. The command does not create or validate the backup. It fails
-before pull/build unless the local Compose volume labels and driver, owning
-`db` container labels, and exact `/var/lib/postgresql` mount prove a compatible
-existing installation. It also requires all protected source/staged artifacts
-and exact agreement between the valid source, staged, and any populated
-environment-file Nautt encryption key. It never creates or rewrites a secret.
+Normal use takes no arguments. `--env-file <path>` and `--evidence-dir <path>`
+only select existing installer configuration and protected evidence storage;
+backup and previous-release options are absent and rejected. A backup may be
+retained independently, but it is not an update prerequisite.
 
-Before `build --pull`, the command atomically writes a mode-`0400` record under
-the ignored `.update-evidence/` directory (or `--evidence-dir`). The record
-contains the supplied references, target Git revision and clean/dirty state,
-current image/container and volume identities, a value-free configuration
-fingerprint, and expected migration names/digest. It is rollback metadata, not
-a database backup, and contains neither rendered configuration nor secret-file
-paths or values. Preserve it with the independently protected backup.
+The checkout must be clean, including untracked files, attached to a branch,
+and configured with a reachable upstream. The updater fetches that upstream,
+rejects local-ahead, diverged, detached and non-fast-forward states, executes
+`git pull --ff-only --no-rebase`, captures the resulting 40-character commit
+SHA and re-executes the pulled updater exactly once. The handoff fails closed if
+`HEAD` or the fetched upstream no longer equals that SHA. A per-checkout lock
+serializes updates and the updater rechecks the target SHA and clean tree after
+the policy gate and each mutable deployment boundary. Remote movement after
+capture belongs to a later invocation. This design trusts the configured
+upstream: protect it and require migration-policy, database, container and
+quality gates before merge. Arbitrary or compromised upstream code cannot be
+made safe by the updater it replaces.
 
-After `up -d`, the command proves the volume identity again and requires zero
-exits for bootstrap, migration, and identity seed, the runtime database
-preflight log marker, and the exact application health check. If build,
-startup, or health fails, it leaves containers, data, logs, and the pre-update
-record intact. Diagnose with `docker compose -p qr-pagamentos ps` and redacted
-service logs; do not rerun the installer, delete the volume, or rotate the
-Nautt key as a recovery shortcut.
+The digest-pinned Node helper image must already exist locally. Before any
+managed build or database operation, the updater runs the pulled
+`migration-policy.mjs` with `--pull=never`, no network, a read-only source mount,
+and no database mount, secret file or passed environment. The verifier pins the
+exact 19-migration baseline through an independent reviewed inventory digest and accepts each later migration only when its
+canonical closed manifest regenerates `migration.sql` byte for byte. That
+language permits only data-preserving table, column, index, typed-constraint
+and privilege operations; raw SQL, destructive DDL/DML, rename/type changes,
+backfills and other arbitrary effects are not representable.
+
+The updater then proves the local Compose volume labels and driver, owning `db`
+container labels, exact `/var/lib/postgresql` mount, healthy existing app, all
+protected source/staged artifacts, and exact Nautt-key continuity. It never
+creates or rewrites a secret. It atomically writes a mode-`0400` record under
+the ignored `.update-evidence/` directory (or `--evidence-dir`) containing the
+target/head/upstream SHA, previous app container/image, Compose project and
+database-volume identity; no secret value or path is recorded.
+
+Candidate db-ops and app images are labelled
+`org.opencontainers.image.revision=<target SHA>`. The old healthy app remains
+running while candidate images build, bootstrap runs and a newly created
+migration container performs normal `prisma migrate deploy`. The migration
+wrapper rejects repository/applied-ID or checksum disagreement, failed,
+rolled-back, incomplete or ambiguous Prisma history, and emits
+`PASS migration-preflight` and `PASS migration-complete` with repository and
+pending-set digests. Its image revision must equal the target SHA. Only after
+that proof and a successful identity seed does the updater force-recreate the
+app, require it to become healthy, verify the same image revision label and
+recheck the unchanged volume identity. Completion emits
+`PASS update-complete revision=<SHA> migrate=<container> app=<container>
+evidence=<file>`.
+
+Pull, offline-policy, ownership/key, build or migration failure leaves the old
+app running and retains the data, volume, key, logs and evidence. Do not delete
+the volume, rotate the Nautt key or rerun the installer as a recovery shortcut.
+If failure occurs after app promotion begins, use the evidence and redacted
+service logs to diagnose the target; no automatic rollback is claimed.
 
 Application/configuration rollback is allowed only after reviewing schema
-compatibility. Migrations are forward-only: never silently reverse one. If a
-data rollback is required, stop and use the reviewed restore procedure with the
-matching encryption key. `docker compose stop` and `docker compose down`
+compatibility. The migration baseline is immutable and future changes are
+generated only from the closed data-preserving manifest; correct schema with a
+new policy-valid forward migration rather than reversing applied history. If a
+data restore is required for an independent operational reason, stop and use
+the reviewed restore procedure with the matching encryption key.
+`docker compose stop` and `docker compose down`
 without `--volumes` preserve the named database volume; neither is proof that a
 previous application can safely read the current schema.
 

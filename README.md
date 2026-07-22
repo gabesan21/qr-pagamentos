@@ -27,6 +27,7 @@ pnpm build
 pnpm start
 pnpm check
 pnpm db:generate
+pnpm db:migration-policy
 pnpm db:test
 pnpm db:contract-check
 pnpm container:prepare-secrets -- --env-file .env.compose
@@ -44,7 +45,7 @@ Prisma migrations use `MIGRATION_DATABASE_URL`; application code uses the distin
 
 `pnpm db:generate` creates the ignored client in `src/generated/prisma/` without contacting a database. `pnpm db:test` creates and removes its own PostgreSQL 18.4 fixture, applies the committed migration as `qr_migrator`, and probes runtime access as `qr_runtime`. It never uses a developer database. `pnpm db:contract-check` verifies the static database and documentation contract.
 
-`prisma/migrations/` is immutable migration history: create a new migration for later schema changes and never edit a migration already applied outside a disposable test database. The one task-specific pre-production rewrite exception is documented in `prisma/AGENTS.md`. CI must run `pnpm check` and `pnpm db:test` as separate required steps.
+The 19 migration directories through `20260721060000_storefront_settings` are an immutable baseline pinned by ID and SHA-256, with the verifier independently binding the reviewed baseline inventory digest so it cannot be co-edited with its SQL. Every later migration must contain only a canonical `migration.safe.json` and the byte-exact `migration.sql` generated from it. The closed manifest language permits only data-preserving table, column, index, typed-constraint, and privilege operations; it has no raw SQL or destructive/data-rewrite operation. Generate future SQL with `node pop/scripts/migration-policy.mjs generate <migration.safe.json>` and verify the whole history with `pnpm db:migration-policy`. CI must run `pnpm check` and `pnpm db:test` as separate required steps.
 
 `GET /api/health` remains application-only liveness. PostgreSQL readiness, bootstrap completion, migration completion, and the runtime-role `SELECT 1` preflight are separate startup gating boundaries; a later liveness response makes no database-readiness claim.
 
@@ -72,23 +73,34 @@ install/install.sh --recover-initial-admin
 
 On success the retry-stable candidate replaces `.install-secrets/initial_admin_password`; on failure it remains protected for the identical retry. Recovery aborts if the original UUID was deleted. Email delivery, public reset, login UI, sessions, and MFA are not part of this slice.
 
-Update an existing compatible installer deployment only after creating a fresh
-protected logical database backup. The command verifies Compose ownership of
-the database volume/container, confirms the installed and staged Nautt keys are
-identical, and preserves redacted pre-update evidence before building:
+Update an existing compatible installer deployment from a clean attached Git
+branch whose tracked upstream is protected by the required migration and
+quality gates. The command fetches and fast-forwards that branch to its latest
+upstream commit, then binds policy verification, images, migration evidence and
+the promoted app to that exact SHA:
 
 ```sh
-install/update.sh \
-  --backup-reference backup-2026-07-22T1800Z \
-  --previous-release v1.2.3
+install/update.sh
 ```
 
 Use `--env-file <path>` when the deployment does not use `install/.env`, and
 `--evidence-dir <path>` to override the ignored `.update-evidence/` directory.
-References are identifiers only; never put credentials in them. The command
-does not create or validate the backup, generate secrets, install a fresh
-deployment, or perform an automatic rollback. A failure retains the database,
-containers, logs, and mode-`0400` evidence for operator-controlled recovery.
+Backup and previous-release arguments do not exist and are rejected. A backup
+may still belong to an operator's independent retention policy, but it is not
+an update prerequisite. The updater requires the digest-pinned Node helper
+image to be available locally, then runs the pulled migration-policy verifier
+offline with a read-only checkout and no network, database, environment or
+secret access. It verifies Compose ownership, the exact database-volume mount,
+and Nautt-key continuity without generating or rewriting secrets.
+
+Candidate images carry `org.opencontainers.image.revision=<target SHA>`. The
+currently healthy app remains running while they build and while a fresh
+migration container checks repository/Prisma metadata and applies pending
+migrations. Only after that container completes successfully and the identity
+seed succeeds does the updater recreate the app from the target image. Pull,
+policy, build or migration failure therefore retains the prior healthy app,
+database volume, key, logs and protected mode-`0400` evidence. The updater does
+not install a fresh deployment or perform an automatic rollback.
 
 `install/uninstall.sh` removes application containers while preserving the PostgreSQL volume. Neither uninstall mode requires the initial administrator username, email, or creation-time identity files. Data deletion is a separate explicit operation:
 
@@ -124,7 +136,7 @@ If bootstrap, migration, or runtime authentication fails, correct the external f
 
 ## Rollback without deleting data
 
-Restore the previous digest-pinned application image/configuration and recreate only the affected service. Do not run `down --volumes`: `docker compose stop` and `docker compose down` without `--volumes` preserve the named PostgreSQL volume. Database migration rollback requires an explicit reviewed forward migration; never silently reverse or erase an existing volume.
+Restore a compatible previous digest-pinned application image/configuration and recreate only the affected service. Do not run `down --volumes`: `docker compose stop` and `docker compose down` without `--volumes` preserve the named PostgreSQL volume. Schema correction requires a new reviewed, policy-valid forward migration; never alter the immutable baseline, reverse applied history, or erase an existing volume.
 
 ```sh
 docker compose --env-file .env.compose down

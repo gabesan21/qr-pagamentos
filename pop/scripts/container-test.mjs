@@ -5,6 +5,8 @@ import path from "node:path";
 import http from "node:http";
 import { spawnSync } from "node:child_process";
 
+import { canonicalManifest, generateSql } from "./migration-policy.mjs";
+
 function assert(condition, message) { if (!condition) throw new Error(message); }
 function execute(command, args, options = {}) {
   return spawnSync(command, args, { cwd: process.cwd(), encoding: "utf8", ...options });
@@ -26,10 +28,14 @@ if (process.argv.includes("--clean-clone") && !process.env.CONTAINER_TEST_CLEAN_
   const temporary = await mkdtemp(path.join(tmpdir(), "qr-container-clone-"));
   const archive = path.join(temporary, "source.tar");
   const clone = path.join(temporary, "source");
-  await mkdir(clone);
   try {
-    run("git", ["archive", "--format=tar", "-o", archive, "HEAD"]);
-    run("tar", ["-xf", archive, "-C", clone]);
+    if (scenario === "update") {
+      run("git", ["clone", "--quiet", "--no-local", "--branch", run("git", ["branch", "--show-current"]).trim(), process.cwd(), clone]);
+    } else {
+      await mkdir(clone);
+      run("git", ["archive", "--format=tar", "-o", archive, "HEAD"]);
+      run("tar", ["-xf", archive, "-C", clone]);
+    }
     const child = execute(process.execPath, ["pop/scripts/container-test.mjs", "--scenario", scenario], {
       cwd: clone,
       env: { ...process.env, CONTAINER_TEST_CLEAN_CLONE: "1" },
@@ -69,6 +75,9 @@ if (process.argv.includes("--clean-clone") && !process.env.CONTAINER_TEST_CLEAN_
   const env = {
     ...process.env,
     APP_PORT: "0",
+    DB_OPS_IMAGE: `${project}-db-ops:fixture`,
+    APP_IMAGE: `${project}-app:fixture`,
+    RELEASE_REVISION: "container-test",
     POSTGRES_ADMIN_PASSWORD_FILE: files.admin,
     MIGRATOR_PASSWORD_FILE: files.migrator,
     RUNTIME_PASSWORD_FILE: files.runtime,
@@ -213,7 +222,7 @@ if (process.argv.includes("--clean-clone") && !process.env.CONTAINER_TEST_CLEAN_
       compose(["build", "--pull"]);
       console.log("PASS docker-context-exclusion");
       for (const service of ["bootstrap", "migrate", "app"]) {
-        const image = `${project}-${service}`;
+        const image = service === "app" ? env.APP_IMAGE : env.DB_OPS_IMAGE;
         const user = inspectField(image, "{{.Config.User}}");
         const size = inspectField(image, "{{.Size}}");
         assert(user === "1000:1000", `${service} image user is ${user}`);
@@ -363,54 +372,36 @@ if (process.argv.includes("--clean-clone") && !process.env.CONTAINER_TEST_CLEAN_
       console.log("PASS identity-fields-no-retarget");
     } else if (scenario === "update") {
       assert(process.env.CONTAINER_TEST_CLEAN_CLONE === "1", "update scenario requires --clean-clone");
-      const operatorVolume = execute("docker", ["volume", "inspect", "qr-pagamentos_postgres-data"]);
-      const operatorContainers = execute("docker", ["compose", "-p", "qr-pagamentos", "-f", "compose.yaml", "ps", "-a", "-q"]);
-      assert(operatorVolume.status !== 0 && !(operatorContainers.stdout ?? "").trim(), "fixed operator deployment collision; refusing update scenario");
-
-      const realDocker = run("sh", ["-c", "command -v docker"]).trim();
-      const shimDirectory = path.join(temporary, "update-docker-shim");
       const installerEnv = path.join(temporary, "update.env");
       const evidenceDirectory = path.join(temporary, "update-evidence");
       const sourceKey = Buffer.alloc(32, 11).toString("base64url");
-      await mkdir(shimDirectory, { mode: 0o700 });
-      await writeFile(path.join(shimDirectory, "docker"), `#!/usr/bin/env bash
-set -Eeuo pipefail
-real=${JSON.stringify(realDocker)}
-if [[ \${1:-} == volume && \${2:-} == inspect && \${*: -1} == qr-pagamentos_postgres-data ]]; then
-  actual="\${CONTAINER_TEST_PROJECT}_postgres-data"
-  metadata=$("$real" volume inspect --format '{{.Driver}}|{{index .Labels "com.docker.compose.project"}}|{{index .Labels "com.docker.compose.volume"}}|{{.Name}}' "$actual")
-  [[ $metadata == "local|\${CONTAINER_TEST_PROJECT}|postgres-data|$actual" ]] || exit 97
-  if [[ \${3:-} == --format && \${4:-} == *Mountpoint* ]]; then
-    identity=$("$real" volume inspect --format '{{.Name}}|{{.Mountpoint}}|{{.CreatedAt}}' "$actual")
-    printf '%s\n' "\${identity/$actual/qr-pagamentos_postgres-data}"
-  else
-    printf 'local|qr-pagamentos|postgres-data|qr-pagamentos_postgres-data\n'
-  fi
-  exit 0
-fi
-if [[ \${1:-} == inspect && \${2:-} == --format ]]; then
-  output=$("$real" "$@")
-  if [[ $3 == *com.docker.compose.project* ]]; then
-    [[ $output == "\${CONTAINER_TEST_PROJECT}|db" ]] || exit 98
-    printf 'qr-pagamentos|db\n'
-  elif [[ $3 == *'.Mounts'* ]]; then
-    [[ $output == "\${CONTAINER_TEST_PROJECT}_postgres-data|/var/lib/postgresql" ]] || exit 99
-    printf 'qr-pagamentos_postgres-data|/var/lib/postgresql\n'
-  else
-    printf '%s\n' "$output"
-  fi
-  exit 0
-fi
-rewritten=()
-replace_project=false
-for argument in "$@"; do
-  if "$replace_project" && [[ $argument == qr-pagamentos ]]; then argument=$CONTAINER_TEST_PROJECT; fi
-  rewritten+=("$argument")
-  [[ $argument == -p ]] && replace_project=true || replace_project=false
-done
-exec "$real" "\${rewritten[@]}"
-`, { mode: 0o700 });
-      await chmod(path.join(shimDirectory, "docker"), 0o700);
+      const branch = run("git", ["branch", "--show-current"]).trim();
+      const updateRemote = path.join(temporary, "update-remote.git");
+      await run("git", ["init", "--bare", updateRemote]);
+      run("git", ["push", updateRemote, `HEAD:refs/heads/${branch}`]);
+      run("git", ["remote", "set-url", "origin", updateRemote]);
+      const publishSafeMigration = async (id, table) => {
+        const producer = path.join(temporary, `update-producer-${id}`);
+        run("git", ["clone", "--quiet", "--branch", branch, updateRemote, producer]);
+        run("git", ["config", "user.email", "container-test@example.invalid"], { cwd: producer });
+        run("git", ["config", "user.name", "Container Test"], { cwd: producer });
+        const directory = path.join(producer, "prisma", "migrations", id);
+        const manifest = {
+          version: 1,
+          id,
+          operations: [{
+            op: "createTable",
+            table: { schema: "app", name: table },
+            columns: [{ name: "id", type: { name: "integer" }, nullable: false }],
+          }],
+        };
+        await mkdir(directory);
+        await writeFile(path.join(directory, "migration.safe.json"), canonicalManifest(manifest));
+        await writeFile(path.join(directory, "migration.sql"), generateSql(manifest));
+        run("git", ["add", "prisma/migrations"] , { cwd: producer });
+        run("git", ["commit", "-m", `test: add ${id}`], { cwd: producer });
+        run("git", ["push", "origin", branch], { cwd: producer });
+      };
       await writeFile(installerEnv, `APP_PORT=33013
 INITIAL_ADMIN_EMAIL=admin@example.com
 INITIAL_ADMIN_USERNAME=admin.user
@@ -421,7 +412,7 @@ NAUTT_ENCRYPTION_KEY=${sourceKey}
 NAUTT_WEBHOOK_CALLBACK_URL=https://payments.example.com/api/nautt/webhooks
 `, { mode: 0o600 });
       await chmod(installerEnv, 0o600);
-      const updateProcessEnv = { ...process.env, PATH: `${shimDirectory}:${process.env.PATH}`, CONTAINER_TEST_PROJECT: project };
+      const updateProcessEnv = { ...process.env, CONTAINER_TEST_PROJECT: project };
       const invoke = (script, args) => {
         const result = execute(script, args, { env: updateProcessEnv });
         const output = `${result.stdout ?? ""}${result.stderr ?? ""}`;
@@ -431,14 +422,15 @@ NAUTT_WEBHOOK_CALLBACK_URL=https://payments.example.com/api/nautt/webhooks
         return output;
       };
       const digest = async (file) => createHash("sha256").update(await readFile(file)).digest("hex");
-      const assertUpdateStartup = async () => {
+      const assertUpdateStartup = async (output) => {
         await waitForApp();
-        for (const service of ["bootstrap", "migrate", "identity-seed"]) {
+        for (const service of ["bootstrap", "identity-seed"]) {
           const id = containerId(service);
           assert(id && inspectField(id, "{{.State.ExitCode}}") === "0", `${service} update gate failed`);
         }
         const logs = compose(["logs", "--no-color"]);
-        assert(logs.includes("PASS bootstrap") && logs.includes("PASS migration") && logs.includes("PASS identity-seed"), "one-shot update evidence missing");
+        assert(logs.includes("PASS bootstrap") && logs.includes("PASS identity-seed"), "one-shot update evidence missing");
+        if (output) assert(output.includes("PASS migration-complete") && output.includes("PASS update-complete"), "fresh migration completion evidence missing");
         assert(logs.includes("PASS runtime-db-preflight"), "update runtime preflight evidence missing");
         const health = await get("/api/health");
         assert(health.status === 200 && health.body === '{"status":"ok"}', "update exact health contract failed");
@@ -452,20 +444,55 @@ NAUTT_WEBHOOK_CALLBACK_URL=https://payments.example.com/api/nautt/webhooks
       const volumeIdentity = run("docker", ["volume", "inspect", "--format", "{{.Name}}|{{.Mountpoint}}|{{.CreatedAt}}", `${project}_postgres-data`]).trim();
       const sourceDigest = await digest(sourceKeyPath);
       const stagedDigest = await digest(stagedKeyPath);
-      const updateArgs = (release) => ["--env-file", installerEnv, "--backup-reference", `disposable-backup-${token}`, "--previous-release", release, "--evidence-dir", evidenceDirectory];
-      for (const release of ["clean-install", "first-update"]) {
-        captured += invoke("install/update.sh", updateArgs(release));
-        await assertUpdateStartup();
+      const updateArgs = ["--env-file", installerEnv, "--evidence-dir", evidenceDirectory];
+      const migrateIds = [];
+      await publishSafeMigration("20260722000100_update_pending", "update_pending_migration");
+      for (const invocation of ["clean-install", "no-op-rerun"]) {
+        const output = invoke("install/update.sh", updateArgs);
+        captured += output;
+        await assertUpdateStartup(output);
+        const migrateName = output.match(/PASS update-complete revision=[0-9a-f]{40} migrate=([^ ]+)/)?.[1];
+        assert(migrateName, `${invocation} migration container evidence missing`);
+        migrateIds.push(inspectField(migrateName, "{{.Id}}"));
+        assert(inspectField(migrateName, "{{.State.ExitCode}}") === "0", `${invocation} migration container failed`);
+        const appId = containerId("app");
+        const migrationFinished = Date.parse(inspectField(migrateName, "{{.State.FinishedAt}}"));
+        const appStarted = Date.parse(inspectField(appId, "{{.State.StartedAt}}"));
+        assert(migrationFinished <= appStarted, `${invocation} app started before migration finished`);
+        const appImage = inspectField(appId, "{{.Image}}");
+        assert(inspectField(appImage, '{{index .Config.Labels "org.opencontainers.image.revision"}}') === run("git", ["rev-parse", "HEAD"]).trim(), "target app image revision mismatch");
         assert(run("docker", ["volume", "inspect", "--format", "{{.Name}}|{{.Mountpoint}}|{{.CreatedAt}}", `${project}_postgres-data`]).trim() === volumeIdentity, "update changed PostgreSQL volume identity");
         assert(await digest(sourceKeyPath) === sourceDigest, "update changed source Nautt key");
         assert(await digest(stagedKeyPath) === stagedDigest, "update changed staged Nautt key");
       }
-      assert((await readdir(evidenceDirectory)).length === 2, "two protected update evidence records were not retained");
+      assert(migrateIds[0] !== migrateIds[1], "no-op update reused the migration container");
+      const currentApp = containerId("app");
+      const currentImage = inspectField(currentApp, "{{.Image}}");
+      const currentHealth = inspectField(currentApp, "{{.State.Health.Status}}");
+      const dbId = containerId("db");
+      const dataBeforeFailure = run("docker", ["exec", dbId, "psql", "-U", "postgres", "-d", "qr_pagamentos", "-Atc", 'SELECT id || \'|\' || username || \'|\' || COALESCE(email, \'<null>\') FROM app."user" ORDER BY id']).trim();
+      const migrationsBeforeFailure = new Set(run("docker", ["ps", "-a", "--filter", `name=${project}-update-migrate-`, "--format", "{{.ID}}"]).trim().split("\n").filter(Boolean));
+      await publishSafeMigration("20260722000200_update_prisma_failure", "update_pending_migration");
+      const failed = execute("install/update.sh", updateArgs, { env: updateProcessEnv });
+      assert(failed.status !== 0, "forced migration failure succeeded");
+      const failedMigrations = run("docker", ["ps", "-a", "--filter", `name=${project}-update-migrate-`, "--format", "{{.ID}}"]).trim().split("\n").filter((id) => !migrationsBeforeFailure.has(id));
+      assert(failedMigrations.length === 1, "failed update did not create exactly one migration container");
+      assert(inspectField(failedMigrations[0], "{{.State.ExitCode}}") !== "0", "policy-valid failing migration did not fail in Prisma");
+      assert(run("docker", ["logs", failedMigrations[0]]).includes("ERROR migration code=MIGRATE"), "failed migration did not reach the Prisma wrapper");
+      assert(containerId("app") === currentApp && inspectField(currentApp, "{{.Image}}") === currentImage, "migration failure replaced the old app");
+      assert(inspectField(currentApp, "{{.State.Health.Status}}") === currentHealth && currentHealth === "healthy", "migration failure damaged app health");
+      assert(run("docker", ["volume", "inspect", "--format", "{{.Name}}|{{.Mountpoint}}|{{.CreatedAt}}", `${project}_postgres-data`]).trim() === volumeIdentity, "migration failure changed PostgreSQL volume identity");
+      assert(run("docker", ["exec", dbId, "psql", "-U", "postgres", "-d", "qr_pagamentos", "-Atc", 'SELECT id || \'|\' || username || \'|\' || COALESCE(email, \'<null>\') FROM app."user" ORDER BY id']).trim() === dataBeforeFailure, "migration failure changed sentinel data");
+      assert(await digest(sourceKeyPath) === sourceDigest && await digest(stagedKeyPath) === stagedDigest, "migration failure changed key continuity");
+      assert((await readdir(evidenceDirectory)).length === 3, "update evidence was not retained for success and failure runs");
       console.log("PASS update-install-baseline");
       console.log("PASS update-rerun");
       console.log("PASS update-volume-identity");
       console.log("PASS update-nautt-key-continuity");
       console.log("PASS update-startup-gates");
+      console.log("PASS update-pulled-pending-migration");
+      console.log("PASS update-prisma-failure-retention");
+      console.log("PASS update-failure-retains-app");
       console.log("PASS update-evidence-retention");
     } else if (scenario === "identity-recovery") {
       assert(process.env.CONTAINER_TEST_CLEAN_CLONE === "1", "identity recovery requires --clean-clone");

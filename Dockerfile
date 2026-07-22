@@ -19,6 +19,8 @@ RUN pnpm db:generate && pnpm build \
  && pnpm --filter qr-pagamentos deploy --prod --legacy /runtime-dependencies
 
 FROM toolchain AS db-ops
+ARG RELEASE_REVISION=development
+LABEL org.opencontainers.image.revision=${RELEASE_REVISION}
 ENV NODE_ENV=production
 COPY --from=dependencies --chown=1000:1000 /workspace/node_modules ./node_modules
 COPY --chown=1000:1000 package.json pnpm-lock.yaml pnpm-workspace.yaml prisma.config.ts ./
@@ -29,6 +31,8 @@ USER 1000:1000
 ENTRYPOINT ["node"]
 
 FROM ${NODE_IMAGE} AS app
+ARG RELEASE_REVISION=development
+LABEL org.opencontainers.image.revision=${RELEASE_REVISION}
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
     HOSTNAME=0.0.0.0 \
