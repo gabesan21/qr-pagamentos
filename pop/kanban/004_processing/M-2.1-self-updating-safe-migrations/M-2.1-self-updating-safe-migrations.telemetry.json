@@ -1,0 +1,98 @@
+{
+  "version": 1,
+  "events": [
+    {
+      "at": "2026-07-22T19:31:02-03:00",
+      "event": "transition",
+      "from": "001_initial_task",
+      "to": "002_planning",
+      "contexts": [],
+      "test_seconds": 0,
+      "result": "advanced"
+    },
+    {
+      "at": "2026-07-22T19:35:02-03:00",
+      "event": "stage_work",
+      "stage": "002_planning",
+      "contexts": [
+        "planner"
+      ],
+      "test_seconds": 0,
+      "result": "plan_created"
+    },
+    {
+      "at": "2026-07-22T19:35:51-03:00",
+      "event": "transition",
+      "from": "002_planning",
+      "to": "003_human_approval",
+      "contexts": [
+        "/root/m2_1_planner"
+      ],
+      "test_seconds": 0,
+      "result": "advanced"
+    },
+    {
+      "at": "2026-07-22T19:39:03-03:00",
+      "event": "stage_work",
+      "stage": "003_human_approval",
+      "contexts": [
+        "/root/m2_1_plan_critic"
+      ],
+      "test_seconds": 0,
+      "result": "returned_to_planning"
+    },
+    {
+      "at": "2026-07-22T19:40:11-03:00",
+      "event": "transition",
+      "from": "003_human_approval",
+      "to": "002_planning",
+      "contexts": [
+        "/root/m2_1_plan_critic"
+      ],
+      "test_seconds": 0,
+      "result": "returned"
+    },
+    {
+      "at": "2026-07-22T19:42:27-03:00",
+      "event": "stage_work",
+      "stage": "002_planning",
+      "contexts": [
+        "planner"
+      ],
+      "test_seconds": 0,
+      "result": "plan_revised_after_return_1"
+    },
+    {
+      "at": "2026-07-22T19:43:21-03:00",
+      "event": "transition",
+      "from": "002_planning",
+      "to": "003_human_approval",
+      "contexts": [
+        "/root/m2_1_planner"
+      ],
+      "test_seconds": 0,
+      "result": "advanced"
+    },
+    {
+      "at": "2026-07-22T19:44:53-03:00",
+      "event": "stage_work",
+      "stage": "003_human_approval",
+      "contexts": [
+        "/root/m2_1_plan_critic"
+      ],
+      "test_seconds": 0,
+      "result": "approved_to_processing"
+    },
+    {
+      "at": "2026-07-22T19:45:34-03:00",
+      "event": "transition",
+      "from": "003_human_approval",
+      "to": "004_processing",
+      "contexts": [
+        "/root/m2_1_plan_critic"
+      ],
+      "test_seconds": 0,
+      "result": "advanced"
+    }
+  ]
+}
