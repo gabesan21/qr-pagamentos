@@ -116,11 +116,38 @@ are not default backup, restore, upgrade, or rollback actions.
 
 ## Upgrade and rollback
 
-Before an upgrade, record the current source revision, Compose and image
-identities, a configuration fingerprint without values, expected migrations,
-and the fresh backup reference. Review the target configuration, perform the
-deployment through the normal startup gates, and retain the previous release
-metadata for recovery.
+After creating a fresh protected logical backup, update an installer-managed
+deployment from the checked-out target release with:
+
+```sh
+install/update.sh \
+  --backup-reference backup-2026-07-22T1800Z \
+  --previous-release v1.2.3
+```
+
+The references are non-secret operator identifiers, not paths containing
+credentials. The command does not create or validate the backup. It fails
+before pull/build unless the local Compose volume labels and driver, owning
+`db` container labels, and exact `/var/lib/postgresql` mount prove a compatible
+existing installation. It also requires all protected source/staged artifacts
+and exact agreement between the valid source, staged, and any populated
+environment-file Nautt encryption key. It never creates or rewrites a secret.
+
+Before `build --pull`, the command atomically writes a mode-`0400` record under
+the ignored `.update-evidence/` directory (or `--evidence-dir`). The record
+contains the supplied references, target Git revision and clean/dirty state,
+current image/container and volume identities, a value-free configuration
+fingerprint, and expected migration names/digest. It is rollback metadata, not
+a database backup, and contains neither rendered configuration nor secret-file
+paths or values. Preserve it with the independently protected backup.
+
+After `up -d`, the command proves the volume identity again and requires zero
+exits for bootstrap, migration, and identity seed, the runtime database
+preflight log marker, and the exact application health check. If build,
+startup, or health fails, it leaves containers, data, logs, and the pre-update
+record intact. Diagnose with `docker compose -p qr-pagamentos ps` and redacted
+service logs; do not rerun the installer, delete the volume, or rotate the
+Nautt key as a recovery shortcut.
 
 Application/configuration rollback is allowed only after reviewing schema
 compatibility. Migrations are forward-only: never silently reverse one. If a

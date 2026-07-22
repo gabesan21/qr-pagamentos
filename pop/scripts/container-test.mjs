@@ -1,5 +1,5 @@
-import { randomUUID } from "node:crypto";
-import { chmod, copyFile, mkdtemp, mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
+import { createHash, randomUUID } from "node:crypto";
+import { chmod, copyFile, mkdtemp, mkdir, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import http from "node:http";
@@ -18,7 +18,7 @@ const delay = (milliseconds) => new Promise((resolve) => setTimeout(resolve, mil
 
 const scenarioIndex = process.argv.indexOf("--scenario");
 const scenario = scenarioIndex >= 0 ? process.argv[scenarioIndex + 1] : "happy";
-const allowed = new Set(["build", "config", "happy", "login", "roles", "failures", "lifecycle", "isolation", "identity-seed", "identity-recovery"]);
+const allowed = new Set(["build", "config", "happy", "login", "roles", "failures", "lifecycle", "isolation", "identity-seed", "identity-recovery", "update"]);
 assert(allowed.has(scenario), `unknown scenario ${scenario}`);
 
 if (process.argv.includes("--clean-clone") && !process.env.CONTAINER_TEST_CLEAN_CLONE) {
@@ -361,6 +361,112 @@ if (process.argv.includes("--clean-clone") && !process.env.CONTAINER_TEST_CLEAN_
       console.log("PASS identity-seed-absent-email");
       console.log("PASS identity-seed-invalid-username-abort");
       console.log("PASS identity-fields-no-retarget");
+    } else if (scenario === "update") {
+      assert(process.env.CONTAINER_TEST_CLEAN_CLONE === "1", "update scenario requires --clean-clone");
+      const operatorVolume = execute("docker", ["volume", "inspect", "qr-pagamentos_postgres-data"]);
+      const operatorContainers = execute("docker", ["compose", "-p", "qr-pagamentos", "-f", "compose.yaml", "ps", "-a", "-q"]);
+      assert(operatorVolume.status !== 0 && !(operatorContainers.stdout ?? "").trim(), "fixed operator deployment collision; refusing update scenario");
+
+      const realDocker = run("sh", ["-c", "command -v docker"]).trim();
+      const shimDirectory = path.join(temporary, "update-docker-shim");
+      const installerEnv = path.join(temporary, "update.env");
+      const evidenceDirectory = path.join(temporary, "update-evidence");
+      const sourceKey = Buffer.alloc(32, 11).toString("base64url");
+      await mkdir(shimDirectory, { mode: 0o700 });
+      await writeFile(path.join(shimDirectory, "docker"), `#!/usr/bin/env bash
+set -Eeuo pipefail
+real=${JSON.stringify(realDocker)}
+if [[ \${1:-} == volume && \${2:-} == inspect && \${*: -1} == qr-pagamentos_postgres-data ]]; then
+  actual="\${CONTAINER_TEST_PROJECT}_postgres-data"
+  metadata=$("$real" volume inspect --format '{{.Driver}}|{{index .Labels "com.docker.compose.project"}}|{{index .Labels "com.docker.compose.volume"}}|{{.Name}}' "$actual")
+  [[ $metadata == "local|\${CONTAINER_TEST_PROJECT}|postgres-data|$actual" ]] || exit 97
+  if [[ \${3:-} == --format && \${4:-} == *Mountpoint* ]]; then
+    identity=$("$real" volume inspect --format '{{.Name}}|{{.Mountpoint}}|{{.CreatedAt}}' "$actual")
+    printf '%s\n' "\${identity/$actual/qr-pagamentos_postgres-data}"
+  else
+    printf 'local|qr-pagamentos|postgres-data|qr-pagamentos_postgres-data\n'
+  fi
+  exit 0
+fi
+if [[ \${1:-} == inspect && \${2:-} == --format ]]; then
+  output=$("$real" "$@")
+  if [[ $3 == *com.docker.compose.project* ]]; then
+    [[ $output == "\${CONTAINER_TEST_PROJECT}|db" ]] || exit 98
+    printf 'qr-pagamentos|db\n'
+  elif [[ $3 == *'.Mounts'* ]]; then
+    [[ $output == "\${CONTAINER_TEST_PROJECT}_postgres-data|/var/lib/postgresql" ]] || exit 99
+    printf 'qr-pagamentos_postgres-data|/var/lib/postgresql\n'
+  else
+    printf '%s\n' "$output"
+  fi
+  exit 0
+fi
+rewritten=()
+replace_project=false
+for argument in "$@"; do
+  if "$replace_project" && [[ $argument == qr-pagamentos ]]; then argument=$CONTAINER_TEST_PROJECT; fi
+  rewritten+=("$argument")
+  [[ $argument == -p ]] && replace_project=true || replace_project=false
+done
+exec "$real" "\${rewritten[@]}"
+`, { mode: 0o700 });
+      await chmod(path.join(shimDirectory, "docker"), 0o700);
+      await writeFile(installerEnv, `APP_PORT=33013
+INITIAL_ADMIN_EMAIL=admin@example.com
+INITIAL_ADMIN_USERNAME=admin.user
+POSTGRES_ADMIN_PASSWORD=${values.admin}
+MIGRATOR_PASSWORD=${values.migrator}
+RUNTIME_PASSWORD=${values.runtime}
+NAUTT_ENCRYPTION_KEY=${sourceKey}
+NAUTT_WEBHOOK_CALLBACK_URL=https://payments.example.com/api/nautt/webhooks
+`, { mode: 0o600 });
+      await chmod(installerEnv, 0o600);
+      const updateProcessEnv = { ...process.env, PATH: `${shimDirectory}:${process.env.PATH}`, CONTAINER_TEST_PROJECT: project };
+      const invoke = (script, args) => {
+        const result = execute(script, args, { env: updateProcessEnv });
+        const output = `${result.stdout ?? ""}${result.stderr ?? ""}`;
+        assertRedacted(output);
+        assert(!output.includes(sourceKey), "Nautt key leaked from operator command");
+        if (result.status !== 0) throw new Error(`${script} failed with status ${result.status}\n${output}`);
+        return output;
+      };
+      const digest = async (file) => createHash("sha256").update(await readFile(file)).digest("hex");
+      const assertUpdateStartup = async () => {
+        await waitForApp();
+        for (const service of ["bootstrap", "migrate", "identity-seed"]) {
+          const id = containerId(service);
+          assert(id && inspectField(id, "{{.State.ExitCode}}") === "0", `${service} update gate failed`);
+        }
+        const logs = compose(["logs", "--no-color"]);
+        assert(logs.includes("PASS bootstrap") && logs.includes("PASS migration") && logs.includes("PASS identity-seed"), "one-shot update evidence missing");
+        assert(logs.includes("PASS runtime-db-preflight"), "update runtime preflight evidence missing");
+        const health = await get("/api/health");
+        assert(health.status === 200 && health.body === '{"status":"ok"}', "update exact health contract failed");
+        assertRedacted(logs);
+      };
+
+      captured += invoke("install/install.sh", ["--env-file", installerEnv]);
+      await assertUpdateStartup();
+      const sourceKeyPath = path.resolve(".install-secrets", "nautt_encryption_key");
+      const stagedKeyPath = path.resolve(".container-secrets", "nautt_encryption_key");
+      const volumeIdentity = run("docker", ["volume", "inspect", "--format", "{{.Name}}|{{.Mountpoint}}|{{.CreatedAt}}", `${project}_postgres-data`]).trim();
+      const sourceDigest = await digest(sourceKeyPath);
+      const stagedDigest = await digest(stagedKeyPath);
+      const updateArgs = (release) => ["--env-file", installerEnv, "--backup-reference", `disposable-backup-${token}`, "--previous-release", release, "--evidence-dir", evidenceDirectory];
+      for (const release of ["clean-install", "first-update"]) {
+        captured += invoke("install/update.sh", updateArgs(release));
+        await assertUpdateStartup();
+        assert(run("docker", ["volume", "inspect", "--format", "{{.Name}}|{{.Mountpoint}}|{{.CreatedAt}}", `${project}_postgres-data`]).trim() === volumeIdentity, "update changed PostgreSQL volume identity");
+        assert(await digest(sourceKeyPath) === sourceDigest, "update changed source Nautt key");
+        assert(await digest(stagedKeyPath) === stagedDigest, "update changed staged Nautt key");
+      }
+      assert((await readdir(evidenceDirectory)).length === 2, "two protected update evidence records were not retained");
+      console.log("PASS update-install-baseline");
+      console.log("PASS update-rerun");
+      console.log("PASS update-volume-identity");
+      console.log("PASS update-nautt-key-continuity");
+      console.log("PASS update-startup-gates");
+      console.log("PASS update-evidence-retention");
     } else if (scenario === "identity-recovery") {
       assert(process.env.CONTAINER_TEST_CLEAN_CLONE === "1", "identity recovery requires --clean-clone");
       const { dbId } = await startHappy();

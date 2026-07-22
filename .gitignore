@@ -5,6 +5,7 @@
 !.env.compose.example
 .container-secrets/
 .install-secrets/
+.update-evidence/
 !install/.env.example
 
 # Application artifacts
