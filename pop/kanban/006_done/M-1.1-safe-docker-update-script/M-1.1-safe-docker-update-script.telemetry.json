@@ -1,0 +1,102 @@
+{
+  "version": 1,
+  "events": [
+    {
+      "at": "2026-07-22T18:35:04-03:00",
+      "event": "transition",
+      "from": "001_initial_task",
+      "to": "002_planning",
+      "contexts": [],
+      "test_seconds": 0,
+      "result": "advanced"
+    },
+    {
+      "at": "2026-07-22T18:38:12-03:00",
+      "event": "transition",
+      "from": "002_planning",
+      "to": "003_human_approval",
+      "contexts": [
+        "/root/m1_1_planner"
+      ],
+      "test_seconds": 0,
+      "result": "advanced"
+    },
+    {
+      "at": "2026-07-22T18:41:12-03:00",
+      "event": "transition",
+      "from": "003_human_approval",
+      "to": "002_planning",
+      "contexts": [
+        "/root/m1_1_plan_critic"
+      ],
+      "test_seconds": 0,
+      "result": "returned"
+    },
+    {
+      "at": "2026-07-22T18:44:09-03:00",
+      "event": "transition",
+      "from": "002_planning",
+      "to": "003_human_approval",
+      "contexts": [
+        "/root/m1_1_planner"
+      ],
+      "test_seconds": 0,
+      "result": "advanced"
+    },
+    {
+      "at": "2026-07-22T18:45:50-03:00",
+      "event": "transition",
+      "from": "003_human_approval",
+      "to": "004_processing",
+      "contexts": [
+        "/root/m1_1_plan_critic"
+      ],
+      "test_seconds": 0,
+      "result": "advanced"
+    },
+    {
+      "at": "2026-07-22T19:01:18-03:00",
+      "event": "transition",
+      "from": "004_processing",
+      "to": "005_verifying",
+      "contexts": [
+        "/root/m1_1_executor"
+      ],
+      "test_seconds": 4.0,
+      "result": "advanced"
+    },
+    {
+      "at": "2026-07-22T19:08:42-03:00",
+      "event": "transition",
+      "from": "005_verifying",
+      "to": "004_processing",
+      "contexts": [
+        "/root/m1_1_delivery_critic"
+      ],
+      "test_seconds": 0,
+      "result": "returned"
+    },
+    {
+      "at": "2026-07-22T19:13:51-03:00",
+      "event": "transition",
+      "from": "004_processing",
+      "to": "005_verifying",
+      "contexts": [
+        "/root/m1_1_executor"
+      ],
+      "test_seconds": 5.0,
+      "result": "advanced"
+    },
+    {
+      "at": "2026-07-22T19:17:00-03:00",
+      "event": "transition",
+      "from": "005_verifying",
+      "to": "006_done",
+      "contexts": [
+        "/root/m1_1_delivery_critic"
+      ],
+      "test_seconds": 5.0,
+      "result": "advanced"
+    }
+  ]
+}
