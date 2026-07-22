@@ -35,6 +35,8 @@ MAX_CAT_DESC = 600
 MAX_NOTE_LINES = 150
 EXEMPT_NAMES = {"AGENTS.md", "WORKFLOW.md", "README.md"}
 CARD_REQUIRED = ("id", "project", "stage", "created", "updated")
+ORIGIN_VALUES = ("roadmap", "modifications")
+MODIFICATION_REF = re.compile(r"^M-\d+$")
 SIZE_VALUES = {"S", "M", "L"}
 SPEC_REQUIRED = (
     "id", "project", "domain", "kind", "status", "implementation",
@@ -49,7 +51,7 @@ SPEC_ENUMS = {
 KEBAB_CASE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 
 ROOT_ENTRY = re.compile(r"^- \[\[.*?\]\]\s*—\s*(.+)$")
-TASK_DIR = re.compile(r"^\d+\.\d+\.\d+-")
+TASK_DIR = re.compile(r"^(?:\d+\.\d+\.\d+|M-\d+\.\d+)-")
 WIKILINK = re.compile(r"!?\[\[([^\]|#^]*)")
 POP_HASH = re.compile(r"<!--\s*pop-hash:\s*(\S+)\s+sha256=([0-9a-fA-F]+)\s*-->")
 INLINE_CODE = re.compile(r"`[^`]*`")
@@ -348,6 +350,28 @@ def check_note_sizes(root, projects, violations):
                 violations.append(f"{path}:1: {count} linhas (máx. {limit})")
 
 
+def check_card_origin(card, meta, violations):
+    """Frontmatter da origem: roadmap exige epoch/phase; modifications exige
+    `modification: M-<n>` (e não exige epoch/phase). Card antigo sem `origin`
+    é inferido pelo prefixo `M-` do id."""
+    origin = meta.get("origin")
+    if origin in (None, ""):
+        origin = ("modifications"
+                  if str(meta.get("id") or "").startswith("M-") else "roadmap")
+    elif origin not in ORIGIN_VALUES:
+        violations.append(f"{card}:1: `origin` inválido `{origin}` "
+                          f"(use {' | '.join(ORIGIN_VALUES)})")
+        return
+    if origin == "roadmap":
+        for field in ("epoch", "phase"):
+            if meta.get(field) in (None, ""):
+                violations.append(f"{card}:1: frontmatter sem `{field}` "
+                                  "(origem roadmap)")
+    elif not MODIFICATION_REF.fullmatch(str(meta.get("modification") or "")):
+        violations.append(f"{card}:1: `modification` ausente ou inválido "
+                          f"`{meta.get('modification')}` (use M-<n>)")
+
+
 def check_cards(root, projects, violations):
     """(d) cards: frontmatter obrigatório e stage coerente com a pasta."""
     for project in projects:
@@ -356,6 +380,7 @@ def check_cards(root, projects, violations):
             for field in CARD_REQUIRED:
                 if meta.get(field) in (None, ""):
                     violations.append(f"{card}:1: frontmatter sem `{field}`")
+            check_card_origin(card, meta, violations)
             if meta.get("stage") and meta["stage"] != stage:
                 violations.append(f"{card}:1: stage `{meta['stage']}` difere "
                                   f"da pasta `{stage}`")
@@ -411,7 +436,8 @@ def check_worktrees(root, projects, warnings):
 
 
 def check_roadmap_residuals(root, violations):
-    """Task com memory já concluída não pode permanecer no roadmap."""
+    """Task com memory já concluída não pode permanecer no roadmap nem nas
+    modifications (no MODIFICATIONS.md o resíduo é o wikilink da task)."""
     for scope, path, number, task_id in pop_roadmap.residuals(root):
         memory = pop_roadmap.memory_path(root, scope, task_id)
         # O escopo raiz é o próprio repo validado (meta PoP ou included
@@ -421,7 +447,8 @@ def check_roadmap_residuals(root, violations):
             continue
         violations.append(
             f"{path}:{number}: task concluída residual `{task_id}` — "
-            "remova a linha após validar a memory")
+            "remova a linha (ou o wikilink, no MODIFICATIONS.md) após "
+            "validar a memory")
 
 
 # Marcadores inequívocos de harness do PoP fora de `pop/`: um projeto legado

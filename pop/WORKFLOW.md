@@ -2,17 +2,17 @@
 
 Regras gerais do vault: [[AGENTS|AGENTS]] · Caixa de entrada: [[INBOX|INBOX]]
 
-Toda task é uma pasta com id `<epoch>.<phase>.<task>-<slug>` que se move inteira entre os estágios do `kanban/` do projeto.
+Toda task é uma pasta com id `<epoch>.<phase>.<task>-<slug>` (roadmap) ou `M-<n>.<t>-<slug>` (modifications) que se move inteira entre os estágios do `kanban/` do projeto.
 
 ## Responsável por estágio
 
 | Estágio | Responsável | Executa | O que acontece |
 |---------|-------------|---------|----------------|
-| 001_initial_task | agent (**+ user** libera) | orquestrador | Card mínimo nasce do roadmap; só sai com liberação humana. |
+| 001_initial_task | agent (**+ user** libera) | orquestrador | Card mínimo nasce do roadmap ou de uma modification; só sai com liberação humana. |
 | 002_planning | agent | planejador separado | Produz um brief: objetivo, estratégia, frentes, contratos, riscos e critérios. |
-| 003_human_approval | **user** | orquestrador prepara | Humano aprova o brief; em yolo, o revisor independente assume o gate. |
+| 003_human_approval | **user** | orquestrador prepara | Humano aprova o brief; em yolo, o gate só existe para `critical` (crítico strong). |
 | 004_processing | agent | orquestrador de execução | Escolhe executor único ou especialistas em sequência/ondas e integra os resultados. |
-| 005_verifying | agent (**+ user** se `critical: true`) | revisor independente | Compara objetivo, specs, diff, testes e qualidade; aprova ou devolve. |
+| 005_verifying | agent (**+ user** se `critical: true`) | revisor independente | Compara pedido original, specs, diff, testes e qualidade; aprova ou devolve. |
 | 006_done | agent (**+ user** no merge) | orquestrador | Integração/PR, memory, specs e encerramento. |
 
 Cada artefato declara seu responsável. Agentes nunca executam item `(user)` nem marcam `- [ ] Feito` no lugar do humano. O INBOX deriva do frontmatter; mantenha `stage`, `critical`, `blocked` e `awaiting_merge` fiéis.
@@ -40,7 +40,7 @@ Modelos são escolhidos pelo papel e pelo risco, via `pop/scripts/models.json`:
 
 `size` estima esforço, não autoriza cerimônia automática. Incerteza, risco, quantidade de skills e independência das frentes decidem a topologia. O Log registra apenas os contextos realmente lançados.
 
-Em yolo, os revisores de 003 e 005 usam sempre tier **strong**, independentemente de `size`/`critical`.
+Em yolo, o revisor de 005 usa sempre tier **strong**, independentemente de `size`.
 
 ## Conteúdo da pasta da task
 
@@ -60,11 +60,11 @@ Templates: [[_templates/TASK|TASK]] · [[_templates/TASK-PLAN|TASK-PLAN]] · [[_
 
 ### 001_initial_task — nascimento (agent, + user libera)
 
-- Crie card mínimo: frontmatter, “O quê / Por quê”, phase, dependências e links com gatilho.
-- O card é do humano até `- [x] Pronto para planejar`. Comando explícito permite ao agente marcar com Log; `yolo: true` herda a liberação do roadmap.
+- Crie card mínimo: frontmatter, “O quê / Por quê”, phase ou modification de origem, dependências e links com gatilho. Tasks de modification usam id `M-<n>.<t>-<slug>` e `origin: modifications` (fronteira roadmap × modifications no [[AGENTS|AGENTS]]).
+- O card é do humano até `- [x] Pronto para planejar`. Comando explícito permite ao agente marcar com Log; `yolo: true` herda a liberação do roadmap/modifications.
 - Declare `depends_on:`. Vazio significa que a task pode concorrer com outras, respeitando WIP.
 - Sugira `size: S | M | L`; task ampla demais para um brief coeso deve ser dividida.
-- Linke `[[<id>]]` na epoch.
+- Linke `[[<id>]]` na epoch ou na modification.
 
 ### 002_planning — brief de execução (agent)
 
@@ -82,7 +82,8 @@ O planejador não implementa. Ele decide e resume; não persiste chain-of-though
 ### 003_human_approval — gate humano (user)
 
 - Crie uma rodada enxuta no `.approval.md`: resumo, riscos materiais, critérios principais, resposta e `- [ ] Feito`.
-- Só prossiga com `- [x] Feito`: mudanças pedidas → 002; aprovado/vazio → 004. Em yolo, crítico strong independente julga; até duas devoluções retornam automaticamente a 002 e a 3ª falha ativa `circuit_breaker`.
+- Só prossiga com `- [x] Feito`: mudanças pedidas → 002; aprovado/vazio → 004.
+- **Em yolo, este gate só existe para `critical: true`:** o crítico strong independente julga; até duas devoluções retornam automaticamente a 002 e a 3ª falha ativa `circuit_breaker`. Task yolo não crítica transita **002 → 004 direto, sem rodada** — o yolo confia no plano do agente e concentra o julgamento no 005.
 - Só entre em 004 quando toda `depends_on` tiver `memory/<id>*.md` ou card na janela transitória de 006.
 - WIP máximo de três tasks em 004; no yolo o orquestrador prioriza por dependências.
 
@@ -106,6 +107,7 @@ O planejador não implementa. Ele decide e resume; não persiste chain-of-though
 ### 005_verifying — revisão independente (agent, + user se crítica)
 
 - Abra contexto fresco e leia nesta ordem: objetivo, specs/contratos, testes e diff. O relato de execução é apoio, não fonte de verdade.
+- **Em yolo, este é o único gate de qualidade** (salvo `critical`, que também passou por 003): comece respondendo se o **pedido original** — o “O quê / Por quê” do card — foi atendido, antes dos critérios do plano. Sem aprovação em 003, o brief é estratégia, não contrato: desvio do plano que atende ao pedido não é falha; aderência ao plano que não atende ao pedido é bloqueante.
 - O crítico escolhe `differential` ou `full` e registra motivo/superfície/testes; `full` é obrigatório em `critical: true` ou após retorno anterior. Evidência inconclusiva é reexecutada.
 - Revise comportamento, bordas, testes, complexidade, acoplamento, nomes, erros, segurança, documentação, specs e DOX tocados. Em código, siga `clean-code-review`.
 - Cada achado traz trecho/evidência, impacto e severidade: **bloqueante**, **sugestão** ou **nit**. Só bloqueante devolve a 004/002.
@@ -116,8 +118,8 @@ O planejador não implementa. Ele decide e resume; não persiste chain-of-though
 
 1. Resolva a rota Git: meta PoP local já está em `main`; fora de yolo, abra PR da task e aguarde o humano; em yolo externo, integre mecanicamente em `develop`. Cada passo do 006 é idempotente: valide o estado, pule efeito já concluído e aborte preservando card/roadmap diante de falha técnica.
 2. Após merge/integração, escreva `memory/<id>.md` como ledger curto e canônico: ID, projeto, datas, commit, PR, resultado, specs, decisões/desvios e ponteiros. Memory inválida aborta o fechamento.
-3. Sincronize apenas specs/DOX realmente afetados com o estado entregue; atualize status da task/phase/epoch e índices se necessário.
-4. Remova a linha da task no arquivo da epoch com `python3 pop/scripts/pop_roadmap.py close <id>`; a operação exige card em 006 e memory válida. Preserve epoch, phase e tasks abertas — inclusive na Epoch 0.
+3. Sincronize apenas specs/DOX realmente afetados com o estado entregue; atualize status da task/phase/epoch/modification e índices se necessário.
+4. Remova a linha da task no arquivo da epoch ou da modification com `python3 pop/scripts/pop_roadmap.py close <id>`; a operação exige card em 006 e memory válida. Preserve epoch, phase, modification e tasks abertas.
 5. Extraia learning somente quando houver conhecimento reutilizável; nos escopos externos, remova todas as worktrees/branches efêmeras da task.
 6. Se esta foi a última task de escopo yolo externo, abra automaticamente PR `develop` → `main`. Falha, conflito ou branch ausente → `blocked`; o merge é sempre humano. Sem Git, crie a rodada de aprovação final.
 7. Apague `kanban/006_done/<id>/` somente após os passos anteriores; memory + Git preservam a prova durável.
@@ -134,10 +136,10 @@ O planejador não implementa. Ele decide e resume; não persiste chain-of-though
 
 ## Yolo mode
 
-`yolo: true` delega julgamentos ao papel de revisor independente e mantém a mesma máquina de estados.
+`yolo: true` delega o julgamento ao revisor independente e mantém a mesma máquina de estados, com **gate único de qualidade no 005**.
 
-- A marca vem do roadmap e pode ser herdada; só o humano a define. O escopo auto-materializa waves de até três tasks independentes: dependências satisfeitas e escrita/repos isolados; colisão serializa.
-- Em 003, crítico **strong** revisa o brief. Duas devoluções são permitidas; a 3ª falha ativa o circuit breaker.
-- Em 005 nasce sessão limpa **strong**. O crítico decide `differential|full`; `full` é obrigatório em critical/retorno. Duas devoluções são permitidas; a 3ª falha ativa o circuit breaker.
-- Só bloqueio técnico, item `(user)` ou circuit breaker interrompem; devolução normal reentra automaticamente no fluxo. O humano permanece no merge/revisão final.
-- Fora do meta PoP local, o orquestrador, não o revisor, integra cada task em `develop`, sem PR por task. No fim do escopo abre automaticamente o PR `develop` → `main`, registra resumo/testes/criticals e aguarda o merge humano. No meta PoP local tudo permanece em `main`, sem branch/worktree/PR da task ou do escopo.
+- A marca vem do roadmap ou das modifications e pode ser herdada; só o humano a define. O escopo auto-materializa waves de até três tasks independentes: dependências satisfeitas e escrita/repos isolados; colisão serializa.
+- **Gate único:** task yolo não crítica vai de 002 direto a 004, sem rodada de aprovação — o yolo confia no plano do agente. Em 005 nasce sessão limpa **strong**: o crítico verifica primeiro se o pedido original (objetivo do card) foi atendido, depois plano, specs, diff e qualidade; decide `differential|full` (`full` obrigatório em critical/retorno). Duas devoluções são permitidas; a 3ª falha ativa o circuit breaker.
+- **`critical: true` é a exceção:** mantém o 003 com crítico strong antes da execução (duas devoluções a 002; 3ª = circuit breaker) e o 005 sempre `full`.
+- Só bloqueio técnico, item `(user)` ou circuit breaker interrompem; devolução normal reentra automaticamente no fluxo.
+- **Merge humano no fim do escopo marcado** — task avulsa, phase/epoch ou modification: fora do meta PoP local, o orquestrador, não o revisor, integra cada task em `develop`, sem PR por task. Quando a última task do escopo conclui 006, abre automaticamente o PR `develop` → `main`, registra resumo/testes/criticals e aguarda o merge humano. No meta PoP local tudo permanece em `main`, sem branch/worktree/PR da task ou do escopo.

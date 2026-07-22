@@ -1,8 +1,10 @@
 ---
 id: <n>.<m>.<t>
 project: <categoria>/<projeto>
+origin: roadmap
 epoch: <n>
 phase: "<n>.<m>"
+modification:
 stage: 001_initial_task
 critical: false
 yolo: false
@@ -25,8 +27,9 @@ updated: AAAA-MM-DD
 # <id>-<slug> — <título curto>
 
 > Blockquotes deste template são instruções de preenchimento — **apague-os ao preencher**. Caminhos de harness levam o prefixo `pop/`; no meta-projeto da raiz do vault, não.
+> **Origem:** task de roadmap (`origin: roadmap`) usa id `<n>.<m>.<t>` e preenche `epoch`/`phase` (apague `modification`); task de modification (`origin: modifications`) usa id `M-<n>.<t>` e preenche `modification: M-<n>` (apague `epoch`/`phase`).
 
-- **Phase:** [[pop/roadmap/<n>-<slug-da-epoch>|Phase <n>.<m>]]
+- **Origem:** [[pop/roadmap/<n>-<slug-da-epoch>|Phase <n>.<m>]] — *ou* [[pop/MODIFICATIONS|M-<n>]] para task de modification.
 - **Plano:** [[<id>-<slug>.plan]] · **Aprovação:** [[<id>-<slug>.approval]] · **Verificação:** [[<id>-<slug>.verify]]
 
 ## O quê
@@ -39,7 +42,7 @@ Uma frase: por que agora e o que destrava.
 
 ## Liberação (user)
 
-> Só o humano marca, salvo comando explícito registrado no Log. Sem `[x]`, a task não sai de 001. Em `yolo: true`, a liberação antecipada do roadmap permite ao agente marcar e registrar `liberada por yolo`; ver [[WORKFLOW|WORKFLOW]].
+> Só o humano marca, salvo comando explícito registrado no Log. Sem `[x]`, a task não sai de 001. Em `yolo: true`, a liberação antecipada do roadmap/modifications permite ao agente marcar e registrar `liberada por yolo`; ver [[WORKFLOW|WORKFLOW]].
 
 - [ ] Pronto para planejar
 

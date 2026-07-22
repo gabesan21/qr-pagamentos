@@ -2,9 +2,9 @@
 
 > Blockquotes deste template são instruções de preenchimento — **apague-os ao preencher**.
 
-- **Etapa:** 003_human_approval · **Responsável:** user | revisor independente em yolo
+- **Etapa:** 003_human_approval · **Responsável:** user | revisor independente em yolo `critical`
 
-> Uma rodada por ida a 003. Em yolo, crítico **strong** assina; devoluções 1–2 retornam automaticamente a 002 e a 3ª falha ativa `circuit_breaker`. Rodadas nunca são apagadas.
+> Uma rodada por ida a 003. Em yolo, este arquivo só recebe rodada de 003 quando `critical: true` — crítico **strong** assina, devoluções 1–2 retornam automaticamente a 002 e a 3ª falha ativa `circuit_breaker`; as demais tasks yolo transitam 002 → 004 sem rodada. Rodadas nunca são apagadas.
 
 ## Rodada 1 — AAAA-MM-DD
 

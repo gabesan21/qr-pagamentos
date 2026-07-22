@@ -8,6 +8,7 @@
 - **Supported application languages (i18n):** Brazilian Portuguese (`pt-BR`) and English (`en`).
 - **Project brief:** [[PROJECT|PROJECT]] - read when the task needs product purpose or harness decisions.
 - **Roadmap:** [[ROADMAP|ROADMAP]] - read when selecting or sequencing work.
+- **Modifications:** [[MODIFICATIONS|MODIFICATIONS]] (created on demand) - read for hotfixes, adjustments and small emergent features outside the plan.
 
 ## Repository
 
@@ -15,17 +16,17 @@
 |------|-----|------------|-----------|
 | qr-pagamentos | https://github.com/gabesan21/qr-pagamentos.git | repository root | main |
 
-In yolo scopes, the orchestrator mechanically integrates task branches into `develop`; there is no PR per task. At scope close it automatically opens the final `develop` -> `main` PR; the human tests and merges it.
+In yolo scopes, the orchestrator mechanically integrates task branches into `develop`; there is no PR per task. When the last task of the marked scope (single task, phase/epoch or modification) closes, it automatically opens the final `develop` -> `main` PR; the human tests and merges it.
 
 ## Workflow
 
-Every change to the application passes through `kanban/001_initial_task` -> `kanban/006_done`:
+Every change to the application passes through `kanban/001_initial_task` -> `kanban/006_done`, with tasks coming from the roadmap (`<n>.<m>.<t>-<slug>`) or from modifications (`M-<n>.<t>-<slug>` — work arriving outside the plan):
 
 1. **001** - create the task with `new-task` and explicit `depends_on` prerequisites.
 2. **002** - a planner separate from execution writes a concise brief with objective, strategy, fronts, dependencies, contracts, risks, and acceptance criteria.
-3. **003** - obtain human approval or, in yolo, a strong independent critic's decision; two returns are allowed before the third failure trips the circuit breaker.
+3. **003** - obtain human approval. In yolo this gate **only exists for `critical: true`** (strong independent critic; two returns allowed before the third failure trips the circuit breaker); non-critical yolo tasks transit 002 -> 004 directly.
 4. **004** - send a cohesive front directly to one executor; use an execution orchestrator only for a DAG, multiple skills, or multiple write sets.
-5. **005** - one fresh strong critic reviews yolo delivery, choosing differential or full verification; full is mandatory for critical tasks or after a return, and the third rejection trips the circuit breaker.
+5. **005** - one fresh independent critic reviews the delivery. In yolo this is the **single quality gate** (always strong): it first verifies that the original request (the card's objective) was met — the brief is strategy, not an approved contract — choosing differential or full verification; full is mandatory for critical tasks or after a return, and the third rejection trips the circuit breaker.
 6. **006** - mechanically integrate yolo tasks into `develop`, write memory and telemetry summary, clean the task, and automatically open the final scope PR to `main`.
 
 Up to three independent yolo tasks may advance as a wave. Parallel execution requires logical and write independence plus repository/worktree isolation; any collision serializes. A missing dependency is `BLOCKED` and is never implemented opportunistically.

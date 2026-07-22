@@ -2,9 +2,11 @@
 """pop_move — move uma task entre estágios do kanban.
 
 Encontra a pasta da task em qualquer projeto/estágio, valida a transição
-(001→002→003→004→005→006, retornos 003→002, 004→002 e 005→004; `--force`
-libera exceções), move a pasta inteira, atualiza `stage:` e `updated:` no
-frontmatter do card e registra a linha no `## Log`.
+(001→002→003→004→005→006, retornos 003→002, 004→002 e 005→004; task
+`yolo: true` não crítica transita 002→004 direto, sem rodada 003 — o 003 do
+yolo só existe para `critical: true`; `--force` libera exceções), move a
+pasta inteira, atualiza `stage:` e `updated:` no frontmatter do card e
+registra a linha no `## Log`.
 
 Travas (sobrepostas só com `--force`): task com claim ativo de **outro**
 agente não se move (`--by` identifica quem pede, default usuario@host);
@@ -30,10 +32,17 @@ RETURNS = {
 }
 
 
-def transition_allowed(src, dst):
-    """True se dst é o próximo estágio de src ou um retorno permitido."""
+def transition_allowed(src, dst, *, yolo_single_gate=False):
+    """True se dst é o próximo estágio de src ou um retorno permitido.
+
+    `yolo_single_gate` (task yolo não crítica) libera o salto 002→004: o
+    gate único de qualidade do yolo é o 005 (ver seção Yolo mode do
+    WORKFLOW).
+    """
     stages = poplib.STAGES
     if stages.index(dst) == stages.index(src) + 1:
+        return True
+    if yolo_single_gate and (src, dst) == ("002_planning", "004_processing"):
         return True
     return (src, dst) in RETURNS
 
@@ -113,14 +122,19 @@ def main():
     if src == args.stage:
         print(f"Task {args.task_id} já está em {src} ({label}).")
         return 1
-    if not transition_allowed(src, args.stage) and not args.force:
-        print(f"Transição não permitida: {src} → {args.stage}. "
-              f"Fluxo: 001→002→003→004→005→006; retornos: 003→002, "
-              f"004→002, 005→004. Use --force para exceções.")
-        return 1
-
     card_src = task_dir / f"{args.task_id}.md"
     meta = poplib.read_card(card_src) if card_src.is_file() else {}
+    yolo_single_gate = (meta.get("yolo") is True
+                        and meta.get("critical") is not True)
+    if (not transition_allowed(src, args.stage,
+                               yolo_single_gate=yolo_single_gate)
+            and not args.force):
+        print(f"Transição não permitida: {src} → {args.stage}. "
+              f"Fluxo: 001→002→003→004→005→006 (yolo não crítica: 002→004 "
+              f"direto, sem 003); retornos: 003→002, 004→002, 005→004. "
+              f"Use --force para exceções.")
+        return 1
+
     if card_src.is_file() and not args.force:
         by, at = poplib.parse_claim(meta)
         if by and by != args.by and not poplib.claim_expired(at):
