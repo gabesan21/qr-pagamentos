@@ -10,27 +10,28 @@ function run(command, args) {
 
 const dockerfile = await readFile("Dockerfile", "utf8");
 const installer = await readFile("install/install.sh", "utf8");
+const updater = await readFile("install/update.sh", "utf8");
 const secretPreparer = await readFile("pop/scripts/container-prepare-secrets.mjs", "utf8");
 const compose = await readFile("compose.yaml", "utf8");
 const recoveryCompose = await readFile("compose.recovery.yaml", "utf8");
 const nextConfig = await readFile("next.config.ts", "utf8");
 const nodeTag = "node:26.4.0-bookworm-slim";
 const escapedNodeTag = nodeTag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-const nodePins = [dockerfile, installer, secretPreparer].map((source) => {
+const nodePins = [dockerfile, installer, updater, secretPreparer].map((source) => {
   const matches = [...source.matchAll(new RegExp(`${escapedNodeTag}@(sha256:[a-f0-9]{64})`, "g"))];
   assert(matches.length === 1, `expected exactly one ${nodeTag} pin per consumer`);
   return matches[0][1];
 });
 assert(new Set(nodePins).size === 1, `${nodeTag} consumers have mismatched indexes`);
-console.log(`PASS node-pin-consistency tag=${nodeTag} index=${nodePins[0]} consumers=3`);
-if (process.argv.includes("--local-pins")) process.exit(0);
+console.log(`PASS node-pin-consistency tag=${nodeTag} index=${nodePins[0]} consumers=4`);
+const localPinsOnly = process.argv.includes("--local-pins");
 
 const pairs = [
   { tag: nodeTag, source: dockerfile },
   { tag: "postgres:18.4-bookworm", source: compose },
 ];
 const architecture = process.arch === "x64" ? "amd64" : process.arch === "arm64" ? "arm64" : process.arch;
-for (const { tag, source } of pairs) {
+for (const { tag, source } of localPinsOnly ? [] : pairs) {
   const escaped = tag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const committed = source.match(new RegExp(`${escaped}@(sha256:[a-f0-9]{64})`))?.[1];
   assert(committed, `missing committed digest for ${tag}`);
@@ -47,6 +48,7 @@ assert(nextConfig.includes('output: "standalone"'), "Next standalone output is d
 for (const expected of [
   "USER 1000:1000", 'ENTRYPOINT ["node", "container/runtime.mjs"]',
   "HEALTHCHECK", "/workspace/.next/standalone", "/workspace/.next/static", "/workspace/public",
+  "org.opencontainers.image.revision", "RELEASE_REVISION",
 ]) assert(dockerfile.includes(expected), `Dockerfile lost ${expected}`);
 assert(!/ARG\s+.*(?:PASSWORD|SECRET|DATABASE_URL)|ENV\s+.*(?:PASSWORD|SECRET)/i.test(dockerfile), "secret-bearing Docker ARG/ENV is forbidden");
 for (const expected of ["service_healthy", "service_completed_successfully", "/var/lib/postgresql", "127.0.0.1:${APP_PORT:-3000}:3000", "read_only: true", 'user: "1000:1000"']) {
@@ -60,6 +62,12 @@ assert(recoveryCompose.includes("profiles: [\"recovery\"]"), "Recovery service m
 assert(!/(?:5432|5433):(?:5432|5433)|ports:\s*\n\s*-.*(?:5432|5433)/m.test(compose), "database port must not be published");
 assert(!compose.includes("MIGRATION_DATABASE_URL:") && !compose.includes("DATABASE_URL:"), "Compose must not render credential URLs");
 assert(compose.includes("NAUTT_WEBHOOK_CALLBACK_URL: ${NAUTT_WEBHOOK_CALLBACK_URL:?set NAUTT_WEBHOOK_CALLBACK_URL}"), "Compose must require the canonical Nautt callback");
+for (const expected of ["DB_OPS_IMAGE", "APP_IMAGE", "RELEASE_REVISION"]) assert(compose.includes(expected), `Compose lost revision binding ${expected}`);
+for (const expected of ["pull --ff-only", "migration-policy.mjs verify /workspace", "--pull=never", "--network none", 'compose run --name "$migrate_name" --no-deps migrate', "--force-recreate app"]) {
+  assert(updater.includes(expected), `Updater lost staged contract ${expected}`);
+}
+assert(updater.indexOf('compose run --name "$migrate_name" --no-deps migrate') < updater.indexOf("--force-recreate app"), "Updater promotes app before migrate");
+assert(!updater.includes("--backup-reference requires") && !updater.includes("--previous-release requires"), "Updater still requires removed metadata");
 const bootstrap = await readFile("container/bootstrap.mjs", "utf8");
 assert(bootstrap.includes('readFile("prisma/bootstrap.sql"') && !bootstrap.includes("CREATE ROLE"), "wrapper must execute, not duplicate, bootstrap SQL");
 const bootstrapSql = await readFile("prisma/bootstrap.sql", "utf8");
@@ -68,6 +76,10 @@ assert(bootstrapSql.includes("to_regclass('app.global_payment_settings') IS NOT 
 const runtime = await readFile("container/runtime.mjs", "utf8");
 assert(runtime.includes('query("SELECT 1 AS ready")') && runtime.includes('["server.js"]'), "runtime preflight contract changed");
 assert(runtime.includes('callbackUrl.protocol !== "https:"') && runtime.includes("NAUTT_WEBHOOK_CALLBACK_URL"), "runtime callback validation is missing");
+const migrate = await readFile("container/migrate.mjs", "utf8");
+for (const expected of ["app._prisma_migrations", "finished_at", "rolled_back_at", "checksum", "PASS migration-preflight", "PASS migration-complete"]) {
+  assert(migrate.includes(expected), `Migration wrapper lost ${expected}`);
+}
 console.log("PASS image-contract");
 
 const docsIndex = process.argv.indexOf("--docs");

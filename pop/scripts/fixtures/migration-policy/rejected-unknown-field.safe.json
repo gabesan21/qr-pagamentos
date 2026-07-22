@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "id": "20260722000002_rejected_unknown_field",
+  "operations": [
+    {
+      "op": "createIndex",
+      "name": "fixture_idx",
+      "table": {
+        "schema": "app",
+        "name": "product"
+      },
+      "columns": [
+        "id"
+      ],
+      "unique": false,
+      "where": "active = true"
+    }
+  ]
+}

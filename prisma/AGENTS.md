@@ -18,8 +18,11 @@
 ## Schema and migrations
 
 - `schema.prisma` is the declared application model; database-only checks must also exist in reviewed migration SQL.
-- Treat every directory under `migrations/` as immutable after application outside a disposable test database.
-- Exception: task `1.2.2-establish-local-identities` may rewrite only `20260714190000_local_identities` after explicit human confirmation that it is unshipped and every non-disposable database with the old checksum will be purged; this does not authorize any later in-place rewrite.
+- The 19 directories through `20260721060000_storefront_settings` are an immutable baseline pinned by ID and SHA-256 in `migration-policy-baseline.json`; never add, remove, reorder, rename, or edit them.
+- Every later migration directory must sort after the baseline and contain only canonical `migration.safe.json` plus its byte-exact generated `migration.sql`.
+- Create future SQL only with `node pop/scripts/migration-policy.mjs generate <migration.safe.json>` and verify the complete history with `pnpm db:migration-policy`.
+- Future manifests may only create tables, add columns (non-null requires a typed constant default), create indexes, add/validate typed constraints, and grant/revoke closed privileges.
+- Never represent raw SQL/expressions, destructive DDL/DML, rename/type change, backfill, transaction control, functions, triggers, extensions, or concurrent/nontransactional operations in a future migration.
 - Never use `db push`; create and review a new versioned migration instead.
 - Keep deterministic names for database constraints that verification asserts.
 - `nautt_credential.credential_revision` is the collision-proof UUID identity for credential CAS and registration claims; never replace it with `updated_at` or read ciphertext before an exact revision claim.
@@ -36,5 +39,5 @@
 
 - Run `pnpm db:generate` after schema changes.
 - Run `pnpm db:test` only against its self-created disposable PostgreSQL container.
-- Run `pnpm db:contract-check` after changing this subtree or database documentation.
+- Run `pnpm db:contract-check` after changing this subtree or database documentation; it runs the offline policy and adversarial fixtures first.
 - Run `pnpm container:contract-check` after changing bootstrap/migration container routing.

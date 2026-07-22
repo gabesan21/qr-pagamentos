@@ -3,6 +3,7 @@
 - **Project:** [[PROJECT|QR Pagamentos]]
 - **Epoch/Phase:** [[roadmap/1-administrative-foundation|Epoch 1]]
 - **Status:** implementada
+- **Implementation:** partial
 - **Created:** 2026-07-13
 
 ## What it covers
@@ -13,7 +14,11 @@ This spec defines the reproducible runtime, local identity boundary, role model,
 
 - The application uses a pinned Node.js LTS release, pnpm lockfile, TypeScript, linting, automated tests, and a production build command.
 - A clean self-hosted Docker environment starts PostgreSQL, applies all Prisma migrations once, and starts a non-root Next.js production container.
-- An existing installer-managed deployment updates only after fail-closed Compose volume/container ownership and Nautt-key continuity checks, preserves protected redacted rollback metadata before image mutation, and retains the PostgreSQL volume across update and rerun.
+- A bare `install/update.sh` updates an existing installer-managed deployment from its clean attached branch by fast-forwarding to the latest protected tracked-upstream commit and binding its one-time handoff, policy gate, candidate images, migration proof, and promoted app to that exact SHA; backup and previous-release inputs are neither required nor accepted.
+- Update fails closed on unsafe Git state, incompatible Compose ownership or volume mounting, an unhealthy existing app, missing secret artifacts, or Nautt-key discontinuity, and never generates or rewrites secrets or replaces the PostgreSQL volume.
+- The 19-migration baseline is immutable and pinned by exact IDs and SHA-256 values. Every future migration is canonical manifest-generated SQL in a closed language that can only add data-preserving tables, columns, indexes, typed constraints, and privileges; destructive DDL/DML, data rewrites, raw SQL, renames, and type changes are inexpressible.
+- Migration policy verification runs before managed build or database mutation in an already-present digest-pinned Docker image with no network, database, secret, or writable-source access.
+- The healthy old app remains running through candidate build and a fresh migration run. Prisma migration IDs, checksums, completion, rollback and failure metadata must prove success, and identity seed must finish, before the exact-revision target app is recreated; migration failure retains the old app, volume, key, logs, and protected redacted evidence.
 - Health checks distinguish database readiness, migration completion, and application availability.
 - The database uses separate migration and runtime roles; the runtime role cannot perform DDL or role administration.
 - The deployment seed creates the first administrator without persisting plaintext credentials in Git or image layers.
@@ -46,7 +51,7 @@ This spec defines the reproducible runtime, local identity boundary, role model,
 
 ## Open
 
-- None for Epoch 1.
+- The self-updating and closed-migration contract is integrated in stage 004 but remains partial until independent critical verification and task closeout.
 
 ## Implemented slices
 
@@ -67,6 +72,7 @@ This spec defines the reproducible runtime, local identity boundary, role model,
 - [[1.4.4-refactor-admin-surfaces-onto-design-system]] (2026-07-17) — decomposed the bilingual `/admin` shell into direct owned-source compositions while keeping authorization and safe DTO reads server-only and preserving every account, final-active-admin, BRL/PIX, locale, logout, and opaque mutation route contract. The authenticated home, notices, locale controls, and submit states now share the same inventory; ruled account sections remain operable without document overflow at 320px, and destructive demotion/disablement values require an inline confirmation before the unchanged native POST. Authenticated production evidence covers both themes at four widths with keyboard, target, font, status, overflow, external-request, and serious/critical axe assertions.
 - [[1.4.5-audit-and-harden-epoch1-code-and-ui]] (2026-07-17) — closed the login pending advisory with native click/Enter browser evidence; made every authenticated read and preference mutation status-aware; preserved unexpected admin read failures for the recovery boundary; equalized unknown-username password verification work; removed vendored-tool lint noise; and repaired the identity-seed clean-clone reset to include session relations. Database, installer, image, all ten clean-clone scenarios, aggregate quality, and fresh manifest-bound design-system/login/admin evidence passed with no S2-S4 finding left open.
 - [[M-1.1-safe-docker-update-script]] (2026-07-22) — added a dedicated guarded update command for compatible installer deployments. It proves Compose ownership and exact database-volume mounting, validates source/staged Nautt-key continuity without rewriting secrets, writes protected secret-free rollback evidence before build, rechecks the volume and layered startup gates after deployment, and has deterministic refusal coverage plus an isolated install→update→update container scenario.
+- [[M-2.1-self-updating-safe-migrations]] (2026-07-22) — stage-004 implementation replaces the checked-out-release and backup-reference workflow with protected-upstream fast-forward/self-reexec, an immutable 19-migration baseline plus closed generated future migrations, secret-free offline policy verification, and exact-revision migrate-before-app promotion. Independent critical verification and closeout remain pending, so implementation is partial.
 
 ## Related specs
 
