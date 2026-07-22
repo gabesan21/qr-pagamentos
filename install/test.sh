@@ -223,8 +223,9 @@ if [[ $1 == info ]]; then exit 0; fi
 if [[ $1 == image && $2 == inspect && $3 != --format ]]; then exit 0; fi
 if [[ $1 == image && $2 == inspect ]]; then printf '%s\n' "$revision"; exit 0; fi
 if [[ $1 == run ]]; then
-  if [[ " $* " == *' migration-policy.mjs verify '* ]]; then
+  if [[ " $* " == *'migration-policy.mjs verify '* ]]; then
     printf 'PASS migration-policy baseline=19 future=0\n'
+    if [[ ${FAKE_CHECKOUT_DRIFT:-false} == true ]]; then printf drift > "$FAKE_UPDATE_ROOT/concurrent-checkout-drift"; fi
   fi
   exit 0
 fi
@@ -287,6 +288,16 @@ for field in target_revision head_revision upstream_revision previous_app_contai
 expect_absent "$evidence_file" 'backup_reference='
 expect_absent "$evidence_file" 'previous_release='
 expect_absent "$evidence_file" "$update_key"
+
+# Recheck the exact revision after the offline policy gate so an independent
+# checkout mutation cannot reach candidate builds or deployment.
+: > "$update_log"
+if env PATH="$update_root/bin:$PATH" FAKE_DOCKER_LOG="$update_log" FAKE_CHECKOUT_DRIFT=true FAKE_UPDATE_ROOT="$update_root" "$update_root/install/update.sh" --env-file "$update_root/install/update.env" >/dev/null 2>&1; then
+  fail 'concurrent checkout drift succeeded'
+fi
+expect_contains "$update_log" 'migration-policy.mjs verify'
+expect_absent "$update_log" 'build --pull bootstrap app'
+rm -f "$update_root/concurrent-checkout-drift"
 
 for removed in --backup-reference --previous-release; do
   if "$update_root/install/update.sh" "$removed" value >/dev/null 2>&1; then fail "removed option succeeded: $removed"; fi

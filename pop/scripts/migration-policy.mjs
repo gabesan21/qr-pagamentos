@@ -8,6 +8,9 @@ import { pathToFileURL } from "node:url";
 const IDENTIFIER = /^[a-z_][a-z0-9_]{0,62}$/;
 const MIGRATION_ID = /^\d{14}_[a-z][a-z0-9_]{0,62}$/;
 const BASELINE_FILE = "prisma/migration-policy-baseline.json";
+// This binds the editable inventory to the reviewed nineteen-migration anchor.
+// Updating the inventory and its SQL together must still fail closed.
+const BASELINE_INVENTORY_SHA256 = "711f7b047a890bd265c728ccec53ce7f89217f2b0e842b323a7a435b884ae2aa";
 const MIGRATIONS_DIR = "prisma/migrations";
 const MANIFEST_FILE = "migration.safe.json";
 const SQL_FILE = "migration.sql";
@@ -251,7 +254,10 @@ async function parseCanonicalJson(path) {
 
 async function baseline(root) {
   const path = resolve(root, BASELINE_FILE);
-  const { value } = await parseJson(path);
+  const bytes = await readFile(path);
+  if (createHash("sha256").update(bytes).digest("hex") !== BASELINE_INVENTORY_SHA256) fail("baseline inventory differs from the immutable anchor");
+  let value;
+  try { value = JSON.parse(bytes); } catch { fail(`${path} is not valid JSON`); }
   exactKeys(value, ["version", "migrations"], "baseline");
   if (value.version !== 1 || !Array.isArray(value.migrations) || value.migrations.length !== 19) fail("baseline must contain exactly version 1 and nineteen migrations");
   let previous = "";

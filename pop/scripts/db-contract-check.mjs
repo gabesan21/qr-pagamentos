@@ -19,7 +19,7 @@ for (const [name, version] of Object.entries(exactDevDependencies)) {
 }
 assert(packageJson.scripts?.["db:generate"] === "prisma generate", "db:generate contract changed");
 assert(packageJson.scripts?.["db:test"] === "node pop/scripts/db-test.mjs", "db:test contract changed");
-assert(packageJson.scripts?.["db:migration-policy"] === "node pop/scripts/migration-policy.mjs verify && node pop/scripts/migration-policy.test.mjs", "db:migration-policy contract changed");
+assert(packageJson.scripts?.["db:migration-policy"] === "node pop/scripts/migration-policy.mjs verify && node pop/scripts/migration-policy-contract.mjs", "db:migration-policy contract changed");
 assert(packageJson.scripts?.["db:contract-check"] === "pnpm db:migration-policy && node pop/scripts/db-contract-check.mjs", "db:contract-check must run migration policy first");
 
 const envExample = await readFile(".env.example", "utf8");

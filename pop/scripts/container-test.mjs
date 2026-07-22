@@ -5,6 +5,8 @@ import path from "node:path";
 import http from "node:http";
 import { spawnSync } from "node:child_process";
 
+import { canonicalManifest, generateSql } from "./migration-policy.mjs";
+
 function assert(condition, message) { if (!condition) throw new Error(message); }
 function execute(command, args, options = {}) {
   return spawnSync(command, args, { cwd: process.cwd(), encoding: "utf8", ...options });
@@ -370,21 +372,36 @@ if (process.argv.includes("--clean-clone") && !process.env.CONTAINER_TEST_CLEAN_
       console.log("PASS identity-fields-no-retarget");
     } else if (scenario === "update") {
       assert(process.env.CONTAINER_TEST_CLEAN_CLONE === "1", "update scenario requires --clean-clone");
-      const realDocker = run("sh", ["-c", "command -v docker"]).trim();
-      const shimDirectory = path.join(temporary, "update-docker-shim");
       const installerEnv = path.join(temporary, "update.env");
       const evidenceDirectory = path.join(temporary, "update-evidence");
       const sourceKey = Buffer.alloc(32, 11).toString("base64url");
-      await mkdir(shimDirectory, { mode: 0o700 });
-      await writeFile(path.join(shimDirectory, "docker"), `#!/usr/bin/env bash
-set -Eeuo pipefail
-real=${JSON.stringify(realDocker)}
-if [[ \${FAKE_MIGRATE_FAIL:-false} == true && " $* " == *' run --name '* && " $* " == *' --no-deps migrate '* ]]; then
-  exit 86
-fi
-exec "$real" "$@"
-`, { mode: 0o700 });
-      await chmod(path.join(shimDirectory, "docker"), 0o700);
+      const branch = run("git", ["branch", "--show-current"]).trim();
+      const updateRemote = path.join(temporary, "update-remote.git");
+      await run("git", ["init", "--bare", updateRemote]);
+      run("git", ["push", updateRemote, `HEAD:refs/heads/${branch}`]);
+      run("git", ["remote", "set-url", "origin", updateRemote]);
+      const publishSafeMigration = async (id, table) => {
+        const producer = path.join(temporary, `update-producer-${id}`);
+        run("git", ["clone", "--quiet", "--branch", branch, updateRemote, producer]);
+        run("git", ["config", "user.email", "container-test@example.invalid"], { cwd: producer });
+        run("git", ["config", "user.name", "Container Test"], { cwd: producer });
+        const directory = path.join(producer, "prisma", "migrations", id);
+        const manifest = {
+          version: 1,
+          id,
+          operations: [{
+            op: "createTable",
+            table: { schema: "app", name: table },
+            columns: [{ name: "id", type: { name: "integer" }, nullable: false }],
+          }],
+        };
+        await mkdir(directory);
+        await writeFile(path.join(directory, "migration.safe.json"), canonicalManifest(manifest));
+        await writeFile(path.join(directory, "migration.sql"), generateSql(manifest));
+        run("git", ["add", "prisma/migrations"] , { cwd: producer });
+        run("git", ["commit", "-m", `test: add ${id}`], { cwd: producer });
+        run("git", ["push", "origin", branch], { cwd: producer });
+      };
       await writeFile(installerEnv, `APP_PORT=33013
 INITIAL_ADMIN_EMAIL=admin@example.com
 INITIAL_ADMIN_USERNAME=admin.user
@@ -395,7 +412,7 @@ NAUTT_ENCRYPTION_KEY=${sourceKey}
 NAUTT_WEBHOOK_CALLBACK_URL=https://payments.example.com/api/nautt/webhooks
 `, { mode: 0o600 });
       await chmod(installerEnv, 0o600);
-      const updateProcessEnv = { ...process.env, PATH: `${shimDirectory}:${process.env.PATH}`, CONTAINER_TEST_PROJECT: project };
+      const updateProcessEnv = { ...process.env, CONTAINER_TEST_PROJECT: project };
       const invoke = (script, args) => {
         const result = execute(script, args, { env: updateProcessEnv });
         const output = `${result.stdout ?? ""}${result.stderr ?? ""}`;
@@ -429,6 +446,7 @@ NAUTT_WEBHOOK_CALLBACK_URL=https://payments.example.com/api/nautt/webhooks
       const stagedDigest = await digest(stagedKeyPath);
       const updateArgs = ["--env-file", installerEnv, "--evidence-dir", evidenceDirectory];
       const migrateIds = [];
+      await publishSafeMigration("20260722000100_update_pending", "update_pending_migration");
       for (const invocation of ["clean-install", "no-op-rerun"]) {
         const output = invoke("install/update.sh", updateArgs);
         captured += output;
@@ -453,8 +471,14 @@ NAUTT_WEBHOOK_CALLBACK_URL=https://payments.example.com/api/nautt/webhooks
       const currentHealth = inspectField(currentApp, "{{.State.Health.Status}}");
       const dbId = containerId("db");
       const dataBeforeFailure = run("docker", ["exec", dbId, "psql", "-U", "postgres", "-d", "qr_pagamentos", "-Atc", 'SELECT id || \'|\' || username || \'|\' || COALESCE(email, \'<null>\') FROM app."user" ORDER BY id']).trim();
-      const failed = execute("install/update.sh", updateArgs, { env: { ...updateProcessEnv, FAKE_MIGRATE_FAIL: "true" } });
+      const migrationsBeforeFailure = new Set(run("docker", ["ps", "-a", "--filter", `name=${project}-update-migrate-`, "--format", "{{.ID}}"]).trim().split("\n").filter(Boolean));
+      await publishSafeMigration("20260722000200_update_prisma_failure", "update_pending_migration");
+      const failed = execute("install/update.sh", updateArgs, { env: updateProcessEnv });
       assert(failed.status !== 0, "forced migration failure succeeded");
+      const failedMigrations = run("docker", ["ps", "-a", "--filter", `name=${project}-update-migrate-`, "--format", "{{.ID}}"]).trim().split("\n").filter((id) => !migrationsBeforeFailure.has(id));
+      assert(failedMigrations.length === 1, "failed update did not create exactly one migration container");
+      assert(inspectField(failedMigrations[0], "{{.State.ExitCode}}") !== "0", "policy-valid failing migration did not fail in Prisma");
+      assert(run("docker", ["logs", failedMigrations[0]]).includes("ERROR migration code=MIGRATE"), "failed migration did not reach the Prisma wrapper");
       assert(containerId("app") === currentApp && inspectField(currentApp, "{{.Image}}") === currentImage, "migration failure replaced the old app");
       assert(inspectField(currentApp, "{{.State.Health.Status}}") === currentHealth && currentHealth === "healthy", "migration failure damaged app health");
       assert(run("docker", ["volume", "inspect", "--format", "{{.Name}}|{{.Mountpoint}}|{{.CreatedAt}}", `${project}_postgres-data`]).trim() === volumeIdentity, "migration failure changed PostgreSQL volume identity");
@@ -466,6 +490,8 @@ NAUTT_WEBHOOK_CALLBACK_URL=https://payments.example.com/api/nautt/webhooks
       console.log("PASS update-volume-identity");
       console.log("PASS update-nautt-key-continuity");
       console.log("PASS update-startup-gates");
+      console.log("PASS update-pulled-pending-migration");
+      console.log("PASS update-prisma-failure-retention");
       console.log("PASS update-failure-retains-app");
       console.log("PASS update-evidence-retention");
     } else if (scenario === "identity-recovery") {

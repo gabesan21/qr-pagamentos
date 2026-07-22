@@ -132,7 +132,9 @@ and configured with a reachable upstream. The updater fetches that upstream,
 rejects local-ahead, diverged, detached and non-fast-forward states, executes
 `git pull --ff-only --no-rebase`, captures the resulting 40-character commit
 SHA and re-executes the pulled updater exactly once. The handoff fails closed if
-`HEAD` or the fetched upstream no longer equals that SHA. Remote movement after
+`HEAD` or the fetched upstream no longer equals that SHA. A per-checkout lock
+serializes updates and the updater rechecks the target SHA and clean tree after
+the policy gate and each mutable deployment boundary. Remote movement after
 capture belongs to a later invocation. This design trusts the configured
 upstream: protect it and require migration-policy, database, container and
 quality gates before merge. Arbitrary or compromised upstream code cannot be
@@ -142,7 +144,7 @@ The digest-pinned Node helper image must already exist locally. Before any
 managed build or database operation, the updater runs the pulled
 `migration-policy.mjs` with `--pull=never`, no network, a read-only source mount,
 and no database mount, secret file or passed environment. The verifier pins the
-exact 19-migration baseline and accepts each later migration only when its
+exact 19-migration baseline through an independent reviewed inventory digest and accepts each later migration only when its
 canonical closed manifest regenerates `migration.sql` byte for byte. That
 language permits only data-preserving table, column, index, typed-constraint
 and privilege operations; raw SQL, destructive DDL/DML, rename/type changes,

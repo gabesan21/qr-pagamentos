@@ -22,6 +22,29 @@ while (($#)); do
   esac
 done
 
+acquire_update_lock() {
+  local lock_name
+  lock_name=$(printf '%s' "$ROOT_DIR" | sha256sum | cut -d' ' -f1)
+  if [[ ${QR_UPDATE_REENTRY_COUNT:-0} == 0 ]]; then
+    [[ -z ${QR_UPDATE_LOCK_FD:-} ]] || die 'external update lock handoff is forbidden'
+    exec {UPDATE_LOCK_FD}>"/tmp/qr-pagamentos-update-${lock_name}.lock"
+    flock -n "$UPDATE_LOCK_FD" || die 'another update is already running for this checkout'
+  else
+    [[ ${QR_UPDATE_LOCK_FD:-} =~ ^[0-9]+$ && -e /proc/self/fd/$QR_UPDATE_LOCK_FD ]] \
+      || die 'update lock handoff is missing or unsafe'
+    UPDATE_LOCK_FD=$QR_UPDATE_LOCK_FD
+    flock -n "$UPDATE_LOCK_FD" || die 'update lock handoff is unavailable'
+  fi
+}
+
+assert_target_checkout() {
+  local head
+  head=$(git -C "$ROOT_DIR" rev-parse --verify HEAD) || die 'update checkout has no HEAD'
+  [[ $head == "$QR_UPDATE_TARGET_SHA" ]] || die 'update checkout revision drifted from its target'
+  [[ -z $(git -C "$ROOT_DIR" status --porcelain --untracked-files=all) ]] \
+    || die 'update checkout changed during deployment'
+}
+
 require_clean_attached_upstream() {
   [[ -z $(git -C "$ROOT_DIR" status --porcelain --untracked-files=all) ]] || die 'working tree must be clean, including untracked files'
   local branch upstream
@@ -61,7 +84,7 @@ enter_pulled_revision() {
   handoff_file=$(mktemp "${TMPDIR:-/tmp}/qr-pagamentos-update-handoff.XXXXXX") || die 'cannot create update handoff'
   chmod 0600 "$handoff_file"
   printf '%s\n' "$target" > "$handoff_file" || die 'cannot write update handoff'
-  exec env QR_UPDATE_REENTRY_COUNT=1 QR_UPDATE_TARGET_SHA="$target" QR_UPDATE_HANDOFF_FILE="$handoff_file" \
+  exec env QR_UPDATE_REENTRY_COUNT=1 QR_UPDATE_TARGET_SHA="$target" QR_UPDATE_HANDOFF_FILE="$handoff_file" QR_UPDATE_LOCK_FD="$UPDATE_LOCK_FD" \
     "$ROOT_DIR/install/update.sh" "${ORIGINAL_ARGS[@]}"
 }
 
@@ -81,6 +104,7 @@ verify_reentry() {
   upstream_sha=$(git -C "$ROOT_DIR" rev-parse --verify '@{upstream}^{commit}')
   [[ $head == "$QR_UPDATE_TARGET_SHA" && $upstream_sha == "$QR_UPDATE_TARGET_SHA" ]] \
     || die 'update handoff revision no longer matches HEAD and upstream'
+  assert_target_checkout
 }
 
 strip_quotes() {
@@ -109,6 +133,7 @@ load_update_env() {
 check_prerequisites() {
   command -v docker >/dev/null 2>&1 || die 'Docker Engine is required'
   command -v git >/dev/null 2>&1 || die 'git is required'
+  command -v flock >/dev/null 2>&1 || die 'flock is required'
   command -v sha256sum >/dev/null 2>&1 || die 'sha256sum is required'
   docker compose version >/dev/null 2>&1 || die 'Docker Compose v2 is required'
   docker info >/dev/null 2>&1 || die 'the current user cannot access the Docker daemon'
@@ -220,11 +245,13 @@ wait_for_app() {
   die 'target application did not become healthy'
 }
 
+acquire_update_lock
 if [[ ${QR_UPDATE_REENTRY_COUNT:-0} == 0 ]]; then enter_pulled_revision; fi
 verify_reentry
 load_update_env
 check_prerequisites
 run_offline_policy
+assert_target_checkout
 validate_urls
 validate_secret_continuity
 DB_OPS_IMAGE="${PROJECT}-db-ops:$QR_UPDATE_TARGET_SHA"
@@ -238,11 +265,13 @@ printf 'PASS update-evidence file=%s\n' "$evidence"
 
 # Candidate builds do not mutate the running Compose application.
 compose build --pull bootstrap app
+assert_target_checkout
 [[ $(image_revision "$DB_OPS_IMAGE") == "$QR_UPDATE_TARGET_SHA" ]] || die 'db-ops image revision mismatch'
 [[ $(image_revision "$APP_IMAGE") == "$QR_UPDATE_TARGET_SHA" ]] || die 'app image revision mismatch'
 
 # Every invocation creates a new migration container. The old app remains running through this gate.
 compose run --rm --no-deps bootstrap
+assert_target_checkout
 migrate_name="${PROJECT}-update-migrate-${QR_UPDATE_TARGET_SHA:0:12}-$$"
 compose run --name "$migrate_name" --no-deps migrate
 [[ $(docker inspect --format '{{.State.ExitCode}}' "$migrate_name") == 0 ]] || die 'migration container did not complete successfully'
@@ -250,6 +279,7 @@ migrate_image=$(docker inspect --format '{{.Image}}' "$migrate_name")
 [[ $(image_revision "$migrate_image") == "$QR_UPDATE_TARGET_SHA" ]] || die 'migration container revision mismatch'
 
 compose run --rm --no-deps identity-seed
+assert_target_checkout
 compose up -d --no-deps --force-recreate app
 target_app=$(wait_for_app)
 target_image=$(docker inspect --format '{{.Image}}' "$target_app")

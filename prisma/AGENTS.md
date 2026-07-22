@@ -18,7 +18,7 @@
 ## Schema and migrations
 
 - `schema.prisma` is the declared application model; database-only checks must also exist in reviewed migration SQL.
-- The 19 directories through `20260721060000_storefront_settings` are an immutable baseline pinned by ID and SHA-256 in `migration-policy-baseline.json`; never add, remove, reorder, rename, or edit them.
+- The 19 directories through `20260721060000_storefront_settings` are an immutable baseline pinned by ID and SHA-256 in `migration-policy-baseline.json` and by the verifier's independent reviewed inventory digest; never add, remove, reorder, rename, or edit them.
 - Every later migration directory must sort after the baseline and contain only canonical `migration.safe.json` plus its byte-exact generated `migration.sql`.
 - Create future SQL only with `node pop/scripts/migration-policy.mjs generate <migration.safe.json>` and verify the complete history with `pnpm db:migration-policy`.
 - Future manifests may only create tables, add columns (non-null requires a typed constant default), create indexes, add/validate typed constraints, and grant/revoke closed privileges.

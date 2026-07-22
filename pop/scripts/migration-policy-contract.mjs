@@ -128,6 +128,17 @@ await withRepositoryFixture(async (root) => {
 await withRepositoryFixture(async (root) => {
   const baselinePath = join(root, "prisma/migration-policy-baseline.json");
   const baseline = JSON.parse(await readFile(baselinePath, "utf8"));
+  const first = baseline.migrations[0];
+  const sqlPath = join(root, "prisma/migrations", first.id, "migration.sql");
+  await writeFile(sqlPath, "-- co-mutated baseline SQL\n");
+  first.sha256 = "b".repeat(64);
+  await writeFile(baselinePath, canonicalManifest(baseline));
+  await expectRejected(() => verifyRepository(root), "co-mutated baseline inventory and SQL");
+});
+
+await withRepositoryFixture(async (root) => {
+  const baselinePath = join(root, "prisma/migration-policy-baseline.json");
+  const baseline = JSON.parse(await readFile(baselinePath, "utf8"));
   baseline.migrations.pop();
   await writeFile(baselinePath, canonicalManifest(baseline));
   await expectRejected(() => verifyRepository(root), "missing baseline entry");
