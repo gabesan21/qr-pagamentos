@@ -4,6 +4,6 @@ Project: [[PROJECT|QR Pagamentos]] · Roadmap: [[ROADMAP|Roadmap]]
 
 | # | Modification | Description (≤1 line) | Status |
 |---|--------------|-----------------------|--------|
-| M-1 | Safe Docker update script | Add a guarded production update command that preserves PostgreSQL data and the existing Nautt encryption key. · size: S · yolo: yes | in progress |
+| M-1 | `M-1.1-safe-docker-update-script` | Add a guarded production update command that preserves PostgreSQL data and the existing Nautt encryption key. · size: S · yolo: yes | completed |
 
 **Modification status:** open | in progress | completed
