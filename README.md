@@ -72,6 +72,24 @@ install/install.sh --recover-initial-admin
 
 On success the retry-stable candidate replaces `.install-secrets/initial_admin_password`; on failure it remains protected for the identical retry. Recovery aborts if the original UUID was deleted. Email delivery, public reset, login UI, sessions, and MFA are not part of this slice.
 
+Update an existing compatible installer deployment only after creating a fresh
+protected logical database backup. The command verifies Compose ownership of
+the database volume/container, confirms the installed and staged Nautt keys are
+identical, and preserves redacted pre-update evidence before building:
+
+```sh
+install/update.sh \
+  --backup-reference backup-2026-07-22T1800Z \
+  --previous-release v1.2.3
+```
+
+Use `--env-file <path>` when the deployment does not use `install/.env`, and
+`--evidence-dir <path>` to override the ignored `.update-evidence/` directory.
+References are identifiers only; never put credentials in them. The command
+does not create or validate the backup, generate secrets, install a fresh
+deployment, or perform an automatic rollback. A failure retains the database,
+containers, logs, and mode-`0400` evidence for operator-controlled recovery.
+
 `install/uninstall.sh` removes application containers while preserving the PostgreSQL volume. Neither uninstall mode requires the initial administrator username, email, or creation-time identity files. Data deletion is a separate explicit operation:
 
 ```sh
@@ -125,6 +143,7 @@ pnpm container:test --clean-clone --scenario roles
 pnpm container:test --clean-clone --scenario failures
 pnpm container:test --clean-clone --scenario lifecycle
 pnpm container:test --clean-clone --scenario isolation
+pnpm container:test --clean-clone --scenario update
 ```
 
 ## Critical verification in 005
