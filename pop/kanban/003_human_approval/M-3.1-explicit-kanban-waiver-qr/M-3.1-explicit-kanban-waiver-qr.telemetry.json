@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "events": [
+    {
+      "at": "2026-07-23T16:36:14-03:00",
+      "event": "transition",
+      "from": "001_initial_task",
+      "to": "002_planning",
+      "contexts": [],
+      "test_seconds": 0,
+      "result": "advanced"
+    },
+    {
+      "at": "2026-07-23T16:39:53-03:00",
+      "event": "transition",
+      "from": "002_planning",
+      "to": "003_human_approval",
+      "contexts": [
+        "plan_qr_repo"
+      ],
+      "test_seconds": 0,
+      "result": "advanced"
+    }
+  ]
+}
