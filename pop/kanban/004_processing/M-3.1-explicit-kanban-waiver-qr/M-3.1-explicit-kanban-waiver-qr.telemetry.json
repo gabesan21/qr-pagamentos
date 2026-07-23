@@ -20,6 +20,15 @@
       ],
       "test_seconds": 0,
       "result": "advanced"
+    },
+    {
+      "at": "2026-07-23T17:06:08-03:00",
+      "event": "transition",
+      "from": "003_human_approval",
+      "to": "004_processing",
+      "contexts": [],
+      "test_seconds": 0,
+      "result": "advanced"
     }
   ]
 }
