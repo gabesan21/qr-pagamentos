@@ -23,6 +23,8 @@ _Sem repositório externo: o trabalho vive no repositório do PoP e os PRs de ta
 
 Toda alteração no projeto passa pelo kanban (`pop/kanban/001_initial_task → … → 006_done`), com tasks vindas do roadmap (`<n>.<m>.<t>-<slug>`) ou das modifications (`M-<n>.<t>-<slug>` — hotfixes, ajustes e features emergentes pequenas fora do planejamento; fronteira no AGENTS.md do vault):
 
+Pedido de alteração sem card aciona `new-task` → `advance-task`; “iniciar o fluxo em yolo” materializa/libera a task e percorre a rota yolo inteira, nunca execução direta.
+
 1. **001** — task nasce (skill `new-task`), com `depends_on:` listando as tasks pré-requisito.
 2. **002** — planejador separado produz brief com estratégia, frentes, contratos e critérios.
 3. **003** — gate humano: o agente só avança com `- [x] Feito`. Em yolo, este gate **só existe para `critical: true`** (crítico strong); as demais tasks yolo transitam 002 → 004 direto.
@@ -70,7 +72,8 @@ Toda alteração no projeto passa pelo kanban (`pop/kanban/001_initial_task → 
 ## Regras essenciais
 
 - Conteúdo em pt-BR; wikilinks para referências internas; arquivos ≤~150 linhas; datas AAAA-MM-DD.
-- **Nunca** alterar o projeto real fora de uma task em `004_processing` cujo plano foi aprovado em 003.
+- **Nunca** alterar o projeto real fora de uma task que chegou legitimamente a `004_processing` (003 aprovado ou yolo não crítico 002→004).
+- Comando humano sobrescreve somente a regra/gate que nomeia; “aplique”, “execute”, “urgente”, “até finalizar” ou “em yolo” não dispensam o fluxo. Só dispensa literal ativa o protocolo de desvio do [[WORKFLOW|WORKFLOW]], sempre com memory e avaliação de specs/DOX.
 - **Nunca** marcar `- [ ] Feito` nem executar itens `(user)` — são exclusivos do humano.
 - **Nunca** fazer merge de PR de task — o merge é do humano (ou comandado por ele na rodada de merge).
 - Toda task concluída gera `pop/memory/<id>.md` (ledger ≤2000 chars, commit final, datas); após validar a memory, 006 remove a linha da task do roadmap ou das modifications e apaga a pasta em `006_done`.

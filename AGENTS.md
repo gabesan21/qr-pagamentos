@@ -22,6 +22,8 @@ In yolo scopes, the orchestrator mechanically integrates task branches into `dev
 
 Every change to the application passes through `kanban/001_initial_task` -> `kanban/006_done`, with tasks coming from the roadmap (`<n>.<m>.<t>-<slug>`) or from modifications (`M-<n>.<t>-<slug>` — work arriving outside the plan):
 
+A change request without an active card triggers `new-task` -> `advance-task`; the absence of a card is workflow input, never permission to edit directly. “Start the flow in yolo” materializes and releases the task with `yolo: true`, records the conversational origin, and traverses the complete yolo route.
+
 1. **001** - create the task with `new-task` and explicit `depends_on` prerequisites.
 2. **002** - a planner separate from execution writes a concise brief with objective, strategy, fronts, dependencies, contracts, risks, and acceptance criteria.
 3. **003** - obtain human approval. In yolo this gate **only exists for `critical: true`** (strong independent critic; two returns allowed before the third failure trips the circuit breaker); non-critical yolo tasks transit 002 -> 004 directly.
@@ -32,6 +34,8 @@ Every change to the application passes through `kanban/001_initial_task` -> `kan
 Up to three independent yolo tasks may advance as a wave. Parallel execution requires logical and write independence plus repository/worktree isolation; any collision serializes. A missing dependency is `BLOCKED` and is never implemented opportunistically.
 
 One execution continues until the next real gate. The complete state machine is in [[WORKFLOW|WORKFLOW]].
+
+A direct human command overrides only the rule or gate it explicitly names. “Apply”, “execute”, “urgent”, “until finished”, or “in yolo” do not waive the card, kanban, memory, specs, or DOX. Only an unequivocal instruction such as “without kanban” or “outside PoP” activates [[WORKFLOW|the explicit deviation protocol]], which still requires an identifiable memory and a recorded specs/DOX impact assessment; those contracts are edited only when affected.
 
 ## Context protocol
 
