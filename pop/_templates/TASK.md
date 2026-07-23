@@ -42,7 +42,7 @@ Uma frase: por que agora e o que destrava.
 
 ## Liberação (user)
 
-> Só o humano marca, salvo comando explícito registrado no Log. Sem `[x]`, a task não sai de 001. Em `yolo: true`, a liberação antecipada do roadmap/modifications permite ao agente marcar e registrar `liberada por yolo`; ver [[WORKFLOW|WORKFLOW]].
+> Só o humano marca, salvo comando explícito registrado no Log. Sem `[x]`, a task não sai de 001. Em `yolo: true`, a liberação antecipada do roadmap/modifications ou o pedido humano “iniciar o fluxo em yolo” permite ao agente marcar e registrar a origem; yolo nunca dispensa o card nem os demais estágios — ver [[WORKFLOW|WORKFLOW]].
 
 - [ ] Pronto para planejar
 
