@@ -1,6 +1,6 @@
 ---
 name: new-task
-description: Entrevista rápida que cria uma task do roadmap ou de uma modification como pasta em pop/kanban/001_initial_task, com card preenchido, specs linkadas e link na epoch/modification. Use quando o usuário pedir para iniciar/criar uma task.
+description: Entrevista rápida que cria uma task do roadmap ou de uma modification como pasta em pop/kanban/001_initial_task, com card preenchido, specs linkadas e link na epoch/modification. Use quando o usuário pedir para iniciar/criar uma task ou pedir uma alteração sem card ativo.
 ---
 
 # new-task
@@ -8,6 +8,8 @@ description: Entrevista rápida que cria uma task do roadmap ou de uma modificat
 Materializa uma task do roadmap ou de uma modification como pasta no kanban, no estágio `001_initial_task` — **confirmando com o usuário o essencial antes de criar**. Fluxo completo: [[WORKFLOW|WORKFLOW]].
 
 **Modo yolo (sem entrevista):** task de escopo yolo (seção Yolo mode do WORKFLOW) é materializada direto pelo orquestrador — as respostas vêm do roadmap/modifications (descrição da task, dependências da tabela, `critical` do padrão do projeto); pule a entrevista e siga o Procedimento com os ajustes yolo.
+
+**Entrada por pedido de alteração:** se o humano pedir para aplicar, executar, corrigir ou finalizar algo e não houver card ativo, a ausência de card aciona esta skill e depois `advance-task`; nunca autoriza edição direta. “Iniciar o fluxo em yolo” define `yolo: true`, confirma a materialização/liberação e encadeia a rota yolo integral. Reuse tudo que a conversa já respondeu e pergunte só uma ambiguidade indispensável de projeto/origem; waiver do kanban exige dispensa literal e segue o protocolo do WORKFLOW.
 
 **Delegue a subagentes:** quase nada — é entrevista curta com o usuário; a delegação começa no planejamento (`advance-task`).
 
@@ -35,7 +37,7 @@ Materializa uma task do roadmap ou de uma modification como pasta no kanban, no 
    - A seção **Liberação** fica com `- [ ] Pronto para planejar` **desmarcado** — o card nasce não liberado. **Exceção:** task `yolo: true` nasce **marcada**, com Log `liberada por yolo (marcado no roadmap/modifications)`.
 3. Na tabela da epoch ou da modification (ou na linha do MODIFICATIONS.md, se task única), transforme o id da task em wikilink `[[<id>-<slug>]]` e atualize o status para `001_initial_task`.
 4. Se for a primeira task ativa do projeto, verifique se o status do projeto nos INDEX (categoria + raiz) deve mudar para "em andamento".
-5. Feche informando o **gate de liberação**: o card fica em 001 aguardando o humano editar e marcar `- [x] Pronto para planejar` (seção Liberação) — o avanço para 002 (`advance-task`) só acontece depois. **Exceções:** comando explícito “cria e já avança” permite marcar com Log e encadear até 003; `yolo: true` encadeia o fluxo yolo (gate único em 005; 003 só em `critical`).
+5. Feche informando o **gate de liberação**: o card fica em 001 aguardando o humano editar e marcar `- [x] Pronto para planejar` (seção Liberação) — o avanço para 002 (`advance-task`) só acontece depois. **Exceções:** comando explícito “cria e já avança” permite marcar com Log e encadear até 003; “iniciar o fluxo em yolo” ou `yolo: true` permite marcar, registrar a origem e encadear a rota yolo (gate único em 005; 003 só em `critical`). Nenhuma dessas exceções dispensa o card.
 
 ## Cuidados
 

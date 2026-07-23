@@ -12,6 +12,7 @@ Você é o **orquestrador**: identifica o estágio da task, resolve gates e tran
 ## Entrada
 
 - **id da task** (ex.: `1.1.1-user-table-creation`, `M-1.1-ajusta-contrato`). Localize a pasta: `find <projeto>/pop/kanban -maxdepth 2 -name "<id>*" -type d` (meta-projeto da raiz do vault e projetos ainda não migrados: harness na raiz, sem `pop/`).
+- **Pedido de alteração sem id/card:** execute primeiro `new-task` com o contexto já dado pelo humano e então retome este loop. Ausência de card é entrada do fluxo, nunca autorização para escrever. Se o humano disse “iniciar o fluxo em yolo”, materialize/libere com `yolo: true` e percorra a rota integral.
 
 ## Loop do orquestrador
 
@@ -51,6 +52,7 @@ Por estágio, atualize a tabela do card com contextos realmente lançados, conta
 ## Cuidados (desta skill; os do fluxo estão nas Regras transversais)
 
 - **Nunca pule estágios nem gates.** Retornos permitidos: 003→002, 004→002, 005→004 — o orquestrador decide o retorno; o subagente só reporta. **Exceção yolo:** task yolo não crítica transita 002 → 004 direto — não é pulo, é o fluxo.
+- **Não infira waiver:** “aplique”, “execute”, “urgente”, “até finalizar” ou “em yolo” não dispensam card, kanban, memory, specs ou DOX. Só dispensa humana literal segue o protocolo de desvio sem kanban do WORKFLOW e apenas no alcance nomeado.
 - **Claim ativo de outro agente cobre a pasta inteira da task** (card, `.plan.md`, `.verify.md`, `subtasks/`): leitura ok, escrita proibida — o `pop_move` também recusa a transição.
 - Subagente reportou aborto, item `(user)` ou descoberta que muda o plano → pare/retorne conforme o WORKFLOW; **não improvise na janela principal**.
 - Agente de uma frente do 004 encontrou dependência ausente, arquivo fora de `owns` ou contrato incompatível → trate como `BLOCKED`/retorno ao orquestrador de execução; **nunca autorize que complete a frente alheia**.

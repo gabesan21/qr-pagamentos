@@ -60,6 +60,7 @@ Templates: [[_templates/TASK|TASK]] · [[_templates/TASK-PLAN|TASK-PLAN]] · [[_
 
 ### 001_initial_task — nascimento (agent, + user libera)
 
+- Pedido de alteração sem card ativo entra por `new-task` e depois `advance-task`; ausência de card nunca autoriza editar. “Iniciar o fluxo em yolo” materializa e libera a task, registra `yolo: true` e percorre esta mesma máquina de estados.
 - Crie card mínimo: frontmatter, “O quê / Por quê”, phase ou modification de origem, dependências e links com gatilho. Tasks de modification usam id `M-<n>.<t>-<slug>` e `origin: modifications` (fronteira roadmap × modifications no [[AGENTS|AGENTS]]).
 - O card é do humano até `- [x] Pronto para planejar`. Comando explícito permite ao agente marcar com Log; `yolo: true` herda a liberação do roadmap/modifications.
 - Declare `depends_on:`. Vazio significa que a task pode concorrer com outras, respeitando WIP.
@@ -126,19 +127,28 @@ O planejador não implementa. Ele decide e resume; não persiste chain-of-though
 
 ## Regras transversais
 
-- **Comando explícito do humano vence o fluxo:** execute ou faça uma única pergunta se houver ambiguidade/destrutividade; registre o desvio.
+- **Comando explícito do humano vence somente no alcance nomeado:** obedeça sem reinterpretar o que ele efetivamente sobrescreveu e registre o desvio. “Aplique”, “execute”, “urgente”, “até finalizar” e “em yolo” não dispensam card, kanban ou continuidade; “iniciar o fluxo em yolo” exige a rota yolo inteira. Só uma dispensa literal e inequívoca ativa o protocolo abaixo; ambiguidade/destrutividade admite uma única pergunta.
 - **Uma execução vai até a parada legítima:** fora de yolo valem os gates humanos; em yolo só bloqueio técnico, item `(user)` ou `circuit_breaker` interrompem antes do merge final. Subagente de estágio é colhido.
-- **Nenhum trabalho fora de task:** conteúdo do projeto só muda em 004, após 003, na worktree apropriada.
+- **Nenhum trabalho fora de task:** conteúdo do projeto só muda em 004, após 003 ou pela transição legítima 002→004 do yolo não crítico, na worktree apropriada. Sem card, execute `new-task` → `advance-task`; não improvise.
 - **Paralelismo exige duas independências:** lógica (não depende do resultado alheio) e escrita (não disputa arquivos/contratos). Especialização pode ser sequencial.
 - **Claim é por task:** `pop_claim.py` protege a pasta contra outro orquestrador; ownership de frentes protege workers dentro dela.
 - **Telemetria mínima:** por estágio registre contextos lançados, nº de devoluções, testes/estratégia e resultado; nunca reasoning, prompts ou transcrição.
 - Arquivos móveis usam wikilink só pelo nome. Retornos normais: 003→002, 004→002, 005→004.
 
+### Protocolo de desvio sem kanban
+
+Somente ordem humana literal como “não use o kanban” ou “faça fora do PoP” dispensa os estágios. O waiver é específico: nenhuma outra regra ou proteção fica dispensada por inferência.
+
+1. Antes de escrever, registre o comando autorizador e o alcance em `pop/memory/D-AAAAMMDD-<slug>.md`, usando [[_templates/MEMORY|MEMORY]]; o ID `D-` identifica desvio sem card.
+2. Preserve as regras de repositório, segurança, ownership e merge que não foram explicitamente sobrescritas.
+3. Antes de encerrar, complete a memory com commit/PR, resultado, verificação e desvios; registre a avaliação de impacto em specs e DOX e atualize somente os contratos realmente afetados.
+4. Sem autorização inequívoca ou sem rota para essa prova durável, não edite: materialize uma task normal.
+
 ## Yolo mode
 
 `yolo: true` delega o julgamento ao revisor independente e mantém a mesma máquina de estados, com **gate único de qualidade no 005**.
 
-- A marca vem do roadmap ou das modifications e pode ser herdada; só o humano a define. O escopo auto-materializa waves de até três tasks independentes: dependências satisfeitas e escrita/repos isolados; colisão serializa.
+- A marca vem do roadmap/modifications, pode ser herdada ou ser definida pelo humano ao pedir “iniciar o fluxo em yolo”. Nesse pedido sem card, `new-task` materializa, registra a origem conversacional e libera a task; yolo nunca é waiver. O escopo auto-materializa waves de até três tasks independentes: dependências satisfeitas e escrita/repos isolados; colisão serializa.
 - **Gate único:** task yolo não crítica vai de 002 direto a 004, sem rodada de aprovação — o yolo confia no plano do agente. Em 005 nasce sessão limpa **strong**: o crítico verifica primeiro se o pedido original (objetivo do card) foi atendido, depois plano, specs, diff e qualidade; decide `differential|full` (`full` obrigatório em critical/retorno). Duas devoluções são permitidas; a 3ª falha ativa o circuit breaker.
 - **`critical: true` é a exceção:** mantém o 003 com crítico strong antes da execução (duas devoluções a 002; 3ª = circuit breaker) e o 005 sempre `full`.
 - Só bloqueio técnico, item `(user)` ou circuit breaker interrompem; devolução normal reentra automaticamente no fluxo.
