@@ -50,13 +50,19 @@ it never grants a business read, mutation, shell, navigation entry, or fallback
 to the other role. Every protected read and mutation resolves an active cookie
 principal before owner-scoped work. `/` is the compatibility entry: it resolves
 the role before merchant work, sends `ADMIN` to `/admin`, and sends an active
-`USER` to the merchant dashboard. No current or future administrator capability
-may read or mutate merchant-owned data.
+`USER` to the merchant dashboard. An administrator may never enter a merchant
+route, call an owner-scoped service as the owner, or perform a merchant
+mutation. This prohibition preserves explicitly approved administrator-only
+global read projections for orders, payment links, and analytics; those
+projections remain read-only, re-authorized, redacted, and separate from
+merchant routes and owner-scoped services.
 
 | Route family | Canonical owner and capability | Unauthenticated / wrong role | Compatibility boundary |
 | --- | --- | --- | --- |
 | `/`, merchant dashboard, catalog/products, payment links, owner orders, checkout policy, Nautt credentials, storefront settings, and planned merchant profile/security | `USER` only; own business data and settings | page: `/login` / `/admin`; mutation: empty `401` / empty `403` | Merchant routes stay unprefixed. Owner scoping, redacted projections, opaque unavailable outcomes, and existing V1 identifiers remain unchanged. |
-| `/admin`, `/admin/orders`, users/roles/status, global payment settings, currency pairs, payment methods, and planned administrator dashboard, global catalog/link directory, analytics, and system settings | `ADMIN` only; global operator data and configuration | page: `/login` / `/`; mutation: empty `401` / empty `403` | Administrative routes stay under `/admin`; administrator order and payment-link views are read-only unless a later contract explicitly changes that. |
+| `/admin`, `/admin/orders`, users/roles/status, global payment settings, currency pairs, payment methods, and planned administrator dashboard, global catalog/link directory, analytics, and system settings | `ADMIN` only; global operator data and configuration, including approved protected read-only global projections | page: `/login` / `/`; mutation: empty `401` / empty `403` | Panel routes stay under `/admin`; global order, payment-link, and analytics projections never grant an owner mutation or reuse a merchant route/service. |
+| `/admin-access` | retained administrator authorization probe; no business capability | empty `401` for unauthenticated; empty `403` for `USER` or disabled principals; empty `204` for active `ADMIN` | This unprefixed compatibility endpoint is the sole non-panel administrative route exception. It never redirects, reads business data, or mutates state. |
+| `/admin/users/[id]/nautt-credentials` | retired denial-only endpoint; no role owns this mutation | empty `401` for unauthenticated; empty `403` for either authenticated role | It has no redirect or successor, parses no target or key, and performs no credential/provider work. A `USER` manages only its own credential through the merchant route family. |
 | `/login`, `/login/submit`, `/logout`, `/language-preference` | shared authentication/session or self-only preference | existing generic authentication and opaque mutation outcomes | URLs remain unprefixed; login success dispatches through `/`, and preference never targets another principal. |
 | `/pay/[identifier]`, `/store/[slug]`, `/api/payment-links/[identifier]*`, `/api/nautt/webhooks`, `/api/health` | sessionless public/protocol surface; no panel capability | their existing public/protocol outcomes | Never route through either panel or alter public identifiers, rate limits, callback rules, response shapes, or no-store/opaque semantics. |
 | `/[lang]/*` legacy UI and mutation stubs | permanently absent | `404` for every visitor | Persisted `pt-BR`/`en` selection remains unprefixed; no locale-prefixed compatibility redirect is introduced. |
