@@ -15,11 +15,11 @@
 ## Phase 7.1 - Exchange currencies and merchant settings
 
 - **Status:** pendente
-- **Description:** Establish the closed currency catalog and persist the complete merchant store configuration.
+- **Description:** Establish the dynamic administrator-registered exchange-currency registry and persist the complete merchant store configuration.
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[7.1.1-model-supported-exchange-currencies]] | Model active BRL, ARS, BOB, and COP exchange currencies, Nautt UUID mappings, and safe selection defaults. · size: L | 001_initial_task |
+| [[7.1.1-model-supported-exchange-currencies]] | Model the dynamic supported-exchange-currency registry: ISO 4217 code identity, administrator-registered Nautt UUID mappings, single-active semantics, and safe selection defaults. · size: L | 001_initial_task |
 | [[7.1.2-extend-merchant-store-settings]] | Persist theme, logo, layout, store/ad-hoc toggles, slug, display name, and one active default currency. · size: L | 001_initial_task |
 | [[7.1.3-build-store-settings-and-logo-management]] | Deliver the bilingual store settings UI with previews, constraints, logo upload, and official fallback. · size: L | 001_initial_task |
 

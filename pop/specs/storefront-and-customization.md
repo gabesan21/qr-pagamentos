@@ -4,7 +4,7 @@
 - **Epoch/Phase:** [[roadmap/5-storefront-and-production|Phase 5.1-5.2]]
 - **Status:** aprovada
 - **Created:** 2026-07-21
-- **Updated:** 2026-07-24 — owner product categories remain excluded from the current redacted storefront projection until the grouped public-store task.
+- **Updated:** 2026-07-24 — task 7.1.1 establishes the exchange-currency registry the future store default currency will depend on.
 
 ## What it covers
 
@@ -20,6 +20,7 @@ This spec defines the durable per-owner storefront contract: the persisted setti
 - Storefront settings change only through the authenticated owner's own re-authorized settings save, scoped to that owner and an `ACTIVE` account; no administrator, cross-owner, or public mutation path exists. Saves report only opaque changed/failed/conflict outcomes.
 - **Public redaction boundary:** the future public storefront page may expose only the slug, the two display names, the accent color, and the owner's active products that have at least one active payment link, each linking to its checkout. It never exposes the owner identifier, username, email, checkout data policy, credential state, or any other account data.
 - Owner product categories and the product/category association are not part of the current public storefront projection. Their grouped public presentation belongs to task 9.1.1; until then, category identity, names, state, version, ownership, and timestamps remain server-only.
+- The store's default exchange currency is not part of this settings record yet. Task 7.1.2 will persist one store currency chosen from the active mappings of the dynamic registry defined in [[specs/catalog-and-payment-links|Catalog and payment links]]: an assignment requires an active mapping at save time (the resolver's explicit unavailable signal otherwise), and no store or storefront UI may expose provider UUIDs, inactive codes, or a public currency-discovery surface.
 
 ## Implemented slices
 

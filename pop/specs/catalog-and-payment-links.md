@@ -4,7 +4,7 @@
 - **Epoch/Phase:** [[roadmap/3-catalog-and-payment-links|Epoch 3]]
 - **Status:** aprovada
 - **Created:** 2026-07-20
-- **Updated:** 2026-07-24 — task 7.2.1 adds owner-scoped bilingual product categories without changing V1 public projections.
+- **Updated:** 2026-07-24 — task 7.1.1 adds the dynamic administrator-registered supported-exchange-currency registry with single-active ISO-code mappings.
 
 ## What it covers
 
@@ -25,6 +25,18 @@ This spec defines the administrator-managed catalog of Nautt provider UUIDs, acc
 - The application never sources these UUIDs from environment variables, request headers, or browser input; they are always read from this catalog.
 - A currency pair or payment method can be marked inactive; inactive records cannot be selected for new payment links but do not break existing links.
 - The catalog UI reuses the shared shadcn-based admin design system, responsive tables, and accessible forms.
+
+### Supported exchange currencies (dynamic registry)
+
+- The ISO 4217 alphabetic code (uppercase `[A-Z]{3}`, format-validated at the service boundary, with a database `AAA`–`ZZZ` bounds check as defense-in-depth) is the only application currency identity; there is no closed code list anywhere in code or schema.
+- Each active mapping binds one code to the administrator-registered Nautt `currency_uuid` and `exchange_currency_uuid` (canonical lowercase, validated at the server boundary, sourced only from the admin mutation — never from environment variables, headers, or owner browser fields) plus a display label carried by the pair row. No other provider semantics (direction, limits, `deposit_fields`) are modeled or inferred.
+- The `supported_exchange_currency` pointer table is the sole authority for code-based new-selection eligibility: one pointer row per code (primary key), with `pair_id` unique and a restrictive foreign key to the retained catalog pair. The legacy catalog `active` flag keeps governing legacy code-less rows only.
+- Registration inserts the pair row and the pointer in one serializing transaction; replacement inserts the new pair row or re-points to a retained historical row and moves the pointer atomically; deactivation removes only the pointer row. Pair rows are immutable retained history: their UUID columns never change after insert and the application never physically deletes or remaps them (runtime holds no `DELETE` on `catalog_currency_pair`).
+- Re-registering a `(currency_uuid, exchange_currency_uuid)` pair already present never inserts a second row: a new-mapping request receives one typed duplicate-pair conflict, while replace re-points the pointer to the retained row — the sanctioned restore path after a mistaken deactivation. The pair uniqueness constraint is preserved unchanged.
+- Deactivation removes only new-selection eligibility: existing links, order snapshots, and read projections keep their recorded UUID meaning.
+- The deterministic default is the active `BRL` mapping when one exists, otherwise an explicit no-default/unavailable result; the resolver never falls back to another code, insertion order, label order, or an inactive row.
+- Missing configuration is a normal operational state: dependent features (store default in 7.1.2, product currency in 7.2.2) require an active mapping only at new-assignment time and consume the shared resolver's discriminated available/unavailable read or its typed `NoActiveExchangeCurrencyMapping` error.
+- Only an active administrator mutates mappings through the re-authorized `POST /admin/exchange-currencies` route (origin-guard first, empty `401`/`403`, opaque outcomes); active owners read only active redacted `{ code, label }` choices — no provider UUIDs, inactive rows, or timestamps — and no public/sessionless discovery surface exists. The administrator management UI belongs to Epoch 10; this slice ships only the mutation route and the service.
 
 ### Products
 
@@ -51,6 +63,7 @@ This spec defines the administrator-managed catalog of Nautt provider UUIDs, acc
 - **Task 3.3.2:** Sessionless exact-token public resolution with a localized, redacted DTO, strict read-time expiry, and uniform empty `404` plus `no-store` for unavailable input. It performs no write, provider request, checkout, order, or automatic consumption.
 - **Task 4.1.1:** Required persisted owner isolation for products and payment links, moved product/link management to the authenticated owner surface, and added the account-level checkout-data policy. The public resolver and checkout/order/provider behavior remain unchanged.
 - **Task 7.2.1:** Owner-scoped bilingual category persistence, exact per-owner localized-name uniqueness, owner-only opaque create/edit/deactivate service, expected-version CAS, and atomic safe reassignment through a nullable same-owner product bridge. Categories remain absent from current public DTOs and UI.
+- **Task 7.1.1:** Dynamic administrator-registered supported-exchange-currency registry: ISO-code identity, single-active pointer table with transactional register/replace/deactivate, duplicate-pair typed conflict and re-point restore, immutable retained pair history, redacted active-only owner reads, deterministic BRL-or-explicit-none default, and the typed unavailable gating signal for dependent features. No management UI or public surface.
 
 ### Payment links
 
