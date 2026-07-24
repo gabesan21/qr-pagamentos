@@ -189,6 +189,9 @@ model Product {
   descriptionEn   String   @map("description_en") @db.VarChar(2000)
   price           String   @db.Text
   active          Boolean  @default(true)
+  currencyCode    String?  @map("currency_code") @db.VarChar(3)
+  imageMediaId    String?  @map("image_media_id") @db.VarChar(43)
+  archivedAt      DateTime? @map("archived_at") @db.Timestamptz(3)
   version         Int      @default(0) @db.Integer
   createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)

@@ -1,0 +1,95 @@
+{
+  "version": 1,
+  "id": "20260724220000_product_catalog_media",
+  "operations": [
+    {
+      "op": "addColumn",
+      "table": {
+        "schema": "app",
+        "name": "product"
+      },
+      "column": {
+        "name": "currency_code",
+        "type": {
+          "name": "varchar",
+          "length": 3
+        },
+        "nullable": true
+      }
+    },
+    {
+      "op": "addColumn",
+      "table": {
+        "schema": "app",
+        "name": "product"
+      },
+      "column": {
+        "name": "image_media_id",
+        "type": {
+          "name": "varchar",
+          "length": 43
+        },
+        "nullable": true
+      }
+    },
+    {
+      "op": "addColumn",
+      "table": {
+        "schema": "app",
+        "name": "product"
+      },
+      "column": {
+        "name": "archived_at",
+        "type": {
+          "name": "timestamptz"
+        },
+        "nullable": true
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "product"
+      },
+      "constraint": {
+        "kind": "check",
+        "name": "product_currency_code_bounds",
+        "expression": {
+          "op": "and",
+          "items": [
+            {
+              "op": "gte",
+              "left": {
+                "kind": "column",
+                "name": "currency_code"
+              },
+              "right": {
+                "kind": "literal",
+                "literal": {
+                  "kind": "string",
+                  "value": "AAA"
+                }
+              }
+            },
+            {
+              "op": "lte",
+              "left": {
+                "kind": "column",
+                "name": "currency_code"
+              },
+              "right": {
+                "kind": "literal",
+                "literal": {
+                  "kind": "string",
+                  "value": "ZZZ"
+                }
+              }
+            }
+          ]
+        },
+        "notValid": false
+      }
+    }
+  ]
+}
