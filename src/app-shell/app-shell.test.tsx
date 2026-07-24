@@ -33,9 +33,13 @@ describe("role shell contract", () => {
   it("fixes five distinct routes for each persona", () => {
     const admin = readFileSync(`${root}/src/app/admin/layout.tsx`, "utf8");
     const merchant = readFileSync(`${root}/src/app/(merchant)/layout.tsx`, "utf8");
-    expect(admin.match(/href:/g)).toHaveLength(5);
-    expect(merchant.match(/href:/g)).toHaveLength(5);
+    const adminNavigation = admin.match(/const navigation[\s\S]*?= \[([\s\S]*?)\];/)?.[1] ?? "";
+    const merchantNavigation = merchant.match(/const navigation[\s\S]*?= \[([\s\S]*?)\];/)?.[1] ?? "";
+    expect(adminNavigation.match(/href:/g)).toHaveLength(5);
+    expect(merchantNavigation.match(/href:/g)).toHaveLength(5);
     expect(admin).not.toContain('href: "/"');
     expect(merchant).not.toContain('href: "/admin"');
+    expect(merchant).toContain('profileLink={{ href: "/profile"');
+    expect(admin).not.toContain("profileLink=");
   });
 });

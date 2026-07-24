@@ -343,6 +343,23 @@ try {
   await expectSqlState(runtime, `UPDATE app."user" SET preferred_locale = 'es' WHERE id = '${otherUserId}'`, { code: "23514", constraint: "user_preferred_locale_check" });
   console.log("PASS language-preference-schema");
 
+  const profileColumn = await runtime.query(`
+    SELECT data_type, udt_name, is_nullable, column_default
+    FROM information_schema.columns
+    WHERE table_schema = 'app' AND table_name = 'user' AND column_name = 'profile_version'
+  `);
+  assert(JSON.stringify(profileColumn.rows) === JSON.stringify([{
+    data_type: "integer",
+    udt_name: "int4",
+    is_nullable: "NO",
+    column_default: "0",
+  }]), "Profile version column differs from the contract");
+  const profileDefault = await runtime.query(`SELECT profile_version FROM app."user" WHERE id = $1`, [otherUserId]);
+  assert(profileDefault.rows[0]?.profile_version === 0, "Profile version does not default to zero");
+  await runtime.query(`UPDATE app."user" SET profile_version = profile_version + 1 WHERE id = $1`, [otherUserId]);
+  await expectSqlState(runtime, `UPDATE app."user" SET profile_version = -1 WHERE id = '${otherUserId}'`, { code: "23514", constraint: "user_profile_version_nonnegative" });
+  console.log("PASS merchant-profile-schema");
+
   const storefrontColumns = await runtime.query(`
     SELECT column_name, data_type, udt_name, is_nullable
     FROM information_schema.columns

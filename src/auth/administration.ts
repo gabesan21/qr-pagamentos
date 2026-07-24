@@ -2,6 +2,7 @@ import { getDatabaseClient } from "../db/client";
 import { normalizeOptionalEmail, normalizeUsername, toUserDto, USER_ROLES, type UserRole, type UserStatus } from "./identity";
 import { hashPassword } from "./password";
 import { ForbiddenError, type Principal } from "./authorization";
+import { acquireUserSessionLock } from "./session";
 
 type UserRecord = Principal;
 type MutationStore = {
@@ -17,6 +18,7 @@ type MutationStore = {
 
 export interface AdministrationStore extends MutationStore {
   withAuthorizationLock<T>(work: (store: MutationStore) => Promise<T>): Promise<T>;
+  withUserLock<T>(userId: string, work: (store: MutationStore) => Promise<T>): Promise<T>;
 }
 
 export class FinalAdministratorError extends Error {}
@@ -62,7 +64,7 @@ export function createAdministrationService(store: AdministrationStore) {
     async changePassword(actor: Principal, targetId: string, password: string) {
       requireAdmin(actor);
       const passwordHash = await hashPassword(password);
-      await store.withAuthorizationLock(async (locked) => {
+      await store.withUserLock(targetId, async (locked) => {
         if (!await locked.findUser(targetId)) throw new AdministrationTargetNotFoundError("Administrative target was not found");
         await locked.updatePassword(targetId, passwordHash);
         await locked.revokeSessions(targetId);
@@ -116,6 +118,12 @@ function prismaStore(): AdministrationStore {
     async withAuthorizationLock(work) {
       return db.$transaction(async (transaction) => {
         await transaction.$queryRaw`SELECT pg_advisory_xact_lock(hashtext('qr:authorization:active-admin'))`;
+        return work(scoped(transaction as typeof db));
+      });
+    },
+    async withUserLock(userId, work) {
+      return db.$transaction(async (transaction) => {
+        await acquireUserSessionLock(transaction, userId);
         return work(scoped(transaction as typeof db));
       });
     },

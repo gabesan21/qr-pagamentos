@@ -13,6 +13,8 @@
 .app-shell__navigation-index { font-size: var(--type-small); font-variant-numeric: tabular-nums; }
 .app-shell__principal { color: var(--text-secondary); display: flex; flex-direction: column; font-size: var(--type-small); gap: var(--space-1); overflow-wrap: anywhere; }
 .app-shell__username { color: var(--text-primary); font-weight: var(--font-weight-strong); }
+.app-shell__profile-link { align-items: flex-start; color: var(--text-secondary); display: flex; flex-direction: column; gap: var(--space-1); min-height: var(--control-min-height); padding-block: var(--space-2); text-decoration: underline; text-underline-offset: var(--space-1); }
+.app-shell__profile-link:hover { color: var(--text-primary); }
 .app-shell__sign-out { width: 100%; }
 .app-shell__content { display: grid; gap: var(--space-8); margin-inline-start: calc(var(--space-12) * 5); max-width: none; min-width: 0; }
 .app-shell__mobile-header, .app-shell__mobile-navigation { display: none; }

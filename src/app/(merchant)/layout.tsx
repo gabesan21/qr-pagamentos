@@ -29,6 +29,7 @@ export default async function MerchantLayout({ children }: Readonly<{ children: 
       }}
       locale={locale}
       navigation={navigation}
+      profileLink={{ href: "/profile", label: dictionary.profileLink }}
       roleLabel={dictionary.shellMerchant}
       username={principal.username}
     >

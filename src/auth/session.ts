@@ -8,7 +8,7 @@ import { verifyPassword } from "./password";
 export const SESSION_IDLE_MS = 30 * 60 * 1000;
 export const SESSION_ABSOLUTE_MS = 12 * 60 * 60 * 1000;
 export const SESSION_LIMIT = 5;
-const UNKNOWN_CREDENTIAL_RECORD = "scrypt$v=1$N=131072,r=8,p=1$AAECAwQFBgcICQoLDA0ODw$GylG2nH0EXnoO5ncM4QtFXQbh8QSHIx_N4HB34ZPtYs";
+export const UNKNOWN_CREDENTIAL_RECORD = "scrypt$v=1$N=131072,r=8,p=1$AAECAwQFBgcICQoLDA0ODw$GylG2nH0EXnoO5ncM4QtFXQbh8QSHIx_N4HB34ZPtYs";
 
 type StoredSession = { id: string; userId: string; tokenDigest: string; createdAt: Date; lastSeenAt: Date; absoluteExpiresAt: Date };
 type Credential = { id: string; status: string; passwordHash: string };
@@ -43,28 +43,37 @@ export function createSessionService(
   clock: () => Date = () => new Date(),
   verifyCredential: (plaintext: string, record: string) => Promise<boolean> = verifyPassword,
 ) {
+  async function createLocked(lockedStore: SessionStore, userId: string) {
+    const now = clock();
+    const token = randomBytes(32).toString("base64url");
+    await lockedStore.removeExpiredForUser(userId, now);
+    const active = await lockedStore.activeSessions(userId);
+    for (const session of active.sort((left, right) => left.createdAt.getTime() - right.createdAt.getTime() || left.id.localeCompare(right.id)).slice(0, Math.max(0, active.length - SESSION_LIMIT + 1))) {
+      await lockedStore.deleteSession(session.id);
+    }
+    await lockedStore.createSession({ userId, tokenDigest: digest(token), createdAt: now, lastSeenAt: now, absoluteExpiresAt: new Date(now.getTime() + SESSION_ABSOLUTE_MS) });
+    return token;
+  }
+
   return {
     async signIn(usernameInput: string, password: string) {
       let username: string | null = null;
       try { username = normalizeUsername(usernameInput); } catch { /* Preserve the generic credential path. */ }
-      const credential: Credential | null = username ? await store.findCredential(username) : null;
-      const passwordMatches = await verifyCredential(password, credential?.passwordHash ?? UNKNOWN_CREDENTIAL_RECORD);
-      if (!credential || credential.status !== "ACTIVE" || !passwordMatches) return null;
-      return this.create(credential.id);
+      const candidate: Credential | null = username ? await store.findCredential(username) : null;
+      if (!candidate) {
+        await verifyCredential(password, UNKNOWN_CREDENTIAL_RECORD);
+        return null;
+      }
+      return store.withUserLock(candidate.id, async (lockedStore) => {
+        const credential = username ? await lockedStore.findCredential(username) : null;
+        const passwordMatches = await verifyCredential(password, credential?.passwordHash ?? UNKNOWN_CREDENTIAL_RECORD);
+        if (!credential || credential.id !== candidate.id || credential.status !== "ACTIVE" || !passwordMatches) return null;
+        return createLocked(lockedStore, credential.id);
+      });
     },
 
     async create(userId: string) {
-      const now = clock();
-      const token = randomBytes(32).toString("base64url");
-      await store.withUserLock(userId, async (lockedStore) => {
-        await lockedStore.removeExpiredForUser(userId, now);
-        const active = await lockedStore.activeSessions(userId);
-        for (const session of active.sort((left, right) => left.createdAt.getTime() - right.createdAt.getTime() || left.id.localeCompare(right.id)).slice(0, Math.max(0, active.length - SESSION_LIMIT + 1))) {
-          await lockedStore.deleteSession(session.id);
-        }
-        await lockedStore.createSession({ userId, tokenDigest: digest(token), createdAt: now, lastSeenAt: now, absoluteExpiresAt: new Date(now.getTime() + SESSION_ABSOLUTE_MS) });
-      });
-      return token;
+      return store.withUserLock(userId, (lockedStore) => createLocked(lockedStore, userId));
     },
 
     async validate(token: string | undefined) {

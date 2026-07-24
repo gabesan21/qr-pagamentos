@@ -74,6 +74,8 @@ checkout, storefront, or payment-provider surfaces.
   only client boundary owns segment-safe active state and mobile disclosure.
 - At 768 CSS pixels and below, one 44px disclosure replaces desktop navigation in the accessibility tree with the same links and logout. Active state has `aria-current`, a non-color cue, and a skip target.
 - Evidence binds 48 base and two mobile-open captures, nested routes, accessibility, and a review with no unresolved severity 2+.
+- The merchant profile uses separate identity and password cards from the owned inventory; its secondary account link leaves both fixed five-entry navigation maps unchanged.
+- Its 53-file evidence binds 36 six-theme/bilingual/responsive defaults and 14 localized interactions, including click/Enter pending state, session revocation, 320px reflow, focus, targets, axe, and runtime isolation.
 
 ## Out of scope
 
@@ -102,6 +104,7 @@ consistent state behavior outrank marketing-page novelty.
 
 ## Implemented slice
 
+- [[7.3.1-build-merchant-profile-management]] (2026-07-24) — composed the bilingual secondary merchant profile from existing cards, alerts, fields, inputs, buttons, skeletons, and spinners; added native payload-preserving pending scopes and the closed 50-PNG/53-file production evidence contract without a new primitive or theme variant.
 - [[6.2.2-create-official-brand-assets]] (2026-07-24) — delivered the original four-identity family, deterministic SVG/PNG/ICO manifest, accessible composition, and bounded integrations.
 - [[6.3.1-build-pagination-filter-table-foundation]] (2026-07-24) — added the role-neutral data-directory composition with native GET controls, canonical links, six states, responsive facts/table semantics, bilingual copy, and six-theme evidence. Registry preflight was network-blocked, so no source was duplicated.
 - [[6.2.1-create-six-theme-design-system]] (2026-07-23) — delivered six PIX settlement desk personalities, a DTCG-shaped token graph, deterministic CSS, contrast/gamut/motion gates, safe fallbacks, and 24-capture evidence.

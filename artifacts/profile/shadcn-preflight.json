@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "pinnedVersion": "4.13.0",
+  "components": [
+    "card",
+    "alert",
+    "field",
+    "input",
+    "button",
+    "separator"
+  ],
+  "commands": [
+    {
+      "command": "shadcn info --json",
+      "status": 0,
+      "stdout": "{\n  \"project\": {\n    \"framework\": \"Next.js\",\n    \"frameworkName\": \"next-app\",\n    \"frameworkVersion\": \"16.2.10\",\n    \"srcDirectory\": true,\n    \"rsc\": true,\n    \"typescript\": true,\n    \"tailwindVersion\": \"v4\",\n    \"tailwindConfig\": null,\n    \"tailwindCss\": \"src/app/globals.css\",\n    \"importAlias\": \"@\"\n  },\n  \"config\": {\n    \"style\": \"radix-nova\",\n    \"base\": \"radix\",\n    \"rsc\": true,\n    \"typescript\": true,\n    \"iconLibrary\": \"lucide\",\n    \"rtl\": false,\n    \"menuColor\": \"default\",\n    \"menuAccent\": \"subtle\",\n    \"aliases\": {\n      \"components\": \"@/components\",\n      \"utils\": \"@/lib/utils\",\n      \"ui\": \"@/components/ui\",\n      \"lib\": \"@/lib\",\n      \"hooks\": \"@/hooks\"\n    },\n    \"resolvedPaths\": {\n      \"cwd\": \"/home/gabesan/Projetos/Vibes/ProjectOfProjects/categories/applications/qr-pagamentos/pop/worktrees/7.3.1-build-merchant-profile-management\",\n      \"tailwindConfig\": null,\n      \"tailwindCss\": \"/home/gabesan/Projetos/Vibes/ProjectOfProjects/categories/applications/qr-pagamentos/pop/worktrees/7.3.1-build-merchant-profile-management/src/app/globals.css\",\n      \"utils\": \"/home/gabesan/Projetos/Vibes/ProjectOfProjects/categories/applications/qr-pagamentos/pop/worktrees/7.3.1-build-merchant-profile-management/src/lib/utils\",\n      \"components\": \"/home/gabesan/Projetos/Vibes/ProjectOfProjects/categories/applications/qr-pagamentos/pop/worktrees/7.3.1-build-merchant-profile-management/src/components\",\n      \"lib\": \"/home/gabesan/Projetos/Vibes/ProjectOfProjects/categories/applications/qr-pagamentos/pop/worktrees/7.3.1-build-merchant-profile-management/src/lib\",\n      \"hooks\": \"/home/gabesan/Projetos/Vibes/ProjectOfProjects/categories/applications/qr-pagamentos/pop/worktrees/7.3.1-build-merchant-profile-management/src/hooks\",\n      \"ui\": \"/home/gabesan/Projetos/Vibes/ProjectOfProjects/categories/applications/qr-pagamentos/pop/worktrees/7.3.1-build-merchant-profile-management/src/components/ui\"\n    },\n    \"registries\": {\n      \"@shadcn\": \"https://ui.shadcn.com/r/styles/{style}/{name}.json\"\n    }\n  },\n  \"preset\": {\n    \"code\": \"b5aq\",\n    \"fallbacks\": [\n      \"theme\",\n      \"chartColor\",\n      \"fontHeading\",\n      \"radius\"\n    ],\n    \"values\": {\n      \"style\": \"nova\",\n      \"baseColor\": \"neutral\",\n      \"theme\": \"neutral\",\n      \"chartColor\": \"neutral\",\n      \"iconLibrary\": \"lucide\",\n      \"font\": \"ibm-plex-sans\",\n      \"fontHeading\": \"inherit\",\n      \"radius\": \"default\",\n      \"menuAccent\": \"subtle\",\n      \"menuColor\": \"default\"\n    }\n  },\n  \"components\": [\n    \"alert\",\n    \"badge\",\n    \"button\",\n    \"card\",\n    \"checkbox\",\n    \"field\",\n    \"input\",\n    \"label\",\n    \"native-select\",\n    \"separator\",\n    \"skeleton\",\n    \"spinner\",\n    \"table\",\n    \"textarea\"\n  ],\n  \"links\": {\n    \"docs\": \"https://ui.shadcn.com/docs\",\n    \"components\": \"https://ui.shadcn.com/docs/components/radix/[component].md\",\n    \"ui\": \"https://ui.shadcn.com/code/apps/v4/registry/bases/radix/ui/[component].tsx\",\n    \"examples\": \"https://ui.shadcn.com/code/apps/v4/registry/bases/radix/examples/[component]-example.tsx\",\n    \"schema\": \"https://ui.shadcn.com/schema.json\"\n  }\n}\n",
+      "stderr": ""
+    },
+    {
+      "command": "shadcn docs card alert field input button separator",
+      "status": 0,
+      "stdout": "card\n  - docs      https://ui.shadcn.com/docs/components/radix/card\n  - examples  https://ui.shadcn.com/code/apps/v4/registry/bases/radix/examples/card-example.tsx\n\nalert\n  - docs      https://ui.shadcn.com/docs/components/radix/alert\n  - examples  https://ui.shadcn.com/code/apps/v4/registry/bases/radix/examples/alert-example.tsx\n\nfield\n  - docs      https://ui.shadcn.com/docs/components/radix/field\n  - examples  https://ui.shadcn.com/code/apps/v4/registry/bases/radix/examples/field-example.tsx\n\ninput\n  - docs      https://ui.shadcn.com/docs/components/radix/input\n  - examples  https://ui.shadcn.com/code/apps/v4/registry/bases/radix/examples/input-example.tsx\n\nbutton\n  - docs      https://ui.shadcn.com/docs/components/radix/button\n  - examples  https://ui.shadcn.com/code/apps/v4/registry/bases/radix/examples/button-example.tsx\n\nseparator\n  - docs      https://ui.shadcn.com/docs/components/radix/separator\n  - examples  https://ui.shadcn.com/code/apps/v4/registry/bases/radix/examples/separator-example.tsx\n  - api       https://www.radix-ui.com/docs/primitives/components/separator.md\n\n",
+      "stderr": ""
+    }
+  ],
+  "sourceHashesBefore": {
+    "src/components/ui/card.tsx": "d8113cbf964f8d1aadf2649d2944d8bbc6e3cfd49d36746f76868cbc4dde3cfe",
+    "src/components/ui/alert.tsx": "04616b15e08b48c1589246da74e83ba5f76c3e91f3479c005ce2fa9d56826ca4",
+    "src/components/ui/field.tsx": "928964228c6841e2c21ae6c444720c5f7238dadf374e8ecee43cd597b4148a2c",
+    "src/components/ui/input.tsx": "caa93443b53e5bd0a5eff34863baaff0fc9ac9d6d45625e4ee172806626300b6",
+    "src/components/ui/button.tsx": "3edccaa1b9df790e6d89f285816583bcf607fc6e72b2e189db1ce95b454bd9eb",
+    "src/components/ui/separator.tsx": "c924a82e99fda03684c17238d04eec857edc83977da2ee601795e94e52b4828f"
+  },
+  "sourceHashesAfter": {
+    "src/components/ui/card.tsx": "d8113cbf964f8d1aadf2649d2944d8bbc6e3cfd49d36746f76868cbc4dde3cfe",
+    "src/components/ui/alert.tsx": "04616b15e08b48c1589246da74e83ba5f76c3e91f3479c005ce2fa9d56826ca4",
+    "src/components/ui/field.tsx": "928964228c6841e2c21ae6c444720c5f7238dadf374e8ecee43cd597b4148a2c",
+    "src/components/ui/input.tsx": "caa93443b53e5bd0a5eff34863baaff0fc9ac9d6d45625e4ee172806626300b6",
+    "src/components/ui/button.tsx": "3edccaa1b9df790e6d89f285816583bcf607fc6e72b2e189db1ce95b454bd9eb",
+    "src/components/ui/separator.tsx": "c924a82e99fda03684c17238d04eec857edc83977da2ee601795e94e52b4828f"
+  },
+  "sourceDrift": false
+}

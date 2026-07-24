@@ -8,9 +8,11 @@ import { defaultLocale } from "@/i18n/locales";
 
 import { LoginSubmit } from "./login-submit";
 
-export default async function LoginPage({ searchParams }: Readonly<{ searchParams: Promise<{ error?: string }> }>) {
+export default async function LoginPage({ searchParams }: Readonly<{ searchParams: Promise<{ error?: string; password?: string }> }>) {
   const dictionary = getDictionary(defaultLocale);
-  const error = (await searchParams).error === "invalid-credentials";
+  const notices = await searchParams;
+  const error = notices.error === "invalid-credentials" && notices.password === undefined;
+  const passwordChanged = notices.password === "changed" && notices.error === undefined;
 
   return <main className="login-page">
     <Card className="login-card">
@@ -22,6 +24,7 @@ export default async function LoginPage({ searchParams }: Readonly<{ searchParam
       <CardContent>
         <form action="/login/submit" className="login-form" id="login-form" method="post">
           {error && <Alert variant="destructive"><AlertDescription>{dictionary.invalidCredentials}</AlertDescription></Alert>}
+          {passwordChanged && <Alert role="status" variant="success"><AlertDescription>{dictionary.passwordChanged}</AlertDescription></Alert>}
           <FieldGroup>
             <Field>
               <FieldLabel htmlFor="username">{dictionary.usernameLabel}</FieldLabel>

@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 
@@ -11,6 +12,7 @@ export function AppShell({
   labels,
   locale,
   navigation,
+  profileLink,
   roleLabel,
   username,
 }: Readonly<{
@@ -19,6 +21,7 @@ export function AppShell({
   labels: ShellLabels;
   locale: string;
   navigation: readonly ShellNavigationItem[];
+  profileLink?: Readonly<{ href: string; label: string }>;
   roleLabel: string;
   username: string;
 }>) {
@@ -36,7 +39,12 @@ export function AppShell({
           openLabel={labels.openNavigation}
         />
         <div className="app-shell__principal">
-          <span className="app-shell__username">{username}</span>
+          {profileLink ? (
+            <Link className="app-shell__profile-link" href={profileLink.href}>
+              <span className="app-shell__username">{username}</span>
+              <span>{profileLink.label}</span>
+            </Link>
+          ) : <span className="app-shell__username">{username}</span>}
           <span>{roleLabel}</span>
           <span>{labels.locale}: {locale}</span>
         </div>
@@ -49,6 +57,7 @@ export function AppShell({
       <div className="app-shell__mobile-header">
         <div className="app-shell__identity">{identity}</div>
         <MobileShellNavigation
+          accountLink={profileLink}
           closeLabel={labels.closeNavigation}
           items={navigation}
           label={labels.navigation}

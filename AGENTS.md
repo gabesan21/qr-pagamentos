@@ -114,7 +114,16 @@ Username and password are the only login credentials; email is optional and neve
   only pathname and mobile disclosure state. Page routes are `/admin`,
   `/admin/orders`, `/admin/payment-links`, `/admin/accounts`,
   `/admin/settings` and `/`, `/orders`, `/links`, `/catalog`, `/settings`;
-  existing POST routes remain unchanged.
+  `/profile` is a secondary merchant account affordance, never a sixth primary
+  entry.
+- `src/auth/profile.ts` owns active-merchant profile reads, username/email CAS,
+  and current-password-proven rotation. Profile POSTs are
+  `/profile/identity` and `/profile/password`: identity success retains
+  sessions; password success atomically replaces the exact observed credential,
+  revokes every session, expires the cookie, and returns to username-only
+  login. Never grant this capability to administrators, use email for login,
+  expose identity through public/store DTOs, or execute zero/two verification
+  scrypts on an authorized parsed rotation attempt.
 - Use the exact Node and pnpm pins in `.node-version` and `package.json`; install with `pnpm install --frozen-lockfile`.
 - Run `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm build` independently, or `pnpm check` for the aggregate gate.
 - Run `pnpm db:test` separately for the disposable PostgreSQL contract; it is never part of the database-free `pnpm check` gate.

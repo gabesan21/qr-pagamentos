@@ -679,6 +679,9 @@ p { text-wrap: pretty; }
 .login-page { display: grid; min-height: 100svh; place-items: center; }
 .login-card { max-width: var(--layout-max); width: 100%; }
 .login-form { display: grid; gap: var(--space-5); }
+.profile-workspace { display: grid; gap: var(--space-6); }
+.profile-workspace__cards { align-items: start; display: grid; gap: var(--space-6); grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--layout-max)), 1fr)); }
+.profile-form__fieldset { border: 0; display: contents; margin: 0; min-width: 0; padding: 0; }
 .checkout-shell { display: grid; gap: var(--space-8); max-width: var(--layout-max); }
 .checkout-description { color: var(--text-secondary); margin: 0; max-width: var(--layout-max); white-space: pre-wrap; }
 .checkout-card { width: 100%; }

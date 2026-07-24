@@ -30,6 +30,7 @@ function storeWith(users: TestUser[] = [admin]): AdministrationStore & { session
     validatesTargetToken: () => sessions.includes("target"),
     get lockScopes() { return lockScopes; },
     async withAuthorizationLock(work) { lockScopes += 1; return work(mutationStore); },
+    async withUserLock(_userId, work) { lockScopes += 1; return work(mutationStore); },
   };
 }
 
