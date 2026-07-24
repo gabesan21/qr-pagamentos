@@ -76,6 +76,30 @@
       ],
       "test_seconds": 0,
       "result": "advanced"
+    },
+    {
+      "at": "2026-07-24T00:14:06-03:00",
+      "event": "stage",
+      "stage": "005_verifying",
+      "contexts": [
+        "verify2_6_2_1"
+      ],
+      "returns": 2,
+      "strategy": "mandatory full independent round-two review of the original request, complete diff, DTCG 2025.10 resolver ownership, production references and cycles, canonical token projection, gamut and fallback equivalence, rendered contrast, full gate classification, and all 24 exact-HEAD screenshots",
+      "tests": "12 focused token tests, token projection check, evidence manifest verification, lint, diff, and PoP validation pass; exact-HEAD run 20260724030235 and all 24 screenshots pass with no severity-2 visual finding; gamut/fallback/canonical-source repair passes, but valid resolver context remapping cannot affect generated theme or motion output because generation and tests still read hard-coded source paths",
+      "test_seconds": 3,
+      "result": "returned"
+    },
+    {
+      "at": "2026-07-24T00:17:38-03:00",
+      "event": "transition",
+      "from": "005_verifying",
+      "to": "004_processing",
+      "contexts": [
+        "verify2_6_2_1"
+      ],
+      "test_seconds": 0,
+      "result": "returned"
     }
   ]
 }
