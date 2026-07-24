@@ -59,6 +59,20 @@
       ],
       "test_seconds": 0,
       "result": "returned"
+    },
+    {
+      "at": "2026-07-24T03:16:34-03:00",
+      "event": "stage",
+      "stage": "002_planning",
+      "contexts": [
+        "plan_7_3_1"
+      ],
+      "strategy": "round-1 repair: exactly one instrumented current-password verification KDF per authorized attempt, finite identity/password redirect and cookie vocabulary, exact concurrency/UI/preflight commands, and a run-bound 50-capture/53-file profile evidence contract",
+      "tests": "approval blockers traced to revised durable behavior, closed response table, AC1-AC7 exact commands, generator/verifier paths, artifact grid/count/hash rules, JSON/diff checks, and standalone PoP validation",
+      "return": 1,
+      "return_limit": 2,
+      "test_seconds": 0,
+      "result": "replanned"
     }
   ]
 }
