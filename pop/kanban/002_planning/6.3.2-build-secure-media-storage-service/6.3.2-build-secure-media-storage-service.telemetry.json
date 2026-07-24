@@ -103,6 +103,18 @@
       ],
       "test_seconds": 0,
       "result": "returned"
+    },
+    {
+      "at": "2026-07-23T23:43:07-03:00",
+      "event": "stage",
+      "stage": "002_planning",
+      "contexts": [
+        "plan_6_3_2"
+      ],
+      "strategy": "final critical repair: descriptor-content digest identity and exact reconciliation command",
+      "tests": "round-2 blockers mapped to publication/read strategy, AC4, AC6, and AC7; artifact JSON and diff checks only",
+      "test_seconds": 0,
+      "result": "replanned"
     }
   ]
 }
