@@ -368,13 +368,18 @@ try {
   `);
   assert(JSON.stringify(storefrontColumns.rows) === JSON.stringify([
     { column_name: "storefront_accent_color", data_type: "character varying", udt_name: "varchar", is_nullable: "YES" },
+    { column_name: "storefront_default_currency_code", data_type: "character varying", udt_name: "varchar", is_nullable: "YES" },
     { column_name: "storefront_display_name_en", data_type: "character varying", udt_name: "varchar", is_nullable: "YES" },
     { column_name: "storefront_display_name_pt_br", data_type: "character varying", udt_name: "varchar", is_nullable: "YES" },
     { column_name: "storefront_enabled", data_type: "boolean", udt_name: "bool", is_nullable: "NO" },
+    { column_name: "storefront_layout", data_type: "character varying", udt_name: "varchar", is_nullable: "YES" },
+    { column_name: "storefront_logo_media_identifier", data_type: "character varying", udt_name: "varchar", is_nullable: "YES" },
     { column_name: "storefront_slug", data_type: "character varying", udt_name: "varchar", is_nullable: "YES" },
+    { column_name: "storefront_standalone_payments_enabled", data_type: "boolean", udt_name: "bool", is_nullable: "NO" },
+    { column_name: "storefront_theme_id", data_type: "character varying", udt_name: "varchar", is_nullable: "YES" },
   ]), "Storefront columns differ from the contract");
-  const storefrontDefaults = await runtime.query(`SELECT storefront_slug, storefront_display_name_pt_br, storefront_display_name_en, storefront_accent_color, storefront_enabled FROM app."user" WHERE id = $1`, [otherUserId]);
-  assert(JSON.stringify(storefrontDefaults.rows) === JSON.stringify([{ storefront_slug: null, storefront_display_name_pt_br: null, storefront_display_name_en: null, storefront_accent_color: null, storefront_enabled: false }]), "Storefront settings are not disabled and null by default");
+  const storefrontDefaults = await runtime.query(`SELECT storefront_slug, storefront_display_name_pt_br, storefront_display_name_en, storefront_accent_color, storefront_enabled, storefront_theme_id, storefront_layout, storefront_logo_media_identifier, storefront_standalone_payments_enabled, storefront_default_currency_code FROM app."user" WHERE id = $1`, [otherUserId]);
+  assert(JSON.stringify(storefrontDefaults.rows) === JSON.stringify([{ storefront_slug: null, storefront_display_name_pt_br: null, storefront_display_name_en: null, storefront_accent_color: null, storefront_enabled: false, storefront_theme_id: null, storefront_layout: null, storefront_logo_media_identifier: null, storefront_standalone_payments_enabled: true, storefront_default_currency_code: null }]), "Storefront settings are not disabled and null by default");
   await runtime.query(`UPDATE app."user" SET storefront_slug = 'second-user-store', storefront_display_name_pt_br = 'Loja', storefront_display_name_en = 'Store', storefront_accent_color = '#1A2B3C', storefront_enabled = TRUE WHERE id = $1`, [otherUserId]);
   const storefrontOwnerId = randomUUID();
   await runtime.query(`INSERT INTO app."user" (id, username, role, status) VALUES ($1, 'storefront.user', 'USER', 'ACTIVE')`, [storefrontOwnerId]);
@@ -385,6 +390,13 @@ try {
   await expectSqlState(runtime, `UPDATE app."user" SET storefront_display_name_en = E'two\nlines' WHERE id = '${storefrontOwnerId}'`, { code: "23514", constraint: "user_storefront_display_name_en_single_line" });
   await expectSqlState(runtime, `UPDATE app."user" SET storefront_accent_color = '#1a2b3c' WHERE id = '${storefrontOwnerId}'`, { code: "23514", constraint: "user_storefront_accent_color_format" });
   await expectSqlState(runtime, `UPDATE app."user" SET storefront_slug = NULL, storefront_enabled = TRUE WHERE id = '${storefrontOwnerId}'`, { code: "23514", constraint: "user_storefront_enabled_requires_slug" });
+  await expectSqlState(runtime, `UPDATE app."user" SET storefront_theme_id = 'neon-glass' WHERE id = '${storefrontOwnerId}'`, { code: "23514", constraint: "user_storefront_theme_id_closed" });
+  await expectSqlState(runtime, `UPDATE app."user" SET storefront_layout = 'grid' WHERE id = '${storefrontOwnerId}'`, { code: "23514", constraint: "user_storefront_layout_closed" });
+  await expectSqlState(runtime, `UPDATE app."user" SET storefront_default_currency_code = 'AA' WHERE id = '${storefrontOwnerId}'`, { code: "23514", constraint: "user_storefront_default_currency_code_bounds" });
+  await expectSqlState(runtime, `UPDATE app."user" SET storefront_default_currency_code = 'A1A' WHERE id = '${storefrontOwnerId}'`, { code: "23514", constraint: "user_storefront_default_currency_code_bounds" });
+  await runtime.query(`UPDATE app."user" SET storefront_theme_id = 'pix-paper', storefront_layout = 'table', storefront_logo_media_identifier = '${"l".repeat(43)}', storefront_standalone_payments_enabled = FALSE, storefront_default_currency_code = 'USD' WHERE id = $1`, [storefrontOwnerId]);
+  const storefrontExtension = await runtime.query(`SELECT storefront_theme_id, storefront_layout, storefront_logo_media_identifier, storefront_standalone_payments_enabled, storefront_default_currency_code FROM app."user" WHERE id = $1`, [storefrontOwnerId]);
+  assert(JSON.stringify(storefrontExtension.rows) === JSON.stringify([{ storefront_theme_id: "pix-paper", storefront_layout: "table", storefront_logo_media_identifier: "l".repeat(43), storefront_standalone_payments_enabled: false, storefront_default_currency_code: "USD" }]), "Store settings extension values did not persist");
   await runtime.query(`UPDATE app."user" SET storefront_slug = NULL, storefront_enabled = FALSE WHERE id = $1`, [otherUserId]);
   await runtime.query(`DELETE FROM app."user" WHERE id = $1`, [storefrontOwnerId]);
   console.log("PASS storefront-settings-schema");
