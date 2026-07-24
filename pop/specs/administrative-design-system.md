@@ -56,6 +56,11 @@ checkout, storefront, or payment-provider surfaces.
   accepted.
 - `DESIGN.md`, relevant DOX contracts, component tests, token lint, contrast
   checks, and browser checks remain synchronized with the shipped inventory.
+- Shared owned primitives, tokens, typography, themes, and accessibility rules
+  are role-neutral implementation sources. They do not imply a shared
+  administrator/merchant shell, navigation, route fallback, or business
+  capability: each role composes its own shell and exposes only the route areas
+  permitted by [[specs/administrative-foundation|Administrative foundation]].
 
 ## Out of scope
 
