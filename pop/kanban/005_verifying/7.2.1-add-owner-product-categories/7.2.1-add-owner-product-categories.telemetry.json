@@ -92,6 +92,17 @@
       ],
       "test_seconds": 0,
       "result": "returned"
+    },
+    {
+      "at": "2026-07-24T01:11:11-03:00",
+      "event": "transition",
+      "from": "004_processing",
+      "to": "005_verifying",
+      "contexts": [
+        "exec_7_2_1"
+      ],
+      "test_seconds": 0,
+      "result": "advanced"
     }
   ]
 }
