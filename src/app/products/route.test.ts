@@ -33,19 +33,19 @@ describe("owner product route", () => {
     requireOwnerFromCookie.mockResolvedValue(owner); ownerProtectedMutationResponse.mockReturnValue(null);
     const response = await POST(request({ action: "create", internalName: "Donation", ownerId: "forged" }));
     expect(create).toHaveBeenCalledWith(owner, expect.objectContaining({ internalName: "Donation" }));
-    expect(response.headers.get("location")).toBe("/?products=create");
+    expect(response.headers.get("location")).toBe("/catalog?products=create");
   });
   it("forwards the archive action with only the identifier and version", async () => {
     requireOwnerFromCookie.mockResolvedValue(owner); ownerProtectedMutationResponse.mockReturnValue(null);
     const response = await POST(request({ action: "archive", id: "product-id", version: "3" }));
     expect(archive).toHaveBeenCalledWith(owner, "product-id", "3");
-    expect(response.headers.get("location")).toBe("/?products=archive");
+    expect(response.headers.get("location")).toBe("/catalog?products=archive");
   });
   it("passes submitted catalog-media fields and omits absent ones", async () => {
     requireOwnerFromCookie.mockResolvedValue(owner); ownerProtectedMutationResponse.mockReturnValue(null);
     const withCatalog = await POST(request({ action: "update", id: "product-id", version: "1", currencyCode: "USD", imageMediaId: "", categoryId: "category-id" }));
     expect(update).toHaveBeenCalledWith(owner, "product-id", "1", expect.objectContaining({ currencyCode: "USD", imageMediaId: "", categoryId: "category-id" }));
-    expect(withCatalog.headers.get("location")).toBe("/?products=update");
+    expect(withCatalog.headers.get("location")).toBe("/catalog?products=update");
 
     update.mockClear();
     await POST(request({ action: "update", id: "product-id", version: "1" }));
