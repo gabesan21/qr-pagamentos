@@ -102,21 +102,9 @@ consistent state behavior outrank marketing-page novelty.
 
 ## Implemented slice
 
-- [[6.2.2-create-official-brand-assets]] (2026-07-24) — delivered the original
-  four-identity family, deterministic SVG/PNG/ICO manifest, accessible shared
-  composition, and bounded login/specimen/storefront fallback integrations.
-- [[6.3.1-build-pagination-filter-table-foundation]] (2026-07-24) — added the
-  role-neutral data-directory composition from the existing owned primitives,
-  with a labelled native GET toolbar, real canonical pagination links, six
-  closed states, one responsive accessibility tree (ruled facts below 768 CSS
-  pixels and a captioned native table at/above it), bilingual generic copy, and
-  a synthetic six-theme specimen. Pinned registry preflight was recorded but
-  network-unavailable, so no `Empty`/`Pagination` source was duplicated.
-
-- [[6.2.1-create-six-theme-design-system]] (2026-07-23) — evolved the shared
-  foundation into the six stable PIX settlement desk personalities, with one
-  DTCG-shaped token graph, deterministic CSS projection, contrast/gamut/motion
-  gates, safe fallback resolution, and 24-capture specimen evidence.
+- [[6.2.2-create-official-brand-assets]] (2026-07-24) — delivered the original four-identity family, deterministic SVG/PNG/ICO manifest, accessible composition, and bounded integrations.
+- [[6.3.1-build-pagination-filter-table-foundation]] (2026-07-24) — added the role-neutral data-directory composition with native GET controls, canonical links, six states, responsive facts/table semantics, bilingual copy, and six-theme evidence. Registry preflight was network-blocked, so no source was duplicated.
+- [[6.2.1-create-six-theme-design-system]] (2026-07-23) — delivered six PIX settlement desk personalities, a DTCG-shaped token graph, deterministic CSS, contrast/gamut/motion gates, safe fallbacks, and 24-capture evidence.
 - [[1.4.2-rebuild-design-system-with-shadcn]] (2026-07-16) — initialized the
   pinned official shadcn `nova` preset with Radix base, local IBM Plex Sans,
   owned current-scope sources, deprecated single-source adapters, semantic
