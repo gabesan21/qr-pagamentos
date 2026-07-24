@@ -67,6 +67,31 @@
       ],
       "test_seconds": 0,
       "result": "advanced"
+    },
+    {
+      "at": "2026-07-24T01:02:00-03:00",
+      "event": "stage",
+      "stage": "005_verifying",
+      "contexts": [
+        "verify_7_2_1"
+      ],
+      "return": 1,
+      "return_limit": 2,
+      "strategy": "mandatory full independent critical review of the original owner-category request, additive migration and least grants, composite owner integrity, role and opacity boundaries, CAS, deterministic reassignment concurrency, immutable V1 projections, request logging, specs, DOX, and deferred-scope exclusions",
+      "tests": "migration policy/static DB/Prisma generation, 11 focused category tests, 97 projection tests, typecheck, lint, production build, scope, diff, and PoP validation pass; disposable DB replay reaches the known malformed product-price baseline before category assertions; full Vitest reproduces only known baselines; review found excess category DELETE privilege and no real transaction-level concurrency proof",
+      "test_seconds": 31,
+      "result": "returned"
+    },
+    {
+      "at": "2026-07-24T01:02:30-03:00",
+      "event": "transition",
+      "from": "005_verifying",
+      "to": "004_processing",
+      "contexts": [
+        "verify_7_2_1"
+      ],
+      "test_seconds": 0,
+      "result": "returned"
     }
   ]
 }
