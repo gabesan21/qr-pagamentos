@@ -38,20 +38,20 @@ describe("owner webhook registration reset route", () => {
     const response = await POST(sameOriginRequest());
     expect(resetRegistration).toHaveBeenCalledWith(principal);
     expect(response.status).toBe(303);
-    expect(response.headers.get("location")).toBe("/?nautt=reset");
+    expect(response.headers.get("location")).toBe("/settings?nautt=reset");
   });
 
   it("maps a refused reset to the opaque changed outcome", async () => {
     requireUser.mockResolvedValue({ id: "owner" });
     resetRegistration.mockRejectedValue(new OwnerOnboardingChangedError());
     const response = await POST(sameOriginRequest());
-    expect(response.headers.get("location")).toBe("/?nautt=changed");
+    expect(response.headers.get("location")).toBe("/settings?nautt=changed");
   });
 
   it("maps any other failure to the opaque unavailable outcome", async () => {
     requireUser.mockResolvedValue({ id: "owner" });
     resetRegistration.mockRejectedValue(new Error("reset outcome unknown"));
     const response = await POST(sameOriginRequest());
-    expect(response.headers.get("location")).toBe("/?nautt=unavailable");
+    expect(response.headers.get("location")).toBe("/settings?nautt=unavailable");
   });
 });

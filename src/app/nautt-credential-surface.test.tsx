@@ -30,7 +30,7 @@ describe("Nautt credential surface", () => {
     const available = markup(locale, { credential, balance: { tokenSymbol: "USDT", tokenName: "Tether USD", networkName: "Polygon", balance: "17.271189" }, balanceUnavailable: false });
     expect(available).toContain("17.271189"); expect(available).toContain("Polygon");
     const unavailable = markup(locale, { credential, balance: null, balanceUnavailable: true });
-    expect(unavailable).toContain('href="/"');
+    expect(unavailable).toContain('href="/settings"');
   });
 
   it.each(["UNREGISTERED", "REGISTERING", "INDETERMINATE"] as const)("renders the safe %s registration fork", (state) => {

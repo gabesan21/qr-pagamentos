@@ -7,8 +7,9 @@ import { checkAdminUiInventory } from "./check-admin-ui-inventory.mjs";
 
 function fixture(source: string) {
   const root = mkdtempSync(path.join(tmpdir(), "admin-source-check-"));
-  for (const directory of ["src/app/admin", "src/app/language-preference"]) mkdirSync(path.join(root, directory), { recursive: true });
-  writeFileSync(path.join(root, "src/app/page.tsx"), source);
+  for (const directory of ["src/app/(merchant)", "src/app/admin", "src/app-shell", "src/app/language-preference"]) mkdirSync(path.join(root, directory), { recursive: true });
+  writeFileSync(path.join(root, "src/app/(merchant)/page.tsx"), source);
+  writeFileSync(path.join(root, "src/app-shell/frame.tsx"), "export function Frame(){return <main className=\"app-shell__content\" />}");
   writeFileSync(path.join(root, "src/app/admin/page.tsx"), "export default function Page(){return <main className=\"admin-shell\" />}");
   writeFileSync(path.join(root, "src/app/language-preference/form.tsx"), "export function Form(){return <form />}");
   return root;

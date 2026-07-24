@@ -2,7 +2,7 @@ import { readFile, readdir, stat } from "node:fs/promises";
 import path from "node:path";
 import ts from "typescript";
 
-const entrypoints = ["src/app/page.tsx", "src/app/admin", "src/app/language-preference"];
+const entrypoints = ["src/app/(merchant)", "src/app/admin", "src/app-shell", "src/app/language-preference"];
 const rawControls = new Set(["button", "input", "select", "textarea"]);
 const allowedClasses = new Set([
   "admin-account", "admin-account-list", "admin-account__actions", "admin-account__facts",
@@ -10,6 +10,14 @@ const allowedClasses = new Set([
   "admin-confirm-actions", "admin-navigation", "admin-shell", "admin-shell__intro", "admin-skeletons",
   "admin-product", "admin-product-description", "admin-product-list", "admin-product__facts",
   "h-11 w-full", "receipt-rail", "receipt-rail__facts", "receipt-rail__label",
+  "app-shell", "app-shell__content", "app-shell__desktop-navigation", "app-shell__empty-marker",
+  "app-shell__identity", "app-shell__mobile-header", "app-shell__mobile-navigation",
+  "app-shell__mobile-panel", "app-shell__mobile-trigger", "app-shell__navigation-index",
+  "app-shell__mobile-sign-out",
+  "app-shell__mobile-trigger-label",
+  "app-shell__navigation-link", "app-shell__navigation-list", "app-shell__principal",
+  "app-shell__sidebar", "app-shell__sign-out", "app-shell__skip-link", "app-shell__username",
+  "workspace-heading", "workspace-heading__eyebrow",
 ]);
 
 async function collect(root, candidate) {

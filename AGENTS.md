@@ -52,6 +52,8 @@ A direct human command overrides only the rule or gate it explicitly names. “A
 
 ## DOX index
 
+- [`src/app-shell/AGENTS.md`](src/app-shell/AGENTS.md) — follow when changing
+  role-neutral shell composition, navigation state, or the mobile boundary.
 - [`src/brand/AGENTS.md`](src/brand/AGENTS.md) — follow when changing canonical
   identity geometry, compositions, generated assets, manifest, or usage rules.
 - [`src/components/ui/AGENTS.md`](src/components/ui/AGENTS.md) — follow when
@@ -94,7 +96,7 @@ Username and password are the only login credentials; email is optional and neve
 - `src/app/orders/` owns the read-only owner order list/detail views; every read re-resolves the cookie principal, scopes to the principal's own orders, and renders only opaque empty/unavailable states.
 - `src/app/admin/orders/` owns the read-only administrator global order list/detail views over the same projection; they follow the `src/app/admin/` authorization contract and hold no mutation surface.
 - `src/app/admin/` owns the administrator shell plus account and global-payment-settings mutations; every read and POST must re-authorize the cookie principal, return only the documented empty `401`/`403` protected outcomes, and never disclose a target account or settings value to unauthorized callers.
-- `src/app/nautt-credentials/reset/` owns the owner-initiated local-only webhook-registration reset (`REGISTERING`/`INDETERMINATE` → `UNREGISTERED`, provider fields nulled, zero provider calls and zero decryption); it re-authorizes the cookie principal and returns only an empty `401` or opaque relative redirects (`?nautt=reset`/`changed`/`unavailable`), never distinguishing "no credential" from "wrong state".
+- `src/app/nautt-credentials/reset/` owns the owner-initiated local-only webhook-registration reset (`REGISTERING`/`INDETERMINATE` → `UNREGISTERED`, provider fields nulled, zero provider calls and zero decryption); it re-authorizes the cookie principal and returns only an empty `401` or opaque relative redirects (`/settings?nautt=reset|changed|unavailable`), never distinguishing "no credential" from "wrong state".
 - `next.config.ts` `headers()` serves the static security-header set (`X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, `Strict-Transport-Security: max-age=63072000; includeSubDomains`, `Permissions-Policy: camera=(), microphone=(), geolocation=()`) on `/:path*`; CSP is deferred (App Router inline hydration scripts need per-request nonces, and nonces require the forbidden middleware) — never add `unsafe-inline` CSP or a middleware instead.
 - `src/app/origin-guard.ts` owns the fail-closed same-origin check that every cookie-authenticated POST route runs first, before any auth or service work: `Origin` is required and its host (hostname+port) must match `Host`, falling back to the first `X-Forwarded-Host` value behind the TLS proxy; missing, malformed, or mismatched origins get the same empty `403`. Never wire it into `/api/nautt/webhooks`, the sessionless `/api/payment-links/*` routes, `/api/health`, or the `[lang]/*` stubs.
 - `src/security/public-rate-limit.ts` owns the bounded single-process limiter for only `GET /api/payment-links/[identifier]`, `POST /api/payment-links/[identifier]/checkout`, and `POST /api/payment-links/[identifier]/checkout/status`. Each handler must decide before parsing, locale negotiation, or service work; a denial is only empty `429` with `Cache-Control: no-store`. Its key may contain only its closed surface and a SHA-256 hash of one canonical `X-Forwarded-For` IP literal supplied by a TLS proxy that overwrites that header; chains, malformed values, or absent forwarding share one anonymous bucket. Never store/log the raw address, expose limiter metadata, add a page/middleware/proxy integration, or claim cross-process protection.
@@ -105,6 +107,14 @@ Username and password are the only login credentials; email is optional and neve
 - `src/data-directory/` owns the role-neutral bounded query, canonical URL, authenticated keyset cursor, and accessible responsive directory composition. Its only server entry points require an already-resolved active `USER` own scope or active `ADMIN` global-read scope; cursors bind a non-identifying scope purpose with a purpose/principal-derived HMAC and never grant authority. Keep concrete Orders, Links, Users, Products, Categories, and analytics projections out of this foundation.
 - `src/i18n/` owns the closed locale set and server dictionary loader; never add a locale without matching dictionary keys and contract tests.
 - `src/brand/` owns the original four-identity QR Pagamentos family and its deterministic manifest/static derivatives; UI consumers use the shared semantic-color composition, never page-local marks or per-theme assets.
+- `src/app-shell/` owns inert role-neutral shell presentation; separate
+  `src/app/admin/` and `src/app/(merchant)/` adapters re-authorize their exact
+  role and provide fixed five-entry route maps. Dashboard roots match exactly,
+  descendant active state is segment-safe, and the focused client boundary owns
+  only pathname and mobile disclosure state. Page routes are `/admin`,
+  `/admin/orders`, `/admin/payment-links`, `/admin/accounts`,
+  `/admin/settings` and `/`, `/orders`, `/links`, `/catalog`, `/settings`;
+  existing POST routes remain unchanged.
 - Use the exact Node and pnpm pins in `.node-version` and `package.json`; install with `pnpm install --frozen-lockfile`.
 - Run `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm build` independently, or `pnpm check` for the aggregate gate.
 - Run `pnpm db:test` separately for the disposable PostgreSQL contract; it is never part of the database-free `pnpm check` gate.

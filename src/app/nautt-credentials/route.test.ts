@@ -7,6 +7,11 @@ vi.mock("@/auth/authorization", async (original) => ({ ...(await original()), ge
 vi.mock("@/integrations/nautt/owner-onboarding", async (original) => ({ ...(await original()), getOwnerOnboardingService: () => ({ onboard }) }));
 
 import { ForbiddenError, UnauthenticatedError } from "@/auth/authorization";
+import {
+  OwnerOnboardingChangedError,
+  OwnerOnboardingInvalidKeyError,
+  OwnerOnboardingRecoveryRequiredError,
+} from "@/integrations/nautt/owner-onboarding";
 import { POST } from "./route";
 
 const principal = { id: "owner", username: "owner", email: null, role: "USER", status: "ACTIVE", createdAt: new Date() };
@@ -42,7 +47,27 @@ describe("owner Nautt credential route", () => {
     const response = await POST(new Request("http://local/nautt-credentials", { method: "POST", headers: sameOrigin, body: form }));
     expect(onboard).toHaveBeenCalledWith(principal, principal.id, "private-key", "https://payments.example/api/nautt/webhooks");
     expect(response.status).toBe(303);
-    expect(response.headers.get("location")).toBe("/?nautt=configured");
+    expect(response.headers.get("location")).toBe("/settings?nautt=configured");
     expect(`${await response.text()}${response.headers.get("location")}`).not.toMatch(/private-key|forged-owner|evil|credentialRevision/);
+  });
+
+  it.each([
+    [new OwnerOnboardingInvalidKeyError(), "/settings?nautt=invalid"],
+    [new OwnerOnboardingChangedError(), "/settings?nautt=changed"],
+    [new OwnerOnboardingRecoveryRequiredError(), "/settings?nautt=recovery"],
+    [new Error("provider detail"), "/settings?nautt=unavailable"],
+  ])("maps onboarding failures to the opaque Settings result %s", async (error, location) => {
+    requireUser.mockResolvedValue(principal);
+    onboard.mockRejectedValue(error);
+
+    const response = await POST(new Request("http://local/nautt-credentials", {
+      method: "POST",
+      headers: sameOrigin,
+      body: new FormData(),
+    }));
+
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toBe(location);
+    expect(await response.text()).toBe("");
   });
 });

@@ -74,7 +74,7 @@ export function NauttCredentialSurface({ dictionary, idPrefix = "nautt", notice,
           <div><dt>{dictionary.nauttBalance}</dt><dd>{status.balance.balance} {status.balance.tokenSymbol}</dd></div>
         </dl> : <Alert variant="warning"><AlertTitle>{dictionary.nauttBalanceUnavailable}</AlertTitle><AlertDescription>{dictionary.nauttUnavailable}</AlertDescription></Alert>}
       </CardContent>
-      {status.balanceUnavailable ? <CardFooter><Button asChild data-ds-hit-target variant="outline"><Link href="/">{dictionary.nauttRetryBalance}</Link></Button></CardFooter> : null}
+      {status.balanceUnavailable ? <CardFooter><Button asChild data-ds-hit-target variant="outline"><Link href="/settings">{dictionary.nauttRetryBalance}</Link></Button></CardFooter> : null}
     </Card> : null}
     </NauttPendingScope>
   </section>;

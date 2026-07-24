@@ -9,8 +9,10 @@ import { storefrontPtBR } from "./storefront/pt-BR";
 import { checkoutPtBR } from "./checkout/pt-BR";
 import { ordersPtBR } from "./orders/pt-BR";
 import { dataDirectoryPtBR } from "./data-directory/pt-BR";
+import { appShellPtBR } from "./app-shell/pt-BR";
 
 export const ptBR = {
+  ...appShellPtBR,
   ...sharedPtBR,
   ...nauttPtBR,
   ...designSystemPtBR,

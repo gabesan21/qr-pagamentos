@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { OrderDetailCard, OrderUnavailableCard } from "@/app/orders/order-views";
+import { WorkspaceHeading } from "@/app-shell/workspace-heading";
 import { getAuthorizationService } from "@/auth/authorization";
 import { getDictionary } from "@/i18n/dictionaries";
 import { getLocalePreferenceService } from "@/i18n/locale-preference";
@@ -16,12 +17,13 @@ export default async function OrderDetailPage({ params }: Readonly<{ params: Pro
     getOrderViewService().getForOwner(principal, (await params).id),
   ]);
   const dictionary = getDictionary(locale);
+
   return (
-    <main className="admin-shell">
-      <header className="receipt-rail"><span className="receipt-rail__label">QR Pagamentos</span><h1>{dictionary.ordersHeading}</h1></header>
+    <>
+      <WorkspaceHeading description={dictionary.ordersDescription} eyebrow={dictionary.shellMerchantEyebrow} title={dictionary.ordersHeading} />
       {result.kind === "found"
         ? <OrderDetailCard backHref="/orders" dictionary={dictionary} locale={locale} order={result.order} />
         : <OrderUnavailableCard backHref="/orders" dictionary={dictionary} />}
-    </main>
+    </>
   );
 }

@@ -20,12 +20,12 @@ export default function AdminError({ error, reset }: Readonly<{ error: Error & {
   }, [error.digest]);
 
   return (
-    <main className="admin-shell">
+    <div className="admin-shell">
       <Alert variant="destructive">
         <AlertTitle>{dictionary.adminReadErrorHeading}</AlertTitle>
         <AlertDescription>{dictionary.adminReadErrorDescription}</AlertDescription>
       </Alert>
       <Button onClick={reset} type="button">{dictionary.adminRetry}</Button>
-    </main>
+    </div>
   );
 }

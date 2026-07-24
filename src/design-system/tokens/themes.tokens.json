@@ -160,6 +160,15 @@
       "$type": "fontWeight",
       "$value": 650
     },
+    "layer": {
+      "$type": "number",
+      "chrome": {
+        "$value": 10
+      },
+      "bypass": {
+        "$value": 20
+      }
+    },
     "disabled": {
       "$type": "number",
       "$value": 0.5

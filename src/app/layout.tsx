@@ -5,6 +5,7 @@ import { getAuthorizationService } from "../auth/authorization";
 import { getLocalePreferenceService } from "../i18n/locale-preference";
 import { defaultLocale } from "../i18n/locales";
 import "./globals.css";
+import "../app-shell/app-shell.css";
 
 export const metadata: Metadata = {
   title: "QR Pagamentos",

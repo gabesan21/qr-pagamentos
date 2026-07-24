@@ -32,6 +32,8 @@
   --reference-leading-tight: 1.18;
   --reference-weight-medium: 500;
   --reference-weight-strong: 650;
+  --reference-layer-chrome: 10;
+  --reference-layer-bypass: 20;
   --reference-disabled: 0.5;
   --reference-font: "IBM Plex Sans Variable", "IBM Plex Sans", sans-serif;
   --reference-motion-duration: 180ms;
@@ -558,6 +560,8 @@
   --font-interface: var(--reference-font);
   --font-weight-medium: var(--reference-weight-medium);
   --font-weight-strong: var(--reference-weight-strong);
+  --layer-chrome: var(--reference-layer-chrome);
+  --layer-bypass: var(--reference-layer-bypass);
   --motion-duration: var(--reference-motion);
   --motion-ease: var(--reference-ease);
 }
