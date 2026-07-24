@@ -117,6 +117,17 @@
       "tests": "migration policy/static DB, disposable replay with 3/3 category ACL/concurrency scenarios before the known later fixture stop, 11/11 focused category tests, typecheck, lint, production build, full Vitest, 17-path scope, diff hygiene, and PoP validation; repaired DELETE revocation and independent-client race outcomes inspected",
       "test_seconds": 32,
       "result": "approved"
+    },
+    {
+      "at": "2026-07-24T01:15:11-03:00",
+      "event": "transition",
+      "from": "005_verifying",
+      "to": "006_done",
+      "contexts": [
+        "verify2_7_2_1"
+      ],
+      "test_seconds": 0,
+      "result": "advanced"
     }
   ]
 }
