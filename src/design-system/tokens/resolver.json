@@ -1,8 +1,8 @@
 {
   "name": "qr-pagamentos",
-  "version": "2026.07",
+  "version": "2025.10",
   "sets": {
-    "shared": { "sources": [{ "$ref": "themes.tokens.json#/motion" }] }
+    "foundation": { "sources": [{ "$ref": "themes.tokens.json#/reference" }] }
   },
   "modifiers": {
     "theme": {
@@ -15,7 +15,26 @@
         "vault-blue": [{ "$ref": "themes.tokens.json#/themes/vault-blue" }],
         "terminal-amber": [{ "$ref": "themes.tokens.json#/themes/terminal-amber" }]
       }
+    },
+    "motion": {
+      "default": "full",
+      "contexts": {
+        "full": [{ "$ref": "themes.tokens.json#/motion/full" }],
+        "reduced": [{ "$ref": "themes.tokens.json#/motion/reduced" }]
+      }
     }
   },
-  "resolutionOrder": [{ "$ref": "#/sets/shared" }, { "$ref": "#/modifiers/theme" }]
+  "resolutionOrder": [{ "$ref": "#/sets/foundation" }, { "$ref": "#/modifiers/theme" }, { "$ref": "#/modifiers/motion" }],
+  "projection": {
+    "color": {
+      "background": "background", "foreground": "foreground", "card": "card", "card-foreground": "foreground",
+      "popover": "card", "popover-foreground": "foreground", "primary": "primary",
+      "primary-foreground": "primary-foreground", "secondary": "muted", "secondary-foreground": "foreground",
+      "muted": "muted", "muted-foreground": "muted-foreground", "accent": "muted",
+      "accent-foreground": "foreground", "destructive": "danger", "destructive-foreground": "danger-foreground",
+      "warning": "warning", "warning-foreground": "warning-foreground", "success": "success",
+      "success-foreground": "success-foreground", "border": "border", "input": "border", "ring": "primary",
+      "action-primary-hover": "primary-hover"
+    }
+  }
 }

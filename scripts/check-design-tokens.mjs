@@ -20,9 +20,7 @@ function authoredUiFiles(directory) {
 
 function removeTokenSource(path, source) {
   if (!path.endsWith("globals.css")) return source;
-  return source
-    .replace(/\/\* design-tokens:start \*\/[\s\S]*?\/\* design-tokens:end \*\//, "")
-    .replace(/\/\* generated-theme-tokens:start \*\/[\s\S]*?\/\* generated-theme-tokens:end \*\//, "");
+  return source.replace(/\/\* generated-theme-tokens:start \*\/[\s\S]*?\/\* generated-theme-tokens:end \*\//, "");
 }
 
 export function findDesignTokenViolations(files = uiRoots.flatMap(authoredUiFiles).map((path) => ({ path, source: readFileSync(path, "utf8") }))) {
