@@ -8,6 +8,7 @@ import {
   open,
   readdir,
   realpath,
+  symlink,
   unlink,
 } from "node:fs/promises";
 import { isAbsolute, join, resolve } from "node:path";
@@ -37,7 +38,85 @@ export class MediaStorageError extends Error {}
 
 type StorageOptions = Readonly<{
   onStep?: (step: StorageStep) => void | Promise<void>;
+  probe?: Partial<ProbeOperations>;
 }>;
+
+type FileDescriptor = Awaited<ReturnType<typeof open>>;
+type ProbeOperations = Readonly<{
+  open: typeof open;
+  link: typeof link;
+  lstat: typeof lstat;
+  symlink: typeof symlink;
+  unlink: typeof unlink;
+  syncDirectory: typeof syncDirectory;
+}>;
+
+const PROBE_OPERATIONS: ProbeOperations = {
+  open,
+  link,
+  lstat,
+  symlink,
+  unlink,
+  syncDirectory,
+};
+
+function errorCode(error: unknown): string | undefined {
+  return error && typeof error === "object" ? (error as NodeJS.ErrnoException).code : undefined;
+}
+
+async function requireFailureCode<T>(
+  operation: () => Promise<T>,
+  acceptedCode: string,
+  disposeUnexpectedSuccess?: (value: T) => Promise<void>,
+): Promise<void> {
+  try {
+    const value = await operation();
+    await disposeUnexpectedSuccess?.(value);
+  } catch (error) {
+    if (errorCode(error) === acceptedCode) return;
+    throw error;
+  }
+  throw new MediaStorageError(`Media storage probe did not enforce ${acceptedCode}`);
+}
+
+async function cleanupProbe(
+  operations: ProbeOperations,
+  descriptor: FileDescriptor | undefined,
+  paths: readonly string[],
+  directories: readonly string[],
+): Promise<void> {
+  const failures: unknown[] = [];
+  if (descriptor) {
+    try {
+      await descriptor.close();
+    } catch (error) {
+      failures.push(error);
+    }
+  }
+  for (const path of paths) {
+    try {
+      await operations.unlink(path);
+    } catch (error) {
+      if (errorCode(error) !== "ENOENT") failures.push(error);
+    }
+  }
+  for (const path of paths) {
+    try {
+      await operations.lstat(path);
+      failures.push(new MediaStorageError("Media storage probe cleanup left residue"));
+    } catch (error) {
+      if (errorCode(error) !== "ENOENT") failures.push(error);
+    }
+  }
+  for (const directory of directories) {
+    try {
+      await operations.syncDirectory(directory);
+    } catch (error) {
+      failures.push(error);
+    }
+  }
+  if (failures.length > 0) throw new MediaStorageError("Media storage probe cleanup was not durable");
+}
 
 async function syncDirectory(path: string): Promise<void> {
   const descriptor = await open(path, constants.O_RDONLY | constants.O_DIRECTORY | constants.O_NOFOLLOW);
@@ -118,34 +197,90 @@ export class PosixMediaStorage {
     await requirePrivateDirectory(this.objectsDirectory, rootDevice);
 
     const probeKey = randomBytes(12).toString("base64url");
-    const source = join(this.stagingDirectory, `.probe-${probeKey}`);
-    const target = join(this.objectsDirectory, `.probe-${probeKey}`);
-    let descriptor: Awaited<ReturnType<typeof open>> | undefined;
+    const source = join(this.stagingDirectory, `.probe-source-${probeKey}`);
+    const target = join(this.objectsDirectory, `.probe-target-${probeKey}`);
+    const collision = join(this.objectsDirectory, `.probe-collision-${probeKey}`);
+    const linkedPath = join(this.objectsDirectory, `.probe-symlink-${probeKey}`);
+    const operations = { ...PROBE_OPERATIONS, ...this.options.probe };
+    const exclusiveFlags = constants.O_CREAT | constants.O_EXCL | constants.O_WRONLY | constants.O_NOFOLLOW;
+    let descriptor: FileDescriptor | undefined;
+    let probeFailure: unknown;
     try {
-      descriptor = await open(
-        source,
-        constants.O_CREAT | constants.O_EXCL | constants.O_WRONLY | constants.O_NOFOLLOW,
-        0o600,
-      );
+      descriptor = await operations.open(source, exclusiveFlags, 0o600);
       await descriptor.writeFile("probe");
       await descriptor.sync();
-      await link(source, target);
-      await syncDirectory(this.objectsDirectory);
-      const targetDescriptor = await open(target, constants.O_RDONLY | constants.O_NOFOLLOW);
+      const sourceIdentity = await descriptor.stat();
+      await requireFailureCode(
+        () => operations.open(source, exclusiveFlags, 0o600),
+        "EEXIST",
+        (unexpected) => unexpected.close(),
+      );
+
+      await operations.link(source, target);
+      await operations.syncDirectory(this.objectsDirectory);
+      const targetDescriptor = await operations.open(target, constants.O_RDONLY | constants.O_NOFOLLOW);
       try {
-        if (!(await targetDescriptor.stat()).isFile()) throw new MediaStorageError("Media storage probe is not regular");
+        const targetIdentity = await targetDescriptor.stat();
+        const targetBytes = await targetDescriptor.readFile("utf8");
+        if (
+          !targetIdentity.isFile()
+          || targetIdentity.dev !== sourceIdentity.dev
+          || targetIdentity.ino !== sourceIdentity.ino
+          || targetBytes !== "probe"
+        ) {
+          throw new MediaStorageError("Media storage probe hard link is inconsistent");
+        }
       } finally {
         await targetDescriptor.close();
       }
-    } catch {
-      throw new MediaStorageError("Media storage does not provide required local POSIX semantics");
-    } finally {
-      await descriptor?.close().catch(() => undefined);
-      await unlink(target).catch(() => undefined);
-      await unlink(source).catch(() => undefined);
-      await syncDirectory(this.objectsDirectory).catch(() => undefined);
-      await syncDirectory(this.stagingDirectory).catch(() => undefined);
+
+      const collisionDescriptor = await operations.open(collision, exclusiveFlags, 0o600);
+      let collisionIdentity: Awaited<ReturnType<FileDescriptor["stat"]>>;
+      try {
+        await collisionDescriptor.writeFile("existing-target");
+        await collisionDescriptor.sync();
+        collisionIdentity = await collisionDescriptor.stat();
+      } finally {
+        await collisionDescriptor.close();
+      }
+      await operations.syncDirectory(this.objectsDirectory);
+      await requireFailureCode(() => operations.link(source, collision), "EEXIST");
+      const unchangedDescriptor = await operations.open(collision, constants.O_RDONLY | constants.O_NOFOLLOW);
+      try {
+        const unchangedIdentity = await unchangedDescriptor.stat();
+        const unchangedBytes = await unchangedDescriptor.readFile("utf8");
+        if (
+          !unchangedIdentity.isFile()
+          || unchangedIdentity.dev !== collisionIdentity.dev
+          || unchangedIdentity.ino !== collisionIdentity.ino
+          || unchangedBytes !== "existing-target"
+        ) {
+          throw new MediaStorageError("Media storage hard-link collision modified its target");
+        }
+      } finally {
+        await unchangedDescriptor.close();
+      }
+
+      await operations.symlink(target, linkedPath);
+      await requireFailureCode(
+        () => operations.open(linkedPath, constants.O_RDONLY | constants.O_NOFOLLOW),
+        "ELOOP",
+        (unexpected) => unexpected.close(),
+      );
+    } catch (error) {
+      probeFailure = error;
     }
+    try {
+      await cleanupProbe(
+        operations,
+        descriptor,
+        [linkedPath, collision, target, source],
+        [this.objectsDirectory, this.stagingDirectory],
+      );
+    } catch (error) {
+      probeFailure = error;
+    }
+    if (probeFailure) throw new MediaStorageError("Media storage does not provide required local POSIX semantics");
     this.initialized = true;
   }
 
