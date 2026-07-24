@@ -95,6 +95,7 @@ runtime_candidate=$(<"$secret_dir/runtime")
 cat > "$secret_dir/roles.sql" <<SQL
 CREATE ROLE qr_migrator LOGIN PASSWORD '$runtime_candidate';
 CREATE ROLE qr_runtime LOGIN PASSWORD '$runtime_candidate';
+GRANT CREATE ON DATABASE qr_pagamentos TO qr_migrator;
 SQL
 unset runtime_candidate
 chmod 0400 "$secret_dir/roles.sql"
@@ -114,7 +115,7 @@ done
 docker exec "$candidate_db" pg_isready -U postgres -d postgres -p 5433 >/dev/null || die 'rehearsal database did not start'
 docker cp "$secret_dir/roles.sql" "$candidate_db:/run/roles.sql"
 docker cp "$BACKUP/database.dump" "$candidate_db:/run/database.dump"
-docker exec "$candidate_db" sh -eu -c 'PGPASSWORD=$(cat /run/admin); export PGPASSWORD; createdb -U postgres -p 5433 qr_pagamentos; psql -U postgres -p 5433 -d qr_pagamentos -f /run/roles.sql; pg_restore -U postgres -p 5433 -d qr_pagamentos --role=qr_migrator --no-owner --no-acl /run/database.dump' \
+docker exec "$candidate_db" sh -eu -c 'PGPASSWORD=$(cat /run/admin); export PGPASSWORD; createdb -U postgres -p 5433 qr_pagamentos; psql -U postgres -p 5433 -d qr_pagamentos -f /run/roles.sql; status=0; pg_restore -U postgres -p 5433 -d qr_pagamentos --role=qr_migrator --no-owner --no-acl /run/database.dump || status=$?; psql -U postgres -p 5433 -d qr_pagamentos -c "REVOKE CREATE ON DATABASE qr_pagamentos FROM qr_migrator" >/dev/null; exit "$status"' \
   >/dev/null 2>&1 || die 'rehearsal database restore failed'
 docker exec "$candidate_db" sh -eu -c 'PGPASSWORD=$(cat /run/admin); export PGPASSWORD; psql -U postgres -p 5433 -d qr_pagamentos -Atc "SELECT count(*) FROM app._prisma_migrations WHERE finished_at IS NULL OR rolled_back_at IS NOT NULL" | grep -qx 0' \
   || die 'rehearsal migration metadata failed'
@@ -163,7 +164,7 @@ restore_managed_pair() {
   compose run --rm --no-deps bootstrap >/dev/null
   docker run --rm --network "${PROJECT}_database" --read-only --tmpfs /tmp \
     -v "$POSTGRES_ADMIN_PASSWORD_FILE:/run/admin:ro" -v "$set/database.dump:/run/database.dump:ro" \
-    "$POSTGRES_IMAGE" sh -eu -c 'PGPASSWORD=$(cat /run/admin); export PGPASSWORD; pg_restore -h db -p 5433 -U postgres -d qr_pagamentos --role=qr_migrator --no-owner --no-acl --clean --if-exists /run/database.dump' >/dev/null
+    "$POSTGRES_IMAGE" sh -eu -c 'PGPASSWORD=$(cat /run/admin); export PGPASSWORD; psql -h db -p 5433 -U postgres -d qr_pagamentos -c "GRANT CREATE ON DATABASE qr_pagamentos TO qr_migrator" >/dev/null; status=0; pg_restore -h db -p 5433 -U postgres -d qr_pagamentos --role=qr_migrator --no-owner --no-acl --clean --if-exists /run/database.dump || status=$?; psql -h db -p 5433 -U postgres -d qr_pagamentos -c "REVOKE CREATE ON DATABASE qr_pagamentos FROM qr_migrator" >/dev/null; exit "$status"' >/dev/null
   docker run --rm --network none --read-only --tmpfs /tmp --user 1000:1000 \
     -v "${PROJECT}_media-data:/app/media" --entrypoint node "$app_image" -e \
     'const f=require("node:fs");for(const n of ["staging","objects"]){f.rmSync(`/app/media/${n}`,{recursive:true,force:true});f.mkdirSync(`/app/media/${n}`,{mode:0o700})}'
