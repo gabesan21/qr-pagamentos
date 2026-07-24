@@ -40,6 +40,7 @@
 - `user.profile_version` is the merchant identity CAS only; keep it
   nonnegative and never reuse `updated_at` for profile conflict detection.
 - The store-settings extension on `app.user` (`storefront_theme_id`, `storefront_layout`, `storefront_logo_media_identifier`, `storefront_standalone_payments_enabled`, `storefront_default_currency_code`) is additive-only: the theme/layout closed-set checks mirror the design-system six themes and `boxed`/`table`, the currency code reuses the `AAA`–`ZZZ` bounds check as defense-in-depth behind service-boundary format validation, and the logo identifier is an opaque 43-character handle with **no** foreign key to `media_object` (media rows are physically purged after grace) — never add that FK, tighten the bounds check into a regex, or backfill existing rows.
+- The product catalog-media extension on `app.product` (`currency_code`, `image_media_id`, `archived_at`) is additive-only and nullable: the currency code reuses the `AAA`–`ZZZ` bounds check as defense-in-depth behind service-boundary format validation, and `image_media_id` is an opaque 43-character media identifier with **no** foreign key to `media_object` (media rows are physically purged after grace) — never add that FK, tighten the bounds check into a regex, backfill existing rows, or move the one-way archival/edit-lock semantics into database triggers (they are service-fenced CAS semantics).
 
 ## Verification
 
