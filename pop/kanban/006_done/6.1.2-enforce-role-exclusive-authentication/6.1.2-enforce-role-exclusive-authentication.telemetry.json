@@ -65,6 +65,30 @@
       ],
       "test_seconds": 0,
       "result": "advanced"
+    },
+    {
+      "at": "2026-07-23T23:52:57-03:00",
+      "event": "stage",
+      "stage": "005_verifying",
+      "contexts": [
+        "critic_005_6_1_2"
+      ],
+      "returns": 0,
+      "strategy": "full critical review of original request, dependency contracts, complete diff, principal and route inventories, DOX, and baseline-classified gates",
+      "tests": "130 focused acceptance tests pass; admin/public/origin/log preservation passes except one exact baseline storefront failure; lint, typecheck, build, diff and scope pass; full test retains two exact baseline failures",
+      "test_seconds": 27,
+      "result": "approved"
+    },
+    {
+      "at": "2026-07-23T23:54:05-03:00",
+      "event": "transition",
+      "from": "005_verifying",
+      "to": "006_done",
+      "contexts": [
+        "verify_6_1_2"
+      ],
+      "test_seconds": 0,
+      "result": "advanced"
     }
   ]
 }
