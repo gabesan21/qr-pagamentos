@@ -211,7 +211,8 @@ disabled state for both click and Enter submission.
 captures (two roles, six themes, and widths 320, 375, 768, and 1440), plus one
 mobile-open capture per role. The run proves the exact five-item inventories,
 official identities, one accessibility-tree navigation copy, segment-safe
-active state including nested orders, 44-pixel targets, IBM Plex Sans, no
+active state including nested orders, an unobscured first-tab skip link that
+focuses main content, 44-pixel targets, IBM Plex Sans, no
 overflow, no external request or console failure, and no serious or critical
 axe finding. Its visual review is manifest-hash-bound and accepts no unresolved
 severity 2 or greater finding.

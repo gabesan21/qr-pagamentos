@@ -20,7 +20,14 @@ const assertions = await readFile(join(root, manifest.assertions));
 if (sha256(assertions) !== manifest.assertionsSha256) throw new Error("App-shell assertions hash mismatch.");
 const results = JSON.parse(assertions);
 const base = results.filter((result) => result.width);
-if (base.length !== 48 || base.some((result) => result.severeAxe.length > 0 || result.measured.overflow)) {
+if (
+  base.length !== 48
+  || base.some((result) => result.severeAxe.length > 0
+    || result.measured.overflow
+    || !result.skipToContent?.visible
+    || !result.skipToContent?.hitIsLink
+    || result.skipToContent?.outlineWidth < 2)
+) {
   throw new Error("App-shell objective browser assertions are incomplete or failed.");
 }
 for (const capture of manifest.captures) {

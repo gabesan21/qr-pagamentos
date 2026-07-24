@@ -14,8 +14,9 @@
   pathname and own mobile disclosure state; never import auth or business code.
 - Hidden desktop/mobile navigation copies must use responsive `display` rules so
   only one copy exists in the accessibility tree at a time.
-- Preserve the skip link, `aria-current="page"`, a visible non-color active
-  marker, 44px controls, focus visibility, reduced motion, and 320px fit.
+- Preserve the skip link above every fixed chrome layer, `aria-current="page"`,
+  a visible non-color active marker, 44px controls, unobscured focus, reduced
+  motion, and 320px fit.
 
 ## Related contracts
 

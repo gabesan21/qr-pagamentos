@@ -98,6 +98,38 @@ test("creates current six-theme evidence for both role shells", async ({ page })
         await page.evaluate((themeId) => { document.documentElement.dataset.theme = themeId; }, theme);
         await page.evaluate(async () => document.fonts.ready);
 
+        await page.keyboard.press("Tab");
+        const skipLink = page.locator(".app-shell__skip-link");
+        await expect(skipLink).toBeFocused();
+        const skipToContent = await skipLink.evaluate((link: HTMLAnchorElement) => {
+          const rectangle = link.getBoundingClientRect();
+          const centerX = rectangle.left + rectangle.width / 2;
+          const centerY = rectangle.top + rectangle.height / 2;
+          const hit = document.elementFromPoint(centerX, centerY);
+          const style = getComputedStyle(link);
+          return {
+            hitIsLink: hit === link || link.contains(hit),
+            outlineWidth: Number.parseFloat(style.outlineWidth),
+            rectangle: {
+              bottom: rectangle.bottom,
+              left: rectangle.left,
+              right: rectangle.right,
+              top: rectangle.top,
+            },
+            visible: style.visibility !== "hidden"
+              && rectangle.top >= 0
+              && rectangle.left >= 0
+              && rectangle.bottom <= window.innerHeight
+              && rectangle.right <= window.innerWidth,
+          };
+        });
+        expect(skipToContent.visible).toBe(true);
+        expect(skipToContent.outlineWidth).toBeGreaterThanOrEqual(2);
+        expect(skipToContent.hitIsLink).toBe(true);
+        await page.keyboard.press("Enter");
+        await expect(page.locator("#app-shell-content")).toBeFocused();
+        expect(new URL(page.url()).hash).toBe("#app-shell-content");
+
         const navigation = page.getByRole("navigation", { name: role.navigation });
         if (width <= 768) {
           await expect(navigation).toHaveCount(0);
@@ -116,6 +148,8 @@ test("creates current six-theme evidence for both role shells", async ({ page })
         const identities = page.locator(`[data-brand-identity="${role.identity}"]`);
         await expect(identities).toHaveCount(2);
         await expect(identities.filter({ visible: true })).toHaveCount(1);
+
+        await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
 
         const measured = await page.evaluate(() => {
           const visible = (element: HTMLElement) => {
@@ -154,6 +188,7 @@ test("creates current six-theme evidence for both role shells", async ({ page })
           screenshot: screenshot.slice(process.cwd().length + 1),
           measured,
           severeAxe,
+          skipToContent,
         });
       }
     }
