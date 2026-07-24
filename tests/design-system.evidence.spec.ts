@@ -7,7 +7,14 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
 const viewports = [320, 375, 768, 1440] as const;
-const schemes = ["light", "dark"] as const;
+const themes = [
+  { id: "pix-paper", mode: "light" },
+  { id: "cashier-daylight", mode: "light" },
+  { id: "settlement-sand", mode: "light" },
+  { id: "midnight-clearing", mode: "dark" },
+  { id: "vault-blue", mode: "dark" },
+  { id: "terminal-amber", mode: "dark" },
+] as const;
 const artifactRoot = join(process.cwd(), "artifacts", "design-system");
 let pendingObservationId = 0;
 
@@ -99,6 +106,7 @@ test("locks both native Nautt onboarding actions during one in-flight POST", asy
 });
 
 test("creates current, responsive design-system evidence", async ({ page }) => {
+  test.setTimeout(120_000);
   const startedAt = new Date().toISOString();
   const runId = startedAt.replaceAll(/[^\d]/g, "").slice(0, 14);
   const runDirectory = join(artifactRoot, runId);
@@ -122,11 +130,12 @@ test("creates current, responsive design-system evidence", async ({ page }) => {
   });
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
-  for (const colorScheme of schemes) {
+  for (const theme of themes) {
     for (const width of viewports) {
-      await page.emulateMedia({ colorScheme, reducedMotion: "reduce" });
+      await page.emulateMedia({ colorScheme: theme.mode, reducedMotion: "reduce" });
       await page.setViewportSize({ width, height: 900 });
       await page.goto("/design-system", { waitUntil: "domcontentloaded" });
+      await page.evaluate((themeId) => { document.documentElement.dataset.theme = themeId; }, theme.id);
       await page.evaluate(async () => document.fonts.ready);
 
       const focusTargets = page.locator('[data-ds-hit-target], [data-slot="table-container"][tabindex="0"]');
@@ -202,7 +211,7 @@ test("creates current, responsive design-system evidence", async ({ page }) => {
       expect(consoleErrors).toEqual([]);
       expect(pageErrors).toEqual([]);
 
-      const screenshot = join(runDirectory, `design-system-${colorScheme}-${width}.png`);
+      const screenshot = join(runDirectory, `design-system-${theme.id}-${width}.png`);
       await page.locator("#specimen-pending-api-key").fill("evidence-only-key");
       const pendingObservation = await beginPendingNauttSubmission(page, {
         action: "/nautt-credentials",
@@ -211,9 +220,18 @@ test("creates current, responsive design-system evidence", async ({ page }) => {
       });
       await pendingObservation.release();
       await page.screenshot({ path: screenshot, fullPage: true });
-      results.push({ colorScheme, width, screenshot: screenshot.slice(process.cwd().length + 1), measured, focusTraversal, pendingState: pendingObservation.pendingState, severeAxe });
+      results.push({ theme: theme.id, mode: theme.mode, width, screenshot: screenshot.slice(process.cwd().length + 1), measured, focusTraversal, pendingState: pendingObservation.pendingState, severeAxe });
     }
   }
+
+  await page.goto("/design-system", { waitUntil: "domcontentloaded" });
+  const fallback = await page.evaluate(() => {
+    document.documentElement.dataset.theme = "pix-paper";
+    const expected = getComputedStyle(document.body).backgroundColor;
+    document.documentElement.dataset.theme = "unknown-theme";
+    return { expected, actual: getComputedStyle(document.body).backgroundColor };
+  });
+  expect(fallback.actual).toBe(fallback.expected);
 
   const resultsPath = join(runDirectory, "assertions.json");
   await writeFile(resultsPath, JSON.stringify(results, null, 2));
@@ -224,7 +242,7 @@ test("creates current, responsive design-system evidence", async ({ page }) => {
   }));
   const gitHead = execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim();
   const assertions = await readFile(resultsPath);
-  const manifest = { runId, startedAt, gitHead, assertions: resultsPath.slice(process.cwd().length + 1), assertionsSha256: sha256(assertions), pngs };
+  const manifest = { runId, startedAt, gitHead, themes: themes.map(({ id }) => id), fallback, assertions: resultsPath.slice(process.cwd().length + 1), assertionsSha256: sha256(assertions), pngs };
   const manifestPath = join(runDirectory, "manifest.json");
   await writeFile(manifestPath, JSON.stringify(manifest, null, 2));
   await writeFile(join(artifactRoot, "current.json"), JSON.stringify({ runId, startedAt, manifest: manifestPath.slice(process.cwd().length + 1) }, null, 2));

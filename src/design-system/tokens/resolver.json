@@ -1,0 +1,42 @@
+{
+  "name": "qr-pagamentos",
+  "version": "2025.10",
+  "sets": {
+    "foundation": { "sources": [{ "$ref": "themes.tokens.json" }] }
+  },
+  "modifiers": {
+    "theme": {
+      "default": "pix-paper",
+      "contexts": {
+        "pix-paper": [{ "$ref": "themes.tokens.json#/themes/pix-paper" }],
+        "cashier-daylight": [{ "$ref": "themes.tokens.json#/themes/cashier-daylight" }],
+        "settlement-sand": [{ "$ref": "themes.tokens.json#/themes/settlement-sand" }],
+        "midnight-clearing": [{ "$ref": "themes.tokens.json#/themes/midnight-clearing" }],
+        "vault-blue": [{ "$ref": "themes.tokens.json#/themes/vault-blue" }],
+        "terminal-amber": [{ "$ref": "themes.tokens.json#/themes/terminal-amber" }]
+      }
+    },
+    "motion": {
+      "default": "full",
+      "contexts": {
+        "full": [{ "$ref": "themes.tokens.json#/motion/full" }],
+        "reduced": [{ "$ref": "themes.tokens.json#/motion/reduced" }]
+      }
+    }
+  },
+  "resolutionOrder": [{ "$ref": "#/sets/foundation" }, { "$ref": "#/modifiers/theme" }, { "$ref": "#/modifiers/motion" }],
+  "$extensions": {
+    "com.qr-pagamentos.css": {
+      "color": {
+        "background": "background", "foreground": "foreground", "card": "card", "card-foreground": "foreground",
+        "popover": "card", "popover-foreground": "foreground", "primary": "primary",
+        "primary-foreground": "primary-foreground", "secondary": "muted", "secondary-foreground": "foreground",
+        "muted": "muted", "muted-foreground": "muted-foreground", "accent": "muted",
+        "accent-foreground": "foreground", "destructive": "danger", "destructive-foreground": "danger-foreground",
+        "warning": "warning", "warning-foreground": "warning-foreground", "success": "success",
+        "success-foreground": "success-foreground", "border": "border", "input": "border", "ring": "primary",
+        "action-primary-hover": "primary-hover"
+      }
+    }
+  }
+}

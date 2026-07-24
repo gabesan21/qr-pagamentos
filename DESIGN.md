@@ -2,12 +2,11 @@
 
 ## Tone
 
-**PIX ledger** is a precise operational financial workspace for administrators of a
-Brazilian payment product. Its real-world reference is a Brazilian PIX payment
-receipt (*comprovante*) and its audit trail: strong status hierarchy, compact
-labelled facts, ruled separation, and one trustworthy action at a time. The
-receipt-like status rail is the signature element; it communicates identity,
-role, and state as facts rather than as decorative dashboard cards.
+**PIX settlement desk** is a precise, role-neutral operational workspace for a
+Brazilian payment product. Its references are a PIX receipt (*comprovante*), QR
+alignment grid, cashier terminal, and clearing ledger: strong status hierarchy,
+compact labelled facts, ruled separation, and one trustworthy action at a time.
+The receipt rail aligned to a subtle QR-module rhythm is the signature element.
 
 Do not use gradients, purple or neon-acid accents, generic three-card
 dashboards, decorative charts, rounded-everything surfaces, remote fonts, or
@@ -15,12 +14,26 @@ color-only status communication.
 
 ## Token contract
 
-`src/app/globals.css` is the sole reference-token source. Its reference values
-are raw only between the `design-tokens` markers; components use semantic custom
-properties exclusively. `scripts/check-design-tokens.mjs` rejects raw visual
-values and inline visual styles in authored UI source. `prefers-color-scheme`
-selects the light or dark semantic mapping; this foundation has no manual theme
-switch.
+`src/design-system/tokens/themes.tokens.json` is the canonical DTCG-shaped
+reference and semantic color graph. `src/design-system/tokens/resolver.json`
+fixes resolution order, while `scripts/generate-design-tokens.mjs` projects the
+graph deterministically into the generated block in `src/app/globals.css`.
+Components consume semantic custom properties exclusively; `pnpm tokens:check`
+and token lint reject projection drift and raw authored visual values.
+
+| Identifier | Mode | Personality |
+| --- | --- | --- |
+| `pix-paper` | light, default light | crisp receipt paper, graphite facts, PIX teal |
+| `cashier-daylight` | light | cool terminal white, deep blue controls, cyan-green confirmation |
+| `settlement-sand` | light | warm reconciliation paper, umber facts, restrained green action |
+| `midnight-clearing` | dark, default dark | graphite clearing desk, pale facts, mint action |
+| `vault-blue` | dark | deep navy custody surface, ice-blue facts, cyan action |
+| `terminal-amber` | dark | near-black terminal, warm amber facts, muted green confirmation |
+
+An explicit valid `data-theme` wins. Without one, light resolves to `pix-paper`
+and dark system preference to `midnight-clearing`; `.light` and `.dark` retain
+those legacy defaults. An unknown identifier inherits the safe `pix-paper`
+root. Selection persistence and role-specific themes are outside this contract.
 
 | Group | Semantic tokens |
 | --- | --- |
@@ -37,25 +50,12 @@ there is at most one primary action per section, and labels sit above inputs.
 
 ## Accessibility evidence
 
-Contrast is calculated with the WCAG sRGB relative-luminance formula. The
-deterministic test checks the following minimums in both themes: normal,
-action, success, warning, and danger text at **4.5:1**; focus and essential
-control boundaries at **3:1**.
-
-| Theme | Pair | Ratio |
-| --- | --- | ---: |
-| Light | primary text / page | 15.63:1 |
-| Light | action text / primary action | 6.45:1 |
-| Light | success text / success | 6.45:1 |
-| Light | warning text / warning | 11.23:1 |
-| Light | danger text / danger | 6.54:1 |
-| Light | focus / page | 6.10:1 |
-| Dark | primary text / page | 16.08:1 |
-| Dark | action text / primary action | 9.07:1 |
-| Dark | success text / success | 9.07:1 |
-| Dark | warning text / warning | 12.25:1 |
-| Dark | danger text / danger | 10.07:1 |
-| Dark | focus / page | 9.78:1 |
+The deterministic token test derives WCAG sRGB relative luminance from every
+theme's required fallback. Primary, action, success, warning, and danger text
+must reach **4.5:1**; focus against the page must reach **3:1**. Every OKLCH
+token must carry a six-digit in-gamut sRGB fallback. Full motion resolves to
+180ms with the shared easing curve; reduced motion resolves the duration to
+zero and removes non-essential transitions and animation.
 
 ## Primitive inventory and state matrix
 
@@ -142,8 +142,8 @@ page-specific visual variant.
 ## Evidence and composition
 
 `pnpm design-system:evidence` builds production output and creates a fresh
-run-bound manifest with light/dark captures at 320, 375, 768, and 1440 CSS
-pixels. It rejects external requests, serious/critical axe findings, overflow,
+run-bound manifest with all six themes at 320, 375, 768, and 1440 CSS pixels
+(24 captures). It rejects external requests, serious/critical axe findings, overflow,
 font drift, target/action/status/prose violations, and console failures.
 The specimen includes every Nautt onboarding, balance, conflict, and recovery
 state without runtime provider calls or a test-only production backdoor.

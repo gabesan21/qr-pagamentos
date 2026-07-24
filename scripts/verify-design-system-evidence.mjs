@@ -11,7 +11,9 @@ function sha256(value) {
   return createHash("sha256").update(value).digest("hex");
 }
 
-if (manifest.runId !== current.runId || manifest.pngs.length !== 8) throw new Error("Evidence manifest does not name exactly eight current captures.");
+if (manifest.runId !== current.runId || manifest.pngs.length !== 24) throw new Error("Evidence manifest does not name exactly 24 current captures.");
+if (manifest.themes?.join(",") !== "pix-paper,cashier-daylight,settlement-sand,midnight-clearing,vault-blue,terminal-amber") throw new Error("Evidence manifest theme inventory is incomplete.");
+if (manifest.fallback?.actual !== manifest.fallback?.expected) throw new Error("Unknown-theme fallback does not match pix-paper.");
 const assertions = await readFile(join(root, manifest.assertions));
 if (sha256(assertions) !== manifest.assertionsSha256) throw new Error("Evidence assertions hash mismatch.");
 for (const png of manifest.pngs) {

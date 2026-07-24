@@ -4,8 +4,12 @@
   Epoch 1 login, administration, and `/design-system` surfaces.
 - Run the pinned shadcn CLI `info`, component `docs`, and `add --dry-run` before
   adding or updating registry source; never fetch raw registry files manually.
-- Consume semantic Tailwind names mapped in `../../app/globals.css`; never add
+- Consume semantic Tailwind names projected from
+  `../../design-system/tokens/themes.tokens.json` into `../../app/globals.css`; never add
   raw color, spacing, radius, shadow, type, manual dark-mode, or z-index values.
+- Never branch component classes or geometry by theme identifier; the six
+  themes replace semantic color values only and unknown identifiers fall back
+  to `pix-paper`.
 - Keep components server-renderable unless their official primitive requires a
   client boundary. Preserve Radix `asChild` composition and native semantics.
 - Forms compose `FieldGroup` and `Field`; validation pairs `data-invalid` on the
