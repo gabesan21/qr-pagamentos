@@ -96,10 +96,10 @@ resource_absent() {
     && ! docker volume inspect "$candidate_secret_volume" >/dev/null 2>&1
 }
 teardown_rehearsal() {
-  local failed=false
+  local failed=false injected=false
   if "$teardown_injection_pending" && restore_injected rehearsal-teardown; then
     teardown_injection_pending=false
-    return 1
+    injected=true
   fi
   if docker container inspect "$candidate_health" >/dev/null 2>&1; then
     docker rm -f "$candidate_health" >/dev/null 2>&1 || failed=true
@@ -117,6 +117,7 @@ teardown_rehearsal() {
   done
   resource_absent || failed=true
   trap - EXIT
+  "$injected" && return 1
   ! "$failed"
 }
 trap teardown_rehearsal EXIT
