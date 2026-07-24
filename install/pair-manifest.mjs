@@ -78,6 +78,8 @@ if (command === "create") {
     mediaVolume,
     databaseVolumeIdentity,
     mediaVolumeIdentity,
+    applicationImage,
+    databaseOperationsImage,
     databasePath,
     mediaPath,
   ] = args;
@@ -87,11 +89,16 @@ if (command === "create") {
   for (const value of [databaseVolumeIdentity, mediaVolumeIdentity]) {
     closedText(value, /^[a-zA-Z0-9][a-zA-Z0-9_.:-]{0,255}\|local\|[a-zA-Z0-9_-]+\|[a-zA-Z0-9-]+\|[^|\r\n]+$/);
   }
+  if (applicationImage !== `${project}-app:${revision}` || databaseOperationsImage !== `${project}-db-ops:${revision}`) {
+    fail("manifest image identity is invalid");
+  }
   await chmod(databasePath, 0o600);
   await chmod(mediaPath, 0o600);
   const manifest = {
     format: "qr-pagamentos-pair-v1",
     application_revision: revision,
+    application_image: applicationImage,
+    database_operations_image: databaseOperationsImage,
     compose_project: project,
     database_volume: databaseVolume,
     media_volume: mediaVolume,
@@ -119,7 +126,7 @@ if (command === "create") {
   ) fail("manifest artifact is invalid");
   const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
   const keys = Object.keys(manifest).sort().join(",");
-  if (keys !== "application_revision,compose_project,database,database_volume,database_volume_identity,format,media,media_volume,media_volume_identity,schema_expectation") {
+  if (keys !== "application_image,application_revision,compose_project,database,database_operations_image,database_volume,database_volume_identity,format,media,media_volume,media_volume_identity,schema_expectation") {
     fail("manifest grammar is not closed");
   }
   if (manifest.format !== "qr-pagamentos-pair-v1" || manifest.schema_expectation !== "prisma-migrations-complete") {
@@ -127,6 +134,10 @@ if (command === "create") {
   }
   closedText(manifest.application_revision, /^[a-f0-9]{40}$/);
   closedText(manifest.compose_project, /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,62}$/);
+  if (
+    manifest.application_image !== `${manifest.compose_project}-app:${manifest.application_revision}`
+    || manifest.database_operations_image !== `${manifest.compose_project}-db-ops:${manifest.application_revision}`
+  ) fail("manifest image identity is invalid");
   for (const value of [manifest.database_volume, manifest.media_volume]) {
     closedText(value, /^[a-zA-Z0-9][a-zA-Z0-9_.-]{0,127}$/);
   }

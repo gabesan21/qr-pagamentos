@@ -473,7 +473,13 @@ NAUTT_WEBHOOK_CALLBACK_URL=https://container-test.invalid/api/nautt/webhooks
       const backupSet = backupOutput.match(/PASS media-backup set=(.+)/)?.[1]?.trim();
       assert(backupSet, "media backup set evidence missing");
       const manifest = JSON.parse(await readFile(path.join(backupSet, "manifest.json"), "utf8"));
-      assert(manifest.application_revision === revision && manifest.compose_project === project, "backup manifest identity changed");
+      assert(
+        manifest.application_revision === revision
+        && manifest.compose_project === project
+        && manifest.application_image === `${project}-app:${revision}`
+        && manifest.database_operations_image === `${project}-db-ops:${revision}`,
+        "backup manifest exact image identity changed",
+      );
       for (const secret of Object.values(values)) {
         assert(!JSON.stringify(manifest).includes(secret), "backup manifest leaked a protected value");
       }
@@ -482,7 +488,14 @@ NAUTT_WEBHOOK_CALLBACK_URL=https://container-test.invalid/api/nautt/webhooks
         const restore = (set, confirm = `RESTORE:${project}`, injection = "") => execute(
           "install/restore.sh",
           ["--env-file", installerEnv, "--backup", set, "--confirm", confirm],
-          { env: { ...processEnv, CONTAINER_TEST_RESTORE_INJECT: injection } },
+          {
+            env: {
+              ...processEnv,
+              DB_OPS_IMAGE: `${project}-db-ops:fixture`,
+              CONTAINER_TEST_OPERATOR_UID: "2001",
+              CONTAINER_TEST_RESTORE_INJECT: injection,
+            },
+          },
         );
         const copySet = async (name) => {
           const target = path.join(temporary, name);
@@ -599,10 +612,20 @@ NAUTT_WEBHOOK_CALLBACK_URL=https://container-test.invalid/api/nautt/webhooks
         const doubleFailure = restore(backupSet, `RESTORE:${project}`, "primary-after-mutation,recovery-after-mutation");
         const doubleOutput = `${doubleFailure.stdout ?? ""}${doubleFailure.stderr ?? ""}`;
         assert(doubleFailure.status !== 0 && doubleOutput.includes("DOUBLEFAIL"), "double restore failure contract changed");
+        assert(doubleOutput.includes("operator_uid=2001 container_uid=1000"), "non-1000 operator staging proof missing");
         assert(compose(["ps", "-q", "app"]).trim() === "", "double failure left the application running");
         assert((await readdir(destination)).some((entry) => entry.includes("-recovery")), "double failure removed recovery artifacts");
         await assertRehearsalAbsent();
-        compose(["up", "-d"]);
+        const recoveryMigrate = `${project}-restore-recovery-migrate-${process.pid}`;
+        compose(["run", "--name", recoveryMigrate, "--no-deps", "migrate"]);
+        assert(inspectField(recoveryMigrate, "{{.State.ExitCode}}") === "0", "double-failure pair did not pass exact-release migration proof");
+        assert(
+          run("docker", ["exec", compose(["ps", "-q", "db"]).trim(), "psql", "-p", "5433", "-U", "postgres", "-d", "qr_pagamentos", "-Atc",
+            "SELECT count(*) FROM app._prisma_migrations WHERE finished_at IS NULL OR rolled_back_at IS NOT NULL"]).trim() === "0",
+          "double-failure pair retained invalid migration metadata",
+        );
+        compose(["run", "--rm", "--no-deps", "identity-seed"]);
+        compose(["up", "-d", "--no-deps", "app"]);
         await waitForApp();
 
         const restored = execute("install/restore.sh", ["--env-file", installerEnv, "--backup", backupSet, "--confirm", `RESTORE:${project}`], { env: processEnv });
@@ -839,6 +862,37 @@ NAUTT_WEBHOOK_CALLBACK_URL=https://payments.example.com/api/nautt/webhooks
         assert(inspectField(previousApp, "{{.Image}}") === previousImage, `${gate} failure changed the previous app image`);
         assert(inspectField(previousApp, "{{.State.Health.Status}}") === "healthy", `${gate} failure damaged previous app health`);
       };
+      const envelopeFailure = async (injection, expectedResult, sameContainer) => {
+        const previousApp = containerId("app");
+        const previousImage = inspectField(previousApp, "{{.Image}}");
+        const evidenceBefore = new Set(await readdir(evidenceDirectory));
+        const result = execute("install/update.sh", updateArgs, {
+          env: { ...updateProcessEnv, CONTAINER_TEST_UPDATE_INJECT: injection },
+        });
+        const output = `${result.stdout ?? ""}${result.stderr ?? ""}`;
+        assert(result.status !== 0, `forced ${injection} failure succeeded`);
+        assertRedacted(output);
+        assert(!output.includes(sourceKey), `${injection} failure leaked Nautt key`);
+        const evidenceAfter = (await readdir(evidenceDirectory)).filter((name) => !evidenceBefore.has(name));
+        assert(evidenceAfter.length === 1, `${injection} did not retain one evidence file`);
+        const evidenceFile = path.join(evidenceDirectory, evidenceAfter[0]);
+        const evidenceText = await readFile(evidenceFile, "utf8");
+        assert(evidenceText.includes(expectedResult), `${injection} sealed result missing`);
+        assert(((await stat(evidenceFile)).mode & 0o777) === 0o400, `${injection} evidence mode changed`);
+        const currentApp = containerId("app");
+        if (sameContainer) assert(currentApp === previousApp, `${injection} replaced the pre-promotion app`);
+        assert(inspectField(currentApp, "{{.Image}}") === previousImage, `${injection} did not preserve exact previous image`);
+        assert(inspectField(currentApp, "{{.State.Health.Status}}") === "healthy", `${injection} did not preserve or restore health`);
+        assert(run("docker", ["volume", "inspect", "--format", "{{.Name}}|{{.Mountpoint}}|{{.CreatedAt}}", `${project}_postgres-data`]).trim() === volumeIdentity, `${injection} changed PostgreSQL volume identity`);
+        assert(run("docker", ["volume", "inspect", "--format", "{{.Name}}|{{.CreatedAt}}", `${project}_media-data`]).trim() === mediaVolumeIdentity, `${injection} changed media volume identity`);
+      };
+
+      await envelopeFailure("candidate-preflight", "result=candidate-preflight-failed", true);
+      captured += invoke("install/update.sh", updateArgs);
+      await assertUpdateStartup(captured);
+      await envelopeFailure("target-recreate", "result=target-recreate-failed-previous-image-healthy", false);
+      captured += invoke("install/update.sh", updateArgs);
+      await assertUpdateStartup(captured);
 
       await publishFileChange("force-bootstrap-failure", "prisma/bootstrap.sql", `${originalBootstrap}\nINVALID UPDATE BOOTSTRAP;\n`);
       await failedUpdate("bootstrap", "bootstrap", "ERROR bootstrap code=42601");
@@ -902,7 +956,7 @@ NAUTT_WEBHOOK_CALLBACK_URL=https://payments.example.com/api/nautt/webhooks
       assert(run("docker", ["volume", "inspect", "--format", "{{.Name}}|{{.Mountpoint}}|{{.CreatedAt}}", `${project}_postgres-data`]).trim() === volumeIdentity, "migration failure changed PostgreSQL volume identity");
       assert(run("docker", ["exec", dbId, "psql", "-p", "5433", "-U", "postgres", "-d", "qr_pagamentos", "-Atc", 'SELECT id || \'|\' || username || \'|\' || COALESCE(email, \'<null>\') FROM app."user" ORDER BY id']).trim() === dataBeforeFailure, "migration failure changed sentinel data");
       assert(await digest(sourceKeyPath) === sourceDigest && await digest(stagedKeyPath) === stagedDigest, "migration failure changed key continuity");
-      assert((await readdir(evidenceDirectory)).length === 9, "update evidence was not retained for every success and failure run");
+      assert((await readdir(evidenceDirectory)).length === 13, "update evidence was not retained for every success and failure run");
       console.log("PASS update-install-baseline");
       console.log("PASS update-rerun");
       console.log("PASS update-volume-identity");
@@ -914,6 +968,8 @@ NAUTT_WEBHOOK_CALLBACK_URL=https://payments.example.com/api/nautt/webhooks
       console.log("PASS update-bootstrap-failure-retention");
       console.log("PASS update-identity-seed-failure-retention");
       console.log("PASS update-target-health-image-rollback");
+      console.log("PASS update-candidate-preflight-failure-retention");
+      console.log("PASS update-target-recreate-failure-rollback");
       console.log("PASS update-failure-retains-app");
       console.log("PASS update-evidence-retention");
     } else if (scenario === "identity-recovery") {

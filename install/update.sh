@@ -14,6 +14,15 @@ POSTGRES_IMAGE='postgres:18.4-bookworm@sha256:1961f96e6029a02c3812d7cb329a3b03a3
 
 die() { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
 
+if [[ -n ${CONTAINER_TEST_UPDATE_INJECT:-} ]]; then
+  [[ ${CONTAINER_TEST_CLEAN_CLONE:-} == 1 && $PROJECT =~ ^qrct[[:alnum:]]+$ ]] \
+    || die 'update fault injection is restricted to a clean-clone disposable project'
+fi
+
+update_injected() {
+  [[ ",${CONTAINER_TEST_UPDATE_INJECT:-}," == *",$1,"* ]]
+}
+
 # shellcheck source=install/lib-operations.sh
 source "$INSTALL_DIR/lib-operations.sh"
 
@@ -43,6 +52,11 @@ assert_target_checkout() {
   [[ $head == "$QR_UPDATE_TARGET_SHA" ]] || die 'update checkout revision drifted from its target'
   [[ -z $(git -C "$ROOT_DIR" status --porcelain --untracked-files=all) ]] \
     || die 'update checkout changed during deployment'
+}
+
+target_checkout_valid() {
+  [[ $(git -C "$ROOT_DIR" rev-parse --verify HEAD 2>/dev/null) == "$QR_UPDATE_TARGET_SHA" ]] \
+    && [[ -z $(git -C "$ROOT_DIR" status --porcelain --untracked-files=all) ]]
 }
 
 require_clean_attached_upstream() {
@@ -251,8 +265,7 @@ wait_for_app() {
 candidate_media_preflight() {
   docker run --rm --pull=never --network none --read-only --tmpfs /tmp \
     --user 1000:1000 --volume "$MEDIA_VOLUME_NAME:/app/media" --entrypoint node \
-    "$APP_IMAGE" container/media-preflight.mjs >/dev/null \
-    || die 'candidate media preflight failed'
+    "$APP_IMAGE" container/media-preflight.mjs >/dev/null
 }
 
 require_old_app_unchanged() {
@@ -280,6 +293,39 @@ seal_helper_failure() {
   printf 'previous_app_proof=failed-operator-recovery-required\n' >> "$evidence"
   chmod 0400 "$evidence"
   die "$gate failed and the previous application proof no longer holds; operator recovery required"
+}
+
+seal_pre_promotion_failure() {
+  local gate=$1
+  printf 'result=%s-failed\n' "$gate" >> "$evidence"
+  if require_old_app_unchanged; then
+    printf 'previous_app_proof=exact-container-image-healthy-volumes-unchanged\n' >> "$evidence"
+    chmod 0400 "$evidence"
+    die "$gate failed; previous application remains exact and healthy"
+  fi
+  printf 'previous_app_proof=failed-operator-recovery-required\n' >> "$evidence"
+  chmod 0400 "$evidence"
+  die "$gate failed and previous application proof failed; operator recovery required"
+}
+
+rollback_target_failure() {
+  local gate=$1 restored_app
+  printf 'result=%s-failed-image-rollback-started\n' "$gate" >> "$evidence"
+  APP_IMAGE=$old_image
+  if ! compose up -d --no-deps --force-recreate app || ! restored_app=$(wait_for_app); then
+    printf 'result=%s-and-previous-health-failed-operator-recovery-required\n' "$gate" >> "$evidence"
+    chmod 0400 "$evidence"
+    die "$gate and previous application recovery failed; operator recovery required"
+  fi
+  if [[ $(docker inspect --format '{{.Image}}' "$restored_app") != "$old_image" ]] \
+    || [[ $(deployment_volume_identity) != "$volume_before" ]]; then
+    printf 'result=%s-previous-image-or-volume-proof-failed-operator-recovery-required\n' "$gate" >> "$evidence"
+    chmod 0400 "$evidence"
+    die "$gate rollback failed exact previous image or volume proof; operator recovery required"
+  fi
+  printf 'result=%s-failed-previous-image-healthy\n' "$gate" >> "$evidence"
+  chmod 0400 "$evidence"
+  die "$gate failed; previous image restored against retained data"
 }
 
 run_named_helper() {
@@ -312,13 +358,17 @@ volume_before=$(deployment_volume_identity)
 evidence=$(prepare_evidence "$old_app" "$old_image" "$volume_before")
 printf 'PASS update-evidence file=%s\n' "$evidence"
 
-# Candidate builds do not mutate the running Compose application.
-compose build --pull bootstrap app
-assert_target_checkout
-[[ $(image_revision "$DB_OPS_IMAGE") == "$QR_UPDATE_TARGET_SHA" ]] || die 'db-ops image revision mismatch'
-[[ $(image_revision "$APP_IMAGE") == "$QR_UPDATE_TARGET_SHA" ]] || die 'app image revision mismatch'
-candidate_media_preflight
-[[ $(deployment_volume_identity) == "$volume_before" ]] || die 'candidate preflight changed volume identities'
+# Candidate failures are sealed while the exact old application remains live.
+if update_injected candidate-build || ! compose build --pull bootstrap app; then
+  seal_pre_promotion_failure candidate-build
+fi
+target_checkout_valid || seal_pre_promotion_failure candidate-checkout
+[[ $(image_revision "$DB_OPS_IMAGE") == "$QR_UPDATE_TARGET_SHA" ]] || seal_pre_promotion_failure candidate-db-ops-proof
+[[ $(image_revision "$APP_IMAGE") == "$QR_UPDATE_TARGET_SHA" ]] || seal_pre_promotion_failure candidate-app-proof
+if update_injected candidate-preflight || ! candidate_media_preflight; then
+  seal_pre_promotion_failure candidate-preflight
+fi
+[[ $(deployment_volume_identity) == "$volume_before" ]] || seal_pre_promotion_failure candidate-volume-proof
 printf 'PASS update-candidate-media-preflight\n'
 
 # Every invocation creates named helpers. A failed helper is retained for bounded
@@ -329,7 +379,7 @@ if ! run_named_helper bootstrap "$bootstrap_name"; then
   seal_helper_failure bootstrap "$bootstrap_name"
 fi
 printf 'bootstrap_helper=%s\n' "$bootstrap_name" >> "$evidence"
-assert_target_checkout
+target_checkout_valid || seal_pre_promotion_failure post-bootstrap-checkout
 migrate_name="${PROJECT}-update-migrate-${QR_UPDATE_TARGET_SHA:0:12}-$$"
 if ! run_named_helper migrate "$migrate_name"; then
   seal_helper_failure migration "$migrate_name"
@@ -341,34 +391,20 @@ if ! run_named_helper identity-seed "$seed_name"; then
   seal_helper_failure identity-seed "$seed_name"
 fi
 printf 'identity_seed_helper=%s\n' "$seed_name" >> "$evidence"
-assert_target_checkout
-compose up -d --no-deps --force-recreate app
+target_checkout_valid || seal_pre_promotion_failure post-seed-checkout
+if update_injected target-recreate || ! compose up -d --no-deps --force-recreate app; then
+  rollback_target_failure target-recreate
+fi
 if ! target_app=$(wait_for_app); then
   compose logs --no-color app >&2 || true
-  {
-    printf 'result=target-health-failed-image-rollback-started\n'
-    printf 'failed_container=%s\n' "$(compose ps -aq app)"
-  } >> "$evidence"
-  APP_IMAGE=$old_image
-  compose up -d --no-deps --force-recreate app
-  if ! restored_app=$(wait_for_app); then
-    printf 'result=target-and-previous-health-failed-operator-recovery-required\n' >> "$evidence"
-    chmod 0400 "$evidence"
-    die 'target and previous application images are unhealthy; operator recovery required'
-  fi
-  if [[ $(docker inspect --format '{{.Image}}' "$restored_app") != "$old_image" ]] \
-    || [[ $(deployment_volume_identity) != "$volume_before" ]]; then
-    printf 'result=previous-image-or-volume-proof-failed-operator-recovery-required\n' >> "$evidence"
-    chmod 0400 "$evidence"
-    die 'rollback failed exact previous image or volume proof; operator recovery required'
-  fi
-  printf 'result=target-health-failed-previous-image-healthy\n' >> "$evidence"
-  chmod 0400 "$evidence"
-  die 'target application failed health; previous image restored against retained data'
+  printf 'failed_container=%s\n' "$(compose ps -aq app)" >> "$evidence"
+  rollback_target_failure target-health
 fi
 target_image=$(docker inspect --format '{{.Image}}' "$target_app")
-[[ $(image_revision "$target_image") == "$QR_UPDATE_TARGET_SHA" ]] || die 'target app revision mismatch'
-[[ $(deployment_volume_identity) == "$volume_before" ]] || die 'deployment volume identity changed'
+if update_injected target-proof || [[ $(image_revision "$target_image") != "$QR_UPDATE_TARGET_SHA" ]]; then
+  rollback_target_failure target-revision-proof
+fi
+[[ $(deployment_volume_identity) == "$volume_before" ]] || rollback_target_failure target-volume-proof
 printf 'result=success\n' >> "$evidence"
 chmod 0400 "$evidence"
 printf 'PASS update-complete revision=%s migrate=%s app=%s evidence=%s\n' "$QR_UPDATE_TARGET_SHA" "$migrate_name" "$target_app" "$evidence"

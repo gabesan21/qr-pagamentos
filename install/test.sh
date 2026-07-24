@@ -187,6 +187,8 @@ node "$INSTALL_DIR/pair-manifest.mjs" create "$pair_fixture/manifest.json" \
   aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa fixture fixture_postgres-data fixture_media-data \
   'fixture_postgres-data|local|fixture|postgres-data|created' \
   'fixture_media-data|local|fixture|media-data|created' \
+  fixture-app:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
+  fixture-db-ops:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
   "$pair_fixture/database.dump" "$pair_fixture/media.tar"
 node "$INSTALL_DIR/pair-manifest.mjs" verify "$pair_fixture/manifest.json" >/dev/null \
   || fail 'private regular backup pair was rejected'
@@ -208,6 +210,8 @@ node "$INSTALL_DIR/pair-manifest.mjs" create "$pair_fixture/unsafe-manifest.json
   aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa fixture fixture_postgres-data fixture_media-data \
   'fixture_postgres-data|local|fixture|postgres-data|created' \
   'fixture_media-data|local|fixture|media-data|created' \
+  fixture-app:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
+  fixture-db-ops:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
   "$pair_fixture/database.dump" "$pair_fixture/media.tar"
 if node "$INSTALL_DIR/pair-manifest.mjs" verify "$pair_fixture/unsafe-manifest.json" >/dev/null 2>&1; then
   fail 'unsafe media member mode succeeded'
@@ -227,6 +231,8 @@ reject_archive() {
     aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa fixture fixture_postgres-data fixture_media-data \
     'fixture_postgres-data|local|fixture|postgres-data|created' \
     'fixture_media-data|local|fixture|media-data|created' \
+    fixture-app:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
+    fixture-db-ops:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
     "$case_dir/database.dump" "$case_dir/media.tar"
   if node "$INSTALL_DIR/pair-manifest.mjs" verify "$manifest" >/dev/null 2>&1; then
     fail "$label media archive succeeded"

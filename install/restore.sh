@@ -18,6 +18,10 @@ if [[ -n ${CONTAINER_TEST_RESTORE_INJECT:-} ]]; then
   [[ ${CONTAINER_TEST_CLEAN_CLONE:-} == 1 && $PROJECT =~ ^qrct[[:alnum:]]+$ ]] \
     || die 'restore fault injection is restricted to a clean-clone disposable project'
 fi
+if [[ -n ${CONTAINER_TEST_OPERATOR_UID:-} ]]; then
+  [[ ${CONTAINER_TEST_CLEAN_CLONE:-} == 1 && $PROJECT =~ ^qrct[[:alnum:]]+$ && $CONTAINER_TEST_OPERATOR_UID =~ ^[1-9][0-9]*$ ]] \
+    || die 'operator UID simulation is restricted to a clean-clone disposable project'
+fi
 
 while (($#)); do
   case "$1" in
@@ -37,9 +41,14 @@ manifest_identity=$(node -e 'const m=require(process.argv[1]);process.stdout.wri
   || die 'backup project or volume identity does not match the managed target'
 [[ $(git -C "$ROOT_DIR" rev-parse HEAD) == "$revision" ]] || die 'checkout is not at the manifest revision'
 [[ -z $(git -C "$ROOT_DIR" status --porcelain --untracked-files=all) ]] || die 'restore requires a clean exact-release checkout'
-app_image="${PROJECT}-app:$revision"
+app_image=$(node -e 'const m=require(process.argv[1]);process.stdout.write(m.application_image)' "$manifest")
+db_ops_image=$(node -e 'const m=require(process.argv[1]);process.stdout.write(m.database_operations_image)' "$manifest")
+[[ $app_image == "${PROJECT}-app:$revision" && $db_ops_image == "${PROJECT}-db-ops:$revision" ]] \
+  || die 'manifest exact image identity is invalid'
 [[ $(docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$app_image" 2>/dev/null) == "$revision" ]] \
   || die 'exact manifest application image is unavailable'
+[[ $(docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$db_ops_image" 2>/dev/null) == "$revision" ]] \
+  || die 'exact manifest database-operations image is unavailable'
 
 APP_PORT=$(sed -n 's/^APP_PORT=//p' "$ENV_FILE" | tail -1)
 NAUTT_WEBHOOK_CALLBACK_URL=$(sed -n 's/^NAUTT_WEBHOOK_CALLBACK_URL=//p' "$ENV_FILE" | tail -1)
@@ -52,7 +61,7 @@ compose() {
   APP_PORT=$APP_PORT POSTGRES_ADMIN_PASSWORD_FILE=$POSTGRES_ADMIN_PASSWORD_FILE \
     MIGRATOR_PASSWORD_FILE=$MIGRATOR_PASSWORD_FILE RUNTIME_PASSWORD_FILE=$RUNTIME_PASSWORD_FILE \
     STAGED_SECRETS_DIR=$STAGED_SECRETS_DIR NAUTT_WEBHOOK_CALLBACK_URL=$NAUTT_WEBHOOK_CALLBACK_URL \
-    APP_IMAGE=$app_image RELEASE_REVISION=$revision \
+    APP_IMAGE=$app_image DB_OPS_IMAGE=$db_ops_image RELEASE_REVISION=$revision \
     docker compose -f "$ROOT_DIR/compose.yaml" -p "$PROJECT" "$@"
 }
 
@@ -70,8 +79,8 @@ candidate_health="${operation}-health"
 candidate_network="${operation}-network"
 candidate_db_volume="${operation}-postgres"
 candidate_media_volume="${operation}-media"
-secret_dir="$(dirname "$BACKUP")/.${operation}-secrets"
-inventory=("$candidate_health" "$candidate_db" "$candidate_network" "$candidate_db_volume" "$candidate_media_volume")
+candidate_secret_volume="${operation}-secrets"
+inventory=("$candidate_health" "$candidate_db" "$candidate_network" "$candidate_db_volume" "$candidate_media_volume" "$candidate_secret_volume")
 teardown_injection_pending=true
 
 restore_injected() {
@@ -84,7 +93,7 @@ resource_absent() {
     && ! docker network inspect "$candidate_network" >/dev/null 2>&1 \
     && ! docker volume inspect "$candidate_db_volume" >/dev/null 2>&1 \
     && ! docker volume inspect "$candidate_media_volume" >/dev/null 2>&1 \
-    && [[ ! -e $secret_dir ]]
+    && ! docker volume inspect "$candidate_secret_volume" >/dev/null 2>&1
 }
 teardown_rehearsal() {
   if "$teardown_injection_pending" && restore_injected rehearsal-teardown; then
@@ -100,69 +109,67 @@ teardown_rehearsal() {
   if docker network inspect "$candidate_network" >/dev/null 2>&1; then
     docker network rm "$candidate_network" >/dev/null 2>&1 || return 1
   fi
-  for volume in "$candidate_db_volume" "$candidate_media_volume"; do
+  for volume in "$candidate_db_volume" "$candidate_media_volume" "$candidate_secret_volume"; do
     if docker volume inspect "$volume" >/dev/null 2>&1; then
       docker volume rm "$volume" >/dev/null 2>&1 || return 1
     fi
   done
-  if [[ -e $secret_dir ]]; then rm -rf -- "$secret_dir" || return 1; fi
   resource_absent || return 1
   trap - EXIT
 }
 trap teardown_rehearsal EXIT
 resource_absent || die 'restore rehearsal inventory already exists'
-mkdir -m 0700 "$secret_dir"
-node -e 'const c=require("node:crypto");process.stdout.write(c.randomBytes(24).toString("base64url"))' > "$secret_dir/admin"
-node -e 'const c=require("node:crypto");process.stdout.write(c.randomBytes(24).toString("base64url"))' > "$secret_dir/runtime"
-node -e 'const c=require("node:crypto");process.stdout.write(c.randomBytes(32).toString("base64url"))' > "$secret_dir/nautt"
-chmod 0400 "$secret_dir/admin" "$secret_dir/runtime" "$secret_dir/nautt"
-runtime_candidate=$(<"$secret_dir/runtime")
-cat > "$secret_dir/roles.sql" <<SQL
-CREATE ROLE qr_migrator LOGIN PASSWORD '$runtime_candidate';
-CREATE ROLE qr_runtime LOGIN PASSWORD '$runtime_candidate';
-GRANT CREATE ON DATABASE qr_pagamentos TO qr_migrator;
-SQL
-unset runtime_candidate
-chmod 0400 "$secret_dir/roles.sql"
 
 for entry in "$candidate_db_volume:rehearsal-db" "$candidate_media_volume:rehearsal-media"; do
   docker volume create --driver local --label "qr.purpose=${entry#*:}" --label "qr.operation=$operation" "${entry%%:*}" >/dev/null
 done
+docker volume create --driver local --label "qr.purpose=rehearsal-secrets" --label "qr.operation=$operation" "$candidate_secret_volume" >/dev/null
+docker run --rm --pull=never --network none --read-only --tmpfs /tmp \
+  --user 0:0 -v "$candidate_secret_volume:/stage" "$NODE_HELPER" node -e \
+  'const f=require("node:fs");f.chownSync("/stage",1000,1000);f.chmodSync("/stage",0o700)' >/dev/null
+docker run --rm --pull=never --network none --read-only --tmpfs /tmp \
+  --user 1000:1000 -v "$candidate_secret_volume:/stage" "$NODE_HELPER" node -e \
+  'const f=require("node:fs"),c=require("node:crypto");for(const [n,b] of [["admin",24],["runtime_password",24],["nautt_encryption_key",32]])f.writeFileSync(`/stage/${n}`,c.randomBytes(b).toString("base64url"),{mode:0o400,flag:"wx"});for(const n of f.readdirSync("/stage")){const s=f.lstatSync(`/stage/${n}`);if(!s.isFile()||s.uid!==1000||s.gid!==1000||(s.mode&0o777)!==0o400)process.exit(1)}' \
+  || die 'candidate secret staging failed'
+if [[ -n ${CONTAINER_TEST_OPERATOR_UID:-} ]]; then
+  [[ $CONTAINER_TEST_OPERATOR_UID != 1000 ]] || die 'operator UID simulation must differ from container UID'
+  printf 'PASS restore-secret-staging operator_uid=%s container_uid=1000\n' "$CONTAINER_TEST_OPERATOR_UID"
+fi
 docker network create --internal --label "qr.purpose=rehearsal-db" --label "qr.operation=$operation" "$candidate_network" >/dev/null
 docker run -d --name "$candidate_db" --label "qr.purpose=rehearsal-db" --label "qr.operation=$operation" \
   --network "$candidate_network" --network-alias db \
-  -e POSTGRES_PASSWORD_FILE=/run/admin -v "$secret_dir/admin:/run/admin:ro" \
+  -e POSTGRES_PASSWORD_FILE=/run/candidate/admin -v "$candidate_secret_volume:/run/candidate:ro" \
   -v "$candidate_db_volume:/var/lib/postgresql" "$POSTGRES_IMAGE" -p 5433 >/dev/null
 for _ in {1..60}; do
   docker exec "$candidate_db" pg_isready -U postgres -d postgres -p 5433 >/dev/null 2>&1 && break
   sleep 1
 done
 docker exec "$candidate_db" pg_isready -U postgres -d postgres -p 5433 >/dev/null || die 'rehearsal database did not start'
-docker cp "$secret_dir/roles.sql" "$candidate_db:/run/roles.sql"
 docker cp "$BACKUP/database.dump" "$candidate_db:/run/database.dump"
-docker exec "$candidate_db" sh -eu -c 'PGPASSWORD=$(cat /run/admin); export PGPASSWORD; createdb -U postgres -p 5433 qr_pagamentos; psql -U postgres -p 5433 -d qr_pagamentos -f /run/roles.sql; status=0; pg_restore -U postgres -p 5433 -d qr_pagamentos --role=qr_migrator --no-owner --no-acl /run/database.dump || status=$?; psql -U postgres -p 5433 -d qr_pagamentos -c "REVOKE CREATE ON DATABASE qr_pagamentos FROM qr_migrator" >/dev/null; exit "$status"' \
+docker run --rm --pull=never --network none --read-only --tmpfs /tmp --user 1000:1000 \
+  -v "$candidate_secret_volume:/run/candidate:ro" "$NODE_HELPER" node -e \
+  'const f=require("node:fs");const p=f.readFileSync("/run/candidate/runtime_password","utf8"),q=String.fromCharCode(39);process.stdout.write(`CREATE ROLE qr_migrator LOGIN PASSWORD ${q}${p}${q};\nCREATE ROLE qr_runtime LOGIN PASSWORD ${q}${p}${q};\nGRANT CREATE ON DATABASE qr_pagamentos TO qr_migrator;\n`)' \
+  | docker exec -i "$candidate_db" sh -eu -c 'PGPASSWORD=$(cat /run/candidate/admin); export PGPASSWORD; createdb -U postgres -p 5433 qr_pagamentos; psql -U postgres -p 5433 -d qr_pagamentos -f -; status=0; pg_restore -U postgres -p 5433 -d qr_pagamentos --role=qr_migrator --no-owner --no-acl /run/database.dump || status=$?; psql -U postgres -p 5433 -d qr_pagamentos -c "REVOKE CREATE ON DATABASE qr_pagamentos FROM qr_migrator" >/dev/null; exit "$status"' \
   >/dev/null 2>&1 || die 'rehearsal database restore failed'
-docker exec "$candidate_db" sh -eu -c 'PGPASSWORD=$(cat /run/admin); export PGPASSWORD; psql -U postgres -p 5433 -d qr_pagamentos -Atc "SELECT count(*) FROM app._prisma_migrations WHERE finished_at IS NULL OR rolled_back_at IS NOT NULL" | grep -qx 0' \
+docker exec "$candidate_db" sh -eu -c 'PGPASSWORD=$(cat /run/candidate/admin); export PGPASSWORD; psql -U postgres -p 5433 -d qr_pagamentos -Atc "SELECT count(*) FROM app._prisma_migrations WHERE finished_at IS NULL OR rolled_back_at IS NOT NULL" | grep -qx 0' \
   || die 'rehearsal migration metadata failed'
-docker exec "$candidate_db" sh -eu -c 'PGPASSWORD=$(cat /run/admin); export PGPASSWORD; psql -U postgres -p 5433 -d qr_pagamentos -AtF "	" -c "SELECT storage_key, byte_size, sha256, state::text FROM app.media_object ORDER BY storage_key"' \
-  > "$secret_dir/media.inventory"
-chmod 0400 "$secret_dir/media.inventory"
 
 docker run --rm --network none --read-only --tmpfs /tmp --user 1000:1000 \
   -v "$candidate_media_volume:/app/media" -v "$BACKUP/media.tar:/run/media.tar:ro" --entrypoint tar \
   "$app_image" --numeric-owner -C /app/media -xpf /run/media.tar
 docker run --rm --network none --read-only --tmpfs /tmp --user 1000:1000 \
   -v "$candidate_media_volume:/app/media" --entrypoint node "$app_image" container/media-preflight.mjs >/dev/null
-docker run --rm --network none --read-only --tmpfs /tmp --user 1000:1000 \
-  -v "$candidate_media_volume:/app/media:ro" -v "$secret_dir/media.inventory:/run/media.inventory:ro" \
-  --entrypoint node "$app_image" container/media-inventory.mjs /run/media.inventory /app/media >/dev/null
+docker exec "$candidate_db" sh -eu -c 'PGPASSWORD=$(cat /run/candidate/admin); export PGPASSWORD; psql -U postgres -p 5433 -d qr_pagamentos -AtF "	" -c "SELECT storage_key, byte_size, sha256, state::text FROM app.media_object ORDER BY storage_key"' \
+  | docker run --rm -i --network none --read-only --tmpfs /tmp --user 1000:1000 \
+    -v "$candidate_media_volume:/app/media:ro" --entrypoint node "$app_image" container/media-inventory.mjs - /app/media >/dev/null \
+  || die 'rehearsal media inventory failed'
 docker run -d --name "$candidate_health" --label "qr.purpose=rehearsal-health" --label "qr.operation=$operation" \
   --network "$candidate_network" --read-only --tmpfs /tmp:uid=1000,gid=1000,mode=0700 \
   --tmpfs /app/.next/cache:uid=1000,gid=1000,mode=0700 --user 1000:1000 \
   -e POSTGRES_HOST=db -e POSTGRES_PORT=5433 -e MEDIA_STORAGE_ROOT=/app/media \
   -e NAUTT_WEBHOOK_CALLBACK_URL=https://rehearsal.invalid/api/nautt/webhooks \
   -v "$candidate_media_volume:/app/media" \
-  -v "$secret_dir/runtime:/run/secrets/runtime_password:ro" -v "$secret_dir/nautt:/run/secrets/nautt_encryption_key:ro" \
+  -v "$candidate_secret_volume:/run/secrets:ro" \
   "$app_image" >/dev/null
 for _ in {1..60}; do
   docker exec "$candidate_health" node container/healthcheck.mjs >/dev/null 2>&1 && break
@@ -182,7 +189,6 @@ recovery_set=${recovery_output##*set=}
 restore_managed_pair() {
   local set=$1
   local attempt=$2
-  local inventory_file="$recovery_parent/.${attempt}-media.inventory"
   node "$INSTALL_DIR/pair-manifest.mjs" verify "$set/manifest.json" >/dev/null \
     || return 1
   compose down --remove-orphans >/dev/null \
@@ -218,15 +224,9 @@ restore_managed_pair() {
     || return 1
   compose exec -T db psql -U postgres -p 5433 -d qr_pagamentos -AtF $'\t' -c \
     'SELECT storage_key, byte_size, sha256, state::text FROM app.media_object ORDER BY storage_key' \
-    > "$inventory_file" \
-    || return 1
-  chmod 0400 "$inventory_file" \
-    || return 1
-  docker run --rm --network none --read-only --tmpfs /tmp --user 1000:1000 \
-    -v "${PROJECT}_media-data:/app/media:ro" -v "$inventory_file:/run/media.inventory:ro" \
-    --entrypoint node "$app_image" container/media-inventory.mjs /run/media.inventory /app/media >/dev/null \
-    || return 1
-  rm -f -- "$inventory_file" \
+    | docker run --rm -i --network none --read-only --tmpfs /tmp --user 1000:1000 \
+      -v "${PROJECT}_media-data:/app/media:ro" --entrypoint node "$app_image" \
+      container/media-inventory.mjs - /app/media >/dev/null \
     || return 1
   compose up -d >/dev/null \
     || return 1

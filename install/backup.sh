@@ -32,10 +32,13 @@ STAGED_SECRETS_DIR=$ROOT_DIR/.container-secrets
 POSTGRES_ADMIN_PASSWORD_FILE=$SOURCE_SECRETS_DIR/postgres_admin_password
 MIGRATOR_PASSWORD_FILE=$SOURCE_SECRETS_DIR/migrator_password
 RUNTIME_PASSWORD_FILE=$SOURCE_SECRETS_DIR/runtime_password
+APP_IMAGE=${PROJECT}-app:local
+DB_OPS_IMAGE=${PROJECT}-db-ops:local
 compose() {
   APP_PORT=$APP_PORT POSTGRES_ADMIN_PASSWORD_FILE=$POSTGRES_ADMIN_PASSWORD_FILE \
     MIGRATOR_PASSWORD_FILE=$MIGRATOR_PASSWORD_FILE RUNTIME_PASSWORD_FILE=$RUNTIME_PASSWORD_FILE \
     STAGED_SECRETS_DIR=$STAGED_SECRETS_DIR NAUTT_WEBHOOK_CALLBACK_URL=$NAUTT_WEBHOOK_CALLBACK_URL \
+    APP_IMAGE=$APP_IMAGE DB_OPS_IMAGE=$DB_OPS_IMAGE \
     docker compose -f "$ROOT_DIR/compose.yaml" -p "$PROJECT" "$@"
 }
 
@@ -47,6 +50,13 @@ app_id=$(compose ps -q app)
 app_image=$(docker inspect --format '{{.Image}}' "$app_id")
 revision=$(docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$app_image")
 [[ $revision =~ ^[a-f0-9]{40}$ ]] || die 'installed application revision is not exact'
+APP_IMAGE="${PROJECT}-app:$revision"
+DB_OPS_IMAGE="${PROJECT}-db-ops:$revision"
+[[ $(docker inspect --format '{{.Config.Image}}' "$app_id") == "$APP_IMAGE" ]] || die 'installed application image reference is not exact'
+[[ $(docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$APP_IMAGE" 2>/dev/null) == "$revision" ]] \
+  || die 'exact application image is unavailable'
+[[ $(docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$DB_OPS_IMAGE" 2>/dev/null) == "$revision" ]] \
+  || die 'exact database-operations image is unavailable'
 
 name="qr-pair-$(date -u +'%Y%m%dT%H%M%SZ')"
 published=$DESTINATION/$name
@@ -84,6 +94,7 @@ docker run --rm --pull=never --network none --read-only --tmpfs /tmp --user 1000
 node "$INSTALL_DIR/pair-manifest.mjs" create "$work/manifest.json" "$revision" "$PROJECT" \
   "${PROJECT}_postgres-data" "${PROJECT}_media-data" \
   "$(volume_identity "${PROJECT}_postgres-data")" "$(volume_identity "${PROJECT}_media-data")" \
+  "$APP_IMAGE" "$DB_OPS_IMAGE" \
   "$work/database.dump" "$work/media.tar"
 node "$INSTALL_DIR/pair-manifest.mjs" verify "$work/manifest.json" >/dev/null
 chmod 0600 "$work/database.dump" "$work/media.tar" "$work/manifest.json"
