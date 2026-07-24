@@ -48,3 +48,98 @@ export function resolveExternalRef(root, reference) {
   if (!value) throw new Error(`Unresolved resolver reference: ${reference}`);
   return value;
 }
+
+function mergeTokenSources(target, source) {
+  if (Array.isArray(source) || source === null || typeof source !== "object") return structuredClone(source);
+  const merged = target && !Array.isArray(target) && typeof target === "object"
+    ? structuredClone(target)
+    : {};
+  for (const [key, value] of Object.entries(source)) {
+    merged[key] = value && !Array.isArray(value) && typeof value === "object"
+      ? mergeTokenSources(merged[key], value)
+      : structuredClone(value);
+  }
+  return merged;
+}
+
+function resolverTarget(resolver, reference) {
+  const match = reference.match(/^#\/(sets|modifiers)\/([^/]+)$/);
+  if (!match) throw new Error(`Invalid resolution-order reference: ${reference}`);
+  const [, collection, name] = match;
+  const target = resolver[collection]?.[name];
+  if (!target) throw new Error(`Unresolved resolution-order reference: ${reference}`);
+  return { collection, name, target };
+}
+
+function selectedContexts(resolver, inputs) {
+  const normalizedInputs = new Map(
+    Object.entries(inputs).map(([name, value]) => [name.toLowerCase(), value]),
+  );
+  for (const name of normalizedInputs.keys()) {
+    if (!Object.keys(resolver.modifiers ?? {}).some((modifier) => modifier.toLowerCase() === name))
+      throw new Error(`Unknown resolver modifier input: ${name}`);
+  }
+
+  return Object.fromEntries(Object.entries(resolver.modifiers ?? {}).map(([name, modifier]) => {
+    if (!modifier.contexts || typeof modifier.contexts !== "object")
+      throw new Error(`Modifier ${name} has no contexts.`);
+    const requested = normalizedInputs.get(name.toLowerCase());
+    if (requested !== undefined && typeof requested !== "string")
+      throw new Error(`Modifier input ${name} must be a string.`);
+    const contextName = requested ?? modifier.default;
+    if (contextName === undefined) throw new Error(`Modifier ${name} requires an input.`);
+    const canonicalName = Object.keys(modifier.contexts)
+      .find((candidate) => candidate.toLowerCase() === contextName.toLowerCase());
+    if (!canonicalName) throw new Error(`Unknown ${name} context: ${contextName}`);
+    return [name, canonicalName];
+  }));
+}
+
+function resolveAliases(root) {
+  const resolved = structuredClone(root);
+
+  function visit(node, path = []) {
+    if (!node || typeof node !== "object") return;
+    if ("$value" in node) {
+      const value = node.$value;
+      const alias = typeof value === "string" ? value.match(/^\{([^}]+)\}$/) : null;
+      if (alias) node.$value = structuredClone(resolveToken(resolved, alias[1], [path.join(".")]));
+      return;
+    }
+    for (const [name, child] of Object.entries(node)) {
+      if (!name.startsWith("$")) visit(child, [...path, name]);
+    }
+  }
+
+  visit(resolved);
+  return resolved;
+}
+
+export function resolveDesignTokens(resolver, tokenSource, inputs = {}) {
+  if (resolver.version !== "2025.10") throw new Error("Resolver version must be 2025.10.");
+  if (!Array.isArray(resolver.resolutionOrder))
+    throw new Error("Resolver resolutionOrder must be an array.");
+
+  const allowedProperties = new Set([
+    "name", "version", "description", "sets", "modifiers", "resolutionOrder", "$extensions",
+  ]);
+  const unsupported = Object.keys(resolver).find((name) => !allowedProperties.has(name));
+  if (unsupported) throw new Error(`Unsupported resolver property: ${unsupported}`);
+
+  const contexts = selectedContexts(resolver, inputs);
+  let merged = {};
+  for (const entry of resolver.resolutionOrder) {
+    if (!entry || typeof entry.$ref !== "string")
+      throw new Error("Every resolution-order entry must contain a $ref.");
+    const { collection, name, target } = resolverTarget(resolver, entry.$ref);
+    const sources = collection === "sets" ? target.sources : target.contexts[contexts[name]];
+    if (!Array.isArray(sources)) throw new Error(`Resolver target ${name} has no sources.`);
+    for (const source of sources) {
+      if (!source || typeof source.$ref !== "string")
+        throw new Error(`Resolver target ${name} contains an invalid source.`);
+      merged = mergeTokenSources(merged, resolveExternalRef(tokenSource, source.$ref));
+    }
+  }
+
+  return { contexts, tokens: resolveAliases(merged) };
+}

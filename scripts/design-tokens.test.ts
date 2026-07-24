@@ -3,7 +3,8 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { findDesignTokenViolations } from "./check-design-tokens.mjs";
-import { hexFromOklch, resolveExternalRef, resolveToken } from "./design-token-graph.mjs";
+import { buildGeneratedThemeTokens } from "./generate-design-tokens.mjs";
+import { hexFromOklch, resolveDesignTokens, resolveToken } from "./design-token-graph.mjs";
 
 const tokenPath = join(process.cwd(), "src/design-system/tokens/themes.tokens.json");
 type ColorToken = { $type?: string; $value: { colorSpace: string; components: number[]; hex: string } };
@@ -39,15 +40,39 @@ describe("six-theme design tokens", () => {
     expect(resolver.modifiers.theme.default).toBe("pix-paper");
     expect(resolver.modifiers.motion.default).toBe("full");
     expect(Object.keys(resolver.modifiers.motion.contexts)).toEqual(["full", "reduced"]);
-    for (const modifier of Object.values(resolver.modifiers) as Array<{ contexts: Record<string, Array<{ $ref: string }>> }>)
-      for (const refs of Object.values(modifier.contexts)) for (const ref of refs) expect(resolveExternalRef(source, ref.$ref)).toBeTruthy();
-    expect(resolveToken(source, "motion.full.duration")).toEqual({ value: 180, unit: "ms" });
-    expect(resolveToken(source, "motion.reduced.duration")).toEqual({ value: 0, unit: "ms" });
+    expect(resolver.projection).toBeUndefined();
+    expect(resolver.$extensions["com.qr-pagamentos.css"].color).toBeTruthy();
+
+    const defaults = resolveDesignTokens(resolver, source);
+    const reduced = resolveDesignTokens(resolver, source, { motion: "REDUCED" });
+    expect(defaults.contexts).toEqual({ theme: "pix-paper", motion: "full" });
+    expect(defaults.tokens.duration.$value).toEqual({ value: 180, unit: "ms" });
+    expect(reduced.contexts.motion).toBe("reduced");
+    expect(reduced.tokens.duration.$value).toEqual({ value: 0, unit: "ms" });
+    expect(() => resolveDesignTokens(resolver, source, { theme: "missing" })).toThrow(/Unknown theme context/);
   });
 
   it("fails closed for unresolved and cyclic references", () => {
     expect(() => resolveToken({ a: { $value: "{missing}" } }, "a")).toThrow(/Unresolved/);
     expect(() => resolveToken({ a: { $value: "{b}" }, b: { $value: "{a}" } }, "a")).toThrow(/cycle/);
+    const cyclicSource = structuredClone(source) as Record<string, unknown>;
+    (cyclicSource.reference as Record<string, unknown>).cycleA = { $value: "{reference.cycleB}" };
+    (cyclicSource.reference as Record<string, unknown>).cycleB = { $value: "{reference.cycleA}" };
+    expect(() => resolveDesignTokens(resolver, cyclicSource)).toThrow(/cycle/);
+  });
+
+  it("uses production resolver context mappings to drive resolved and generated output", () => {
+    const remapped = structuredClone(resolver);
+    remapped.modifiers.theme.contexts["pix-paper"] =
+      structuredClone(resolver.modifiers.theme.contexts["cashier-daylight"]);
+
+    const canonical = resolveDesignTokens(resolver, source, { theme: "pix-paper" });
+    const changed = resolveDesignTokens(remapped, source, { theme: "pix-paper" });
+    expect(changed.tokens.color.primary.$value).not.toEqual(canonical.tokens.color.primary.$value);
+    expect(changed.tokens.color.primary.$value)
+      .toEqual(resolveDesignTokens(resolver, source, { theme: "cashier-daylight" }).tokens.color.primary.$value);
+    expect(buildGeneratedThemeTokens(source, remapped))
+      .not.toEqual(buildGeneratedThemeTokens(source, resolver));
   });
 
   it.each(themeNames)("keeps %s in gamut and above required contrast", (name) => {
