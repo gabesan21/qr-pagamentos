@@ -106,6 +106,33 @@ links, visible focus, and targets of at least 44 by 44 CSS pixels. Numeric facts
 use tabular figures, and invalid/error states echo no submitted or internal
 detail.
 
+The merchant catalog workspace under `/catalog` composes that directory as a
+**single-page** listing: owner catalogs are bounded, so no cursor URLs exist
+and any cursor parameter is invalid input. Strict decoding reuses the
+foundation's query contract with deterministic canonical `307` resets; the
+selected page size caps the rendered rows and an explicit truncation note asks
+for a narrower search instead of inventing pagination. The products directory
+shows 48-pixel owner image thumbnails (`GET /media/[identifier]`) or the
+official `mark-only` placeholder, a never-color-only active/inactive/archived
+badge vocabulary, and edit/view row actions; `/catalog/products/new` and
+`/catalog/products/[id]` carry one primary native submission per card, category
+and currency `NativeSelect`s with dirty-field omission (an untouched optional
+field posts nothing, so a stored currency never re-gates), and a disabled
+currency select with a bilingual explanation whenever no mapping is available.
+A stored but unmapped currency renders as a disabled factual row. Product
+images stage through `POST /products/images` (bounded multipart, opaque
+identifier, `no-store`) into a focused observation-only client boundary with a
+STAGED preview via the owner-fenced media read; client hints mirror — never
+replace — the server byte/type limits, and the no-image placeholder is the
+official merchant fallback lockup in `currentColor`, never a page-local asset.
+Archived products render a read-only factual view with the terminal
+irreversibility explanation and no mutation control. `/catalog/categories`
+adds the inline bilingual create card and per-row edit plus a
+destructive-confirmation deactivation block whose replacement select mirrors
+the service's atomic reassignment; a referenced category with no active
+replacement explains the blocked deactivation instead of offering a submit,
+and inactive rows stay listed, badge-marked, and edit-locked.
+
 The deterministic `/design-system` exercise surface resolves its dictionary from
 the same server preference contract as the authenticated shell and presents all
 applicable states, including labelled default, populated, disabled, and invalid
@@ -257,6 +284,19 @@ reflow, focus, targets, axe, cookie expiry, persisted-locale signed-out copy,
 all-session rejection, old-password denial, and new-password admission. The
 review is bound to the current manifest and accepts no
 unresolved severity 2 or greater finding.
+
+`pnpm catalog:evidence` and `pnpm catalog:evidence:verify` bind 49 merchant
+catalog captures: the products directory across six themes, both locales, and
+widths 375/768/1440 (36), plus thirteen localized state captures covering the
+empty directories, the disabled currency-unmapped select, the staged upload
+preview, the create notice, the deactivation-with-reassignment block, the
+blocked no-replacement explanation, new/edit forms, filtered-empty and
+invalid-query states, and the terminal archived read-only view. The run proves
+one 200 staging upload with an owner-fenced preview, single native document
+POSTs binding category, currency, staged image, and a distinct replacement, no
+mutation control on archived products, and the same axe, overflow, target, and
+focus gates as the other evidence surfaces; the review is manifest-hash-bound
+and accepts no unresolved severity 2 or greater finding.
 
 The status rail and panels use ruled separation and restrained corners. Never
 make a page-specific button variant: use owned `Button` variants. Motion is
