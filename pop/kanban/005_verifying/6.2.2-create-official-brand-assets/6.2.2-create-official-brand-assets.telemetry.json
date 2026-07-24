@@ -79,6 +79,18 @@
       ],
       "test_seconds": 0,
       "result": "advanced"
+    },
+    {
+      "at": "2026-07-24T01:22:19-03:00",
+      "event": "stage",
+      "stage": "005_verifying",
+      "contexts": [
+        "verify2_6_2_2"
+      ],
+      "strategy": "fresh full round-2 review of the original brand request, repaired static outline provenance, independently closed identity mappings, all changed consumers, and final visual evidence",
+      "tests": "brand check twice; mutation-focused brand and render tests; full Vitest; evidence verifiers; typecheck; lint; build; font/license/source hashes; static rasterization; 32-capture visual inspection; scope, diff, and PoP validation",
+      "test_seconds": 125,
+      "result": "approved_round_2"
     }
   ]
 }
