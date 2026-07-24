@@ -72,12 +72,24 @@ describe("nautt credential service", () => {
     expect(repository.records.get(owner.id)?.encryptedApiKey).toBe(`enc:owner-key:${testKey.toString("base64url")}`);
   });
 
-  it("allows an administrator to save and read a credential for another user", async () => {
+  it("denies administrators before store or cryptographic work", async () => {
+    crypto.encrypt.mockClear();
+    crypto.decrypt.mockClear();
     const repository = store();
+    const storeOperations = [
+      vi.spyOn(repository, "saveValidatedIfRevision"),
+      vi.spyOn(repository, "find"),
+      vi.spyOn(repository, "exists"),
+    ];
     const service = createNauttCredentialService(repository, crypto);
-    await service.save(admin, owner.id, "admin-set-key");
-    const redacted = await service.getRedacted(admin, owner.id);
-    expect(redacted.hasCredential).toBe(true);
+
+    await expect(service.save(admin, owner.id, "admin-set-key")).rejects.toBeInstanceOf(ForbiddenError);
+    await expect(service.saveValidated(admin, owner.id, "admin-set-key", null)).rejects.toBeInstanceOf(ForbiddenError);
+    await expect(service.snapshotRevision(admin, owner.id)).rejects.toBeInstanceOf(ForbiddenError);
+    await expect(service.getRedacted(admin, owner.id)).rejects.toBeInstanceOf(ForbiddenError);
+    expect(storeOperations.every((operation) => operation.mock.calls.length === 0)).toBe(true);
+    expect(crypto.encrypt).not.toHaveBeenCalled();
+    expect(crypto.decrypt).not.toHaveBeenCalled();
   });
 
   it("rejects a non-owner non-admin user", async () => {

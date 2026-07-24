@@ -1,5 +1,5 @@
 import { getDatabaseClient } from "../db/client";
-import { ForbiddenError, type Principal } from "./authorization";
+import { requireUserPrincipal, type Principal } from "./authorization";
 
 export type OwnerProduct = {
   id: string;
@@ -35,12 +35,6 @@ const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{
 const PRICE_PATTERN = /^(?:0\.[0-9]{0,5}[1-9]|[1-9][0-9]{0,11}(?:\.[0-9]{0,5}[1-9])?)$/;
 const VERSION_PATTERN = /^(?:0|[1-9][0-9]*)$/;
 const MAX_DATABASE_INTEGER = 2_147_483_647;
-
-function requireActiveActor(actor: Principal) {
-  if (actor.status !== "ACTIVE") {
-    throw new ForbiddenError("Active account access is required");
-  }
-}
 
 function validateUuid(value: unknown): string {
   if (typeof value !== "string" || !UUID_PATTERN.test(value)) {
@@ -99,11 +93,11 @@ function requireMatchedProduct(product: OwnerProduct | null): OwnerProduct {
 export function createProductService(store: ProductStore) {
   return {
     async listForOwner(actor: Principal) {
-      requireActiveActor(actor);
+      requireUserPrincipal(actor);
       return store.list(actor.id);
     },
     async create(actor: Principal, input: Record<keyof ProductValues, unknown>) {
-      requireActiveActor(actor);
+      requireUserPrincipal(actor);
       return store.create(actor.id, validateValues(input));
     },
     async update(
@@ -112,13 +106,13 @@ export function createProductService(store: ProductStore) {
       version: unknown,
       input: Record<keyof ProductValues, unknown>,
     ) {
-      requireActiveActor(actor);
+      requireUserPrincipal(actor);
       return requireMatchedProduct(
         await store.update(actor.id, validateUuid(id), validateVersion(version), validateValues(input)),
       );
     },
     async setActive(actor: Principal, id: unknown, version: unknown, active: unknown) {
-      requireActiveActor(actor);
+      requireUserPrincipal(actor);
       if (active !== true && active !== false && active !== "true" && active !== "false") {
         throw new ProductValidationError("Product active state is invalid");
       }
@@ -127,7 +121,7 @@ export function createProductService(store: ProductStore) {
       );
     },
     async delete(actor: Principal, id: unknown, version: unknown) {
-      requireActiveActor(actor);
+      requireUserPrincipal(actor);
       const deleted = await store.delete(actor.id, validateUuid(id), validateVersion(version));
       if (!deleted) throw new ProductConflictError("Product mutation did not match the expected version");
     },

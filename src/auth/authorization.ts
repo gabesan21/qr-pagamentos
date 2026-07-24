@@ -13,6 +13,13 @@ export interface AuthorizationStore {
 export class UnauthenticatedError extends Error {}
 export class ForbiddenError extends Error {}
 
+export function requireUserPrincipal(principal: Principal): Principal {
+  if (principal.role !== "USER" || principal.status !== "ACTIVE") {
+    throw new ForbiddenError("Merchant access is required");
+  }
+  return principal;
+}
+
 export function createAuthorizationService(session: Pick<SessionService, "validate">, store: AuthorizationStore) {
   return {
     async resolve(token: string | undefined): Promise<Principal | null> {
@@ -31,6 +38,9 @@ export function createAuthorizationService(session: Pick<SessionService, "valida
       const principal = await this.requireAuthenticated(token);
       if (principal.role !== "ADMIN") throw new ForbiddenError("Administrator access is required");
       return principal;
+    },
+    async requireUser(token: string | undefined): Promise<Principal> {
+      return requireUserPrincipal(await this.requireAuthenticated(token));
     },
   };
 }

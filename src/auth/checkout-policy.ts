@@ -1,5 +1,5 @@
 import { getDatabaseClient } from "../db/client";
-import { ForbiddenError, type Principal } from "./authorization";
+import { ForbiddenError, requireUserPrincipal, type Principal } from "./authorization";
 
 export const CHECKOUT_DATA_POLICIES = ["NONE", "NAME_EMAIL", "EMAIL", "NAME_EMAIL_CPF", "NAME_EMAIL_CPF_ADDRESS"] as const;
 export type CheckoutDataPolicy = (typeof CHECKOUT_DATA_POLICIES)[number];
@@ -11,10 +11,6 @@ export type CheckoutPolicyStore = Readonly<{
   get(ownerId: string): Promise<CheckoutPolicyData | null>;
   set(ownerId: string, checkoutDataPolicy: CheckoutDataPolicy): Promise<CheckoutPolicyData | null>;
 }>;
-
-function requireActiveActor(actor: Principal) {
-  if (actor.status !== "ACTIVE") throw new ForbiddenError("Active account access is required");
-}
 
 function validatePolicy(value: unknown): CheckoutDataPolicy {
   if (typeof value === "string" && CHECKOUT_DATA_POLICIES.includes(value as CheckoutDataPolicy)) {
@@ -31,11 +27,11 @@ function requirePolicy(data: CheckoutPolicyData | null): CheckoutPolicyData {
 export function createCheckoutPolicyService(store: CheckoutPolicyStore) {
   return {
     async getForOwner(actor: Principal) {
-      requireActiveActor(actor);
+      requireUserPrincipal(actor);
       return requirePolicy(await store.get(actor.id));
     },
     async update(actor: Principal, policy: unknown) {
-      requireActiveActor(actor);
+      requireUserPrincipal(actor);
       return requirePolicy(await store.set(actor.id, validatePolicy(policy)));
     },
   };

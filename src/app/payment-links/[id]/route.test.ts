@@ -9,9 +9,9 @@ const owner = { id: "owner", username: "owner", email: null, role: "USER" as con
 const sameOrigin = { origin: "http://local", host: "local" };
 describe("owner payment-link revocation route", () => {
   it("re-authorizes before resolving the target and redirects opaquely", async () => {
-    requireOwnerFromCookie.mockRejectedValueOnce(new Error("protected")); ownerProtectedMutationResponse.mockReturnValueOnce(new Response(null, { status: 401 }));
+    requireOwnerFromCookie.mockRejectedValueOnce(new Error("protected")); ownerProtectedMutationResponse.mockReturnValueOnce(new Response(null, { status: 403 }));
     const protectedResponse = await POST(new Request("http://local/payment-links/secret", { method: "POST", headers: sameOrigin }), { params: Promise.resolve({ id: "secret" }) });
-    expect(protectedResponse.status).toBe(401); expect(deactivate).not.toHaveBeenCalled();
+    expect(protectedResponse.status).toBe(403); expect(await protectedResponse.text()).toBe(""); expect(deactivate).not.toHaveBeenCalled();
     requireOwnerFromCookie.mockResolvedValue(owner); ownerProtectedMutationResponse.mockReturnValue(null);
     const response = await POST(new Request("http://local/payment-links/secret", { method: "POST", headers: sameOrigin }), { params: Promise.resolve({ id: "foreign" }) });
     expect(deactivate).toHaveBeenCalledWith(owner, "foreign"); expect(response.headers.get("location")).toBe("/?payment-links=revoked");

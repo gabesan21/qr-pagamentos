@@ -1,7 +1,7 @@
 import { randomBytes } from "node:crypto";
 
 import { getDatabaseClient } from "../db/client";
-import { ForbiddenError, type Principal } from "./authorization";
+import { requireUserPrincipal, type Principal } from "./authorization";
 
 export const PAYMENT_LINK_TYPES = ["SINGLE_USE", "REUSABLE"] as const;
 export type PaymentLinkType = (typeof PAYMENT_LINK_TYPES)[number];
@@ -64,12 +64,6 @@ const ACTIVE_DEPENDENCY_DATABASE_ERRORS = new Set([
 ]);
 const activeDependencies: Dependencies = { randomBytes, now: () => new Date() };
 
-function requireActiveActor(actor: Principal) {
-  if (actor.status !== "ACTIVE") {
-    throw new ForbiddenError("Active account access is required");
-  }
-}
-
 function validateUuid(value: unknown, label: string): string {
   if (typeof value !== "string" || !UUID_PATTERN.test(value)) {
     throw new PaymentLinkValidationError(`${label} must be a canonical UUID`);
@@ -114,7 +108,7 @@ function isInactiveDependency(error: unknown): boolean {
 export function createPaymentLinkService(store: PaymentLinkStore, dependencies: Dependencies = activeDependencies) {
   return {
     async listForOwner(actor: Principal): Promise<PaymentLinkOwnerData> {
-      requireActiveActor(actor);
+      requireUserPrincipal(actor);
       const [links, activeProducts, activeCurrencyPairs] = await Promise.all([
         store.list(actor.id),
         store.listActiveProducts(actor.id),
@@ -123,7 +117,7 @@ export function createPaymentLinkService(store: PaymentLinkStore, dependencies: 
       return { links, activeProducts, activeCurrencyPairs };
     },
     async create(actor: Principal, input: Readonly<Record<string, unknown>>) {
-      requireActiveActor(actor);
+      requireUserPrincipal(actor);
       const productId = validateUuid(input.productId, "Product identifier");
       const currencyPairId = validateUuid(input.currencyPairId, "Currency-pair identifier");
       const linkType = validateType(input.linkType);
@@ -141,7 +135,7 @@ export function createPaymentLinkService(store: PaymentLinkStore, dependencies: 
       throw new PaymentLinkConflictError("Payment-link generation could not be completed");
     },
     async deactivate(actor: Principal, id: unknown) {
-      requireActiveActor(actor);
+      requireUserPrincipal(actor);
       const changed = await store.deactivate(actor.id, validateUuid(id, "Payment-link identifier"));
       if (!changed) throw new PaymentLinkConflictError("Payment-link revocation could not be completed");
     },

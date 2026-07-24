@@ -24,6 +24,7 @@ import { StorefrontSettingsManagement } from "./storefront-settings-management";
 export default async function Home({ searchParams }: Readonly<{ searchParams: Promise<{ language?: string; nautt?: string; products?: string; "payment-links"?: string; "checkout-policy"?: string; storefront?: string }> }>) {
   const principal = await getAuthorizationService().resolve((await cookies()).get("qr_session")?.value);
   if (!principal) redirect("/login");
+  if (principal.role === "ADMIN") redirect("/admin");
   const [locale, nauttStatus, products, paymentLinks, checkoutPolicy, storefrontSettings] = await Promise.all([
     getLocalePreferenceService().resolve(principal.id),
     getOwnerOnboardingService().readStatus(principal),

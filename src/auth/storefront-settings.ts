@@ -1,5 +1,5 @@
 import { getDatabaseClient } from "../db/client";
-import { ForbiddenError, type Principal } from "./authorization";
+import { ForbiddenError, requireUserPrincipal, type Principal } from "./authorization";
 
 export type StorefrontSettingsData = Readonly<{
   storefrontSlug: string | null;
@@ -21,10 +21,6 @@ const SLUG_PATTERN = /^[a-z0-9](-?[a-z0-9])*$/;
 const ACCENT_COLOR_PATTERN = /^#[0-9A-Fa-f]{6}$/;
 const SLUG_MAXIMUM_LENGTH = 63;
 const DISPLAY_NAME_MAXIMUM_LENGTH = 160;
-
-function requireActiveActor(actor: Principal) {
-  if (actor.status !== "ACTIVE") throw new ForbiddenError("Active account access is required");
-}
 
 function validateSlug(value: unknown): string | null {
   if (value === null || value === undefined || value === "") return null;
@@ -82,11 +78,11 @@ function requireSettings(data: StorefrontSettingsData | null): StorefrontSetting
 export function createStorefrontSettingsService(store: StorefrontSettingsStore) {
   return {
     async getForOwner(actor: Principal) {
-      requireActiveActor(actor);
+      requireUserPrincipal(actor);
       return requireSettings(await store.get(actor.id));
     },
     async update(actor: Principal, input: Record<keyof StorefrontSettingsData, unknown>) {
-      requireActiveActor(actor);
+      requireUserPrincipal(actor);
       return requireSettings(await store.set(actor.id, validateValues(input)));
     },
   };

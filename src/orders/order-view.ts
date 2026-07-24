@@ -1,6 +1,6 @@
 import "server-only";
 
-import { ForbiddenError, type Principal } from "../auth/authorization";
+import { ForbiddenError, requireUserPrincipal, type Principal } from "../auth/authorization";
 import { getDatabaseClient } from "../db/client";
 import type { PrismaClient } from "../generated/prisma/client";
 import type { CheckoutDataPolicy, CustomerAddressV1, CustomerSnapshotV1, PaymentLinkOrderState } from "./payment-link-order";
@@ -54,10 +54,6 @@ function opaqueUnavailable(): OrderViewResult {
   return { kind: "unavailable" };
 }
 
-function requireActiveActor(actor: Principal) {
-  if (actor.status !== "ACTIVE") throw new ForbiddenError("Active account access is required");
-}
-
 function requireAdministrator(actor: Principal) {
   if (actor.role !== "ADMIN" || actor.status !== "ACTIVE") throw new ForbiddenError("Administrator access is required");
 }
@@ -96,7 +92,7 @@ function toOrderView(stored: StoredOrderView): OrderView {
 export function createOrderViewService(store: OrderViewStore) {
   return {
     async listForOwner(actor: Principal): Promise<OrderSummary[]> {
-      requireActiveActor(actor);
+      requireUserPrincipal(actor);
       return store.listForOwner(actor.id, ORDER_VIEW_LIST_LIMIT);
     },
     async listForAdmin(actor: Principal): Promise<OrderSummary[]> {
@@ -104,7 +100,7 @@ export function createOrderViewService(store: OrderViewStore) {
       return store.listGlobal(ORDER_VIEW_LIST_LIMIT);
     },
     async getForOwner(actor: Principal, orderId: unknown): Promise<OrderViewResult> {
-      requireActiveActor(actor);
+      requireUserPrincipal(actor);
       if (typeof orderId !== "string" || !UUID_PATTERN.test(orderId)) return opaqueUnavailable();
       const stored = await store.findForOwner(actor.id, orderId.toLowerCase());
       return stored ? { kind: "found", order: toOrderView(stored) } : opaqueUnavailable();

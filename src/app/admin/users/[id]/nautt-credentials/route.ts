@@ -1,28 +1,19 @@
-import { protectedMutationResponse, requireAdminFromCookie } from "@/app/admin/guard";
+import { cookies } from "next/headers";
+
+import { getAuthorizationService, UnauthenticatedError } from "@/auth/authorization";
 import { rejectCrossOrigin } from "@/app/origin-guard";
-import { relativeRedirect } from "@/app/relative-redirect";
-import { loadNauttWebhookCallbackUrl } from "@/integrations/nautt/config";
-import { getOwnerOnboardingService } from "@/integrations/nautt/owner-onboarding";
 import { serverRequestRoutes, withServerRequestLog } from "@/observability/server-request-log";
 
-export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(request: Request) {
   return withServerRequestLog(request.headers.get("x-request-id"), { method: "POST", route: serverRequestRoutes.adminUserNauttCredentials }, async () => {
     const crossOrigin = rejectCrossOrigin(request);
     if (crossOrigin) return crossOrigin;
     try {
-      const actor = await requireAdminFromCookie();
-      const apiKey = (await request.formData()).get("apiKey");
-      await getOwnerOnboardingService().onboard(
-        actor,
-        (await params).id,
-        typeof apiKey === "string" ? apiKey : "",
-        loadNauttWebhookCallbackUrl(),
-      );
-      return relativeRedirect("/admin?success=nautt-credentials");
+      await getAuthorizationService().requireAuthenticated((await cookies()).get("qr_session")?.value);
+      return new Response(null, { status: 403 });
     } catch (error) {
-      const protectedResponse = protectedMutationResponse(error);
-      if (protectedResponse) return protectedResponse;
-      return relativeRedirect("/admin?error=nautt-credentials-failed");
+      if (error instanceof UnauthenticatedError) return new Response(null, { status: 401 });
+      throw error;
     }
   });
 }

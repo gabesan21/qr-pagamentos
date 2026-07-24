@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
+import { ForbiddenError } from "./authorization";
 import {
   createPaymentLinkService,
   PaymentLinkConflictError,
@@ -12,6 +13,7 @@ import {
 } from "./payment-link";
 
 const owner = { id: "owner", username: "owner", email: null, role: "USER" as const, status: "ACTIVE" as const, createdAt: new Date() };
+const admin = { ...owner, id: "admin", role: "ADMIN" as const };
 const secondOwner = { ...owner, id: "second-owner" };
 const productId = "11111111-1111-4111-8111-111111111111";
 const currencyPairId = "22222222-2222-4222-8222-222222222222";
@@ -67,6 +69,25 @@ describe("payment-link service", () => {
     await expect(service.listForOwner(owner)).resolves.toMatchObject({ activeProducts: [product], activeCurrencyPairs: [pair] });
     await expect(service.create(owner, input())).resolves.toMatchObject({ active: true });
     await expect(service.listForOwner(secondOwner)).resolves.toMatchObject({ links: [], activeProducts: [] });
+  });
+
+  it("denies administrators before validation, randomness, or persistence", async () => {
+    const repository = testStore();
+    const operations = [
+      vi.spyOn(repository, "list"),
+      vi.spyOn(repository, "listActiveProducts"),
+      vi.spyOn(repository, "listActiveCurrencyPairs"),
+      vi.spyOn(repository, "create"),
+      vi.spyOn(repository, "deactivate"),
+    ];
+    const randomBytes = vi.fn();
+    const service = createPaymentLinkService(repository, { randomBytes, now: vi.fn() });
+
+    await expect(service.listForOwner(admin)).rejects.toBeInstanceOf(ForbiddenError);
+    await expect(service.create(admin, {})).rejects.toBeInstanceOf(ForbiddenError);
+    await expect(service.deactivate(admin, null)).rejects.toBeInstanceOf(ForbiddenError);
+    expect(operations.every((operation) => operation.mock.calls.length === 0)).toBe(true);
+    expect(randomBytes).not.toHaveBeenCalled();
   });
 
   it("creates only active links with CSPRNG URL-safe identifiers and preserves exact prices by reference", async () => {

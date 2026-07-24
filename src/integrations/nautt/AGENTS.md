@@ -7,6 +7,7 @@
 ## Protocol boundary
 
 - Never import this subtree from a client component or expose provider response bodies, API keys, webhook secrets, or encrypted secret values.
+- Owner onboarding is merchant `USER`-only; reject `ADMIN` before credential reads, decryption, provider calls, registration, or reset work.
 - Resolve the provider base URL per call through the optional `NAUTT_API_BASE_URL` ENV, validated as canonical absolute HTTPS without credentials or a fragment and defaulting to `https://api.nauttfinance.com/api/v2`; send owner API keys only as `X-API-Key`.
 - Never create or consume Nautt-hosted payment links.
 - Validate operator-selected callback URLs before provider dispatch; require absolute HTTPS without embedded credentials or fragments.
