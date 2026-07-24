@@ -171,6 +171,86 @@ done
 for forbidden in '--force' '--database-only' '--media-only' '--ignore-version'; do
   expect_absent "$INSTALL_DIR/restore.sh" "$forbidden"
 done
+if CONTAINER_TEST_RESTORE_INJECT=primary-after-mutation \
+  "$INSTALL_DIR/restore.sh" --backup "$TMP" --confirm RESTORE:qr-pagamentos >/dev/null 2>&1; then
+  fail 'restore fault injection escaped the clean-clone disposable guard'
+fi
+
+# Backup-set validation is no-follow and closes archive identity/mode/type.
+pair_fixture=$TMP/pair-fixture
+mkdir -m 0700 "$pair_fixture" "$pair_fixture/media" "$pair_fixture/media/staging" "$pair_fixture/media/objects"
+printf 'database fixture' > "$pair_fixture/database.dump"
+printf 'webp fixture' > "$pair_fixture/media/objects/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA.webp"
+chmod 0600 "$pair_fixture/database.dump" "$pair_fixture/media/objects/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA.webp"
+tar --numeric-owner -C "$pair_fixture/media" -cpf "$pair_fixture/media.tar" .
+node "$INSTALL_DIR/pair-manifest.mjs" create "$pair_fixture/manifest.json" \
+  aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa fixture fixture_postgres-data fixture_media-data \
+  'fixture_postgres-data|local|fixture|postgres-data|created' \
+  'fixture_media-data|local|fixture|media-data|created' \
+  "$pair_fixture/database.dump" "$pair_fixture/media.tar"
+node "$INSTALL_DIR/pair-manifest.mjs" verify "$pair_fixture/manifest.json" >/dev/null \
+  || fail 'private regular backup pair was rejected'
+mv "$pair_fixture/database.dump" "$pair_fixture/database.real"
+ln -s database.real "$pair_fixture/database.dump"
+if node "$INSTALL_DIR/pair-manifest.mjs" verify "$pair_fixture/manifest.json" >/dev/null 2>&1; then
+  fail 'symlinked backup artifact succeeded'
+fi
+rm "$pair_fixture/database.dump"
+mv "$pair_fixture/database.real" "$pair_fixture/database.dump"
+
+unsafe_pair=$TMP/unsafe-pair
+cp -R "$pair_fixture/media" "$unsafe_pair"
+chmod 0777 "$unsafe_pair/objects/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA.webp"
+tar --numeric-owner -C "$unsafe_pair" -cpf "$pair_fixture/unsafe.tar" .
+mv "$pair_fixture/media.tar" "$pair_fixture/media.safe"
+mv "$pair_fixture/unsafe.tar" "$pair_fixture/media.tar"
+node "$INSTALL_DIR/pair-manifest.mjs" create "$pair_fixture/unsafe-manifest.json" \
+  aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa fixture fixture_postgres-data fixture_media-data \
+  'fixture_postgres-data|local|fixture|postgres-data|created' \
+  'fixture_media-data|local|fixture|media-data|created' \
+  "$pair_fixture/database.dump" "$pair_fixture/media.tar"
+if node "$INSTALL_DIR/pair-manifest.mjs" verify "$pair_fixture/unsafe-manifest.json" >/dev/null 2>&1; then
+  fail 'unsafe media member mode succeeded'
+fi
+mv "$pair_fixture/media.tar" "$pair_fixture/unsafe.tar"
+mv "$pair_fixture/media.safe" "$pair_fixture/media.tar"
+
+reject_archive() {
+  local archive=$1 label=$2 case_dir manifest
+  case_dir=$pair_fixture/$label
+  mkdir -m 0700 "$case_dir"
+  cp "$pair_fixture/database.dump" "$case_dir/database.dump"
+  cp "$archive" "$case_dir/media.tar"
+  chmod 0600 "$case_dir/database.dump" "$case_dir/media.tar"
+  manifest=$case_dir/manifest.json
+  node "$INSTALL_DIR/pair-manifest.mjs" create "$manifest" \
+    aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa fixture fixture_postgres-data fixture_media-data \
+    'fixture_postgres-data|local|fixture|postgres-data|created' \
+    'fixture_media-data|local|fixture|media-data|created' \
+    "$case_dir/database.dump" "$case_dir/media.tar"
+  if node "$INSTALL_DIR/pair-manifest.mjs" verify "$manifest" >/dev/null 2>&1; then
+    fail "$label media archive succeeded"
+  fi
+}
+member_fixture=$TMP/member-fixture
+cp -R "$pair_fixture/media" "$member_fixture"
+ln "$member_fixture/objects/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA.webp" \
+  "$member_fixture/objects/BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB.webp"
+tar --numeric-owner -C "$member_fixture" -cpf "$pair_fixture/hardlink.tar" .
+reject_archive "$pair_fixture/hardlink.tar" hardlink
+rm "$member_fixture/objects/BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB.webp"
+ln -s AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA.webp \
+  "$member_fixture/objects/BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB.webp"
+tar --numeric-owner -C "$member_fixture" -cpf "$pair_fixture/symlink.tar" .
+reject_archive "$pair_fixture/symlink.tar" symlink-member
+rm "$member_fixture/objects/BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB.webp"
+mkfifo -m 0600 "$member_fixture/objects/BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB.webp"
+tar --numeric-owner -C "$member_fixture" -cpf "$pair_fixture/special.tar" .
+reject_archive "$pair_fixture/special.tar" special-member
+rm "$member_fixture/objects/BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB.webp"
+tar --numeric-owner --transform='s|^\./objects|../objects|' -C "$member_fixture" \
+  -cpf "$pair_fixture/traversal.tar" .
+reject_archive "$pair_fixture/traversal.tar" traversal-member
 
 # Dedicated self-update fixture: real tracked upstream plus an isolated Docker shim.
 update_source=$TMP/update-source

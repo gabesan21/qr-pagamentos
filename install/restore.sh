@@ -14,6 +14,11 @@ die() { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
 # shellcheck source=install/lib-operations.sh
 source "$INSTALL_DIR/lib-operations.sh"
 
+if [[ -n ${CONTAINER_TEST_RESTORE_INJECT:-} ]]; then
+  [[ ${CONTAINER_TEST_CLEAN_CLONE:-} == 1 && $PROJECT =~ ^qrct[[:alnum:]]+$ ]] \
+    || die 'restore fault injection is restricted to a clean-clone disposable project'
+fi
+
 while (($#)); do
   case "$1" in
     --env-file) (($# >= 2)) || die '--env-file requires a path'; ENV_FILE=$2; shift 2 ;;
@@ -67,6 +72,11 @@ candidate_db_volume="${operation}-postgres"
 candidate_media_volume="${operation}-media"
 secret_dir="$(dirname "$BACKUP")/.${operation}-secrets"
 inventory=("$candidate_health" "$candidate_db" "$candidate_network" "$candidate_db_volume" "$candidate_media_volume")
+teardown_injection_pending=true
+
+restore_injected() {
+  [[ ",${CONTAINER_TEST_RESTORE_INJECT:-}," == *",$1,"* ]]
+}
 
 resource_absent() {
   ! docker container inspect "$candidate_health" >/dev/null 2>&1 \
@@ -77,12 +87,27 @@ resource_absent() {
     && [[ ! -e $secret_dir ]]
 }
 teardown_rehearsal() {
+  if "$teardown_injection_pending" && restore_injected rehearsal-teardown; then
+    teardown_injection_pending=false
+    return 1
+  fi
+  if docker container inspect "$candidate_health" >/dev/null 2>&1; then
+    docker rm -f "$candidate_health" >/dev/null 2>&1 || return 1
+  fi
+  if docker container inspect "$candidate_db" >/dev/null 2>&1; then
+    docker rm -f "$candidate_db" >/dev/null 2>&1 || return 1
+  fi
+  if docker network inspect "$candidate_network" >/dev/null 2>&1; then
+    docker network rm "$candidate_network" >/dev/null 2>&1 || return 1
+  fi
+  for volume in "$candidate_db_volume" "$candidate_media_volume"; do
+    if docker volume inspect "$volume" >/dev/null 2>&1; then
+      docker volume rm "$volume" >/dev/null 2>&1 || return 1
+    fi
+  done
+  if [[ -e $secret_dir ]]; then rm -rf -- "$secret_dir" || return 1; fi
+  resource_absent || return 1
   trap - EXIT
-  docker rm -f "$candidate_health" "$candidate_db" >/dev/null 2>&1 || true
-  docker network rm "$candidate_network" >/dev/null 2>&1 || true
-  docker volume rm "$candidate_db_volume" "$candidate_media_volume" >/dev/null 2>&1 || true
-  rm -rf -- "$secret_dir"
-  resource_absent || die 'restore rehearsal inventory teardown failed'
 }
 trap teardown_rehearsal EXIT
 resource_absent || die 'restore rehearsal inventory already exists'
@@ -144,7 +169,7 @@ for _ in {1..60}; do
   sleep 1
 done
 docker exec "$candidate_health" node container/healthcheck.mjs >/dev/null || die 'exact-release rehearsal health failed'
-teardown_rehearsal
+teardown_rehearsal || die 'restore rehearsal inventory teardown failed'
 trap - EXIT
 resource_absent || die 'rehearsal inventory remained before managed mutation'
 
@@ -156,28 +181,64 @@ recovery_set=${recovery_output##*set=}
 
 restore_managed_pair() {
   local set=$1
-  compose down --remove-orphans >/dev/null
+  local attempt=$2
+  local inventory_file="$recovery_parent/.${attempt}-media.inventory"
+  node "$INSTALL_DIR/pair-manifest.mjs" verify "$set/manifest.json" >/dev/null \
+    || return 1
+  compose down --remove-orphans >/dev/null \
+    || return 1
   docker run --rm --network none -v "${PROJECT}_postgres-data:/var/lib/postgresql" "$POSTGRES_IMAGE" \
-    sh -eu -c 'find /var/lib/postgresql -mindepth 1 -delete'
-  compose up -d db >/dev/null
+    sh -eu -c 'find /var/lib/postgresql -mindepth 1 -delete' \
+    || return 1
+  compose up -d db >/dev/null \
+    || return 1
   for _ in {1..60}; do compose exec -T db pg_isready -U postgres -d postgres -p 5433 >/dev/null 2>&1 && break; sleep 1; done
-  compose run --rm --no-deps bootstrap >/dev/null
-  docker run --rm --network "${PROJECT}_database" --read-only --tmpfs /tmp \
+  compose exec -T db pg_isready -U postgres -d postgres -p 5433 >/dev/null 2>&1 \
+    || return 1
+  compose run --rm --no-deps bootstrap >/dev/null \
+    || return 1
+  if ! docker run --rm --network "${PROJECT}_database" --read-only --tmpfs /tmp \
     -v "$POSTGRES_ADMIN_PASSWORD_FILE:/run/admin:ro" -v "$set/database.dump:/run/database.dump:ro" \
     "$POSTGRES_IMAGE" sh -eu -c 'PGPASSWORD=$(cat /run/admin); export PGPASSWORD; psql -h db -p 5433 -U postgres -d qr_pagamentos -c "GRANT CREATE ON DATABASE qr_pagamentos TO qr_migrator" >/dev/null; status=0; pg_restore -h db -p 5433 -U postgres -d qr_pagamentos --role=qr_migrator --no-owner --no-acl --clean --if-exists /run/database.dump || status=$?; psql -h db -p 5433 -U postgres -d qr_pagamentos -c "REVOKE CREATE ON DATABASE qr_pagamentos FROM qr_migrator" >/dev/null; exit "$status"' >/dev/null
+  then
+    return 1
+  fi
   docker run --rm --network none --read-only --tmpfs /tmp --user 1000:1000 \
     -v "${PROJECT}_media-data:/app/media" --entrypoint node "$app_image" -e \
-    'const f=require("node:fs");for(const n of ["staging","objects"]){f.rmSync(`/app/media/${n}`,{recursive:true,force:true});f.mkdirSync(`/app/media/${n}`,{mode:0o700})}'
+    'const f=require("node:fs");for(const n of ["staging","objects"]){f.rmSync(`/app/media/${n}`,{recursive:true,force:true});f.mkdirSync(`/app/media/${n}`,{mode:0o700})}' \
+    || return 1
   docker run --rm --network none --read-only --tmpfs /tmp --user 1000:1000 \
     -v "${PROJECT}_media-data:/app/media" -v "$set/media.tar:/run/media.tar:ro" --entrypoint tar \
-    "$app_image" --numeric-owner -C /app/media -xpf /run/media.tar
-  compose up -d >/dev/null
-  for _ in {1..120}; do compose exec -T app node container/healthcheck.mjs >/dev/null 2>&1 && return 0; sleep 1; done
+    "$app_image" --numeric-owner -C /app/media -xpf /run/media.tar \
+    || return 1
+  restore_injected "${attempt}-after-mutation" && return 1
+  compose exec -T db psql -U postgres -p 5433 -d qr_pagamentos -Atc \
+    'SELECT count(*) FROM app._prisma_migrations WHERE finished_at IS NULL OR rolled_back_at IS NOT NULL' \
+    | grep -qx 0 \
+    || return 1
+  compose exec -T db psql -U postgres -p 5433 -d qr_pagamentos -AtF $'\t' -c \
+    'SELECT storage_key, byte_size, sha256, state::text FROM app.media_object ORDER BY storage_key' \
+    > "$inventory_file" \
+    || return 1
+  chmod 0400 "$inventory_file" \
+    || return 1
+  docker run --rm --network none --read-only --tmpfs /tmp --user 1000:1000 \
+    -v "${PROJECT}_media-data:/app/media:ro" -v "$inventory_file:/run/media.inventory:ro" \
+    --entrypoint node "$app_image" container/media-inventory.mjs /run/media.inventory /app/media >/dev/null \
+    || return 1
+  rm -f -- "$inventory_file" \
+    || return 1
+  compose up -d >/dev/null \
+    || return 1
+  for _ in {1..120}; do
+    if compose exec -T app node container/healthcheck.mjs >/dev/null 2>&1; then return 0; fi
+    sleep 1
+  done
   return 1
 }
 
-if ! restore_managed_pair "$BACKUP"; then
-  if restore_managed_pair "$recovery_set"; then
+if ! restore_managed_pair "$BACKUP" primary; then
+  if restore_managed_pair "$recovery_set" recovery; then
     [[ "$(volume_identity "${PROJECT}_postgres-data");$(volume_identity "${PROJECT}_media-data")" == "$managed_identity" ]] \
       || die 'automatic recovery changed managed volume identities'
     die 'requested restore failed; original pair recovered'

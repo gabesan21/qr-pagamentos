@@ -1,10 +1,25 @@
 import { createHash } from "node:crypto";
 import { constants } from "node:fs";
-import { open, readFile, readdir } from "node:fs/promises";
+import { lstat, open, readFile, readdir } from "node:fs/promises";
 import { join } from "node:path";
 
 const [inventoryPath, root = "/app/media"] = process.argv.slice(2);
 if (!inventoryPath) throw new Error("inventory path is required");
+
+async function requirePrivateDirectory(path) {
+  const info = await lstat(path);
+  if (
+    !info.isDirectory()
+    || info.isSymbolicLink()
+    || info.uid !== 1000
+    || info.gid !== 1000
+    || (info.mode & 0o777) !== 0o700
+  ) throw new Error("media directory identity is invalid");
+}
+
+await requirePrivateDirectory(root);
+await requirePrivateDirectory(join(root, "staging"));
+await requirePrivateDirectory(join(root, "objects"));
 
 const expectedObjects = new Set();
 for (const line of (await readFile(inventoryPath, "utf8")).split("\n").filter(Boolean)) {
@@ -35,6 +50,10 @@ for (const line of (await readFile(inventoryPath, "utf8")).split("\n").filter(Bo
     }
     if (
       !stat.isFile()
+      || stat.nlink !== 1
+      || stat.uid !== 1000
+      || stat.gid !== 1000
+      || (stat.mode & 0o777) !== 0o600
       || stat.size !== expectedBytes
       || offset !== expectedBytes
       || createHash("sha256").update(bytes.subarray(0, offset)).digest("hex") !== digest

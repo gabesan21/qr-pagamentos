@@ -417,44 +417,46 @@ if (process.argv.includes("--clean-clone") && !process.env.CONTAINER_TEST_CLEAN_
     } else if (scenario === "media-backup" || scenario === "media-restore") {
       assert(process.env.CONTAINER_TEST_CLEAN_CLONE === "1", `${scenario} requires --clean-clone`);
       const revision = run("git", ["rev-parse", "HEAD"]).trim();
-      env.RELEASE_REVISION = revision;
-      await startHappy();
       const sourceDirectory = path.resolve(".install-secrets");
       const stagedDirectory = path.resolve(".container-secrets");
-      await mkdir(sourceDirectory, { mode: 0o700 });
-      await mkdir(stagedDirectory, { mode: 0o700 });
-      const sourceMap = {
-        postgres_admin_password: files.admin,
-        migrator_password: files.migrator,
-        runtime_password: files.runtime,
-        nautt_encryption_key: files.nautt,
-        initial_admin_username: usernameFile,
-        initial_admin_email: emailFile,
-        initial_admin_password: files.initial,
-      };
-      for (const [name, source] of Object.entries(sourceMap)) {
-        await copyFile(source, path.join(sourceDirectory, name));
-        await chmod(path.join(sourceDirectory, name), 0o600);
-      }
-      for (const [name, source] of Object.entries({
-        admin_password: files.admin,
-        migrator_password: files.migrator,
-        runtime_password: files.runtime,
-        nautt_encryption_key: files.nautt,
-        initial_admin_username: usernameFile,
-        initial_admin_email: emailFile,
-        initial_admin_password: files.initial,
-      })) {
-        await copyFile(source, path.join(stagedDirectory, name));
-        await chmod(path.join(stagedDirectory, name), 0o400);
-      }
       const installerEnv = path.join(temporary, "pair.env");
-      await writeFile(installerEnv, `APP_PORT=0
+      await writeFile(installerEnv, `APP_PORT=${36000 + (process.pid % 1000)}
+INITIAL_ADMIN_USERNAME=admin.user
+INITIAL_ADMIN_EMAIL=admin@example.com
+POSTGRES_ADMIN_PASSWORD=${values.admin}
+MIGRATOR_PASSWORD=${values.migrator}
+RUNTIME_PASSWORD=${values.runtime}
+NAUTT_ENCRYPTION_KEY=${values.nautt}
 NAUTT_WEBHOOK_CALLBACK_URL=https://container-test.invalid/api/nautt/webhooks
 `, { mode: 0o600 });
+      await chmod(installerEnv, 0o600);
       const destination = path.join(temporary, "backups");
       await mkdir(destination, { mode: 0o700 });
       const processEnv = { ...process.env, CONTAINER_TEST_PROJECT: project };
+      const installed = execute("install/install.sh", ["--env-file", installerEnv], { env: processEnv });
+      assert(installed.status === 0, `normal install failed\n${installed.stdout ?? ""}${installed.stderr ?? ""}`);
+      assert(`${installed.stdout ?? ""}${installed.stderr ?? ""}`.includes("PASS install-complete"), "normal install evidence missing");
+      const installedApp = await waitForApp();
+      assert(
+        inspectField(installedApp, '{{index .Config.Labels "org.opencontainers.image.revision"}}') === revision,
+        "normal install did not bind the exact revision",
+      );
+      env.APP_IMAGE = inspectField(installedApp, "{{.Config.Image}}");
+      env.RELEASE_REVISION = revision;
+
+      const storageKey = "A".repeat(43);
+      const identifier = "B".repeat(43);
+      const mediaBytes = Buffer.from("restorable-media-fixture");
+      const mediaDigest = createHash("sha256").update(mediaBytes).digest("hex");
+      run("docker", [
+        "run", "--rm", "--network", "none", "--read-only", "--tmpfs", "/tmp",
+        "--user", "1000:1000", "--volume", `${project}_media-data:/app/media`,
+        "--entrypoint", "node", env.APP_IMAGE, "-e",
+        `require("node:fs").writeFileSync("/app/media/objects/${storageKey}.webp",Buffer.from("${mediaBytes.toString("base64")}","base64"),{mode:0o600,flag:"wx"})`,
+      ]);
+      const dbId = compose(["ps", "-q", "db"]).trim();
+      run("docker", ["exec", dbId, "psql", "-U", "postgres", "-d", "qr_pagamentos", "-v", "ON_ERROR_STOP=1", "-c",
+        `INSERT INTO app.media_object (id,identifier,storage_key,owner_id,purpose,state,lifecycle_revision,mime_type,byte_size,width,height,sha256,purge_after,created_at,updated_at) SELECT gen_random_uuid(),'${identifier}','${storageKey}',initial_admin_user_id,'PRODUCT_IMAGE','ACTIVE',0,'image/webp',${mediaBytes.length},1,1,'${mediaDigest}',NULL,now(),now() FROM app.deployment_bootstrap WHERE id=1`]);
       const backup = execute("install/backup.sh", ["--env-file", installerEnv, "--destination", destination], { env: processEnv });
       const backupOutput = `${backup.stdout ?? ""}${backup.stderr ?? ""}`;
       assert(backup.status === 0, `media backup failed\n${backupOutput}`);
@@ -467,21 +469,142 @@ NAUTT_WEBHOOK_CALLBACK_URL=https://container-test.invalid/api/nautt/webhooks
       }
       console.log("PASS media-backup-pair");
       if (scenario === "media-restore") {
-        run("docker", ["tag", env.APP_IMAGE, `${project}-app:${revision}`]);
-        const tampered = path.join(temporary, "tampered");
-        await mkdir(tampered, { mode: 0o700 });
-        for (const name of ["manifest.json", "database.dump", "media.tar"]) {
-          await copyFile(path.join(backupSet, name), path.join(tampered, name));
+        const restore = (set, confirm = `RESTORE:${project}`, injection = "") => execute(
+          "install/restore.sh",
+          ["--env-file", installerEnv, "--backup", set, "--confirm", confirm],
+          { env: { ...processEnv, CONTAINER_TEST_RESTORE_INJECT: injection } },
+        );
+        const copySet = async (name) => {
+          const target = path.join(temporary, name);
+          await mkdir(target, { mode: 0o700 });
+          for (const artifact of ["manifest.json", "database.dump", "media.tar"]) {
+            await copyFile(path.join(backupSet, artifact), path.join(target, artifact));
+            await chmod(path.join(target, artifact), 0o600);
+          }
+          return target;
+        };
+        const rewriteManifest = async (set, change) => {
+          const file = path.join(set, "manifest.json");
+          const value = JSON.parse(await readFile(file, "utf8"));
+          change(value);
+          await writeFile(file, `${JSON.stringify(value, null, 2)}\n`, { mode: 0o600 });
+          await chmod(file, 0o600);
+        };
+        const refreshMediaArtifact = async (set) => {
+          const mediaFile = path.join(set, "media.tar");
+          await chmod(mediaFile, 0o600);
+          await rewriteManifest(set, (value) => {
+            value.media.bytes = 0;
+            value.media.sha256 = "0".repeat(64);
+          });
+          const value = JSON.parse(await readFile(path.join(set, "manifest.json"), "utf8"));
+          value.media.bytes = (await stat(mediaFile)).size;
+          value.media.sha256 = createHash("sha256").update(await readFile(mediaFile)).digest("hex");
+          await writeFile(path.join(set, "manifest.json"), `${JSON.stringify(value, null, 2)}\n`, { mode: 0o600 });
+          await chmod(path.join(set, "manifest.json"), 0o600);
+        };
+        const snapshot = () => ({
+          app: compose(["ps", "-q", "app"]).trim(),
+          dbVolume: run("docker", ["volume", "inspect", "--format", "{{.Name}}|{{.CreatedAt}}", `${project}_postgres-data`]).trim(),
+          mediaVolume: run("docker", ["volume", "inspect", "--format", "{{.Name}}|{{.CreatedAt}}", `${project}_media-data`]).trim(),
+        });
+        const assertRehearsalAbsent = async () => {
+          for (const [kind, args] of [
+            ["container", ["ps", "-a", "--format", "{{.Names}}"]],
+            ["network", ["network", "ls", "--format", "{{.Name}}"]],
+            ["volume", ["volume", "ls", "--format", "{{.Name}}"]],
+          ]) {
+            const leaked = run("docker", args).split("\n").filter((name) => name.startsWith(`${project}-restore-`));
+            assert(leaked.length === 0, `${kind} rehearsal inventory remained: ${leaked.join(",")}`);
+          }
+          const leakedSecrets = (await readdir(destination)).filter((name) => name.endsWith("-secrets"));
+          assert(leakedSecrets.length === 0, `rehearsal secret inventory remained: ${leakedSecrets.join(",")}`);
+        };
+        const baseline = snapshot();
+
+        assert(restore(backupSet, "RESTORE:wrong").status !== 0, "wrong confirmation succeeded");
+        for (const [name, change] of [
+          ["wrong-sha", (value) => { value.application_revision = "b".repeat(40); }],
+          ["wrong-schema", (value) => { value.schema_expectation = "unsupported"; }],
+          ["wrong-project", (value) => { value.compose_project = `${project}x`; }],
+          ["wrong-volume", (value) => { value.media_volume = `${project}_foreign`; }],
+          ["wrong-checksum", (value) => { value.media.sha256 = "0".repeat(64); }],
+        ]) {
+          const set = await copySet(name);
+          await rewriteManifest(set, change);
+          assert(restore(set).status !== 0, `${name} restore succeeded`);
         }
-        await writeFile(path.join(tampered, "media.tar"), "tampered");
-        const rejected = execute("install/restore.sh", ["--env-file", installerEnv, "--backup", tampered, "--confirm", `RESTORE:${project}`], { env: processEnv });
-        assert(rejected.status !== 0, "tampered restore succeeded");
+
+        const unsafeMode = await copySet("unsafe-mode");
+        const unsafeRoot = path.join(temporary, "unsafe-root");
+        await mkdir(unsafeRoot, { mode: 0o700 });
+        run("tar", ["-xf", path.join(unsafeMode, "media.tar"), "-C", unsafeRoot]);
+        await chmod(path.join(unsafeRoot, "objects", `${storageKey}.webp`), 0o777);
+        run("tar", ["--numeric-owner", "-C", unsafeRoot, "-cpf", path.join(unsafeMode, "media.tar"), "."]);
+        await refreshMediaArtifact(unsafeMode);
+        assert(restore(unsafeMode).status !== 0, "unsafe member mode succeeded");
+
+        const unsafeMember = await copySet("unsafe-member");
+        const unsafeMemberRoot = path.join(temporary, "unsafe-member-root");
+        await mkdir(unsafeMemberRoot, { mode: 0o700 });
+        run("tar", ["-xf", path.join(unsafeMember, "media.tar"), "-C", unsafeMemberRoot]);
+        run("ln", ["-s", `${storageKey}.webp`, path.join(unsafeMemberRoot, "objects", `${"C".repeat(43)}.webp`)]);
+        run("tar", ["--numeric-owner", "-C", unsafeMemberRoot, "-cpf", path.join(unsafeMember, "media.tar"), "."]);
+        await refreshMediaArtifact(unsafeMember);
+        assert(restore(unsafeMember).status !== 0, "unsafe archive member succeeded");
+
+        const digestSet = await copySet("digest-mismatch");
+        const digestRoot = path.join(temporary, "digest-root");
+        await mkdir(digestRoot, { mode: 0o700 });
+        run("tar", ["-xf", path.join(digestSet, "media.tar"), "-C", digestRoot]);
+        await writeFile(path.join(digestRoot, "objects", `${storageKey}.webp`), Buffer.alloc(mediaBytes.length, 88), { mode: 0o600 });
+        run("tar", ["--numeric-owner", "-C", digestRoot, "-cpf", path.join(digestSet, "media.tar"), "."]);
+        await refreshMediaArtifact(digestSet);
+        assert(restore(digestSet).status !== 0, "media digest mismatch succeeded");
+
+        const untrackedSet = await copySet("untracked-media");
+        const untrackedRoot = path.join(temporary, "untracked-root");
+        await mkdir(untrackedRoot, { mode: 0o700 });
+        run("tar", ["-xf", path.join(untrackedSet, "media.tar"), "-C", untrackedRoot]);
+        await writeFile(
+          path.join(untrackedRoot, "objects", `${"D".repeat(43)}.webp`),
+          "untracked",
+          { mode: 0o600 },
+        );
+        run("tar", ["--numeric-owner", "-C", untrackedRoot, "-cpf", path.join(untrackedSet, "media.tar"), "."]);
+        await refreshMediaArtifact(untrackedSet);
+        assert(restore(untrackedSet).status !== 0, "untracked media member succeeded");
+
+        const teardown = restore(backupSet, `RESTORE:${project}`, "rehearsal-teardown");
+        assert(teardown.status !== 0, "injected rehearsal teardown refusal succeeded");
+        assert(JSON.stringify(snapshot()) === JSON.stringify(baseline), "teardown refusal touched the managed target");
+        await assertRehearsalAbsent();
+
+        const recovered = restore(backupSet, `RESTORE:${project}`, "primary-after-mutation");
+        assert(recovered.status !== 0, "injected primary restore failure reported success");
+        assert(`${recovered.stdout ?? ""}${recovered.stderr ?? ""}`.includes("original pair recovered"), "primary failure did not report recovery");
+        await waitForApp();
+        await assertRehearsalAbsent();
+
+        const doubleFailure = restore(backupSet, `RESTORE:${project}`, "primary-after-mutation,recovery-after-mutation");
+        const doubleOutput = `${doubleFailure.stdout ?? ""}${doubleFailure.stderr ?? ""}`;
+        assert(doubleFailure.status !== 0 && doubleOutput.includes("DOUBLEFAIL"), "double restore failure contract changed");
+        assert(compose(["ps", "-q", "app"]).trim() === "", "double failure left the application running");
+        assert((await readdir(destination)).some((entry) => entry.includes("-recovery")), "double failure removed recovery artifacts");
+        await assertRehearsalAbsent();
+        compose(["up", "-d"]);
+        await waitForApp();
+
         const restored = execute("install/restore.sh", ["--env-file", installerEnv, "--backup", backupSet, "--confirm", `RESTORE:${project}`], { env: processEnv });
         assert(restored.status === 0, `media restore failed\n${restored.stdout ?? ""}${restored.stderr ?? ""}`);
         assert(`${restored.stdout ?? ""}${restored.stderr ?? ""}`.includes("PASS media-restore"), "restore evidence missing");
         await waitForApp();
+        await assertRehearsalAbsent();
         console.log("PASS media-restore-rehearsal");
         console.log("PASS media-restore-managed-pair");
+        console.log("PASS media-restore-adversaries");
+        console.log("PASS media-restore-automatic-recovery");
+        console.log("PASS media-restore-double-failure");
       }
       await rm(sourceDirectory, { recursive: true, force: true });
       await rm(stagedDirectory, { recursive: true, force: true });

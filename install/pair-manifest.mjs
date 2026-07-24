@@ -1,12 +1,18 @@
 import { createHash } from "node:crypto";
-import { readFile, stat, writeFile } from "node:fs/promises";
+import { chmod, lstat, readFile, writeFile } from "node:fs/promises";
 import { basename, dirname, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 
 function fail(message) { throw new Error(message); }
 async function artifact(path) {
-  const info = await stat(path);
-  if (!info.isFile() || info.size < 1) fail("backup artifact is invalid");
+  const info = await lstat(path);
+  if (
+    !info.isFile()
+    || info.isSymbolicLink()
+    || info.nlink !== 1
+    || info.size < 1
+    || (info.mode & 0o777) !== 0o600
+  ) fail("backup artifact is invalid");
   return {
     file: basename(path),
     bytes: info.size,
@@ -28,16 +34,38 @@ async function verifyArtifact(root, value, expectedName) {
   if (actual.bytes !== value.bytes || actual.sha256 !== value.sha256) fail("backup checksum mismatch");
 }
 function verifyArchive(path) {
-  const listed = spawnSync("tar", ["-tf", path], { encoding: "utf8" });
-  const verbose = spawnSync("tar", ["-tvf", path], { encoding: "utf8" });
-  if (listed.status !== 0 || verbose.status !== 0) fail("media archive is unreadable");
-  for (const member of listed.stdout.split("\n").filter(Boolean)) {
-    if (member.startsWith("/") || member.split("/").includes("..") || member.includes("\0")) {
-      fail("media archive contains an unsafe member");
-    }
-  }
+  const verbose = spawnSync(
+    "tar",
+    ["--numeric-owner", "--full-time", "--quoting-style=escape", "-tvf", path],
+    { encoding: "utf8" },
+  );
+  if (verbose.status !== 0) fail("media archive is unreadable");
+  const seen = new Set();
   for (const line of verbose.stdout.split("\n").filter(Boolean)) {
-    if (!["-", "d"].includes(line[0])) fail("media archive contains a link or special file");
+    const match = line.match(/^([dlhcbps-][rwxStTs-]{9})\s+(\d+)\/(\d+)\s+\d+\s+\S+\s+\S+\s+(.+)$/);
+    if (!match) fail("media archive metadata is unreadable");
+    const [, permissions, uid, gid, rawMember] = match;
+    const member = rawMember.replace(/\/$/, "");
+    if (
+      rawMember.startsWith("/")
+      || rawMember.includes("\\")
+      || rawMember.includes("\0")
+      || rawMember.split("/").includes("..")
+      || seen.has(member)
+    ) fail("media archive contains an unsafe member");
+    seen.add(member);
+    const isDirectory = permissions[0] === "d";
+    const isObject = /^\.\/objects\/[A-Za-z0-9_-]{43}\.webp$/.test(member);
+    const isControl = [".", "./staging", "./objects"].includes(member);
+    if (
+      uid !== "1000"
+      || gid !== "1000"
+      || (isDirectory && (!isControl || permissions !== "drwx------"))
+      || (!isDirectory && (!isObject || permissions !== "-rw-------"))
+    ) fail("media archive ownership, mode, or member contract is invalid");
+  }
+  if (!seen.has(".") || !seen.has("./staging") || !seen.has("./objects")) {
+    fail("media archive control directories are incomplete");
   }
 }
 
@@ -59,6 +87,8 @@ if (command === "create") {
   for (const value of [databaseVolumeIdentity, mediaVolumeIdentity]) {
     closedText(value, /^[a-zA-Z0-9][a-zA-Z0-9_.:-]{0,255}\|local\|[a-zA-Z0-9_-]+\|[a-zA-Z0-9-]+\|[^|\r\n]+$/);
   }
+  await chmod(databasePath, 0o600);
+  await chmod(mediaPath, 0o600);
   const manifest = {
     format: "qr-pagamentos-pair-v1",
     application_revision: revision,
@@ -73,6 +103,20 @@ if (command === "create") {
   };
   await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, { mode: 0o600, flag: "wx" });
 } else if (command === "verify") {
+  const rootInfo = await lstat(dirname(manifestPath));
+  if (
+    !rootInfo.isDirectory()
+    || rootInfo.isSymbolicLink()
+    || rootInfo.uid !== process.getuid()
+    || (rootInfo.mode & 0o777) !== 0o700
+  ) fail("backup set directory is invalid");
+  const manifestInfo = await lstat(manifestPath);
+  if (
+    !manifestInfo.isFile()
+    || manifestInfo.isSymbolicLink()
+    || manifestInfo.nlink !== 1
+    || (manifestInfo.mode & 0o777) !== 0o600
+  ) fail("manifest artifact is invalid");
   const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
   const keys = Object.keys(manifest).sort().join(",");
   if (keys !== "application_revision,compose_project,database,database_volume,database_volume_identity,format,media,media_volume,media_volume_identity,schema_expectation") {
