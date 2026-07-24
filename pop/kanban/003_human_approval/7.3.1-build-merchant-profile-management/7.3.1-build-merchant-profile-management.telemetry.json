@@ -73,6 +73,17 @@
       "return_limit": 2,
       "test_seconds": 0,
       "result": "replanned"
+    },
+    {
+      "at": "2026-07-24T03:20:18-03:00",
+      "event": "transition",
+      "from": "002_planning",
+      "to": "003_human_approval",
+      "contexts": [
+        "plan_7_3_1"
+      ],
+      "test_seconds": 0,
+      "result": "advanced"
     }
   ]
 }
