@@ -27,7 +27,6 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[6.2.2-create-official-brand-assets]] | Generate and integrate the official logo family for favicon, login, sidebar, and fallback merchant branding. · size: M | 001_initial_task |
 | [[6.2.3-build-role-specific-app-shells]] | Build bilingual admin/merchant shells and sidebars with the required route areas and responsive states. · size: L | 001_initial_task |
 
 ## Phase 6.3 - Shared table and media foundations
