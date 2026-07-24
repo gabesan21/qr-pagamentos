@@ -11,6 +11,17 @@
       ],
       "test_seconds": 0,
       "result": "advanced"
+    },
+    {
+      "at": "2026-07-24T01:22:05-03:00",
+      "event": "transition",
+      "from": "002_planning",
+      "to": "003_human_approval",
+      "contexts": [
+        "plan_6_3_3"
+      ],
+      "test_seconds": 0,
+      "result": "advanced"
     }
   ]
 }
