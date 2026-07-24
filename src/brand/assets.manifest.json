@@ -1,0 +1,248 @@
+{
+  "version": 1,
+  "family": "QR Pagamentos settlement mark",
+  "identities": [
+    "mark-only",
+    "product-lockup",
+    "compact-role-lockup",
+    "merchant-fallback"
+  ],
+  "provenance": {
+    "author": "QR Pagamentos project",
+    "license": "Project-owned original artwork",
+    "source": "src/brand/geometry.ts",
+    "wordmarkSource": "src/brand/wordmark.outlines.svg",
+    "wordmarkSourceSha256": "4f87c1fe0e200c55720896454529cfbe34eab5b647bf08f6067e8c6e642190f2",
+    "wordmarkDerivation": {
+      "source": "node_modules/@fontsource-variable/ibm-plex-sans/files/ibm-plex-sans-latin-wght-normal.woff2",
+      "sourceSha256": "e2291e842cf5af167122a22881a740c7f2dda7716f1e8cd76680264f4a859470",
+      "license": "node_modules/@fontsource-variable/ibm-plex-sans/LICENSE",
+      "licenseSha256": "d0283623ef57e722fd0eb688a8041589670c608ab780cd3612d06ba6f153d3fd",
+      "tool": "woff2_decompress + Pango/Cairo 1.58.0",
+      "settings": "IBM Plex Sans Semibold, 26px, text converted to SVG outlines"
+    },
+    "statement": "Original repository-native mark geometry plus reviewed IBM Plex Sans wordmark outlines. Static exports require no host, local, or remote font and include no stock, trademark-derived, remote, or generative artwork."
+  },
+  "usage": {
+    "clearSpace": "one-sixth of the rendered mark width",
+    "minimumSizes": {
+      "mark": 16,
+      "productLockup": 120,
+      "compactRoleLockup": 112,
+      "merchantFallback": 112
+    },
+    "inlineColor": "currentColor from a semantic foreground token",
+    "accessibleNaming": "Hide a mark beside visible identity text; give a standalone meaningful mark one caller-supplied localized accessible name."
+  },
+  "assets": [
+    {
+      "identityId": "mark-only",
+      "role": "mark-only",
+      "staticVariant": "positive",
+      "id": "mark-positive",
+      "canonicalSource": "src/brand/geometry.ts",
+      "outputPath": "public/brand/mark-positive.svg",
+      "mime": "image/svg+xml",
+      "intrinsic": {
+        "viewBox": "0 0 48 48"
+      },
+      "colorMode": "positive-static",
+      "accessibilityMode": "consumer-supplied",
+      "generated": true,
+      "sha256": "7f112ba642922191abfb86038b2c73388520df187ed2117c6c198b255f4d3130"
+    },
+    {
+      "identityId": "mark-only",
+      "role": "mark-only",
+      "staticVariant": "reversed",
+      "id": "mark-reversed",
+      "canonicalSource": "src/brand/geometry.ts",
+      "outputPath": "public/brand/mark-reversed.svg",
+      "mime": "image/svg+xml",
+      "intrinsic": {
+        "viewBox": "0 0 48 48"
+      },
+      "colorMode": "reversed-static",
+      "accessibilityMode": "consumer-supplied",
+      "generated": true,
+      "sha256": "dc3f68db848114c3c19215b117f5356c549b9828cda3377575a5cb765b55ccc3"
+    },
+    {
+      "identityId": "product-lockup",
+      "role": "product-lockup",
+      "staticVariant": "positive",
+      "id": "product-lockup-positive",
+      "canonicalSource": [
+        "src/brand/geometry.ts",
+        "src/brand/wordmark.outlines.svg"
+      ],
+      "outputPath": "public/brand/product-lockup-positive.svg",
+      "mime": "image/svg+xml",
+      "intrinsic": {
+        "viewBox": "0 0 260 48"
+      },
+      "colorMode": "positive-static",
+      "accessibilityMode": "consumer-supplied",
+      "generated": true,
+      "sha256": "2a86130fd2e222e65dcbacdac086000f55965b66fd78f7e2121784cc8971becd"
+    },
+    {
+      "identityId": "product-lockup",
+      "role": "product-lockup",
+      "staticVariant": "reversed",
+      "id": "product-lockup-reversed",
+      "canonicalSource": [
+        "src/brand/geometry.ts",
+        "src/brand/wordmark.outlines.svg"
+      ],
+      "outputPath": "public/brand/product-lockup-reversed.svg",
+      "mime": "image/svg+xml",
+      "intrinsic": {
+        "viewBox": "0 0 260 48"
+      },
+      "colorMode": "reversed-static",
+      "accessibilityMode": "consumer-supplied",
+      "generated": true,
+      "sha256": "df1c566f9cb903cd4eb42dbf10d5620a88cd0a740f91cf73d87342e491078ae4"
+    },
+    {
+      "identityId": "compact-role-lockup",
+      "role": "compact-role-lockup",
+      "staticVariant": "positive",
+      "id": "compact-role-lockup-positive",
+      "canonicalSource": [
+        "src/brand/geometry.ts",
+        "src/brand/wordmark.outlines.svg"
+      ],
+      "outputPath": "public/brand/compact-role-lockup-positive.svg",
+      "mime": "image/svg+xml",
+      "intrinsic": {
+        "viewBox": "0 0 216 48"
+      },
+      "colorMode": "positive-static",
+      "accessibilityMode": "consumer-supplied",
+      "generated": true,
+      "sha256": "c08c725b7116653a147624fa92b7d194148738d4b4198ec745b3bbba8746eb1a"
+    },
+    {
+      "identityId": "compact-role-lockup",
+      "role": "compact-role-lockup",
+      "staticVariant": "reversed",
+      "id": "compact-role-lockup-reversed",
+      "canonicalSource": [
+        "src/brand/geometry.ts",
+        "src/brand/wordmark.outlines.svg"
+      ],
+      "outputPath": "public/brand/compact-role-lockup-reversed.svg",
+      "mime": "image/svg+xml",
+      "intrinsic": {
+        "viewBox": "0 0 216 48"
+      },
+      "colorMode": "reversed-static",
+      "accessibilityMode": "consumer-supplied",
+      "generated": true,
+      "sha256": "cb9e45fe870317bd945e408b080c104f6a3abbcdf8665d857b19e66644b584e4"
+    },
+    {
+      "identityId": "merchant-fallback",
+      "role": "merchant-fallback",
+      "staticVariant": "positive",
+      "id": "merchant-fallback-positive",
+      "canonicalSource": [
+        "src/brand/geometry.ts",
+        "src/brand/wordmark.outlines.svg"
+      ],
+      "outputPath": "public/brand/merchant-fallback-positive.svg",
+      "mime": "image/svg+xml",
+      "intrinsic": {
+        "viewBox": "0 0 216 48"
+      },
+      "colorMode": "positive-static",
+      "accessibilityMode": "consumer-supplied",
+      "generated": true,
+      "sha256": "83db8908beac32f2964b4ec4117369d587f4beb9f1f91d1df5aa9c26a5184315"
+    },
+    {
+      "identityId": "merchant-fallback",
+      "role": "merchant-fallback",
+      "staticVariant": "reversed",
+      "id": "merchant-fallback-reversed",
+      "canonicalSource": [
+        "src/brand/geometry.ts",
+        "src/brand/wordmark.outlines.svg"
+      ],
+      "outputPath": "public/brand/merchant-fallback-reversed.svg",
+      "mime": "image/svg+xml",
+      "intrinsic": {
+        "viewBox": "0 0 216 48"
+      },
+      "colorMode": "reversed-static",
+      "accessibilityMode": "consumer-supplied",
+      "generated": true,
+      "sha256": "64615422c2e57a3c414e25705e6d1c75dbc7a365129ba7d79b7dc981974439dd"
+    },
+    {
+      "id": "favicon-16",
+      "role": "browser-icon",
+      "canonicalSource": "src/brand/geometry.ts",
+      "outputPath": "public/brand/favicon-16.png",
+      "mime": "image/png",
+      "intrinsic": {
+        "width": 16,
+        "height": 16
+      },
+      "colorMode": "favicon-fixed",
+      "accessibilityMode": "decorative-browser-chrome",
+      "generated": true,
+      "sha256": "615c7f32083ae9bbb7fe735ab717aa5a43c37274654a7aa78ba60d2957a70c89"
+    },
+    {
+      "id": "favicon-32",
+      "role": "browser-icon",
+      "canonicalSource": "src/brand/geometry.ts",
+      "outputPath": "public/brand/favicon-32.png",
+      "mime": "image/png",
+      "intrinsic": {
+        "width": 32,
+        "height": 32
+      },
+      "colorMode": "favicon-fixed",
+      "accessibilityMode": "decorative-browser-chrome",
+      "generated": true,
+      "sha256": "5d4ea9336b5fd8967c70445ce1d0ec381fd2c3d2886f056afc1e98a905db14e8"
+    },
+    {
+      "id": "favicon-48",
+      "role": "browser-icon",
+      "canonicalSource": "src/brand/geometry.ts",
+      "outputPath": "public/brand/favicon-48.png",
+      "mime": "image/png",
+      "intrinsic": {
+        "width": 48,
+        "height": 48
+      },
+      "colorMode": "favicon-fixed",
+      "accessibilityMode": "decorative-browser-chrome",
+      "generated": true,
+      "sha256": "14b2491613f9c9e83ac9ddbd9fe17b69b9a7a61911b5e4376fab34484605df85"
+    },
+    {
+      "id": "favicon",
+      "role": "browser-icon",
+      "canonicalSource": "src/brand/geometry.ts",
+      "outputPath": "src/app/favicon.ico",
+      "mime": "image/x-icon",
+      "intrinsic": {
+        "frames": [
+          16,
+          32,
+          48
+        ]
+      },
+      "colorMode": "favicon-fixed",
+      "accessibilityMode": "decorative-browser-chrome",
+      "generated": true,
+      "sha256": "9e8451f8eb819a4b54dab8f9ea4926372cae62b074f17c765ead531fe4481bf8"
+    }
+  ]
+}

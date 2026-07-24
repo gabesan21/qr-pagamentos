@@ -52,6 +52,8 @@ A direct human command overrides only the rule or gate it explicitly names. “A
 
 ## DOX index
 
+- [`src/brand/AGENTS.md`](src/brand/AGENTS.md) — follow when changing canonical
+  identity geometry, compositions, generated assets, manifest, or usage rules.
 - [`src/components/ui/AGENTS.md`](src/components/ui/AGENTS.md) — follow when
   changing owned Radix/nova shadcn source, its inventory, or its state contract.
 - [`src/integrations/nautt/AGENTS.md`](src/integrations/nautt/AGENTS.md) — follow when changing Nautt HTTP adapters or owner-bound provider orchestration.
@@ -100,6 +102,7 @@ Username and password are the only login credentials; email is optional and neve
 - `src/auth/product-category.ts` owns owner-scoped bilingual category validation, exact-name uniqueness mapping, expected-version CAS, and transactional one-way deactivation/reassignment; `POST /product-categories` is its only mutation route. Products may reference only a same-owner category through the nullable composite key. Never expose category data through current product, payment-link, checkout, order, or storefront V1 projections, and never grant administrators category ownership capability.
 - `src/media/` owns the server-only canonical image boundary and `GET /media/[identifier]` is its only read route: accepted JPEG/PNG/WebP input becomes bounded single-frame WebP outside `public/`; owner/purpose/state/revision metadata, physical count-until-durable-delete quotas, local-POSIX descriptor/digest checks, and fail-closed reconciliation govern every operation. Public reads require `ACTIVE`; only the active merchant owner may read `STAGED` or grace-period `ORPHANED`; every outcome is `no-store` and every unavailable case is the same empty `404`. Administrators gain no owner capability. See [`pop/specs/media-storage.md`](pop/specs/media-storage.md).
 - `src/i18n/` owns the closed locale set and server dictionary loader; never add a locale without matching dictionary keys and contract tests.
+- `src/brand/` owns the original four-identity QR Pagamentos family and its deterministic manifest/static derivatives; UI consumers use the shared semantic-color composition, never page-local marks or per-theme assets.
 - Use the exact Node and pnpm pins in `.node-version` and `package.json`; install with `pnpm install --frozen-lockfile`.
 - Run `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm build` independently, or `pnpm check` for the aggregate gate.
 - Run `pnpm db:test` separately for the disposable PostgreSQL contract; it is never part of the database-free `pnpm check` gate.

@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import Link from "next/link";
 
 import { getAuthorizationService } from "@/auth/authorization";
+import { BrandIdentity } from "@/brand/brand-identity";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,8 +37,8 @@ export default async function PublicStorefrontPage({ params }: Readonly<{ params
   return (
     <main className="storefront-shell" style={{ "--storefront-accent": storefront.accentColor } as CSSProperties}>
       <header className="receipt-rail storefront-rail">
-        <span className="receipt-rail__label">QR Pagamentos</span>
-        <h1>{displayName}</h1>
+        <BrandIdentity variant="merchant-fallback" />
+        <h1 className="storefront-heading">{displayName}</h1>
         <p className="storefront-introduction">{dictionary.storefrontIntroduction}</p>
       </header>
       {storefront.products.length === 0 ? (

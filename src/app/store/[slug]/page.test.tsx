@@ -30,6 +30,8 @@ describe("public storefront page", () => {
     expect(markup).toContain("Loja da Ana");
     expect(markup).toContain('href="/pay/AbCdEfGhIjKlMnOpQrStUvWx"');
     expect(markup).toContain('style="--storefront-accent:#106B5B"');
+    expect(markup).toContain('data-brand-identity="merchant-fallback"');
+    expect(markup).toContain('aria-hidden="true"');
     expect(markup).not.toContain("ownerId");
     expect(markup).not.toContain("checkoutDataPolicy");
   });
@@ -44,6 +46,7 @@ describe("public storefront page", () => {
 
     expect(read).toHaveBeenCalledWith("ana-store", "en");
     expect(markup).toContain("QR Pagamentos storefront");
+    expect(markup).toContain('data-brand-identity="merchant-fallback"');
     expect(markup).toContain("No products are available right now.");
   });
 
