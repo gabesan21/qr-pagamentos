@@ -59,6 +59,20 @@
       ],
       "test_seconds": 0,
       "result": "returned"
+    },
+    {
+      "at": "2026-07-24T00:45:29-03:00",
+      "event": "stage",
+      "stage": "002_planning",
+      "contexts": [
+        "plan_6_3_1"
+      ],
+      "strategy": "critical return-1 repair: authenticated non-identifying scope-purpose cursors, loop-free native-GET canonical redirects before adapter I/O, and exact pre-decode raw-query byte accounting",
+      "tests": "all three approval blockers mapped to fixed server contracts, F01 ownership, AC1/AC2 replay/tamper/canonicalization cases, and 2048/2049 percent-expansion/multibyte boundaries; accepted keyset/UI/i18n/topology scope preserved",
+      "return": 1,
+      "return_limit": 2,
+      "test_seconds": 0,
+      "result": "replanned"
     }
   ]
 }
