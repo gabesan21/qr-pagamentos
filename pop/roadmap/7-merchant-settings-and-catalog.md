@@ -19,7 +19,6 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[7.1.2-extend-merchant-store-settings]] | Persist theme, logo, layout, store/ad-hoc toggles, slug, display name, and one active default currency. · size: L | 001_initial_task |
 | [[7.1.3-build-store-settings-and-logo-management]] | Deliver the bilingual store settings UI with previews, constraints, logo upload, and official fallback. · size: L | 001_initial_task |
 
 ## Phase 7.2 - Categories, products, and images
