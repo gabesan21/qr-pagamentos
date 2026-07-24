@@ -120,6 +120,31 @@
       ],
       "test_seconds": 0,
       "result": "advanced"
+    },
+    {
+      "at": "2026-07-24T05:00:15-03:00",
+      "event": "stage",
+      "stage": "005_verifying",
+      "contexts": [
+        "verify_7_3_1"
+      ],
+      "strategy": "full critical review of the original merchant-profile request, one-KDF credential proof, serialization and session revocation, protected route outcomes, safe migration, fixed shell ownership, bilingual native-form UI, and run-bound browser evidence",
+      "tests": "AC1/AC3 37 passed; AC4/AC5 37 non-baseline passed; AC6 19 passed; migration/static/evidence/scope/PoP/lint/type/build passed; disposable DB passed merchant-profile schema before known product fixture failure; full suite reproduced known server-only/storefront baselines; 375/768/1440 and interaction screenshots inspected",
+      "return": 1,
+      "return_limit": 2,
+      "test_seconds": 540,
+      "result": "returned_to_004"
+    },
+    {
+      "at": "2026-07-24T05:02:13-03:00",
+      "event": "transition",
+      "from": "005_verifying",
+      "to": "004_processing",
+      "contexts": [
+        "verify_7_3_1"
+      ],
+      "test_seconds": 0,
+      "result": "returned"
     }
   ]
 }
