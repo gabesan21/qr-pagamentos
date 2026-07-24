@@ -42,6 +42,29 @@ This spec defines the reproducible runtime, local identity boundary, role model,
 - The initial primitive inventory prevents duplicate component variants. Each admin component documents and supports default, loading, empty, error, hover/focus, and disabled states as applicable.
 - Every Phase 1.3 frontend task records the mandatory UI workflow in its card: `ui-change` during implementation and `ui-review` during verification, together with the applicable supporting UI/UX skills.
 
+## Panel architecture and permissions
+
+`ADMIN` and merchant `USER` are mutually exclusive business personas. Shared
+means only session, login/logout, persisted locale, and common visual sources;
+it never grants a business read, mutation, shell, navigation entry, or fallback
+to the other role. Every protected read and mutation resolves an active cookie
+principal before owner-scoped work. `/` is the compatibility entry: it resolves
+the role before merchant work, sends `ADMIN` to `/admin`, and sends an active
+`USER` to the merchant dashboard. No current or future administrator capability
+may read or mutate merchant-owned data.
+
+| Route family | Canonical owner and capability | Unauthenticated / wrong role | Compatibility boundary |
+| --- | --- | --- | --- |
+| `/`, merchant dashboard, catalog/products, payment links, owner orders, checkout policy, Nautt credentials, storefront settings, and planned merchant profile/security | `USER` only; own business data and settings | page: `/login` / `/admin`; mutation: empty `401` / empty `403` | Merchant routes stay unprefixed. Owner scoping, redacted projections, opaque unavailable outcomes, and existing V1 identifiers remain unchanged. |
+| `/admin`, `/admin/orders`, users/roles/status, global payment settings, currency pairs, payment methods, and planned administrator dashboard, global catalog/link directory, analytics, and system settings | `ADMIN` only; global operator data and configuration | page: `/login` / `/`; mutation: empty `401` / empty `403` | Administrative routes stay under `/admin`; administrator order and payment-link views are read-only unless a later contract explicitly changes that. |
+| `/login`, `/login/submit`, `/logout`, `/language-preference` | shared authentication/session or self-only preference | existing generic authentication and opaque mutation outcomes | URLs remain unprefixed; login success dispatches through `/`, and preference never targets another principal. |
+| `/pay/[identifier]`, `/store/[slug]`, `/api/payment-links/[identifier]*`, `/api/nautt/webhooks`, `/api/health` | sessionless public/protocol surface; no panel capability | their existing public/protocol outcomes | Never route through either panel or alter public identifiers, rate limits, callback rules, response shapes, or no-store/opaque semantics. |
+| `/[lang]/*` legacy UI and mutation stubs | permanently absent | `404` for every visitor | Persisted `pt-BR`/`en` selection remains unprefixed; no locale-prefixed compatibility redirect is introduced. |
+
+The current root page still admits `ADMIN` to merchant work; this is a known
+pre-implementation defect. Task 6.1.2 implements this approved matrix without
+changing the public/sessionless contracts above.
+
 ## Out of scope
 
 - Nautt credentials, provider orders, polling, and webhooks belong to [[specs/nautt-finance-integration|Nautt Finance integration]].
