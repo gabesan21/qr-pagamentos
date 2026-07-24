@@ -55,6 +55,18 @@
       ],
       "test_seconds": 0,
       "result": "returned"
+    },
+    {
+      "at": "2026-07-23T23:33:46-03:00",
+      "event": "stage",
+      "stage": "002_planning",
+      "contexts": [
+        "plan_6_3_2"
+      ],
+      "strategy": "critical return repair: decoder preflight, lifecycle fencing, cache revocation, physical quota, and POSIX durability",
+      "tests": "approval blockers mapped to revised contracts and AC1-AC8; artifact JSON and diff checks only",
+      "test_seconds": 0,
+      "result": "replanned"
     }
   ]
 }
