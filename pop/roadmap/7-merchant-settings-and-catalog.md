@@ -14,12 +14,11 @@
 
 ## Phase 7.1 - Exchange currencies and merchant settings
 
-- **Status:** pendente
+- **Status:** concluída
 - **Description:** Establish the dynamic administrator-registered exchange-currency registry and persist the complete merchant store configuration.
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[7.1.3-build-store-settings-and-logo-management]] | Deliver the bilingual store settings UI with previews, constraints, logo upload, and official fallback. · size: L | 001_initial_task |
 
 ## Phase 7.2 - Categories, products, and images
 
