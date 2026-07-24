@@ -255,6 +255,43 @@ candidate_media_preflight() {
     || die 'candidate media preflight failed'
 }
 
+require_old_app_unchanged() {
+  local current_app current_image current_health
+  current_app=$(compose ps -q app)
+  [[ $current_app == "$old_app" ]] || return 1
+  current_image=$(docker inspect --format '{{.Image}}' "$current_app") || return 1
+  [[ $current_image == "$old_image" ]] || return 1
+  current_health=$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' "$current_app") || return 1
+  [[ $current_health == healthy ]] || return 1
+  [[ $(deployment_volume_identity) == "$volume_before" ]]
+}
+
+seal_helper_failure() {
+  local gate=$1 helper=$2
+  {
+    printf 'result=%s-failed\n' "$gate"
+    printf 'failed_helper=%s\n' "$helper"
+  } >> "$evidence"
+  if require_old_app_unchanged; then
+    printf 'previous_app_proof=exact-container-image-healthy-volumes-unchanged\n' >> "$evidence"
+    chmod 0400 "$evidence"
+    die "$gate failed; retained helper and previous application evidence"
+  fi
+  printf 'previous_app_proof=failed-operator-recovery-required\n' >> "$evidence"
+  chmod 0400 "$evidence"
+  die "$gate failed and the previous application proof no longer holds; operator recovery required"
+}
+
+run_named_helper() {
+  local service=$1 helper=$2 helper_image
+  if ! compose run --name "$helper" --no-deps "$service"; then
+    return 1
+  fi
+  [[ $(docker inspect --format '{{.State.ExitCode}}' "$helper") == 0 ]] || return 1
+  helper_image=$(docker inspect --format '{{.Image}}' "$helper") || return 1
+  [[ $(image_revision "$helper_image") == "$QR_UPDATE_TARGET_SHA" ]]
+}
+
 acquire_update_lock
 if [[ ${QR_UPDATE_REENTRY_COUNT:-0} == 0 ]]; then enter_pulled_revision; fi
 verify_reentry
@@ -284,26 +321,47 @@ candidate_media_preflight
 [[ $(deployment_volume_identity) == "$volume_before" ]] || die 'candidate preflight changed volume identities'
 printf 'PASS update-candidate-media-preflight\n'
 
-# Every invocation creates a new migration container. The old app remains running through this gate.
+# Every invocation creates named helpers. A failed helper is retained for bounded
+# operator inspection while the exact previous app is proved healthy.
 printf 'phase=database-mutation-started\n' >> "$evidence"
-compose run --rm --no-deps bootstrap
+bootstrap_name="${PROJECT}-update-bootstrap-${QR_UPDATE_TARGET_SHA:0:12}-$$"
+if ! run_named_helper bootstrap "$bootstrap_name"; then
+  seal_helper_failure bootstrap "$bootstrap_name"
+fi
+printf 'bootstrap_helper=%s\n' "$bootstrap_name" >> "$evidence"
 assert_target_checkout
 migrate_name="${PROJECT}-update-migrate-${QR_UPDATE_TARGET_SHA:0:12}-$$"
-compose run --name "$migrate_name" --no-deps migrate
-[[ $(docker inspect --format '{{.State.ExitCode}}' "$migrate_name") == 0 ]] || die 'migration container did not complete successfully'
-migrate_image=$(docker inspect --format '{{.Image}}' "$migrate_name")
-[[ $(image_revision "$migrate_image") == "$QR_UPDATE_TARGET_SHA" ]] || die 'migration container revision mismatch'
+if ! run_named_helper migrate "$migrate_name"; then
+  seal_helper_failure migration "$migrate_name"
+fi
+printf 'migration_helper=%s\n' "$migrate_name" >> "$evidence"
 
-compose run --rm --no-deps identity-seed
+seed_name="${PROJECT}-update-identity-seed-${QR_UPDATE_TARGET_SHA:0:12}-$$"
+if ! run_named_helper identity-seed "$seed_name"; then
+  seal_helper_failure identity-seed "$seed_name"
+fi
+printf 'identity_seed_helper=%s\n' "$seed_name" >> "$evidence"
 assert_target_checkout
 compose up -d --no-deps --force-recreate app
 if ! target_app=$(wait_for_app); then
   compose logs --no-color app >&2 || true
-  printf 'result=target-health-failed-image-rollback-started\n' >> "$evidence"
+  {
+    printf 'result=target-health-failed-image-rollback-started\n'
+    printf 'failed_container=%s\n' "$(compose ps -aq app)"
+  } >> "$evidence"
   APP_IMAGE=$old_image
   compose up -d --no-deps --force-recreate app
-  wait_for_app >/dev/null || die 'target and previous application images are unhealthy; operator recovery required'
-  [[ $(deployment_volume_identity) == "$volume_before" ]] || die 'rollback changed volume identities'
+  if ! restored_app=$(wait_for_app); then
+    printf 'result=target-and-previous-health-failed-operator-recovery-required\n' >> "$evidence"
+    chmod 0400 "$evidence"
+    die 'target and previous application images are unhealthy; operator recovery required'
+  fi
+  if [[ $(docker inspect --format '{{.Image}}' "$restored_app") != "$old_image" ]] \
+    || [[ $(deployment_volume_identity) != "$volume_before" ]]; then
+    printf 'result=previous-image-or-volume-proof-failed-operator-recovery-required\n' >> "$evidence"
+    chmod 0400 "$evidence"
+    die 'rollback failed exact previous image or volume proof; operator recovery required'
+  fi
   printf 'result=target-health-failed-previous-image-healthy\n' >> "$evidence"
   chmod 0400 "$evidence"
   die 'target application failed health; previous image restored against retained data'

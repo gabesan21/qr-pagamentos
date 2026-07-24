@@ -11,6 +11,9 @@ POSTGRES_IMAGE='postgres:18.4-bookworm@sha256:1961f96e6029a02c3812d7cb329a3b03a3
 POSTGRES_PORT=5433
 PROJECT=${CONTAINER_TEST_PROJECT:-qr-pagamentos}
 DOCKER=(docker)
+RELEASE_REVISION=
+APP_IMAGE=
+DB_OPS_IMAGE=
 
 die() { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
 print_command() { printf 'DRY-RUN'; printf ' %q' "$@"; printf '\n'; }
@@ -198,8 +201,24 @@ compose() {
     MIGRATOR_PASSWORD_FILE=$MIGRATOR_PASSWORD_FILE RUNTIME_PASSWORD_FILE=$RUNTIME_PASSWORD_FILE \
     NAUTT_WEBHOOK_CALLBACK_URL=$NAUTT_WEBHOOK_CALLBACK_URL \
     NAUTT_API_BASE_URL=${NAUTT_API_BASE_URL:-} \
+    RELEASE_REVISION=$RELEASE_REVISION APP_IMAGE=$APP_IMAGE DB_OPS_IMAGE=$DB_OPS_IMAGE \
     STAGED_SECRETS_DIR=$STAGED_SECRETS_DIR INITIAL_ADMIN_RECOVERY_PASSWORD_FILE=${INITIAL_ADMIN_RECOVERY_PASSWORD_FILE:-} \
     "${DOCKER[@]}" compose -f "$ROOT_DIR/compose.yaml" -p "$PROJECT" "$@"
+}
+
+resolve_release_identity() {
+  if "$DRY_RUN"; then
+    RELEASE_REVISION=0000000000000000000000000000000000000000
+  else
+    command -v git >/dev/null 2>&1 || die 'the release checkout cannot resolve its immutable revision'
+    [[ -z $(git -C "$ROOT_DIR" status --porcelain --untracked-files=all) ]] \
+      || die 'installation requires a clean exact-release checkout'
+    RELEASE_REVISION=$(git -C "$ROOT_DIR" rev-parse --verify 'HEAD^{commit}') \
+      || die 'installation checkout has no exact release commit'
+    [[ $RELEASE_REVISION =~ ^[0-9a-f]{40}$ ]] || die 'installation release revision is invalid'
+  fi
+  APP_IMAGE="${PROJECT}-app:$RELEASE_REVISION"
+  DB_OPS_IMAGE="${PROJECT}-db-ops:$RELEASE_REVISION"
 }
 
 recover_initial_admin() {
@@ -218,13 +237,20 @@ recover_initial_admin() {
 
 deploy() {
   if "$DRY_RUN"; then
-    print_command docker compose -f "$ROOT_DIR/compose.yaml" -p qr-pagamentos build --pull
-    print_command docker compose -f "$ROOT_DIR/compose.yaml" -p qr-pagamentos up -d
-    print_command docker compose -f "$ROOT_DIR/compose.yaml" -p qr-pagamentos exec -T app node container/healthcheck.mjs
+    print_command env RELEASE_REVISION="$RELEASE_REVISION" APP_IMAGE="$APP_IMAGE" DB_OPS_IMAGE="$DB_OPS_IMAGE" \
+      docker compose -f "$ROOT_DIR/compose.yaml" -p "$PROJECT" build --pull bootstrap app
+    print_command env RELEASE_REVISION="$RELEASE_REVISION" APP_IMAGE="$APP_IMAGE" DB_OPS_IMAGE="$DB_OPS_IMAGE" \
+      docker compose -f "$ROOT_DIR/compose.yaml" -p "$PROJECT" up -d
+    print_command env RELEASE_REVISION="$RELEASE_REVISION" APP_IMAGE="$APP_IMAGE" DB_OPS_IMAGE="$DB_OPS_IMAGE" \
+      docker compose -f "$ROOT_DIR/compose.yaml" -p "$PROJECT" exec -T app node container/healthcheck.mjs
     printf 'DRY-RUN wait for exact http://127.0.0.1:%s/api/health = {"status":"ok"}\n' "$APP_PORT"
     return
   fi
-  compose build --pull
+  compose build --pull bootstrap app
+  [[ $(docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$APP_IMAGE") == "$RELEASE_REVISION" ]] \
+    || die 'installed application image revision mismatch'
+  [[ $(docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$DB_OPS_IMAGE") == "$RELEASE_REVISION" ]] \
+    || die 'installed database-operations image revision mismatch'
   compose up -d
   local attempt
   for attempt in {1..120}; do
@@ -244,6 +270,7 @@ deploy() {
 
 check_docker
 load_install_env
+resolve_release_identity
 if ! "$DRY_RUN"; then operation_lock "$ROOT_DIR"; fi
 if ! run_node_helper -e 'const u = new URL(process.argv[1]); process.exit(u.protocol === "https:" && !u.username && !u.password && !u.hash ? 0 : 1)' "$NAUTT_WEBHOOK_CALLBACK_URL" >/dev/null 2>&1; then
   die 'NAUTT_WEBHOOK_CALLBACK_URL must be an absolute HTTPS URL without credentials or a fragment'
