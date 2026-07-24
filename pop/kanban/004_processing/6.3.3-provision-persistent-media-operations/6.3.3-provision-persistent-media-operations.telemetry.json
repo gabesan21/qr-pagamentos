@@ -136,6 +136,17 @@
       "return_limit": 2,
       "test_seconds": 11,
       "result": "approved"
+    },
+    {
+      "at": "2026-07-24T01:39:59-03:00",
+      "event": "transition",
+      "from": "003_human_approval",
+      "to": "004_processing",
+      "contexts": [
+        "critic3_003_6_3_3"
+      ],
+      "test_seconds": 0,
+      "result": "advanced"
     }
   ]
 }
