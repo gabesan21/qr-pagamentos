@@ -23,6 +23,17 @@
       "tests": "card, dependency memories, administrative/storefront/design specs, root/app-shell/UI/Prisma DOX, current identity/session/authorization/administration/origin/logging/merchant-shell contracts, migration policy, DESIGN, and evidence commands inspected; no runtime tests in planning",
       "test_seconds": 0,
       "result": "planned"
+    },
+    {
+      "at": "2026-07-24T03:11:29-03:00",
+      "event": "transition",
+      "from": "002_planning",
+      "to": "003_human_approval",
+      "contexts": [
+        "plan_7_3_1"
+      ],
+      "test_seconds": 0,
+      "result": "advanced"
     }
   ]
 }
