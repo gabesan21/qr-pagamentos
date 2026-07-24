@@ -7,6 +7,7 @@ export const serverRequestRoutes = {
   logout: "/logout",
   languagePreference: "/language-preference",
   products: "/products",
+  productCategories: "/product-categories",
   paymentLinks: "/payment-links",
   paymentLink: "/payment-links/[id]",
   checkoutPolicy: "/checkout-policy",

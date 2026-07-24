@@ -35,7 +35,7 @@ assert(runtimeClient.includes("process.env.DATABASE_URL") && !runtimeClient.incl
 const gitignore = await readFile(".gitignore", "utf8");
 assert(gitignore.split("\n").includes("src/generated/prisma/"), "Generated Prisma output is not ignored");
 const schema = await readFile("prisma/schema.prisma", "utf8");
-for (const model of ["DatabaseFoundationFixture", "User", "PasswordCredential", "NauttCredential", "DeploymentBootstrap", "Session", "GlobalPaymentSettings", "ProviderQuote", "ProviderOrder", "WebhookDelivery", "WebhookDeliveryAttempt", "WebhookRecoveryLease", "CatalogCurrencyPair", "CatalogPaymentMethod", "Product", "PaymentLink", "PaymentLinkOrder", "CheckoutAttempt", "PaymentLinkSingleUseSettlement", "MediaObject"]) {
+for (const model of ["DatabaseFoundationFixture", "User", "PasswordCredential", "NauttCredential", "DeploymentBootstrap", "Session", "GlobalPaymentSettings", "ProviderQuote", "ProviderOrder", "WebhookDelivery", "WebhookDeliveryAttempt", "WebhookRecoveryLease", "CatalogCurrencyPair", "CatalogPaymentMethod", "Product", "ProductCategory", "PaymentLink", "PaymentLinkOrder", "CheckoutAttempt", "PaymentLinkSingleUseSettlement", "MediaObject"]) {
   assert(schema.includes(`model ${model}`), `Schema is missing ${model}`);
 }
 assert(schema.includes('output   = "../src/generated/prisma"'), "Generated output changed");
@@ -183,6 +183,15 @@ for (const field of ["identifier", "storageKey", "ownerId", "purpose", "state", 
   assert(schema.includes(field), `Schema is missing media field ${field}`);
 }
 assert(!/GRANT\s+(?:TRUNCATE|REFERENCES|TRIGGER)|ALTER\s+(?:TABLE|SCHEMA).*\sOWNER\s+TO/i.test(mediaMigration), "Media migration grants excess privileges or changes ownership");
+
+const categoryMigration = await readFile("prisma/migrations/20260724010000_owner_product_categories/migration.sql", "utf8");
+for (const contract of ["product_category_pkey", "product_category_id_owner_id_key", "product_category_owner_name_pt_br_key", "product_category_owner_name_en_key", "product_category_owner_fkey", "product_category_version_nonnegative", "product_category_owner_active_name_idx", "category_id", "product_category_owner_fkey", "product_owner_category_id_idx", "GRANT SELECT, INSERT, UPDATE, DELETE"]) {
+  assert(categoryMigration.includes(contract), `Product-category migration lost ${contract}`);
+}
+for (const field of ["model ProductCategory", "categoryId", "namePtBr", "nameEn", "productCategories"]) {
+  assert(schema.includes(field), `Schema is missing product-category field ${field}`);
+}
+assert(!/GRANT\s+(?:TRUNCATE|REFERENCES|TRIGGER)|ALTER\s+(?:TABLE|SCHEMA).*\sOWNER\s+TO/i.test(categoryMigration), "Product-category migration grants excess privileges or changes ownership");
 
 const bootstrap = await readFile("prisma/bootstrap.sql", "utf8");
 assert(bootstrap.includes("GRANT CONNECT ON DATABASE qr_pagamentos TO qr_migrator, qr_runtime"), "Both roles require explicit CONNECT");

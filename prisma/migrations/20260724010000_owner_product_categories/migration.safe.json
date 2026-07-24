@@ -1,0 +1,270 @@
+{
+  "version": 1,
+  "id": "20260724010000_owner_product_categories",
+  "operations": [
+    {
+      "op": "createTable",
+      "table": {
+        "schema": "app",
+        "name": "product_category"
+      },
+      "columns": [
+        {
+          "name": "id",
+          "type": {
+            "name": "uuid"
+          },
+          "nullable": false
+        },
+        {
+          "name": "owner_id",
+          "type": {
+            "name": "uuid"
+          },
+          "nullable": false
+        },
+        {
+          "name": "name_pt_br",
+          "type": {
+            "name": "varchar",
+            "length": 160
+          },
+          "nullable": false
+        },
+        {
+          "name": "name_en",
+          "type": {
+            "name": "varchar",
+            "length": 160
+          },
+          "nullable": false
+        },
+        {
+          "name": "active",
+          "type": {
+            "name": "boolean"
+          },
+          "nullable": false
+        },
+        {
+          "name": "version",
+          "type": {
+            "name": "integer"
+          },
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "type": {
+            "name": "timestamptz"
+          },
+          "nullable": false
+        },
+        {
+          "name": "updated_at",
+          "type": {
+            "name": "timestamptz"
+          },
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "product_category"
+      },
+      "constraint": {
+        "kind": "primaryKey",
+        "name": "product_category_pkey",
+        "columns": [
+          "id"
+        ]
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "product_category"
+      },
+      "constraint": {
+        "kind": "unique",
+        "name": "product_category_id_owner_id_key",
+        "columns": [
+          "id",
+          "owner_id"
+        ]
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "product_category"
+      },
+      "constraint": {
+        "kind": "unique",
+        "name": "product_category_owner_name_pt_br_key",
+        "columns": [
+          "owner_id",
+          "name_pt_br"
+        ]
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "product_category"
+      },
+      "constraint": {
+        "kind": "unique",
+        "name": "product_category_owner_name_en_key",
+        "columns": [
+          "owner_id",
+          "name_en"
+        ]
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "product_category"
+      },
+      "constraint": {
+        "kind": "foreignKey",
+        "name": "product_category_owner_fkey",
+        "columns": [
+          "owner_id"
+        ],
+        "references": {
+          "table": {
+            "schema": "app",
+            "name": "user"
+          },
+          "columns": [
+            "id"
+          ]
+        },
+        "onDelete": "RESTRICT",
+        "onUpdate": "CASCADE",
+        "notValid": false
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "product_category"
+      },
+      "constraint": {
+        "kind": "check",
+        "name": "product_category_version_nonnegative",
+        "expression": {
+          "op": "gte",
+          "left": {
+            "kind": "column",
+            "name": "version"
+          },
+          "right": {
+            "kind": "literal",
+            "literal": {
+              "kind": "integer",
+              "value": 0
+            }
+          }
+        },
+        "notValid": false
+      }
+    },
+    {
+      "op": "createIndex",
+      "name": "product_category_owner_active_name_idx",
+      "table": {
+        "schema": "app",
+        "name": "product_category"
+      },
+      "columns": [
+        "owner_id",
+        "active",
+        "name_pt_br",
+        "id"
+      ],
+      "unique": false
+    },
+    {
+      "op": "addColumn",
+      "table": {
+        "schema": "app",
+        "name": "product"
+      },
+      "column": {
+        "name": "category_id",
+        "type": {
+          "name": "uuid"
+        },
+        "nullable": true
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "product"
+      },
+      "constraint": {
+        "kind": "foreignKey",
+        "name": "product_category_owner_fkey",
+        "columns": [
+          "category_id",
+          "owner_id"
+        ],
+        "references": {
+          "table": {
+            "schema": "app",
+            "name": "product_category"
+          },
+          "columns": [
+            "id",
+            "owner_id"
+          ]
+        },
+        "onDelete": "RESTRICT",
+        "onUpdate": "CASCADE",
+        "notValid": false
+      }
+    },
+    {
+      "op": "createIndex",
+      "name": "product_owner_category_id_idx",
+      "table": {
+        "schema": "app",
+        "name": "product"
+      },
+      "columns": [
+        "owner_id",
+        "category_id",
+        "id"
+      ],
+      "unique": false
+    },
+    {
+      "op": "grant",
+      "object": {
+        "kind": "table",
+        "schema": "app",
+        "name": "product_category"
+      },
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "role": "qr_runtime"
+    }
+  ]
+}
