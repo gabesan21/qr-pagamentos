@@ -21,6 +21,17 @@
       "tests": "card, dependency memory, linked catalog/storefront/product specs, root/Prisma DOX, current product owner CRUD/CAS/public projections, safe migration policy, database harness, and active 6.3.2 lane inspected; no runtime tests in planning",
       "test_seconds": 0,
       "result": "planned"
+    },
+    {
+      "at": "2026-07-24T00:15:23-03:00",
+      "event": "transition",
+      "from": "002_planning",
+      "to": "003_human_approval",
+      "contexts": [
+        "plan_7_2_1"
+      ],
+      "test_seconds": 0,
+      "result": "advanced"
     }
   ]
 }
