@@ -2,6 +2,9 @@
 
 - `geometry.ts` is the only canonical mark geometry; never duplicate or redraw
   it in a page, component, generated file, or favicon routine.
+- `wordmark.outlines.svg` is the reviewed canonical IBM Plex Sans wordmark
+  outline derived from pinned licensed font bytes; static outputs must embed
+  its paths and never contain live text or a host, local, or remote font dependency.
 - `brand-identity.tsx` owns the four closed inline identities: mark-only,
   product lockup, compact role-shell lockup, and merchant fallback.
 - Inline identities inherit one semantic foreground; never branch geometry or

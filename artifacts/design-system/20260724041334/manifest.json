@@ -1,0 +1,169 @@
+{
+  "runId": "20260724041334",
+  "startedAt": "2026-07-24T04:13:34.412Z",
+  "gitHead": "520ad61bcaa40406886e5dee370335629dc48e73",
+  "themes": [
+    "pix-paper",
+    "cashier-daylight",
+    "settlement-sand",
+    "midnight-clearing",
+    "vault-blue",
+    "terminal-amber"
+  ],
+  "fallback": {
+    "expected": "lab(98.0004 -1.2905 0.595212)",
+    "actual": "lab(98.0004 -1.2905 0.595212)"
+  },
+  "brandManifest": {
+    "path": "src/brand/assets.manifest.json",
+    "sha256": "69e13a8d3ac4cdddca1a6a2ac59c8fac7d25e462b57457a70a10708b076db51d"
+  },
+  "assertions": "artifacts/design-system/20260724041334/assertions.json",
+  "assertionsSha256": "d4b7f07303215c9c9d5e1e76de8a1f25cdc4396a58f51d0f9df7d1787840e52c",
+  "pngs": [
+    {
+      "path": "artifacts/design-system/20260724041334/design-system-pix-paper-320.png",
+      "bytes": 301529,
+      "sha256": "ba0233c5f305e2af379426336acec6e630f919f5954862e5fe77c3cabe19751b",
+      "mtimeMs": 1784866416616.232
+    },
+    {
+      "path": "artifacts/design-system/20260724041334/design-system-pix-paper-375.png",
+      "bytes": 291267,
+      "sha256": "e25fae1a98a6f0b400f94a6815aaf1f1d4d6491e7dd52d2fe48fa1f4c7562b4b",
+      "mtimeMs": 1784866418512.9172
+    },
+    {
+      "path": "artifacts/design-system/20260724041334/design-system-pix-paper-768.png",
+      "bytes": 299001,
+      "sha256": "5fe14ace35c5a31b78c3d9d64cebdd65f95daf3a9ea41a02ca9bd40e9335ce93",
+      "mtimeMs": 1784866420316.268
+    },
+    {
+      "path": "artifacts/design-system/20260724041334/design-system-pix-paper-1440.png",
+      "bytes": 310090,
+      "sha256": "d1660cc56d2b8acf55aa983ccdac7738fb555b9c374be2aaec25c6efc5346745",
+      "mtimeMs": 1784866422189.6196
+    },
+    {
+      "path": "artifacts/design-system/20260724041334/design-system-cashier-daylight-320.png",
+      "bytes": 302759,
+      "sha256": "21ab12896c854bc4519b7da2e9d73b7576b841dfc8428ab090e207b5f9aa6b4d",
+      "mtimeMs": 1784866423959.637
+    },
+    {
+      "path": "artifacts/design-system/20260724041334/design-system-cashier-daylight-375.png",
+      "bytes": 292497,
+      "sha256": "fccfa95918a2613b1f0398445da2836cffa1cadfdab9a9187064626a8d91ee8b",
+      "mtimeMs": 1784866425642.9868
+    },
+    {
+      "path": "artifacts/design-system/20260724041334/design-system-cashier-daylight-768.png",
+      "bytes": 300323,
+      "sha256": "057640311b0c85c121694a14509e1dd1e7f99a0e599c8e05a94aee4b6e07f718",
+      "mtimeMs": 1784866427499.6716
+    },
+    {
+      "path": "artifacts/design-system/20260724041334/design-system-cashier-daylight-1440.png",
+      "bytes": 310913,
+      "sha256": "c4233c54a299ed3a0883392c841cf8f8e9af5add4b67b9db456d9d0b07eb64e3",
+      "mtimeMs": 1784866429356.3564
+    },
+    {
+      "path": "artifacts/design-system/20260724041334/design-system-settlement-sand-320.png",
+      "bytes": 304858,
+      "sha256": "864190c856e75c59a9ad7121ff677db9ab866990bc6b096d819b2daa0643e4a4",
+      "mtimeMs": 1784866431159.7073
+    },
+    {
+      "path": "artifacts/design-system/20260724041334/design-system-settlement-sand-375.png",
+      "bytes": 293435,
+      "sha256": "bf9d85351ace229d069dafca96115dd2abe14775af49f3d8cb37947f0c765576",
+      "mtimeMs": 1784866432863.0574
+    },
+    {
+      "path": "artifacts/design-system/20260724041334/design-system-settlement-sand-768.png",
+      "bytes": 300539,
+      "sha256": "935011239e78a8d4c0a04033fa34272d9452162097c00cb66d669df9eb122c2a",
+      "mtimeMs": 1784866434633.0747
+    },
+    {
+      "path": "artifacts/design-system/20260724041334/design-system-settlement-sand-1440.png",
+      "bytes": 311421,
+      "sha256": "ccc71a00619e741418b2966324698bf68807c9c4ce8c1b9a0b54fab1520d2255",
+      "mtimeMs": 1784866436506.4263
+    },
+    {
+      "path": "artifacts/design-system/20260724041334/design-system-midnight-clearing-320.png",
+      "bytes": 307722,
+      "sha256": "cecc2db80599f2600bbb562bac52b5c4fa9aaa12bd7da152808f46096533e2b6",
+      "mtimeMs": 1784866438293.1104
+    },
+    {
+      "path": "artifacts/design-system/20260724041334/design-system-midnight-clearing-375.png",
+      "bytes": 295528,
+      "sha256": "1971011bdf1d48f041f1716b81ecfb25d15b2ea5568e487d6dc98c1da4b7d871",
+      "mtimeMs": 1784866440009.794
+    },
+    {
+      "path": "artifacts/design-system/20260724041334/design-system-midnight-clearing-768.png",
+      "bytes": 301554,
+      "sha256": "1f261dec66eff5a1b7761f4be566b38e93694c549bf738d87d32a3d34380b7fd",
+      "mtimeMs": 1784866441783.1445
+    },
+    {
+      "path": "artifacts/design-system/20260724041334/design-system-midnight-clearing-1440.png",
+      "bytes": 312677,
+      "sha256": "e9446721abfd854ca5989f886e61a78b581bd71782da443d31329a0223c567cf",
+      "mtimeMs": 1784866443656.4963
+    },
+    {
+      "path": "artifacts/design-system/20260724041334/design-system-vault-blue-320.png",
+      "bytes": 309194,
+      "sha256": "14c6d5f1db9de3a0f1d3ebc05e2c2e5399290e70a06109eec7019431df21ceb9",
+      "mtimeMs": 1784866445446.514
+    },
+    {
+      "path": "artifacts/design-system/20260724041334/design-system-vault-blue-375.png",
+      "bytes": 298424,
+      "sha256": "1841962386d45827abd9874ef6c359c872a64814321831f5aa5185c9d3a11312",
+      "mtimeMs": 1784866447196.531
+    },
+    {
+      "path": "artifacts/design-system/20260724041334/design-system-vault-blue-768.png",
+      "bytes": 303367,
+      "sha256": "51500ae6c1463089c78763159350d4905e9d6117f6f083be106ed99ad6c1567d",
+      "mtimeMs": 1784866448969.8816
+    },
+    {
+      "path": "artifacts/design-system/20260724041334/design-system-vault-blue-1440.png",
+      "bytes": 314239,
+      "sha256": "c8534f78272340c69542ee3bc3b476d3fa6e9eb2c16dd72c6f34e4c0cc5b4051",
+      "mtimeMs": 1784866450869.9001
+    },
+    {
+      "path": "artifacts/design-system/20260724041334/design-system-terminal-amber-320.png",
+      "bytes": 310324,
+      "sha256": "a67f5f545210ff7bcbc140bd641b15ea184c3086ff9b3ecda153245dfd399dbf",
+      "mtimeMs": 1784866452676.5847
+    },
+    {
+      "path": "artifacts/design-system/20260724041334/design-system-terminal-amber-375.png",
+      "bytes": 300464,
+      "sha256": "c0c55c2aa6cf044fa5ce74c531ddb56d9b47d872f3a8330a9143891fa7c4db57",
+      "mtimeMs": 1784866454663.2708
+    },
+    {
+      "path": "artifacts/design-system/20260724041334/design-system-terminal-amber-768.png",
+      "bytes": 304026,
+      "sha256": "28327aa75b45e7ae0bfbdd9ae3aa6f789869ce47c3a11507d3e324b4d3c8583c",
+      "mtimeMs": 1784866457313.2969
+    },
+    {
+      "path": "artifacts/design-system/20260724041334/design-system-terminal-amber-1440.png",
+      "bytes": 315139,
+      "sha256": "6083b606230ac1df43ed8b74aa30eece0bcbac839c2cb6d0b24f8a91150c281d",
+      "mtimeMs": 1784866459609.9858
+    }
+  ]
+}

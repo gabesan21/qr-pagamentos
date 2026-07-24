@@ -63,7 +63,9 @@ The original **settlement mark** turns the receipt rail and QR alignment rhythm
 into ten open, non-scannable modules. `src/brand/geometry.ts` is its only
 canonical geometry. The closed family is mark-only, product lockup, compact
 role-shell lockup, and merchant fallback; every lockup uses the exact visible
-name `QR Pagamentos` in the licensed IBM Plex Sans family.
+name `QR Pagamentos` in the licensed IBM Plex Sans family. Static lockups embed
+the reviewed `src/brand/wordmark.outlines.svg` paths and never depend on a live
+host, local, or remote font.
 
 Inline identities use `currentColor` from `--text-primary`, so identical
 geometry serves all six themes. The fixed positive and reversed SVG exports are

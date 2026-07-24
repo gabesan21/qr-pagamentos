@@ -46,8 +46,8 @@ checkout, storefront, or payment-provider surfaces.
 - A versioned provenance/usage manifest binds each derivative's role, source,
   path, MIME, dimensions, modes, generation status, and SHA-256. Checks reject
   unsafe SVG, unknown/duplicate/drifted outputs, and incomplete 16/32/48 icons.
-- Lockups use the exact product name in licensed IBM Plex Sans. Adjacent marks
-  are decorative; standalone marks have one caller-supplied localized name.
+- Lockups use reviewed outlines from pinned licensed IBM Plex Sans bytes, with
+  no live font dependency. Adjacent marks are decorative; standalone marks have one caller-supplied localized name.
   Fallback never implies merchant ownership or creates image capability.
 - Every applicable component documents and demonstrates default, hover, focus,
   active, disabled, loading, empty, and error states. Non-applicable states are
