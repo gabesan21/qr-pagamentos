@@ -39,6 +39,8 @@
     "profile:shadcn-preflight": "node scripts/run-profile-shadcn-preflight.mjs",
     "profile:evidence": "node scripts/run-profile-evidence.mjs",
     "profile:evidence:verify": "node scripts/verify-profile-evidence.mjs",
+    "catalog:evidence": "node scripts/run-catalog-evidence.mjs",
+    "catalog:evidence:verify": "node scripts/verify-catalog-evidence.mjs",
     "epoch1:source-check": "node scripts/check-epoch1-source.mjs",
     "media:decoder-preflight": "node scripts/media-decoder-preflight.mjs",
     "precheck": "pnpm db:generate",

@@ -11,6 +11,7 @@ const delay = (milliseconds) => new Promise((resolve) => setTimeout(resolve, mil
 const token = randomUUID().replaceAll("-", "").slice(0, 12);
 const appShellMode = process.argv.includes("--app-shell");
 const profileMode = process.argv.includes("--profile");
+const catalogMode = process.argv.includes("--catalog");
 const project = `qrae${process.pid}${token}`.toLowerCase();
 const temporary = await mkdtemp(path.join(tmpdir(), `${project}-`));
 const sources = path.join(temporary, "sources");
@@ -68,9 +69,11 @@ try {
   assert(port, "admin evidence loopback port could not be resolved");
   const evidenceTest = profileMode
     ? "tests/profile.evidence.spec.ts"
-    : appShellMode
-      ? "tests/app-shell.evidence.spec.ts"
-      : "tests/admin.evidence.spec.ts";
+    : catalogMode
+      ? "tests/catalog.evidence.spec.ts"
+      : appShellMode
+        ? "tests/app-shell.evidence.spec.ts"
+        : "tests/admin.evidence.spec.ts";
   const playwright = spawn(path.join(process.cwd(), "node_modules/.bin/playwright"), ["test", evidenceTest, "--project=chromium", "--workers=1"], {
     cwd: process.cwd(),
     env: {
@@ -80,6 +83,7 @@ try {
       ADMIN_EVIDENCE_PASSWORD: values.initial,
       APP_SHELL_EVIDENCE_MERCHANT_PASSWORD: `Merchant-${token}-Password`,
       PROFILE_EVIDENCE_MERCHANT_PASSWORD: `Merchant-${token}-Password`,
+      CATALOG_EVIDENCE_MERCHANT_PASSWORD: `Merchant-${token}-Password`,
     },
     stdio: "inherit",
   });
