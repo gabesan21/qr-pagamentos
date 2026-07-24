@@ -2,14 +2,21 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
+const { readCookie } = vi.hoisted(() => ({ readCookie: vi.fn() }));
+vi.mock("next/headers", () => ({ cookies: async () => ({ get: readCookie }) }));
 
 import { getDictionary } from "@/i18n/dictionaries";
 import LoginPage from "./page";
 
 describe("login page contract", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    readCookie.mockReturnValue(undefined);
+  });
+
   it("preserves the unprefixed username/password form and generic recovery", async () => {
     const markup = renderToStaticMarkup(await LoginPage({ searchParams: Promise.resolve({ error: "invalid-credentials" }) }));
 
@@ -80,5 +87,21 @@ describe("login page contract", () => {
     expect(dictionary.signIn).not.toBe("");
     expect(dictionary.signingIn).not.toBe("");
     expect(dictionary.invalidCredentials).not.toBe("");
+  });
+
+  it.each(["pt-BR", "en"] as const)("renders the password-changed completion in the persisted %s preference", async (locale) => {
+    readCookie.mockReturnValue({ value: locale });
+    const dictionary = getDictionary(locale);
+    const markup = renderToStaticMarkup(await LoginPage({ searchParams: Promise.resolve({ password: "changed" }) }));
+
+    expect(markup).toContain(dictionary.passwordChanged);
+    expect(markup).toContain(dictionary.loginHeading);
+  });
+
+  it("fails closed to pt-BR for an unsupported signed-out locale cookie", async () => {
+    readCookie.mockReturnValue({ value: "es" });
+    const markup = renderToStaticMarkup(await LoginPage({ searchParams: Promise.resolve({ password: "changed" }) }));
+
+    expect(markup).toContain(getDictionary("pt-BR").passwordChanged);
   });
 });

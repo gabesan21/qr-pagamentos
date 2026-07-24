@@ -54,16 +54,41 @@ assert(base.every((entry) => entry.severeAxe.length === 0
   && entry.measured.targets.every((target) => target.height >= 44 && target.width >= 44)
   && (entry.focus.outlineWidth >= 2 || entry.focus.boxShadow !== "none")), "Profile evidence accessibility, target, overflow, or focus assertion failed.");
 const pending = assertions.filter((entry) => /-(?:identity|password)-pending$/.test(entry.state));
-assert(pending.length === 4 && pending.every((entry) => entry.requestCount === 1 && entry.immediateBusy && entry.disabledScope), "Profile pending evidence does not prove one native request and immediate disabled feedback.");
+const isNativeDocumentPost = (request) => request?.nativeDocument
+  && request.resourceType === "document"
+  && /^application\/x-www-form-urlencoded(?:;|$)/.test(request.contentType);
+assert(pending.length === 4 && pending.every((entry) => entry.requestCount === 1
+  && entry.immediateBusy
+  && entry.disabledScope
+  && isNativeDocumentPost(entry.request)), "Profile pending evidence does not prove one native document POST and immediate disabled feedback.");
+assert(pending.every((entry) => {
+  const keys = Object.keys(entry.request.fields).sort().join(",");
+  return entry.state.includes("identity")
+    ? keys === "email,expectedVersion,username" && /^(?:0|[1-9][0-9]*)$/.test(entry.request.fields.expectedVersion)
+    : keys === "confirmation,currentPassword,newPassword";
+}), "Profile pending native payload does not bind every identity/password field and CAS version.");
 const pendingTriggers = new Set(pending.map((entry) => `${entry.state.split("-").slice(-2, -1)[0]}:${entry.trigger}`));
 assert(["identity:click", "identity:enter", "password:click", "password:enter"].every((key) => pendingTriggers.has(key)), "Profile pending evidence does not cover click and Enter for both forms.");
 const submissions = assertions.filter((entry) => /-submission-contract$/.test(entry.state));
-assert(submissions.length === 2 && submissions.every((entry) => entry.identityChangedRequests === 1
-  && entry.passwordFailedRequests === 1
+assert(submissions.length === 2 && submissions.every((entry) => entry.identityChangedRequest.requestCount === 1
+  && isNativeDocumentPost(entry.identityChangedRequest)
+  && entry.passwordFailedRequest.requestCount === 1
+  && isNativeDocumentPost(entry.passwordFailedRequest)
+  && isNativeDocumentPost(entry.passwordRotationRequest)
   && entry.expiryCookie
+  && entry.localeCookie
   && entry.seededSessionsRejected === 2
   && entry.oldPasswordRejected
   && entry.newPasswordAccepted), "Profile credential/session browser proof is incomplete.");
+const completionCopy = new Map(submissions.map((entry) => [entry.completionLocale, entry.completionCopy]));
+assert(completionCopy.get("en") === "Your password was changed. Sign in with the new password."
+  && completionCopy.get("pt-BR") === "Sua senha foi alterada. Entre com a nova senha.", "Profile password completion copy is not bilingual.");
+const localizedCompletion = assertions.find((entry) => entry.state === "password-changed-locales");
+assert(localizedCompletion?.distinct
+  && localizedCompletion.hashes.en !== localizedCompletion.hashes["pt-BR"], "Profile password completion captures are not visually distinct by locale.");
+
+const formSource = await readFile(path.join(root, "src/app/profile/profile-form.tsx"), "utf8");
+assert(!/preventDefault|requestSubmit|fetch\s*\(/.test(formSource), "Profile forms replace native browser submission.");
 
 for (const [sourcePath, expectedHash] of Object.entries(manifest.sourceHashes)) {
   assert(sha256(await readFile(path.join(root, sourcePath))) === expectedHash, `Profile evidence source inventory is stale: ${sourcePath}`);

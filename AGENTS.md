@@ -121,7 +121,8 @@ Username and password are the only login credentials; email is optional and neve
   `/profile/identity` and `/profile/password`: identity success retains
   sessions; password success atomically replaces the exact observed credential,
   revokes every session, expires the cookie, and returns to username-only
-  login. Never grant this capability to administrators, use email for login,
+  login using only the validated persisted locale carried by the non-auth
+  `qr_locale` cookie. Never grant this capability to administrators, use email for login,
   expose identity through public/store DTOs, or execute zero/two verification
   scrypts on an authorized parsed rotation attempt.
 - Use the exact Node and pnpm pins in `.node-version` and `package.json`; install with `pnpm install --frozen-lockfile`.

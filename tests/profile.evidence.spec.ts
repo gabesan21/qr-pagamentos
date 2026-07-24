@@ -5,6 +5,9 @@ import { join } from "node:path";
 
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Browser, type Page, test } from "@playwright/test";
+import type { Request as PlaywrightRequest } from "@playwright/test";
+import { profileEn } from "@/i18n/dictionaries/profile/en";
+import { profilePtBR } from "@/i18n/dictionaries/profile/pt-BR";
 
 const themes = [
   "pix-paper",
@@ -20,6 +23,11 @@ const artifactRoot = join(process.cwd(), "artifacts", "profile");
 const baseUrl = process.env.ADMIN_EVIDENCE_BASE_URL ?? "";
 const initialUsername = "profile.evidence";
 const sha256 = (value: Buffer | string) => createHash("sha256").update(value).digest("hex");
+const completionCopy = {
+  en: profileEn.passwordChanged,
+  "pt-BR": profilePtBR.passwordChanged,
+} as const;
+let pendingObservationId = 0;
 
 async function signIn(page: Page, username: string, password: string, landing: "/" | "/admin") {
   await page.goto(`${baseUrl}/login`);
@@ -54,6 +62,7 @@ test("creates the closed merchant-profile evidence run", async ({ browser, page 
   const adminPassword = process.env.ADMIN_EVIDENCE_PASSWORD;
   let merchantPassword = process.env.PROFILE_EVIDENCE_MERCHANT_PASSWORD;
   test.skip(!baseUrl || !adminUsername || !adminPassword || !merchantPassword, "requires the disposable profile evidence runtime");
+  const cdp = await page.context().newCDPSession(page);
 
   const startedAt = new Date().toISOString();
   const runId = startedAt.replaceAll(/[^\d]/g, "").slice(0, 14);
@@ -67,6 +76,7 @@ test("creates the closed merchant-profile evidence run", async ({ browser, page 
   const pageErrors: string[] = [];
   const assertions: Array<Record<string, unknown>> = [];
   const screenshots: string[] = [];
+  const completionCaptures = new Map<"pt-BR" | "en", string>();
   page.on("request", (request) => {
     if (!request.url().startsWith(baseUrl)) externalRequests.push(request.url());
   });
@@ -131,6 +141,7 @@ test("creates the closed merchant-profile evidence run", async ({ browser, page 
     const relativePath = `artifacts/profile/${runId}/${name}.png`;
     await page.screenshot({ path: join(process.cwd(), relativePath), fullPage: true });
     screenshots.push(relativePath);
+    return relativePath;
   }
 
   async function waitForProfile() {
@@ -138,10 +149,34 @@ test("creates the closed merchant-profile evidence run", async ({ browser, page 
     await expect(page.locator('form[action="/profile/password"]')).toBeVisible();
   }
 
-  async function submitAndCount(form: ReturnType<Page["locator"]>, trigger: "click" | "enter", expectedUrl: RegExp) {
-    let count = 0;
-    const observe = (request: { method(): string; url(): string }) => {
-      if (request.method() === "POST" && request.url().startsWith(baseUrl) && request.url().includes("/profile/")) count += 1;
+  function proveNativePost(request: PlaywrightRequest, endpoint: string, expectedFields: Record<string, string>) {
+    const contentType = request.headers()["content-type"] ?? "";
+    const fields = Object.fromEntries(new URLSearchParams(request.postData() ?? ""));
+    expect(request.method()).toBe("POST");
+    expect(request.url()).toBe(`${baseUrl}${endpoint}`);
+    expect(request.isNavigationRequest()).toBe(true);
+    expect(request.resourceType()).toBe("document");
+    expect(contentType).toMatch(/^application\/x-www-form-urlencoded(?:;|$)/);
+    expect(fields).toEqual(expectedFields);
+    return {
+      contentType,
+      fields,
+      nativeDocument: true,
+      resourceType: request.resourceType(),
+    };
+  }
+
+  async function submitAndCount(
+    form: ReturnType<Page["locator"]>,
+    trigger: "click" | "enter",
+    expectedUrl: RegExp,
+    expectedFields: Record<string, string>,
+  ) {
+    const endpoint = await form.getAttribute("action");
+    expect(endpoint).toMatch(/^\/profile\/(?:identity|password)$/);
+    const requests: PlaywrightRequest[] = [];
+    const observe = (request: PlaywrightRequest) => {
+      if (request.method() === "POST" && request.url() === `${baseUrl}${endpoint}`) requests.push(request);
     };
     page.on("request", observe);
     const navigation = page.waitForURL(expectedUrl);
@@ -151,38 +186,84 @@ test("creates the closed merchant-profile evidence run", async ({ browser, page 
     }
     await navigation;
     page.off("request", observe);
-    expect(count).toBe(1);
-    return count;
+    expect(requests).toHaveLength(1);
+    return {
+      requestCount: requests.length,
+      ...proveNativePost(requests[0]!, endpoint!, expectedFields),
+    };
   }
 
   async function capturePending(
     locale: "pt-BR" | "en",
     kind: "identity" | "password",
     trigger: "click" | "enter",
+    expectedFields: Record<string, string>,
   ) {
     const endpoint = `/profile/${kind}`;
     let requestCount = 0;
+    let request: PlaywrightRequest | undefined;
     let releaseRequest: () => void = () => undefined;
     let markReached: () => void = () => undefined;
     const reached = new Promise<void>((resolve) => { markReached = resolve; });
     const release = new Promise<void>((resolve) => { releaseRequest = resolve; });
+    const callbackName = `reportProfilePending${pendingObservationId++}`;
+    let reportPendingState: (state: Record<string, unknown>) => void = () => undefined;
+    const observedPendingState = new Promise<Record<string, unknown>>((resolve) => { reportPendingState = resolve; });
+    await page.exposeFunction(callbackName, reportPendingState);
+    const form = page.locator(`form[action="${endpoint}"]`);
+    await form.evaluate((element, reportName) => {
+      const fieldset = element.querySelector("fieldset");
+      const button = element.querySelector<HTMLButtonElement>('button[type="submit"]');
+      if (!(fieldset instanceof HTMLFieldSetElement) || !button) throw new Error("Profile pending controls are unavailable");
+      const observer = new MutationObserver(() => {
+        if (fieldset.getAttribute("aria-busy") !== "true" || !fieldset.disabled) return;
+        const state = {
+          busy: fieldset.getAttribute("aria-busy"),
+          disabledScope: fieldset.disabled,
+          buttonDisabled: button.matches(":disabled"),
+          spinnerCount: element.querySelectorAll('[data-slot="spinner"]').length,
+        };
+        (window as unknown as Record<string, (value: typeof state) => void>)[reportName](state);
+        observer.disconnect();
+      });
+      observer.observe(fieldset, { attributes: true, childList: true, subtree: true });
+    }, callbackName);
     await page.route(`**${endpoint}`, async (route) => {
       requestCount += 1;
+      request = route.request();
       markReached();
       await release;
       await route.continue();
     });
-    const form = page.locator(`form[action="${endpoint}"]`);
     const navigation = page.waitForURL(new RegExp(kind === "identity" ? "identity=changed" : "password=failed"));
-    if (trigger === "click") void form.getByRole("button").click();
-    else void form.locator('input:not([type="hidden"])').last().press("Enter");
-    await reached;
-    await expect(form.locator("fieldset")).toHaveAttribute("aria-busy", "true");
-    await expect(form.locator("fieldset")).toHaveAttribute("disabled", "");
-    await expect(form.getByRole("button")).toBeDisabled();
-    await expect(form.locator('[data-slot="spinner"]')).toHaveCount(1);
-    await screenshot(`interaction-${locale}-${kind}-pending`);
-    assertions.push({ state: `${locale}-${kind}-pending`, trigger, requestCount, immediateBusy: true, disabledScope: true });
+    if (trigger === "click") void form.getByRole("button").click({ noWaitAfter: true });
+    else void form.locator('input:not([type="hidden"])').last().press("Enter", { noWaitAfter: true });
+    const [, observed] = await Promise.all([reached, observedPendingState]);
+    const pendingState = observed as {
+      busy: string | null;
+      buttonDisabled: boolean;
+      disabledScope: boolean;
+      spinnerCount: number;
+    };
+    expect(pendingState).toEqual({ busy: "true", buttonDisabled: true, disabledScope: true, spinnerCount: 1 });
+    const capture = await cdp.send("Page.captureScreenshot", {
+      captureBeyondViewport: true,
+      format: "png",
+      fromSurface: true,
+    });
+    const relativePath = `artifacts/profile/${runId}/interaction-${locale}-${kind}-pending.png`;
+    await writeFile(join(process.cwd(), relativePath), Buffer.from(capture.data, "base64"));
+    screenshots.push(relativePath);
+    expect(request).toBeDefined();
+    const requestProof = proveNativePost(request!, endpoint, expectedFields);
+    assertions.push({
+      state: `${locale}-${kind}-pending`,
+      trigger,
+      requestCount,
+      immediateBusy: pendingState.busy === "true",
+      disabledScope: pendingState.disabledScope && pendingState.buttonDisabled,
+      request: requestProof,
+    });
     releaseRequest();
     await navigation;
     await page.unroute(`**${endpoint}`);
@@ -216,10 +297,16 @@ test("creates the closed merchant-profile evidence run", async ({ browser, page 
 
     const identity = page.locator('form[action="/profile/identity"]');
     const nextUsername = `profile.${locale === "en" ? "english" : "brasil"}`;
+    const expectedVersion = await identity.locator('input[name="expectedVersion"]').inputValue();
+    const nextEmail = `${locale === "en" ? "english" : "brasil"}@example.com`;
     await identity.getByLabel(/Nome de usuário|Username/).fill(nextUsername);
-    await identity.getByLabel(/E-mail|email/i).fill(`${locale === "en" ? "english" : "brasil"}@example.com`);
+    await identity.getByLabel(/E-mail|email/i).fill(nextEmail);
     const identityTrigger = locale === "en" ? "enter" : "click";
-    const identityChangedRequests = await submitAndCount(identity, identityTrigger, /identity=changed$/);
+    const identityChangedRequest = await submitAndCount(identity, identityTrigger, /identity=changed$/, {
+      email: nextEmail,
+      expectedVersion,
+      username: nextUsername,
+    });
     await waitForProfile();
     merchantUsername = nextUsername;
     await screenshot(`interaction-${locale}-identity-changed`);
@@ -248,9 +335,14 @@ test("creates the closed merchant-profile evidence run", async ({ browser, page 
     await screenshot(`interaction-${locale}-identity-failed`);
 
     const pendingIdentity = page.locator('form[action="/profile/identity"]');
+    const pendingVersion = await pendingIdentity.locator('input[name="expectedVersion"]').inputValue();
     await pendingIdentity.getByLabel(/Nome de usuário|Username/).fill(merchantUsername);
     await pendingIdentity.getByLabel(/E-mail|email/i).fill("");
-    await capturePending(locale, "identity", locale === "en" ? "click" : "enter");
+    await capturePending(locale, "identity", locale === "en" ? "click" : "enter", {
+      email: "",
+      expectedVersion: pendingVersion,
+      username: merchantUsername,
+    });
     await waitForProfile();
 
     const password = page.locator('form[action="/profile/password"]');
@@ -258,7 +350,11 @@ test("creates the closed merchant-profile evidence run", async ({ browser, page 
     await password.getByLabel(/^Nova senha$|^New password$/).fill("replacement password phrase");
     await password.getByLabel(/Confirmar|Confirm/).fill("replacement password phrase");
     const passwordTrigger = locale === "en" ? "enter" : "click";
-    const passwordFailedRequests = await submitAndCount(password, passwordTrigger, /password=failed$/);
+    const passwordFailedRequest = await submitAndCount(password, passwordTrigger, /password=failed$/, {
+      confirmation: "replacement password phrase",
+      currentPassword: "wrong password phrase",
+      newPassword: "replacement password phrase",
+    });
     await waitForProfile();
     await screenshot(`interaction-${locale}-password-failed`);
 
@@ -266,7 +362,11 @@ test("creates the closed merchant-profile evidence run", async ({ browser, page 
     await pendingPassword.getByLabel(/Senha atual|Current password/).fill("wrong password phrase");
     await pendingPassword.getByLabel(/^Nova senha$|^New password$/).fill("replacement password phrase");
     await pendingPassword.getByLabel(/Confirmar|Confirm/).fill("replacement password phrase");
-    await capturePending(locale, "password", locale === "en" ? "click" : "enter");
+    await capturePending(locale, "password", locale === "en" ? "click" : "enter", {
+      confirmation: "replacement password phrase",
+      currentPassword: "wrong password phrase",
+      newPassword: "replacement password phrase",
+    });
     await waitForProfile();
 
     const extraSessions = await Promise.all([
@@ -284,9 +384,17 @@ test("creates the closed merchant-profile evidence run", async ({ browser, page 
       rotation.getByRole("button").click(),
     ]);
     const rotationResponse = await responsePromise;
+    const rotationRequest = proveNativePost(rotationResponse.request(), "/profile/password", {
+      confirmation: replacement,
+      currentPassword: merchantPassword!,
+      newPassword: replacement,
+    });
     const expiryCookie = (await rotationResponse.allHeaders())["set-cookie"] ?? "";
     expect(expiryCookie).toMatch(/qr_session=;.*max-age=0/i);
-    await screenshot(`interaction-${locale}-password-changed-login`);
+    expect(expiryCookie).toContain(`qr_locale=${locale}`);
+    await expect(page.getByRole("status")).toContainText(completionCopy[locale]);
+    await expect(page.locator("html")).toHaveAttribute("lang", locale);
+    completionCaptures.set(locale, await screenshot(`interaction-${locale}-password-changed-login`));
     for (const context of extraSessions) {
       const extraPage = context.pages()[0];
       await extraPage.goto(`${baseUrl}/profile`);
@@ -305,18 +413,33 @@ test("creates the closed merchant-profile evidence run", async ({ browser, page 
     await signIn(page, merchantUsername, merchantPassword, "/");
     assertions.push({
       state: `${locale}-submission-contract`,
-      identityChangedRequests,
+      completionCopy: completionCopy[locale],
+      completionLocale: locale,
+      identityChangedRequest,
       identityTrigger,
-      passwordFailedRequests,
+      passwordFailedRequest,
       passwordTrigger,
+      passwordRotationRequest: rotationRequest,
       expiryCookie: /qr_session=;.*max-age=0/i.test(expiryCookie),
+      localeCookie: expiryCookie.includes(`qr_locale=${locale}`),
       seededSessionsRejected: 2,
       oldPasswordRejected: true,
       newPasswordAccepted: true,
     });
   }
 
+  await cdp.detach();
   expect(screenshots).toHaveLength(50);
+  const ptCompletion = completionCaptures.get("pt-BR");
+  const enCompletion = completionCaptures.get("en");
+  expect(ptCompletion).toBeDefined();
+  expect(enCompletion).toBeDefined();
+  const completionHashes = {
+    "pt-BR": sha256(await readFile(join(process.cwd(), ptCompletion!))),
+    en: sha256(await readFile(join(process.cwd(), enCompletion!))),
+  };
+  expect(completionHashes.en).not.toBe(completionHashes["pt-BR"]);
+  assertions.push({ state: "password-changed-locales", distinct: true, hashes: completionHashes });
   const assertionsPath = join(runDirectory, "assertions.json");
   await writeFile(assertionsPath, `${JSON.stringify(assertions, null, 2)}\n`);
   const captureRecords = await Promise.all(screenshots.map(async (capturePath) => {
@@ -327,11 +450,14 @@ test("creates the closed merchant-profile evidence run", async ({ browser, page 
     "src/auth/profile.ts",
     "src/auth/session.ts",
     "src/auth/administration.ts",
+    "src/app/layout.tsx",
+    "src/app/login/page.tsx",
     "src/app/(merchant)/profile/page.tsx",
     "src/app/profile/profile-management.tsx",
     "src/app/profile/profile-form.tsx",
     "src/app/profile/identity/route.ts",
     "src/app/profile/password/route.ts",
+    "src/i18n/locales.ts",
     "tests/profile.evidence.spec.ts",
     "scripts/run-profile-evidence.mjs",
     "scripts/verify-profile-evidence.mjs",

@@ -1,15 +1,18 @@
+import { cookies } from "next/headers";
+
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { BrandIdentity } from "@/brand/brand-identity";
 import { getDictionary } from "@/i18n/dictionaries";
-import { defaultLocale } from "@/i18n/locales";
+import { localeFromPreferenceCookie, localePreferenceCookieName } from "@/i18n/locales";
 
 import { LoginSubmit } from "./login-submit";
 
 export default async function LoginPage({ searchParams }: Readonly<{ searchParams: Promise<{ error?: string; password?: string }> }>) {
-  const dictionary = getDictionary(defaultLocale);
+  const locale = localeFromPreferenceCookie((await cookies()).get(localePreferenceCookieName)?.value);
+  const dictionary = getDictionary(locale);
   const notices = await searchParams;
   const error = notices.error === "invalid-credentials" && notices.password === undefined;
   const passwordChanged = notices.password === "changed" && notices.error === undefined;

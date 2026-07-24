@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
@@ -44,5 +47,13 @@ describe("profile management composition", () => {
     expect(html).not.toContain('aria-busy="true"');
     expect(html).not.toContain('disabled=""');
     expect(html).not.toContain('data-slot="spinner"');
+  });
+
+  it("observes native submission without replacing browser POST navigation", () => {
+    const source = readFileSync(join(import.meta.dirname, "profile-form.tsx"), "utf8");
+
+    expect(source).toContain('addEventListener("submit"');
+    expect(source).toContain('addEventListener("formdata"');
+    expect(source).not.toMatch(/preventDefault|requestSubmit|fetch\s*\(/);
   });
 });

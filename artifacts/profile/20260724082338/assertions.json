@@ -1117,22 +1117,75 @@
     "trigger": "enter",
     "requestCount": 1,
     "immediateBusy": true,
-    "disabledScope": true
+    "disabledScope": true,
+    "request": {
+      "contentType": "application/x-www-form-urlencoded",
+      "fields": {
+        "username": "profile.brasil",
+        "email": "",
+        "expectedVersion": "1"
+      },
+      "nativeDocument": true,
+      "resourceType": "document"
+    }
   },
   {
     "state": "pt-BR-password-pending",
     "trigger": "enter",
     "requestCount": 1,
     "immediateBusy": true,
-    "disabledScope": true
+    "disabledScope": true,
+    "request": {
+      "contentType": "application/x-www-form-urlencoded",
+      "fields": {
+        "currentPassword": "wrong password phrase",
+        "newPassword": "replacement password phrase",
+        "confirmation": "replacement password phrase"
+      },
+      "nativeDocument": true,
+      "resourceType": "document"
+    }
   },
   {
     "state": "pt-BR-submission-contract",
-    "identityChangedRequests": 1,
+    "completionCopy": "Sua senha foi alterada. Entre com a nova senha.",
+    "completionLocale": "pt-BR",
+    "identityChangedRequest": {
+      "requestCount": 1,
+      "contentType": "application/x-www-form-urlencoded",
+      "fields": {
+        "username": "profile.brasil",
+        "email": "brasil@example.com",
+        "expectedVersion": "0"
+      },
+      "nativeDocument": true,
+      "resourceType": "document"
+    },
     "identityTrigger": "click",
-    "passwordFailedRequests": 1,
+    "passwordFailedRequest": {
+      "requestCount": 1,
+      "contentType": "application/x-www-form-urlencoded",
+      "fields": {
+        "currentPassword": "wrong password phrase",
+        "newPassword": "replacement password phrase",
+        "confirmation": "replacement password phrase"
+      },
+      "nativeDocument": true,
+      "resourceType": "document"
+    },
     "passwordTrigger": "click",
+    "passwordRotationRequest": {
+      "contentType": "application/x-www-form-urlencoded",
+      "fields": {
+        "currentPassword": "Merchant-2f9d7f7c0f63-Password",
+        "newPassword": "Senha substituta brasileira",
+        "confirmation": "Senha substituta brasileira"
+      },
+      "nativeDocument": true,
+      "resourceType": "document"
+    },
     "expiryCookie": true,
+    "localeCookie": true,
     "seededSessionsRejected": 2,
     "oldPasswordRejected": true,
     "newPasswordAccepted": true
@@ -2255,24 +2308,85 @@
     "trigger": "click",
     "requestCount": 1,
     "immediateBusy": true,
-    "disabledScope": true
+    "disabledScope": true,
+    "request": {
+      "contentType": "application/x-www-form-urlencoded",
+      "fields": {
+        "username": "profile.english",
+        "email": "",
+        "expectedVersion": "3"
+      },
+      "nativeDocument": true,
+      "resourceType": "document"
+    }
   },
   {
     "state": "en-password-pending",
     "trigger": "click",
     "requestCount": 1,
     "immediateBusy": true,
-    "disabledScope": true
+    "disabledScope": true,
+    "request": {
+      "contentType": "application/x-www-form-urlencoded",
+      "fields": {
+        "currentPassword": "wrong password phrase",
+        "newPassword": "replacement password phrase",
+        "confirmation": "replacement password phrase"
+      },
+      "nativeDocument": true,
+      "resourceType": "document"
+    }
   },
   {
     "state": "en-submission-contract",
-    "identityChangedRequests": 1,
+    "completionCopy": "Your password was changed. Sign in with the new password.",
+    "completionLocale": "en",
+    "identityChangedRequest": {
+      "requestCount": 1,
+      "contentType": "application/x-www-form-urlencoded",
+      "fields": {
+        "username": "profile.english",
+        "email": "english@example.com",
+        "expectedVersion": "2"
+      },
+      "nativeDocument": true,
+      "resourceType": "document"
+    },
     "identityTrigger": "enter",
-    "passwordFailedRequests": 1,
+    "passwordFailedRequest": {
+      "requestCount": 1,
+      "contentType": "application/x-www-form-urlencoded",
+      "fields": {
+        "currentPassword": "wrong password phrase",
+        "newPassword": "replacement password phrase",
+        "confirmation": "replacement password phrase"
+      },
+      "nativeDocument": true,
+      "resourceType": "document"
+    },
     "passwordTrigger": "enter",
+    "passwordRotationRequest": {
+      "contentType": "application/x-www-form-urlencoded",
+      "fields": {
+        "currentPassword": "Senha substituta brasileira",
+        "newPassword": "English replacement password",
+        "confirmation": "English replacement password"
+      },
+      "nativeDocument": true,
+      "resourceType": "document"
+    },
     "expiryCookie": true,
+    "localeCookie": true,
     "seededSessionsRejected": 2,
     "oldPasswordRejected": true,
     "newPasswordAccepted": true
+  },
+  {
+    "state": "password-changed-locales",
+    "distinct": true,
+    "hashes": {
+      "pt-BR": "e1038062395a21c3758a2d4c1c8aa78738401599275a8bb65800502820483f43",
+      "en": "34153ade7965ee02eb02fc9b9a871d8fe9aa88774e73aa2a7fa273fc971760d5"
+    }
   }
 ]

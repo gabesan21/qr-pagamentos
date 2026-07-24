@@ -75,7 +75,7 @@ checkout, storefront, or payment-provider surfaces.
 - At 768 CSS pixels and below, one 44px disclosure replaces desktop navigation in the accessibility tree with the same links and logout. Active state has `aria-current`, a non-color cue, and a skip target.
 - Evidence binds 48 base and two mobile-open captures, nested routes, accessibility, and a review with no unresolved severity 2+.
 - The merchant profile uses separate identity and password cards from the owned inventory; its secondary account link leaves both fixed five-entry navigation maps unchanged.
-- Its 53-file evidence binds 36 six-theme/bilingual/responsive defaults and 14 localized interactions, including click/Enter pending state, session revocation, 320px reflow, focus, targets, axe, and runtime isolation.
+- Its 53-file evidence binds 36 six-theme/bilingual/responsive defaults and 14 localized interactions, including single native document POSTs, click/Enter pending state, distinct persisted-locale completion, session revocation, reflow, focus, targets, axe, and runtime isolation.
 
 ## Out of scope
 

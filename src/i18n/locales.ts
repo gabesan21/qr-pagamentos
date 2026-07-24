@@ -7,6 +7,11 @@ export function isSupportedLocale(value: string): value is SupportedLocale {
 }
 
 export const defaultLocale: SupportedLocale = "pt-BR";
+export const localePreferenceCookieName = "qr_locale";
+
+export function localeFromPreferenceCookie(value: string | null | undefined): SupportedLocale {
+  return value && isSupportedLocale(value) ? value : defaultLocale;
+}
 
 export function negotiateLocale(header: string | null | undefined): SupportedLocale {
   if (!header || header.length > 4096) return defaultLocale;

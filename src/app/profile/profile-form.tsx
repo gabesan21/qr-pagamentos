@@ -25,34 +25,17 @@ export function ProfileFormBody({
     const fieldset = fieldsetRef.current;
     const form = fieldset?.closest("form");
     if (!fieldset || !form) return;
-    const observeSubmit = (event: SubmitEvent) => {
-      if (pendingRef.current) {
-        event.preventDefault();
-        return;
-      }
-      event.preventDefault();
-      const payload = new FormData(form);
+    const observeSubmit = () => {
+      if (pendingRef.current) return;
       pendingRef.current = true;
       flushSync(() => { setPending(true); });
-      fieldset.disabled = true;
-      void fetch(form.action, {
-        body: payload,
-        method: "POST",
-      }).then((response) => {
-        if (response.redirected) {
-          window.location.assign(response.url);
-          return;
-        }
-        window.location.reload();
-      }).catch(() => {
-        pendingRef.current = false;
-        fieldset.disabled = false;
-        setPending(false);
-      });
     };
+    const observePayload = () => { fieldset.disabled = true; };
     form.addEventListener("submit", observeSubmit);
+    form.addEventListener("formdata", observePayload);
     return () => {
       form.removeEventListener("submit", observeSubmit);
+      form.removeEventListener("formdata", observePayload);
     };
   }, []);
 
