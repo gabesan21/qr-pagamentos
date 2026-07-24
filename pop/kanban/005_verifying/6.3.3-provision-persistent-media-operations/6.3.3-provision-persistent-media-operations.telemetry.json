@@ -264,6 +264,15 @@
       "contexts": [],
       "test_seconds": 0,
       "result": "returned"
+    },
+    {
+      "at": "2026-07-24T09:12:36-03:00",
+      "event": "transition",
+      "from": "004_processing",
+      "to": "005_verifying",
+      "contexts": [],
+      "test_seconds": 0,
+      "result": "advanced"
     }
   ]
 }

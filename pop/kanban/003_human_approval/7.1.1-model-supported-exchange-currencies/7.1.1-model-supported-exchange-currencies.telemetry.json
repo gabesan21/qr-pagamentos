@@ -21,6 +21,15 @@
       "tests": "card, dependency memory, linked specs, root/Prisma/Nautt DOX, current catalog/product/payment-link/provider contracts, migration policy, and active 6.3.2 lane inspected; no runtime tests in planning",
       "test_seconds": 0,
       "result": "blocked"
+    },
+    {
+      "at": "2026-07-24T09:12:36-03:00",
+      "event": "transition",
+      "from": "002_planning",
+      "to": "003_human_approval",
+      "contexts": [],
+      "test_seconds": 0,
+      "result": "advanced"
     }
   ]
 }
