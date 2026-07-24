@@ -29,7 +29,7 @@ if (process.argv.includes("--clean-clone") && !process.env.CONTAINER_TEST_CLEAN_
   const archive = path.join(temporary, "source.tar");
   const clone = path.join(temporary, "source");
   try {
-    if (["update", "media-backup", "media-restore"].includes(scenario)) {
+    if (["install-lifecycle", "update", "media-backup", "media-restore"].includes(scenario)) {
       run("git", ["clone", "--quiet", "--no-local", "--branch", run("git", ["branch", "--show-current"]).trim(), process.cwd(), clone]);
     } else {
       await mkdir(clone);
