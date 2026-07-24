@@ -841,7 +841,7 @@ NAUTT_WEBHOOK_CALLBACK_URL=https://payments.example.com/api/nautt/webhooks
       };
 
       await publishFileChange("force-bootstrap-failure", "prisma/bootstrap.sql", `${originalBootstrap}\nINVALID UPDATE BOOTSTRAP;\n`);
-      await failedUpdate("bootstrap", "bootstrap", "ERROR bootstrap code=BOOTSTRAP");
+      await failedUpdate("bootstrap", "bootstrap", "ERROR bootstrap code=42601");
       await publishFileChange("repair-bootstrap", "prisma/bootstrap.sql", originalBootstrap);
       captured += invoke("install/update.sh", updateArgs);
       await assertUpdateStartup(captured);
