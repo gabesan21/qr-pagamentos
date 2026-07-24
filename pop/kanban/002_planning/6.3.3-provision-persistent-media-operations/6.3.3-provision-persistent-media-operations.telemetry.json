@@ -47,6 +47,20 @@
       ],
       "test_seconds": 0,
       "result": "returned"
+    },
+    {
+      "at": "2026-07-24T01:25:49-03:00",
+      "event": "stage",
+      "stage": "002_planning",
+      "contexts": [
+        "plan_6_3_3"
+      ],
+      "strategy": "round-1 repair: closed ephemeral helper mount privileges, split pre/post-additive-migration invariants and retained evidence, required PostgreSQL/Nautt credential continuity for retained data, and named the install-lifecycle fixture",
+      "tests": "plan/card/approval consistency, exact AC3 command observability, diff check, and standalone PoP validation",
+      "return": 1,
+      "return_limit": 2,
+      "test_seconds": 3,
+      "result": "replanned"
     }
   ]
 }
