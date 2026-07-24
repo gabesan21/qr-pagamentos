@@ -40,7 +40,6 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[7.3.1-build-merchant-profile-management]] | Add owner username, optional email, and password management with conflicts, current-password proof, and session rules. · size: L | 001_initial_task |
 
 ## Dependency and parallel-wave map
 
