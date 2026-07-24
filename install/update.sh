@@ -311,7 +311,7 @@ seal_pre_promotion_failure() {
 rollback_target_failure() {
   local gate=$1 restored_app
   printf 'result=%s-failed-image-rollback-started\n' "$gate" >> "$evidence"
-  APP_IMAGE=$old_image
+  APP_IMAGE=$old_image_reference
   if ! compose up -d --no-deps --force-recreate app || ! restored_app=$(wait_for_app); then
     printf 'result=%s-and-previous-health-failed-operator-recovery-required\n' "$gate" >> "$evidence"
     chmod 0400 "$evidence"
@@ -354,6 +354,7 @@ APP_IMAGE="${PROJECT}-app:$QR_UPDATE_TARGET_SHA"
 installation=$(inspect_installation)
 old_app=${installation#*$'\n'}
 old_image=$(docker inspect --format '{{.Image}}' "$old_app")
+old_image_reference=$(docker inspect --format '{{.Config.Image}}' "$old_app")
 volume_before=$(deployment_volume_identity)
 evidence=$(prepare_evidence "$old_app" "$old_image" "$volume_before")
 printf 'PASS update-evidence file=%s\n' "$evidence"
