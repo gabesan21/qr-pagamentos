@@ -667,7 +667,7 @@ NAUTT_WEBHOOK_CALLBACK_URL=https://payments.example.com/api/nautt/webhooks
       const currentImage = inspectField(currentApp, "{{.Image}}");
       const currentHealth = inspectField(currentApp, "{{.State.Health.Status}}");
       const dbId = containerId("db");
-      const dataBeforeFailure = run("docker", ["exec", dbId, "psql", "-U", "postgres", "-d", "qr_pagamentos", "-Atc", 'SELECT id || \'|\' || username || \'|\' || COALESCE(email, \'<null>\') FROM app."user" ORDER BY id']).trim();
+      const dataBeforeFailure = run("docker", ["exec", dbId, "psql", "-p", "5433", "-U", "postgres", "-d", "qr_pagamentos", "-Atc", 'SELECT id || \'|\' || username || \'|\' || COALESCE(email, \'<null>\') FROM app."user" ORDER BY id']).trim();
       const migrationsBeforeFailure = new Set(run("docker", ["ps", "-a", "--filter", `name=${project}-update-migrate-`, "--format", "{{.ID}}"]).trim().split("\n").filter(Boolean));
       await publishSafeMigration("20260722000200_update_prisma_failure", "update_pending_migration");
       const failed = execute("install/update.sh", updateArgs, { env: updateProcessEnv });
@@ -679,7 +679,7 @@ NAUTT_WEBHOOK_CALLBACK_URL=https://payments.example.com/api/nautt/webhooks
       assert(containerId("app") === currentApp && inspectField(currentApp, "{{.Image}}") === currentImage, "migration failure replaced the old app");
       assert(inspectField(currentApp, "{{.State.Health.Status}}") === currentHealth && currentHealth === "healthy", "migration failure damaged app health");
       assert(run("docker", ["volume", "inspect", "--format", "{{.Name}}|{{.Mountpoint}}|{{.CreatedAt}}", `${project}_postgres-data`]).trim() === volumeIdentity, "migration failure changed PostgreSQL volume identity");
-      assert(run("docker", ["exec", dbId, "psql", "-U", "postgres", "-d", "qr_pagamentos", "-Atc", 'SELECT id || \'|\' || username || \'|\' || COALESCE(email, \'<null>\') FROM app."user" ORDER BY id']).trim() === dataBeforeFailure, "migration failure changed sentinel data");
+      assert(run("docker", ["exec", dbId, "psql", "-p", "5433", "-U", "postgres", "-d", "qr_pagamentos", "-Atc", 'SELECT id || \'|\' || username || \'|\' || COALESCE(email, \'<null>\') FROM app."user" ORDER BY id']).trim() === dataBeforeFailure, "migration failure changed sentinel data");
       assert(await digest(sourceKeyPath) === sourceDigest && await digest(stagedKeyPath) === stagedDigest, "migration failure changed key continuity");
       assert((await readdir(evidenceDirectory)).length === 3, "update evidence was not retained for success and failure runs");
       console.log("PASS update-install-baseline");
