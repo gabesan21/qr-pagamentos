@@ -13,7 +13,9 @@
 - Cursors use the required server key only for domain-separated HKDF/HMAC.
   Never serialize an identity or treat a cursor as authorization; every read
   reapplies role and scope.
-- Orders are immutable lexicographic tuples ending in a unique stable ID.
+- Orders are immutable lexicographic tuples whose last registered field is
+  explicitly marked `UNIQUE_IMMUTABLE_ID`; unmarked or misplaced markers fail
+  before adapter I/O.
   Adapters request only `pageSize + 1`; never add offset, total count,
   arbitrary sorting, client-side full-list filtering, or snapshot promises.
 - `ui/` receives only localized copy, redacted rows, column/fact definitions,

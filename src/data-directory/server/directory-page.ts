@@ -20,6 +20,7 @@ export type DirectoryOrderField<Row> = Readonly<{
   id: string;
   direction: "asc" | "desc";
   value: (row: Row) => string | number | boolean | null;
+  keyRole?: "UNIQUE_IMMUTABLE_ID";
 }>;
 
 export type DirectoryReadInput<Row> = Readonly<{
@@ -56,11 +57,14 @@ export type DirectoryPage<Row> = Readonly<{
 }>;
 
 function validOrder<Row>(order: readonly DirectoryOrderField<Row>[]) {
+  const terminal = order.at(-1);
   return (
     order.length > 0
     && order.length <= 8
     && new Set(order.map(({ id }) => id)).size === order.length
     && order.every(({ id }) => /^[a-z][a-zA-Z0-9]*$/u.test(id))
+    && terminal?.keyRole === "UNIQUE_IMMUTABLE_ID"
+    && order.slice(0, -1).every(({ keyRole }) => keyRole === undefined)
   );
 }
 

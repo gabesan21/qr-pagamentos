@@ -10,6 +10,7 @@ import {
   queryMerchantDirectory,
   type DirectoryAdapter,
   type DirectoryOrderField,
+  type DirectoryPage,
 } from "./directory-page";
 import { createDirectoryCursorCodec, hashDirectoryFilters } from "./cursor";
 
@@ -22,7 +23,7 @@ const rows: Row[] = [
 ];
 const order: readonly DirectoryOrderField<Row>[] = [
   { id: "rank", direction: "asc", value: (row) => row.rank },
-  { id: "id", direction: "asc", value: (row) => row.id },
+  { id: "id", direction: "asc", value: (row) => row.id, keyRole: "UNIQUE_IMMUTABLE_ID" },
 ];
 const merchant: Principal = {
   id: "merchant-a",
@@ -40,11 +41,22 @@ function memoryAdapter(source: readonly Row[]) {
     const ownerId = input.scope.purpose === "MERCHANT_OWN" ? input.scope.ownerId : null;
     const scoped = ownerId === null ? [...source] : source.filter((row) => row.ownerId === ownerId);
     const sorted = [...scoped].sort((left, right) => compareDirectoryRows(left, right, input.order));
-    const traversed = input.direction === "backward" ? sorted.reverse() : sorted;
-    const seekIndex = input.seek
-      ? traversed.findIndex((row) => input.order.every((field, index) => field.value(row) === input.seek?.[index]))
-      : -1;
-    return traversed.slice(seekIndex + 1, seekIndex + 1 + input.limit);
+    const afterSeek = input.seek
+      ? sorted.filter((row) => {
+          for (let index = 0; index < input.order.length; index += 1) {
+            const field = input.order[index];
+            const left = field.value(row);
+            const right = input.seek?.[index] ?? null;
+            if (left === right) continue;
+            const comparison = left === null ? -1 : right === null ? 1 : left < right ? -1 : 1;
+            const canonical = field.direction === "asc" ? comparison : -comparison;
+            return input.direction === "forward" ? canonical > 0 : canonical < 0;
+          }
+          return false;
+        })
+      : sorted;
+    const traversed = input.direction === "backward" ? afterSeek.reverse() : afterSeek;
+    return traversed.slice(0, input.limit);
   });
   return { readWindow };
 }
@@ -57,6 +69,22 @@ const base = {
   canonicalFilterQuery: "",
   pageSize: 25 as const,
 };
+
+function decodeCursor(token: string, scopePurpose: "ADMIN_GLOBAL" | "MERCHANT_OWN", principalId: string) {
+  const decoded = codec.decode(token, {
+    directory: "specimen",
+    scopePurpose,
+    principalId,
+    size: 25,
+    canonicalFilterQuery: "",
+    orderId: "rank-id",
+  }, (tuple) => tuple.length === order.length);
+  if (decoded.status !== "valid") throw new Error(`Expected a valid cursor, received ${decoded.status}`);
+  return decoded.cursor;
+}
+
+const decodeAdminCursor = (token: string) => decodeCursor(token, "ADMIN_GLOBAL", "admin");
+const decodeMerchantCursor = (token: string) => decodeCursor(token, "MERCHANT_OWN", "merchant-a");
 
 describe("role-scoped stable directory windows", () => {
   it("rechecks roles before I/O and never falls back across scopes", async () => {
@@ -79,6 +107,25 @@ describe("role-scoped stable directory windows", () => {
       tuple: [1, "a"],
     };
     await expect(queryMerchantDirectory({ ...base, principal: merchant, adapter, cursor }, codec)).rejects.toThrow("Invalid directory cursor");
+    expect(adapter.readWindow).not.toHaveBeenCalled();
+  });
+
+  it("rejects an order without a terminal unique immutable ID before I/O", async () => {
+    const adapter = memoryAdapter(rows);
+    for (const unstableOrder of [
+      [{ id: "rank", direction: "asc", value: (row: Row) => row.rank }],
+      [
+        { id: "rank", direction: "asc", value: (row: Row) => row.rank, keyRole: "UNIQUE_IMMUTABLE_ID" as const },
+        { id: "id", direction: "asc", value: (row: Row) => row.id },
+      ],
+    ] satisfies Array<readonly DirectoryOrderField<Row>[]>) {
+      await expect(queryAdministratorDirectory({
+        ...base,
+        principal: admin,
+        adapter,
+        order: unstableOrder,
+      }, codec)).rejects.toThrow("Invalid directory order contract");
+    }
     expect(adapter.readWindow).not.toHaveBeenCalled();
   });
 
@@ -117,14 +164,78 @@ describe("role-scoped stable directory windows", () => {
     expect(withBoundary.rows.map(({ id }) => id)).toEqual(["b", "c", "d"]);
   });
 
-  it("documents natural visibility of concurrent inserts and deletes without duplicate survivors", async () => {
-    const adapter = memoryAdapter(rows.filter(({ id }) => id !== "b").concat({
-      id: "bb",
+  it("traverses emitted next and previous cursors across duplicate leading values", async () => {
+    const manyRows = Array.from({ length: 63 }, (_, index): Row => ({
+      id: `row-${String(index).padStart(3, "0")}`,
       ownerId: "merchant-a",
-      rank: 1,
+      rank: Math.floor(index / 4),
     }));
-    const page = await queryMerchantDirectory({ ...base, principal: merchant, adapter });
-    expect(page.rows.map(({ id }) => id)).toEqual(["a", "bb", "c"]);
-    expect(new Set(page.rows.map(({ id }) => id)).size).toBe(page.rows.length);
+    const adapter = memoryAdapter(manyRows);
+    const pages: DirectoryPage<Row>[] = [];
+    let cursor: ReturnType<typeof decodeAdminCursor> | undefined;
+    do {
+      const page = await queryAdministratorDirectory({ ...base, principal: admin, adapter, ...(cursor ? { cursor } : {}) }, codec);
+      pages.push(page);
+      cursor = page.nextCursor ? decodeAdminCursor(page.nextCursor) : undefined;
+    } while (cursor);
+
+    expect(pages.map(({ rows: pageRows }) => pageRows.length)).toEqual([25, 25, 13]);
+    const forwardIds = pages.flatMap(({ rows: pageRows }) => pageRows.map(({ id }) => id));
+    expect(forwardIds).toEqual(manyRows.map(({ id }) => id));
+    expect(new Set(forwardIds).size).toBe(manyRows.length);
+
+    const lastPage = pages.at(-1);
+    if (!lastPage?.previousCursor) throw new Error("Expected a previous cursor on the last page");
+    const middle = await queryAdministratorDirectory({
+      ...base,
+      principal: admin,
+      adapter,
+      cursor: decodeAdminCursor(lastPage.previousCursor),
+    }, codec);
+    expect(middle.rows.map(({ id }) => id)).toEqual(manyRows.slice(25, 50).map(({ id }) => id));
+    if (!middle.previousCursor) throw new Error("Expected a previous cursor on the middle page");
+    const first = await queryAdministratorDirectory({
+      ...base,
+      principal: admin,
+      adapter,
+      cursor: decodeAdminCursor(middle.previousCursor),
+    }, codec);
+    expect(first.rows.map(({ id }) => id)).toEqual(manyRows.slice(0, 25).map(({ id }) => id));
+    expect(first.previousCursor).toBeUndefined();
+  });
+
+  it("keeps surviving rows stable while concurrent inserts and deletes remain naturally visible", async () => {
+    const mutableRows = Array.from({ length: 54 }, (_, index): Row => ({
+      id: `row-${String(index).padStart(3, "0")}`,
+      ownerId: "merchant-a",
+      rank: Math.floor(index / 3),
+    }));
+    const originalIds = mutableRows.map(({ id }) => id);
+    const adapter = memoryAdapter(mutableRows);
+    const first = await queryMerchantDirectory({ ...base, principal: merchant, adapter }, codec);
+    if (!first.nextCursor) throw new Error("Expected a next cursor on the first page");
+
+    const deletedFutureId = "row-031";
+    mutableRows.splice(mutableRows.findIndex(({ id }) => id === deletedFutureId), 1);
+    mutableRows.push(
+      { id: "inserted-before", ownerId: "merchant-a", rank: 0 },
+      { id: "inserted-after", ownerId: "merchant-a", rank: 20 },
+    );
+
+    const collected = [...first.rows];
+    let cursor = decodeMerchantCursor(first.nextCursor);
+    while (cursor) {
+      const page = await queryMerchantDirectory({ ...base, principal: merchant, adapter, cursor }, codec);
+      collected.push(...page.rows);
+      if (!page.nextCursor) break;
+      cursor = decodeMerchantCursor(page.nextCursor);
+    }
+
+    const collectedIds = collected.map(({ id }) => id);
+    const survivingOriginals = originalIds.filter((id) => id !== deletedFutureId);
+    expect(collectedIds.filter((id) => survivingOriginals.includes(id))).toEqual(survivingOriginals);
+    expect(collectedIds).toContain("inserted-after");
+    expect(collectedIds).not.toContain("inserted-before");
+    expect(new Set(collectedIds).size).toBe(collectedIds.length);
   });
 });
