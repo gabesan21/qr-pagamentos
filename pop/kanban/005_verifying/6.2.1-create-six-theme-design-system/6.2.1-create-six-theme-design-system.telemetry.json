@@ -111,6 +111,19 @@
       ],
       "test_seconds": 0,
       "result": "advanced"
+    },
+    {
+      "at": "2026-07-24T00:27:23-03:00",
+      "event": "stage",
+      "stage": "005_verifying",
+      "contexts": [
+        "verify3_6_2_1"
+      ],
+      "returns": 2,
+      "strategy": "mandatory full independent final-round review of the original request, DTCG 2025.10 resolver semantics, ordered context merging, aliases and cycles, production graph mutations, canonical generation, unchanged visual evidence, ownership, and baseline-classified gates",
+      "tests": "13 focused token tests, token projection check, evidence manifest verification, lint, scope, diff, and PoP validation pass; independent theme, motion, and conflict-sensitive resolution-order mutations affect resolved/generated output; 24 unchanged-output captures pass visual review; aggregate retains exact baseline/environment failures",
+      "test_seconds": 31,
+      "result": "approved"
     }
   ]
 }
