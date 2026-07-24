@@ -465,7 +465,7 @@ NAUTT_WEBHOOK_CALLBACK_URL=https://container-test.invalid/api/nautt/webhooks
         `require("node:fs").writeFileSync("/app/media/objects/${storageKey}.webp",Buffer.from("${mediaBytes.toString("base64")}","base64"),{mode:0o600,flag:"wx"})`,
       ]);
       const dbId = compose(["ps", "-q", "db"]).trim();
-      run("docker", ["exec", dbId, "psql", "-U", "postgres", "-d", "qr_pagamentos", "-v", "ON_ERROR_STOP=1", "-c",
+      run("docker", ["exec", dbId, "psql", "-p", "5433", "-U", "postgres", "-d", "qr_pagamentos", "-v", "ON_ERROR_STOP=1", "-c",
         `INSERT INTO app.media_object (id,identifier,storage_key,owner_id,purpose,state,lifecycle_revision,mime_type,byte_size,width,height,sha256,purge_after,created_at,updated_at) SELECT gen_random_uuid(),'${identifier}','${storageKey}',initial_admin_user_id,'PRODUCT_IMAGE','ACTIVE',0,'image/webp',${mediaBytes.length},1,1,'${mediaDigest}',NULL,now(),now() FROM app.deployment_bootstrap WHERE id=1`]);
       const backup = execute("install/backup.sh", ["--env-file", installerEnv, "--destination", destination], { env: processEnv });
       const backupOutput = `${backup.stdout ?? ""}${backup.stderr ?? ""}`;
