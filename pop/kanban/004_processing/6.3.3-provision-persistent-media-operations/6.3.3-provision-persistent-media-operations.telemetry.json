@@ -194,6 +194,31 @@
       ],
       "test_seconds": 0,
       "result": "advanced"
+    },
+    {
+      "at": "2026-07-24T04:43:14-03:00",
+      "event": "stage",
+      "stage": "005_verifying",
+      "contexts": [
+        "verify2_6_3_3"
+      ],
+      "strategy": "fresh strong independent round-2 full critical review of the original durable-media request, all five prior blockers, exact-release install/restore identity, operator-UID portability, fail-closed restore and update envelopes, paired recovery, cleanup isolation, code quality, specs, DOX, and AC1-AC7 evidence",
+      "tests": "five fresh clean-clone Docker scenarios with media-restore decisive failure; installer and container contracts; media decoder plus 28 focused tests; typecheck; lint; independent build; full Vitest baseline classification; archive and failure-path source audit; scope, diff, and standalone PoP validation",
+      "return": 2,
+      "return_limit": 2,
+      "test_seconds": 1680,
+      "result": "returned_to_004"
+    },
+    {
+      "at": "2026-07-24T04:44:22-03:00",
+      "event": "transition",
+      "from": "005_verifying",
+      "to": "004_processing",
+      "contexts": [
+        "verify2_6_3_3"
+      ],
+      "test_seconds": 0,
+      "result": "returned"
     }
   ]
 }
