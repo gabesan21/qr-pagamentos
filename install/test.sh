@@ -319,6 +319,7 @@ set -Eeuo pipefail
 printf '%s\n' "$*" >> "$FAKE_DOCKER_LOG"
 revision=${QR_UPDATE_TARGET_SHA:-unknown}
 if [[ $1 == info ]]; then exit 0; fi
+if [[ $1 == image && $2 == tag ]]; then exit 0; fi
 if [[ $1 == image && $2 == inspect && $3 != --format ]]; then exit 0; fi
 if [[ $1 == image && $2 == inspect ]]; then printf '%s\n' "$revision"; exit 0; fi
 if [[ $1 == run ]]; then
