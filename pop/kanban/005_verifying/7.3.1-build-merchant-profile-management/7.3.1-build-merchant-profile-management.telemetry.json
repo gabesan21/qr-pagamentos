@@ -156,6 +156,20 @@
       ],
       "test_seconds": 0,
       "result": "advanced"
+    },
+    {
+      "at": "2026-07-24T05:36:28-03:00",
+      "event": "stage",
+      "stage": "005_verifying",
+      "contexts": [
+        "verify2_7_3_1"
+      ],
+      "strategy": "full critical round-2 review of the original merchant-profile request, prior native-form and persisted-locale blockers, one-KDF credential proof, CAS and complete session revocation, sign-in/reset/rotation serialization, protected route outcomes, bilingual owned UI, and run-bound Chromium evidence",
+      "tests": "security/concurrency 49 passed; UI/locale 29 passed; compatibility 33 passed plus known server-only baseline; evidence run 20260724082338 verified and representative 375/768/1440 plus both completion captures inspected; migration/static/scope/diff/lint/type/build/PoP passed; disposable DB passed merchant-profile schema before known product fixture failure; full suite reproduced only known baselines",
+      "return": 1,
+      "return_limit": 2,
+      "test_seconds": 210,
+      "result": "approved"
     }
   ]
 }
