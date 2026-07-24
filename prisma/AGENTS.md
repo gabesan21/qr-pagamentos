@@ -39,6 +39,7 @@
 - `deployment_bootstrap` is an immutable no-FK locator for the originally seeded UUID; never retarget it, add a user FK, or make it block ordinary user mutation/deletion.
 - `user.profile_version` is the merchant identity CAS only; keep it
   nonnegative and never reuse `updated_at` for profile conflict detection.
+- The store-settings extension on `app.user` (`storefront_theme_id`, `storefront_layout`, `storefront_logo_media_identifier`, `storefront_standalone_payments_enabled`, `storefront_default_currency_code`) is additive-only: the theme/layout closed-set checks mirror the design-system six themes and `boxed`/`table`, the currency code reuses the `AAA`–`ZZZ` bounds check as defense-in-depth behind service-boundary format validation, and the logo identifier is an opaque 43-character handle with **no** foreign key to `media_object` (media rows are physically purged after grace) — never add that FK, tighten the bounds check into a regex, or backfill existing rows.
 
 ## Verification
 
