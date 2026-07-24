@@ -90,6 +90,30 @@
       ],
       "test_seconds": 0,
       "result": "advanced"
+    },
+    {
+      "at": "2026-07-23T22:59:55-03:00",
+      "event": "stage",
+      "stage": "005_verifying",
+      "contexts": [
+        "critic_005_round2_6_1_1"
+      ],
+      "returns": 2,
+      "strategy": "full critical round-2 review of original request, both prior blockers, contracts, route/auth inventory, complete diff, DOX, scope, and baseline-classified gates",
+      "tests": "pop_validate pass; diff/scope/acceptance probes pass; lint pass; check/typecheck and test retain documented unchanged baseline failures; prior build evidence audited for documentation-only repair",
+      "test_seconds": 15,
+      "result": "returned"
+    },
+    {
+      "at": "2026-07-23T23:00:55-03:00",
+      "event": "transition",
+      "from": "005_verifying",
+      "to": "004_processing",
+      "contexts": [
+        "verify2_6_1_1"
+      ],
+      "test_seconds": 15.0,
+      "result": "returned"
     }
   ]
 }
