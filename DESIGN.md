@@ -19,7 +19,15 @@ reference and semantic color graph. `src/design-system/tokens/resolver.json`
 fixes resolution order, while `scripts/generate-design-tokens.mjs` projects the
 graph deterministically into the generated block in `src/app/globals.css`.
 Components consume semantic custom properties exclusively; `pnpm tokens:check`
-and token lint reject projection drift and raw authored visual values.
+and token lint reject projection drift and raw authored visual values. Each
+theme block is projected twice from the same resolution: the page-level
+`:root[data-theme="…"]` selector and the scoped `[data-theme-preview="…"]`
+selector, which recolors one container (the storefront settings preview)
+without changing the page theme. Custom-property aliases resolve where they
+are declared, so each scoped block also re-declares the color alias layers
+(semantic and Tailwind `@theme` color maps) to recolor owned primitives inside
+the preview; a contract test pins that alias layer to the `globals.css`
+originals.
 
 | Identifier | Mode | Personality |
 | --- | --- | --- |
@@ -144,6 +152,28 @@ reuse the same cards, fields, selects, checkboxes, alerts, buttons, separators,
 badges, and spinners: they show
 empty prerequisites, success/recovery notices, native pending/disabled actions,
 and visible keyboard focus without creating a home-specific visual variant.
+The merchant Settings workspace owns the bilingual storefront settings
+composition: four sectioned cards (Identity, Appearance, Payments, Default
+currency) posting one native workspace save to `/storefront`. The Appearance
+section holds the six-theme `NativeSelect` (labels sourced from the
+design-system theme-id export, never duplicated literals), the `boxed`/`table`
+layout select, the accent `Input`, the logo block, and a live preview. The
+preview is a miniature storefront mock scoped by `data-theme-preview` with a
+header rail (staged/stored logo through `/media/[identifier]`, or the official
+merchant-fallback lockup — never a page-local mark), one fixture product in the
+boxed `Card` or `Table` arrangement, and one inert owned-`Button` sample action
+that adds no tab stop. The upload posts multipart to `POST /storefront/logo`
+and returns to a staged status line; remove is client-only and the explicit
+empty hidden field clears on save. A focused client boundary only observes the
+native `input`/`change`/`submit`/`formdata` events: it mirrors control values
+into the preview, omits unchanged extended fields from the payload (the server
+treats absent as unchanged), announces busy, and disables both forms after the
+payload is formed. The default-currency select lists only the registry's
+active redacted choices plus a clear option, and renders disabled with a
+bilingual explanation when no mapping is active — a normal empty state, never
+an error. Its states are populated/prefilled, loading skeletons, empty (no
+logo, no currency mapping), opaque error alerts, staged success status, and
+hover/focus/disabled from the owned primitives.
 The storefront card composes labelled `Input` text controls and one horizontal
 `Checkbox` enablement toggle; its save posts to `/storefront` and reports only
 the shared opaque success/conflict alert.
@@ -172,8 +202,9 @@ opaque unavailable/error, and visible hover/focus on the checkout action;
 there is no disabled storefront action. The page may declare only the validated
 `--storefront-accent` custom property at its root. Scoped CSS uses
 `--action-primary` as the fallback, and `scripts/check-design-tokens.mjs`
-accepts that exact declaration only in this route; no other inline style or raw
-visual value is allowed.
+accepts that exact declaration only in this route and the matching declaration
+only in the settings `storefront-preview.tsx` preview container; no other
+inline style or raw visual value is allowed.
 
 The authenticated `/orders` owner ledger and the read-only `/admin/orders`
 administrator ledger reuse the same receipt rail, `admin-navigation`, ruled
@@ -256,6 +287,18 @@ with complete URL-encoded fields and CAS, immediate busy/disabled state, 320px
 reflow, focus, targets, axe, cookie expiry, persisted-locale signed-out copy,
 all-session rejection, old-password denial, and new-password admission. The
 review is bound to the current manifest and accepts no
+unresolved severity 2 or greater finding.
+
+`pnpm store-settings:evidence` and `pnpm store-settings:evidence:verify` bind
+36 storefront-workspace captures across six themes, both locales, and widths
+375/768/1440 plus 15 interaction captures. The exact 51 PNGs and three
+metadata files prove the disabled-when-unmapped and registry-enabled currency
+states, the multipart logo staging route with an owner-readable staged
+preview, the opaque upload failure, remove-to-official-fallback, click/Enter
+single native save POSTs with dirty-field omission of unchanged extended
+fields, immediate busy/disabled feedback, keyboard traversal in control order,
+and a successful unchanged save after the stored currency's mapping is
+deactivated. The review is bound to the current manifest and accepts no
 unresolved severity 2 or greater finding.
 
 The status rail and panels use ruled separation and restrained corners. Never
