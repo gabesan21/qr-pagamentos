@@ -103,6 +103,20 @@
       ],
       "test_seconds": 0,
       "result": "advanced"
+    },
+    {
+      "at": "2026-07-24T01:13:42-03:00",
+      "event": "stage",
+      "stage": "005_verifying",
+      "contexts": [
+        "verify2_7_2_1"
+      ],
+      "return": 1,
+      "return_limit": 2,
+      "strategy": "mandatory round-2 full critical review of the original owner-category request, repaired least-privilege ACL, real PostgreSQL/Prisma serialization races, composite-owner integrity, opaque route/service behavior, immutable V1 projections, specs, DOX, scope, and classified baselines",
+      "tests": "migration policy/static DB, disposable replay with 3/3 category ACL/concurrency scenarios before the known later fixture stop, 11/11 focused category tests, typecheck, lint, production build, full Vitest, 17-path scope, diff hygiene, and PoP validation; repaired DELETE revocation and independent-client race outcomes inspected",
+      "test_seconds": 32,
+      "result": "approved"
     }
   ]
 }
