@@ -2,6 +2,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { BrandIdentity } from "@/brand/brand-identity";
 import { getDictionary } from "@/i18n/dictionaries";
 import { defaultLocale } from "@/i18n/locales";
 
@@ -14,6 +15,7 @@ export default async function LoginPage({ searchParams }: Readonly<{ searchParam
   return <main className="login-page">
     <Card className="login-card">
       <CardHeader>
+        <BrandIdentity className="login-brand" variant="product-lockup" />
         <CardTitle>{dictionary.loginHeading}</CardTitle>
         <CardDescription>{dictionary.loginIntroduction}</CardDescription>
       </CardHeader>

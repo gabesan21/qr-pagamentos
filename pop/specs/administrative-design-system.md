@@ -39,6 +39,16 @@ checkout, storefront, or payment-provider surfaces.
 - Product UI uses a fixed, restrained type scale, labels above controls, prose
   no wider than 65-75 characters, visible two-pixel-or-stronger focus, and touch
   targets at least 44 by 44 CSS pixels where applicable.
+- One original, non-scannable settlement mark owns the closed mark, product,
+  compact role-shell, and merchant-fallback family. Inline variants share
+  canonical geometry and semantic foreground across all six themes; fixed
+  positive/reversed files exist only for static consumers.
+- A versioned provenance/usage manifest binds each derivative's role, source,
+  path, MIME, dimensions, modes, generation status, and SHA-256. Checks reject
+  unsafe SVG, unknown/duplicate/drifted outputs, and incomplete 16/32/48 icons.
+- Lockups use the exact product name in licensed IBM Plex Sans. Adjacent marks
+  are decorative; standalone marks have one caller-supplied localized name.
+  Fallback never implies merchant ownership or creates image capability.
 - Every applicable component documents and demonstrates default, hover, focus,
   active, disabled, loading, empty, and error states. Non-applicable states are
   recorded rather than simulated.
@@ -92,11 +102,13 @@ consistent state behavior outrank marketing-page novelty.
 
 ## Implemented slice
 
+- [[6.2.2-create-official-brand-assets]] (2026-07-24) — delivered the original
+  four-identity family, deterministic SVG/PNG/ICO manifest, accessible shared
+  composition, and bounded login/specimen/storefront fallback integrations.
 - [[6.2.1-create-six-theme-design-system]] (2026-07-23) — evolved the shared
   foundation into the six stable PIX settlement desk personalities, with one
   DTCG-shaped token graph, deterministic CSS projection, contrast/gamut/motion
   gates, safe fallback resolution, and 24-capture specimen evidence.
-
 - [[1.4.2-rebuild-design-system-with-shadcn]] (2026-07-16) — initialized the
   pinned official shadcn `nova` preset with Radix base, local IBM Plex Sans,
   owned current-scope sources, deprecated single-source adapters, semantic

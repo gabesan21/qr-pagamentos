@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { AlertCircleIcon, CheckCircle2Icon, LoaderCircleIcon, TriangleAlertIcon } from "lucide-react";
 
 import { getAuthorizationService } from "@/auth/authorization";
+import { BrandIdentity } from "@/brand/brand-identity";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -42,6 +43,18 @@ export default async function DesignSystemPage() {
       <div className="receipt-rail__facts ds-facts"><span>PIX settlement desk</span><span>IBM Plex Sans</span><span>{dictionary.designSystemRole}</span></div>
     </header>
     <p className="admin-shell__intro" data-ds-prose>{dictionary.designSystemIntroduction}</p>
+
+    <section aria-labelledby="ds-brand-title" className="ds-section" data-ds-section="brand">
+      <div className="ds-section__heading">
+        <h2 id="ds-brand-title">QR Pagamentos</h2>
+      </div>
+      <div className="brand-specimen">
+        <BrandIdentity accessibleName="QR Pagamentos" variant="mark-only" />
+        <BrandIdentity variant="product-lockup" />
+        <BrandIdentity variant="compact-role-lockup" />
+        <BrandIdentity variant="merchant-fallback" />
+      </div>
+    </section>
 
     <section aria-labelledby="ds-themes-title" className="ds-section" data-ds-section="themes">
       <div className="ds-section__heading"><h2 id="ds-themes-title">{dictionary.designSystemThemesHeading}</h2><p data-ds-prose>{dictionary.designSystemThemesDescription}</p></div>

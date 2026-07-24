@@ -16,6 +16,8 @@ if (manifest.themes?.join(",") !== "pix-paper,cashier-daylight,settlement-sand,m
 if (manifest.fallback?.actual !== manifest.fallback?.expected) throw new Error("Unknown-theme fallback does not match pix-paper.");
 const assertions = await readFile(join(root, manifest.assertions));
 if (sha256(assertions) !== manifest.assertionsSha256) throw new Error("Evidence assertions hash mismatch.");
+const brandManifest = await readFile(join(root, manifest.brandManifest?.path ?? ""));
+if (sha256(brandManifest) !== manifest.brandManifest?.sha256) throw new Error("Evidence does not bind the current brand manifest.");
 for (const png of manifest.pngs) {
   const [contents, metadata] = await Promise.all([readFile(join(root, png.path)), stat(join(root, png.path))]);
   if (metadata.size === 0 || sha256(contents) !== png.sha256 || metadata.mtimeMs < Date.parse(manifest.startedAt)) throw new Error(`Invalid capture: ${png.path}`);

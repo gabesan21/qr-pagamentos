@@ -14,6 +14,8 @@ function sha256(value) {
 if (manifest.runId !== current.runId || manifest.pngs.length !== 8) throw new Error("Login evidence manifest does not name exactly eight current captures.");
 const assertions = await readFile(join(root, manifest.assertions));
 if (sha256(assertions) !== manifest.assertionsSha256) throw new Error("Login evidence assertions hash mismatch.");
+const brandManifest = await readFile(join(root, manifest.brandManifest?.path ?? ""));
+if (sha256(brandManifest) !== manifest.brandManifest?.sha256) throw new Error("Login evidence does not bind the current brand manifest.");
 for (const png of manifest.pngs) {
   const [contents, metadata] = await Promise.all([readFile(join(root, png.path)), stat(join(root, png.path))]);
   if (metadata.size === 0 || sha256(contents) !== png.sha256 || metadata.mtimeMs < Date.parse(manifest.startedAt)) throw new Error(`Invalid login capture: ${png.path}`);

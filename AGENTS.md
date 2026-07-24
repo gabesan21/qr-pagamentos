@@ -52,6 +52,8 @@ A direct human command overrides only the rule or gate it explicitly names. “A
 
 ## DOX index
 
+- [`src/brand/AGENTS.md`](src/brand/AGENTS.md) — follow when changing canonical
+  identity geometry, compositions, generated assets, manifest, or usage rules.
 - [`src/components/ui/AGENTS.md`](src/components/ui/AGENTS.md) — follow when
   changing owned Radix/nova shadcn source, its inventory, or its state contract.
 - [`src/integrations/nautt/AGENTS.md`](src/integrations/nautt/AGENTS.md) — follow when changing Nautt HTTP adapters or owner-bound provider orchestration.
@@ -97,6 +99,7 @@ Username and password are the only login credentials; email is optional and neve
 - `src/observability/server-request-log.ts` owns the server-only completion record for the closed API and supported POST-mutation inventory. It accepts only the whole header-safe `X-Request-Id` grammar and literal route templates; records never contain a request path/query/body/header/cookie, identity, credential, customer snapshot, provider data, retry key, capability, verifier, nonce, or error detail. It may add only the normalized `X-Request-Id` response header and must never replace a response or thrown handler failure; `/api/health` remains entirely unwrapped.
 - `src/app/storefront/` owns the owner storefront-settings save: it re-authorizes the cookie principal, validates through `src/auth/storefront-settings.ts` (unique nullable slug, nullable bilingual display names, `#RRGGBB` accent color, enable-requires-slug), and returns only empty `401`/`403` or opaque `?storefront=changed|failed|conflict` redirects. The separate sessionless `/store/[slug]` route may read only `src/storefront/public-storefront.ts`'s redacted projection; never expose owner identity, checkout policy, or credential data here.
 - `src/i18n/` owns the closed locale set and server dictionary loader; never add a locale without matching dictionary keys and contract tests.
+- `src/brand/` owns the original four-identity QR Pagamentos family and its deterministic manifest/static derivatives; UI consumers use the shared semantic-color composition, never page-local marks or per-theme assets.
 - Use the exact Node and pnpm pins in `.node-version` and `package.json`; install with `pnpm install --frozen-lockfile`.
 - Run `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm build` independently, or `pnpm check` for the aggregate gate.
 - Run `pnpm db:test` separately for the disposable PostgreSQL contract; it is never part of the database-free `pnpm check` gate.

@@ -131,11 +131,31 @@ test("creates current, responsive login evidence", async ({ page }) => {
       expect(focusOrder).toEqual(["username", "password", "button"]);
 
       const measured = await page.evaluate(() => {
-        const element = <T extends HTMLElement>(selector: string) => document.querySelector<T>(selector);
+        const element = <T extends Element>(selector: string) => document.querySelector<T>(selector);
+        const luminance = (value: string) => {
+          const canvas = document.createElement("canvas");
+          const context = canvas.getContext("2d");
+          if (!context) return 0;
+          context.fillStyle = value;
+          context.fillRect(0, 0, 1, 1);
+          const channels = [...context.getImageData(0, 0, 1, 1).data].slice(0, 3);
+          const linear = channels.map((channel) => {
+            const normalized = channel / 255;
+            return normalized <= 0.04045 ? normalized / 12.92 : ((normalized + 0.055) / 1.055) ** 2.4;
+          });
+          return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2];
+        };
+        const contrast = (foreground: string, background: string) => {
+          const [lighter, darker] = [luminance(foreground), luminance(background)].sort((a, b) => b - a);
+          return (lighter + 0.05) / (darker + 0.05);
+        };
         const username = element<HTMLInputElement>("#username");
         const password = element<HTMLInputElement>("#password");
         const submit = element<HTMLElement>('[data-slot="button"]');
         const form = element<HTMLFormElement>("form");
+        const brand = element<HTMLElement>('[data-brand-identity="product-lockup"]');
+        const brandMark = element<SVGSVGElement>("[data-brand-mark]");
+        const card = element<HTMLElement>('[data-slot="card"]');
         return {
           bodyFont: getComputedStyle(document.body).fontFamily,
           overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
@@ -144,6 +164,13 @@ test("creates current, responsive login evidence", async ({ page }) => {
           username: username ? { autocomplete: username.autocomplete, required: username.required, labels: username.labels?.length ?? 0, height: username.getBoundingClientRect().height } : null,
           password: password ? { autocomplete: password.autocomplete, required: password.required, type: password.type, labels: password.labels?.length ?? 0, height: password.getBoundingClientRect().height } : null,
           submit: submit ? { height: submit.getBoundingClientRect().height, disabled: (submit as HTMLButtonElement).disabled } : null,
+          brand: brand && brandMark && card ? {
+            name: brand.textContent?.trim(),
+            decorativeMark: brandMark.getAttribute("aria-hidden"),
+            markSize: Math.min(brandMark.getBoundingClientRect().width, brandMark.getBoundingClientRect().height),
+            width: brand.getBoundingClientRect().width,
+            contrast: contrast(getComputedStyle(brand).color, getComputedStyle(card).backgroundColor),
+          } : null,
         };
       });
       const axe = await new AxeBuilder({ page }).analyze();
@@ -159,6 +186,10 @@ test("creates current, responsive login evidence", async ({ page }) => {
       expect(measured.password?.height).toBeGreaterThanOrEqual(44);
       expect(measured.submit?.height).toBeGreaterThanOrEqual(44);
       expect(measured.submit?.disabled).toBe(false);
+      expect(measured.brand).toMatchObject({ name: "QR Pagamentos", decorativeMark: "true" });
+      expect(measured.brand?.markSize).toBeGreaterThanOrEqual(32);
+      expect(measured.brand?.width).toBeGreaterThanOrEqual(120);
+      expect(measured.brand?.contrast).toBeGreaterThanOrEqual(4.5);
       expect(severeAxe).toEqual([]);
 
       await page.goto("/login?error=invalid-credentials", { waitUntil: "domcontentloaded" });
@@ -193,7 +224,9 @@ test("creates current, responsive login evidence", async ({ page }) => {
   }));
   const gitHead = execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim();
   const assertions = await readFile(resultsPath);
-  const manifest = { runId, startedAt, gitHead, assertions: resultsPath.slice(process.cwd().length + 1), assertionsSha256: sha256(assertions), pngs };
+  const brandManifestPath = "src/brand/assets.manifest.json";
+  const brandManifest = await readFile(join(process.cwd(), brandManifestPath));
+  const manifest = { runId, startedAt, gitHead, brandManifest: { path: brandManifestPath, sha256: sha256(brandManifest) }, assertions: resultsPath.slice(process.cwd().length + 1), assertionsSha256: sha256(assertions), pngs };
   const manifestPath = join(runDirectory, "manifest.json");
   await writeFile(manifestPath, JSON.stringify(manifest, null, 2));
   await writeFile(join(artifactRoot, "current.json"), JSON.stringify({ runId, startedAt, manifest: manifestPath.slice(process.cwd().length + 1) }, null, 2));

@@ -165,6 +165,23 @@ test("creates current, responsive design-system evidence", async ({ page }) => {
 
       const measured = await page.evaluate(() => {
         const selectors = (selector: string) => Array.from(document.querySelectorAll<HTMLElement>(selector));
+        const luminance = (value: string) => {
+          const canvas = document.createElement("canvas");
+          const context = canvas.getContext("2d");
+          if (!context) return 0;
+          context.fillStyle = value;
+          context.fillRect(0, 0, 1, 1);
+          const channels = [...context.getImageData(0, 0, 1, 1).data].slice(0, 3);
+          const linear = channels.map((channel) => {
+            const normalized = channel / 255;
+            return normalized <= 0.04045 ? normalized / 12.92 : ((normalized + 0.055) / 1.055) ** 2.4;
+          });
+          return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2];
+        };
+        const contrast = (foreground: string, background: string) => {
+          const [lighter, darker] = [luminance(foreground), luminance(background)].sort((a, b) => b - a);
+          return (lighter + 0.05) / (darker + 0.05);
+        };
         const hits = selectors("[data-ds-hit-target]");
         const statuses = selectors("[data-ds-status]");
         const prose = selectors("[data-ds-prose]");
@@ -188,6 +205,17 @@ test("creates current, responsive design-system evidence", async ({ page }) => {
             invalid: element.getAttribute("aria-invalid") === "true",
             minHeight: element.getBoundingClientRect().height,
           })),
+          brand: {
+            identities: selectors("[data-brand-identity]").length,
+            visibleNames: selectors("[data-brand-identity] .brand-identity__name").length,
+            minimumMarkSize: Math.min(
+              ...selectors("[data-brand-mark]").map((element) => Math.min(element.getBoundingClientRect().width, element.getBoundingClientRect().height)),
+            ),
+            contrast: contrast(
+              getComputedStyle(selectors("[data-brand-identity]")[0]).color,
+              getComputedStyle(document.body).backgroundColor,
+            ),
+          },
           maxProseWidth,
         };
       });
@@ -205,6 +233,9 @@ test("creates current, responsive design-system evidence", async ({ page }) => {
       expect(measured.textareas.every(({ labelled, minHeight }) => labelled && minHeight >= 44)).toBe(true);
       expect(measured.textareas.filter(({ disabled }) => disabled)).toHaveLength(1);
       expect(measured.textareas.filter(({ invalid }) => invalid)).toHaveLength(1);
+      expect(measured.brand).toMatchObject({ identities: 4, visibleNames: 3 });
+      expect(measured.brand.minimumMarkSize).toBeGreaterThanOrEqual(32);
+      expect(measured.brand.contrast).toBeGreaterThanOrEqual(4.5);
       expect(focusTargetCount).toBeGreaterThan(0);
       expect(severeAxe).toEqual([]);
       expect(externalRequests).toEqual([]);
@@ -242,7 +273,9 @@ test("creates current, responsive design-system evidence", async ({ page }) => {
   }));
   const gitHead = execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim();
   const assertions = await readFile(resultsPath);
-  const manifest = { runId, startedAt, gitHead, themes: themes.map(({ id }) => id), fallback, assertions: resultsPath.slice(process.cwd().length + 1), assertionsSha256: sha256(assertions), pngs };
+  const brandManifestPath = "src/brand/assets.manifest.json";
+  const brandManifest = await readFile(join(process.cwd(), brandManifestPath));
+  const manifest = { runId, startedAt, gitHead, themes: themes.map(({ id }) => id), fallback, brandManifest: { path: brandManifestPath, sha256: sha256(brandManifest) }, assertions: resultsPath.slice(process.cwd().length + 1), assertionsSha256: sha256(assertions), pngs };
   const manifestPath = join(runDirectory, "manifest.json");
   await writeFile(manifestPath, JSON.stringify(manifest, null, 2));
   await writeFile(join(artifactRoot, "current.json"), JSON.stringify({ runId, startedAt, manifest: manifestPath.slice(process.cwd().length + 1) }, null, 2));

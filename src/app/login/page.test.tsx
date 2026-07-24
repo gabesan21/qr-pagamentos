@@ -23,6 +23,8 @@ describe("login page contract", () => {
     expect(markup).toContain('type="password"');
     expect(markup).toContain('autoComplete="current-password"');
     expect(markup).toContain('role="alert"');
+    expect(markup).toContain('data-brand-identity="product-lockup"');
+    expect(markup).toContain('aria-hidden="true"');
     expect(markup).toContain("Nome de usuário ou senha inválidos.");
     expect(markup).not.toContain("database unavailable");
   });
@@ -56,6 +58,8 @@ describe("login page contract", () => {
             const imported = name.trim().split(/\s+as\s+/)[0];
             if (imported) importedNames.add(imported);
           }
+        } else if (specifier === "@/brand/brand-identity") {
+          expect(file).toBe("page.tsx");
         } else if (specifier.startsWith(".")) {
           expect(specifier).toBe("./login-submit");
           expect(file).toBe("page.tsx");

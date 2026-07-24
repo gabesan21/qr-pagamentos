@@ -57,6 +57,28 @@ token must carry a six-digit in-gamut sRGB fallback. Full motion resolves to
 180ms with the shared easing curve; reduced motion resolves the duration to
 zero and removes non-essential transitions and animation.
 
+## Official identity
+
+The original **settlement mark** turns the receipt rail and QR alignment rhythm
+into ten open, non-scannable modules. `src/brand/geometry.ts` is its only
+canonical geometry. The closed family is mark-only, product lockup, compact
+role-shell lockup, and merchant fallback; every lockup uses the exact visible
+name `QR Pagamentos` in the licensed IBM Plex Sans family.
+
+Inline identities use `currentColor` from `--text-primary`, so identical
+geometry serves all six themes. The fixed positive and reversed SVG exports are
+only for static contexts that cannot inherit semantic color. Keep clear space
+equal to one-sixth of the mark width. Minimum rendered sizes are 16 CSS pixels
+for the mark, 120 for the product lockup, and 112 for compact/fallback lockups.
+The favicon uses its fixed high-contrast field at 16, 32, and 48 pixels.
+
+When visible identity text accompanies the mark, the mark is decorative. A
+standalone meaningful mark receives exactly one caller-supplied localized
+accessible name and no SVG title. The merchant fallback identifies the product
+only while no merchant image capability is available; it never claims that the
+product mark belongs to the merchant. `pnpm brand:check` protects provenance,
+safe SVG structure, hashes, inventory, dimensions, and generated derivatives.
+
 ## Primitive inventory and state matrix
 
 Owned Radix/nova shadcn source lives in `src/components/ui/`. The following

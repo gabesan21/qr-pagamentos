@@ -1,0 +1,204 @@
+{
+  "version": 1,
+  "family": "QR Pagamentos settlement mark",
+  "identities": [
+    "mark-only",
+    "product-lockup",
+    "compact-role-lockup",
+    "merchant-fallback"
+  ],
+  "provenance": {
+    "author": "QR Pagamentos project",
+    "license": "Project-owned original artwork",
+    "source": "src/brand/geometry.ts",
+    "statement": "Original repository-native geometry. No stock, trademark-derived, remote, or generative artwork is included."
+  },
+  "usage": {
+    "clearSpace": "one-sixth of the rendered mark width",
+    "minimumSizes": {
+      "mark": 16,
+      "productLockup": 120,
+      "compactRoleLockup": 112,
+      "merchantFallback": 112
+    },
+    "inlineColor": "currentColor from a semantic foreground token",
+    "accessibleNaming": "Hide a mark beside visible identity text; give a standalone meaningful mark one caller-supplied localized accessible name."
+  },
+  "assets": [
+    {
+      "id": "mark-positive",
+      "role": "mark-positive",
+      "canonicalSource": "src/brand/geometry.ts",
+      "outputPath": "public/brand/mark-positive.svg",
+      "mime": "image/svg+xml",
+      "intrinsic": {
+        "viewBox": "0 0 48 48"
+      },
+      "colorMode": "positive-static",
+      "accessibilityMode": "consumer-supplied",
+      "generated": true,
+      "sha256": "7f112ba642922191abfb86038b2c73388520df187ed2117c6c198b255f4d3130"
+    },
+    {
+      "id": "mark-reversed",
+      "role": "mark-reversed",
+      "canonicalSource": "src/brand/geometry.ts",
+      "outputPath": "public/brand/mark-reversed.svg",
+      "mime": "image/svg+xml",
+      "intrinsic": {
+        "viewBox": "0 0 48 48"
+      },
+      "colorMode": "reversed-static",
+      "accessibilityMode": "consumer-supplied",
+      "generated": true,
+      "sha256": "dc3f68db848114c3c19215b117f5356c549b9828cda3377575a5cb765b55ccc3"
+    },
+    {
+      "id": "product-lockup-positive",
+      "role": "product-lockup-positive",
+      "canonicalSource": "src/brand/geometry.ts",
+      "outputPath": "public/brand/product-lockup-positive.svg",
+      "mime": "image/svg+xml",
+      "intrinsic": {
+        "viewBox": "0 0 244 48"
+      },
+      "colorMode": "positive-static",
+      "accessibilityMode": "consumer-supplied",
+      "generated": true,
+      "sha256": "f76a637377dadf430db91a5b2255b2589c85baf281af12b5e201385efc7e6d3c"
+    },
+    {
+      "id": "product-lockup-reversed",
+      "role": "product-lockup-reversed",
+      "canonicalSource": "src/brand/geometry.ts",
+      "outputPath": "public/brand/product-lockup-reversed.svg",
+      "mime": "image/svg+xml",
+      "intrinsic": {
+        "viewBox": "0 0 244 48"
+      },
+      "colorMode": "reversed-static",
+      "accessibilityMode": "consumer-supplied",
+      "generated": true,
+      "sha256": "f7bf262d91486f72a0843a5116dddb11f52a3ed4ee845118d1cd26ce9997c0f7"
+    },
+    {
+      "id": "compact-role-lockup-positive",
+      "role": "compact-role-lockup-positive",
+      "canonicalSource": "src/brand/geometry.ts",
+      "outputPath": "public/brand/compact-role-lockup-positive.svg",
+      "mime": "image/svg+xml",
+      "intrinsic": {
+        "viewBox": "0 0 180 48"
+      },
+      "colorMode": "positive-static",
+      "accessibilityMode": "consumer-supplied",
+      "generated": true,
+      "sha256": "a4bbeda86487e4bad75cf14442546ce5a5e0220d8320496efbc99c2c442fcb25"
+    },
+    {
+      "id": "compact-role-lockup-reversed",
+      "role": "compact-role-lockup-reversed",
+      "canonicalSource": "src/brand/geometry.ts",
+      "outputPath": "public/brand/compact-role-lockup-reversed.svg",
+      "mime": "image/svg+xml",
+      "intrinsic": {
+        "viewBox": "0 0 180 48"
+      },
+      "colorMode": "reversed-static",
+      "accessibilityMode": "consumer-supplied",
+      "generated": true,
+      "sha256": "7ad56e962c3a6557c620e10d3cb03cf3a4b639ae8d24857603207ab74743e8ee"
+    },
+    {
+      "id": "merchant-fallback-positive",
+      "role": "merchant-fallback-positive",
+      "canonicalSource": "src/brand/geometry.ts",
+      "outputPath": "public/brand/merchant-fallback-positive.svg",
+      "mime": "image/svg+xml",
+      "intrinsic": {
+        "viewBox": "0 0 180 48"
+      },
+      "colorMode": "positive-static",
+      "accessibilityMode": "consumer-supplied",
+      "generated": true,
+      "sha256": "264973a50f3aa454a55b1c50276864e8de8c083f0fb2c0c4f26b42294d1cd976"
+    },
+    {
+      "id": "merchant-fallback-reversed",
+      "role": "merchant-fallback-reversed",
+      "canonicalSource": "src/brand/geometry.ts",
+      "outputPath": "public/brand/merchant-fallback-reversed.svg",
+      "mime": "image/svg+xml",
+      "intrinsic": {
+        "viewBox": "0 0 180 48"
+      },
+      "colorMode": "reversed-static",
+      "accessibilityMode": "consumer-supplied",
+      "generated": true,
+      "sha256": "94bd831c976787ee6bb828ece8cfdc409ccc8c8c2c0e846c55b649fd5effd031"
+    },
+    {
+      "id": "favicon-16",
+      "role": "browser-icon",
+      "canonicalSource": "src/brand/geometry.ts",
+      "outputPath": "public/brand/favicon-16.png",
+      "mime": "image/png",
+      "intrinsic": {
+        "width": 16,
+        "height": 16
+      },
+      "colorMode": "favicon-fixed",
+      "accessibilityMode": "decorative-browser-chrome",
+      "generated": true,
+      "sha256": "615c7f32083ae9bbb7fe735ab717aa5a43c37274654a7aa78ba60d2957a70c89"
+    },
+    {
+      "id": "favicon-32",
+      "role": "browser-icon",
+      "canonicalSource": "src/brand/geometry.ts",
+      "outputPath": "public/brand/favicon-32.png",
+      "mime": "image/png",
+      "intrinsic": {
+        "width": 32,
+        "height": 32
+      },
+      "colorMode": "favicon-fixed",
+      "accessibilityMode": "decorative-browser-chrome",
+      "generated": true,
+      "sha256": "5d4ea9336b5fd8967c70445ce1d0ec381fd2c3d2886f056afc1e98a905db14e8"
+    },
+    {
+      "id": "favicon-48",
+      "role": "browser-icon",
+      "canonicalSource": "src/brand/geometry.ts",
+      "outputPath": "public/brand/favicon-48.png",
+      "mime": "image/png",
+      "intrinsic": {
+        "width": 48,
+        "height": 48
+      },
+      "colorMode": "favicon-fixed",
+      "accessibilityMode": "decorative-browser-chrome",
+      "generated": true,
+      "sha256": "14b2491613f9c9e83ac9ddbd9fe17b69b9a7a61911b5e4376fab34484605df85"
+    },
+    {
+      "id": "favicon",
+      "role": "browser-icon",
+      "canonicalSource": "src/brand/geometry.ts",
+      "outputPath": "src/app/favicon.ico",
+      "mime": "image/x-icon",
+      "intrinsic": {
+        "frames": [
+          16,
+          32,
+          48
+        ]
+      },
+      "colorMode": "favicon-fixed",
+      "accessibilityMode": "decorative-browser-chrome",
+      "generated": true,
+      "sha256": "9e8451f8eb819a4b54dab8f9ea4926372cae62b074f17c765ead531fe4481bf8"
+    }
+  ]
+}

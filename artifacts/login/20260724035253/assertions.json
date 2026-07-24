@@ -1,0 +1,490 @@
+[
+  {
+    "colorScheme": "light",
+    "width": 320,
+    "screenshot": "artifacts/login/20260724035253/login-light-320.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "formAction": "/login/submit",
+      "formMethod": "post",
+      "username": {
+        "autocomplete": "username",
+        "required": true,
+        "labels": 1,
+        "height": 44
+      },
+      "password": {
+        "autocomplete": "current-password",
+        "required": true,
+        "type": "password",
+        "labels": 1,
+        "height": 44
+      },
+      "submit": {
+        "height": 44,
+        "disabled": false
+      },
+      "brand": {
+        "name": "QR Pagamentos",
+        "decorativeMark": "true",
+        "markSize": 32,
+        "width": 162,
+        "contrast": 16.53016547226267
+      }
+    },
+    "focusTraversal": [
+      {
+        "id": "username",
+        "visible": true,
+        "focusVisible": true,
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(39.8727 -30.6801 1.13491) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      },
+      {
+        "id": "password",
+        "visible": true,
+        "focusVisible": true,
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(39.8727 -30.6801 1.13491) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      },
+      {
+        "id": "button",
+        "visible": true,
+        "focusVisible": true,
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(39.8727 -30.6801 1.13491) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      }
+    ],
+    "recovery": {
+      "text": "Nome de usuário ou senha inválidos.",
+      "visible": true
+    },
+    "severeAxe": [],
+    "severeRecoveryAxe": []
+  },
+  {
+    "colorScheme": "light",
+    "width": 375,
+    "screenshot": "artifacts/login/20260724035253/login-light-375.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "formAction": "/login/submit",
+      "formMethod": "post",
+      "username": {
+        "autocomplete": "username",
+        "required": true,
+        "labels": 1,
+        "height": 44
+      },
+      "password": {
+        "autocomplete": "current-password",
+        "required": true,
+        "type": "password",
+        "labels": 1,
+        "height": 44
+      },
+      "submit": {
+        "height": 44,
+        "disabled": false
+      },
+      "brand": {
+        "name": "QR Pagamentos",
+        "decorativeMark": "true",
+        "markSize": 32,
+        "width": 162,
+        "contrast": 16.53016547226267
+      }
+    },
+    "focusTraversal": [
+      {
+        "id": "username",
+        "visible": true,
+        "focusVisible": true,
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(39.8727 -30.6801 1.13491) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      },
+      {
+        "id": "password",
+        "visible": true,
+        "focusVisible": true,
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(39.8727 -30.6801 1.13491) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      },
+      {
+        "id": "button",
+        "visible": true,
+        "focusVisible": true,
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(39.8727 -30.6801 1.13491) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      }
+    ],
+    "recovery": {
+      "text": "Nome de usuário ou senha inválidos.",
+      "visible": true
+    },
+    "severeAxe": [],
+    "severeRecoveryAxe": []
+  },
+  {
+    "colorScheme": "light",
+    "width": 768,
+    "screenshot": "artifacts/login/20260724035253/login-light-768.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "formAction": "/login/submit",
+      "formMethod": "post",
+      "username": {
+        "autocomplete": "username",
+        "required": true,
+        "labels": 1,
+        "height": 44
+      },
+      "password": {
+        "autocomplete": "current-password",
+        "required": true,
+        "type": "password",
+        "labels": 1,
+        "height": 44
+      },
+      "submit": {
+        "height": 44,
+        "disabled": false
+      },
+      "brand": {
+        "name": "QR Pagamentos",
+        "decorativeMark": "true",
+        "markSize": 32,
+        "width": 162,
+        "contrast": 16.53016547226267
+      }
+    },
+    "focusTraversal": [
+      {
+        "id": "username",
+        "visible": true,
+        "focusVisible": true,
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(39.8727 -30.6801 1.13491) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      },
+      {
+        "id": "password",
+        "visible": true,
+        "focusVisible": true,
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(39.8727 -30.6801 1.13491) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      },
+      {
+        "id": "button",
+        "visible": true,
+        "focusVisible": true,
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(39.8727 -30.6801 1.13491) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      }
+    ],
+    "recovery": {
+      "text": "Nome de usuário ou senha inválidos.",
+      "visible": true
+    },
+    "severeAxe": [],
+    "severeRecoveryAxe": []
+  },
+  {
+    "colorScheme": "light",
+    "width": 1440,
+    "screenshot": "artifacts/login/20260724035253/login-light-1440.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "formAction": "/login/submit",
+      "formMethod": "post",
+      "username": {
+        "autocomplete": "username",
+        "required": true,
+        "labels": 1,
+        "height": 44
+      },
+      "password": {
+        "autocomplete": "current-password",
+        "required": true,
+        "type": "password",
+        "labels": 1,
+        "height": 44
+      },
+      "submit": {
+        "height": 44,
+        "disabled": false
+      },
+      "brand": {
+        "name": "QR Pagamentos",
+        "decorativeMark": "true",
+        "markSize": 32,
+        "width": 162,
+        "contrast": 16.53016547226267
+      }
+    },
+    "focusTraversal": [
+      {
+        "id": "username",
+        "visible": true,
+        "focusVisible": true,
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(39.8727 -30.6801 1.13491) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      },
+      {
+        "id": "password",
+        "visible": true,
+        "focusVisible": true,
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(39.8727 -30.6801 1.13491) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      },
+      {
+        "id": "button",
+        "visible": true,
+        "focusVisible": true,
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(39.8727 -30.6801 1.13491) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      }
+    ],
+    "recovery": {
+      "text": "Nome de usuário ou senha inválidos.",
+      "visible": true
+    },
+    "severeAxe": [],
+    "severeRecoveryAxe": []
+  },
+  {
+    "colorScheme": "dark",
+    "width": 320,
+    "screenshot": "artifacts/login/20260724035253/login-dark-320.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "formAction": "/login/submit",
+      "formMethod": "post",
+      "username": {
+        "autocomplete": "username",
+        "required": true,
+        "labels": 1,
+        "height": 44
+      },
+      "password": {
+        "autocomplete": "current-password",
+        "required": true,
+        "type": "password",
+        "labels": 1,
+        "height": 44
+      },
+      "submit": {
+        "height": 44,
+        "disabled": false
+      },
+      "brand": {
+        "name": "QR Pagamentos",
+        "decorativeMark": "true",
+        "markSize": 32,
+        "width": 162,
+        "contrast": 14.777916012376199
+      }
+    },
+    "focusTraversal": [
+      {
+        "id": "username",
+        "visible": true,
+        "focusVisible": true,
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(79.3882 -40.2089 5.85816) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      },
+      {
+        "id": "password",
+        "visible": true,
+        "focusVisible": true,
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(79.3882 -40.2089 5.85816) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      },
+      {
+        "id": "button",
+        "visible": true,
+        "focusVisible": true,
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(79.3882 -40.2089 5.85816) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      }
+    ],
+    "recovery": {
+      "text": "Nome de usuário ou senha inválidos.",
+      "visible": true
+    },
+    "severeAxe": [],
+    "severeRecoveryAxe": []
+  },
+  {
+    "colorScheme": "dark",
+    "width": 375,
+    "screenshot": "artifacts/login/20260724035253/login-dark-375.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "formAction": "/login/submit",
+      "formMethod": "post",
+      "username": {
+        "autocomplete": "username",
+        "required": true,
+        "labels": 1,
+        "height": 44
+      },
+      "password": {
+        "autocomplete": "current-password",
+        "required": true,
+        "type": "password",
+        "labels": 1,
+        "height": 44
+      },
+      "submit": {
+        "height": 44,
+        "disabled": false
+      },
+      "brand": {
+        "name": "QR Pagamentos",
+        "decorativeMark": "true",
+        "markSize": 32,
+        "width": 162,
+        "contrast": 14.777916012376199
+      }
+    },
+    "focusTraversal": [
+      {
+        "id": "username",
+        "visible": true,
+        "focusVisible": true,
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(79.3882 -40.2089 5.85816) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      },
+      {
+        "id": "password",
+        "visible": true,
+        "focusVisible": true,
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(79.3882 -40.2089 5.85816) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      },
+      {
+        "id": "button",
+        "visible": true,
+        "focusVisible": true,
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(79.3882 -40.2089 5.85816) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      }
+    ],
+    "recovery": {
+      "text": "Nome de usuário ou senha inválidos.",
+      "visible": true
+    },
+    "severeAxe": [],
+    "severeRecoveryAxe": []
+  },
+  {
+    "colorScheme": "dark",
+    "width": 768,
+    "screenshot": "artifacts/login/20260724035253/login-dark-768.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "formAction": "/login/submit",
+      "formMethod": "post",
+      "username": {
+        "autocomplete": "username",
+        "required": true,
+        "labels": 1,
+        "height": 44
+      },
+      "password": {
+        "autocomplete": "current-password",
+        "required": true,
+        "type": "password",
+        "labels": 1,
+        "height": 44
+      },
+      "submit": {
+        "height": 44,
+        "disabled": false
+      },
+      "brand": {
+        "name": "QR Pagamentos",
+        "decorativeMark": "true",
+        "markSize": 32,
+        "width": 162,
+        "contrast": 14.777916012376199
+      }
+    },
+    "focusTraversal": [
+      {
+        "id": "username",
+        "visible": true,
+        "focusVisible": true,
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(79.3882 -40.2089 5.85816) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      },
+      {
+        "id": "password",
+        "visible": true,
+        "focusVisible": true,
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(79.3882 -40.2089 5.85816) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      },
+      {
+        "id": "button",
+        "visible": true,
+        "focusVisible": true,
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(79.3882 -40.2089 5.85816) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      }
+    ],
+    "recovery": {
+      "text": "Nome de usuário ou senha inválidos.",
+      "visible": true
+    },
+    "severeAxe": [],
+    "severeRecoveryAxe": []
+  },
+  {
+    "colorScheme": "dark",
+    "width": 1440,
+    "screenshot": "artifacts/login/20260724035253/login-dark-1440.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "formAction": "/login/submit",
+      "formMethod": "post",
+      "username": {
+        "autocomplete": "username",
+        "required": true,
+        "labels": 1,
+        "height": 44
+      },
+      "password": {
+        "autocomplete": "current-password",
+        "required": true,
+        "type": "password",
+        "labels": 1,
+        "height": 44
+      },
+      "submit": {
+        "height": 44,
+        "disabled": false
+      },
+      "brand": {
+        "name": "QR Pagamentos",
+        "decorativeMark": "true",
+        "markSize": 32,
+        "width": 162,
+        "contrast": 14.777916012376199
+      }
+    },
+    "focusTraversal": [
+      {
+        "id": "username",
+        "visible": true,
+        "focusVisible": true,
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(79.3882 -40.2089 5.85816) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      },
+      {
+        "id": "password",
+        "visible": true,
+        "focusVisible": true,
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(79.3882 -40.2089 5.85816) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      },
+      {
+        "id": "button",
+        "visible": true,
+        "focusVisible": true,
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(79.3882 -40.2089 5.85816) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      }
+    ],
+    "recovery": {
+      "text": "Nome de usuário ou senha inválidos.",
+      "visible": true
+    },
+    "severeAxe": [],
+    "severeRecoveryAxe": []
+  }
+]
