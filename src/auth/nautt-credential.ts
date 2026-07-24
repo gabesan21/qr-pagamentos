@@ -2,7 +2,7 @@ import { getDatabaseClient } from "../db/client";
 import { decrypt, encrypt, loadEncryptionKey } from "../lib/nautt-crypto";
 import { randomUUID } from "node:crypto";
 
-import { ForbiddenError, type Principal } from "./authorization";
+import { ForbiddenError, requireUserPrincipal, type Principal } from "./authorization";
 
 export type NauttCredentialRecord = {
   userId: string;
@@ -60,11 +60,9 @@ type CryptoAdapter = {
   loadKey(): Buffer;
 };
 
-function requireOwnerOrAdmin(actor: Principal, targetUserId: string) {
-  if (actor.status !== "ACTIVE") {
-    throw new ForbiddenError("Active account required");
-  }
-  if (actor.id !== targetUserId && actor.role !== "ADMIN") {
+function requireOwner(actor: Principal, targetUserId: string) {
+  requireUserPrincipal(actor);
+  if (actor.id !== targetUserId) {
     throw new ForbiddenError("Access denied");
   }
 }
@@ -80,7 +78,7 @@ export function createNauttCredentialService(
     apiKey: string,
     expectedRevision: string | null,
   ): Promise<string> {
-    requireOwnerOrAdmin(actor, targetUserId);
+    requireOwner(actor, targetUserId);
     const trimmed = apiKey.trim();
     if (!trimmed) throw new NauttCredentialValidationError("API key is required");
     const freshRevision = createRevision();
@@ -97,7 +95,7 @@ export function createNauttCredentialService(
 
   return {
     async save(actor: Principal, targetUserId: string, apiKey: string) {
-      requireOwnerOrAdmin(actor, targetUserId);
+      requireOwner(actor, targetUserId);
       const current = await store.find(targetUserId);
       await saveValidated(actor, targetUserId, apiKey, current?.credentialRevision ?? null);
     },
@@ -105,12 +103,12 @@ export function createNauttCredentialService(
     saveValidated,
 
     async snapshotRevision(actor: Principal, targetUserId: string): Promise<string | null> {
-      requireOwnerOrAdmin(actor, targetUserId);
+      requireOwner(actor, targetUserId);
       return (await store.find(targetUserId))?.credentialRevision ?? null;
     },
 
     async getRedacted(actor: Principal, targetUserId: string): Promise<NauttCredentialRedacted> {
-      requireOwnerOrAdmin(actor, targetUserId);
+      requireOwner(actor, targetUserId);
       const record = await store.find(targetUserId);
       return {
         hasCredential: !!record,

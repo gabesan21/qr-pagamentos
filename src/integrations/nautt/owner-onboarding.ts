@@ -5,7 +5,7 @@ import {
   NauttCredentialReplacementBlockedError,
   type NauttCredentialRedacted,
 } from "../../auth/nautt-credential";
-import type { Principal } from "../../auth/authorization";
+import { ForbiddenError, requireUserPrincipal, type Principal } from "../../auth/authorization";
 
 import { getMainWalletBalanceAdapter, MainWalletBalanceError, type MainWalletBalance } from "./main-wallet-balance";
 import {
@@ -43,6 +43,8 @@ export function createOwnerOnboardingService(
 ) {
   return {
     async onboard(actor: Principal, targetUserId: string, apiKey: string, callbackUrl: string): Promise<void> {
+      requireUserPrincipal(actor);
+      if (actor.id !== targetUserId) throw new ForbiddenError("Access denied");
       const expectedRevision = await credentials.snapshotRevision(actor, targetUserId);
       try {
         await wallet.read(apiKey);
@@ -71,6 +73,7 @@ export function createOwnerOnboardingService(
     },
 
     async completeRegistration(actor: Principal, callbackUrl: string): Promise<void> {
+      requireUserPrincipal(actor);
       const revision = await credentials.snapshotRevision(actor, actor.id);
       if (!revision) throw new OwnerOnboardingChangedError("Credential setup changed");
       try {
@@ -84,11 +87,13 @@ export function createOwnerOnboardingService(
     },
 
     async resetRegistration(actor: Principal): Promise<void> {
+      requireUserPrincipal(actor);
       const resetApplied = await registration.reset(actor.id);
       if (!resetApplied) throw new OwnerOnboardingChangedError("Credential setup changed");
     },
 
     async readStatus(actor: Principal): Promise<OwnerNauttStatus> {
+      requireUserPrincipal(actor);
       const credential = await credentials.getRedacted(actor, actor.id);
       if (!credential.hasCredential) return { credential, balance: null, balanceUnavailable: false };
       let apiKey = "";

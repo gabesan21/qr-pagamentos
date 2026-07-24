@@ -21,7 +21,7 @@ function request(fields: Record<string, string>, headers: HeadersInit = sameOrig
 
 describe("owner storefront route", () => {
   it("rejects missing and mismatched Origin before authorization or service work", async () => {
-    for (const headers of [{ host: "local" }, { origin: "https://evil.example", host: "local" }]) {
+    for (const headers of [{ host: "local" }, { origin: "https://evil.example", host: "local" }] as Record<string, string>[]) {
       requireOwnerFromCookie.mockClear();
       ownerProtectedMutationResponse.mockClear();
       update.mockClear();
@@ -38,9 +38,13 @@ describe("owner storefront route", () => {
 
   it("re-authorizes before form parsing and updates only its actor", async () => {
     requireOwnerFromCookie.mockRejectedValueOnce(new Error("protected"));
-    ownerProtectedMutationResponse.mockReturnValueOnce(new Response(null, { status: 401 }));
-    const protectedResponse = await POST(request({ storefrontSlug: "my-store" }));
-    expect(protectedResponse.status).toBe(401);
+    ownerProtectedMutationResponse.mockReturnValueOnce(new Response(null, { status: 403 }));
+    const deniedRequest = request({ storefrontSlug: "my-store" });
+    const formData = vi.spyOn(deniedRequest, "formData");
+    const protectedResponse = await POST(deniedRequest);
+    expect(protectedResponse.status).toBe(403);
+    expect(await protectedResponse.text()).toBe("");
+    expect(formData).not.toHaveBeenCalled();
     expect(update).not.toHaveBeenCalled();
 
     requireOwnerFromCookie.mockResolvedValue(owner);

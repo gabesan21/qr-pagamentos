@@ -23,9 +23,11 @@ describe("owner product route", () => {
   });
   it("returns an empty protected response before parsing input", async () => {
     requireOwnerFromCookie.mockRejectedValueOnce(new Error("protected"));
-    ownerProtectedMutationResponse.mockReturnValueOnce(new Response(null, { status: 401 }));
-    const response = await POST(request());
-    expect(response.status).toBe(401); expect(await response.text()).toBe(""); expect(create).not.toHaveBeenCalled();
+    ownerProtectedMutationResponse.mockReturnValueOnce(new Response(null, { status: 403 }));
+    const deniedRequest = request();
+    const formData = vi.spyOn(deniedRequest, "formData");
+    const response = await POST(deniedRequest);
+    expect(response.status).toBe(403); expect(await response.text()).toBe(""); expect(formData).not.toHaveBeenCalled(); expect(create).not.toHaveBeenCalled();
   });
   it("uses only the cookie principal and opaque redirects", async () => {
     requireOwnerFromCookie.mockResolvedValue(owner); ownerProtectedMutationResponse.mockReturnValue(null);

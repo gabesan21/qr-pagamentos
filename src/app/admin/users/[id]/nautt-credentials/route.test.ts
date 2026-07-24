@@ -1,54 +1,59 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { requireAdminFromCookie, protectedMutationResponse, onboard } = vi.hoisted(() => ({
-  requireAdminFromCookie: vi.fn(),
-  protectedMutationResponse: vi.fn(),
-  onboard: vi.fn(),
+const { requireAuthenticated } = vi.hoisted(() => ({ requireAuthenticated: vi.fn() }));
+
+vi.mock("server-only", () => ({}));
+vi.mock("next/headers", () => ({ cookies: async () => ({ get: () => ({ value: "session" }) }) }));
+vi.mock("@/auth/authorization", async (original) => ({
+  ...(await original<typeof import("@/auth/authorization")>()),
+  getAuthorizationService: () => ({ requireAuthenticated }),
 }));
 
-vi.mock("@/app/admin/guard", () => ({ requireAdminFromCookie, protectedMutationResponse }));
-vi.mock("server-only", () => ({}));
-vi.mock("@/integrations/nautt/owner-onboarding", () => ({ getOwnerOnboardingService: () => ({ onboard }) }));
-
+import { UnauthenticatedError } from "@/auth/authorization";
 import { POST } from "./route";
 
-const actor = { id: "admin", username: "admin", email: null, role: "ADMIN" as const, status: "ACTIVE" as const, createdAt: new Date() };
-const request = (body = new URLSearchParams()) => new Request("http://0.0.0.0:3000/admin/users/target/nautt-credentials", { method: "POST", headers: { origin: "http://0.0.0.0:3000", host: "0.0.0.0:3000" }, body });
-const target = { params: Promise.resolve({ id: "target" }) };
+const sameOrigin = { origin: "http://local", host: "local" };
 
-describe("admin nautt credentials route", () => {
-  process.env.NAUTT_WEBHOOK_CALLBACK_URL = "https://payments.example/api/nautt/webhooks";
-  it("returns empty 401 and 403 responses", async () => {
-    for (const status of [401, 403] as const) {
-      requireAdminFromCookie.mockRejectedValueOnce(new Error("protected"));
-      protectedMutationResponse.mockReturnValueOnce(new Response(null, { status }));
-      const response = await POST(request(), target);
-      expect(response.status).toBe(status);
-      expect(await response.text()).toBe("");
-      expect(response.headers.get("location")).toBeNull();
-    }
+function request() {
+  return new Request("http://local/admin/users/target/nautt-credentials", {
+    method: "POST",
+    headers: sameOrigin,
+    body: new URLSearchParams({ apiKey: "secret-key", userId: "target" }),
+  });
+}
+
+describe("retired administrator Nautt credential route", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("keeps same-origin rejection first", async () => {
+    const response = await POST(new Request("http://local/admin/users/target/nautt-credentials", { method: "POST" }));
+
+    expect(response.status).toBe(403);
+    expect(await response.text()).toBe("");
+    expect(requireAuthenticated).not.toHaveBeenCalled();
   });
 
-  it("uses the cookie principal and the URL target, then redirects opaquely", async () => {
-    requireAdminFromCookie.mockResolvedValue(actor);
-    protectedMutationResponse.mockReturnValue(null);
-    onboard.mockResolvedValue(undefined);
-    const response = await POST(request(new URLSearchParams({ apiKey: "secret-key", userId: "attacker" })), target);
-    expect(onboard).toHaveBeenCalledWith(actor, "target", "secret-key", "https://payments.example/api/nautt/webhooks");
-    expect(response.status).toBe(303);
-    expect(response.headers.get("location")).toBe("/admin?success=nautt-credentials");
-    expect(response.headers.get("location")).not.toContain("secret-key");
-    expect(response.headers.get("location")).not.toContain("target");
+  it("returns an empty 401 without parsing input when no active principal resolves", async () => {
+    requireAuthenticated.mockRejectedValue(new UnauthenticatedError());
+    const deniedRequest = request();
+    const formData = vi.spyOn(deniedRequest, "formData");
+
+    const response = await POST(deniedRequest);
+
+    expect(response.status).toBe(401);
+    expect(await response.text()).toBe("");
+    expect(formData).not.toHaveBeenCalled();
   });
 
-  it("redirects failures without disclosing the target or key", async () => {
-    requireAdminFromCookie.mockResolvedValue(actor);
-    protectedMutationResponse.mockReturnValue(null);
-    onboard.mockRejectedValueOnce(new Error("save failed"));
-    const response = await POST(request(new URLSearchParams({ apiKey: "secret-key" })), target);
-    expect(response.status).toBe(303);
-    expect(response.headers.get("location")).toBe("/admin?error=nautt-credentials-failed");
-    expect(response.headers.get("location")).not.toContain("secret-key");
-    expect(response.headers.get("location")).not.toContain("target");
+  it.each(["ADMIN", "USER"] as const)("returns an empty 403 without parsing input for an active %s", async (role) => {
+    requireAuthenticated.mockResolvedValue({ id: role.toLowerCase(), role });
+    const deniedRequest = request();
+    const formData = vi.spyOn(deniedRequest, "formData");
+
+    const response = await POST(deniedRequest);
+
+    expect(response.status).toBe(403);
+    expect(await response.text()).toBe("");
+    expect(formData).not.toHaveBeenCalled();
   });
 });

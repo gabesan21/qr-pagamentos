@@ -32,11 +32,23 @@ describe("authenticated home states", () => {
     await expect(Home({ searchParams: Promise.resolve({}) })).rejects.toThrow("redirect:/login");
   });
 
+  it("redirects administrators before merchant or locale work", async () => {
+    resolvePrincipal.mockResolvedValueOnce({ id: "admin", role: "ADMIN" });
+
+    await expect(Home({ searchParams: Promise.resolve({}) })).rejects.toThrow("redirect:/admin");
+    expect(resolveLocale).not.toHaveBeenCalled();
+    expect(readStatus).not.toHaveBeenCalled();
+    expect(listProducts).not.toHaveBeenCalled();
+    expect(listPaymentLinks).not.toHaveBeenCalled();
+    expect(getCheckoutPolicy).not.toHaveBeenCalled();
+    expect(getStorefrontSettings).not.toHaveBeenCalled();
+  });
+
   it.each([
     ["en", "Language preference saved.", "Choose a supported language.", "Sign out"],
     ["pt-BR", "Preferência de idioma salva.", "Escolha um idioma compatível.", "Sair"],
   ] as const)("renders default, locale, success, error, and logout states in %s", async (locale, success, error, signOut) => {
-    resolvePrincipal.mockResolvedValue({ id: "admin" });
+    resolvePrincipal.mockResolvedValue({ id: "owner", role: "USER" });
     resolveLocale.mockResolvedValue(locale);
     readStatus.mockResolvedValue({ credential: { hasCredential: false, credentialRevision: null, webhookRegistrationState: null, updatedAt: null }, balance: null, balanceUnavailable: false });
     listProducts.mockResolvedValue([]);

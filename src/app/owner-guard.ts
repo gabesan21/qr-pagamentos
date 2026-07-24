@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { ForbiddenError, UnauthenticatedError, getAuthorizationService } from "@/auth/authorization";
 
 export async function requireOwnerFromCookie() {
-  return getAuthorizationService().requireAuthenticated((await cookies()).get("qr_session")?.value);
+  return getAuthorizationService().requireUser((await cookies()).get("qr_session")?.value);
 }
 
 export function ownerProtectedMutationResponse(error: unknown) {

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { ForbiddenError } from "./authorization";
 import {
@@ -10,6 +10,7 @@ import {
 } from "./storefront-settings";
 
 const owner = { id: "owner", username: "owner", email: null, role: "USER" as const, status: "ACTIVE" as const, createdAt: new Date() };
+const admin = { ...owner, id: "admin", role: "ADMIN" as const };
 const otherOwner = { ...owner, id: "other-owner" };
 const disabledOwner = { ...owner, id: "disabled-owner", status: "DISABLED" as const };
 
@@ -61,6 +62,17 @@ describe("storefront-settings service", () => {
       storefrontEnabled: true,
     });
     expect(testStore.values.get(otherOwner.id)).toEqual({ ...defaults, storefrontSlug: "taken" });
+  });
+
+  it("denies administrators before validation or persistence", async () => {
+    const get = vi.fn();
+    const set = vi.fn();
+    const service = createStorefrontSettingsService({ get, set });
+
+    await expect(service.getForOwner(admin)).rejects.toBeInstanceOf(ForbiddenError);
+    await expect(service.update(admin, {} as never)).rejects.toBeInstanceOf(ForbiddenError);
+    expect(get).not.toHaveBeenCalled();
+    expect(set).not.toHaveBeenCalled();
   });
 
   it("clears blank optional values to null", async () => {

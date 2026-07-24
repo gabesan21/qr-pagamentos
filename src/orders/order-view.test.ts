@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("server-only", () => ({}));
 
 import type { Principal } from "../auth/authorization";
+import { ForbiddenError } from "../auth/authorization";
 import type { CheckoutDataPolicy, CustomerSnapshotV1 } from "./payment-link-order";
 import {
   createOrderViewService,
@@ -100,6 +101,18 @@ describe("order view service", () => {
     await expect(service.listForOwner(owner)).resolves.toHaveLength(1);
     expect(listForOwner).toHaveBeenCalledWith(ids.owner, ORDER_VIEW_LIST_LIMIT);
     expect(listGlobal).not.toHaveBeenCalled();
+  });
+
+  it("denies administrators at owner seams without querying either projection", async () => {
+    const repository = storeWith();
+    const service = createOrderViewService(repository);
+
+    await expect(service.listForOwner(admin)).rejects.toBeInstanceOf(ForbiddenError);
+    await expect(service.getForOwner(admin, "not-an-order")).rejects.toBeInstanceOf(ForbiddenError);
+    expect(repository.listForOwner).not.toHaveBeenCalled();
+    expect(repository.findForOwner).not.toHaveBeenCalled();
+    expect(repository.listGlobal).not.toHaveBeenCalled();
+    expect(repository.findGlobal).not.toHaveBeenCalled();
   });
 
   it("lists globally only for an active administrator", async () => {

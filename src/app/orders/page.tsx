@@ -12,6 +12,7 @@ import { getOrderViewService } from "@/orders/order-view";
 export default async function OrdersPage() {
   const principal = await getAuthorizationService().resolve((await cookies()).get("qr_session")?.value);
   if (!principal) redirect("/login");
+  if (principal.role === "ADMIN") redirect("/admin");
   const [locale, orders] = await Promise.all([
     getLocalePreferenceService().resolve(principal.id),
     getOrderViewService().listForOwner(principal),

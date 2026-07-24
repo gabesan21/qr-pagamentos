@@ -51,6 +51,15 @@ describe("owner order detail page", () => {
     expect(getForOwner).not.toHaveBeenCalled();
   });
 
+  it("redirects administrators before params, locale, or owner-order reads", async () => {
+    resolvePrincipal.mockResolvedValueOnce({ ...principal, id: "admin", role: "ADMIN" });
+    const params = Promise.resolve({ id: orderId });
+
+    await expect(OrderDetailPage({ params })).rejects.toThrow("redirect:/admin");
+    expect(resolveLocale).not.toHaveBeenCalled();
+    expect(getForOwner).not.toHaveBeenCalled();
+  });
+
   it.each([
     ["en", "Donation", "Name", "Payment confirmed"],
     ["pt-BR", "Doação", "Nome", "Pagamento confirmado"],

@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 
+import { ForbiddenError } from "../../auth/authorization";
 import { NauttCredentialReplacementBlockedError } from "../../auth/nautt-credential";
 import { OwnerWebhookRegistrationError, OwnerWebhookRegistrationRecoveryRequiredError } from "./owner-webhook-registration";
 import {
@@ -12,6 +13,7 @@ import {
 } from "./owner-onboarding";
 
 const actor = { id: "owner", username: "owner", email: null, role: "USER" as const, status: "ACTIVE" as const, createdAt: new Date() };
+const admin = { ...actor, id: "admin", role: "ADMIN" as const };
 const balance = { tokenSymbol: "USDT", tokenName: "Tether USD", networkName: "Polygon", balance: "9.25" };
 
 function ports() {
@@ -28,6 +30,31 @@ function ports() {
 }
 
 describe("owner onboarding", () => {
+  it("denies administrators before credential, decryption, provider, or registration work", async () => {
+    const dependency = ports();
+    const service = createOwnerOnboardingService(dependency.credentials, dependency.wallet, dependency.registration);
+
+    await expect(service.onboard(admin, actor.id, "key", "https://payments.example/webhooks")).rejects.toBeInstanceOf(ForbiddenError);
+    await expect(service.completeRegistration(admin, "https://payments.example/webhooks")).rejects.toBeInstanceOf(ForbiddenError);
+    await expect(service.resetRegistration(admin)).rejects.toBeInstanceOf(ForbiddenError);
+    await expect(service.readStatus(admin)).rejects.toBeInstanceOf(ForbiddenError);
+    expect(Object.values(dependency.credentials).every((operation) => operation.mock.calls.length === 0)).toBe(true);
+    expect(dependency.wallet.read).not.toHaveBeenCalled();
+    expect(dependency.registration.register).not.toHaveBeenCalled();
+    expect(dependency.registration.reset).not.toHaveBeenCalled();
+  });
+
+  it("denies cross-owner onboarding before credential or provider work", async () => {
+    const dependency = ports();
+    const service = createOwnerOnboardingService(dependency.credentials, dependency.wallet, dependency.registration);
+
+    await expect(service.onboard(actor, "other-owner", "key", "https://payments.example/webhooks")).rejects.toBeInstanceOf(ForbiddenError);
+    expect(dependency.credentials.snapshotRevision).not.toHaveBeenCalled();
+    expect(dependency.wallet.read).not.toHaveBeenCalled();
+    expect(dependency.credentials.saveValidated).not.toHaveBeenCalled();
+    expect(dependency.registration.register).not.toHaveBeenCalled();
+  });
+
   it("validates before CAS persistence and registers only the committed revision", async () => {
     const dependency = ports();
     const order: string[] = [];

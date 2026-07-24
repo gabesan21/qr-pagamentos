@@ -18,5 +18,7 @@ describe("server authorization", () => {
     }
     await expect(service.requireAdmin("live-user")).rejects.toBeInstanceOf(ForbiddenError);
     await expect(service.requireAdmin("live-admin")).resolves.toEqual(admin);
+    await expect(service.requireUser("live-admin")).rejects.toBeInstanceOf(ForbiddenError);
+    await expect(service.requireUser("live-user")).resolves.toEqual(user);
   });
 });
