@@ -72,6 +72,31 @@
       ],
       "test_seconds": 0,
       "result": "advanced"
+    },
+    {
+      "at": "2026-07-24T01:29:37-03:00",
+      "event": "stage",
+      "stage": "003_human_approval",
+      "contexts": [
+        "critic2_003_6_3_3"
+      ],
+      "strategy": "strong independent critical round-2 review of the repaired exact helper mount matrix, migration/evidence boundary, retained PostgreSQL and Nautt credential continuity, executable install-lifecycle fixture, exact-SHA update/rollback, atomic backup/restore, paired retention/purge, Docker evidence, and isolated cleanup topology",
+      "tests": "card, revised plan, prior approval blockers, integrated media and administrative specs, root Compose/install contract, current app runtime network/secret topology, AC1-AC7 observability, and restore-rehearsal feasibility inspection",
+      "return": 2,
+      "return_limit": 2,
+      "test_seconds": 9,
+      "result": "returned_to_002"
+    },
+    {
+      "at": "2026-07-24T01:30:32-03:00",
+      "event": "transition",
+      "from": "003_human_approval",
+      "to": "002_planning",
+      "contexts": [
+        "critic2_003_6_3_3"
+      ],
+      "test_seconds": 0,
+      "result": "returned"
     }
   ]
 }
