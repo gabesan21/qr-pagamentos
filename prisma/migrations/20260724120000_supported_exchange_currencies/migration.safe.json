@@ -1,0 +1,156 @@
+{
+  "version": 1,
+  "id": "20260724120000_supported_exchange_currencies",
+  "operations": [
+    {
+      "op": "createTable",
+      "table": {
+        "schema": "app",
+        "name": "supported_exchange_currency"
+      },
+      "columns": [
+        {
+          "name": "code",
+          "type": {
+            "name": "varchar",
+            "length": 3
+          },
+          "nullable": false
+        },
+        {
+          "name": "pair_id",
+          "type": {
+            "name": "uuid"
+          },
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "supported_exchange_currency"
+      },
+      "constraint": {
+        "kind": "primaryKey",
+        "name": "supported_exchange_currency_pkey",
+        "columns": [
+          "code"
+        ]
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "supported_exchange_currency"
+      },
+      "constraint": {
+        "kind": "unique",
+        "name": "supported_exchange_currency_pair_id_key",
+        "columns": [
+          "pair_id"
+        ]
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "supported_exchange_currency"
+      },
+      "constraint": {
+        "kind": "foreignKey",
+        "name": "supported_exchange_currency_pair_fkey",
+        "columns": [
+          "pair_id"
+        ],
+        "references": {
+          "table": {
+            "schema": "app",
+            "name": "catalog_currency_pair"
+          },
+          "columns": [
+            "id"
+          ]
+        },
+        "onDelete": "RESTRICT",
+        "onUpdate": "CASCADE",
+        "notValid": false
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "supported_exchange_currency"
+      },
+      "constraint": {
+        "kind": "check",
+        "name": "supported_exchange_currency_code_bounds",
+        "expression": {
+          "op": "and",
+          "items": [
+            {
+              "op": "gte",
+              "left": {
+                "kind": "column",
+                "name": "code"
+              },
+              "right": {
+                "kind": "literal",
+                "literal": {
+                  "kind": "string",
+                  "value": "AAA"
+                }
+              }
+            },
+            {
+              "op": "lte",
+              "left": {
+                "kind": "column",
+                "name": "code"
+              },
+              "right": {
+                "kind": "literal",
+                "literal": {
+                  "kind": "string",
+                  "value": "ZZZ"
+                }
+              }
+            }
+          ]
+        },
+        "notValid": false
+      }
+    },
+    {
+      "op": "grant",
+      "object": {
+        "kind": "table",
+        "schema": "app",
+        "name": "supported_exchange_currency"
+      },
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "role": "qr_runtime"
+    },
+    {
+      "op": "revoke",
+      "object": {
+        "kind": "table",
+        "schema": "app",
+        "name": "catalog_currency_pair"
+      },
+      "privileges": [
+        "DELETE"
+      ],
+      "role": "qr_runtime"
+    }
+  ]
+}

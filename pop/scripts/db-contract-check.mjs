@@ -35,7 +35,7 @@ assert(runtimeClient.includes("process.env.DATABASE_URL") && !runtimeClient.incl
 const gitignore = await readFile(".gitignore", "utf8");
 assert(gitignore.split("\n").includes("src/generated/prisma/"), "Generated Prisma output is not ignored");
 const schema = await readFile("prisma/schema.prisma", "utf8");
-for (const model of ["DatabaseFoundationFixture", "User", "PasswordCredential", "NauttCredential", "DeploymentBootstrap", "Session", "GlobalPaymentSettings", "ProviderQuote", "ProviderOrder", "WebhookDelivery", "WebhookDeliveryAttempt", "WebhookRecoveryLease", "CatalogCurrencyPair", "CatalogPaymentMethod", "Product", "ProductCategory", "PaymentLink", "PaymentLinkOrder", "CheckoutAttempt", "PaymentLinkSingleUseSettlement", "MediaObject"]) {
+for (const model of ["DatabaseFoundationFixture", "User", "PasswordCredential", "NauttCredential", "DeploymentBootstrap", "Session", "GlobalPaymentSettings", "ProviderQuote", "ProviderOrder", "WebhookDelivery", "WebhookDeliveryAttempt", "WebhookRecoveryLease", "CatalogCurrencyPair", "CatalogPaymentMethod", "SupportedExchangeCurrency", "Product", "ProductCategory", "PaymentLink", "PaymentLinkOrder", "CheckoutAttempt", "PaymentLinkSingleUseSettlement", "MediaObject"]) {
   assert(schema.includes(`model ${model}`), `Schema is missing ${model}`);
 }
 assert(schema.includes('output   = "../src/generated/prisma"'), "Generated output changed");
@@ -201,6 +201,16 @@ for (const contract of ["profile_version", "user_profile_version_nonnegative", "
 assert(schema.includes("profileVersion") && schema.includes('@map("profile_version")'), "Schema is missing the merchant profile version");
 assert(!/GRANT|REVOKE|ALTER\s+(?:TABLE|SCHEMA).*\sOWNER\s+TO/i.test(profileMigration), "Merchant-profile migration changes established runtime privileges or ownership");
 
+const exchangeCurrencyMigration = await readFile("prisma/migrations/20260724120000_supported_exchange_currencies/migration.sql", "utf8");
+for (const contract of ["supported_exchange_currency_pkey", "supported_exchange_currency_pair_id_key", "supported_exchange_currency_pair_fkey", "supported_exchange_currency_code_bounds", "ON DELETE RESTRICT", "GRANT SELECT, INSERT, UPDATE, DELETE", 'REVOKE DELETE ON TABLE "app"."catalog_currency_pair"']) {
+  assert(exchangeCurrencyMigration.includes(contract), `Supported-exchange-currency migration lost ${contract}`);
+}
+for (const field of ["model SupportedExchangeCurrency", "pairId", '@map("pair_id")', "supportedExchangeCurrency"]) {
+  assert(schema.includes(field), `Schema is missing supported-exchange-currency field ${field}`);
+}
+assert(!/GRANT\s+(?:TRUNCATE|REFERENCES|TRIGGER)|ALTER\s+(?:TABLE|SCHEMA).*\sOWNER\s+TO/i.test(exchangeCurrencyMigration), "Supported-exchange-currency migration grants excess privileges or changes ownership");
+assert(!/GRANT[^\n]*\bDELETE\b[^\n]*catalog_currency_pair/i.test(exchangeCurrencyMigration), "Runtime may not physically delete retained catalog currency pairs");
+
 const bootstrap = await readFile("prisma/bootstrap.sql", "utf8");
 assert(bootstrap.includes("GRANT CONNECT ON DATABASE qr_pagamentos TO qr_migrator, qr_runtime"), "Both roles require explicit CONNECT");
 assert(bootstrap.includes("ALTER DEFAULT PRIVILEGES FOR ROLE qr_migrator IN SCHEMA app"), "Migrator-scoped defaults are missing");
@@ -210,6 +220,9 @@ for (const contract of ["to_regclass('app.global_payment_settings') IS NOT NULL"
 }
 for (const contract of ["to_regclass('app.product_category') IS NOT NULL", "REVOKE DELETE ON TABLE app.product_category"]) {
   assert(bootstrap.includes(contract), `Bootstrap product-category ACL lost ${contract}`);
+}
+for (const contract of ["to_regclass('app.catalog_currency_pair') IS NOT NULL", "REVOKE DELETE ON TABLE app.catalog_currency_pair"]) {
+  assert(bootstrap.includes(contract), `Bootstrap catalog currency-pair ACL lost ${contract}`);
 }
 assert(!/\bPASSWORD\s+['"]|postgres(?:ql)?:\/\//i.test(bootstrap), "Bootstrap must not contain credentials or URLs");
 
