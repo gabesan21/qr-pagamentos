@@ -158,6 +158,31 @@
       ],
       "test_seconds": 0,
       "result": "advanced"
+    },
+    {
+      "at": "2026-07-24T03:18:00-03:00",
+      "event": "stage",
+      "stage": "005_verifying",
+      "contexts": [
+        "verify_6_3_3"
+      ],
+      "strategy": "fresh strong independent full critical review of the original durable-media request, exact-release install/update identity, non-root volume and prebind POSIX contract, paired backup/restore failure semantics, recovery and cleanup isolation, retained credential and volume lifecycle, default retention and paired purge, code quality, specs, DOX, and every AC1-AC7 evidence surface",
+      "tests": "five fresh clean-clone Docker scenarios (media, install-lifecycle, update, media-backup, media-restore); container contract; installer contract; media decoder and 28 focused tests; typecheck; lint; build; full Vitest baseline classification; exact archive-mode adversarial fixture; source failure-path audit; scope/diff/PoP validation",
+      "return": 1,
+      "return_limit": 2,
+      "test_seconds": 1280,
+      "result": "returned_to_004"
+    },
+    {
+      "at": "2026-07-24T03:16:46-03:00",
+      "event": "transition",
+      "from": "005_verifying",
+      "to": "004_processing",
+      "contexts": [
+        "verify_6_3_3"
+      ],
+      "test_seconds": 0,
+      "result": "returned"
     }
   ]
 }
