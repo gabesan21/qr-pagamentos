@@ -38,6 +38,7 @@ model User {
   providerQuotes   ProviderQuote[]
   providerOrders   ProviderOrder[]
   products         Product[]
+  productCategories ProductCategory[]
   paymentLinks     PaymentLink[]
   paymentLinkOrders PaymentLinkOrder[]
   checkoutAttempts CheckoutAttempt[]
@@ -164,6 +165,7 @@ model CatalogPaymentMethod {
 model Product {
   id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   ownerId         String   @map("owner_id") @db.Uuid
+  categoryId      String?  @map("category_id") @db.Uuid
   internalName    String   @map("internal_name") @db.VarChar(128)
   titlePtBr       String   @map("title_pt_br") @db.VarChar(160)
   titleEn         String   @map("title_en") @db.VarChar(160)
@@ -175,12 +177,34 @@ model Product {
   createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
   owner           User     @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  category        ProductCategory? @relation(fields: [categoryId, ownerId], references: [id, ownerId], onDelete: Restrict)
   paymentLinks    PaymentLink[]
   paymentLinkOrders PaymentLinkOrder[]
 
   @@unique([id, ownerId], map: "product_id_owner_id_key")
   @@index([ownerId, internalName, id], map: "product_owner_internal_name_id_idx")
+  @@index([ownerId, categoryId, id], map: "product_owner_category_id_idx")
   @@map("product")
+  @@schema("app")
+}
+
+model ProductCategory {
+  id        String    @id @db.Uuid
+  ownerId   String    @map("owner_id") @db.Uuid
+  namePtBr  String    @map("name_pt_br") @db.VarChar(160)
+  nameEn    String    @map("name_en") @db.VarChar(160)
+  active    Boolean
+  version   Int       @db.Integer
+  createdAt DateTime  @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime  @map("updated_at") @db.Timestamptz(3)
+  owner     User      @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  products  Product[]
+
+  @@unique([id, ownerId], map: "product_category_id_owner_id_key")
+  @@unique([ownerId, namePtBr], map: "product_category_owner_name_pt_br_key")
+  @@unique([ownerId, nameEn], map: "product_category_owner_name_en_key")
+  @@index([ownerId, active, namePtBr, id], map: "product_category_owner_active_name_idx")
+  @@map("product_category")
   @@schema("app")
 }
 

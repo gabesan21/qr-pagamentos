@@ -4,7 +4,7 @@
 - **Epoch/Phase:** [[roadmap/5-storefront-and-production|Phase 5.1-5.2]]
 - **Status:** aprovada
 - **Created:** 2026-07-21
-- **Updated:** 2026-07-21 — task 5.1.1 delivered per-owner storefront settings (slug, bilingual display name, accent color, enabled flag) with the owner settings surface; the public storefront page remains in Phase 5.2.
+- **Updated:** 2026-07-24 — owner product categories remain excluded from the current redacted storefront projection until the grouped public-store task.
 
 ## What it covers
 
@@ -19,6 +19,7 @@ This spec defines the durable per-owner storefront contract: the persisted setti
 - Enabling a storefront requires a valid slug already present in the same save; a save that requests enablement without a valid slug is rejected without mutation. Disabling never requires a slug and never clears the stored slug.
 - Storefront settings change only through the authenticated owner's own re-authorized settings save, scoped to that owner and an `ACTIVE` account; no administrator, cross-owner, or public mutation path exists. Saves report only opaque changed/failed/conflict outcomes.
 - **Public redaction boundary:** the future public storefront page may expose only the slug, the two display names, the accent color, and the owner's active products that have at least one active payment link, each linking to its checkout. It never exposes the owner identifier, username, email, checkout data policy, credential state, or any other account data.
+- Owner product categories and the product/category association are not part of the current public storefront projection. Their grouped public presentation belongs to task 9.1.1; until then, category identity, names, state, version, ownership, and timestamps remain server-only.
 
 ## Implemented slices
 

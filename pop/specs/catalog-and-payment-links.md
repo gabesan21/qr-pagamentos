@@ -4,7 +4,7 @@
 - **Epoch/Phase:** [[roadmap/3-catalog-and-payment-links|Epoch 3]]
 - **Status:** aprovada
 - **Created:** 2026-07-20
-- **Updated:** 2026-07-21 — task 5.3.2 adds the bounded opaque-429 boundary to the public payment-link read API.
+- **Updated:** 2026-07-24 — task 7.2.1 adds owner-scoped bilingual product categories without changing V1 public projections.
 
 ## What it covers
 
@@ -29,6 +29,10 @@ This spec defines the administrator-managed catalog of Nautt provider UUIDs, acc
 ### Products
 
 - Authenticated account owners manage only their own products with: internal name, public title (i18n), description (i18n), exact-decimal price, active/inactive status.
+- Each owner may maintain categories with required `pt-BR` and English names. Names are Unicode-trimmed, nonblank, single-line, at most 160 code points, stored without case folding or internal-whitespace rewriting, and exact-unique per owner and locale.
+- Categories are retained after one-way deactivation and use nonnegative expected-version CAS for edits and deactivation. Unknown, stale, inactive, malformed, cross-owner, and deleted-owner targets share opaque protected/conflict outcomes and cannot partially mutate state.
+- A product's current category is nullable and owner-bound. Existing products remain uncategorized without backfill. A referenced category can be deactivated only with an explicit distinct active category of the same owner; every current product is reassigned atomically before the source becomes inactive. Without references, no replacement is required.
+- Category reassignment changes only the product's current organization. It never rewrites product values, payment links, order snapshots, identifiers, provider data, or any V1 public DTO. Product category selection during ordinary product management belongs to task 7.2.2.
 - A product price is persisted and exchanged inside the server as one canonical positive ASCII decimal string. Its grammar is `^(?:0|[1-9][0-9]{0,11})(?:\.[0-9]{0,5}[1-9])?$`, with the all-zero value excluded: no sign, exponent, comma, grouping separator, surrounding whitespace, leading integer zero, or trailing fractional zero is accepted. This gives at most 12 integer digits, 6 fractional digits, and 18 total digits; values outside those precision/scale limits are rejected rather than rounded. The application never converts the value through JavaScript `Number`.
 - The protected product form accepts that canonical dot-decimal contract; it does not silently trim or rewrite malformed prices. Presentation alone formats the exact value according to the persisted `pt-BR` or `en` locale and never changes the stored canonical value.
 - Internal names are required and limited to 128 Unicode code points; each public title is required and limited to 160 Unicode code points; each public description is required and limited to 2,000 Unicode code points.
@@ -46,6 +50,7 @@ This spec defines the administrator-managed catalog of Nautt provider UUIDs, acc
 - **Task 3.3.1:** PaymentLink persistence with a unique 24-character server-generated URL-safe identifier, type, restrictive product/pair references, nullable expiry, active/created metadata, and commit-boundary active dependency enforcement serialized with deactivation. Active administrators can list, create, and one-way manually revoke links through opaque protected mutations and localized `/admin` management. Task 4.1.1 supersedes only that initial administrator-only payment-link-management boundary. Public `href`, checkout/orders/provider requests, automatic expiry inactivation, and automatic `SINGLE_USE` consumption remain future work.
 - **Task 3.3.2:** Sessionless exact-token public resolution with a localized, redacted DTO, strict read-time expiry, and uniform empty `404` plus `no-store` for unavailable input. It performs no write, provider request, checkout, order, or automatic consumption.
 - **Task 4.1.1:** Required persisted owner isolation for products and payment links, moved product/link management to the authenticated owner surface, and added the account-level checkout-data policy. The public resolver and checkout/order/provider behavior remain unchanged.
+- **Task 7.2.1:** Owner-scoped bilingual category persistence, exact per-owner localized-name uniqueness, owner-only opaque create/edit/deactivate service, expected-version CAS, and atomic safe reassignment through a nullable same-owner product bridge. Categories remain absent from current public DTOs and UI.
 
 ### Payment links
 
