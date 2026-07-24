@@ -3,9 +3,9 @@
 - **Project:** [[PROJECT|QR Pagamentos]]
 - **Epoch/Phase:** [[roadmap/6-secure-panel-foundation|Phase 6.3]]
 - **Status:** aprovada
-- **Implementation:** partial
+- **Implementation:** implemented
 - **Created:** 2026-07-23
-- **Updated:** 2026-07-24 — task 6.3.3 adds the persistent volume and paired operational lifecycle; disposable Docker backup/restore/update evidence remains pending.
+- **Updated:** 2026-07-24 — task 6.3.3 delivered and exercised the persistent volume and paired operational lifecycle.
 
 ## What it covers
 
@@ -57,9 +57,9 @@ This spec defines the single hardened server boundary for merchant-owned storefr
 - Restore first captures a protected automatic recovery pair. A requested-restore failure attempts that pair; double failure leaves app stopped and retains all artifacts and evidence.
 - This operations slice does not add attachment columns, upload UI/routes, projection wiring, provider access, or a second media root.
 
-## Open
+## Verification
 
-- Independent critical verification and clean-clone `media`, `install-lifecycle`, `update`, `media-backup`, and `media-restore` runtime evidence remain pending; implementation stays partial until they pass.
+- Clean-clone `media`, `install-lifecycle`, `update`, `media-backup`, and `media-restore` passed on 2026-07-24 with exact disposable resource cleanup.
 
 ## Related specs
 

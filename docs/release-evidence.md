@@ -31,9 +31,9 @@ configuration, or secret-file contents belong in this ledger.
 | Topology and TLS proxy | `compose.yaml`, `README.md`, `src/app/origin-guard.ts`, `src/security/public-rate-limit.ts` | App is loopback-only; database/one-shots have no host ports; runbook requires replace-not-append forwarding headers. | **SKIPPED — user directed** | Public exposure and proxy trust boundary unverified. |
 | Startup and health | `compose.yaml`, `container/bootstrap.mjs`, `container/migrate.mjs`, `container/identity-admin.mjs`, `container/runtime.mjs`, `container/healthcheck.mjs` | One-shot dependency chain and runtime `SELECT 1` preflight precede bind; health is liveness only. | **SKIPPED — user directed** | Startup ordering and liveness response unverified. |
 | Configuration and secrets | `.env.compose.example`, `install/.env.example`, `container/prepare-identity-secrets.mjs`, `install/install.sh`, `AGENTS.md` | Distinct database credentials, protected file-backed staging, callback/API-base constraints, recovery posture, and encryption-key backup need are documented without values. | **SKIPPED — user directed** | Installer and secret handling unexercised. |
-| Persistent media topology | `Dockerfile`, `compose.yaml`, `container/media-preflight.mjs`, `container/runtime.mjs` | Static contract fixes app-only `media-data:/app/media`, UID/GID 1000, read-only root, private controls, and pre-bind POSIX refusal. | **PENDING — task 6.3.3 runtime gate** | Fresh-volume copy-up, mount isolation, restart persistence, and live refusal remain unverified. |
-| Install/update/uninstall lifecycle | `install/lib-operations.sh`, `install/install.sh`, `install/update.sh`, `install/uninstall.sh` | Static contract covers paired volume ownership, credential continuity, zero-row adoption, old-app boundary, image-only rollback, default retention, and exact-confirm paired purge. | **PENDING — task 6.3.3 runtime gate** | Role authentication, adoption, retained reinstall, update failure boundaries, and rollback remain unverified. |
-| Backup and restore | `install/backup.sh`, `install/restore.sh`, `install/pair-manifest.mjs`, `container/media-inventory.mjs` | Static contract covers atomic pair capture, closed manifest, isolated rehearsal inventory, same-volume restore, and automatic recovery retention. No runtime PASS is claimed. | **PENDING — task 6.3.3 runtime gate** | Backup integrity, rehearsal isolation/cleanup, managed restore, automatic recovery, and double-failure behavior remain unverified. |
+| Persistent media topology | `Dockerfile`, `compose.yaml`, `container/media-preflight.mjs`, `container/runtime.mjs` | Static contract fixes app-only `media-data:/app/media`, UID/GID 1000, read-only root, private controls, and pre-bind POSIX refusal. | **PASS — 2026-07-24 task 6.3.3** | Clean-clone `media` proved fresh copy-up identity, mount isolation, root-write refusal, restart persistence, and helper cleanup. |
+| Install/update/uninstall lifecycle | `install/lib-operations.sh`, `install/install.sh`, `install/update.sh`, `install/uninstall.sh` | Static contract covers paired volume ownership, credential continuity, zero-row adoption, old-app boundary, image-only rollback, default retention, and exact-confirm paired purge. | **PASS — 2026-07-24 task 6.3.3** | Clean-clone `install-lifecycle` and `update` proved role continuity, retained reinstall, adoption, paired purge, exact identities/media bytes, additive-migration failure retention, and old-app health. |
+| Backup and restore | `install/backup.sh`, `install/restore.sh`, `install/pair-manifest.mjs`, `container/media-inventory.mjs` | Static contract covers atomic pair capture, exact volume identities, closed manifest, isolated rehearsal inventory, same-volume restore, and automatic recovery retention. | **PASS — 2026-07-24 task 6.3.3** | Clean-clone `media-backup` and `media-restore` proved pair capture, protected artifacts, tamper refusal, exact-release rehearsal teardown, restored DB/media inventory, and same-volume managed health. |
 | Release documentation navigation | `README.md`, `docs/production-runbook.md`, this ledger | README links resolve to the authoritative runbook and ledger. | Not applicable; static link inspection only. | Operator must still complete the skipped operational gate. |
 
 ## Explicit skip register
@@ -50,11 +50,11 @@ The following work was not run for this candidate. Every entry is
 | `pnpm db:generate`, `pnpm db:test`, and `pnpm db:contract-check` | **SKIPPED — user directed** |
 | `pnpm container:contract-check` | **SKIPPED — user directed** |
 | Every `pnpm container:test --clean-clone --scenario` exercise (`build`, `config`, `happy`, `roles`, `failures`, `lifecycle`, `isolation`) | **SKIPPED — user directed** |
-| `pnpm container:test --clean-clone --scenario media` | **PENDING — task 6.3.3 runtime gate** |
-| `pnpm container:test --clean-clone --scenario install-lifecycle` | **PENDING — task 6.3.3 runtime gate** |
-| `pnpm container:test --clean-clone --scenario update` with media continuity and rollback assertions | **PENDING — task 6.3.3 runtime gate** |
-| `pnpm container:test --clean-clone --scenario media-backup` | **PENDING — task 6.3.3 runtime gate** |
-| `pnpm container:test --clean-clone --scenario media-restore` | **PENDING — task 6.3.3 runtime gate** |
+| `pnpm container:test --clean-clone --scenario media` | **PASS — 2026-07-24 task 6.3.3** |
+| `pnpm container:test --clean-clone --scenario install-lifecycle` | **PASS — 2026-07-24 task 6.3.3** |
+| `pnpm container:test --clean-clone --scenario update` with media continuity and rollback assertions | **PASS — 2026-07-24 task 6.3.3** |
+| `pnpm container:test --clean-clone --scenario media-backup` | **PASS — 2026-07-24 task 6.3.3** |
+| `pnpm container:test --clean-clone --scenario media-restore` | **PASS — 2026-07-24 task 6.3.3** |
 | `install/test.sh`, installer execution, initial-admin recovery, and uninstall execution | **SKIPPED — user directed** |
 | Compose build, startup, restart, service-log inspection, and container health checks | **SKIPPED — user directed** |
 | Browser, locale, storefront, checkout, and authenticated mutation exercises | **SKIPPED — user directed** |
@@ -64,11 +64,11 @@ The following work was not run for this candidate. Every entry is
 
 ## Static audit limits and handoff
 
-This task inspected source and documentation only. It found the dependency
-memories and commits listed above and recorded the committed topology and
-operational contracts in the runbook. It does not prove that images build,
-containers start, credentials work, Nautt is reachable, a proxy overwrites
-headers, backups restore, or the application is safe to expose publicly.
+The original release audit inspected source and documentation only. Task 6.3.3
+later added the dated disposable Docker evidence recorded above for persistent
+media, retained install/update, atomic backup, and exact-release restore. It
+does not prove Nautt reachability, proxy header replacement, or safe public
+exposure.
 
 Before a human merges or operates this release, carry out the skipped checks in
 an approved environment and append their real dated results to the release

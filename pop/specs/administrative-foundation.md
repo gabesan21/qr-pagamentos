@@ -5,6 +5,7 @@
 - **Status:** implementada
 - **Implementation:** partial
 - **Created:** 2026-07-13
+- **Updated:** 2026-07-24
 
 ## What it covers
 
@@ -103,10 +104,6 @@ changing the public/sessionless contracts above.
 - External identity providers and external authentication frameworks are excluded by product decision.
 - Email-based password reset and administrator TOTP MFA are deferred until after the currently planned roadmap.
 
-## Open
-
-- Persistent media operations are implemented statically but remain partial until independent critical verification and disposable install/update/backup/restore evidence pass.
-
 ## Implemented slices
 
 - [[1.1.1-scaffold-next-platform]] (2026-07-14) — pinned Node.js 24.18.0 and pnpm 11.13.0; added the typed Next.js baseline, frozen dependency graph, independent quality gates, explicit `pt-BR`/`en` routes and dictionary parity, and application-only `/api/health`. Database, migration, and container readiness remain pending in Phase 1.1, so this spec remains approved rather than fully implemented.
@@ -127,6 +124,7 @@ changing the public/sessionless contracts above.
 - [[1.4.5-audit-and-harden-epoch1-code-and-ui]] (2026-07-17) — closed the login pending advisory with native click/Enter browser evidence; made every authenticated read and preference mutation status-aware; preserved unexpected admin read failures for the recovery boundary; equalized unknown-username password verification work; removed vendored-tool lint noise; and repaired the identity-seed clean-clone reset to include session relations. Database, installer, image, all ten clean-clone scenarios, aggregate quality, and fresh manifest-bound design-system/login/admin evidence passed with no S2-S4 finding left open.
 - [[M-1.1-safe-docker-update-script]] (2026-07-22) — added a dedicated guarded update command for compatible installer deployments. It proves Compose ownership and exact database-volume mounting, validates source/staged Nautt-key continuity without rewriting secrets, writes protected secret-free rollback evidence before build, rechecks the volume and layered startup gates after deployment, and has deterministic refusal coverage plus an isolated install→update→update container scenario.
 - [[M-2.1-self-updating-safe-migrations]] (2026-07-22) — stage-004 implementation replaces the checked-out-release and backup-reference workflow with protected-upstream fast-forward/self-reexec, an immutable 19-migration baseline plus closed generated future migrations, secret-free offline policy verification, and exact-revision migrate-before-app promotion. Independent critical verification and closeout remain pending, so implementation is partial.
+- [[6.3.3-provision-persistent-media-operations]] (2026-07-24) — added the fixed non-root media volume, retained credential/volume lifecycle, exact-SHA update preflight and image-only rollback, atomic database/media backup, and isolated exact-release restore with automatic recovery. Clean-clone media, install lifecycle, update, backup, and restore scenarios passed.
 
 ## Related specs
 

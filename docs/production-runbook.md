@@ -111,8 +111,8 @@ numeric-owner media archive. It verifies the artifacts and atomically publishes
 one protected set before restarting the exact prior app; failure publishes
 nothing.
 
-The closed manifest contains only release SHA, Compose project, logical managed
-volume names, schema expectation, formats, sizes, and checksums. It contains no
+The closed manifest contains only release SHA, Compose project, exact managed
+volume identities, schema expectation, formats, sizes, and checksums. It contains no
 database row, media inventory, credential, secret path, or Docker mountpoint.
 Preserve the Nautt key separately under a policy at least as strict as the set.
 
@@ -125,7 +125,7 @@ install/restore.sh \
 ```
 
 It checks the closed manifest, checksum/size, safe archive members, exact clean
-checkout and local image SHA, manifest project/logical names, and current exact
+checkout and local image SHA, manifest project/volume identities, and current exact
 local Compose ownership. Before managed mutation it restores into labeled
 disposable database/media volumes, one internal DB-only network, runs media
 POSIX preflight, and boots exact-release internal health with operation-generated
@@ -138,7 +138,7 @@ Restore then captures an automatic protected recovery pair and restores contents
 into the same managed volume IDs. Requested-restore failure attempts recovery;
 double failure leaves app stopped and retains all artifacts. Never broaden
 cleanup or use force, partial, database-only, media-only, or ignore-version
-modes. Runtime PASS remains pending the clean-clone backup/restore scenarios.
+modes. The clean-clone backup/restore scenarios passed on 2026-07-24.
 
 ## Upgrade and rollback
 

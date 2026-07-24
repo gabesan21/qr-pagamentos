@@ -4,7 +4,7 @@ import { join } from "node:path";
 
 import { afterEach, describe, expect, it } from "vitest";
 
-import { MediaPreflightError, preflightMediaStorage } from "./media-preflight.mjs";
+import { preflightMediaStorage } from "./media-preflight.mjs";
 
 const roots: string[] = [];
 
@@ -33,7 +33,7 @@ describe("container media preflight", () => {
     const root = await mediaRoot();
     await chmod(join(root, "objects"), 0o750);
 
-    await expect(preflightMediaStorage(root)).rejects.toMatchObject<Partial<MediaPreflightError>>({
+    await expect(preflightMediaStorage(root)).rejects.toMatchObject({
       code: "MEDIAROOT",
     });
   });
@@ -44,7 +44,7 @@ describe("container media preflight", () => {
     roots.push(linked);
     await symlink(root, linked);
 
-    await expect(preflightMediaStorage(linked)).rejects.toMatchObject<Partial<MediaPreflightError>>({
+    await expect(preflightMediaStorage(linked)).rejects.toMatchObject({
       code: "MEDIAROOT",
     });
   });
