@@ -147,6 +147,17 @@
       ],
       "test_seconds": 0,
       "result": "advanced"
+    },
+    {
+      "at": "2026-07-24T02:56:32-03:00",
+      "event": "transition",
+      "from": "004_processing",
+      "to": "005_verifying",
+      "contexts": [
+        "orch_6_3_3"
+      ],
+      "test_seconds": 0,
+      "result": "advanced"
     }
   ]
 }
