@@ -19,7 +19,6 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[6.1.2-enforce-role-exclusive-authentication]] | Route each role to its panel and deny administrators every merchant read/mutation while preserving opaque outcomes. · size: L | 001_initial_task |
 
 ## Phase 6.2 - Brand, themes, and application shells
 
