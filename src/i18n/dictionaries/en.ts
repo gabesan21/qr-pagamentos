@@ -10,9 +10,11 @@ import { checkoutEn } from "./checkout/en";
 import { ordersEn } from "./orders/en";
 import { dataDirectoryEn } from "./data-directory/en";
 import { appShellEn } from "./app-shell/en";
+import { profileEn } from "./profile/en";
 
 export const en = {
   ...appShellEn,
+  ...profileEn,
   ...sharedEn,
   ...nauttEn,
   ...designSystemEn,

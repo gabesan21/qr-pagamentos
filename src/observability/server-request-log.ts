@@ -12,6 +12,8 @@ export const serverRequestRoutes = {
   paymentLink: "/payment-links/[id]",
   checkoutPolicy: "/checkout-policy",
   storefront: "/storefront",
+  profileIdentity: "/profile/identity",
+  profilePassword: "/profile/password",
   nauttCredentials: "/nautt-credentials",
   nauttCredentialsRegister: "/nautt-credentials/register",
   nauttCredentialsReset: "/nautt-credentials/reset",

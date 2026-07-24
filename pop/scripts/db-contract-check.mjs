@@ -194,6 +194,13 @@ for (const field of ["model ProductCategory", "categoryId", "namePtBr", "nameEn"
 assert(!/GRANT\s+(?:TRUNCATE|REFERENCES|TRIGGER)|ALTER\s+(?:TABLE|SCHEMA).*\sOWNER\s+TO/i.test(categoryMigration), "Product-category migration grants excess privileges or changes ownership");
 assert(!/GRANT[^\n]*\bDELETE\b[^\n]*product_category/i.test(categoryMigration), "Runtime may not physically delete retained product categories");
 
+const profileMigration = await readFile("prisma/migrations/20260724033000_merchant_profile_version/migration.sql", "utf8");
+for (const contract of ["profile_version", "user_profile_version_nonnegative", "DEFAULT 0", "NOT NULL"]) {
+  assert(profileMigration.includes(contract), `Merchant-profile migration lost ${contract}`);
+}
+assert(schema.includes("profileVersion") && schema.includes('@map("profile_version")'), "Schema is missing the merchant profile version");
+assert(!/GRANT|REVOKE|ALTER\s+(?:TABLE|SCHEMA).*\sOWNER\s+TO/i.test(profileMigration), "Merchant-profile migration changes established runtime privileges or ownership");
+
 const bootstrap = await readFile("prisma/bootstrap.sql", "utf8");
 assert(bootstrap.includes("GRANT CONNECT ON DATABASE qr_pagamentos TO qr_migrator, qr_runtime"), "Both roles require explicit CONNECT");
 assert(bootstrap.includes("ALTER DEFAULT PRIVILEGES FOR ROLE qr_migrator IN SCHEMA app"), "Migrator-scoped defaults are missing");

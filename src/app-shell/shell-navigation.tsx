@@ -47,6 +47,7 @@ function NavigationLinks({
 }
 
 type NavigationProps = Readonly<{
+  accountLink?: Readonly<{ href: string; label: string }>;
   closeLabel: string;
   items: readonly ShellNavigationItem[];
   label: string;
@@ -68,6 +69,7 @@ export function DesktopShellNavigation({
 }
 
 export function MobileShellNavigation({
+  accountLink,
   closeLabel,
   items,
   label,
@@ -95,6 +97,11 @@ export function MobileShellNavigation({
         {mobileOpen ? (
           <nav aria-label={label} className="app-shell__mobile-panel" id={mobileNavigationId}>
             <NavigationLinks items={items} onNavigate={() => setMobileOpen(false)} pathname={pathname} />
+            {accountLink ? (
+              <Link className="app-shell__profile-link" href={accountLink.href} onClick={() => setMobileOpen(false)}>
+                {accountLink.label}
+              </Link>
+            ) : null}
             {signOutLabel ? (
               <form action="/logout" method="post">
                 <Button className="app-shell__mobile-sign-out" type="submit" variant="outline">

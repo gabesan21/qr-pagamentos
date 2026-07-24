@@ -210,6 +210,16 @@ ownership. Dashboard and future-area scaffolds are explicit empty states with
 no invented metrics, tables, controls, or unapproved projection calls.
 Existing controls remain in their owned route areas and keep their POST URLs.
 
+The merchant principal block has one secondary `/profile` affordance outside
+the numbered five-entry business map. The profile workspace uses two
+independent `Card` compositions: identity and password security. Each has one
+primary native submission, labels above inputs, suitable autocomplete,
+opaque localized feedback, and a payload-preserving client pending scope that
+only observes native submit/formdata events, announces progress, and disables
+its form after the browser forms the payload.
+Loading uses owned skeletons; an empty state is inapplicable because the page
+requires a resolved active merchant.
+
 ## Evidence and composition
 
 `pnpm design-system:evidence` builds production output and creates a fresh
@@ -237,6 +247,16 @@ focuses main content, 44-pixel targets, IBM Plex Sans, no
 overflow, no external request or console failure, and no serious or critical
 axe finding. Its visual review is manifest-hash-bound and accepts no unresolved
 severity 2 or greater finding.
+
+`pnpm profile:evidence` and `pnpm profile:evidence:verify` bind 36 profile
+captures across six themes, both locales, and widths 375/768/1440 plus 14
+localized identity/password interaction captures. The exact 50 PNGs and three
+metadata files prove finite notices, click/Enter single native document POSTs
+with complete URL-encoded fields and CAS, immediate busy/disabled state, 320px
+reflow, focus, targets, axe, cookie expiry, persisted-locale signed-out copy,
+all-session rejection, old-password denial, and new-password admission. The
+review is bound to the current manifest and accepts no
+unresolved severity 2 or greater finding.
 
 The status rail and panels use ruled separation and restrained corners. Never
 make a page-specific button variant: use owned `Button` variants. Motion is

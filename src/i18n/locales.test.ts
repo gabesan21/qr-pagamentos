@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { en } from "./dictionaries/en";
 import { ptBR } from "./dictionaries/pt-BR";
-import { defaultLocale, isSupportedLocale, negotiateLocale, supportedLocales } from "./locales";
+import { defaultLocale, isSupportedLocale, localeFromPreferenceCookie, negotiateLocale, supportedLocales } from "./locales";
 
 describe("locale contracts", () => {
   it("supports exactly Brazilian Portuguese and English", () => {
@@ -22,6 +22,13 @@ describe("locale contracts", () => {
     expect(negotiateLocale("en-US;q=0.5, pt-PT;q=0.5")).toBe("en");
     expect(negotiateLocale("*, es;q=1")).toBe(defaultLocale);
     expect(negotiateLocale("en,".padEnd(4097, "x"))).toBe(defaultLocale);
+  });
+
+  it("accepts only the closed persisted-locale cookie values", () => {
+    expect(localeFromPreferenceCookie("en")).toBe("en");
+    expect(localeFromPreferenceCookie("pt-BR")).toBe("pt-BR");
+    expect(localeFromPreferenceCookie("es")).toBe(defaultLocale);
+    expect(localeFromPreferenceCookie(undefined)).toBe(defaultLocale);
   });
 
   it("keeps dictionary keys in parity", () => {

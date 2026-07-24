@@ -8,6 +8,8 @@
   children. Never pass a business DTO, credential, provider value, or service.
 - Keep administrator and merchant navigation inventories separate and fixed at
   five entries; never infer one role's fallback routes from the other.
+- The merchant username block may expose only the secondary `/profile` link;
+  never count it as primary navigation or add it for administrators.
 - Dashboard roots match exactly. Other active states match exact routes or a
   slash-delimited descendant, never a string prefix.
 - `shell-navigation.tsx` is the only shell client boundary. It may read the

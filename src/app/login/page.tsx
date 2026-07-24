@@ -1,16 +1,21 @@
+import { cookies } from "next/headers";
+
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { BrandIdentity } from "@/brand/brand-identity";
 import { getDictionary } from "@/i18n/dictionaries";
-import { defaultLocale } from "@/i18n/locales";
+import { localeFromPreferenceCookie, localePreferenceCookieName } from "@/i18n/locales";
 
 import { LoginSubmit } from "./login-submit";
 
-export default async function LoginPage({ searchParams }: Readonly<{ searchParams: Promise<{ error?: string }> }>) {
-  const dictionary = getDictionary(defaultLocale);
-  const error = (await searchParams).error === "invalid-credentials";
+export default async function LoginPage({ searchParams }: Readonly<{ searchParams: Promise<{ error?: string; password?: string }> }>) {
+  const locale = localeFromPreferenceCookie((await cookies()).get(localePreferenceCookieName)?.value);
+  const dictionary = getDictionary(locale);
+  const notices = await searchParams;
+  const error = notices.error === "invalid-credentials" && notices.password === undefined;
+  const passwordChanged = notices.password === "changed" && notices.error === undefined;
 
   return <main className="login-page">
     <Card className="login-card">
@@ -22,6 +27,7 @@ export default async function LoginPage({ searchParams }: Readonly<{ searchParam
       <CardContent>
         <form action="/login/submit" className="login-form" id="login-form" method="post">
           {error && <Alert variant="destructive"><AlertDescription>{dictionary.invalidCredentials}</AlertDescription></Alert>}
+          {passwordChanged && <Alert role="status" variant="success"><AlertDescription>{dictionary.passwordChanged}</AlertDescription></Alert>}
           <FieldGroup>
             <Field>
               <FieldLabel htmlFor="username">{dictionary.usernameLabel}</FieldLabel>

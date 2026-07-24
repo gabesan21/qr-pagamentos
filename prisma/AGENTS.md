@@ -35,6 +35,8 @@
 - Explicit history recovery uses one 30-second owner/order-bound fenced lease. Never hold its transaction across history/order reads, let a stale token insert/complete, or grant runtime privileges beyond lease-table DML.
 - The foundation fixture is infrastructure proof only; never attach domain semantics or routes to it.
 - `deployment_bootstrap` is an immutable no-FK locator for the originally seeded UUID; never retarget it, add a user FK, or make it block ordinary user mutation/deletion.
+- `user.profile_version` is the merchant identity CAS only; keep it
+  nonnegative and never reuse `updated_at` for profile conflict detection.
 
 ## Verification
 

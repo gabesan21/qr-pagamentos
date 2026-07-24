@@ -18,6 +18,8 @@ import { paymentLinksEn } from "./payment-links/en";
 import { paymentLinksPtBR } from "./payment-links/pt-BR";
 import { productsEn } from "./products/en";
 import { productsPtBR } from "./products/pt-BR";
+import { profileEn } from "./profile/en";
+import { profilePtBR } from "./profile/pt-BR";
 import { sharedEn } from "./shared/en";
 import { sharedPtBR } from "./shared/pt-BR";
 import { storefrontEn } from "./storefront/en";
@@ -34,6 +36,7 @@ export const dictionaryDomains = {
   orders: { en: ordersEn, "pt-BR": ordersPtBR },
   paymentLinks: { en: paymentLinksEn, "pt-BR": paymentLinksPtBR },
   products: { en: productsEn, "pt-BR": productsPtBR },
+  profile: { en: profileEn, "pt-BR": profilePtBR },
   shared: { en: sharedEn, "pt-BR": sharedPtBR },
   storefront: { en: storefrontEn, "pt-BR": storefrontPtBR },
 } as const;

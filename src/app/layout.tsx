@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 
 import { getAuthorizationService } from "../auth/authorization";
 import { getLocalePreferenceService } from "../i18n/locale-preference";
-import { defaultLocale } from "../i18n/locales";
+import { localeFromPreferenceCookie, localePreferenceCookieName } from "../i18n/locales";
 import "./globals.css";
 import "../app-shell/app-shell.css";
 
@@ -13,9 +13,12 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  const token = (await cookies()).get("qr_session")?.value;
+  const requestCookies = await cookies();
+  const token = requestCookies.get("qr_session")?.value;
   const principal = token ? await getAuthorizationService().resolve(token) : null;
-  const locale = principal ? await getLocalePreferenceService().resolve(principal.id) : defaultLocale;
+  const locale = principal
+    ? await getLocalePreferenceService().resolve(principal.id)
+    : localeFromPreferenceCookie(requestCookies.get(localePreferenceCookieName)?.value);
   return (
     <html lang={locale}>
       <body>{children}</body>

@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "id": "20260724033000_merchant_profile_version",
+  "operations": [
+    {
+      "op": "addColumn",
+      "table": {
+        "schema": "app",
+        "name": "user"
+      },
+      "column": {
+        "name": "profile_version",
+        "type": {
+          "name": "integer"
+        },
+        "nullable": false,
+        "default": {
+          "kind": "integer",
+          "value": 0
+        }
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "user"
+      },
+      "constraint": {
+        "kind": "check",
+        "name": "user_profile_version_nonnegative",
+        "expression": {
+          "op": "gte",
+          "left": {
+            "kind": "column",
+            "name": "profile_version"
+          },
+          "right": {
+            "kind": "literal",
+            "literal": {
+              "kind": "integer",
+              "value": 0
+            }
+          }
+        },
+        "notValid": false
+      }
+    }
+  ]
+}
