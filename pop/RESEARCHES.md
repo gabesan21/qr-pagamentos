@@ -15,3 +15,17 @@ Project: [[PROJECT|QR Pagamentos]] · Roadmap: [[ROADMAP|Roadmap]]
 1. Run the prompt with access to Nautt's authoritative production dispatcher source or provider-supplied fixture.
 2. Deposit the raw result in `pop/researches/nautt-production-webhook-hmac-contract/raw/`.
 3. Ingest the research, reconcile the synthesis/spec/roadmap, then unblock and re-plan task 2.3.1 only if the result is PASS.
+
+## nautt-supported-exchange-currency-mappings
+
+- **Status:** pending
+- **Feeds:** Epoch 7 | [[specs/nautt-finance-integration|Nautt Finance integration]] | task [[7.1.1-model-supported-exchange-currencies]]
+- **Suggested prompt:**
+
+> Using an authenticated Nautt Finance production account and authoritative provider documentation or responses, establish the exact panel-buy/onramp mapping for the application-supported exchange currencies `BRL`, `ARS`, `BOB`, and `COP`. For each code, return: (1) the canonical fiat `currency_uuid`; (2) the exact `exchange_currency_uuid` accepted by `/pricing/panel/buy`; (3) operation direction and active support status; (4) applicable limits; (5) required payment-method identity; and (6) every required `deposit_field`, including grammar and conditional requirements. Include a redacted raw `/exchange-currencies` response and one sanitized, reproducible accepted pricing request/response fixture per supported code. Distinguish production from staging and record source revision/date plus direct primary citations. Never infer UUID direction from labels, examples, or UUID names. Conclude PASS only when each mapping and request contract is unambiguous and reproducible; otherwise conclude FAIL/UNKNOWN and list the exact unresolved field.
+
+### How to use this research
+
+1. Run the prompt with authorized access to the Nautt account and primary provider evidence.
+2. Deposit redacted raw results in `pop/researches/nautt-supported-exchange-currency-mappings/raw/`.
+3. Ingest and reconcile the evidence, then clear `blocked` and re-plan task 7.1.1 only if the result is PASS.

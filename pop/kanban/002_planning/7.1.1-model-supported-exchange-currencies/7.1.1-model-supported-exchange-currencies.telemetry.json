@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "events": [
+    {
+      "at": "2026-07-23T23:59:45-03:00",
+      "event": "transition",
+      "from": "001_initial_task",
+      "to": "002_planning",
+      "contexts": [],
+      "test_seconds": 0,
+      "result": "advanced"
+    },
+    {
+      "at": "2026-07-24T00:02:56-03:00",
+      "event": "stage",
+      "stage": "002_planning",
+      "contexts": [
+        "plan_7_1_1"
+      ],
+      "strategy": "closed-code versioned mapping, history-safe activation, BRL-or-none default, role/public boundaries, additive safe migration, and serialized Prisma lane",
+      "tests": "card, dependency memory, linked specs, root/Prisma/Nautt DOX, current catalog/product/payment-link/provider contracts, migration policy, and active 6.3.2 lane inspected; no runtime tests in planning",
+      "test_seconds": 0,
+      "result": "blocked"
+    }
+  ]
+}
