@@ -15,7 +15,7 @@ RUN pnpm install --frozen-lockfile
 FROM dependencies AS builder
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN pnpm db:generate && pnpm build \
+RUN pnpm db:generate && pnpm media:decoder-preflight && pnpm build \
  && pnpm --filter qr-pagamentos deploy --prod --legacy /runtime-dependencies
 
 FROM toolchain AS db-ops

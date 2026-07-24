@@ -1,4 +1,4 @@
-import { createHash, randomUUID } from "node:crypto";
+import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { readFile, readdir } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
 
@@ -679,6 +679,30 @@ try {
   await runtime.query(`DELETE FROM app."user" WHERE id = $1`, [providerOtherOwnerId]);
   console.log("PASS provider-order-schema");
 
+  const mediaOwnerId = randomUUID();
+  const mediaId = randomUUID();
+  const mediaIdentifier = randomBytes(32).toString("base64url");
+  const mediaStorageKey = randomBytes(32).toString("base64url");
+  await runtime.query(`INSERT INTO app."user" (id, username, email, role, status) VALUES ($1, 'media.owner', NULL, 'USER', 'ACTIVE')`, [mediaOwnerId]);
+  const mediaInsert = `
+    INSERT INTO app.media_object
+      (id, identifier, storage_key, owner_id, purpose, state, lifecycle_revision, mime_type, byte_size, width, height, sha256, purge_after, created_at, updated_at)
+    VALUES
+      ('${mediaId}', '${mediaIdentifier}', '${mediaStorageKey}', '${mediaOwnerId}', 'PRODUCT_IMAGE', 'STAGED', 0, 'image/webp', 4, 1, 1, '${"a".repeat(64)}', NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+  `;
+  await runtime.query(mediaInsert);
+  await expectSqlState(runtime, mediaInsert.replace("'PRODUCT_IMAGE'", "'UNSAFE'").replace(`'${mediaId}'`, `'${randomUUID()}'`).replace(`'${mediaIdentifier}'`, `'${randomBytes(32).toString("base64url")}'`).replace(`'${mediaStorageKey}'`, `'${randomBytes(32).toString("base64url")}'`), { code: "23514", constraint: "media_object_purpose_closed" });
+  await expectSqlState(runtime, `UPDATE app.media_object SET lifecycle_revision = -1 WHERE id = '${mediaId}'`, { code: "23514", constraint: "media_object_revision_nonnegative" });
+  await expectSqlState(runtime, `UPDATE app.media_object SET byte_size = 0 WHERE id = '${mediaId}'`, { code: "23514", constraint: "media_object_canonical_limits" });
+  await expectSqlState(runtime, `UPDATE app.media_object SET state = 'ORPHANED' WHERE id = '${mediaId}'`, { code: "23514", constraint: "media_object_purge_consistent" });
+  const staleMedia = await runtime.query(`UPDATE app.media_object SET state = 'ACTIVE', lifecycle_revision = lifecycle_revision + 1, updated_at = CURRENT_TIMESTAMP WHERE id = $1 AND owner_id = $2 AND purpose = 'PRODUCT_IMAGE' AND state = 'STAGED' AND lifecycle_revision = 1`, [mediaId, mediaOwnerId]);
+  assert(staleMedia.rowCount === 0, "Stale media lifecycle revision mutated the row");
+  const activeMedia = await runtime.query(`UPDATE app.media_object SET state = 'ACTIVE', lifecycle_revision = lifecycle_revision + 1, updated_at = CURRENT_TIMESTAMP WHERE id = $1 AND owner_id = $2 AND purpose = 'PRODUCT_IMAGE' AND state = 'STAGED' AND lifecycle_revision = 0 RETURNING lifecycle_revision`, [mediaId, mediaOwnerId]);
+  assert(activeMedia.rows[0]?.lifecycle_revision === "1" || activeMedia.rows[0]?.lifecycle_revision === 1, "Exact media lifecycle revision did not win");
+  await runtime.query(`DELETE FROM app.media_object WHERE id = $1`, [mediaId]);
+  await runtime.query(`DELETE FROM app."user" WHERE id = $1`, [mediaOwnerId]);
+  console.log("PASS media-object-schema");
+
   const privilege = await runtime.query(`
     SELECT current_user,
       has_schema_privilege(current_user, 'app', 'USAGE') AS schema_usage,
@@ -698,6 +722,7 @@ try {
       has_table_privilege(current_user, 'app.catalog_payment_method', 'SELECT,INSERT,UPDATE,DELETE') AS catalog_payment_method_dml,
       has_table_privilege(current_user, 'app.product', 'SELECT,INSERT,UPDATE,DELETE') AS product_dml,
       has_table_privilege(current_user, 'app.payment_link', 'SELECT,INSERT,UPDATE,DELETE') AS payment_link_dml,
+      has_table_privilege(current_user, 'app.media_object', 'SELECT,INSERT,UPDATE,DELETE') AS media_object_dml,
       has_table_privilege(current_user, 'app.global_payment_settings', 'SELECT') AS settings_select,
       has_column_privilege(current_user, 'app.global_payment_settings', 'currencies', 'UPDATE')
         AND has_column_privilege(current_user, 'app.global_payment_settings', 'payment_methods', 'UPDATE')
@@ -712,6 +737,7 @@ try {
       has_table_privilege(current_user, 'app.webhook_recovery_lease', 'TRUNCATE,REFERENCES,TRIGGER') AS webhook_recovery_lease_excess,
       has_table_privilege(current_user, 'app.product', 'TRUNCATE,REFERENCES,TRIGGER') AS product_excess,
       has_table_privilege(current_user, 'app.payment_link', 'TRUNCATE,REFERENCES,TRIGGER') AS payment_link_excess,
+      has_table_privilege(current_user, 'app.media_object', 'TRUNCATE,REFERENCES,TRIGGER') AS media_object_excess,
       has_table_privilege(current_user, 'app._database_foundation_fixture', 'MAINTAIN') AS table_maintain,
       has_sequence_privilege(current_user, 'app._database_foundation_fixture_id_seq', 'USAGE') AS sequence_usage,
       has_sequence_privilege(current_user, 'app.webhook_delivery_attempt_id_seq', 'USAGE') AS webhook_sequence_usage,
@@ -722,8 +748,8 @@ try {
       pg_has_role(current_user, 'qr_migrator', 'SET') AS migrator_set
   `);
   const acl = privilege.rows[0];
-  assert(acl.current_user === "qr_runtime" && acl.schema_usage && acl.table_dml && acl.user_dml && acl.credential_dml && acl.bootstrap_dml && acl.session_dml && acl.nautt_credential_dml && acl.provider_quote_dml && acl.provider_order_dml && acl.webhook_delivery_dml && acl.webhook_attempt_dml && acl.webhook_recovery_lease_dml && acl.catalog_currency_pair_dml && acl.catalog_payment_method_dml && acl.product_dml && acl.payment_link_dml && acl.settings_select && acl.settings_column_update && acl.sequence_usage && acl.webhook_sequence_usage, "Runtime lacks intended privileges");
-  assert(!acl.settings_table_update && !acl.settings_write_extra && !acl.schema_create && !acl.table_truncate && !acl.table_references && !acl.table_trigger && !acl.provider_order_excess && !acl.webhook_delivery_excess && !acl.webhook_recovery_lease_excess && !acl.product_excess && !acl.payment_link_excess && !acl.table_maintain && !acl.sequence_select && !acl.sequence_update && !acl.migration_access && !acl.migrator_member && !acl.migrator_set, "Runtime has excess privileges");
+  assert(acl.current_user === "qr_runtime" && acl.schema_usage && acl.table_dml && acl.user_dml && acl.credential_dml && acl.bootstrap_dml && acl.session_dml && acl.nautt_credential_dml && acl.provider_quote_dml && acl.provider_order_dml && acl.webhook_delivery_dml && acl.webhook_attempt_dml && acl.webhook_recovery_lease_dml && acl.catalog_currency_pair_dml && acl.catalog_payment_method_dml && acl.product_dml && acl.payment_link_dml && acl.media_object_dml && acl.settings_select && acl.settings_column_update && acl.sequence_usage && acl.webhook_sequence_usage, "Runtime lacks intended privileges");
+  assert(!acl.settings_table_update && !acl.settings_write_extra && !acl.schema_create && !acl.table_truncate && !acl.table_references && !acl.table_trigger && !acl.provider_order_excess && !acl.webhook_delivery_excess && !acl.webhook_recovery_lease_excess && !acl.product_excess && !acl.payment_link_excess && !acl.media_object_excess && !acl.table_maintain && !acl.sequence_select && !acl.sequence_update && !acl.migration_access && !acl.migrator_member && !acl.migrator_set, "Runtime has excess privileges");
   const ownership = await admin.query(`
     SELECT
       (SELECT count(*)::int FROM pg_class WHERE relowner = 'qr_runtime'::regrole) AS objects,
