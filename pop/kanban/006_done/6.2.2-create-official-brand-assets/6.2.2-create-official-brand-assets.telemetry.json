@@ -91,6 +91,17 @@
       "tests": "brand check twice; mutation-focused brand and render tests; full Vitest; evidence verifiers; typecheck; lint; build; font/license/source hashes; static rasterization; 32-capture visual inspection; scope, diff, and PoP validation",
       "test_seconds": 125,
       "result": "approved_round_2"
+    },
+    {
+      "at": "2026-07-24T01:23:35-03:00",
+      "event": "transition",
+      "from": "005_verifying",
+      "to": "006_done",
+      "contexts": [
+        "verify2_6_2_2"
+      ],
+      "test_seconds": 0,
+      "result": "advanced"
     }
   ]
 }
