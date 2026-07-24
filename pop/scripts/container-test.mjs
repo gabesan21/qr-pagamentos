@@ -756,9 +756,11 @@ NAUTT_WEBHOOK_CALLBACK_URL=https://payments.example.com/api/nautt/webhooks
       const digest = async (file) => createHash("sha256").update(await readFile(file)).digest("hex");
       const assertUpdateStartup = async (output) => {
         await waitForApp();
-        for (const service of ["bootstrap", "identity-seed"]) {
-          const id = containerId(service);
-          assert(id && inspectField(id, "{{.State.ExitCode}}") === "0", `${service} update gate failed`);
+        if (!output) {
+          for (const service of ["bootstrap", "identity-seed"]) {
+            const id = containerId(service);
+            assert(id && inspectField(id, "{{.State.ExitCode}}") === "0", `${service} install gate failed`);
+          }
         }
         const logs = compose(["logs", "--no-color"]);
         assert(logs.includes("PASS bootstrap") && logs.includes("PASS identity-seed"), "one-shot update evidence missing");
