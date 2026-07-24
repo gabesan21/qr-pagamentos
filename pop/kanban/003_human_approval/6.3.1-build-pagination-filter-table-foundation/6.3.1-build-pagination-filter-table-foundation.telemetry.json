@@ -23,6 +23,17 @@
       "tests": "card, dependency memories, linked specs, root and UI DOX, current table/inventory, dictionary assembly, design contract, roadmap boundary, and executable AC1-AC6 command inspection",
       "test_seconds": 0,
       "result": "planned"
+    },
+    {
+      "at": "2026-07-24T00:40:30-03:00",
+      "event": "transition",
+      "from": "002_planning",
+      "to": "003_human_approval",
+      "contexts": [
+        "plan_6_3_1"
+      ],
+      "test_seconds": 0,
+      "result": "advanced"
     }
   ]
 }
