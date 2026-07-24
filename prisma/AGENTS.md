@@ -12,6 +12,8 @@
 - Keep schema `app` owned by `qr_migrator`; `qr_runtime` receives only demonstrated DML and sequence use.
 - Keep bootstrap's ordinary-table DML defaults, but never remove the relation-guarded post-grant normalization for `app.global_payment_settings`; its forward migration repairs databases where the table already exists.
 - Never remove the relation-guarded bootstrap revocation of runtime `DELETE` on `app.product_category`; categories are retained and deactivated, never physically deleted by the application.
+- Never remove the relation-guarded bootstrap revocation of runtime `DELETE` on `app.catalog_currency_pair`; currency pairs are retained immutable history and are never physically deleted or remapped in place by the application.
+- `app.supported_exchange_currency` is the sole single-active pointer authority for code-based exchange-currency eligibility: one row per code (primary key), `pair_id` unique with a restrictive FK to `catalog_currency_pair`, and the `AAA`–`ZZZ` bounds check as defense-in-depth behind service-boundary format validation; pointer-table `DELETE` (deactivation) is legitimate configuration mutation, but never weaken the pair FK, the pair-id uniqueness, or the bounds check.
 - Never grant runtime schema `CREATE`, object ownership, migration-table access, role membership, `TEMPORARY`, or role-administration attributes.
 - `../container/bootstrap.mjs` must execute `prisma/bootstrap.sql` unchanged before assigning externally supplied role passwords; never duplicate role/grant SQL in a wrapper or Compose init directory.
 - `../container/migrate.mjs` is the only production migration wrapper and must use only `MIGRATION_DATABASE_URL` with `prisma migrate deploy`.

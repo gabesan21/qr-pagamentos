@@ -21,6 +21,7 @@ export const serverRequestRoutes = {
   adminCurrencyPair: "/admin/catalog/currency-pairs/[id]",
   adminPaymentMethods: "/admin/catalog/payment-methods",
   adminPaymentMethod: "/admin/catalog/payment-methods/[id]",
+  adminExchangeCurrencies: "/admin/exchange-currencies",
   adminPaymentSettings: "/admin/payment-settings",
   adminUsers: "/admin/users",
   adminUserPassword: "/admin/users/[id]/password",

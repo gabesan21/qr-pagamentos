@@ -64,3 +64,11 @@ BEGIN
   END IF;
 END
 $product_category_acl$;
+
+DO $catalog_currency_pair_acl$
+BEGIN
+  IF to_regclass('app.catalog_currency_pair') IS NOT NULL THEN
+    REVOKE DELETE ON TABLE app.catalog_currency_pair FROM qr_runtime;
+  END IF;
+END
+$catalog_currency_pair_acl$;

@@ -441,6 +441,24 @@ try {
   await runtime.query(`UPDATE app.catalog_payment_method SET active = false WHERE payment_method_uuid = $1`, [paymentMethodUuid]);
   console.log("PASS catalog-schema");
 
+  const supportedPairOneId = (await runtime.query(`INSERT INTO app.catalog_currency_pair (label, currency_uuid, exchange_currency_uuid) VALUES ($1, $2, $3) RETURNING id`, ["BRL/USDT dynamic", randomUUID(), randomUUID()])).rows[0].id;
+  const supportedPairTwoId = (await runtime.query(`INSERT INTO app.catalog_currency_pair (label, currency_uuid, exchange_currency_uuid) VALUES ($1, $2, $3) RETURNING id`, ["ARS/USDT dynamic", randomUUID(), randomUUID()])).rows[0].id;
+  await runtime.query(`INSERT INTO app.supported_exchange_currency (code, pair_id) VALUES ($1, $2)`, ["BRL", supportedPairOneId]);
+  await expectSqlState(runtime, `INSERT INTO app.supported_exchange_currency (code, pair_id) VALUES ('BRL', '${supportedPairTwoId}')`, { code: "23505", constraint: "supported_exchange_currency_pkey" });
+  await expectSqlState(runtime, `INSERT INTO app.supported_exchange_currency (code, pair_id) VALUES ('ARS', '${supportedPairOneId}')`, { code: "23505", constraint: "supported_exchange_currency_pair_id_key" });
+  await expectSqlState(runtime, `INSERT INTO app.supported_exchange_currency (code, pair_id) VALUES ('COP', '${randomUUID()}')`, { code: "23503", constraint: "supported_exchange_currency_pair_fkey" });
+  await expectSqlState(runtime, `INSERT INTO app.supported_exchange_currency (code, pair_id) VALUES ('AA', '${supportedPairTwoId}')`, { code: "23514", constraint: "supported_exchange_currency_code_bounds" });
+  await expectSqlState(runtime, `INSERT INTO app.supported_exchange_currency (code, pair_id) VALUES ('A1A', '${supportedPairTwoId}')`, { code: "23514", constraint: "supported_exchange_currency_code_bounds" });
+  await expectSqlState(admin, `DELETE FROM app.catalog_currency_pair WHERE id = '${supportedPairOneId}'`, { code: "23001", constraint: "supported_exchange_currency_pair_fkey" });
+  await expectDenied(runtime, `DELETE FROM app.catalog_currency_pair WHERE id = '${supportedPairOneId}'`);
+  await runtime.query(`UPDATE app.supported_exchange_currency SET pair_id = $1 WHERE code = 'BRL'`, [supportedPairTwoId]);
+  const repointed = await runtime.query(`SELECT code, pair_id::text FROM app.supported_exchange_currency`);
+  assert(JSON.stringify(repointed.rows) === JSON.stringify([{ code: "BRL", pair_id: supportedPairTwoId }]), "Pointer re-point did not keep a single active mapping per code");
+  await runtime.query(`DELETE FROM app.supported_exchange_currency WHERE code = 'BRL'`);
+  const deactivated = await runtime.query(`SELECT count(*)::int AS count FROM app.supported_exchange_currency`);
+  assert(deactivated.rows[0].count === 0, "Pointer-table deactivation did not remove only the pointer row");
+  console.log("PASS supported-exchange-currency-schema");
+
   const productColumns = await runtime.query(`
     SELECT column_name, data_type, udt_name, is_nullable
     FROM information_schema.columns
@@ -501,7 +519,7 @@ try {
     await runtime.query(`DELETE FROM app.product WHERE id = $1`, [exactPrice.rows[0].id]);
   }
   for (const invalidPrice of ["0", "00.1", "01", "1.0", "1.230", "0.0000001", "9999999999999", "-1", "+1", "1e2", "1,2", " 1"] ) {
-    await expectSqlState(runtime, `INSERT INTO app.product (internal_name, title_pt_br, title_en, description_pt_br, description_en, price, owner_id) VALUES ('invalid-price', 'Título', 'Title', 'Descrição', 'Description', '${invalidPrice}')`, { code: "23514", constraint: "product_price_canonical" });
+    await expectSqlState(runtime, `INSERT INTO app.product (internal_name, title_pt_br, title_en, description_pt_br, description_en, price, owner_id) VALUES ('invalid-price', 'Título', 'Title', 'Descrição', 'Description', '${invalidPrice}', '${otherUserId}')`, { code: "23514", constraint: "product_price_canonical" });
   }
   await expectSqlState(runtime, `UPDATE app.product SET version = -1 WHERE id = '${productId}'`, { code: "23514", constraint: "product_version_nonnegative" });
   const staleProductUpdate = await runtime.query(`UPDATE app.product SET price = '2', version = version + 1 WHERE id = $1 AND version = 1`, [productId]);
@@ -797,12 +815,12 @@ try {
   await expectSqlState(
     admin,
     `DELETE FROM app.product_category WHERE id = '${categoryId}'`,
-    { code: "23503", constraint: "product_category_owner_fkey" },
+    { code: "23001", constraint: "product_category_owner_fkey" },
   );
   await expectSqlState(
     runtime,
     `DELETE FROM app."user" WHERE id = '${categoryOwnerId}'`,
-    { code: "23503" },
+    { code: "23001" },
   );
   const categoryCasWinner = await runtime.query(
     `UPDATE app.product_category
@@ -841,8 +859,10 @@ try {
       has_table_privilege(current_user, 'app.webhook_delivery', 'SELECT,INSERT,UPDATE,DELETE') AS webhook_delivery_dml,
       has_table_privilege(current_user, 'app.webhook_delivery_attempt', 'SELECT,INSERT,UPDATE,DELETE') AS webhook_attempt_dml,
       has_table_privilege(current_user, 'app.webhook_recovery_lease', 'SELECT,INSERT,UPDATE,DELETE') AS webhook_recovery_lease_dml,
-      has_table_privilege(current_user, 'app.catalog_currency_pair', 'SELECT,INSERT,UPDATE,DELETE') AS catalog_currency_pair_dml,
+      has_table_privilege(current_user, 'app.catalog_currency_pair', 'SELECT,INSERT,UPDATE') AS catalog_currency_pair_dml,
+      has_table_privilege(current_user, 'app.catalog_currency_pair', 'DELETE') AS catalog_currency_pair_delete,
       has_table_privilege(current_user, 'app.catalog_payment_method', 'SELECT,INSERT,UPDATE,DELETE') AS catalog_payment_method_dml,
+      has_table_privilege(current_user, 'app.supported_exchange_currency', 'SELECT,INSERT,UPDATE,DELETE') AS supported_exchange_currency_dml,
       has_table_privilege(current_user, 'app.product', 'SELECT,INSERT,UPDATE,DELETE') AS product_dml,
       has_table_privilege(current_user, 'app.product_category', 'SELECT,INSERT,UPDATE') AS product_category_dml,
       has_table_privilege(current_user, 'app.product_category', 'DELETE') AS product_category_delete,
@@ -864,6 +884,7 @@ try {
       has_table_privilege(current_user, 'app.product_category', 'TRUNCATE,REFERENCES,TRIGGER') AS product_category_excess,
       has_table_privilege(current_user, 'app.payment_link', 'TRUNCATE,REFERENCES,TRIGGER') AS payment_link_excess,
       has_table_privilege(current_user, 'app.media_object', 'TRUNCATE,REFERENCES,TRIGGER') AS media_object_excess,
+      has_table_privilege(current_user, 'app.supported_exchange_currency', 'TRUNCATE,REFERENCES,TRIGGER') AS supported_exchange_currency_excess,
       has_table_privilege(current_user, 'app._database_foundation_fixture', 'MAINTAIN') AS table_maintain,
       has_sequence_privilege(current_user, 'app._database_foundation_fixture_id_seq', 'USAGE') AS sequence_usage,
       has_sequence_privilege(current_user, 'app.webhook_delivery_attempt_id_seq', 'USAGE') AS webhook_sequence_usage,
@@ -874,8 +895,8 @@ try {
       pg_has_role(current_user, 'qr_migrator', 'SET') AS migrator_set
   `);
   const acl = privilege.rows[0];
-  assert(acl.current_user === "qr_runtime" && acl.schema_usage && acl.table_dml && acl.user_dml && acl.credential_dml && acl.bootstrap_dml && acl.session_dml && acl.nautt_credential_dml && acl.provider_quote_dml && acl.provider_order_dml && acl.webhook_delivery_dml && acl.webhook_attempt_dml && acl.webhook_recovery_lease_dml && acl.catalog_currency_pair_dml && acl.catalog_payment_method_dml && acl.product_dml && acl.product_category_dml && acl.payment_link_dml && acl.media_object_dml && acl.settings_select && acl.settings_column_update && acl.sequence_usage && acl.webhook_sequence_usage, "Runtime lacks intended privileges");
-  assert(!acl.settings_table_update && !acl.settings_write_extra && !acl.product_category_delete && !acl.schema_create && !acl.table_truncate && !acl.table_references && !acl.table_trigger && !acl.provider_order_excess && !acl.webhook_delivery_excess && !acl.webhook_recovery_lease_excess && !acl.product_excess && !acl.product_category_excess && !acl.payment_link_excess && !acl.media_object_excess && !acl.table_maintain && !acl.sequence_select && !acl.sequence_update && !acl.migration_access && !acl.migrator_member && !acl.migrator_set, "Runtime has excess privileges");
+  assert(acl.current_user === "qr_runtime" && acl.schema_usage && acl.table_dml && acl.user_dml && acl.credential_dml && acl.bootstrap_dml && acl.session_dml && acl.nautt_credential_dml && acl.provider_quote_dml && acl.provider_order_dml && acl.webhook_delivery_dml && acl.webhook_attempt_dml && acl.webhook_recovery_lease_dml && acl.catalog_currency_pair_dml && acl.catalog_payment_method_dml && acl.supported_exchange_currency_dml && acl.product_dml && acl.product_category_dml && acl.payment_link_dml && acl.media_object_dml && acl.settings_select && acl.settings_column_update && acl.sequence_usage && acl.webhook_sequence_usage, "Runtime lacks intended privileges");
+  assert(!acl.settings_table_update && !acl.settings_write_extra && !acl.product_category_delete && !acl.catalog_currency_pair_delete && !acl.schema_create && !acl.table_truncate && !acl.table_references && !acl.table_trigger && !acl.provider_order_excess && !acl.webhook_delivery_excess && !acl.webhook_recovery_lease_excess && !acl.product_excess && !acl.product_category_excess && !acl.payment_link_excess && !acl.media_object_excess && !acl.supported_exchange_currency_excess && !acl.table_maintain && !acl.sequence_select && !acl.sequence_update && !acl.migration_access && !acl.migrator_member && !acl.migrator_set, "Runtime has excess privileges");
   const ownership = await admin.query(`
     SELECT
       (SELECT count(*)::int FROM pg_class WHERE relowner = 'qr_runtime'::regrole) AS objects,
@@ -890,6 +911,7 @@ try {
   await expectDenied(runtime, `ALTER TABLE app._database_foundation_fixture ADD COLUMN runtime_forbidden integer`);
   await expectDenied(runtime, `TRUNCATE TABLE app.product`);
   await expectDenied(runtime, `DELETE FROM app.product_category`);
+  await expectDenied(runtime, `DELETE FROM app.catalog_currency_pair`);
   await expectDenied(runtime, `CREATE TEMP TABLE runtime_forbidden (id integer)`);
   await expectDenied(runtime, `CREATE ROLE runtime_forbidden`);
   await expectDenied(runtime, `SET ROLE qr_migrator`);

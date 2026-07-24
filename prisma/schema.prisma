@@ -143,10 +143,20 @@ model CatalogCurrencyPair {
   active               Boolean  @default(true)
   createdAt            DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt            DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
-  paymentLinks         PaymentLink[]
+  paymentLinks              PaymentLink[]
+  supportedExchangeCurrency SupportedExchangeCurrency?
 
   @@unique([currencyUuid, exchangeCurrencyUuid], map: "catalog_currency_pair_uuids_key")
   @@map("catalog_currency_pair")
+  @@schema("app")
+}
+
+model SupportedExchangeCurrency {
+  code   String              @id @db.VarChar(3)
+  pairId String              @unique @map("pair_id") @db.Uuid
+  pair   CatalogCurrencyPair @relation(fields: [pairId], references: [id], onDelete: Restrict)
+
+  @@map("supported_exchange_currency")
   @@schema("app")
 }
 
