@@ -54,6 +54,17 @@
       ],
       "test_seconds": 0,
       "result": "advanced"
+    },
+    {
+      "at": "2026-07-23T23:46:31-03:00",
+      "event": "transition",
+      "from": "004_processing",
+      "to": "005_verifying",
+      "contexts": [
+        "exec_6_1_2"
+      ],
+      "test_seconds": 0,
+      "result": "advanced"
     }
   ]
 }
