@@ -67,6 +67,17 @@
       "tests": "approval blockers mapped to revised contracts and AC1-AC8; artifact JSON and diff checks only",
       "test_seconds": 0,
       "result": "replanned"
+    },
+    {
+      "at": "2026-07-23T23:37:31-03:00",
+      "event": "transition",
+      "from": "002_planning",
+      "to": "003_human_approval",
+      "contexts": [
+        "plan_6_3_2"
+      ],
+      "test_seconds": 0,
+      "result": "advanced"
     }
   ]
 }
