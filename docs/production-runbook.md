@@ -93,26 +93,52 @@ keep proxy/access logs under a separate reviewed retention policy.
 
 ## Backup and restore
 
-Take protected logical PostgreSQL backups on the operator's retention schedule;
-the updater neither requires nor validates one. Store with each backup only redacted metadata: release
-revision, Compose/image identities, backup time, schema/migration expectation,
-and configuration fingerprint without values. Preserve the separately protected
-Nautt encryption-key backup with an access and retention policy at least as
-strict as the database backup.
+PostgreSQL and `media-data` are one consistency pair. Default uninstall retains
+both volumes, protected credentials, backups/recovery sets, and deployment
+identity. Never use clean-clone `down --volumes` against an operator project.
 
-Restoration is isolated, operator-controlled, and destructive:
+Create a backup only in an existing canonical directory outside the checkout,
+owned by the invoking operator and mode `0700`:
 
-1. Stop the affected deployment while preserving logs and the pre-restore
-   evidence.
-2. Identify and review the exact backup, encryption key, intended database
-   volume, and compatibility decision before touching data.
-3. Restore only into that reviewed target with approved PostgreSQL tooling.
-4. Re-establish the normal startup gates and then perform the human-approved
-   operational checks.
+```sh
+install/backup.sh --destination /srv/qr-pagamentos-backups
+```
 
-Never use clean-clone test cleanup against an operator deployment. In
-particular, `down --volumes`, `--purge-data`, and deleting a production volume
-are not default backup, restore, upgrade, or rollback actions.
+The shared lock serializes every data operation. Backup requires a healthy
+supported deployment, stops only app, captures a PostgreSQL custom dump,
+validates the database-to-media descriptor/digest inventory, and creates a
+numeric-owner media archive. It verifies the artifacts and atomically publishes
+one protected set before restarting the exact prior app; failure publishes
+nothing.
+
+The closed manifest contains only release SHA, Compose project, exact managed
+volume identities, schema expectation, formats, sizes, and checksums. It contains no
+database row, media inventory, credential, secret path, or Docker mountpoint.
+Preserve the Nautt key separately under a policy at least as strict as the set.
+
+Restore is destructive, exact-release, and pair-only:
+
+```sh
+install/restore.sh \
+  --backup /srv/qr-pagamentos-backups/qr-pair-YYYYMMDDTHHMMSSZ \
+  --confirm RESTORE:qr-pagamentos
+```
+
+It checks the closed manifest, checksum/size, safe archive members, exact clean
+checkout and local image SHA, manifest project/volume identities, and current exact
+local Compose ownership. Before managed mutation it restores into labeled
+disposable database/media volumes, one internal DB-only network, runs media
+POSIX preflight, and boots exact-release internal health with operation-generated
+mode-`0400` runtime/Nautt files and a fixed callback. No rehearsal resource
+joins `edge`, publishes a port, mounts the Docker socket, reads a production
+secret, or mounts a managed volume.
+
+Every recorded rehearsal resource is removed and proven absent before mutation.
+Restore then captures an automatic protected recovery pair and restores contents
+into the same managed volume IDs. Requested-restore failure attempts recovery;
+double failure leaves app stopped and retains all artifacts. Never broaden
+cleanup or use force, partial, database-only, media-only, or ignore-version
+modes. The clean-clone backup/restore scenarios passed on 2026-07-24.
 
 ## Upgrade and rollback
 
@@ -150,17 +176,19 @@ language permits only data-preserving table, column, index, typed-constraint
 and privilege operations; raw SQL, destructive DDL/DML, rename/type changes,
 backfills and other arbitrary effects are not representable.
 
-The updater then proves the local Compose volume labels and driver, owning `db`
-container labels, exact `/var/lib/postgresql` mount, healthy existing app, all
-protected source/staged artifacts, and exact Nautt-key continuity. It never
-creates or rewrites a secret. It atomically writes a mode-`0400` record under
+The updater proves both local Compose data volumes, owning mounts, a healthy
+existing app, every PostgreSQL/Nautt source/staged/supplied credential, and
+no-output authentication of all roles. An absent legacy media volume is adopted
+only after an authenticated zero-`MediaObject` result. It never rewrites a
+retained secret. It writes a protected record under
 the ignored `.update-evidence/` directory (or `--evidence-dir`) containing the
-target/head/upstream SHA, previous app container/image, Compose project and
-database-volume identity; no secret value or path is recorded.
+target/head/upstream SHA, previous app container/image, Compose project and both
+volume identities; no secret value or path is recorded.
 
 Candidate db-ops and app images are labelled
 `org.opencontainers.image.revision=<target SHA>`. The old healthy app remains
-running while candidate images build, bootstrap runs and a newly created
+running while candidate images build and the target image preflights the
+retained media volume. It remains healthy while bootstrap runs and a newly created
 migration container performs normal `prisma migrate deploy`. The migration
 wrapper rejects repository/applied-ID or checksum disagreement, failed,
 rolled-back, incomplete or ambiguous Prisma history, and emits
@@ -168,15 +196,17 @@ rolled-back, incomplete or ambiguous Prisma history, and emits
 pending-set digests. Its image revision must equal the target SHA. Only after
 that proof and a successful identity seed does the updater force-recreate the
 app, require it to become healthy, verify the same image revision label and
-recheck the unchanged volume identity. Completion emits
+recheck both unchanged volume identities. Completion emits
 `PASS update-complete revision=<SHA> migrate=<container> app=<container>
 evidence=<file>`.
 
-Pull, offline-policy, ownership/key, build or migration failure leaves the old
-app running and retains the data, volume, key, logs and evidence. Do not delete
-the volume, rotate the Nautt key or rerun the installer as a recovery shortcut.
-If failure occurs after app promotion begins, use the evidence and redacted
-service logs to diagnose the target; no automatic rollback is claimed.
+Pull, offline-policy, ownership/continuity, build, or target-preflight failure
+leaves the old app running with the pair unchanged. Once bootstrap, migration,
+or seed commits database work, that additive state and its evidence are
+retained; media remains unchanged and no database reversal is claimed. If target
+health fails, update recreates only the captured previous image against the
+retained pair and requires its health. Failure of that image requires operator
+recovery with both image identities, logs, and evidence retained.
 
 Application/configuration rollback is allowed only after reviewing schema
 compatibility. The migration baseline is immutable and future changes are
@@ -185,13 +215,13 @@ new policy-valid forward migration rather than reversing applied history. If a
 data restore is required for an independent operational reason, stop and use
 the reviewed restore procedure with the matching encryption key.
 `docker compose stop` and `docker compose down`
-without `--volumes` preserve the named database volume; neither is proof that a
+without `--volumes` preserve both named data volumes; neither is proof that a
 previous application can safely read the current schema.
 
 ## Release handoff
 
 Read [release evidence](release-evidence.md) with the release candidate. It is
-a static ledger, not operational proof. The listed runtime, installation,
-container, database, browser, proxy, backup/restore, health, and full-gate
-checks are explicitly `SKIPPED — user directed`; a human must plan and record
-those checks before declaring the deployment operational.
+a scoped ledger, not live-deployment proof. It separates the historical static
+candidate's explicit skips from later dated disposable task evidence. A later
+PASS applies only to its named command and scope; a human must still plan and
+record every remaining skip before declaring the deployment operational.

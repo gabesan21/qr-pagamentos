@@ -6,8 +6,9 @@ Self-hosted Next.js dashboard for products and first-party payment links backed 
 
 Operators should follow the [production runbook](docs/production-runbook.md) and
 review the redacted [release evidence ledger](docs/release-evidence.md) before
-deploying. The current release ledger is static evidence only: its operational
-checks are explicitly `SKIPPED — user directed` and require human execution.
+deploying. The ledger separates historical candidate skips from later dated
+disposable task evidence; neither is live-deployment certification, and every
+remaining skip requires human execution.
 
 ## Prerequisites
 
@@ -33,6 +34,9 @@ pnpm db:contract-check
 pnpm container:prepare-secrets -- --env-file .env.compose
 pnpm container:contract-check
 pnpm container:test --clean-clone --scenario happy
+pnpm container:test --clean-clone --scenario install-lifecycle
+pnpm container:test --clean-clone --scenario media-backup
+pnpm container:test --clean-clone --scenario media-restore
 ```
 
 `pnpm check` runs typechecking, linting, tests, and the production build. User-interface and mutation routes are unprefixed; persisted preferences select `pt-BR` or `en`, and legacy locale-prefixed routes return 404.
@@ -90,24 +94,62 @@ may still belong to an operator's independent retention policy, but it is not
 an update prerequisite. The updater requires the digest-pinned Node helper
 image to be available locally, then runs the pulled migration-policy verifier
 offline with a read-only checkout and no network, database, environment or
-secret access. It verifies Compose ownership, the exact database-volume mount,
-and Nautt-key continuity without generating or rewriting secrets.
+secret access. It verifies both exact local Compose-owned data volumes, every
+PostgreSQL and Nautt source/staged/supplied credential, and no-output role
+authentication without generating or rewriting secrets. The target app image
+runs its media POSIX preflight against the retained volume before any target
+database command.
 
 Candidate images carry `org.opencontainers.image.revision=<target SHA>`. The
 currently healthy app remains running while they build and while a fresh
 migration container checks repository/Prisma metadata and applies pending
 migrations. Only after that container completes successfully and the identity
 seed succeeds does the updater recreate the app from the target image. Pull,
-policy, build or migration failure therefore retains the prior healthy app,
-database volume, key, logs and protected mode-`0400` evidence. The updater does
-not install a fresh deployment or perform an automatic rollback.
+policy, build or pre-database failure retains the prior healthy app and pair
+unchanged. After bootstrap/migration/seed begins, committed additive database
+state and failure evidence are retained honestly while media stays unchanged.
+If the promoted target misses health, update recreates only the captured
+previous application image against that retained pair; it never claims to
+reverse database state.
 
-`install/uninstall.sh` removes application containers while preserving the PostgreSQL volume. Neither uninstall mode requires the initial administrator username, email, or creation-time identity files. Data deletion is a separate explicit operation:
+`install/uninstall.sh` removes application containers/networks while preserving
+both PostgreSQL and media volumes, source/staged credentials, and recovery
+material. Data deletion is a separate exact-confirm paired operation:
 
 ```sh
 install/uninstall.sh
-install/uninstall.sh --purge-data
+install/uninstall.sh --purge-data qr-pagamentos
 ```
+
+The steady app alone mounts `media-data` read-write at `/app/media`; its root
+filesystem remains read-only and UID/GID `1000:1000`. Startup refuses to bind
+until the private `0700` media directories pass the local-POSIX preflight.
+
+Create one protected database/media backup set in an existing, external,
+invoking-user-owned mode-`0700` directory:
+
+```sh
+install/backup.sh --destination /srv/qr-pagamentos-backups
+```
+
+Backup stops only app for the consistency cut, verifies the database-to-media
+descriptor/digest inventory, and atomically publishes a custom PostgreSQL dump,
+numeric media archive, and redacted checksum manifest before restarting the
+same app. Restore is explicit, destructive, exact-release, and pair-only:
+
+```sh
+install/restore.sh \
+  --backup /srv/qr-pagamentos-backups/qr-pair-YYYYMMDDTHHMMSSZ \
+  --confirm RESTORE:qr-pagamentos
+```
+
+The checkout and local app image must match the manifest SHA. Restore verifies
+checksums and safe archive members, rehearses the dump, media POSIX boundary,
+and exact internal health using only labeled disposable resources, then proves
+that inventory absent before touching managed volumes. It first captures a
+protected automatic recovery pair; double failure leaves app stopped with all
+artifacts retained. No force, partial, database-only, media-only, or
+ignore-version mode exists. Runtime scenario PASS is not claimed here.
 
 ```sh
 cp .env.compose.example .env.compose
@@ -136,7 +178,7 @@ If bootstrap, migration, or runtime authentication fails, correct the external f
 
 ## Rollback without deleting data
 
-Restore a compatible previous digest-pinned application image/configuration and recreate only the affected service. Do not run `down --volumes`: `docker compose stop` and `docker compose down` without `--volumes` preserve the named PostgreSQL volume. Schema correction requires a new reviewed, policy-valid forward migration; never alter the immutable baseline, reverse applied history, or erase an existing volume.
+Restore a compatible previous digest-pinned application image/configuration and recreate only the affected service. Do not run `down --volumes`: `docker compose stop` and `docker compose down` without `--volumes` preserve both named data volumes. Schema correction requires a new reviewed, policy-valid forward migration; never alter the immutable baseline, reverse applied history, or erase an existing volume.
 
 ```sh
 docker compose --env-file .env.compose down
@@ -155,7 +197,10 @@ pnpm container:test --clean-clone --scenario roles
 pnpm container:test --clean-clone --scenario failures
 pnpm container:test --clean-clone --scenario lifecycle
 pnpm container:test --clean-clone --scenario isolation
+pnpm container:test --clean-clone --scenario install-lifecycle
 pnpm container:test --clean-clone --scenario update
+pnpm container:test --clean-clone --scenario media-backup
+pnpm container:test --clean-clone --scenario media-restore
 ```
 
 ## Critical verification in 005

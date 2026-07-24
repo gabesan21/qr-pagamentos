@@ -144,23 +144,119 @@ expect_absent "$recovery_out" 'reserved-!:/?#[]@-admin'
 default_out=$TMP/uninstall-default.out
 purge_out=$TMP/uninstall-purge.out
 "$INSTALL_DIR/uninstall.sh" --dry-run --env-file "$TMP/install.env" > "$default_out"
-"$INSTALL_DIR/uninstall.sh" --dry-run --purge-data --env-file "$TMP/install.env" > "$purge_out"
+"$INSTALL_DIR/uninstall.sh" --dry-run --purge-data qr-pagamentos --env-file "$TMP/install.env" > "$purge_out"
 expect_contains "$default_out" 'down --remove-orphans'
 expect_contains "$default_out" '.install-secrets'
 expect_absent "$default_out" '--volumes'
 expect_absent "$default_out" 'apt-get purge'
-expect_contains "$purge_out" '--volumes'
+expect_contains "$purge_out" 'volume rm qr-pagamentos_postgres-data qr-pagamentos_media-data'
+expect_contains "$purge_out" 'validate exact local Compose volumes'
 expect_absent "$purge_out" 'apt-get purge'
 
 sed '/^INITIAL_ADMIN_\(USERNAME\|EMAIL\)=/d' "$TMP/install.env" > "$TMP/uninstall.env"
 "$INSTALL_DIR/uninstall.sh" --dry-run --env-file "$TMP/uninstall.env" >/dev/null \
   || fail 'default uninstall required install-only identity variables'
-"$INSTALL_DIR/uninstall.sh" --dry-run --purge-data --env-file "$TMP/uninstall.env" >/dev/null \
+"$INSTALL_DIR/uninstall.sh" --dry-run --purge-data qr-pagamentos --env-file "$TMP/uninstall.env" >/dev/null \
   || fail 'purge uninstall required install-only identity variables'
 
-for script in "$INSTALL_DIR/install.sh" "$INSTALL_DIR/update.sh" "$INSTALL_DIR/uninstall.sh" "$INSTALL_DIR/test.sh"; do
+for script in "$INSTALL_DIR/install.sh" "$INSTALL_DIR/update.sh" "$INSTALL_DIR/uninstall.sh" "$INSTALL_DIR/backup.sh" "$INSTALL_DIR/restore.sh" "$INSTALL_DIR/test.sh"; do
   [[ -x $script ]] || fail "not executable: $script"
 done
+for expected in 'pg_dump' 'media-inventory.mjs' 'pair-manifest.mjs' 'compose stop app' 'media.tar'; do
+  expect_contains "$INSTALL_DIR/backup.sh" "$expected"
+done
+for expected in 'RESTORE:$PROJECT' 'rehearsal-health' 'resource_absent' 'backup.sh' 'restore_managed_pair' 'DOUBLEFAIL'; do
+  expect_contains "$INSTALL_DIR/restore.sh" "$expected"
+done
+for forbidden in '--force' '--database-only' '--media-only' '--ignore-version'; do
+  expect_absent "$INSTALL_DIR/restore.sh" "$forbidden"
+done
+if CONTAINER_TEST_RESTORE_INJECT=primary-after-mutation \
+  "$INSTALL_DIR/restore.sh" --backup "$TMP" --confirm RESTORE:qr-pagamentos >/dev/null 2>&1; then
+  fail 'restore fault injection escaped the clean-clone disposable guard'
+fi
+
+# Backup-set validation is no-follow and closes archive identity/mode/type.
+pair_fixture=$TMP/pair-fixture
+mkdir -m 0700 "$pair_fixture" "$pair_fixture/media" "$pair_fixture/media/staging" "$pair_fixture/media/objects"
+printf 'database fixture' > "$pair_fixture/database.dump"
+printf 'webp fixture' > "$pair_fixture/media/objects/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA.webp"
+chmod 0600 "$pair_fixture/database.dump" "$pair_fixture/media/objects/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA.webp"
+tar --numeric-owner -C "$pair_fixture/media" -cpf "$pair_fixture/media.tar" .
+node "$INSTALL_DIR/pair-manifest.mjs" create "$pair_fixture/manifest.json" \
+  aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa fixture fixture_postgres-data fixture_media-data \
+  'fixture_postgres-data|local|fixture|postgres-data|created' \
+  'fixture_media-data|local|fixture|media-data|created' \
+  fixture-app:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
+  fixture-db-ops:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
+  "$pair_fixture/database.dump" "$pair_fixture/media.tar"
+node "$INSTALL_DIR/pair-manifest.mjs" verify "$pair_fixture/manifest.json" >/dev/null \
+  || fail 'private regular backup pair was rejected'
+mv "$pair_fixture/database.dump" "$pair_fixture/database.real"
+ln -s database.real "$pair_fixture/database.dump"
+if node "$INSTALL_DIR/pair-manifest.mjs" verify "$pair_fixture/manifest.json" >/dev/null 2>&1; then
+  fail 'symlinked backup artifact succeeded'
+fi
+rm "$pair_fixture/database.dump"
+mv "$pair_fixture/database.real" "$pair_fixture/database.dump"
+
+unsafe_pair=$TMP/unsafe-pair
+cp -R "$pair_fixture/media" "$unsafe_pair"
+chmod 0777 "$unsafe_pair/objects/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA.webp"
+tar --numeric-owner -C "$unsafe_pair" -cpf "$pair_fixture/unsafe.tar" .
+mv "$pair_fixture/media.tar" "$pair_fixture/media.safe"
+mv "$pair_fixture/unsafe.tar" "$pair_fixture/media.tar"
+node "$INSTALL_DIR/pair-manifest.mjs" create "$pair_fixture/unsafe-manifest.json" \
+  aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa fixture fixture_postgres-data fixture_media-data \
+  'fixture_postgres-data|local|fixture|postgres-data|created' \
+  'fixture_media-data|local|fixture|media-data|created' \
+  fixture-app:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
+  fixture-db-ops:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
+  "$pair_fixture/database.dump" "$pair_fixture/media.tar"
+if node "$INSTALL_DIR/pair-manifest.mjs" verify "$pair_fixture/unsafe-manifest.json" >/dev/null 2>&1; then
+  fail 'unsafe media member mode succeeded'
+fi
+mv "$pair_fixture/media.tar" "$pair_fixture/unsafe.tar"
+mv "$pair_fixture/media.safe" "$pair_fixture/media.tar"
+
+reject_archive() {
+  local archive=$1 label=$2 case_dir manifest
+  case_dir=$pair_fixture/$label
+  mkdir -m 0700 "$case_dir"
+  cp "$pair_fixture/database.dump" "$case_dir/database.dump"
+  cp "$archive" "$case_dir/media.tar"
+  chmod 0600 "$case_dir/database.dump" "$case_dir/media.tar"
+  manifest=$case_dir/manifest.json
+  node "$INSTALL_DIR/pair-manifest.mjs" create "$manifest" \
+    aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa fixture fixture_postgres-data fixture_media-data \
+    'fixture_postgres-data|local|fixture|postgres-data|created' \
+    'fixture_media-data|local|fixture|media-data|created' \
+    fixture-app:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
+    fixture-db-ops:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
+    "$case_dir/database.dump" "$case_dir/media.tar"
+  if node "$INSTALL_DIR/pair-manifest.mjs" verify "$manifest" >/dev/null 2>&1; then
+    fail "$label media archive succeeded"
+  fi
+}
+member_fixture=$TMP/member-fixture
+cp -R "$pair_fixture/media" "$member_fixture"
+ln "$member_fixture/objects/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA.webp" \
+  "$member_fixture/objects/BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB.webp"
+tar --numeric-owner -C "$member_fixture" -cpf "$pair_fixture/hardlink.tar" .
+reject_archive "$pair_fixture/hardlink.tar" hardlink
+rm "$member_fixture/objects/BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB.webp"
+ln -s AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA.webp \
+  "$member_fixture/objects/BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB.webp"
+tar --numeric-owner -C "$member_fixture" -cpf "$pair_fixture/symlink.tar" .
+reject_archive "$pair_fixture/symlink.tar" symlink-member
+rm "$member_fixture/objects/BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB.webp"
+mkfifo -m 0600 "$member_fixture/objects/BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB.webp"
+tar --numeric-owner -C "$member_fixture" -cpf "$pair_fixture/special.tar" .
+reject_archive "$pair_fixture/special.tar" special-member
+rm "$member_fixture/objects/BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB.webp"
+tar --numeric-owner --transform='s|^\./objects|../objects|' -C "$member_fixture" \
+  -cpf "$pair_fixture/traversal.tar" .
+reject_archive "$pair_fixture/traversal.tar" traversal-member
 
 # Dedicated self-update fixture: real tracked upstream plus an isolated Docker shim.
 update_source=$TMP/update-source
@@ -168,6 +264,7 @@ update_remote=$TMP/update-remote.git
 update_root=$TMP/update-root
 mkdir -p "$update_source/install" "$update_source/pop/scripts" "$update_source/prisma/migrations" "$update_source/bin"
 cp "$INSTALL_DIR/update.sh" "$update_source/install/update.sh"
+cp "$INSTALL_DIR/lib-operations.sh" "$update_source/install/lib-operations.sh"
 cp "$INSTALL_DIR/../compose.yaml" "$update_source/compose.yaml"
 cp "$INSTALL_DIR/../pop/scripts/migration-policy.mjs" "$update_source/pop/scripts/migration-policy.mjs"
 cp "$INSTALL_DIR/../prisma/migration-policy-baseline.json" "$update_source/prisma/migration-policy-baseline.json"
@@ -199,7 +296,9 @@ prepare_update_runtime() {
   done
   printf '%s' "$update_key" > "$root/.install-secrets/nautt_encryption_key"; chmod 0600 "$root/.install-secrets/nautt_encryption_key"
   for secret in admin_password migrator_password runtime_password initial_admin_username initial_admin_email initial_admin_password; do
-    printf '%s' "staged-$secret" > "$root/.container-secrets/$secret"; chmod 0400 "$root/.container-secrets/$secret"
+    source_name=$secret
+    [[ $secret == admin_password ]] && source_name=postgres_admin_password
+    printf '%s' "source-$source_name" > "$root/.container-secrets/$secret"; chmod 0400 "$root/.container-secrets/$secret"
   done
   printf '%s' "$update_key" > "$root/.container-secrets/nautt_encryption_key"; chmod 0400 "$root/.container-secrets/nautt_encryption_key"
   cat > "$root/install/.env" <<EOF
@@ -220,6 +319,7 @@ set -Eeuo pipefail
 printf '%s\n' "$*" >> "$FAKE_DOCKER_LOG"
 revision=${QR_UPDATE_TARGET_SHA:-unknown}
 if [[ $1 == info ]]; then exit 0; fi
+if [[ $1 == image && $2 == tag ]]; then exit 0; fi
 if [[ $1 == image && $2 == inspect && $3 != --format ]]; then exit 0; fi
 if [[ $1 == image && $2 == inspect ]]; then printf '%s\n' "$revision"; exit 0; fi
 if [[ $1 == run ]]; then
@@ -230,8 +330,12 @@ if [[ $1 == run ]]; then
   exit 0
 fi
 if [[ $1 == volume && $2 == inspect ]]; then
-  if [[ $3 == --format && $4 == *Mountpoint* ]]; then printf '%s\n' "qr-pagamentos_postgres-data|/fixture|2026-07-22T00:00:00Z"
-  else printf '%s\n' 'local|qr-pagamentos|postgres-data|qr-pagamentos_postgres-data'; fi
+  name=${5:-${3:-}}
+  if [[ $name == *media-data ]]; then logical=media-data; else logical=postgres-data; fi
+  if [[ $3 == --format && $4 == *'.CreatedAt'* ]]; then printf '%s\n' "$name|local|qr-pagamentos|$logical|2026-07-22T00:00:00Z"
+  elif [[ $3 == --format && $4 == *'{{.Name}}|{{.Driver}}'* ]]; then printf '%s\n' "$name|local|qr-pagamentos|$logical"
+  elif [[ $3 == --format ]]; then printf '%s\n' "local|qr-pagamentos|$logical|$name"
+  else printf '%s\n' "$name"; fi
   exit 0
 fi
 if [[ $1 == inspect ]]; then
@@ -284,7 +388,7 @@ app_line=$(grep -n 'up -d --no-deps --force-recreate app' "$update_log" | cut -d
 expect_absent "$update_out" "$update_key"
 evidence_file=$(find "$update_root/.update-evidence" -maxdepth 1 -name 'update-*.txt' -type f)
 [[ -n $evidence_file && $(stat -c '%a' "$evidence_file") == 400 ]] || fail 'protected update evidence was not created'
-for field in target_revision head_revision upstream_revision previous_app_container previous_app_image volume_identity; do expect_contains "$evidence_file" "$field="; done
+for field in target_revision head_revision upstream_revision previous_app_container previous_app_image volume_identities; do expect_contains "$evidence_file" "$field="; done
 expect_absent "$evidence_file" 'backup_reference='
 expect_absent "$evidence_file" 'previous_release='
 expect_absent "$evidence_file" "$update_key"

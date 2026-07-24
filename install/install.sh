@@ -7,12 +7,20 @@ ENV_FILE="$INSTALL_DIR/.env"
 DRY_RUN=false
 RECOVER_INITIAL_ADMIN=false
 NODE_HELPER='node:26.4.0-bookworm-slim@sha256:ec82d089a8ae2cf02628da7b34ea57dc357b24db724d557fe2d240e6beb659c1'
+POSTGRES_IMAGE='postgres:18.4-bookworm@sha256:1961f96e6029a02c3812d7cb329a3b03a3ac2bb067058dec17b0f5596aca9296'
 POSTGRES_PORT=5433
+PROJECT=${CONTAINER_TEST_PROJECT:-qr-pagamentos}
 DOCKER=(docker)
+RELEASE_REVISION=
+APP_IMAGE=
+DB_OPS_IMAGE=
 
 die() { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
 print_command() { printf 'DRY-RUN'; printf ' %q' "$@"; printf '\n'; }
 run() { if "$DRY_RUN"; then print_command "$@"; else "$@"; fi; }
+
+# shellcheck source=install/lib-operations.sh
+source "$INSTALL_DIR/lib-operations.sh"
 
 while (($#)); do
   case "$1" in
@@ -193,8 +201,24 @@ compose() {
     MIGRATOR_PASSWORD_FILE=$MIGRATOR_PASSWORD_FILE RUNTIME_PASSWORD_FILE=$RUNTIME_PASSWORD_FILE \
     NAUTT_WEBHOOK_CALLBACK_URL=$NAUTT_WEBHOOK_CALLBACK_URL \
     NAUTT_API_BASE_URL=${NAUTT_API_BASE_URL:-} \
+    RELEASE_REVISION=$RELEASE_REVISION APP_IMAGE=$APP_IMAGE DB_OPS_IMAGE=$DB_OPS_IMAGE \
     STAGED_SECRETS_DIR=$STAGED_SECRETS_DIR INITIAL_ADMIN_RECOVERY_PASSWORD_FILE=${INITIAL_ADMIN_RECOVERY_PASSWORD_FILE:-} \
-    "${DOCKER[@]}" compose -f "$ROOT_DIR/compose.yaml" -p qr-pagamentos "$@"
+    "${DOCKER[@]}" compose -f "$ROOT_DIR/compose.yaml" -p "$PROJECT" "$@"
+}
+
+resolve_release_identity() {
+  if "$DRY_RUN"; then
+    RELEASE_REVISION=0000000000000000000000000000000000000000
+  else
+    command -v git >/dev/null 2>&1 || die 'the release checkout cannot resolve its immutable revision'
+    [[ -z $(git -C "$ROOT_DIR" status --porcelain --untracked-files=all) ]] \
+      || die 'installation requires a clean exact-release checkout'
+    RELEASE_REVISION=$(git -C "$ROOT_DIR" rev-parse --verify 'HEAD^{commit}') \
+      || die 'installation checkout has no exact release commit'
+    [[ $RELEASE_REVISION =~ ^[0-9a-f]{40}$ ]] || die 'installation release revision is invalid'
+  fi
+  APP_IMAGE="${PROJECT}-app:$RELEASE_REVISION"
+  DB_OPS_IMAGE="${PROJECT}-db-ops:$RELEASE_REVISION"
 }
 
 recover_initial_admin() {
@@ -213,18 +237,28 @@ recover_initial_admin() {
 
 deploy() {
   if "$DRY_RUN"; then
-    print_command docker compose -f "$ROOT_DIR/compose.yaml" -p qr-pagamentos build --pull
-    print_command docker compose -f "$ROOT_DIR/compose.yaml" -p qr-pagamentos up -d
-    print_command docker compose -f "$ROOT_DIR/compose.yaml" -p qr-pagamentos exec -T app node container/healthcheck.mjs
+    print_command env RELEASE_REVISION="$RELEASE_REVISION" APP_IMAGE="$APP_IMAGE" DB_OPS_IMAGE="$DB_OPS_IMAGE" \
+      docker compose -f "$ROOT_DIR/compose.yaml" -p "$PROJECT" build --pull bootstrap app
+    print_command env RELEASE_REVISION="$RELEASE_REVISION" APP_IMAGE="$APP_IMAGE" DB_OPS_IMAGE="$DB_OPS_IMAGE" \
+      docker compose -f "$ROOT_DIR/compose.yaml" -p "$PROJECT" up -d
+    print_command env RELEASE_REVISION="$RELEASE_REVISION" APP_IMAGE="$APP_IMAGE" DB_OPS_IMAGE="$DB_OPS_IMAGE" \
+      docker compose -f "$ROOT_DIR/compose.yaml" -p "$PROJECT" exec -T app node container/healthcheck.mjs
     printf 'DRY-RUN wait for exact http://127.0.0.1:%s/api/health = {"status":"ok"}\n' "$APP_PORT"
     return
   fi
-  compose build --pull
+  compose build --pull bootstrap app
+  [[ $(docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$APP_IMAGE") == "$RELEASE_REVISION" ]] \
+    || die 'installed application image revision mismatch'
+  [[ $(docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$DB_OPS_IMAGE") == "$RELEASE_REVISION" ]] \
+    || die 'installed database-operations image revision mismatch'
   compose up -d
   local attempt
   for attempt in {1..120}; do
     if compose exec -T app node container/healthcheck.mjs >/dev/null 2>&1; then
+      compose exec -T app node container/media-preflight.mjs >/dev/null 2>&1 \
+        || die 'installed media volume failed its local POSIX preflight'
       printf 'PASS install-health\n'
+      printf 'PASS install-media-preflight\n'
       return
     fi
     sleep 1
@@ -236,6 +270,8 @@ deploy() {
 
 check_docker
 load_install_env
+resolve_release_identity
+if ! "$DRY_RUN"; then operation_lock "$ROOT_DIR"; fi
 if ! run_node_helper -e 'const u = new URL(process.argv[1]); process.exit(u.protocol === "https:" && !u.username && !u.password && !u.hash ? 0 : 1)' "$NAUTT_WEBHOOK_CALLBACK_URL" >/dev/null 2>&1; then
   die 'NAUTT_WEBHOOK_CALLBACK_URL must be an absolute HTTPS URL without credentials or a fragment'
 fi
@@ -245,11 +281,39 @@ if [[ -n ${NAUTT_API_BASE_URL:-} ]]; then
   fi
 fi
 [[ $POSTGRES_ADMIN_PASSWORD != "$MIGRATOR_PASSWORD" && $POSTGRES_ADMIN_PASSWORD != "$RUNTIME_PASSWORD" && $MIGRATOR_PASSWORD != "$RUNTIME_PASSWORD" ]] || die 'passwords must be distinct'
-write_secret_sources
-write_nautt_encryption_key_source
-write_identity_sources
-"$RECOVER_INITIAL_ADMIN" && write_recovery_source
-stage_secrets
+retained=false
+if ! "$DRY_RUN" && docker volume inspect "${PROJECT}_postgres-data" >/dev/null 2>&1; then
+  retained=true
+  volume_contract "$PROJECT" postgres-data "${PROJECT}_postgres-data" || die 'PostgreSQL volume ownership is incompatible'
+  validate_retained_credentials "$ROOT_DIR"
+  POSTGRES_ADMIN_PASSWORD_FILE=$ROOT_DIR/.install-secrets/postgres_admin_password
+  MIGRATOR_PASSWORD_FILE=$ROOT_DIR/.install-secrets/migrator_password
+  RUNTIME_PASSWORD_FILE=$ROOT_DIR/.install-secrets/runtime_password
+  NAUTT_ENCRYPTION_KEY_FILE=$ROOT_DIR/.install-secrets/nautt_encryption_key
+  INITIAL_ADMIN_USERNAME_FILE=$ROOT_DIR/.install-secrets/initial_admin_username
+  INITIAL_ADMIN_EMAIL_FILE=$ROOT_DIR/.install-secrets/initial_admin_email
+  INITIAL_ADMIN_PASSWORD_FILE=$ROOT_DIR/.install-secrets/initial_admin_password
+  STAGED_SECRETS_DIR=$ROOT_DIR/.container-secrets
+  # Default uninstall removes the private network and database container. Recreate
+  # only that retained-data boundary before no-output role authentication.
+  compose up -d db
+  validate_retained_database_roles "$ROOT_DIR" "$PROJECT" "$POSTGRES_IMAGE"
+  ensure_media_volume "$ROOT_DIR" "$PROJECT" "$POSTGRES_IMAGE"
+  printf 'PASS retained-credential-continuity\n'
+else
+  write_secret_sources
+  write_nautt_encryption_key_source
+  write_identity_sources
+  "$RECOVER_INITIAL_ADMIN" && write_recovery_source
+  stage_secrets
+fi
+if "$RECOVER_INITIAL_ADMIN" && "$retained"; then
+  write_recovery_source
+  INITIAL_ADMIN_RECOVERY_PASSWORD_FILE=$ROOT_DIR/.install-secrets/initial_admin_recovery_password
+  "${DOCKER[@]}" run --rm --network none --read-only --tmpfs /tmp \
+    -v "$INITIAL_ADMIN_RECOVERY_PASSWORD_FILE:/source:ro" -v "$STAGED_SECRETS_DIR:/staged" "$NODE_HELPER" \
+    sh -eu -c 'umask 077; cp /source /staged/initial_admin_recovery_password; chown 1000:1000 /staged/initial_admin_recovery_password; chmod 0400 /staged/initial_admin_recovery_password'
+fi
 if "$RECOVER_INITIAL_ADMIN"; then
   recover_initial_admin
 else

@@ -31,13 +31,17 @@ configuration, or secret-file contents belong in this ledger.
 | Topology and TLS proxy | `compose.yaml`, `README.md`, `src/app/origin-guard.ts`, `src/security/public-rate-limit.ts` | App is loopback-only; database/one-shots have no host ports; runbook requires replace-not-append forwarding headers. | **SKIPPED — user directed** | Public exposure and proxy trust boundary unverified. |
 | Startup and health | `compose.yaml`, `container/bootstrap.mjs`, `container/migrate.mjs`, `container/identity-admin.mjs`, `container/runtime.mjs`, `container/healthcheck.mjs` | One-shot dependency chain and runtime `SELECT 1` preflight precede bind; health is liveness only. | **SKIPPED — user directed** | Startup ordering and liveness response unverified. |
 | Configuration and secrets | `.env.compose.example`, `install/.env.example`, `container/prepare-identity-secrets.mjs`, `install/install.sh`, `AGENTS.md` | Distinct database credentials, protected file-backed staging, callback/API-base constraints, recovery posture, and encryption-key backup need are documented without values. | **SKIPPED — user directed** | Installer and secret handling unexercised. |
-| Backup, restore, upgrade, rollback | `README.md`, `compose.yaml`, `Dockerfile`, `prisma/migrations/`, `install/uninstall.sh` | Runbook preserves volumes by default, treats restore as reviewed/destructive, and forbids implicit migration reversal. | **SKIPPED — user directed** | Backup integrity, restore recovery, schema compatibility, and rollback unverified. |
+| Persistent media topology | `Dockerfile`, `compose.yaml`, `container/media-preflight.mjs`, `container/runtime.mjs` | Static contract fixes app-only `media-data:/app/media`, UID/GID 1000, read-only root, private controls, and pre-bind POSIX refusal. | **PASS — 2026-07-24 task 6.3.3** | Clean-clone `media` proved fresh copy-up identity, mount isolation, root-write refusal, restart persistence, and helper cleanup. |
+| Install/update/uninstall lifecycle | `install/lib-operations.sh`, `install/install.sh`, `install/update.sh`, `install/uninstall.sh` | Static contract covers paired volume ownership, credential continuity, zero-row adoption, pinned previous-image rollback, sealed full update failure envelope, default retention, and exact-confirm paired purge. | **PASS — 2026-07-24 task 6.3.3** | Clean-clone `install-lifecycle` and `update` proved exact-SHA install images, role continuity, retained reinstall, adoption, paired purge, exact identities/media bytes, candidate-preflight/helper failure evidence, target recreate/health rollback, and old-app health. |
+| Backup and restore | `install/backup.sh`, `install/restore.sh`, `install/pair-manifest.mjs`, `container/media-inventory.mjs` | Static contract covers atomic pair capture, dual exact-image binding, exact volume identities, closed no-follow manifest, private archive identity/modes, host-UID-independent secret staging, isolated rehearsal inventory, same-volume restore, and automatic recovery retention. | **PASS — 2026-07-24 task 6.3.3** | Clean-clone `media-backup` and `media-restore` proved normal install-to-backup binding, incompatible external DB-ops isolation, UID-2001 simulation, manifest/archive adversaries, exact teardown, automatic recovery, and double-failure migrate/metadata proof before restart. |
 | Release documentation navigation | `README.md`, `docs/production-runbook.md`, this ledger | README links resolve to the authoritative runbook and ledger. | Not applicable; static link inspection only. | Operator must still complete the skipped operational gate. |
 
 ## Explicit skip register
 
-The following work was not run for this candidate. Every entry is
-**SKIPPED — user directed**, and none may be inferred to have passed.
+This register belongs to the immutable Epoch 5 documentation candidate named
+above. A later dated task result overrides a skip only for the exact row and
+scope it names; it does not retroactively certify the candidate or a live
+deployment.
 
 | Check or exercise | Status |
 |---|---|
@@ -46,10 +50,16 @@ The following work was not run for this candidate. Every entry is
 | `pnpm build` | **SKIPPED — user directed** |
 | `pnpm check` | **SKIPPED — user directed** |
 | `pnpm db:generate`, `pnpm db:test`, and `pnpm db:contract-check` | **SKIPPED — user directed** |
-| `pnpm container:contract-check` | **SKIPPED — user directed** |
+| `pnpm container:contract-check -- --local-pins` | **PASS — 2026-07-24 task 6.3.3** |
 | Every `pnpm container:test --clean-clone --scenario` exercise (`build`, `config`, `happy`, `roles`, `failures`, `lifecycle`, `isolation`) | **SKIPPED — user directed** |
-| `install/test.sh`, installer execution, initial-admin recovery, and uninstall execution | **SKIPPED — user directed** |
-| Compose build, startup, restart, service-log inspection, and container health checks | **SKIPPED — user directed** |
+| `pnpm container:test --clean-clone --scenario media` | **PASS — 2026-07-24 task 6.3.3** |
+| `pnpm container:test --clean-clone --scenario install-lifecycle` | **PASS — 2026-07-24 task 6.3.3** |
+| `pnpm container:test --clean-clone --scenario update` with media continuity and rollback assertions | **PASS — 2026-07-24 task 6.3.3** |
+| `pnpm container:test --clean-clone --scenario media-backup` | **PASS — 2026-07-24 task 6.3.3** |
+| `pnpm container:test --clean-clone --scenario media-restore` | **PASS — 2026-07-24 task 6.3.3** |
+| `install/test.sh` | **PASS — 2026-07-24 task 6.3.3** |
+| Initial-admin recovery outside the disposable task scenarios | **SKIPPED — user directed** |
+| Compose operations outside the five dated task 6.3.3 scenarios above | **SKIPPED — user directed** |
 | Browser, locale, storefront, checkout, and authenticated mutation exercises | **SKIPPED — user directed** |
 | TLS proxy reachability, forwarding-header trust, and public network exposure checks | **SKIPPED — user directed** |
 | Backup creation, restore rehearsal, upgrade rehearsal, rollback rehearsal, and data-recovery verification | **SKIPPED — user directed** |
@@ -57,11 +67,11 @@ The following work was not run for this candidate. Every entry is
 
 ## Static audit limits and handoff
 
-This task inspected source and documentation only. It found the dependency
-memories and commits listed above and recorded the committed topology and
-operational contracts in the runbook. It does not prove that images build,
-containers start, credentials work, Nautt is reachable, a proxy overwrites
-headers, backups restore, or the application is safe to expose publicly.
+The original release audit inspected source and documentation only. Task 6.3.3
+later added the dated disposable Docker evidence recorded above for persistent
+media, retained install/update, atomic backup, and exact-release restore. It
+does not prove Nautt reachability, proxy header replacement, or safe public
+exposure.
 
 Before a human merges or operates this release, carry out the skipped checks in
 an approved environment and append their real dated results to the release
