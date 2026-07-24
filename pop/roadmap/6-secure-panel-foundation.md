@@ -21,7 +21,6 @@
 |------|-------------|--------|
 | [[6.1.1-define-panel-architecture-and-permissions]] | Specify the persona capability matrix, route map, durable contracts, and compatibility decisions for the rebuild. · size: M | 001_initial_task |
 | [[6.1.2-enforce-role-exclusive-authentication]] | Route each role to its panel and deny administrators every merchant read/mutation while preserving opaque outcomes. · size: L | 001_initial_task |
-| [[6.1.3-modularize-domain-dictionaries]] | Split the bilingual dictionaries by product domain while preserving the closed locale and parity contracts. · size: M | 001_initial_task |
 
 ## Phase 6.2 - Brand, themes, and application shells
 
