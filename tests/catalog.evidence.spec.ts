@@ -146,21 +146,25 @@ test("creates the closed merchant-catalog evidence run", async ({ page }) => {
   await captureState("state-pt-BR-currency-unmapped-1440");
 
   // Register the BRL mapping through the real administrator route in an
-  // isolated admin session; the merchant session stays untouched.
+  // isolated admin session; the merchant session stays untouched. The
+  // browser fetch carries the admin cookie and same-origin Origin header.
   const adminContext = await page.context().browser()!.newContext();
   const adminPage = await adminContext.newPage();
   await signIn(adminPage, adminUsername!, adminPassword!, "/admin");
-  const register = await adminPage.request.post(`${baseUrl}/admin/exchange-currencies`, {
-    headers: { origin: baseUrl },
-    form: {
+  const register = await adminPage.evaluate(async ({ fields, url }) => {
+    const response = await fetch(url, { method: "POST", body: new URLSearchParams(fields) });
+    return { status: response.status, url: response.url };
+  }, {
+    fields: {
       intent: "register",
       code: "BRL",
       label: "Real brasileiro",
       currencyUuid: randomUUID(),
       exchangeCurrencyUuid: randomUUID(),
     },
+    url: `${baseUrl}/admin/exchange-currencies`,
   });
-  expect(register.status()).toBe(303);
+  expect(register.url).toContain("success=exchange-currency");
   await adminContext.close();
   await page.goto(`${baseUrl}/catalog/products/new`);
   await expect(page.locator("select#product-create-currency")).toBeEnabled();
