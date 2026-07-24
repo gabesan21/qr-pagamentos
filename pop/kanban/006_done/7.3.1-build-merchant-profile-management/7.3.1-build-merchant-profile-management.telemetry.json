@@ -170,6 +170,17 @@
       "return_limit": 2,
       "test_seconds": 210,
       "result": "approved"
+    },
+    {
+      "at": "2026-07-24T05:38:28-03:00",
+      "event": "transition",
+      "from": "005_verifying",
+      "to": "006_done",
+      "contexts": [
+        "verify2_7_3_1"
+      ],
+      "test_seconds": 0,
+      "result": "advanced"
     }
   ]
 }
