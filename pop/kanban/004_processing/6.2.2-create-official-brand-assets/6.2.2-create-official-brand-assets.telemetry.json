@@ -45,6 +45,29 @@
       ],
       "test_seconds": 0,
       "result": "advanced"
+    },
+    {
+      "at": "2026-07-24T01:03:02-03:00",
+      "event": "stage",
+      "stage": "005_verifying",
+      "contexts": [
+        "verify_6_2_2"
+      ],
+      "strategy": "fresh differential strong review of the original brand request, all changed asset/consumer surfaces, manifest fail-closed behavior, and 32 final captures",
+      "tests": "brand check twice; focused render tests; evidence verifiers; typecheck; lint; production build attempt; scope, diff, and PoP validation; visual inspection",
+      "test_seconds": 125,
+      "result": "rejected_return_1"
+    },
+    {
+      "at": "2026-07-24T01:04:26-03:00",
+      "event": "transition",
+      "from": "005_verifying",
+      "to": "004_processing",
+      "contexts": [
+        "verify_6_2_2"
+      ],
+      "test_seconds": 0,
+      "result": "returned"
     }
   ]
 }
