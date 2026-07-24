@@ -74,10 +74,10 @@ assert(!/(?:5432|5433):(?:5432|5433)|ports:\s*\n\s*-.*(?:5432|5433)/m.test(compo
 assert(!compose.includes("MIGRATION_DATABASE_URL:") && !compose.includes("DATABASE_URL:"), "Compose must not render credential URLs");
 assert(compose.includes("NAUTT_WEBHOOK_CALLBACK_URL: ${NAUTT_WEBHOOK_CALLBACK_URL:?set NAUTT_WEBHOOK_CALLBACK_URL}"), "Compose must require the canonical Nautt callback");
 for (const expected of ["DB_OPS_IMAGE", "APP_IMAGE", "RELEASE_REVISION"]) assert(compose.includes(expected), `Compose lost revision binding ${expected}`);
-for (const expected of ["pull --ff-only", "migration-policy.mjs verify /workspace", "--pull=never", "--network none", 'compose run --name "$migrate_name" --no-deps migrate', "--force-recreate app"]) {
+for (const expected of ["pull --ff-only", "migration-policy.mjs verify /workspace", "--pull=never", "--network none", 'run_named_helper bootstrap "$bootstrap_name"', 'run_named_helper migrate "$migrate_name"', 'run_named_helper identity-seed "$seed_name"', "--force-recreate app"]) {
   assert(updater.includes(expected), `Updater lost staged contract ${expected}`);
 }
-assert(updater.indexOf('compose run --name "$migrate_name" --no-deps migrate') < updater.indexOf("--force-recreate app"), "Updater promotes app before migrate");
+assert(updater.indexOf('run_named_helper migrate "$migrate_name"') < updater.indexOf("--force-recreate app"), "Updater promotes app before migrate");
 assert(!updater.includes("--backup-reference requires") && !updater.includes("--previous-release requires"), "Updater still requires removed metadata");
 const bootstrap = await readFile("container/bootstrap.mjs", "utf8");
 assert(bootstrap.includes('readFile("prisma/bootstrap.sql"') && !bootstrap.includes("CREATE ROLE"), "wrapper must execute, not duplicate, bootstrap SQL");

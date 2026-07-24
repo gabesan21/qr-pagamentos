@@ -420,7 +420,8 @@ if (process.argv.includes("--clean-clone") && !process.env.CONTAINER_TEST_CLEAN_
       const sourceDirectory = path.resolve(".install-secrets");
       const stagedDirectory = path.resolve(".container-secrets");
       const installerEnv = path.join(temporary, "pair.env");
-      await writeFile(installerEnv, `APP_PORT=${36000 + (process.pid % 1000)}
+      const pairAppPort = 36000 + (process.pid % 1000);
+      await writeFile(installerEnv, `APP_PORT=${pairAppPort}
 INITIAL_ADMIN_USERNAME=admin.user
 INITIAL_ADMIN_EMAIL=admin@example.com
 POSTGRES_ADMIN_PASSWORD=${values.admin}
@@ -442,7 +443,16 @@ NAUTT_WEBHOOK_CALLBACK_URL=https://container-test.invalid/api/nautt/webhooks
         "normal install did not bind the exact revision",
       );
       env.APP_IMAGE = inspectField(installedApp, "{{.Config.Image}}");
+      env.DB_OPS_IMAGE = `${project}-db-ops:${revision}`;
       env.RELEASE_REVISION = revision;
+      env.APP_PORT = String(pairAppPort);
+      env.POSTGRES_ADMIN_PASSWORD_FILE = path.join(sourceDirectory, "postgres_admin_password");
+      env.MIGRATOR_PASSWORD_FILE = path.join(sourceDirectory, "migrator_password");
+      env.RUNTIME_PASSWORD_FILE = path.join(sourceDirectory, "runtime_password");
+      env.INITIAL_ADMIN_USERNAME_FILE = path.join(stagedDirectory, "initial_admin_username");
+      env.INITIAL_ADMIN_EMAIL_FILE = path.join(stagedDirectory, "initial_admin_email");
+      env.INITIAL_ADMIN_PASSWORD_FILE = path.join(stagedDirectory, "initial_admin_password");
+      env.STAGED_SECRETS_DIR = stagedDirectory;
 
       const storageKey = "A".repeat(43);
       const identifier = "B".repeat(43);
@@ -689,6 +699,19 @@ NAUTT_WEBHOOK_CALLBACK_URL=https://payments.example.com/api/nautt/webhooks
       await run("git", ["init", "--bare", updateRemote]);
       run("git", ["push", updateRemote, `HEAD:refs/heads/${branch}`]);
       run("git", ["remote", "set-url", "origin", updateRemote]);
+      const originalBootstrap = await readFile("prisma/bootstrap.sql", "utf8");
+      const originalIdentitySeed = await readFile("container/identity-admin.mjs", "utf8");
+      const originalRuntime = await readFile("container/runtime.mjs", "utf8");
+      const publishFileChange = async (label, file, content) => {
+        const producer = path.join(temporary, `update-producer-${label}`);
+        run("git", ["clone", "--quiet", "--branch", branch, updateRemote, producer]);
+        run("git", ["config", "user.email", "container-test@example.invalid"], { cwd: producer });
+        run("git", ["config", "user.name", "Container Test"], { cwd: producer });
+        await writeFile(path.join(producer, file), content);
+        run("git", ["add", file], { cwd: producer });
+        run("git", ["commit", "-m", `test: ${label}`], { cwd: producer });
+        run("git", ["push", "origin", branch], { cwd: producer });
+      };
       const publishSafeMigration = async (id, table) => {
         const producer = path.join(temporary, `update-producer-${id}`);
         run("git", ["clone", "--quiet", "--branch", branch, updateRemote, producer]);
@@ -788,6 +811,77 @@ NAUTT_WEBHOOK_CALLBACK_URL=https://payments.example.com/api/nautt/webhooks
         assert(await digest(stagedKeyPath) === stagedDigest, "update changed staged Nautt key");
       }
       assert(migrateIds[0] !== migrateIds[1], "no-op update reused the migration container");
+      const failedUpdate = async (gate, service, expectedCode) => {
+        const previousApp = containerId("app");
+        const previousImage = inspectField(previousApp, "{{.Image}}");
+        const evidenceBefore = new Set(await readdir(evidenceDirectory));
+        const result = execute("install/update.sh", updateArgs, { env: updateProcessEnv });
+        const output = `${result.stdout ?? ""}${result.stderr ?? ""}`;
+        assert(result.status !== 0, `forced ${gate} failure succeeded`);
+        assertRedacted(output);
+        assert(!output.includes(sourceKey), `${gate} failure leaked Nautt key`);
+        const evidenceAfter = (await readdir(evidenceDirectory)).filter((name) => !evidenceBefore.has(name));
+        assert(evidenceAfter.length === 1, `${gate} failure did not retain one evidence file`);
+        const evidenceFile = path.join(evidenceDirectory, evidenceAfter[0]);
+        const evidenceText = await readFile(evidenceFile, "utf8");
+        assert(evidenceText.includes(`result=${gate}-failed`), `${gate} failure result missing`);
+        assert(evidenceText.includes("previous_app_proof=exact-container-image-healthy-volumes-unchanged"), `${gate} old-app proof missing`);
+        assert(((await stat(evidenceFile)).mode & 0o777) === 0o400, `${gate} evidence mode changed`);
+        const helper = evidenceText.match(/^failed_helper=(.+)$/m)?.[1];
+        assert(helper?.includes(`-update-${service}-`), `${gate} retained helper identity missing`);
+        assert(inspectField(helper, "{{.State.ExitCode}}") !== "0", `${gate} retained helper did not fail`);
+        const helperLogs = run("docker", ["logs", helper]);
+        assert(helperLogs.includes(expectedCode), `${gate} retained helper logs lack stable failure code`);
+        assertRedacted(helperLogs);
+        assert(containerId("app") === previousApp, `${gate} failure replaced the previous app`);
+        assert(inspectField(previousApp, "{{.Image}}") === previousImage, `${gate} failure changed the previous app image`);
+        assert(inspectField(previousApp, "{{.State.Health.Status}}") === "healthy", `${gate} failure damaged previous app health`);
+      };
+
+      await publishFileChange("force-bootstrap-failure", "prisma/bootstrap.sql", `${originalBootstrap}\nINVALID UPDATE BOOTSTRAP;\n`);
+      await failedUpdate("bootstrap", "bootstrap", "ERROR bootstrap code=BOOTSTRAP");
+      await publishFileChange("repair-bootstrap", "prisma/bootstrap.sql", originalBootstrap);
+      captured += invoke("install/update.sh", updateArgs);
+      await assertUpdateStartup(captured);
+
+      await publishFileChange(
+        "force-identity-seed-failure",
+        "container/identity-admin.mjs",
+        originalIdentitySeed.replace(
+          "async function seed() {",
+          'async function seed() { throw Object.assign(new Error("forced identity seed failure"), { code: "FORCED" });',
+        ),
+      );
+      await failedUpdate("identity-seed", "identity-seed", "ERROR identity-admin code=FORCED");
+      await publishFileChange("repair-identity-seed", "container/identity-admin.mjs", originalIdentitySeed);
+      captured += invoke("install/update.sh", updateArgs);
+      await assertUpdateStartup(captured);
+
+      const rollbackImage = inspectField(containerId("app"), "{{.Image}}");
+      const evidenceBeforeRollback = new Set(await readdir(evidenceDirectory));
+      await publishFileChange(
+        "force-target-health-failure",
+        "container/runtime.mjs",
+        `throw new Error("forced target health failure");\n${originalRuntime}`,
+      );
+      const targetFailure = execute("install/update.sh", updateArgs, { env: updateProcessEnv });
+      const targetFailureOutput = `${targetFailure.stdout ?? ""}${targetFailure.stderr ?? ""}`;
+      assert(targetFailure.status !== 0, "forced target health failure succeeded");
+      assertRedacted(targetFailureOutput);
+      assert(!targetFailureOutput.includes(sourceKey), "target health failure leaked Nautt key");
+      const rollbackEvidence = (await readdir(evidenceDirectory)).filter((name) => !evidenceBeforeRollback.has(name));
+      assert(rollbackEvidence.length === 1, "target health failure did not retain one evidence file");
+      const rollbackEvidenceFile = path.join(evidenceDirectory, rollbackEvidence[0]);
+      const rollbackEvidenceText = await readFile(rollbackEvidenceFile, "utf8");
+      assert(rollbackEvidenceText.includes("result=target-health-failed-previous-image-healthy"), "target rollback evidence missing");
+      assert(((await stat(rollbackEvidenceFile)).mode & 0o777) === 0o400, "target rollback evidence mode changed");
+      const rolledBackApp = containerId("app");
+      assert(inspectField(rolledBackApp, "{{.Image}}") === rollbackImage, "target health failure did not restore exact previous image");
+      assert(inspectField(rolledBackApp, "{{.State.Health.Status}}") === "healthy", "target rollback did not restore health");
+      await publishFileChange("repair-target-health", "container/runtime.mjs", originalRuntime);
+      captured += invoke("install/update.sh", updateArgs);
+      await assertUpdateStartup(captured);
+
       const currentApp = containerId("app");
       const currentImage = inspectField(currentApp, "{{.Image}}");
       const currentHealth = inspectField(currentApp, "{{.State.Health.Status}}");
@@ -806,7 +900,7 @@ NAUTT_WEBHOOK_CALLBACK_URL=https://payments.example.com/api/nautt/webhooks
       assert(run("docker", ["volume", "inspect", "--format", "{{.Name}}|{{.Mountpoint}}|{{.CreatedAt}}", `${project}_postgres-data`]).trim() === volumeIdentity, "migration failure changed PostgreSQL volume identity");
       assert(run("docker", ["exec", dbId, "psql", "-p", "5433", "-U", "postgres", "-d", "qr_pagamentos", "-Atc", 'SELECT id || \'|\' || username || \'|\' || COALESCE(email, \'<null>\') FROM app."user" ORDER BY id']).trim() === dataBeforeFailure, "migration failure changed sentinel data");
       assert(await digest(sourceKeyPath) === sourceDigest && await digest(stagedKeyPath) === stagedDigest, "migration failure changed key continuity");
-      assert((await readdir(evidenceDirectory)).length === 3, "update evidence was not retained for success and failure runs");
+      assert((await readdir(evidenceDirectory)).length === 9, "update evidence was not retained for every success and failure run");
       console.log("PASS update-install-baseline");
       console.log("PASS update-rerun");
       console.log("PASS update-volume-identity");
@@ -815,6 +909,9 @@ NAUTT_WEBHOOK_CALLBACK_URL=https://payments.example.com/api/nautt/webhooks
       console.log("PASS update-startup-gates");
       console.log("PASS update-pulled-pending-migration");
       console.log("PASS update-prisma-failure-retention");
+      console.log("PASS update-bootstrap-failure-retention");
+      console.log("PASS update-identity-seed-failure-retention");
+      console.log("PASS update-target-health-image-rollback");
       console.log("PASS update-failure-retains-app");
       console.log("PASS update-evidence-retention");
     } else if (scenario === "identity-recovery") {
