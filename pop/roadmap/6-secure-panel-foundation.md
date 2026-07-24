@@ -36,7 +36,6 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[6.3.1-build-pagination-filter-table-foundation]] | Add stable server pagination/filter contracts and accessible reusable data-table states for both panels. · size: L | 001_initial_task |
 | [[6.3.3-provision-persistent-media-operations]] | Add the non-root persistent media volume and installer, update, backup, restore, and uninstall contracts. · size: L | 001_initial_task |
 
 ## Dependency and parallel-wave map
