@@ -230,6 +230,20 @@
       ],
       "test_seconds": 0,
       "result": "advanced"
+    },
+    {
+      "at": "2026-07-24T06:15:29-03:00",
+      "event": "stage",
+      "stage": "005_verifying",
+      "contexts": [
+        "verify3_6_3_3"
+      ],
+      "strategy": "fresh strong independent decisive round-3 full critical review of the original durable-media request, four prior blockers, exact dual-image restore, host-UID-independent secret staging, double-failure recovery proof, sealed update envelope, code quality, specs, DOX, and AC1-AC7 evidence",
+      "tests": "five fresh clean-clone Docker scenarios with update decisive failure and four passing scenarios; installer and container contracts; media decoder plus 28 focused tests; typecheck; lint; independent build; full Vitest baseline classification; source failure-path audit; scope, diff, and standalone PoP validation",
+      "return": 3,
+      "return_limit": 2,
+      "test_seconds": 1100,
+      "result": "circuit_breaker"
     }
   ]
 }
