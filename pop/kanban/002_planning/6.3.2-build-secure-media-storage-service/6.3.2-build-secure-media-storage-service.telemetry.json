@@ -78,6 +78,31 @@
       ],
       "test_seconds": 0,
       "result": "advanced"
+    },
+    {
+      "at": "2026-07-23T23:41:19-03:00",
+      "event": "stage",
+      "stage": "003_human_approval",
+      "contexts": [
+        "critic2_003_6_3_2"
+      ],
+      "strategy": "strong independent round-2 adversarial plan review",
+      "tests": "card, revised plan, prior return, dependency memory, linked specs, Prisma DOX and migration language, pinned Sharp/libvips APIs, POSIX publication/read identity, quota/revision/cache contracts, 6.3.3 boundary, front ownership, and acceptance-command inspection",
+      "return": 2,
+      "return_limit": 2,
+      "test_seconds": 0,
+      "result": "returned_to_002"
+    },
+    {
+      "at": "2026-07-23T23:42:11-03:00",
+      "event": "transition",
+      "from": "003_human_approval",
+      "to": "002_planning",
+      "contexts": [
+        "critic2_003_6_3_2"
+      ],
+      "test_seconds": 0,
+      "result": "returned"
     }
   ]
 }
