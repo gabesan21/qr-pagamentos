@@ -212,6 +212,17 @@
       "tests": "47 focused media and route tests pass; exact EEXIST and ELOOP, target identity/content, cleanup residue, both directory sync attempts, wrong-errno, mutation, cleanup, and sync injections pass; decoder preflight, migration policy/language/fixtures/static DB contract, PoP validation, diff check, design-token check, and changed-code lint pass; typecheck has only the known storefront HeadersInit baseline; container check is Docker-registry DNS blocked",
       "test_seconds": 25,
       "result": "approved"
+    },
+    {
+      "at": "2026-07-24T00:41:58-03:00",
+      "event": "transition",
+      "from": "005_verifying",
+      "to": "006_done",
+      "contexts": [
+        "verify2_6_3_2"
+      ],
+      "test_seconds": 0,
+      "result": "advanced"
     }
   ]
 }
