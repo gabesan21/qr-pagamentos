@@ -399,6 +399,15 @@ if update_injected target-recreate; then
   rollback_target_failure target-recreate
 fi
 if ! compose up -d --no-deps --force-recreate app; then
+  # Compose also reports failure when a recreated container crashes during
+  # startup; that is a target-health failure. Only a failure that left no new
+  # target container is a genuine recreate/orchestration failure.
+  recreated_app=$(compose ps -aq app | head -n 1)
+  if [[ -n $recreated_app && $recreated_app != "$old_app" ]]; then
+    compose logs --no-color app >&2 || true
+    printf 'failed_container=%s\n' "$recreated_app" >> "$evidence"
+    rollback_target_failure target-health
+  fi
   rollback_target_failure target-recreate
 fi
 if ! target_app=$(wait_for_app); then
