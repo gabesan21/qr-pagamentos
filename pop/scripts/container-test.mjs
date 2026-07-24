@@ -616,8 +616,17 @@ NAUTT_WEBHOOK_CALLBACK_URL=https://payments.example.com/api/nautt/webhooks
         assert(logs.includes("PASS bootstrap") && logs.includes("PASS identity-seed"), "one-shot update evidence missing");
         if (output) assert(output.includes("PASS migration-complete") && output.includes("PASS update-complete"), "fresh migration completion evidence missing");
         assert(logs.includes("PASS runtime-db-preflight"), "update runtime preflight evidence missing");
-        const health = await get("/api/health");
-        assert(health.status === 200 && health.body === '{"status":"ok"}', "update exact health contract failed");
+        let health;
+        for (let attempt = 0; attempt < 20; attempt += 1) {
+          try {
+            health = await get("/api/health");
+            if (health.status === 200 && health.body === '{"status":"ok"}') break;
+          } catch {
+            // A force-recreated app may close the old listener between port lookup and connect.
+          }
+          await delay(500);
+        }
+        assert(health?.status === 200 && health.body === '{"status":"ok"}', "update exact health contract failed");
         assertRedacted(logs);
       };
 
