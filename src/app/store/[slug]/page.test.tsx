@@ -56,7 +56,8 @@ describe("public storefront page", () => {
 
     const markup = renderToStaticMarkup(await PublicStorefrontPage({ params: Promise.resolve({ slug: "unknown" }) }));
 
-    expect(markup).toContain("This storefront is unavailable");
+    expect(read).toHaveBeenCalledWith("unknown", "pt-BR");
+    expect(markup).toContain("Esta vitrine está indisponível");
     expect(markup).not.toContain('href="/pay/');
   });
 });

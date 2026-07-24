@@ -501,7 +501,7 @@ try {
     await runtime.query(`DELETE FROM app.product WHERE id = $1`, [exactPrice.rows[0].id]);
   }
   for (const invalidPrice of ["0", "00.1", "01", "1.0", "1.230", "0.0000001", "9999999999999", "-1", "+1", "1e2", "1,2", " 1"] ) {
-    await expectSqlState(runtime, `INSERT INTO app.product (internal_name, title_pt_br, title_en, description_pt_br, description_en, price, owner_id) VALUES ('invalid-price', 'Título', 'Title', 'Descrição', 'Description', '${invalidPrice}')`, { code: "23514", constraint: "product_price_canonical" });
+    await expectSqlState(runtime, `INSERT INTO app.product (internal_name, title_pt_br, title_en, description_pt_br, description_en, price, owner_id) VALUES ('invalid-price', 'Título', 'Title', 'Descrição', 'Description', '${invalidPrice}', '${otherUserId}')`, { code: "23514", constraint: "product_price_canonical" });
   }
   await expectSqlState(runtime, `UPDATE app.product SET version = -1 WHERE id = '${productId}'`, { code: "23514", constraint: "product_version_nonnegative" });
   const staleProductUpdate = await runtime.query(`UPDATE app.product SET price = '2', version = version + 1 WHERE id = $1 AND version = 1`, [productId]);
