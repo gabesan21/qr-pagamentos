@@ -162,6 +162,31 @@
       ],
       "test_seconds": 0,
       "result": "advanced"
+    },
+    {
+      "at": "2026-07-24T00:24:53-03:00",
+      "event": "stage",
+      "stage": "005_verifying",
+      "contexts": [
+        "verify_6_3_2"
+      ],
+      "return": 1,
+      "return_limit": 2,
+      "strategy": "mandatory full independent critical review of the original request, complete diff, migration and least-privilege contract, pinned decoder, lifecycle revision, physical quota, POSIX publication/read identity, reconciliation, opaque route, 6.3.3 boundary, specs, and DOX",
+      "tests": "migration policy, migration language/fixtures, database static contract, PoP validation, and diff check pass; container check is Docker-registry DNS blocked; clean-worktree dependency execution is registry-policy blocked; runtime filesystem initialization does not prove the required O_EXCL collision, hard-link no-clobber, or O_NOFOLLOW symlink rejection semantics",
+      "test_seconds": 1,
+      "result": "returned"
+    },
+    {
+      "at": "2026-07-24T00:26:40-03:00",
+      "event": "transition",
+      "from": "005_verifying",
+      "to": "004_processing",
+      "contexts": [
+        "verify_6_3_2"
+      ],
+      "test_seconds": 0,
+      "result": "returned"
     }
   ]
 }
