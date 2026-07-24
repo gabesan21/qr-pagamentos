@@ -1,0 +1,17 @@
+export const sharedEn = {
+  heading: "QR Pagamentos",
+  introduction: "Create and manage your own payment links.",
+  loginHeading: "Sign in",
+  loginIntroduction: "Use your administrator credentials to continue.",
+  usernameLabel: "Username",
+  passwordLabel: "Password",
+  signIn: "Sign in",
+  signingIn: "Signing in",
+  signOut: "Sign out",
+  invalidCredentials: "Invalid username or password.",
+  languageHeading: "Language preference",
+  languageLabel: "Display language",
+  languageSave: "Save language",
+  languageSaved: "Language preference saved.",
+  languageError: "Choose a supported language.",
+} as const;

@@ -1,0 +1,18 @@
+export const ordersEn = {
+  ordersHeading: "Orders",
+  ordersDescription: "Review payment-link orders, their states, and the customer details each policy collected.",
+  ordersEmpty: "No orders are available.",
+  ordersEmptyDescription: "Orders appear here after a customer starts a checkout through a payment link.",
+  ordersView: "View order",
+  orderBackToList: "Back to orders",
+  orderPaymentLink: "Payment link",
+  orderProduct: "Product",
+  orderAmount: "Amount",
+  orderCurrencyPair: "Currency pair",
+  orderState: "State",
+  orderCreated: "Created",
+  orderUpdated: "Updated",
+  orderSettled: "Settled",
+  orderUnavailableHeading: "This order is unavailable",
+  orderUnavailableDescription: "The order does not exist or is not available for this account.",
+} as const;
