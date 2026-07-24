@@ -7,6 +7,7 @@ const { signIn, resolvePrincipal, resolve, negotiateLocale } = vi.hoisted(() => 
   negotiateLocale: vi.fn(),
 }));
 
+vi.mock("server-only", () => ({}));
 vi.mock("@/auth/session", () => ({
   getSessionService: () => ({ signIn }),
   SESSION_ABSOLUTE_MS: 60_000,
