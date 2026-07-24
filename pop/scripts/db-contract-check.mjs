@@ -185,13 +185,14 @@ for (const field of ["identifier", "storageKey", "ownerId", "purpose", "state", 
 assert(!/GRANT\s+(?:TRUNCATE|REFERENCES|TRIGGER)|ALTER\s+(?:TABLE|SCHEMA).*\sOWNER\s+TO/i.test(mediaMigration), "Media migration grants excess privileges or changes ownership");
 
 const categoryMigration = await readFile("prisma/migrations/20260724010000_owner_product_categories/migration.sql", "utf8");
-for (const contract of ["product_category_pkey", "product_category_id_owner_id_key", "product_category_owner_name_pt_br_key", "product_category_owner_name_en_key", "product_category_owner_fkey", "product_category_version_nonnegative", "product_category_owner_active_name_idx", "category_id", "product_category_owner_fkey", "product_owner_category_id_idx", "GRANT SELECT, INSERT, UPDATE, DELETE"]) {
+for (const contract of ["product_category_pkey", "product_category_id_owner_id_key", "product_category_owner_name_pt_br_key", "product_category_owner_name_en_key", "product_category_owner_fkey", "product_category_version_nonnegative", "product_category_owner_active_name_idx", "category_id", "product_category_owner_fkey", "product_owner_category_id_idx", "GRANT SELECT, INSERT, UPDATE", "REVOKE DELETE"]) {
   assert(categoryMigration.includes(contract), `Product-category migration lost ${contract}`);
 }
 for (const field of ["model ProductCategory", "categoryId", "namePtBr", "nameEn", "productCategories"]) {
   assert(schema.includes(field), `Schema is missing product-category field ${field}`);
 }
 assert(!/GRANT\s+(?:TRUNCATE|REFERENCES|TRIGGER)|ALTER\s+(?:TABLE|SCHEMA).*\sOWNER\s+TO/i.test(categoryMigration), "Product-category migration grants excess privileges or changes ownership");
+assert(!/GRANT[^\n]*\bDELETE\b[^\n]*product_category/i.test(categoryMigration), "Runtime may not physically delete retained product categories");
 
 const bootstrap = await readFile("prisma/bootstrap.sql", "utf8");
 assert(bootstrap.includes("GRANT CONNECT ON DATABASE qr_pagamentos TO qr_migrator, qr_runtime"), "Both roles require explicit CONNECT");
@@ -199,6 +200,9 @@ assert(bootstrap.includes("ALTER DEFAULT PRIVILEGES FOR ROLE qr_migrator IN SCHE
 assert(bootstrap.includes("GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA app TO qr_runtime"), "Ordinary-table runtime DML changed");
 for (const contract of ["to_regclass('app.global_payment_settings') IS NOT NULL", "REVOKE ALL PRIVILEGES ON TABLE app.global_payment_settings", "GRANT SELECT ON TABLE app.global_payment_settings", "GRANT UPDATE (currencies, payment_methods, updated_at)"]) {
   assert(bootstrap.includes(contract), `Bootstrap payment settings ACL lost ${contract}`);
+}
+for (const contract of ["to_regclass('app.product_category') IS NOT NULL", "REVOKE DELETE ON TABLE app.product_category"]) {
+  assert(bootstrap.includes(contract), `Bootstrap product-category ACL lost ${contract}`);
 }
 assert(!/\bPASSWORD\s+['"]|postgres(?:ql)?:\/\//i.test(bootstrap), "Bootstrap must not contain credentials or URLs");
 

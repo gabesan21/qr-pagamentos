@@ -261,7 +261,18 @@
       "privileges": [
         "SELECT",
         "INSERT",
-        "UPDATE",
+        "UPDATE"
+      ],
+      "role": "qr_runtime"
+    },
+    {
+      "op": "revoke",
+      "object": {
+        "kind": "table",
+        "schema": "app",
+        "name": "product_category"
+      },
+      "privileges": [
         "DELETE"
       ],
       "role": "qr_runtime"

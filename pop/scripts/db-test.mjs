@@ -216,6 +216,21 @@ try {
   run("docker", ["exec", "-i", container, "psql", "-v", "ON_ERROR_STOP=1", "-U", "postgres", "-d", "qr_pagamentos"], { input: bootstrap });
   console.log("PASS migration-idempotence");
 
+  const categoryConcurrencyEnv = {
+    ...process.env,
+    DATABASE_URL: runtimeUrl,
+    PRODUCT_CATEGORY_DATABASE_ADMIN_URL: adminUrl,
+    PRODUCT_CATEGORY_DATABASE_TEST: "1",
+  };
+  delete categoryConcurrencyEnv.MIGRATION_DATABASE_URL;
+  const categoryConcurrency = run(
+    "pnpm",
+    ["exec", "vitest", "run", "src/auth/product-category.database.test.ts"],
+    { env: categoryConcurrencyEnv },
+  );
+  assert(categoryConcurrency.includes("3 passed"), "Product-category database ACL and concurrency scenarios did not all pass");
+  console.log("PASS product-category-database-concurrency");
+
   const runtime = new Client({ connectionString: runtimeUrl });
   await runtime.connect();
   const columns = await runtime.query(`
@@ -763,7 +778,7 @@ try {
     { code: "23503", constraint: "product_category_owner_fkey" },
   );
   await expectSqlState(
-    runtime,
+    admin,
     `DELETE FROM app.product_category WHERE id = '${categoryId}'`,
     { code: "23503", constraint: "product_category_owner_fkey" },
   );
@@ -789,9 +804,9 @@ try {
   await runtime.query(`UPDATE app.product_category SET active = FALSE, version = version + 1 WHERE id = $1`, [categoryId]);
   const reassigned = await runtime.query(`SELECT category_id FROM app.product WHERE id = $1`, [categoryProduct.rows[0].id]);
   assert(reassigned.rows[0]?.category_id === replacementCategoryId, "Category reassignment changed or lost the product bridge");
-  await runtime.query(`DELETE FROM app.product WHERE id = $1`, [categoryProduct.rows[0].id]);
-  await runtime.query(`DELETE FROM app.product_category WHERE owner_id = $1`, [categoryOwnerId]);
-  await runtime.query(`DELETE FROM app."user" WHERE id IN ($1, $2)`, [categoryOwnerId, categoryOtherOwnerId]);
+  await admin.query(`DELETE FROM app.product WHERE id = $1`, [categoryProduct.rows[0].id]);
+  await admin.query(`DELETE FROM app.product_category WHERE owner_id = $1`, [categoryOwnerId]);
+  await admin.query(`DELETE FROM app."user" WHERE id IN ($1, $2)`, [categoryOwnerId, categoryOtherOwnerId]);
   console.log("PASS product-category-schema");
 
   const privilege = await runtime.query(`
@@ -812,7 +827,8 @@ try {
       has_table_privilege(current_user, 'app.catalog_currency_pair', 'SELECT,INSERT,UPDATE,DELETE') AS catalog_currency_pair_dml,
       has_table_privilege(current_user, 'app.catalog_payment_method', 'SELECT,INSERT,UPDATE,DELETE') AS catalog_payment_method_dml,
       has_table_privilege(current_user, 'app.product', 'SELECT,INSERT,UPDATE,DELETE') AS product_dml,
-      has_table_privilege(current_user, 'app.product_category', 'SELECT,INSERT,UPDATE,DELETE') AS product_category_dml,
+      has_table_privilege(current_user, 'app.product_category', 'SELECT,INSERT,UPDATE') AS product_category_dml,
+      has_table_privilege(current_user, 'app.product_category', 'DELETE') AS product_category_delete,
       has_table_privilege(current_user, 'app.payment_link', 'SELECT,INSERT,UPDATE,DELETE') AS payment_link_dml,
       has_table_privilege(current_user, 'app.media_object', 'SELECT,INSERT,UPDATE,DELETE') AS media_object_dml,
       has_table_privilege(current_user, 'app.global_payment_settings', 'SELECT') AS settings_select,
@@ -842,7 +858,7 @@ try {
   `);
   const acl = privilege.rows[0];
   assert(acl.current_user === "qr_runtime" && acl.schema_usage && acl.table_dml && acl.user_dml && acl.credential_dml && acl.bootstrap_dml && acl.session_dml && acl.nautt_credential_dml && acl.provider_quote_dml && acl.provider_order_dml && acl.webhook_delivery_dml && acl.webhook_attempt_dml && acl.webhook_recovery_lease_dml && acl.catalog_currency_pair_dml && acl.catalog_payment_method_dml && acl.product_dml && acl.product_category_dml && acl.payment_link_dml && acl.media_object_dml && acl.settings_select && acl.settings_column_update && acl.sequence_usage && acl.webhook_sequence_usage, "Runtime lacks intended privileges");
-  assert(!acl.settings_table_update && !acl.settings_write_extra && !acl.schema_create && !acl.table_truncate && !acl.table_references && !acl.table_trigger && !acl.provider_order_excess && !acl.webhook_delivery_excess && !acl.webhook_recovery_lease_excess && !acl.product_excess && !acl.product_category_excess && !acl.payment_link_excess && !acl.media_object_excess && !acl.table_maintain && !acl.sequence_select && !acl.sequence_update && !acl.migration_access && !acl.migrator_member && !acl.migrator_set, "Runtime has excess privileges");
+  assert(!acl.settings_table_update && !acl.settings_write_extra && !acl.product_category_delete && !acl.schema_create && !acl.table_truncate && !acl.table_references && !acl.table_trigger && !acl.provider_order_excess && !acl.webhook_delivery_excess && !acl.webhook_recovery_lease_excess && !acl.product_excess && !acl.product_category_excess && !acl.payment_link_excess && !acl.media_object_excess && !acl.table_maintain && !acl.sequence_select && !acl.sequence_update && !acl.migration_access && !acl.migrator_member && !acl.migrator_set, "Runtime has excess privileges");
   const ownership = await admin.query(`
     SELECT
       (SELECT count(*)::int FROM pg_class WHERE relowner = 'qr_runtime'::regrole) AS objects,
@@ -856,6 +872,7 @@ try {
   await expectDenied(runtime, `CREATE TABLE app.runtime_forbidden (id integer)`);
   await expectDenied(runtime, `ALTER TABLE app._database_foundation_fixture ADD COLUMN runtime_forbidden integer`);
   await expectDenied(runtime, `TRUNCATE TABLE app.product`);
+  await expectDenied(runtime, `DELETE FROM app.product_category`);
   await expectDenied(runtime, `CREATE TEMP TABLE runtime_forbidden (id integer)`);
   await expectDenied(runtime, `CREATE ROLE runtime_forbidden`);
   await expectDenied(runtime, `SET ROLE qr_migrator`);

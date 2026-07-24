@@ -31,4 +31,6 @@ ALTER TABLE "app"."product" ADD CONSTRAINT "product_category_owner_fkey" FOREIGN
 
 CREATE INDEX "product_owner_category_id_idx" ON "app"."product" ("owner_id", "category_id", "id");
 
-GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "app"."product_category" TO "qr_runtime";
+GRANT SELECT, INSERT, UPDATE ON TABLE "app"."product_category" TO "qr_runtime";
+
+REVOKE DELETE ON TABLE "app"."product_category" FROM "qr_runtime";

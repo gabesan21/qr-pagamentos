@@ -123,10 +123,25 @@ export function createProductCategoryService(store: ProductCategoryStore) {
 }
 
 function hasDatabaseConflict(error: unknown) {
-  return typeof error === "object"
-    && error !== null
-    && "code" in error
-    && (error.code === "P2002" || error.code === "P2034");
+  if (typeof error !== "object" || error === null || !("code" in error)) return false;
+  if (error.code === "P2002" || error.code === "P2034" || error.code === "40001" || error.code === "40P01") {
+    return true;
+  }
+  if (error.code !== "P2010" || !("meta" in error) || typeof error.meta !== "object" || error.meta === null) {
+    return false;
+  }
+  if ("code" in error.meta && (error.meta.code === "40001" || error.meta.code === "40P01")) return true;
+  if (!("driverAdapterError" in error.meta)
+    || typeof error.meta.driverAdapterError !== "object"
+    || error.meta.driverAdapterError === null
+    || !("cause" in error.meta.driverAdapterError)
+    || typeof error.meta.driverAdapterError.cause !== "object"
+    || error.meta.driverAdapterError.cause === null
+    || !("originalCode" in error.meta.driverAdapterError.cause)) {
+    return false;
+  }
+  return error.meta.driverAdapterError.cause.originalCode === "40001"
+    || error.meta.driverAdapterError.cause.originalCode === "40P01";
 }
 
 export function createDatabaseProductCategoryStore(

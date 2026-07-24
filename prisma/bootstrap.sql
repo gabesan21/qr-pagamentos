@@ -56,3 +56,11 @@ BEGIN
   END IF;
 END
 $global_payment_settings_acl$;
+
+DO $product_category_acl$
+BEGIN
+  IF to_regclass('app.product_category') IS NOT NULL THEN
+    REVOKE DELETE ON TABLE app.product_category FROM qr_runtime;
+  END IF;
+END
+$product_category_acl$;
