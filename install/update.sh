@@ -200,7 +200,7 @@ inspect_installation() {
   [[ $media_metadata == "local|$PROJECT|media-data|$MEDIA_VOLUME_NAME" ]] || die 'media volume ownership is incompatible'
   db_id=$(compose ps -q db); [[ -n $db_id ]] || die 'Compose database container does not exist'
   [[ $(docker inspect --format '{{index .Config.Labels "com.docker.compose.project"}}|{{index .Config.Labels "com.docker.compose.service"}}' "$db_id") == "$PROJECT|db" ]] || die 'database ownership is incompatible'
-  mounts=$(docker inspect --format '{{range .Mounts}}{{printf "%s|%s\n" .Name .Destination}}{{end}}' "$db_id")
+  mounts=$(docker inspect --format '{{range .Mounts}}{{if eq .Destination "/var/lib/postgresql"}}{{printf "%s|%s" .Name .Destination}}{{end}}{{end}}' "$db_id")
   [[ $mounts == "$VOLUME_NAME|/var/lib/postgresql" ]] || die 'database volume mount is incompatible'
   app_id=$(compose ps -q app); [[ -n $app_id ]] || die 'existing application container does not exist'
   app_health=$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' "$app_id")
