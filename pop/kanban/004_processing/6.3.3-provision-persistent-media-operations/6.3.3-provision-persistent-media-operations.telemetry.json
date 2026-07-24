@@ -255,6 +255,15 @@
       ],
       "test_seconds": 0.0,
       "result": "blocked"
+    },
+    {
+      "at": "2026-07-24T08:45:02-03:00",
+      "event": "transition",
+      "from": "005_verifying",
+      "to": "004_processing",
+      "contexts": [],
+      "test_seconds": 0,
+      "result": "returned"
     }
   ]
 }
