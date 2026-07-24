@@ -462,7 +462,9 @@ NAUTT_WEBHOOK_CALLBACK_URL=https://container-test.invalid/api/nautt/webhooks
       assert(backupSet, "media backup set evidence missing");
       const manifest = JSON.parse(await readFile(path.join(backupSet, "manifest.json"), "utf8"));
       assert(manifest.application_revision === revision && manifest.compose_project === project, "backup manifest identity changed");
-      assert(!JSON.stringify(manifest).includes(token), "backup manifest leaked fixture identity");
+      for (const secret of Object.values(values)) {
+        assert(!JSON.stringify(manifest).includes(secret), "backup manifest leaked a protected value");
+      }
       console.log("PASS media-backup-pair");
       if (scenario === "media-restore") {
         run("docker", ["tag", env.APP_IMAGE, `${project}-app:${revision}`]);
