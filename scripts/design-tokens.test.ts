@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { findDesignTokenViolations } from "./check-design-tokens.mjs";
-import { buildGeneratedThemeTokens } from "./generate-design-tokens.mjs";
+import { buildGeneratedThemeTokens, SCOPED_PREVIEW_COLOR_ALIASES } from "./generate-design-tokens.mjs";
 import { hexFromOklch, resolveDesignTokens, resolveToken } from "./design-token-graph.mjs";
 
 const tokenPath = join(process.cwd(), "src/design-system/tokens/themes.tokens.json");
@@ -103,6 +103,35 @@ describe("six-theme design tokens", () => {
     expect(source.$extensions["com.qr-pagamentos.theme"]).toMatchObject({ defaultLight: "pix-paper", defaultDark: "midnight-clearing" });
   });
 
+  it("projects every theme into a scoped preview selector identical to the page block", () => {
+    const generated = buildGeneratedThemeTokens(source, resolver);
+    for (const name of themeNames) {
+      const pageBlock = generated.match(new RegExp(`:root\\[data-theme="${name}"\\] \\{\\n([\\s\\S]*?)\\n\\}`));
+      const previewBlock = generated.match(new RegExp(`\\[data-theme-preview="${name}"\\] \\{\\n([\\s\\S]*?)\\n\\}`));
+      expect(pageBlock, name).not.toBeNull();
+      expect(previewBlock, name).not.toBeNull();
+      expect(previewBlock![1], name).toContain(pageBlock![1]);
+      for (const alias of ["--text-secondary: var(--muted-foreground);", "--color-primary: var(--primary);", "--surface-raised: var(--card);"]) {
+        expect(previewBlock![1], `${name} ${alias}`).toContain(alias);
+      }
+      expect(pageBlock![1], name).not.toContain("--color-primary:");
+    }
+    const css = readFileSync(join(process.cwd(), "src/app/globals.css"), "utf8");
+    expect(css).toContain('[data-theme-preview="pix-paper"]');
+    expect(css).toContain('[data-theme-preview="terminal-amber"]');
+  });
+
+  it("keeps the scoped preview alias layer identical to the globals.css color alias layers", () => {
+    const css = readFileSync(join(process.cwd(), "src/app/globals.css"), "utf8");
+    const rootAliasBlock = css.match(/:root \{\n  --radius: var\(--reference-radius-md\);[\s\S]*?\n\}/)?.[0] ?? "";
+    const semanticAliases = [...rootAliasBlock.matchAll(/^  (--[a-z-]+: var\(--[a-z-]+\));$/gm)]
+      .map((match) => match[1])
+      .filter((line) => !line.includes("--reference-"));
+    const themeBlock = css.match(/@theme inline \{[\s\S]*?\n\}/)?.[0] ?? "";
+    const colorAliases = [...themeBlock.matchAll(/^  (--color-[a-z-]+: var\(--[a-z-]+\));$/gm)].map((match) => match[1]);
+    expect([...semanticAliases, ...colorAliases]).toEqual(SCOPED_PREVIEW_COLOR_ALIASES);
+  });
+
   it("allows raw values only in canonical token sources", () => {
     expect(findDesignTokenViolations()).toEqual([]);
     const violations = findDesignTokenViolations([
@@ -114,10 +143,15 @@ describe("six-theme design tokens", () => {
     expect(violations).toContain("src/components/ui/fixture.css: raw visual value 16px");
   });
 
-  it("permits only the canonical storefront accent declaration", () => {
-    const path = join(process.cwd(), "src/app/store/[slug]/page.tsx");
+  it("permits only the canonical storefront accent declarations", () => {
+    const pagePath = join(process.cwd(), "src/app/store/[slug]/page.tsx");
     const canonical = '<main style={{ "--storefront-accent": storefront.accentColor } as CSSProperties} />';
-    expect(findDesignTokenViolations([{ path, source: canonical }])).toEqual([]);
-    expect(findDesignTokenViolations([{ path, source: '<main style={{ "--brand": "red" }} />' }])).not.toEqual([]);
+    expect(findDesignTokenViolations([{ path: pagePath, source: canonical }])).toEqual([]);
+    expect(findDesignTokenViolations([{ path: pagePath, source: '<main style={{ "--brand": "red" }} />' }])).not.toEqual([]);
+    const previewPath = join(process.cwd(), "src/app/storefront-preview.tsx");
+    const previewCanonical = '<div style={{ "--storefront-accent": accentColor } as CSSProperties} />';
+    expect(findDesignTokenViolations([{ path: previewPath, source: previewCanonical }])).toEqual([]);
+    expect(findDesignTokenViolations([{ path: previewPath, source: '<div style={{ "--storefront-accent": "#112233" } as CSSProperties} />' }])).not.toEqual([]);
+    expect(findDesignTokenViolations([{ path: pagePath, source: previewCanonical }])).not.toEqual([]);
   });
 });

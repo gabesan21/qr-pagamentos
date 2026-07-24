@@ -7,11 +7,13 @@ import type { OwnerNauttStatus } from "@/integrations/nautt/owner-onboarding";
 const {
   getCheckoutPolicy,
   getStorefrontSettings,
+  listActiveChoices,
   readNauttStatus,
   requireContext,
 } = vi.hoisted(() => ({
   getCheckoutPolicy: vi.fn(),
   getStorefrontSettings: vi.fn(),
+  listActiveChoices: vi.fn(),
   readNauttStatus: vi.fn(),
   requireContext: vi.fn(),
 }));
@@ -23,6 +25,9 @@ vi.mock("@/auth/checkout-policy", () => ({
 }));
 vi.mock("@/auth/storefront-settings", () => ({
   getStorefrontSettingsService: () => ({ getForOwner: getStorefrontSettings }),
+}));
+vi.mock("@/auth/supported-exchange-currency", () => ({
+  getSupportedExchangeCurrencyService: () => ({ listActiveChoices }),
 }));
 vi.mock("@/integrations/nautt/owner-onboarding", async (original) => ({
   ...(await original()),
@@ -60,6 +65,7 @@ function prepare(locale: "en" | "pt-BR", status: OwnerNauttStatus) {
   requireContext.mockResolvedValue({ dictionary, locale, principal });
   readNauttStatus.mockResolvedValue(status);
   getCheckoutPolicy.mockResolvedValue({ checkoutDataPolicy: "NONE" });
+  listActiveChoices.mockResolvedValue([]);
   getStorefrontSettings.mockResolvedValue({
     storefrontAccentColor: null,
     storefrontDisplayNameEn: null,
@@ -71,6 +77,14 @@ function prepare(locale: "en" | "pt-BR", status: OwnerNauttStatus) {
 }
 
 describe("merchant Settings page Nautt feedback", () => {
+  it("reads the supported-currency registry read-only for the resolved principal", async () => {
+    prepare("en", { credential: emptyCredential, balance: null, balanceUnavailable: false });
+    listActiveChoices.mockClear();
+    await MerchantSettingsPage({ searchParams: Promise.resolve({}) });
+    expect(listActiveChoices).toHaveBeenCalledOnce();
+    expect(listActiveChoices).toHaveBeenCalledWith(principal);
+  });
+
   it.each(["en", "pt-BR"] as const)(
     "renders every localized Nautt mutation result after a re-authorized status read in %s",
     async (locale) => {
