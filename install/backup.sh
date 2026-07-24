@@ -67,6 +67,7 @@ stopped=true
 [[ -z $(compose ps -q app --status running) ]] || die 'application mutation boundary did not quiesce'
 
 docker run --rm --pull=never --network "${PROJECT}_database" --read-only --tmpfs /tmp \
+  --user "$(id -u):$(id -g)" \
   --volume "$POSTGRES_ADMIN_PASSWORD_FILE:/run/admin-password:ro" \
   --volume "$RUNTIME_PASSWORD_FILE:/run/runtime-password:ro" --volume "$work:/out" \
   "$POSTGRES_IMAGE" sh -eu -c \
