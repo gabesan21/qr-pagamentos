@@ -97,6 +97,20 @@
       ],
       "test_seconds": 0,
       "result": "returned"
+    },
+    {
+      "at": "2026-07-24T01:31:38-03:00",
+      "event": "stage",
+      "stage": "002_planning",
+      "contexts": [
+        "plan_6_3_3"
+      ],
+      "strategy": "final round-2 repair: separately inventory exact-release restore health over only disposable restored database/media resources, candidate-only runtime files, isolated DB network, and fail-closed pre-mutation teardown",
+      "tests": "approval blocker trace, closed matrix/restore/AC6 consistency, exact media-restore scenario observability, JSON and diff checks, standalone PoP validation",
+      "return": 2,
+      "return_limit": 2,
+      "test_seconds": 7,
+      "result": "replanned_final"
     }
   ]
 }
