@@ -117,6 +117,20 @@
       ],
       "test_seconds": 0,
       "result": "advanced"
+    },
+    {
+      "at": "2026-07-24T02:59:52-03:00",
+      "event": "stage",
+      "stage": "005_verifying",
+      "contexts": [
+        "verify3_6_2_3"
+      ],
+      "strategy": "fresh strong full decisive round-three review of the original role-shell request, both prior blocker repairs, exact-role routing and preserved mutations, bilingual navigation, visual evidence integrity, contracts, ownership scope, and aggregate baseline",
+      "tests": "130 changed-surface tests; 25 origin/Nautt tests; admin source, token, brand, lint, typecheck, production build, evidence verifier, 50-record assertion audit, representative visual inspection, ownership scope, diff check, standalone PoP validation, and aggregate check",
+      "return": 2,
+      "return_limit": 2,
+      "test_seconds": 39,
+      "result": "approved"
     }
   ]
 }
