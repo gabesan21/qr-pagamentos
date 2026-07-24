@@ -84,6 +84,20 @@
       ],
       "test_seconds": 0,
       "result": "advanced"
+    },
+    {
+      "at": "2026-07-24T00:48:46-03:00",
+      "event": "stage",
+      "stage": "003_human_approval",
+      "contexts": [
+        "critic2_003_6_3_1"
+      ],
+      "strategy": "strong independent round-2 critical plan review of repaired authenticated scope-purpose cursors, exact pre-decode raw-query byte accounting, and idempotent pre-I/O native-GET canonicalization, with recheck of accepted keyset, UI, shadcn, i18n, topology, and scope contracts",
+      "tests": "card, repaired plan, round-1 blockers, linked durable contracts, DESIGN/UI DOX, project scripts, serialized front ownership, and executable AC1-AC6 command/observable inspection",
+      "return": 1,
+      "return_limit": 2,
+      "test_seconds": 8,
+      "result": "approved"
     }
   ]
 }
