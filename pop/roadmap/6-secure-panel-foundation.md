@@ -2,7 +2,7 @@
 
 - **Project:** [[PROJECT|QR Pagamentos]] - read for identity, runtime, i18n, and product boundaries.
 - **Roadmap:** [[ROADMAP|Roadmap]] - read for the complete rebuild sequence.
-- **Status:** pendente
+- **Status:** concluída
 - **Yolo:** yes
 - **Description:** Separate administrator and merchant capabilities and establish the shared brand, theme, navigation, table, i18n, and media foundations.
 - **Pause if:** the role-capability matrix or additive migration constraints cannot preserve current owner isolation and existing public identifiers.
@@ -14,7 +14,7 @@
 
 ## Phase 6.1 - Panel architecture and authorization
 
-- **Status:** pendente
+- **Status:** concluída
 - **Description:** Fix the target information architecture and enforce mutually exclusive administrator and merchant capabilities.
 
 | Task | Description | Status |
@@ -22,7 +22,7 @@
 
 ## Phase 6.2 - Brand, themes, and application shells
 
-- **Status:** pendente
+- **Status:** concluída
 - **Description:** Establish a distinctive six-theme visual system, official brand assets, and responsive role-specific navigation shells.
 
 | Task | Description | Status |
@@ -30,12 +30,11 @@
 
 ## Phase 6.3 - Shared table and media foundations
 
-- **Status:** pendente
+- **Status:** concluída
 - **Description:** Provide reusable scoped data-directory primitives and a secure host-persistent media boundary.
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[6.3.3-provision-persistent-media-operations]] | Add the non-root persistent media volume and installer, update, backup, restore, and uninstall contracts. · size: L | 001_initial_task |
 
 ## Dependency and parallel-wave map
 
