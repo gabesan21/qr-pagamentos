@@ -96,26 +96,28 @@ resource_absent() {
     && ! docker volume inspect "$candidate_secret_volume" >/dev/null 2>&1
 }
 teardown_rehearsal() {
+  local failed=false
   if "$teardown_injection_pending" && restore_injected rehearsal-teardown; then
     teardown_injection_pending=false
     return 1
   fi
   if docker container inspect "$candidate_health" >/dev/null 2>&1; then
-    docker rm -f "$candidate_health" >/dev/null 2>&1 || return 1
+    docker rm -f "$candidate_health" >/dev/null 2>&1 || failed=true
   fi
   if docker container inspect "$candidate_db" >/dev/null 2>&1; then
-    docker rm -f "$candidate_db" >/dev/null 2>&1 || return 1
+    docker rm -f "$candidate_db" >/dev/null 2>&1 || failed=true
   fi
   if docker network inspect "$candidate_network" >/dev/null 2>&1; then
-    docker network rm "$candidate_network" >/dev/null 2>&1 || return 1
+    docker network rm "$candidate_network" >/dev/null 2>&1 || failed=true
   fi
   for volume in "$candidate_db_volume" "$candidate_media_volume" "$candidate_secret_volume"; do
     if docker volume inspect "$volume" >/dev/null 2>&1; then
-      docker volume rm "$volume" >/dev/null 2>&1 || return 1
+      docker volume rm "$volume" >/dev/null 2>&1 || failed=true
     fi
   done
-  resource_absent || return 1
+  resource_absent || failed=true
   trap - EXIT
+  ! "$failed"
 }
 trap teardown_rehearsal EXIT
 resource_absent || die 'restore rehearsal inventory already exists'
