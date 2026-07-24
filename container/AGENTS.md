@@ -10,7 +10,7 @@
 - `MEDIA_STORAGE_ROOT` is exactly `/app/media`; never accept an operator path, create it at runtime, weaken its `0700` control directories, or bypass the pre-bind local-POSIX probe.
 - Runtime must complete media and database preflights before spawning `server.js`; failures emit only stable redacted codes and start no application child.
 - Media helpers never receive a Docker socket, provider/edge network, production secret, host port, arbitrary volume, or identifier/digest output channel.
-- Preserve no-follow regular-descriptor reads, bounded EOF, digest verification, exclusive creation, hard-link no-clobber, file/directory sync, and durable private-probe cleanup.
+- Preserve no-follow regular-descriptor reads, exact UID/GID/private modes, bounded EOF, digest verification, exclusive creation, hard-link no-clobber, file/directory sync, and durable private-probe cleanup.
 - Keep one-shot failures visible and non-retrying. Preserve direct child spawning and signal forwarding.
 - Never put a credential, connection URL, media identity, volume mountpoint, or filesystem path in completion logs.
 

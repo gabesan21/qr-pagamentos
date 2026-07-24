@@ -32,14 +32,16 @@ configuration, or secret-file contents belong in this ledger.
 | Startup and health | `compose.yaml`, `container/bootstrap.mjs`, `container/migrate.mjs`, `container/identity-admin.mjs`, `container/runtime.mjs`, `container/healthcheck.mjs` | One-shot dependency chain and runtime `SELECT 1` preflight precede bind; health is liveness only. | **SKIPPED — user directed** | Startup ordering and liveness response unverified. |
 | Configuration and secrets | `.env.compose.example`, `install/.env.example`, `container/prepare-identity-secrets.mjs`, `install/install.sh`, `AGENTS.md` | Distinct database credentials, protected file-backed staging, callback/API-base constraints, recovery posture, and encryption-key backup need are documented without values. | **SKIPPED — user directed** | Installer and secret handling unexercised. |
 | Persistent media topology | `Dockerfile`, `compose.yaml`, `container/media-preflight.mjs`, `container/runtime.mjs` | Static contract fixes app-only `media-data:/app/media`, UID/GID 1000, read-only root, private controls, and pre-bind POSIX refusal. | **PASS — 2026-07-24 task 6.3.3** | Clean-clone `media` proved fresh copy-up identity, mount isolation, root-write refusal, restart persistence, and helper cleanup. |
-| Install/update/uninstall lifecycle | `install/lib-operations.sh`, `install/install.sh`, `install/update.sh`, `install/uninstall.sh` | Static contract covers paired volume ownership, credential continuity, zero-row adoption, old-app boundary, image-only rollback, default retention, and exact-confirm paired purge. | **PASS — 2026-07-24 task 6.3.3** | Clean-clone `install-lifecycle` and `update` proved role continuity, retained reinstall, adoption, paired purge, exact identities/media bytes, additive-migration failure retention, and old-app health. |
-| Backup and restore | `install/backup.sh`, `install/restore.sh`, `install/pair-manifest.mjs`, `container/media-inventory.mjs` | Static contract covers atomic pair capture, exact volume identities, closed manifest, isolated rehearsal inventory, same-volume restore, and automatic recovery retention. | **PASS — 2026-07-24 task 6.3.3** | Clean-clone `media-backup` and `media-restore` proved pair capture, protected artifacts, tamper refusal, exact-release rehearsal teardown, restored DB/media inventory, and same-volume managed health. |
+| Install/update/uninstall lifecycle | `install/lib-operations.sh`, `install/install.sh`, `install/update.sh`, `install/uninstall.sh` | Static contract covers paired volume ownership, credential continuity, zero-row adoption, old-app boundary, image-only rollback, default retention, and exact-confirm paired purge. | **PASS — 2026-07-24 task 6.3.3** | Clean-clone `install-lifecycle` and `update` proved exact-SHA install images, role continuity, retained reinstall, adoption, paired purge, exact identities/media bytes, retained bootstrap/migration/seed failure evidence, target-health image rollback, and old-app health. |
+| Backup and restore | `install/backup.sh`, `install/restore.sh`, `install/pair-manifest.mjs`, `container/media-inventory.mjs` | Static contract covers atomic pair capture, exact volume identities, closed no-follow manifest, private archive identity/modes, isolated rehearsal inventory, same-volume restore, and automatic recovery retention. | **PASS — 2026-07-24 task 6.3.3** | Clean-clone `media-backup` and `media-restore` proved normal install-to-backup binding, protected artifacts, manifest/archive adversaries, rehearsal teardown refusal before mutation, restored DB/media inventory, automatic recovery, retained double-failure evidence, app-stopped failure, and final same-volume health. |
 | Release documentation navigation | `README.md`, `docs/production-runbook.md`, this ledger | README links resolve to the authoritative runbook and ledger. | Not applicable; static link inspection only. | Operator must still complete the skipped operational gate. |
 
 ## Explicit skip register
 
-The following work was not run for this candidate. Every entry is
-**SKIPPED — user directed**, and none may be inferred to have passed.
+This register belongs to the immutable Epoch 5 documentation candidate named
+above. A later dated task result overrides a skip only for the exact row and
+scope it names; it does not retroactively certify the candidate or a live
+deployment.
 
 | Check or exercise | Status |
 |---|---|
@@ -48,15 +50,16 @@ The following work was not run for this candidate. Every entry is
 | `pnpm build` | **SKIPPED — user directed** |
 | `pnpm check` | **SKIPPED — user directed** |
 | `pnpm db:generate`, `pnpm db:test`, and `pnpm db:contract-check` | **SKIPPED — user directed** |
-| `pnpm container:contract-check` | **SKIPPED — user directed** |
+| `pnpm container:contract-check -- --local-pins` | **PASS — 2026-07-24 task 6.3.3** |
 | Every `pnpm container:test --clean-clone --scenario` exercise (`build`, `config`, `happy`, `roles`, `failures`, `lifecycle`, `isolation`) | **SKIPPED — user directed** |
 | `pnpm container:test --clean-clone --scenario media` | **PASS — 2026-07-24 task 6.3.3** |
 | `pnpm container:test --clean-clone --scenario install-lifecycle` | **PASS — 2026-07-24 task 6.3.3** |
 | `pnpm container:test --clean-clone --scenario update` with media continuity and rollback assertions | **PASS — 2026-07-24 task 6.3.3** |
 | `pnpm container:test --clean-clone --scenario media-backup` | **PASS — 2026-07-24 task 6.3.3** |
 | `pnpm container:test --clean-clone --scenario media-restore` | **PASS — 2026-07-24 task 6.3.3** |
-| `install/test.sh`, installer execution, initial-admin recovery, and uninstall execution | **SKIPPED — user directed** |
-| Compose build, startup, restart, service-log inspection, and container health checks | **SKIPPED — user directed** |
+| `install/test.sh` | **PASS — 2026-07-24 task 6.3.3** |
+| Initial-admin recovery outside the disposable task scenarios | **SKIPPED — user directed** |
+| Compose operations outside the five dated task 6.3.3 scenarios above | **SKIPPED — user directed** |
 | Browser, locale, storefront, checkout, and authenticated mutation exercises | **SKIPPED — user directed** |
 | TLS proxy reachability, forwarding-header trust, and public network exposure checks | **SKIPPED — user directed** |
 | Backup creation, restore rehearsal, upgrade rehearsal, rollback rehearsal, and data-recovery verification | **SKIPPED — user directed** |

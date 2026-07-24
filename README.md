@@ -6,8 +6,9 @@ Self-hosted Next.js dashboard for products and first-party payment links backed 
 
 Operators should follow the [production runbook](docs/production-runbook.md) and
 review the redacted [release evidence ledger](docs/release-evidence.md) before
-deploying. The current release ledger is static evidence only: its operational
-checks are explicitly `SKIPPED — user directed` and require human execution.
+deploying. The ledger separates historical candidate skips from later dated
+disposable task evidence; neither is live-deployment certification, and every
+remaining skip requires human execution.
 
 ## Prerequisites
 

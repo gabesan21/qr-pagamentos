@@ -221,7 +221,7 @@ previous application can safely read the current schema.
 ## Release handoff
 
 Read [release evidence](release-evidence.md) with the release candidate. It is
-a static ledger, not operational proof. The listed runtime, installation,
-container, database, browser, proxy, backup/restore, health, and full-gate
-checks are explicitly `SKIPPED — user directed`; a human must plan and record
-those checks before declaring the deployment operational.
+a scoped ledger, not live-deployment proof. It separates the historical static
+candidate's explicit skips from later dated disposable task evidence. A later
+PASS applies only to its named command and scope; a human must still plan and
+record every remaining skip before declaring the deployment operational.
