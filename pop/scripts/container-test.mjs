@@ -558,6 +558,7 @@ NAUTT_WEBHOOK_CALLBACK_URL=https://payments.example.com/api/nautt/webhooks
       const installerEnv = path.join(temporary, "update.env");
       const evidenceDirectory = path.join(temporary, "update-evidence");
       const sourceKey = Buffer.alloc(32, 11).toString("base64url");
+      const updateAppPort = 35000 + (process.pid % 1000);
       const branch = run("git", ["branch", "--show-current"]).trim();
       const updateRemote = path.join(temporary, "update-remote.git");
       await run("git", ["init", "--bare", updateRemote]);
@@ -585,7 +586,7 @@ NAUTT_WEBHOOK_CALLBACK_URL=https://payments.example.com/api/nautt/webhooks
         run("git", ["commit", "-m", `test: add ${id}`], { cwd: producer });
         run("git", ["push", "origin", branch], { cwd: producer });
       };
-      await writeFile(installerEnv, `APP_PORT=33013
+      await writeFile(installerEnv, `APP_PORT=${updateAppPort}
 INITIAL_ADMIN_EMAIL=admin@example.com
 INITIAL_ADMIN_USERNAME=admin.user
 POSTGRES_ADMIN_PASSWORD=${values.admin}
