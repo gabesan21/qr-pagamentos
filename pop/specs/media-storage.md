@@ -5,7 +5,7 @@
 - **Status:** aprovada
 - **Implementation:** partial
 - **Created:** 2026-07-23
-- **Updated:** 2026-07-23 — task 6.3.2 implements the metadata, validation, storage, lifecycle, reconciliation, and read boundary; independent verification and operational provisioning remain pending.
+- **Updated:** 2026-07-24 — task 6.3.3 adds the persistent volume and paired operational lifecycle; disposable Docker backup/restore/update evidence remains pending.
 
 ## What it covers
 
@@ -47,13 +47,19 @@ This spec defines the single hardened server boundary for merchant-owned storefr
 
 ## Operational boundary
 
-- Task 6.3.2 does not add logo/product attachment columns, upload UI or mutation routes, storefront/catalog projection wiring, or request limiter/logger inventory.
-- Task 6.3.3 exclusively owns production mounts, root/control-directory provisioning and permissions, environment wiring, installer/update/uninstall, and backup/restore behavior. Its filesystem must satisfy this spec's probe without relaxing it.
+- The steady application alone mounts the local Compose-owned `media-data` volume read-write at fixed `/app/media`. It remains UID/GID `1000:1000` with a read-only root; the image supplies private `0700` root, `staging`, and `objects` directories for first-volume copy-up.
+- Before port bind, the container repeats the canonical local-POSIX no-follow, exclusive-create, hard-link no-clobber, bounded descriptor-read, file/directory-sync, and durable cleanup probe. Failure starts no application child and emits only a stable redacted code.
+- Installer reuse requires exact local Compose labels, drivers, IDs, destinations, protected source/staged PostgreSQL and Nautt continuity, and no-output authentication of all database roles. An absent legacy media volume may be adopted only when the retained database has zero `MediaObject` rows.
+- Update preflights the exact target-SHA image against the retained media volume before database work while the old app remains healthy. Once additive database work begins it is retained; a target-health failure restores only the previous application image against the same database/media pair.
+- Default uninstall preserves both data volumes, protected credentials, backups, recovery sets, and deployment identity. Purge requires the exact Compose project confirmation and removes the verified PostgreSQL/media pair together.
+- A backup stops only app and atomically publishes one protected set containing a custom PostgreSQL dump, numeric media archive, and closed redacted checksum manifest after descriptor/digest inventory.
+- Restore has no partial or force mode. It validates exact revision/project/volume identity and safe archive members, rehearses the pair and exact-release health in a deterministic disposable DB/media/network/secret inventory, proves that inventory absent, then restores the same managed volume IDs.
+- Restore first captures a protected automatic recovery pair. A requested-restore failure attempts that pair; double failure leaves app stopped and retains all artifacts and evidence.
+- This operations slice does not add attachment columns, upload UI/routes, projection wiring, provider access, or a second media root.
 
 ## Open
 
-- Independent critical verification and task closeout remain pending.
-- Persistent production provisioning and operations remain planned in [[6.3.3-provision-persistent-media-operations]].
+- Independent critical verification and clean-clone `media`, `install-lifecycle`, `update`, `media-backup`, and `media-restore` runtime evidence remain pending; implementation stays partial until they pass.
 
 ## Related specs
 

@@ -16,6 +16,9 @@ This spec defines the reproducible runtime, local identity boundary, role model,
 - A clean self-hosted Docker environment starts PostgreSQL, applies all Prisma migrations once, and starts a non-root Next.js production container.
 - A bare `install/update.sh` updates an existing installer-managed deployment from its clean attached branch by fast-forwarding to the latest protected tracked-upstream commit and binding its one-time handoff, policy gate, candidate images, migration proof, and promoted app to that exact SHA; backup and previous-release inputs are neither required nor accepted.
 - Update fails closed on unsafe Git state, incompatible Compose ownership or volume mounting, an unhealthy existing app, missing secret artifacts, or Nautt-key discontinuity, and never generates or rewrites secrets or replaces the PostgreSQL volume.
+- PostgreSQL and media are one retained operational pair. Reinstall/update validate both exact local Compose volumes plus every protected PostgreSQL/Nautt source, staged, and supplied value before mutation; default uninstall retains the pair and credentials, while exact-confirm purge removes both volumes together.
+- Update keeps the exact old app healthy through target-SHA media preflight and additive database gates. A failure after database work retains that state and unchanged media; target-health rollback restores only the previous image and never claims database reversal.
+- Backup and restore serialize with update/uninstall. Backup publishes one redacted checksummed PostgreSQL/media set; restore rehearses exact-release health in isolated disposable resources, mutates the same managed volume IDs only after complete teardown proof, and preserves an automatic recovery pair.
 - The 19-migration baseline is immutable and pinned by exact IDs and SHA-256 values. Every future migration is canonical manifest-generated SQL in a closed language that can only add data-preserving tables, columns, indexes, typed constraints, and privileges; destructive DDL/DML, data rewrites, raw SQL, renames, and type changes are inexpressible.
 - Migration policy verification runs before managed build or database mutation in an already-present digest-pinned Docker image with no network, database, secret, or writable-source access.
 - The healthy old app remains running through candidate build and a fresh migration run. Prisma migration IDs, checksums, completion, rollback and failure metadata must prove success, and identity seed must finish, before the exact-revision target app is recreated; migration failure retains the old app, volume, key, logs, and protected redacted evidence.
@@ -102,7 +105,7 @@ changing the public/sessionless contracts above.
 
 ## Open
 
-- The self-updating and closed-migration contract is integrated in stage 004 but remains partial until independent critical verification and task closeout.
+- Persistent media operations are implemented statically but remain partial until independent critical verification and disposable install/update/backup/restore evidence pass.
 
 ## Implemented slices
 

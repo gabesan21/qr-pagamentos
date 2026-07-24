@@ -6,6 +6,8 @@
 .container-secrets/
 .install-secrets/
 .update-evidence/
+.backup-staging/
+.restore-recovery/
 !install/.env.example
 
 # Application artifacts

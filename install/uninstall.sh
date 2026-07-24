@@ -6,15 +6,20 @@ ROOT_DIR=$(cd "$INSTALL_DIR/.." && pwd)
 ENV_FILE="$INSTALL_DIR/.env"
 DRY_RUN=false
 PURGE_DATA=false
+PURGE_CONFIRMATION=
+PROJECT=${CONTAINER_TEST_PROJECT:-qr-pagamentos}
 
 die() { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
 print_command() { printf 'DRY-RUN'; printf ' %q' "$@"; printf '\n'; }
 run() { if "$DRY_RUN"; then print_command "$@"; else "$@"; fi; }
 
+# shellcheck source=install/lib-operations.sh
+source "$INSTALL_DIR/lib-operations.sh"
+
 while (($#)); do
   case "$1" in
     --env-file) (($# >= 2)) || die '--env-file requires a path'; ENV_FILE=$2; shift 2 ;;
-    --purge-data) PURGE_DATA=true; shift ;;
+    --purge-data) (($# >= 2)) || die '--purge-data requires the exact Compose project'; PURGE_DATA=true; PURGE_CONFIRMATION=$2; shift 2 ;;
     --dry-run) DRY_RUN=true; shift ;;
     *) die "unknown argument: $1" ;;
   esac
@@ -54,17 +59,33 @@ if ! "$DRY_RUN"; then
     || die 'the current user cannot access the Docker daemon; add it to the docker group (sudo usermod -aG docker "$USER", then log out and back in) and retry'
 fi
 DOCKER=(docker)
+if "$PURGE_DATA"; then
+  [[ $PURGE_CONFIRMATION == "$PROJECT" ]] || die 'purge confirmation does not match the exact Compose project'
+fi
+if ! "$DRY_RUN"; then
+  operation_lock "$ROOT_DIR"
+  if "$PURGE_DATA"; then
+    volume_contract "$PROJECT" postgres-data "${PROJECT}_postgres-data" || die 'PostgreSQL purge target is missing or foreign'
+    volume_contract "$PROJECT" media-data "${PROJECT}_media-data" || die 'media purge target is missing or foreign'
+  fi
+fi
 
-compose=("${DOCKER[@]}" compose -f "$ROOT_DIR/compose.yaml" -p qr-pagamentos)
+compose=("${DOCKER[@]}" compose -f "$ROOT_DIR/compose.yaml" -p "$PROJECT")
 compose_env=(APP_PORT="$APP_PORT" POSTGRES_ADMIN_PASSWORD_FILE="$POSTGRES_ADMIN_PASSWORD_FILE" MIGRATOR_PASSWORD_FILE="$MIGRATOR_PASSWORD_FILE" RUNTIME_PASSWORD_FILE="$RUNTIME_PASSWORD_FILE" NAUTT_WEBHOOK_CALLBACK_URL="${NAUTT_WEBHOOK_CALLBACK_URL:-https://invalid.example}" STAGED_SECRETS_DIR="$STAGED_SECRETS_DIR")
 down_args=(down --remove-orphans)
-"$PURGE_DATA" && down_args+=(--volumes)
 if "$DRY_RUN"; then
+  "$PURGE_DATA" && printf 'DRY-RUN validate exact local Compose volumes %s_{postgres-data,media-data}\n' "$PROJECT"
   print_command env "${compose_env[@]}" "${compose[@]}" "${down_args[@]}"
 else
   env "${compose_env[@]}" "${compose[@]}" "${down_args[@]}"
 fi
-run rm -rf -- "$STAGED_SECRETS_DIR"
-run rm -rf -- "$SOURCE_SECRETS_DIR"
+if "$PURGE_DATA"; then
+  run "${DOCKER[@]}" volume rm "${PROJECT}_postgres-data" "${PROJECT}_media-data"
+  run rm -rf -- "$STAGED_SECRETS_DIR"
+  run rm -rf -- "$SOURCE_SECRETS_DIR"
+  printf 'PASS uninstall-purged-pair\n'
+else
+  printf 'PASS uninstall-retained-pair\n'
+fi
 
 printf 'PASS uninstall-complete\n'

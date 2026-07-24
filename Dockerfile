@@ -36,13 +36,15 @@ LABEL org.opencontainers.image.revision=${RELEASE_REVISION}
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
     HOSTNAME=0.0.0.0 \
-    PORT=3000
+    PORT=3000 \
+    MEDIA_STORAGE_ROOT=/app/media
 WORKDIR /app
+RUN install -d -o 1000 -g 1000 -m 0700 /app/media /app/media/staging /app/media/objects
 COPY --from=builder --chown=1000:1000 /workspace/.next/standalone ./
 COPY --from=builder --chown=1000:1000 /workspace/.next/static ./.next/static
 COPY --from=builder --chown=1000:1000 /workspace/public ./public
 COPY --from=builder --chown=1000:1000 /runtime-dependencies/node_modules ./node_modules
-COPY --chown=1000:1000 container/lib.mjs container/runtime.mjs container/healthcheck.mjs ./container/
+COPY --chown=1000:1000 container/lib.mjs container/media-inventory.mjs container/media-preflight.mjs container/runtime.mjs container/healthcheck.mjs ./container/
 USER 1000:1000
 HEALTHCHECK --interval=10s --timeout=3s --start-period=10s --retries=6 CMD ["node", "container/healthcheck.mjs"]
 ENTRYPOINT ["node", "container/runtime.mjs"]

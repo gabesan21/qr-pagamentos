@@ -31,7 +31,9 @@ configuration, or secret-file contents belong in this ledger.
 | Topology and TLS proxy | `compose.yaml`, `README.md`, `src/app/origin-guard.ts`, `src/security/public-rate-limit.ts` | App is loopback-only; database/one-shots have no host ports; runbook requires replace-not-append forwarding headers. | **SKIPPED — user directed** | Public exposure and proxy trust boundary unverified. |
 | Startup and health | `compose.yaml`, `container/bootstrap.mjs`, `container/migrate.mjs`, `container/identity-admin.mjs`, `container/runtime.mjs`, `container/healthcheck.mjs` | One-shot dependency chain and runtime `SELECT 1` preflight precede bind; health is liveness only. | **SKIPPED — user directed** | Startup ordering and liveness response unverified. |
 | Configuration and secrets | `.env.compose.example`, `install/.env.example`, `container/prepare-identity-secrets.mjs`, `install/install.sh`, `AGENTS.md` | Distinct database credentials, protected file-backed staging, callback/API-base constraints, recovery posture, and encryption-key backup need are documented without values. | **SKIPPED — user directed** | Installer and secret handling unexercised. |
-| Backup, restore, upgrade, rollback | `README.md`, `compose.yaml`, `Dockerfile`, `prisma/migrations/`, `install/uninstall.sh` | Runbook preserves volumes by default, treats restore as reviewed/destructive, and forbids implicit migration reversal. | **SKIPPED — user directed** | Backup integrity, restore recovery, schema compatibility, and rollback unverified. |
+| Persistent media topology | `Dockerfile`, `compose.yaml`, `container/media-preflight.mjs`, `container/runtime.mjs` | Static contract fixes app-only `media-data:/app/media`, UID/GID 1000, read-only root, private controls, and pre-bind POSIX refusal. | **PENDING — task 6.3.3 runtime gate** | Fresh-volume copy-up, mount isolation, restart persistence, and live refusal remain unverified. |
+| Install/update/uninstall lifecycle | `install/lib-operations.sh`, `install/install.sh`, `install/update.sh`, `install/uninstall.sh` | Static contract covers paired volume ownership, credential continuity, zero-row adoption, old-app boundary, image-only rollback, default retention, and exact-confirm paired purge. | **PENDING — task 6.3.3 runtime gate** | Role authentication, adoption, retained reinstall, update failure boundaries, and rollback remain unverified. |
+| Backup and restore | `install/backup.sh`, `install/restore.sh`, `install/pair-manifest.mjs`, `container/media-inventory.mjs` | Static contract covers atomic pair capture, closed manifest, isolated rehearsal inventory, same-volume restore, and automatic recovery retention. No runtime PASS is claimed. | **PENDING — task 6.3.3 runtime gate** | Backup integrity, rehearsal isolation/cleanup, managed restore, automatic recovery, and double-failure behavior remain unverified. |
 | Release documentation navigation | `README.md`, `docs/production-runbook.md`, this ledger | README links resolve to the authoritative runbook and ledger. | Not applicable; static link inspection only. | Operator must still complete the skipped operational gate. |
 
 ## Explicit skip register
@@ -48,6 +50,11 @@ The following work was not run for this candidate. Every entry is
 | `pnpm db:generate`, `pnpm db:test`, and `pnpm db:contract-check` | **SKIPPED — user directed** |
 | `pnpm container:contract-check` | **SKIPPED — user directed** |
 | Every `pnpm container:test --clean-clone --scenario` exercise (`build`, `config`, `happy`, `roles`, `failures`, `lifecycle`, `isolation`) | **SKIPPED — user directed** |
+| `pnpm container:test --clean-clone --scenario media` | **PENDING — task 6.3.3 runtime gate** |
+| `pnpm container:test --clean-clone --scenario install-lifecycle` | **PENDING — task 6.3.3 runtime gate** |
+| `pnpm container:test --clean-clone --scenario update` with media continuity and rollback assertions | **PENDING — task 6.3.3 runtime gate** |
+| `pnpm container:test --clean-clone --scenario media-backup` | **PENDING — task 6.3.3 runtime gate** |
+| `pnpm container:test --clean-clone --scenario media-restore` | **PENDING — task 6.3.3 runtime gate** |
 | `install/test.sh`, installer execution, initial-admin recovery, and uninstall execution | **SKIPPED — user directed** |
 | Compose build, startup, restart, service-log inspection, and container health checks | **SKIPPED — user directed** |
 | Browser, locale, storefront, checkout, and authenticated mutation exercises | **SKIPPED — user directed** |

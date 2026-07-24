@@ -7,10 +7,15 @@ ENV_FILE="$INSTALL_DIR/.env"
 EVIDENCE_DIR="$ROOT_DIR/.update-evidence"
 PROJECT=${CONTAINER_TEST_PROJECT:-qr-pagamentos}
 VOLUME_NAME=${CONTAINER_TEST_VOLUME:-${PROJECT}_postgres-data}
+MEDIA_VOLUME_NAME=${CONTAINER_TEST_MEDIA_VOLUME:-${PROJECT}_media-data}
 POSTGRES_PORT=5433
 NODE_HELPER='node:26.4.0-bookworm-slim@sha256:ec82d089a8ae2cf02628da7b34ea57dc357b24db724d557fe2d240e6beb659c1'
+POSTGRES_IMAGE='postgres:18.4-bookworm@sha256:1961f96e6029a02c3812d7cb329a3b03a3ac2bb067058dec17b0f5596aca9296'
 
 die() { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
+
+# shellcheck source=install/lib-operations.sh
+source "$INSTALL_DIR/lib-operations.sh"
 
 ORIGINAL_ARGS=("$@")
 while (($#)); do
@@ -23,18 +28,13 @@ while (($#)); do
 done
 
 acquire_update_lock() {
-  local lock_name
-  lock_name=$(printf '%s' "$ROOT_DIR" | sha256sum | cut -d' ' -f1)
   if [[ ${QR_UPDATE_REENTRY_COUNT:-0} == 0 ]]; then
     [[ -z ${QR_UPDATE_LOCK_FD:-} ]] || die 'external update lock handoff is forbidden'
-    exec {UPDATE_LOCK_FD}>"/tmp/qr-pagamentos-update-${lock_name}.lock"
-    flock -n "$UPDATE_LOCK_FD" || die 'another update is already running for this checkout'
+    operation_lock "$ROOT_DIR"
   else
-    [[ ${QR_UPDATE_LOCK_FD:-} =~ ^[0-9]+$ && -e /proc/self/fd/$QR_UPDATE_LOCK_FD ]] \
-      || die 'update lock handoff is missing or unsafe'
-    UPDATE_LOCK_FD=$QR_UPDATE_LOCK_FD
-    flock -n "$UPDATE_LOCK_FD" || die 'update lock handoff is unavailable'
+    operation_lock "$ROOT_DIR" "${QR_UPDATE_LOCK_FD:-}"
   fi
+  UPDATE_LOCK_FD=$OPERATION_LOCK_FD
 }
 
 assert_target_checkout() {
@@ -171,20 +171,15 @@ require_protected_file() {
 }
 
 validate_secret_continuity() {
-  local uid name source_digest source_key
+  local uid name source_key
   uid=$(id -u)
   [[ -d $SOURCE_SECRETS_DIR && ! -L $SOURCE_SECRETS_DIR && $(stat -c '%u:%a' "$SOURCE_SECRETS_DIR") == "$uid:700" ]] || die 'source secret directory is unsafe'
   [[ -d $STAGED_SECRETS_DIR && ! -L $STAGED_SECRETS_DIR && $(stat -c '%a' "$STAGED_SECRETS_DIR") == 700 ]] || die 'staged secret directory is unsafe'
   for name in postgres_admin_password migrator_password runtime_password nautt_encryption_key initial_admin_username initial_admin_email initial_admin_password; do require_protected_file "$SOURCE_SECRETS_DIR/$name" 600 "$uid"; done
   for name in admin_password migrator_password runtime_password nautt_encryption_key initial_admin_username initial_admin_email initial_admin_password; do require_protected_file "$STAGED_SECRETS_DIR/$name" 400 1000; done
+  validate_retained_credentials "$ROOT_DIR"
   source_key=$(<"$SOURCE_SECRETS_DIR/nautt_encryption_key")
   [[ $source_key =~ ^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$ ]] || die 'stored Nautt encryption key is invalid'
-  source_digest=$(sha256sum "$SOURCE_SECRETS_DIR/nautt_encryption_key" | cut -d' ' -f1)
-  printf '%s\n' "$source_digest" | docker run --rm -i --pull=never --network none --read-only \
-    --user 1000:1000 --volume "$STAGED_SECRETS_DIR/nautt_encryption_key:/staged-key:ro" "$NODE_HELPER" \
-    sh -eu -c 'IFS= read -r expected; actual=$(sha256sum /staged-key | cut -d" " -f1); test "$actual" = "$expected"' \
-    >/dev/null || die 'source and staged Nautt encryption keys differ'
-  [[ -z ${NAUTT_ENCRYPTION_KEY:-} || $NAUTT_ENCRYPTION_KEY == "$source_key" ]] || die 'NAUTT_ENCRYPTION_KEY does not match the installed key'
   unset source_key
 }
 
@@ -198,9 +193,11 @@ validate_urls() {
 }
 
 inspect_installation() {
-  local metadata db_id mounts app_id app_health
+  local metadata db_id mounts app_id app_health media_metadata app_mounts
   metadata=$(docker volume inspect --format '{{.Driver}}|{{index .Labels "com.docker.compose.project"}}|{{index .Labels "com.docker.compose.volume"}}|{{.Name}}' "$VOLUME_NAME" 2>/dev/null) || die 'supported PostgreSQL volume does not exist'
   [[ $metadata == "local|$PROJECT|postgres-data|$VOLUME_NAME" ]] || die 'PostgreSQL volume ownership is incompatible'
+  media_metadata=$(docker volume inspect --format '{{.Driver}}|{{index .Labels "com.docker.compose.project"}}|{{index .Labels "com.docker.compose.volume"}}|{{.Name}}' "$MEDIA_VOLUME_NAME" 2>/dev/null) || die 'supported media volume does not exist'
+  [[ $media_metadata == "local|$PROJECT|media-data|$MEDIA_VOLUME_NAME" ]] || die 'media volume ownership is incompatible'
   db_id=$(compose ps -q db); [[ -n $db_id ]] || die 'Compose database container does not exist'
   [[ $(docker inspect --format '{{index .Config.Labels "com.docker.compose.project"}}|{{index .Config.Labels "com.docker.compose.service"}}' "$db_id") == "$PROJECT|db" ]] || die 'database ownership is incompatible'
   mounts=$(docker inspect --format '{{range .Mounts}}{{printf "%s|%s\n" .Name .Destination}}{{end}}' "$db_id")
@@ -208,10 +205,16 @@ inspect_installation() {
   app_id=$(compose ps -q app); [[ -n $app_id ]] || die 'existing application container does not exist'
   app_health=$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' "$app_id")
   [[ $app_health == healthy ]] || die 'existing application must be healthy before update'
+  app_mounts=$(docker inspect --format '{{range .Mounts}}{{printf "%s|%s\n" .Name .Destination}}{{end}}' "$app_id")
+  if [[ $app_mounts == *"|/app/media"* ]]; then
+    [[ $app_mounts == *"$MEDIA_VOLUME_NAME|/app/media"* ]] || die 'application media mount is incompatible'
+  fi
   printf '%s\n%s\n' "$db_id" "$app_id"
 }
 
-volume_identity() { docker volume inspect --format '{{.Name}}|{{.Mountpoint}}|{{.CreatedAt}}' "$VOLUME_NAME"; }
+deployment_volume_identity() {
+  printf '%s;%s' "$(volume_identity "$VOLUME_NAME")" "$(volume_identity "$MEDIA_VOLUME_NAME")"
+}
 
 prepare_evidence() {
   local uid old_app=$1 old_image=$2 volume=$3 file temporary
@@ -226,9 +229,9 @@ prepare_evidence() {
     printf 'format=qr-pagamentos-update-evidence-v2\n'
     printf 'target_revision=%s\nhead_revision=%s\nupstream_revision=%s\n' "$QR_UPDATE_TARGET_SHA" "$QR_UPDATE_TARGET_SHA" "$QR_UPDATE_TARGET_SHA"
     printf 'previous_app_container=%s\nprevious_app_image=%s\n' "$old_app" "$old_image"
-    printf 'compose_project=%s\nvolume_identity=%s\n' "$PROJECT" "$volume"
+    printf 'compose_project=%s\nvolume_identities=%s\n' "$PROJECT" "$volume"
   } > "$temporary"
-  mv "$temporary" "$file"; chmod 0400 "$file"; printf '%s' "$file"
+  mv "$temporary" "$file"; chmod 0600 "$file"; printf '%s' "$file"
 }
 
 image_revision() { docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$1"; }
@@ -242,7 +245,14 @@ wait_for_app() {
     [[ $status == exited || $status == unhealthy ]] && break
     sleep 1
   done
-  die 'target application did not become healthy'
+  return 1
+}
+
+candidate_media_preflight() {
+  docker run --rm --pull=never --network none --read-only --tmpfs /tmp \
+    --user 1000:1000 --volume "$MEDIA_VOLUME_NAME:/app/media" --entrypoint node \
+    "$APP_IMAGE" container/media-preflight.mjs >/dev/null \
+    || die 'candidate media preflight failed'
 }
 
 acquire_update_lock
@@ -254,12 +264,14 @@ run_offline_policy
 assert_target_checkout
 validate_urls
 validate_secret_continuity
+validate_retained_database_roles "$ROOT_DIR" "$PROJECT" "$POSTGRES_IMAGE"
+ensure_media_volume "$ROOT_DIR" "$PROJECT" "$POSTGRES_IMAGE"
 DB_OPS_IMAGE="${PROJECT}-db-ops:$QR_UPDATE_TARGET_SHA"
 APP_IMAGE="${PROJECT}-app:$QR_UPDATE_TARGET_SHA"
 installation=$(inspect_installation)
 old_app=${installation#*$'\n'}
 old_image=$(docker inspect --format '{{.Image}}' "$old_app")
-volume_before=$(volume_identity)
+volume_before=$(deployment_volume_identity)
 evidence=$(prepare_evidence "$old_app" "$old_image" "$volume_before")
 printf 'PASS update-evidence file=%s\n' "$evidence"
 
@@ -268,8 +280,12 @@ compose build --pull bootstrap app
 assert_target_checkout
 [[ $(image_revision "$DB_OPS_IMAGE") == "$QR_UPDATE_TARGET_SHA" ]] || die 'db-ops image revision mismatch'
 [[ $(image_revision "$APP_IMAGE") == "$QR_UPDATE_TARGET_SHA" ]] || die 'app image revision mismatch'
+candidate_media_preflight
+[[ $(deployment_volume_identity) == "$volume_before" ]] || die 'candidate preflight changed volume identities'
+printf 'PASS update-candidate-media-preflight\n'
 
 # Every invocation creates a new migration container. The old app remains running through this gate.
+printf 'phase=database-mutation-started\n' >> "$evidence"
 compose run --rm --no-deps bootstrap
 assert_target_checkout
 migrate_name="${PROJECT}-update-migrate-${QR_UPDATE_TARGET_SHA:0:12}-$$"
@@ -281,8 +297,20 @@ migrate_image=$(docker inspect --format '{{.Image}}' "$migrate_name")
 compose run --rm --no-deps identity-seed
 assert_target_checkout
 compose up -d --no-deps --force-recreate app
-target_app=$(wait_for_app)
+if ! target_app=$(wait_for_app); then
+  compose logs --no-color app >&2 || true
+  printf 'result=target-health-failed-image-rollback-started\n' >> "$evidence"
+  APP_IMAGE=$old_image
+  compose up -d --no-deps --force-recreate app
+  wait_for_app >/dev/null || die 'target and previous application images are unhealthy; operator recovery required'
+  [[ $(deployment_volume_identity) == "$volume_before" ]] || die 'rollback changed volume identities'
+  printf 'result=target-health-failed-previous-image-healthy\n' >> "$evidence"
+  chmod 0400 "$evidence"
+  die 'target application failed health; previous image restored against retained data'
+fi
 target_image=$(docker inspect --format '{{.Image}}' "$target_app")
 [[ $(image_revision "$target_image") == "$QR_UPDATE_TARGET_SHA" ]] || die 'target app revision mismatch'
-[[ $(volume_identity) == "$volume_before" ]] || die 'PostgreSQL volume identity changed'
+[[ $(deployment_volume_identity) == "$volume_before" ]] || die 'deployment volume identity changed'
+printf 'result=success\n' >> "$evidence"
+chmod 0400 "$evidence"
 printf 'PASS update-complete revision=%s migrate=%s app=%s evidence=%s\n' "$QR_UPDATE_TARGET_SHA" "$migrate_name" "$target_app" "$evidence"

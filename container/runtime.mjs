@@ -1,10 +1,16 @@
 import { spawn } from "node:child_process";
 import pg from "pg";
 import { databaseUrl, readSecret, safeFailure } from "./lib.mjs";
+import { MEDIA_STORAGE_ROOT, preflightMediaStorage } from "./media-preflight.mjs";
 
 const { Client } = pg;
 
 async function main() {
+  if (process.env.MEDIA_STORAGE_ROOT !== MEDIA_STORAGE_ROOT) {
+    throw Object.assign(new Error("invalid media root"), { code: "MEDIAROOT" });
+  }
+  await preflightMediaStorage();
+  console.log("PASS runtime-media-preflight");
   const callbackUrl = new URL(process.env.NAUTT_WEBHOOK_CALLBACK_URL ?? "invalid:");
   if (callbackUrl.protocol !== "https:" || callbackUrl.username || callbackUrl.password || callbackUrl.hash) {
     throw new Error("invalid Nautt webhook callback configuration");

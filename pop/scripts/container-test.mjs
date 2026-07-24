@@ -20,7 +20,7 @@ const delay = (milliseconds) => new Promise((resolve) => setTimeout(resolve, mil
 
 const scenarioIndex = process.argv.indexOf("--scenario");
 const scenario = scenarioIndex >= 0 ? process.argv[scenarioIndex + 1] : "happy";
-const allowed = new Set(["build", "config", "happy", "login", "roles", "failures", "lifecycle", "isolation", "identity-seed", "identity-recovery", "update"]);
+const allowed = new Set(["build", "config", "happy", "login", "roles", "failures", "lifecycle", "isolation", "identity-seed", "identity-recovery", "install-lifecycle", "media", "media-backup", "media-restore", "update"]);
 assert(allowed.has(scenario), `unknown scenario ${scenario}`);
 
 if (process.argv.includes("--clean-clone") && !process.env.CONTAINER_TEST_CLEAN_CLONE) {
@@ -57,6 +57,7 @@ if (process.argv.includes("--clean-clone") && !process.env.CONTAINER_TEST_CLEAN_
     migrator: `Mig!r:/?#[]@-${token}`,
     runtime: `Run!t:/?#[]@-${token}`,
     initial: `Initial-Admin-${token}-Password`,
+    nautt: Buffer.alloc(32, 23).toString("base64url"),
   };
   const files = Object.fromEntries(Object.keys(values).map((name) => [name, path.join(sources, name)]));
   for (const name of Object.keys(values)) {
@@ -85,6 +86,7 @@ if (process.argv.includes("--clean-clone") && !process.env.CONTAINER_TEST_CLEAN_
     INITIAL_ADMIN_EMAIL_FILE: emailFile,
     INITIAL_ADMIN_PASSWORD_FILE: files.initial,
     INITIAL_ADMIN_RECOVERY_PASSWORD_FILE: path.join(staged, "initial_admin_recovery_password"),
+    NAUTT_WEBHOOK_CALLBACK_URL: "https://container-test.invalid/api/nautt/webhooks",
     STAGED_SECRETS_DIR: staged,
   };
   const compose = (args, options = {}) => {
@@ -101,6 +103,8 @@ if (process.argv.includes("--clean-clone") && !process.env.CONTAINER_TEST_CLEAN_
 
   async function prepare() {
     captured += run(process.execPath, ["pop/scripts/container-prepare-secrets.mjs"], { env });
+    await copyFile(files.nautt, path.join(staged, "nautt_encryption_key"));
+    await chmod(path.join(staged, "nautt_encryption_key"), 0o400);
     await copyFile(recoveryFile, env.INITIAL_ADMIN_RECOVERY_PASSWORD_FILE);
     await chmod(env.INITIAL_ADMIN_RECOVERY_PASSWORD_FILE, 0o400);
   }
@@ -200,6 +204,7 @@ if (process.argv.includes("--clean-clone") && !process.env.CONTAINER_TEST_CLEAN_
     return { appId, bootstrapId, migrateId, identitySeedId, dbId };
   }
 
+  let scenarioFailed = false;
   try {
     await prepare();
     if (scenario === "config") {
@@ -370,6 +375,184 @@ if (process.argv.includes("--clean-clone") && !process.env.CONTAINER_TEST_CLEAN_
       console.log("PASS identity-seed-absent-email");
       console.log("PASS identity-seed-invalid-username-abort");
       console.log("PASS identity-fields-no-retarget");
+    } else if (scenario === "media") {
+      assert(process.env.CONTAINER_TEST_CLEAN_CLONE === "1", "media scenario requires --clean-clone");
+      const { appId } = await startHappy();
+      const mount = inspectField(appId, '{{range .Mounts}}{{if eq .Destination "/app/media"}}{{.Name}}|{{.RW}}{{end}}{{end}}');
+      assert(mount === `${project}_media-data|true`, "steady app media mount is not the exact RW volume");
+      assert(
+        run("docker", ["exec", appId, "stat", "-c", "%u:%g:%a", "/app/media", "/app/media/staging", "/app/media/objects"])
+          .trim().split("\n").every((entry) => entry === "1000:1000:700"),
+        "media control directory identity changed",
+      );
+      const rootWrite = execute("docker", ["exec", appId, "sh", "-c", "touch /app/root-write-probe"]);
+      assert(rootWrite.status !== 0, "read-only application root accepted a write");
+      run("docker", ["exec", appId, "node", "-e", 'require("node:fs").writeFileSync("/app/media/staging/.restart-sentinel","persisted")']);
+      compose(["restart", "app"]);
+      const restarted = await waitForApp();
+      assert(
+        run("docker", ["exec", restarted, "node", "-e", 'process.stdout.write(require("node:fs").readFileSync("/app/media/staging/.restart-sentinel","utf8"))']).trim() === "persisted",
+        "media sentinel did not survive application restart",
+      );
+      run("docker", ["exec", restarted, "rm", "/app/media/staging/.restart-sentinel"]);
+      const unavailable = await get(`/media/${"A".repeat(43)}`);
+      assert(unavailable.status === 404, "unavailable media response changed");
+      const appImage = inspectField(restarted, "{{.Image}}");
+      run("docker", [
+        "run", "--rm", "--pull=never", "--network", "none", "--read-only", "--tmpfs", "/tmp",
+        "--user", "1000:1000", "--volume", `${project}_media-data:/app/media`,
+        "--entrypoint", "node", appImage, "container/media-preflight.mjs",
+      ]);
+      const probeResidue = run("docker", [
+        "run", "--rm", "--pull=never", "--network", "none", "--read-only", "--tmpfs", "/tmp",
+        "--user", "1000:1000", "--volume", `${project}_media-data:/app/media:ro`,
+        "--entrypoint", "node", appImage, "-e",
+        'const f=require("node:fs");const e=[...f.readdirSync("/app/media/staging"),...f.readdirSync("/app/media/objects")].filter(n=>n.includes("probe"));process.stdout.write(String(e.length))',
+      ]).trim();
+      assert(probeResidue === "0", "media helper left probe residue");
+      console.log("PASS media-volume-runtime");
+      console.log("PASS media-read-only-root");
+      console.log("PASS media-restart-persistence");
+      console.log("PASS media-helper-cleanup");
+    } else if (scenario === "media-backup" || scenario === "media-restore") {
+      assert(process.env.CONTAINER_TEST_CLEAN_CLONE === "1", `${scenario} requires --clean-clone`);
+      const revision = run("git", ["rev-parse", "HEAD"]).trim();
+      env.RELEASE_REVISION = revision;
+      await startHappy();
+      const sourceDirectory = path.resolve(".install-secrets");
+      const stagedDirectory = path.resolve(".container-secrets");
+      await mkdir(sourceDirectory, { mode: 0o700 });
+      await mkdir(stagedDirectory, { mode: 0o700 });
+      const sourceMap = {
+        postgres_admin_password: files.admin,
+        migrator_password: files.migrator,
+        runtime_password: files.runtime,
+        nautt_encryption_key: files.nautt,
+        initial_admin_username: usernameFile,
+        initial_admin_email: emailFile,
+        initial_admin_password: files.initial,
+      };
+      for (const [name, source] of Object.entries(sourceMap)) {
+        await copyFile(source, path.join(sourceDirectory, name));
+        await chmod(path.join(sourceDirectory, name), 0o600);
+      }
+      for (const [name, source] of Object.entries({
+        admin_password: files.admin,
+        migrator_password: files.migrator,
+        runtime_password: files.runtime,
+        nautt_encryption_key: files.nautt,
+        initial_admin_username: usernameFile,
+        initial_admin_email: emailFile,
+        initial_admin_password: files.initial,
+      })) {
+        await copyFile(source, path.join(stagedDirectory, name));
+        await chmod(path.join(stagedDirectory, name), 0o400);
+      }
+      const installerEnv = path.join(temporary, "pair.env");
+      await writeFile(installerEnv, `APP_PORT=0
+NAUTT_WEBHOOK_CALLBACK_URL=https://container-test.invalid/api/nautt/webhooks
+`, { mode: 0o600 });
+      const destination = path.join(temporary, "backups");
+      await mkdir(destination, { mode: 0o700 });
+      const processEnv = { ...process.env, CONTAINER_TEST_PROJECT: project };
+      const backup = execute("install/backup.sh", ["--env-file", installerEnv, "--destination", destination], { env: processEnv });
+      const backupOutput = `${backup.stdout ?? ""}${backup.stderr ?? ""}`;
+      assert(backup.status === 0, `media backup failed\n${backupOutput}`);
+      const backupSet = backupOutput.match(/PASS media-backup set=(.+)/)?.[1]?.trim();
+      assert(backupSet, "media backup set evidence missing");
+      const manifest = JSON.parse(await readFile(path.join(backupSet, "manifest.json"), "utf8"));
+      assert(manifest.application_revision === revision && manifest.compose_project === project, "backup manifest identity changed");
+      assert(!JSON.stringify(manifest).includes(token), "backup manifest leaked fixture identity");
+      console.log("PASS media-backup-pair");
+      if (scenario === "media-restore") {
+        run("docker", ["tag", env.APP_IMAGE, `${project}-app:${revision}`]);
+        const tampered = path.join(temporary, "tampered");
+        await mkdir(tampered, { mode: 0o700 });
+        for (const name of ["manifest.json", "database.dump", "media.tar"]) {
+          await copyFile(path.join(backupSet, name), path.join(tampered, name));
+        }
+        await writeFile(path.join(tampered, "media.tar"), "tampered");
+        const rejected = execute("install/restore.sh", ["--env-file", installerEnv, "--backup", tampered, "--confirm", `RESTORE:${project}`], { env: processEnv });
+        assert(rejected.status !== 0, "tampered restore succeeded");
+        const restored = execute("install/restore.sh", ["--env-file", installerEnv, "--backup", backupSet, "--confirm", `RESTORE:${project}`], { env: processEnv });
+        assert(restored.status === 0, `media restore failed\n${restored.stdout ?? ""}${restored.stderr ?? ""}`);
+        assert(`${restored.stdout ?? ""}${restored.stderr ?? ""}`.includes("PASS media-restore"), "restore evidence missing");
+        await waitForApp();
+        console.log("PASS media-restore-rehearsal");
+        console.log("PASS media-restore-managed-pair");
+      }
+      await rm(sourceDirectory, { recursive: true, force: true });
+      await rm(stagedDirectory, { recursive: true, force: true });
+    } else if (scenario === "install-lifecycle") {
+      assert(process.env.CONTAINER_TEST_CLEAN_CLONE === "1", "install lifecycle requires --clean-clone");
+      await prepare();
+      const installerEnv = path.join(temporary, "install-lifecycle.env");
+      const sourceKey = Buffer.alloc(32, 19).toString("base64url");
+      const appPort = 34000 + (process.pid % 1000);
+      const writeInstallerEnv = async (runtimePassword = values.runtime) => {
+        await writeFile(installerEnv, `APP_PORT=${appPort}
+INITIAL_ADMIN_EMAIL=admin@example.com
+INITIAL_ADMIN_USERNAME=admin.user
+POSTGRES_ADMIN_PASSWORD=${values.admin}
+MIGRATOR_PASSWORD=${values.migrator}
+RUNTIME_PASSWORD=${runtimePassword}
+NAUTT_ENCRYPTION_KEY=${sourceKey}
+NAUTT_WEBHOOK_CALLBACK_URL=https://payments.example.com/api/nautt/webhooks
+`, { mode: 0o600 });
+        await chmod(installerEnv, 0o600);
+      };
+      const invokeLifecycle = (script, args) => {
+        const result = execute(script, args, { env: { ...process.env, CONTAINER_TEST_PROJECT: project } });
+        const output = `${result.stdout ?? ""}${result.stderr ?? ""}`;
+        assertRedacted(output);
+        assert(!output.includes(sourceKey), "lifecycle leaked Nautt key");
+        return { result, output };
+      };
+      const volumeId = (logical) => run("docker", [
+        "volume", "inspect", "--format", "{{.Name}}|{{.CreatedAt}}",
+        `${project}_${logical}`,
+      ]).trim();
+      const digest = async (file) => createHash("sha256").update(await readFile(file)).digest("hex");
+
+      await writeInstallerEnv();
+      let invocation = invokeLifecycle("install/install.sh", ["--env-file", installerEnv]);
+      assert(invocation.result.status === 0, `fresh install failed\n${invocation.output}`);
+      const dbVolume = volumeId("postgres-data");
+      const mediaVolume = volumeId("media-data");
+      const sourceRuntime = await digest(path.resolve(".install-secrets", "runtime_password"));
+      const stagedRuntime = await digest(path.resolve(".container-secrets", "runtime_password"));
+      assert(invocation.output.includes("PASS install-media-preflight"), "fresh media preflight evidence missing");
+
+      invocation = invokeLifecycle("install/uninstall.sh", ["--env-file", installerEnv]);
+      assert(invocation.result.status === 0 && invocation.output.includes("PASS uninstall-retained-pair"), "default uninstall did not retain pair");
+      assert(volumeId("postgres-data") === dbVolume && volumeId("media-data") === mediaVolume, "default uninstall changed volume identities");
+      assert(await digest(path.resolve(".install-secrets", "runtime_password")) === sourceRuntime, "default uninstall changed source credential");
+      assert(await digest(path.resolve(".container-secrets", "runtime_password")) === stagedRuntime, "default uninstall changed staged credential");
+
+      await writeInstallerEnv(`mismatch-${values.runtime}`);
+      invocation = invokeLifecycle("install/install.sh", ["--env-file", installerEnv]);
+      assert(invocation.result.status !== 0, "retained credential mismatch succeeded");
+      assert(compose(["ps", "-q", "db"]).trim() === "", "credential mismatch started the database");
+      await writeInstallerEnv();
+
+      run("docker", ["volume", "rm", `${project}_media-data`]);
+      invocation = invokeLifecycle("install/install.sh", ["--env-file", installerEnv]);
+      assert(invocation.result.status === 0 && invocation.output.includes("PASS legacy-media-volume-adopted"), "zero-row legacy adoption failed");
+      assert(volumeId("postgres-data") === dbVolume, "legacy adoption changed PostgreSQL volume identity");
+      const adoptedMedia = volumeId("media-data");
+      assert(adoptedMedia !== mediaVolume, "legacy adoption did not create a new media volume");
+
+      invocation = invokeLifecycle("install/uninstall.sh", ["--env-file", installerEnv]);
+      assert(invocation.result.status === 0, "pre-purge default uninstall failed");
+      invocation = invokeLifecycle("install/uninstall.sh", ["--purge-data", project, "--env-file", installerEnv]);
+      assert(invocation.result.status === 0 && invocation.output.includes("PASS uninstall-purged-pair"), "confirmed paired purge failed");
+      for (const logical of ["postgres-data", "media-data"]) {
+        assert(execute("docker", ["volume", "inspect", `${project}_${logical}`]).status !== 0, `purge retained ${logical}`);
+      }
+      console.log("PASS install-lifecycle-retention");
+      console.log("PASS install-lifecycle-credential-continuity");
+      console.log("PASS install-lifecycle-zero-row-adoption");
+      console.log("PASS install-lifecycle-paired-purge");
     } else if (scenario === "update") {
       assert(process.env.CONTAINER_TEST_CLEAN_CLONE === "1", "update scenario requires --clean-clone");
       const installerEnv = path.join(temporary, "update.env");
@@ -442,6 +625,8 @@ NAUTT_WEBHOOK_CALLBACK_URL=https://payments.example.com/api/nautt/webhooks
       const sourceKeyPath = path.resolve(".install-secrets", "nautt_encryption_key");
       const stagedKeyPath = path.resolve(".container-secrets", "nautt_encryption_key");
       const volumeIdentity = run("docker", ["volume", "inspect", "--format", "{{.Name}}|{{.Mountpoint}}|{{.CreatedAt}}", `${project}_postgres-data`]).trim();
+      const mediaVolumeIdentity = run("docker", ["volume", "inspect", "--format", "{{.Name}}|{{.CreatedAt}}", `${project}_media-data`]).trim();
+      run("docker", ["exec", containerId("app"), "node", "-e", 'require("node:fs").writeFileSync("/app/media/staging/.update-fixture", "media-sentinel")']);
       const sourceDigest = await digest(sourceKeyPath);
       const stagedDigest = await digest(stagedKeyPath);
       const updateArgs = ["--env-file", installerEnv, "--evidence-dir", evidenceDirectory];
@@ -462,6 +647,8 @@ NAUTT_WEBHOOK_CALLBACK_URL=https://payments.example.com/api/nautt/webhooks
         const appImage = inspectField(appId, "{{.Image}}");
         assert(inspectField(appImage, '{{index .Config.Labels "org.opencontainers.image.revision"}}') === run("git", ["rev-parse", "HEAD"]).trim(), "target app image revision mismatch");
         assert(run("docker", ["volume", "inspect", "--format", "{{.Name}}|{{.Mountpoint}}|{{.CreatedAt}}", `${project}_postgres-data`]).trim() === volumeIdentity, "update changed PostgreSQL volume identity");
+        assert(run("docker", ["volume", "inspect", "--format", "{{.Name}}|{{.CreatedAt}}", `${project}_media-data`]).trim() === mediaVolumeIdentity, "update changed media volume identity");
+        assert(run("docker", ["exec", appId, "node", "-e", 'process.stdout.write(require("node:fs").readFileSync("/app/media/staging/.update-fixture", "utf8"))']).trim() === "media-sentinel", "update changed media bytes");
         assert(await digest(sourceKeyPath) === sourceDigest, "update changed source Nautt key");
         assert(await digest(stagedKeyPath) === stagedDigest, "update changed staged Nautt key");
       }
@@ -488,6 +675,7 @@ NAUTT_WEBHOOK_CALLBACK_URL=https://payments.example.com/api/nautt/webhooks
       console.log("PASS update-install-baseline");
       console.log("PASS update-rerun");
       console.log("PASS update-volume-identity");
+      console.log("PASS update-media-byte-retention");
       console.log("PASS update-nautt-key-continuity");
       console.log("PASS update-startup-gates");
       console.log("PASS update-pulled-pending-migration");
@@ -582,9 +770,12 @@ RUNTIME_PASSWORD=${values.runtime}
       console.log("PASS identity-recovery-uuid-target");
       console.log("PASS identity-recovery-deleted-target-abort");
     }
+  } catch (error) {
+    scenarioFailed = true;
+    throw error;
   } finally {
     const cleanup = composeResult(["down", "--volumes", "--remove-orphans", "--rmi", "local"]);
     await rm(temporary, { recursive: true, force: true });
-    assert(cleanup.status === 0, "container cleanup failed");
+    if (!scenarioFailed) assert(cleanup.status === 0, "container cleanup failed");
   }
 }

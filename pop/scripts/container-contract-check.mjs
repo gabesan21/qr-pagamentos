@@ -48,12 +48,23 @@ assert(nextConfig.includes('output: "standalone"'), "Next standalone output is d
 for (const expected of [
   "USER 1000:1000", 'ENTRYPOINT ["node", "container/runtime.mjs"]',
   "HEALTHCHECK", "/workspace/.next/standalone", "/workspace/.next/static", "/workspace/public",
-  "org.opencontainers.image.revision", "RELEASE_REVISION",
+  "org.opencontainers.image.revision", "RELEASE_REVISION", "MEDIA_STORAGE_ROOT=/app/media",
+  "install -d -o 1000 -g 1000 -m 0700 /app/media /app/media/staging /app/media/objects",
+  "container/media-preflight.mjs",
 ]) assert(dockerfile.includes(expected), `Dockerfile lost ${expected}`);
 assert(!/ARG\s+.*(?:PASSWORD|SECRET|DATABASE_URL)|ENV\s+.*(?:PASSWORD|SECRET)/i.test(dockerfile), "secret-bearing Docker ARG/ENV is forbidden");
 for (const expected of ["service_healthy", "service_completed_successfully", "/var/lib/postgresql", "127.0.0.1:${APP_PORT:-3000}:3000", "read_only: true", 'user: "1000:1000"']) {
   assert(compose.includes(expected), `Compose lost ${expected}`);
 }
+for (const expected of ["media-data:/app/media", "media-data:", "driver: local"]) {
+  assert(compose.includes(expected), `Compose media topology lost ${expected}`);
+}
+const mediaMountServices = [...compose.matchAll(/^  ([a-z][a-z0-9-]+):\n(?:(?!^  [a-z][a-z0-9-]+:)[\s\S])*?media-data:\/app\/media/gm)]
+  .map((match) => match[1]);
+assert(
+  mediaMountServices.length === 1 && mediaMountServices[0] === "app",
+  "steady media volume must mount only into app",
+);
 for (const expected of ["identity-seed", "initial_admin_username", "initial_admin_email", "initial_admin_password", "container/identity-admin.mjs", "recover-initial-admin", "INITIAL_ADMIN_RECOVERY_PASSWORD_FILE"]) {
   assert(compose.includes(expected) || recoveryCompose.includes(expected), `Identity Compose contract lost ${expected}`);
 }
@@ -76,6 +87,23 @@ assert(bootstrapSql.includes("to_regclass('app.global_payment_settings') IS NOT 
 const runtime = await readFile("container/runtime.mjs", "utf8");
 assert(runtime.includes('query("SELECT 1 AS ready")') && runtime.includes('["server.js"]'), "runtime preflight contract changed");
 assert(runtime.includes('callbackUrl.protocol !== "https:"') && runtime.includes("NAUTT_WEBHOOK_CALLBACK_URL"), "runtime callback validation is missing");
+assert(runtime.indexOf("preflightMediaStorage()") < runtime.indexOf('spawn(process.execPath, ["server.js"]'), "media preflight must run before application bind");
+assert(runtime.includes("process.env.MEDIA_STORAGE_ROOT !== MEDIA_STORAGE_ROOT"), "runtime must reject a configurable media root");
+const mediaPreflight = await readFile("container/media-preflight.mjs", "utf8");
+for (const expected of [
+  'MEDIA_STORAGE_ROOT = "/app/media"',
+  "EXPECTED_ID = 1000",
+  "PRIVATE_MODE = 0o700",
+  "O_DIRECTORY",
+  "O_NOFOLLOW",
+  "O_EXCL",
+  "await link(source, target)",
+  'expectFailure(() => link(source, collision), "EEXIST")',
+  '"ELOOP"',
+  "descriptor.sync()",
+  "readExactDescriptor",
+  "removeProbe",
+]) assert(mediaPreflight.includes(expected), `media preflight lost ${expected}`);
 const migrate = await readFile("container/migrate.mjs", "utf8");
 for (const expected of ["app._prisma_migrations", "finished_at", "rolled_back_at", "checksum", "PASS migration-preflight", "PASS migration-complete"]) {
   assert(migrate.includes(expected), `Migration wrapper lost ${expected}`);
