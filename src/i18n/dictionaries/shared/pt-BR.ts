@@ -1,0 +1,17 @@
+export const sharedPtBR = {
+  heading: "QR Pagamentos",
+  introduction: "Crie e gerencie seus próprios links de pagamento.",
+  loginHeading: "Entrar",
+  loginIntroduction: "Use suas credenciais de administrador para continuar.",
+  usernameLabel: "Nome de usuário",
+  passwordLabel: "Senha",
+  signIn: "Entrar",
+  signingIn: "Entrando",
+  signOut: "Sair",
+  invalidCredentials: "Nome de usuário ou senha inválidos.",
+  languageHeading: "Preferência de idioma",
+  languageLabel: "Idioma de exibição",
+  languageSave: "Salvar idioma",
+  languageSaved: "Preferência de idioma salva.",
+  languageError: "Escolha um idioma compatível.",
+} as const;

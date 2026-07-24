@@ -5,10 +5,28 @@ vi.mock("server-only", () => ({}));
 import { getDictionary } from "./dictionaries";
 import { en } from "./dictionaries/en";
 import { ptBR } from "./dictionaries/pt-BR";
+import { dictionaryDomains } from "./dictionaries/domains";
 
 describe("language dictionaries", () => {
   it("keeps the closed dictionaries in parity", () => {
     expect(Object.keys(ptBR).sort()).toEqual(Object.keys(en).sort());
+  });
+
+  it("keeps each domain bilingual without overlapping keys", () => {
+    const seenKeys = new Set<string>();
+
+    for (const [domainName, dictionaries] of Object.entries(dictionaryDomains)) {
+      const ptBRKeys = Object.keys(dictionaries["pt-BR"]).sort();
+      const enKeys = Object.keys(dictionaries.en).sort();
+
+      expect(ptBRKeys, `${domainName} keys`).toEqual(enKeys);
+      for (const key of enKeys) {
+        expect(seenKeys.has(key), `${domainName}.${key} must be domain-owned`).toBe(false);
+        seenKeys.add(key);
+      }
+    }
+
+    expect([...seenKeys].sort()).toEqual(Object.keys(en).sort());
   });
 
   it("exposes the language-control copy for each supported locale", () => {

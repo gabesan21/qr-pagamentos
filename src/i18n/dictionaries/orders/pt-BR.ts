@@ -1,0 +1,18 @@
+export const ordersPtBR = {
+  ordersHeading: "Pedidos",
+  ordersDescription: "Acompanhe os pedidos dos links de pagamento, seus estados e os dados do cliente coletados por cada política.",
+  ordersEmpty: "Nenhum pedido está disponível.",
+  ordersEmptyDescription: "Os pedidos aparecem aqui após um cliente iniciar um checkout por um link de pagamento.",
+  ordersView: "Ver pedido",
+  orderBackToList: "Voltar aos pedidos",
+  orderPaymentLink: "Link de pagamento",
+  orderProduct: "Produto",
+  orderAmount: "Valor",
+  orderCurrencyPair: "Par de moedas",
+  orderState: "Estado",
+  orderCreated: "Criado em",
+  orderUpdated: "Atualizado em",
+  orderSettled: "Liquidado em",
+  orderUnavailableHeading: "Este pedido está indisponível",
+  orderUnavailableDescription: "O pedido não existe ou não está disponível para esta conta.",
+} as const;
