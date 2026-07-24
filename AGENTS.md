@@ -52,6 +52,8 @@ A direct human command overrides only the rule or gate it explicitly names. “A
 
 ## DOX index
 
+- [`src/app-shell/AGENTS.md`](src/app-shell/AGENTS.md) — follow when changing
+  role-neutral shell composition, navigation state, or the mobile boundary.
 - [`src/brand/AGENTS.md`](src/brand/AGENTS.md) — follow when changing canonical
   identity geometry, compositions, generated assets, manifest, or usage rules.
 - [`src/components/ui/AGENTS.md`](src/components/ui/AGENTS.md) — follow when
@@ -103,6 +105,14 @@ Username and password are the only login credentials; email is optional and neve
 - `src/media/` owns the server-only canonical image boundary and `GET /media/[identifier]` is its only read route: accepted JPEG/PNG/WebP input becomes bounded single-frame WebP outside `public/`; owner/purpose/state/revision metadata, physical count-until-durable-delete quotas, local-POSIX descriptor/digest checks, and fail-closed reconciliation govern every operation. Public reads require `ACTIVE`; only the active merchant owner may read `STAGED` or grace-period `ORPHANED`; every outcome is `no-store` and every unavailable case is the same empty `404`. Administrators gain no owner capability. See [`pop/specs/media-storage.md`](pop/specs/media-storage.md).
 - `src/i18n/` owns the closed locale set and server dictionary loader; never add a locale without matching dictionary keys and contract tests.
 - `src/brand/` owns the original four-identity QR Pagamentos family and its deterministic manifest/static derivatives; UI consumers use the shared semantic-color composition, never page-local marks or per-theme assets.
+- `src/app-shell/` owns inert role-neutral shell presentation; separate
+  `src/app/admin/` and `src/app/(merchant)/` adapters re-authorize their exact
+  role and provide fixed five-entry route maps. Dashboard roots match exactly,
+  descendant active state is segment-safe, and the focused client boundary owns
+  only pathname and mobile disclosure state. Page routes are `/admin`,
+  `/admin/orders`, `/admin/payment-links`, `/admin/accounts`,
+  `/admin/settings` and `/`, `/orders`, `/links`, `/catalog`, `/settings`;
+  existing POST routes remain unchanged.
 - Use the exact Node and pnpm pins in `.node-version` and `package.json`; install with `pnpm install --frozen-lockfile`.
 - Run `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm build` independently, or `pnpm check` for the aggregate gate.
 - Run `pnpm db:test` separately for the disposable PostgreSQL contract; it is never part of the database-free `pnpm check` gate.

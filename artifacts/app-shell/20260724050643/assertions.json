@@ -1,0 +1,1512 @@
+[
+  {
+    "role": "admin",
+    "theme": "pix-paper",
+    "width": 320,
+    "screenshot": "artifacts/app-shell/20260724050643/admin-pix-paper-320.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 44
+        }
+      ]
+    },
+    "severeAxe": []
+  },
+  {
+    "role": "admin",
+    "theme": "pix-paper",
+    "width": 375,
+    "screenshot": "artifacts/app-shell/20260724050643/admin-pix-paper-375.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 44
+        }
+      ]
+    },
+    "severeAxe": []
+  },
+  {
+    "role": "admin",
+    "theme": "pix-paper",
+    "width": 768,
+    "screenshot": "artifacts/app-shell/20260724050643/admin-pix-paper-768.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 175
+        }
+      ]
+    },
+    "severeAxe": []
+  },
+  {
+    "role": "admin",
+    "theme": "pix-paper",
+    "width": 1440,
+    "screenshot": "artifacts/app-shell/20260724050643/admin-pix-paper-1440.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "01Dashboard",
+        "02Orders",
+        "03Links",
+        "04Users",
+        "05Settings",
+        "Sign out"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        }
+      ]
+    },
+    "severeAxe": []
+  },
+  {
+    "role": "admin",
+    "theme": "cashier-daylight",
+    "width": 320,
+    "screenshot": "artifacts/app-shell/20260724050643/admin-cashier-daylight-320.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 44
+        }
+      ]
+    },
+    "severeAxe": []
+  },
+  {
+    "role": "admin",
+    "theme": "cashier-daylight",
+    "width": 375,
+    "screenshot": "artifacts/app-shell/20260724050643/admin-cashier-daylight-375.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 44
+        }
+      ]
+    },
+    "severeAxe": []
+  },
+  {
+    "role": "admin",
+    "theme": "cashier-daylight",
+    "width": 768,
+    "screenshot": "artifacts/app-shell/20260724050643/admin-cashier-daylight-768.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 175
+        }
+      ]
+    },
+    "severeAxe": []
+  },
+  {
+    "role": "admin",
+    "theme": "cashier-daylight",
+    "width": 1440,
+    "screenshot": "artifacts/app-shell/20260724050643/admin-cashier-daylight-1440.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "01Dashboard",
+        "02Orders",
+        "03Links",
+        "04Users",
+        "05Settings",
+        "Sign out"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        }
+      ]
+    },
+    "severeAxe": []
+  },
+  {
+    "role": "admin",
+    "theme": "settlement-sand",
+    "width": 320,
+    "screenshot": "artifacts/app-shell/20260724050643/admin-settlement-sand-320.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 44
+        }
+      ]
+    },
+    "severeAxe": []
+  },
+  {
+    "role": "admin",
+    "theme": "settlement-sand",
+    "width": 375,
+    "screenshot": "artifacts/app-shell/20260724050643/admin-settlement-sand-375.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 44
+        }
+      ]
+    },
+    "severeAxe": []
+  },
+  {
+    "role": "admin",
+    "theme": "settlement-sand",
+    "width": 768,
+    "screenshot": "artifacts/app-shell/20260724050643/admin-settlement-sand-768.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 175
+        }
+      ]
+    },
+    "severeAxe": []
+  },
+  {
+    "role": "admin",
+    "theme": "settlement-sand",
+    "width": 1440,
+    "screenshot": "artifacts/app-shell/20260724050643/admin-settlement-sand-1440.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "01Dashboard",
+        "02Orders",
+        "03Links",
+        "04Users",
+        "05Settings",
+        "Sign out"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        }
+      ]
+    },
+    "severeAxe": []
+  },
+  {
+    "role": "admin",
+    "theme": "midnight-clearing",
+    "width": 320,
+    "screenshot": "artifacts/app-shell/20260724050643/admin-midnight-clearing-320.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 44
+        }
+      ]
+    },
+    "severeAxe": []
+  },
+  {
+    "role": "admin",
+    "theme": "midnight-clearing",
+    "width": 375,
+    "screenshot": "artifacts/app-shell/20260724050643/admin-midnight-clearing-375.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 44
+        }
+      ]
+    },
+    "severeAxe": []
+  },
+  {
+    "role": "admin",
+    "theme": "midnight-clearing",
+    "width": 768,
+    "screenshot": "artifacts/app-shell/20260724050643/admin-midnight-clearing-768.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 175
+        }
+      ]
+    },
+    "severeAxe": []
+  },
+  {
+    "role": "admin",
+    "theme": "midnight-clearing",
+    "width": 1440,
+    "screenshot": "artifacts/app-shell/20260724050643/admin-midnight-clearing-1440.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "01Dashboard",
+        "02Orders",
+        "03Links",
+        "04Users",
+        "05Settings",
+        "Sign out"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        }
+      ]
+    },
+    "severeAxe": []
+  },
+  {
+    "role": "admin",
+    "theme": "vault-blue",
+    "width": 320,
+    "screenshot": "artifacts/app-shell/20260724050643/admin-vault-blue-320.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 44
+        }
+      ]
+    },
+    "severeAxe": []
+  },
+  {
+    "role": "admin",
+    "theme": "vault-blue",
+    "width": 375,
+    "screenshot": "artifacts/app-shell/20260724050643/admin-vault-blue-375.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 44
+        }
+      ]
+    },
+    "severeAxe": []
+  },
+  {
+    "role": "admin",
+    "theme": "vault-blue",
+    "width": 768,
+    "screenshot": "artifacts/app-shell/20260724050643/admin-vault-blue-768.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 175
+        }
+      ]
+    },
+    "severeAxe": []
+  },
+  {
+    "role": "admin",
+    "theme": "vault-blue",
+    "width": 1440,
+    "screenshot": "artifacts/app-shell/20260724050643/admin-vault-blue-1440.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "01Dashboard",
+        "02Orders",
+        "03Links",
+        "04Users",
+        "05Settings",
+        "Sign out"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        }
+      ]
+    },
+    "severeAxe": []
+  },
+  {
+    "role": "admin",
+    "theme": "terminal-amber",
+    "width": 320,
+    "screenshot": "artifacts/app-shell/20260724050643/admin-terminal-amber-320.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 44
+        }
+      ]
+    },
+    "severeAxe": []
+  },
+  {
+    "role": "admin",
+    "theme": "terminal-amber",
+    "width": 375,
+    "screenshot": "artifacts/app-shell/20260724050643/admin-terminal-amber-375.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 44
+        }
+      ]
+    },
+    "severeAxe": []
+  },
+  {
+    "role": "admin",
+    "theme": "terminal-amber",
+    "width": 768,
+    "screenshot": "artifacts/app-shell/20260724050643/admin-terminal-amber-768.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 175
+        }
+      ]
+    },
+    "severeAxe": []
+  },
+  {
+    "role": "admin",
+    "theme": "terminal-amber",
+    "width": 1440,
+    "screenshot": "artifacts/app-shell/20260724050643/admin-terminal-amber-1440.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "01Dashboard",
+        "02Orders",
+        "03Links",
+        "04Users",
+        "05Settings",
+        "Sign out"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        }
+      ]
+    },
+    "severeAxe": []
+  },
+  {
+    "role": "admin",
+    "state": "mobile-open",
+    "screenshot": "artifacts/app-shell/20260724050643/admin-mobile-open.png"
+  },
+  {
+    "role": "merchant",
+    "theme": "pix-paper",
+    "width": 320,
+    "screenshot": "artifacts/app-shell/20260724050643/merchant-pix-paper-320.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 44
+        }
+      ]
+    },
+    "severeAxe": []
+  },
+  {
+    "role": "merchant",
+    "theme": "pix-paper",
+    "width": 375,
+    "screenshot": "artifacts/app-shell/20260724050643/merchant-pix-paper-375.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 44
+        }
+      ]
+    },
+    "severeAxe": []
+  },
+  {
+    "role": "merchant",
+    "theme": "pix-paper",
+    "width": 768,
+    "screenshot": "artifacts/app-shell/20260724050643/merchant-pix-paper-768.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 175
+        }
+      ]
+    },
+    "severeAxe": []
+  },
+  {
+    "role": "merchant",
+    "theme": "pix-paper",
+    "width": 1440,
+    "screenshot": "artifacts/app-shell/20260724050643/merchant-pix-paper-1440.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "01Dashboard",
+        "02Orders",
+        "03Links",
+        "04Products",
+        "05Settings",
+        "Sign out"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        }
+      ]
+    },
+    "severeAxe": []
+  },
+  {
+    "role": "merchant",
+    "theme": "cashier-daylight",
+    "width": 320,
+    "screenshot": "artifacts/app-shell/20260724050643/merchant-cashier-daylight-320.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 44
+        }
+      ]
+    },
+    "severeAxe": []
+  },
+  {
+    "role": "merchant",
+    "theme": "cashier-daylight",
+    "width": 375,
+    "screenshot": "artifacts/app-shell/20260724050643/merchant-cashier-daylight-375.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 44
+        }
+      ]
+    },
+    "severeAxe": []
+  },
+  {
+    "role": "merchant",
+    "theme": "cashier-daylight",
+    "width": 768,
+    "screenshot": "artifacts/app-shell/20260724050643/merchant-cashier-daylight-768.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 175
+        }
+      ]
+    },
+    "severeAxe": []
+  },
+  {
+    "role": "merchant",
+    "theme": "cashier-daylight",
+    "width": 1440,
+    "screenshot": "artifacts/app-shell/20260724050643/merchant-cashier-daylight-1440.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "01Dashboard",
+        "02Orders",
+        "03Links",
+        "04Products",
+        "05Settings",
+        "Sign out"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        }
+      ]
+    },
+    "severeAxe": []
+  },
+  {
+    "role": "merchant",
+    "theme": "settlement-sand",
+    "width": 320,
+    "screenshot": "artifacts/app-shell/20260724050643/merchant-settlement-sand-320.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 44
+        }
+      ]
+    },
+    "severeAxe": []
+  },
+  {
+    "role": "merchant",
+    "theme": "settlement-sand",
+    "width": 375,
+    "screenshot": "artifacts/app-shell/20260724050643/merchant-settlement-sand-375.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 44
+        }
+      ]
+    },
+    "severeAxe": []
+  },
+  {
+    "role": "merchant",
+    "theme": "settlement-sand",
+    "width": 768,
+    "screenshot": "artifacts/app-shell/20260724050643/merchant-settlement-sand-768.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 175
+        }
+      ]
+    },
+    "severeAxe": []
+  },
+  {
+    "role": "merchant",
+    "theme": "settlement-sand",
+    "width": 1440,
+    "screenshot": "artifacts/app-shell/20260724050643/merchant-settlement-sand-1440.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "01Dashboard",
+        "02Orders",
+        "03Links",
+        "04Products",
+        "05Settings",
+        "Sign out"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        }
+      ]
+    },
+    "severeAxe": []
+  },
+  {
+    "role": "merchant",
+    "theme": "midnight-clearing",
+    "width": 320,
+    "screenshot": "artifacts/app-shell/20260724050643/merchant-midnight-clearing-320.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 44
+        }
+      ]
+    },
+    "severeAxe": []
+  },
+  {
+    "role": "merchant",
+    "theme": "midnight-clearing",
+    "width": 375,
+    "screenshot": "artifacts/app-shell/20260724050643/merchant-midnight-clearing-375.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 44
+        }
+      ]
+    },
+    "severeAxe": []
+  },
+  {
+    "role": "merchant",
+    "theme": "midnight-clearing",
+    "width": 768,
+    "screenshot": "artifacts/app-shell/20260724050643/merchant-midnight-clearing-768.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 175
+        }
+      ]
+    },
+    "severeAxe": []
+  },
+  {
+    "role": "merchant",
+    "theme": "midnight-clearing",
+    "width": 1440,
+    "screenshot": "artifacts/app-shell/20260724050643/merchant-midnight-clearing-1440.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "01Dashboard",
+        "02Orders",
+        "03Links",
+        "04Products",
+        "05Settings",
+        "Sign out"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        }
+      ]
+    },
+    "severeAxe": []
+  },
+  {
+    "role": "merchant",
+    "theme": "vault-blue",
+    "width": 320,
+    "screenshot": "artifacts/app-shell/20260724050643/merchant-vault-blue-320.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 44
+        }
+      ]
+    },
+    "severeAxe": []
+  },
+  {
+    "role": "merchant",
+    "theme": "vault-blue",
+    "width": 375,
+    "screenshot": "artifacts/app-shell/20260724050643/merchant-vault-blue-375.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 44
+        }
+      ]
+    },
+    "severeAxe": []
+  },
+  {
+    "role": "merchant",
+    "theme": "vault-blue",
+    "width": 768,
+    "screenshot": "artifacts/app-shell/20260724050643/merchant-vault-blue-768.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 175
+        }
+      ]
+    },
+    "severeAxe": []
+  },
+  {
+    "role": "merchant",
+    "theme": "vault-blue",
+    "width": 1440,
+    "screenshot": "artifacts/app-shell/20260724050643/merchant-vault-blue-1440.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "01Dashboard",
+        "02Orders",
+        "03Links",
+        "04Products",
+        "05Settings",
+        "Sign out"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        }
+      ]
+    },
+    "severeAxe": []
+  },
+  {
+    "role": "merchant",
+    "theme": "terminal-amber",
+    "width": 320,
+    "screenshot": "artifacts/app-shell/20260724050643/merchant-terminal-amber-320.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 44
+        }
+      ]
+    },
+    "severeAxe": []
+  },
+  {
+    "role": "merchant",
+    "theme": "terminal-amber",
+    "width": 375,
+    "screenshot": "artifacts/app-shell/20260724050643/merchant-terminal-amber-375.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 44
+        }
+      ]
+    },
+    "severeAxe": []
+  },
+  {
+    "role": "merchant",
+    "theme": "terminal-amber",
+    "width": 768,
+    "screenshot": "artifacts/app-shell/20260724050643/merchant-terminal-amber-768.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 175
+        }
+      ]
+    },
+    "severeAxe": []
+  },
+  {
+    "role": "merchant",
+    "theme": "terminal-amber",
+    "width": 1440,
+    "screenshot": "artifacts/app-shell/20260724050643/merchant-terminal-amber-1440.png",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "01Dashboard",
+        "02Orders",
+        "03Links",
+        "04Products",
+        "05Settings",
+        "Sign out"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        }
+      ]
+    },
+    "severeAxe": []
+  },
+  {
+    "role": "merchant",
+    "state": "mobile-open",
+    "screenshot": "artifacts/app-shell/20260724050643/merchant-mobile-open.png"
+  }
+]

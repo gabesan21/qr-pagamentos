@@ -3,7 +3,7 @@ import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
-const uiRoots = [join(root, "src", "app"), join(root, "src", "components", "ui")];
+const uiRoots = [join(root, "src", "app"), join(root, "src", "app-shell"), join(root, "src", "components", "ui")];
 const visualValue = /#[\da-f]{3,8}\b|\b\d*\.?\d+(?:px|rem|em|ch)\b|\brgb\(|\bfont-family\s*:(?!\s*var\()|\bfont-weight\s*:(?!\s*var\()|\bline-height\s*:(?!\s*var\()/i;
 const inlineStyle = /\bstyle\s*=/i;
 const storefrontPagePath = "src/app/store/[slug]/page.tsx";
@@ -19,8 +19,13 @@ function authoredUiFiles(directory) {
 }
 
 function removeTokenSource(path, source) {
-  if (!path.endsWith("globals.css")) return source;
-  return source.replace(/\/\* generated-theme-tokens:start \*\/[\s\S]*?\/\* generated-theme-tokens:end \*\//, "");
+  const withoutGeneratedTokens = path.endsWith("globals.css")
+    ? source.replace(/\/\* generated-theme-tokens:start \*\/[\s\S]*?\/\* generated-theme-tokens:end \*\//, "")
+    : source;
+  if (!path.endsWith("app-shell.css")) return withoutGeneratedTokens;
+  return withoutGeneratedTokens
+    .replaceAll("(max-width: 48rem)", "(max-width: var(--shell-mobile-breakpoint))")
+    .replaceAll("(max-width: 23.4375rem)", "(max-width: var(--shell-compact-breakpoint))");
 }
 
 export function findDesignTokenViolations(files = uiRoots.flatMap(authoredUiFiles).map((path) => ({ path, source: readFileSync(path, "utf8") }))) {

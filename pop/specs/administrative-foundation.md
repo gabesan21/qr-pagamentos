@@ -67,9 +67,20 @@ merchant routes and owner-scoped services.
 | `/pay/[identifier]`, `/store/[slug]`, `/api/payment-links/[identifier]*`, `/api/nautt/webhooks`, `/api/health` | sessionless public/protocol surface; no panel capability | their existing public/protocol outcomes | Never route through either panel or alter public identifiers, rate limits, callback rules, response shapes, or no-store/opaque semantics. |
 | `/[lang]/*` legacy UI and mutation stubs | permanently absent | `404` for every visitor | Persisted `pt-BR`/`en` selection remains unprefixed; no locale-prefixed compatibility redirect is introduced. |
 
-The current root page still admits `ADMIN` to merchant work; this is a known
-pre-implementation defect. Task 6.1.2 implements this approved matrix without
-changing the public/sessionless contracts above.
+The fixed authenticated page map is:
+
+| Persona | Page areas |
+| --- | --- |
+| `ADMIN` | Dashboard `/admin`; orders `/admin/orders`; payment-link scaffold `/admin/payment-links`; users `/admin/accounts`; settings `/admin/settings` |
+| `USER` | Dashboard `/`; orders `/orders`; links `/links`; products `/catalog`; settings `/settings` |
+
+Every page and role layout re-authorize the cookie principal before role-owned
+work. Existing mutation endpoints remain `/admin/users*`,
+`/admin/payment-settings`, `/admin/catalog/*`, `/products`, `/payment-links*`,
+`/checkout-policy`, `/storefront`, `/nautt-credentials*`, and
+`/language-preference`; no page shadows them. The dashboard and global
+payment-link areas are honest scaffolds and call no unapproved projection.
+Nested order pages inherit only their role shell.
 
 ## Out of scope
 

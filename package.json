@@ -34,6 +34,8 @@
     "admin:contract-check": "node scripts/check-admin-contract-sync.mjs",
     "admin:evidence": "node scripts/run-admin-evidence.mjs",
     "admin:evidence:verify": "node scripts/verify-admin-evidence.mjs",
+    "app-shell:evidence": "node scripts/run-admin-evidence.mjs --app-shell",
+    "app-shell:evidence:verify": "node scripts/verify-app-shell-evidence.mjs",
     "epoch1:source-check": "node scripts/check-epoch1-source.mjs",
     "media:decoder-preflight": "node scripts/media-decoder-preflight.mjs",
     "precheck": "pnpm db:generate",

@@ -9,6 +9,7 @@ function assert(condition, message) { if (!condition) throw new Error(message); 
 const delay = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
 
 const token = randomUUID().replaceAll("-", "").slice(0, 12);
+const appShellMode = process.argv.includes("--app-shell");
 const project = `qrae${process.pid}${token}`.toLowerCase();
 const temporary = await mkdtemp(path.join(tmpdir(), `${project}-`));
 const sources = path.join(temporary, "sources");
@@ -35,6 +36,7 @@ const env = {
   INITIAL_ADMIN_EMAIL_FILE: emailFile,
   INITIAL_ADMIN_PASSWORD_FILE: files.initial,
   INITIAL_ADMIN_RECOVERY_PASSWORD_FILE: path.join(staged, "initial_admin_recovery_password"),
+  NAUTT_WEBHOOK_CALLBACK_URL: "https://evidence.invalid/api/nautt/webhooks",
   STAGED_SECRETS_DIR: staged,
 };
 const compose = (args) => execute("docker", ["compose", "-p", project, "-f", "compose.yaml", ...args], { env });
@@ -63,9 +65,16 @@ try {
   const mapping = compose(["port", "app", "3000"]).stdout.trim();
   const port = Number(mapping.match(/:(\d+)$/)?.[1]);
   assert(port, "admin evidence loopback port could not be resolved");
-  const playwright = spawn(path.join(process.cwd(), "node_modules/.bin/playwright"), ["test", "tests/admin.evidence.spec.ts", "--project=chromium", "--workers=1"], {
+  const evidenceTest = appShellMode ? "tests/app-shell.evidence.spec.ts" : "tests/admin.evidence.spec.ts";
+  const playwright = spawn(path.join(process.cwd(), "node_modules/.bin/playwright"), ["test", evidenceTest, "--project=chromium", "--workers=1"], {
     cwd: process.cwd(),
-    env: { ...process.env, ADMIN_EVIDENCE_BASE_URL: `http://127.0.0.1:${port}`, ADMIN_EVIDENCE_USERNAME: "admin.user", ADMIN_EVIDENCE_PASSWORD: values.initial },
+    env: {
+      ...process.env,
+      ADMIN_EVIDENCE_BASE_URL: `http://127.0.0.1:${port}`,
+      ADMIN_EVIDENCE_USERNAME: "admin.user",
+      ADMIN_EVIDENCE_PASSWORD: values.initial,
+      APP_SHELL_EVIDENCE_MERCHANT_PASSWORD: `Merchant-${token}-Password`,
+    },
     stdio: "inherit",
   });
   const status = await new Promise((resolve, reject) => { playwright.on("error", reject); playwright.on("exit", resolve); });

@@ -163,6 +163,32 @@ missing order identities render one opaque destructive-`Alert` unavailable
 view with a single back action; no order surface owns a mutation control or
 page-specific visual variant.
 
+## Role shell composition
+
+Administrator and merchant workspaces use separate server adapters and one
+role-neutral visual frame. Each adapter resolves the exact active role and
+persisted locale before rendering its children. The frame receives only inert
+labels, links, identity, username, locale, and content; its focused client
+boundary owns pathname matching and mobile disclosure only.
+
+Each role has exactly five numbered navigation entries. Dashboard roots match
+exactly, while a non-root item remains active only for its slash-delimited
+descendants. The active entry combines `aria-current="page"`, stronger type,
+surface change, and an inline rule so color is never the only cue.
+
+Above 768 CSS pixels, a persistent ruled sidebar carries navigation, role facts,
+and logout. At 768 and below, the sidebar leaves the accessibility tree and a
+44-pixel-or-larger disclosure exposes the same five links plus logout. The two
+copies are never simultaneously exposed. The content starts with a skip target,
+remains ordered after navigation, and fits without horizontal overflow at 320
+CSS pixels.
+
+The administrator composition uses the official compact role-shell lockup; the
+merchant composition uses the official fallback without implying merchant
+ownership. Dashboard and future-area scaffolds are explicit empty states with
+no invented metrics, tables, controls, or unapproved projection calls.
+Existing controls remain in their owned route areas and keep their POST URLs.
+
 ## Evidence and composition
 
 `pnpm design-system:evidence` builds production output and creates a fresh
@@ -180,6 +206,15 @@ action targets, native label/autofill semantics, the generic recovery alert,
 and no serious/critical axe finding on default or recovery states. The same run
 delays the native POST and proves the pending label, spinner, `aria-busy`, and
 disabled state for both click and Enter submission.
+
+`pnpm app-shell:evidence` and `pnpm app-shell:evidence:verify` bind 48 base
+captures (two roles, six themes, and widths 320, 375, 768, and 1440), plus one
+mobile-open capture per role. The run proves the exact five-item inventories,
+official identities, one accessibility-tree navigation copy, segment-safe
+active state including nested orders, 44-pixel targets, IBM Plex Sans, no
+overflow, no external request or console failure, and no serious or critical
+axe finding. Its visual review is manifest-hash-bound and accepts no unresolved
+severity 2 or greater finding.
 
 The status rail and panels use ruled separation and restrained corners. Never
 make a page-specific button variant: use owned `Button` variants. Motion is

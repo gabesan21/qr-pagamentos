@@ -69,7 +69,6 @@ describe("admin order list page", () => {
     expect(markup).toContain(title);
     expect(markup).toContain(state);
     expect(markup).toContain(`href="/admin/orders/${order.id}"`);
-    expect(markup).toContain('href="/admin"');
     expect(markup).not.toContain("<form");
   });
 

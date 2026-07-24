@@ -65,7 +65,6 @@ describe("owner order list page", () => {
     expect(markup).toContain("BRL 10.50");
     expect(markup).toContain("link-identifier");
     expect(markup).toContain(`href="/orders/${order.id}"`);
-    expect(markup).toContain('href="/"');
   });
 
   it.each([

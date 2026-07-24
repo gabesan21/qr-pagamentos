@@ -69,11 +69,11 @@ checkout, storefront, or payment-provider surfaces.
   accepted.
 - `DESIGN.md`, relevant DOX contracts, component tests, token lint, contrast
   checks, and browser checks remain synchronized with the shipped inventory.
-- Shared owned primitives, tokens, typography, themes, and accessibility rules
-  are role-neutral implementation sources. They do not imply a shared
-  administrator/merchant shell, navigation, route fallback, or business
-  capability: each role composes its own shell and exposes only the route areas
-  permitted by [[specs/administrative-foundation|Administrative foundation]].
+- Shared visual sources grant no cross-role capability. Separate RSC adapters
+  compose an inert frame with official identity and five permitted routes; its
+  only client boundary owns segment-safe active state and mobile disclosure.
+- At 768 CSS pixels and below, one 44px disclosure replaces desktop navigation in the accessibility tree with the same links and logout. Active state has `aria-current`, a non-color cue, and a skip target.
+- Evidence binds 48 base and two mobile-open captures, nested routes, accessibility, and a review with no unresolved severity 2+.
 
 ## Out of scope
 

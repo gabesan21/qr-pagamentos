@@ -14,6 +14,7 @@ import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { Separator } from "@/components/ui/separator";
 import type { getDictionary } from "@/i18n/dictionaries";
 import type { SupportedLocale } from "@/i18n/locales";
+import { WorkspaceHeading } from "@/app-shell/workspace-heading";
 
 type Dictionary = ReturnType<typeof getDictionary>;
 type AdminUser = Readonly<{ id: string; username: string; email: string | null; role: "ADMIN" | "USER"; status: "ACTIVE" | "DISABLED" }>;
@@ -21,6 +22,56 @@ type Settings = Readonly<{ currencies: string[]; paymentMethods: string[] }>;
 type CurrencyPair = Readonly<{ id: string; label: string; currencyUuid: string; exchangeCurrencyUuid: string; active: boolean }>;
 type PaymentMethod = Readonly<{ id: string; label: string; paymentMethodUuid: string; active: boolean }>;
 type Notice = Readonly<{ tone: "success" | "error"; text: string }> | null;
+
+export function AdminAccountsSurface({
+  dictionary,
+  notice,
+  users,
+}: Readonly<{ dictionary: Dictionary; notice: Notice; users: AdminUser[] }>) {
+  return (
+    <>
+      <WorkspaceHeading
+        description={dictionary.adminIntroduction}
+        eyebrow={dictionary.shellAdminEyebrow}
+        title={dictionary.adminUsersHeading}
+      />
+      {notice ? <AdminNotice dictionary={dictionary} notice={notice} /> : null}
+      <CreateAccount dictionary={dictionary} />
+      <Accounts dictionary={dictionary} users={users} />
+    </>
+  );
+}
+
+export function AdminSettingsSurface({
+  currencyPairs,
+  dictionary,
+  locale,
+  notice,
+  paymentMethods,
+  settings,
+}: Readonly<{
+  currencyPairs: CurrencyPair[];
+  dictionary: Dictionary;
+  locale: SupportedLocale;
+  notice: Notice;
+  paymentMethods: PaymentMethod[];
+  settings: Settings;
+}>) {
+  return (
+    <>
+      <WorkspaceHeading
+        description={dictionary.adminPaymentSettingsHelp}
+        eyebrow={dictionary.shellAdminEyebrow}
+        title={dictionary.shellSettings}
+      />
+      {notice ? <AdminNotice dictionary={dictionary} notice={notice} /> : null}
+      <PaymentSettings dictionary={dictionary} settings={settings} />
+      <CatalogCurrencyPairs dictionary={dictionary} pairs={currencyPairs} />
+      <CatalogPaymentMethods dictionary={dictionary} methods={paymentMethods} />
+      <LanguagePreference dictionary={dictionary} locale={locale} />
+    </>
+  );
+}
 
 export function AdminSurface({ actorUsername, currencyPairs, dictionary, locale, notice, paymentMethods, settings, users }: Readonly<{ actorUsername: string; currencyPairs: CurrencyPair[]; dictionary: Dictionary; locale: SupportedLocale; notice: Notice; paymentMethods: PaymentMethod[]; settings: Settings; users: AdminUser[] }>) {
   return (
