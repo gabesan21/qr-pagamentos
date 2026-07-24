@@ -1,0 +1,197 @@
+{
+  "version": 1,
+  "id": "20260724210000_store_settings_extension",
+  "operations": [
+    {
+      "op": "addColumn",
+      "table": {
+        "schema": "app",
+        "name": "user"
+      },
+      "column": {
+        "name": "storefront_theme_id",
+        "type": {
+          "name": "varchar",
+          "length": 24
+        },
+        "nullable": true
+      }
+    },
+    {
+      "op": "addColumn",
+      "table": {
+        "schema": "app",
+        "name": "user"
+      },
+      "column": {
+        "name": "storefront_layout",
+        "type": {
+          "name": "varchar",
+          "length": 8
+        },
+        "nullable": true
+      }
+    },
+    {
+      "op": "addColumn",
+      "table": {
+        "schema": "app",
+        "name": "user"
+      },
+      "column": {
+        "name": "storefront_logo_media_identifier",
+        "type": {
+          "name": "varchar",
+          "length": 43
+        },
+        "nullable": true
+      }
+    },
+    {
+      "op": "addColumn",
+      "table": {
+        "schema": "app",
+        "name": "user"
+      },
+      "column": {
+        "name": "storefront_standalone_payments_enabled",
+        "type": {
+          "name": "boolean"
+        },
+        "nullable": false,
+        "default": {
+          "kind": "boolean",
+          "value": true
+        }
+      }
+    },
+    {
+      "op": "addColumn",
+      "table": {
+        "schema": "app",
+        "name": "user"
+      },
+      "column": {
+        "name": "storefront_default_currency_code",
+        "type": {
+          "name": "varchar",
+          "length": 3
+        },
+        "nullable": true
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "user"
+      },
+      "constraint": {
+        "kind": "check",
+        "name": "user_storefront_theme_id_closed",
+        "expression": {
+          "op": "in",
+          "column": "storefront_theme_id",
+          "values": [
+            {
+              "kind": "string",
+              "value": "pix-paper"
+            },
+            {
+              "kind": "string",
+              "value": "cashier-daylight"
+            },
+            {
+              "kind": "string",
+              "value": "settlement-sand"
+            },
+            {
+              "kind": "string",
+              "value": "midnight-clearing"
+            },
+            {
+              "kind": "string",
+              "value": "vault-blue"
+            },
+            {
+              "kind": "string",
+              "value": "terminal-amber"
+            }
+          ]
+        },
+        "notValid": false
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "user"
+      },
+      "constraint": {
+        "kind": "check",
+        "name": "user_storefront_layout_closed",
+        "expression": {
+          "op": "in",
+          "column": "storefront_layout",
+          "values": [
+            {
+              "kind": "string",
+              "value": "boxed"
+            },
+            {
+              "kind": "string",
+              "value": "table"
+            }
+          ]
+        },
+        "notValid": false
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "user"
+      },
+      "constraint": {
+        "kind": "check",
+        "name": "user_storefront_default_currency_code_bounds",
+        "expression": {
+          "op": "and",
+          "items": [
+            {
+              "op": "gte",
+              "left": {
+                "kind": "column",
+                "name": "storefront_default_currency_code"
+              },
+              "right": {
+                "kind": "literal",
+                "literal": {
+                  "kind": "string",
+                  "value": "AAA"
+                }
+              }
+            },
+            {
+              "op": "lte",
+              "left": {
+                "kind": "column",
+                "name": "storefront_default_currency_code"
+              },
+              "right": {
+                "kind": "literal",
+                "literal": {
+                  "kind": "string",
+                  "value": "ZZZ"
+                }
+              }
+            }
+          ]
+        },
+        "notValid": false
+      }
+    }
+  ]
+}

@@ -71,4 +71,43 @@ describe("owner storefront route", () => {
     const failed = await POST(request({ storefrontSlug: "Invalid" }));
     expect(failed.headers.get("location")).toBe("/?storefront=failed");
   });
+
+  it("forwards extended fields only when the form carries them", async () => {
+    requireOwnerFromCookie.mockResolvedValue(owner);
+    ownerProtectedMutationResponse.mockReturnValue(null);
+    update.mockResolvedValue({});
+
+    const extended = await POST(request({
+      storefrontSlug: "my-store",
+      storefrontThemeId: "vault-blue",
+      storefrontLayout: "table",
+      storefrontLogoMediaIdentifier: "l".repeat(43),
+      storefrontStandalonePaymentsEnabled: "false",
+      storefrontDefaultCurrencyCode: "USD",
+    }));
+    expect(update).toHaveBeenLastCalledWith(owner, {
+      storefrontSlug: "my-store",
+      storefrontDisplayNamePtBr: null,
+      storefrontDisplayNameEn: null,
+      storefrontAccentColor: null,
+      storefrontEnabled: null,
+      storefrontThemeId: "vault-blue",
+      storefrontLayout: "table",
+      storefrontLogoMediaIdentifier: "l".repeat(43),
+      storefrontStandalonePaymentsEnabled: "false",
+      storefrontDefaultCurrencyCode: "USD",
+    });
+    expect(extended.headers.get("location")).toBe("/?storefront=changed");
+
+    const clearLogo = await POST(request({ storefrontSlug: "my-store", storefrontLogoMediaIdentifier: "" }));
+    expect(update).toHaveBeenLastCalledWith(owner, {
+      storefrontSlug: "my-store",
+      storefrontDisplayNamePtBr: null,
+      storefrontDisplayNameEn: null,
+      storefrontAccentColor: null,
+      storefrontEnabled: null,
+      storefrontLogoMediaIdentifier: "",
+    });
+    expect(clearLogo.headers.get("location")).toBe("/?storefront=changed");
+  });
 });

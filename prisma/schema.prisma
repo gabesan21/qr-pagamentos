@@ -32,6 +32,11 @@ model User {
   storefrontDisplayNameEn String?      @map("storefront_display_name_en") @db.VarChar(160)
   storefrontAccentColor String?        @map("storefront_accent_color") @db.VarChar(7)
   storefrontEnabled Boolean            @default(false) @map("storefront_enabled")
+  storefrontThemeId String?             @map("storefront_theme_id") @db.VarChar(24)
+  storefrontLayout  String?             @map("storefront_layout") @db.VarChar(8)
+  storefrontLogoMediaIdentifier String? @map("storefront_logo_media_identifier") @db.VarChar(43)
+  storefrontStandalonePaymentsEnabled Boolean @default(true) @map("storefront_standalone_payments_enabled")
+  storefrontDefaultCurrencyCode String? @map("storefront_default_currency_code") @db.VarChar(3)
   createdAt       DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt       DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
   credential       PasswordCredential?

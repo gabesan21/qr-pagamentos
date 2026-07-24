@@ -4,7 +4,7 @@
 - **Epoch/Phase:** [[roadmap/3-catalog-and-payment-links|Epoch 3]]
 - **Status:** aprovada
 - **Created:** 2026-07-20
-- **Updated:** 2026-07-24 — task 7.1.1 adds the dynamic administrator-registered supported-exchange-currency registry with single-active ISO-code mappings.
+- **Updated:** 2026-07-24 — task 7.1.2 makes the store default currency the registry's first gated consumer.
 
 ## What it covers
 
@@ -35,7 +35,7 @@ This spec defines the administrator-managed catalog of Nautt provider UUIDs, acc
 - Re-registering a `(currency_uuid, exchange_currency_uuid)` pair already present never inserts a second row: a new-mapping request receives one typed duplicate-pair conflict, while replace re-points the pointer to the retained row — the sanctioned restore path after a mistaken deactivation. The pair uniqueness constraint is preserved unchanged.
 - Deactivation removes only new-selection eligibility: existing links, order snapshots, and read projections keep their recorded UUID meaning.
 - The deterministic default is the active `BRL` mapping when one exists, otherwise an explicit no-default/unavailable result; the resolver never falls back to another code, insertion order, label order, or an inactive row.
-- Missing configuration is a normal operational state: dependent features (store default in 7.1.2, product currency in 7.2.2) require an active mapping only at new-assignment time and consume the shared resolver's discriminated available/unavailable read or its typed `NoActiveExchangeCurrencyMapping` error.
+- Missing configuration is a normal operational state: dependent features (store default in 7.1.2, product currency in 7.2.2) require an active mapping only at new-assignment time and consume the shared resolver's discriminated available/unavailable read or its typed `NoActiveExchangeCurrencyMapping` error. Task 7.1.2's store default currency is the first consumer: assignment gates on an active mapping and fails the save opaquely otherwise, while a stored code keeps reading as-is after a later deactivation.
 - Only an active administrator mutates mappings through the re-authorized `POST /admin/exchange-currencies` route (origin-guard first, empty `401`/`403`, opaque outcomes); active owners read only active redacted `{ code, label }` choices — no provider UUIDs, inactive rows, or timestamps — and no public/sessionless discovery surface exists. The administrator management UI belongs to Epoch 10; this slice ships only the mutation route and the service.
 
 ### Products

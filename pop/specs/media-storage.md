@@ -5,7 +5,7 @@
 - **Status:** aprovada
 - **Implementation:** implemented
 - **Created:** 2026-07-23
-- **Updated:** 2026-07-24 — task 6.3.3 delivered and exercised the persistent volume and paired operational lifecycle.
+- **Updated:** 2026-07-24 — task 7.1.2 admits the identifier-based owner-fenced attachment operations used by the storefront logo.
 
 ## What it covers
 
@@ -25,6 +25,7 @@ This spec defines the single hardened server boundary for merchant-owned storefr
 - Every lifecycle claim matches the exact owner, purpose, state, and observed revision and atomically increments the revision. Revisions never reset, including orphan/reactivation cycles, so stale ABA claims lose.
 - A committed `WRITING` reservation precedes file creation. Durable publication precedes `WRITING → STAGED`. Same-owner/purpose claims activate or orphan, and orphaning establishes a 24-hour grace deadline.
 - Cleanup may claim eligible stale `WRITING`, due `ORPHANED`, or retryable `DELETING` records only through the same revision fence. A row remains `DELETING` and counted after any failed durable removal; deletion occurs only after both controlled paths are absent and both directories are synced.
+- Server-side attachment flows that know only the opaque public identifier use the owner-fenced, purpose-bound `activateOwned` (`STAGED | ORPHANED → ACTIVE`) and `orphanOwned` (`STAGED | ACTIVE → ORPHANED`, grace set) operations; they resolve the identifier internally and claim through the same revision-fenced transition, so a concurrent lifecycle change fails closed as unavailable. The sanctioned attachment pattern is activate the new object, save the referencing row, then orphan the previous object, with a best-effort compensating orphan of the just-activated object on save failure — the worst case is a quota-counted unreferenced `ACTIVE` object, never a broken reference.
 
 ## Quota and reconciliation
 

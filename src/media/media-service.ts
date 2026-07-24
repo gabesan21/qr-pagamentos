@@ -89,6 +89,27 @@ export function createMediaService(
     return changed;
   }
 
+  // Attachment flows (e.g. storefront settings) know only the opaque public
+  // identifier; revision fencing stays inside this boundary by re-reading the
+  // record and claiming its current revision through the same fenced transition.
+  async function lifecycleByIdentifier(
+    actor: Principal,
+    identifier: unknown,
+    purpose: unknown,
+    from: readonly MediaState[],
+    to: MediaState,
+    purgeAfter: Date | null,
+  ): Promise<MediaRecord> {
+    const ownerId = requireOwner(actor);
+    const acceptedPurpose = requirePurpose(purpose);
+    if (typeof identifier !== "string" || !MEDIA_IDENTIFIER_PATTERN.test(identifier)) {
+      throw new MediaUnavailableError("Media is unavailable");
+    }
+    const record = await store.findByIdentifier(identifier);
+    if (!record || record.ownerId !== ownerId) throw new MediaUnavailableError("Media is unavailable");
+    return lifecycle(actor, record.id, acceptedPurpose, record.lifecycleRevision, from, to, purgeAfter);
+  }
+
   return {
     async create(actor: Principal, purpose: unknown, input: Uint8Array): Promise<MediaRecord> {
       const ownerId = requireOwner(actor);
@@ -135,6 +156,19 @@ export function createMediaService(
         id,
         purpose,
         revision,
+        ["STAGED", "ACTIVE"],
+        "ORPHANED",
+        new Date(now().getTime() + MEDIA_GRACE_MS),
+      );
+    },
+    activateOwned(actor: Principal, identifier: unknown, purpose: unknown) {
+      return lifecycleByIdentifier(actor, identifier, purpose, ["STAGED", "ORPHANED"], "ACTIVE", null);
+    },
+    orphanOwned(actor: Principal, identifier: unknown, purpose: unknown) {
+      return lifecycleByIdentifier(
+        actor,
+        identifier,
+        purpose,
         ["STAGED", "ACTIVE"],
         "ORPHANED",
         new Date(now().getTime() + MEDIA_GRACE_MS),

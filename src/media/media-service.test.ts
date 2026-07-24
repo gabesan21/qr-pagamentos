@@ -9,6 +9,7 @@ import type { PrismaClient } from "../generated/prisma/client";
 import { createMediaService, MediaUnavailableError } from "./media-service";
 import { createPrismaMediaStore, MediaAdmissionError, mediaQuotaAllows, type MediaStore } from "./media-store";
 import type { MediaRecord } from "./types";
+import { MEDIA_GRACE_MS } from "./types";
 
 const owner = {
   id: "11111111-1111-4111-8111-111111111111",
@@ -93,7 +94,7 @@ function harness(seed: MediaRecord[] = [media()]) {
     remove: vi.fn(),
     inventory: vi.fn(async (): Promise<{ untracked: string[]; missing: string[] }> => ({ untracked: [], missing: [] })),
   };
-  return { service: createMediaService(store, storage, () => now), records, storage };
+  return { service: createMediaService(store, storage, () => now), store, records, storage };
 }
 
 describe("media service", () => {
@@ -203,5 +204,39 @@ describe("media service", () => {
       return true;
     });
     expect(events).toEqual(["owner-lock", "rows", "inventory", "create"]);
+  });
+
+  it("activates and orphans by identifier only for the matching owner and purpose", async () => {
+    const { service } = harness([media({ purpose: "STOREFRONT_LOGO" })]);
+    const identifier = media().identifier;
+    await expect(service.activateOwned(otherOwner, identifier, "STOREFRONT_LOGO")).rejects.toBeInstanceOf(MediaUnavailableError);
+    await expect(service.activateOwned(owner, identifier, "PRODUCT_IMAGE")).rejects.toBeInstanceOf(MediaUnavailableError);
+    await expect(service.activateOwned(owner, "not-an-identifier", "STOREFRONT_LOGO")).rejects.toBeInstanceOf(MediaUnavailableError);
+    await expect(service.activateOwned(owner, "z".repeat(43), "STOREFRONT_LOGO")).rejects.toBeInstanceOf(MediaUnavailableError);
+
+    const active = await service.activateOwned(owner, identifier, "STOREFRONT_LOGO");
+    expect(active.state).toBe("ACTIVE");
+    await expect(service.activateOwned(owner, identifier, "STOREFRONT_LOGO")).rejects.toBeInstanceOf(MediaUnavailableError);
+    expect(await service.readPublic(identifier)).not.toBeNull();
+
+    const orphaned = await service.orphanOwned(owner, identifier, "STOREFRONT_LOGO");
+    expect(orphaned.state).toBe("ORPHANED");
+    expect(orphaned.purgeAfter).toEqual(new Date(now.getTime() + MEDIA_GRACE_MS));
+    expect(await service.readPublic(identifier)).toBeNull();
+
+    const reactivated = await service.activateOwned(owner, identifier, "STOREFRONT_LOGO");
+    expect(reactivated.state).toBe("ACTIVE");
+    expect(reactivated.lifecycleRevision).toBe(BigInt(3));
+  });
+
+  it("fences identifier-based transitions against concurrent revision drift", async () => {
+    const seeded = media({ purpose: "STOREFRONT_LOGO" });
+    const { store, records, storage } = harness([seeded]);
+    // The identifier lookup observes revision 0, then a concurrent claim advances it.
+    const staleStore: MediaStore = { ...store, findByIdentifier: async () => seeded };
+    const drifted = createMediaService(staleStore, storage, () => now);
+    records.set(seeded.id, { ...seeded, lifecycleRevision: BigInt(1) });
+    await expect(drifted.activateOwned(owner, seeded.identifier, "STOREFRONT_LOGO")).rejects.toBeInstanceOf(MediaUnavailableError);
+    expect(records.get(seeded.id)?.state).toBe("STAGED");
   });
 });

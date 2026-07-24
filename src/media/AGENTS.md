@@ -13,6 +13,7 @@
 - Never accept a caller path. `MEDIA_STORAGE_ROOT` must be a canonical existing local-POSIX root whose controlled directories pass the no-follow, same-device, hard-link, and sync probe.
 - Publication and reads must authenticate the already-opened `O_NOFOLLOW` regular-file descriptor with bounded EOF length and SHA-256 before state publication or response commitment.
 - Every create, activate, orphan, delete, and read recheck is owner/purpose/state/revision fenced; never reset or replace the monotonic revision.
+- `activateOwned`/`orphanOwned` are the only identifier-based lifecycle entries: they serve server-side attachment flows (e.g. storefront settings) that hold only the opaque public identifier, resolve the record internally, and claim through the same fenced transition; never expose the internal id, revision, or storage key to callers, and never add purpose-less or cross-owner variants.
 - Count every metadata row and retained byte in every state until both controlled paths are durably absent and the fenced row is deleted.
 - Any untracked file, missing tracked file, incomplete scan, or failed reclaim blocks admission; reconciliation must remain idempotent and preserve non-eligible or stale-claim objects.
 - Public reads require `ACTIVE`; only the matching active `USER` may read `STAGED` or a not-yet-due `ORPHANED` object. `ADMIN` has no media-owner capability.
