@@ -880,7 +880,7 @@ NAUTT_WEBHOOK_CALLBACK_URL=https://payments.example.com/api/nautt/webhooks
         assert(evidenceAfter.length === 1, `${injection} did not retain one evidence file`);
         const evidenceFile = path.join(evidenceDirectory, evidenceAfter[0]);
         const evidenceText = await readFile(evidenceFile, "utf8");
-        assert(evidenceText.includes(expectedResult), `${injection} sealed result missing`);
+        assert(evidenceText.includes(expectedResult), `${injection} sealed result missing\n${evidenceText}`);
         assert(((await stat(evidenceFile)).mode & 0o777) === 0o400, `${injection} evidence mode changed`);
         const currentApp = containerId("app");
         if (sameContainer) assert(currentApp === previousApp, `${injection} replaced the pre-promotion app`);
