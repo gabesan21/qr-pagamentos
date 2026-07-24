@@ -35,7 +35,7 @@ assert(runtimeClient.includes("process.env.DATABASE_URL") && !runtimeClient.incl
 const gitignore = await readFile(".gitignore", "utf8");
 assert(gitignore.split("\n").includes("src/generated/prisma/"), "Generated Prisma output is not ignored");
 const schema = await readFile("prisma/schema.prisma", "utf8");
-for (const model of ["DatabaseFoundationFixture", "User", "PasswordCredential", "NauttCredential", "DeploymentBootstrap", "Session", "GlobalPaymentSettings", "ProviderQuote", "ProviderOrder", "WebhookDelivery", "WebhookDeliveryAttempt", "WebhookRecoveryLease", "CatalogCurrencyPair", "CatalogPaymentMethod", "Product", "PaymentLink", "PaymentLinkOrder", "CheckoutAttempt", "PaymentLinkSingleUseSettlement"]) {
+for (const model of ["DatabaseFoundationFixture", "User", "PasswordCredential", "NauttCredential", "DeploymentBootstrap", "Session", "GlobalPaymentSettings", "ProviderQuote", "ProviderOrder", "WebhookDelivery", "WebhookDeliveryAttempt", "WebhookRecoveryLease", "CatalogCurrencyPair", "CatalogPaymentMethod", "Product", "PaymentLink", "PaymentLinkOrder", "CheckoutAttempt", "PaymentLinkSingleUseSettlement", "MediaObject"]) {
   assert(schema.includes(`model ${model}`), `Schema is missing ${model}`);
 }
 assert(schema.includes('output   = "../src/generated/prisma"'), "Generated output changed");
@@ -174,6 +174,15 @@ for (const field of ["storefrontSlug", "storefrontDisplayNamePtBr", "storefrontD
   assert(schema.includes(field), `Schema is missing storefront field ${field}`);
 }
 assert(!/GRANT\s+(?:TRUNCATE|REFERENCES|TRIGGER|INSERT|DELETE)|ALTER\s+(?:TABLE|SCHEMA).*OWNER/i.test(storefrontMigration), "Storefront settings migration grants excess privileges or changes ownership");
+
+const mediaMigration = await readFile("prisma/migrations/20260723233000_media_objects/migration.sql", "utf8");
+for (const contract of ["media_object_pkey", "media_object_identifier_key", "media_object_storage_key_key", "media_object_owner_fkey", "media_object_purpose_closed", "media_object_state_closed", "media_object_revision_nonnegative", "media_object_canonical_limits", "media_object_purge_consistent", "media_object_owner_purpose_state_idx", "media_object_state_purge_after_idx", "GRANT SELECT, INSERT, UPDATE, DELETE"]) {
+  assert(mediaMigration.includes(contract), `Media migration lost ${contract}`);
+}
+for (const field of ["identifier", "storageKey", "ownerId", "purpose", "state", "lifecycleRevision", "mimeType", "byteSize", "sha256", "purgeAfter"]) {
+  assert(schema.includes(field), `Schema is missing media field ${field}`);
+}
+assert(!/GRANT\s+(?:TRUNCATE|REFERENCES|TRIGGER)|ALTER\s+(?:TABLE|SCHEMA).*\sOWNER\s+TO/i.test(mediaMigration), "Media migration grants excess privileges or changes ownership");
 
 const bootstrap = await readFile("prisma/bootstrap.sql", "utf8");
 assert(bootstrap.includes("GRANT CONNECT ON DATABASE qr_pagamentos TO qr_migrator, qr_runtime"), "Both roles require explicit CONNECT");

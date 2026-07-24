@@ -42,9 +42,34 @@ model User {
   paymentLinkOrders PaymentLinkOrder[]
   checkoutAttempts CheckoutAttempt[]
   webhookDeliveries WebhookDelivery[]
+  mediaObjects       MediaObject[]
   sessions          Session[]
 
   @@map("user")
+  @@schema("app")
+}
+
+model MediaObject {
+  id                String    @id @db.Uuid
+  identifier        String    @unique(map: "media_object_identifier_key") @db.VarChar(43)
+  storageKey        String    @unique(map: "media_object_storage_key_key") @map("storage_key") @db.VarChar(43)
+  ownerId           String    @map("owner_id") @db.Uuid
+  purpose           String    @db.VarChar(15)
+  state             String    @db.VarChar(9)
+  lifecycleRevision BigInt    @map("lifecycle_revision") @db.BigInt
+  mimeType          String    @map("mime_type") @db.VarChar(10)
+  byteSize          BigInt    @map("byte_size") @db.BigInt
+  width             Int       @db.Integer
+  height            Int       @db.Integer
+  sha256            String    @db.VarChar(64)
+  purgeAfter        DateTime? @map("purge_after") @db.Timestamptz(3)
+  createdAt         DateTime  @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime  @map("updated_at") @db.Timestamptz(3)
+  owner             User      @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+
+  @@index([ownerId, purpose, state], map: "media_object_owner_purpose_state_idx")
+  @@index([state, purgeAfter], map: "media_object_state_purge_after_idx")
+  @@map("media_object")
   @@schema("app")
 }
 

@@ -1,0 +1,509 @@
+{
+  "version": 1,
+  "id": "20260723233000_media_objects",
+  "operations": [
+    {
+      "op": "createTable",
+      "table": {
+        "schema": "app",
+        "name": "media_object"
+      },
+      "columns": [
+        {
+          "name": "id",
+          "type": {
+            "name": "uuid"
+          },
+          "nullable": false
+        },
+        {
+          "name": "identifier",
+          "type": {
+            "name": "varchar",
+            "length": 43
+          },
+          "nullable": false
+        },
+        {
+          "name": "storage_key",
+          "type": {
+            "name": "varchar",
+            "length": 43
+          },
+          "nullable": false
+        },
+        {
+          "name": "owner_id",
+          "type": {
+            "name": "uuid"
+          },
+          "nullable": false
+        },
+        {
+          "name": "purpose",
+          "type": {
+            "name": "varchar",
+            "length": 15
+          },
+          "nullable": false
+        },
+        {
+          "name": "state",
+          "type": {
+            "name": "varchar",
+            "length": 9
+          },
+          "nullable": false
+        },
+        {
+          "name": "lifecycle_revision",
+          "type": {
+            "name": "bigint"
+          },
+          "nullable": false
+        },
+        {
+          "name": "mime_type",
+          "type": {
+            "name": "varchar",
+            "length": 10
+          },
+          "nullable": false
+        },
+        {
+          "name": "byte_size",
+          "type": {
+            "name": "bigint"
+          },
+          "nullable": false
+        },
+        {
+          "name": "width",
+          "type": {
+            "name": "integer"
+          },
+          "nullable": false
+        },
+        {
+          "name": "height",
+          "type": {
+            "name": "integer"
+          },
+          "nullable": false
+        },
+        {
+          "name": "sha256",
+          "type": {
+            "name": "varchar",
+            "length": 64
+          },
+          "nullable": false
+        },
+        {
+          "name": "purge_after",
+          "type": {
+            "name": "timestamptz"
+          },
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "type": {
+            "name": "timestamptz"
+          },
+          "nullable": false
+        },
+        {
+          "name": "updated_at",
+          "type": {
+            "name": "timestamptz"
+          },
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "media_object"
+      },
+      "constraint": {
+        "kind": "primaryKey",
+        "name": "media_object_pkey",
+        "columns": [
+          "id"
+        ]
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "media_object"
+      },
+      "constraint": {
+        "kind": "unique",
+        "name": "media_object_identifier_key",
+        "columns": [
+          "identifier"
+        ]
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "media_object"
+      },
+      "constraint": {
+        "kind": "unique",
+        "name": "media_object_storage_key_key",
+        "columns": [
+          "storage_key"
+        ]
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "media_object"
+      },
+      "constraint": {
+        "kind": "foreignKey",
+        "name": "media_object_owner_fkey",
+        "columns": [
+          "owner_id"
+        ],
+        "references": {
+          "table": {
+            "schema": "app",
+            "name": "user"
+          },
+          "columns": [
+            "id"
+          ]
+        },
+        "onDelete": "RESTRICT",
+        "onUpdate": "CASCADE",
+        "notValid": false
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "media_object"
+      },
+      "constraint": {
+        "kind": "check",
+        "name": "media_object_purpose_closed",
+        "expression": {
+          "op": "in",
+          "column": "purpose",
+          "values": [
+            {
+              "kind": "string",
+              "value": "STOREFRONT_LOGO"
+            },
+            {
+              "kind": "string",
+              "value": "PRODUCT_IMAGE"
+            }
+          ]
+        },
+        "notValid": false
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "media_object"
+      },
+      "constraint": {
+        "kind": "check",
+        "name": "media_object_state_closed",
+        "expression": {
+          "op": "in",
+          "column": "state",
+          "values": [
+            {
+              "kind": "string",
+              "value": "WRITING"
+            },
+            {
+              "kind": "string",
+              "value": "STAGED"
+            },
+            {
+              "kind": "string",
+              "value": "ACTIVE"
+            },
+            {
+              "kind": "string",
+              "value": "ORPHANED"
+            },
+            {
+              "kind": "string",
+              "value": "DELETING"
+            }
+          ]
+        },
+        "notValid": false
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "media_object"
+      },
+      "constraint": {
+        "kind": "check",
+        "name": "media_object_revision_nonnegative",
+        "expression": {
+          "op": "gte",
+          "left": {
+            "kind": "column",
+            "name": "lifecycle_revision"
+          },
+          "right": {
+            "kind": "literal",
+            "literal": {
+              "kind": "integer",
+              "value": 0
+            }
+          }
+        },
+        "notValid": false
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "media_object"
+      },
+      "constraint": {
+        "kind": "check",
+        "name": "media_object_canonical_limits",
+        "expression": {
+          "op": "and",
+          "items": [
+            {
+              "op": "eq",
+              "left": {
+                "kind": "column",
+                "name": "mime_type"
+              },
+              "right": {
+                "kind": "literal",
+                "literal": {
+                  "kind": "string",
+                  "value": "image/webp"
+                }
+              }
+            },
+            {
+              "op": "gt",
+              "left": {
+                "kind": "column",
+                "name": "byte_size"
+              },
+              "right": {
+                "kind": "literal",
+                "literal": {
+                  "kind": "integer",
+                  "value": 0
+                }
+              }
+            },
+            {
+              "op": "lte",
+              "left": {
+                "kind": "column",
+                "name": "byte_size"
+              },
+              "right": {
+                "kind": "literal",
+                "literal": {
+                  "kind": "integer",
+                  "value": 5242880
+                }
+              }
+            },
+            {
+              "op": "gt",
+              "left": {
+                "kind": "column",
+                "name": "width"
+              },
+              "right": {
+                "kind": "literal",
+                "literal": {
+                  "kind": "integer",
+                  "value": 0
+                }
+              }
+            },
+            {
+              "op": "lte",
+              "left": {
+                "kind": "column",
+                "name": "width"
+              },
+              "right": {
+                "kind": "literal",
+                "literal": {
+                  "kind": "integer",
+                  "value": 4096
+                }
+              }
+            },
+            {
+              "op": "gt",
+              "left": {
+                "kind": "column",
+                "name": "height"
+              },
+              "right": {
+                "kind": "literal",
+                "literal": {
+                  "kind": "integer",
+                  "value": 0
+                }
+              }
+            },
+            {
+              "op": "lte",
+              "left": {
+                "kind": "column",
+                "name": "height"
+              },
+              "right": {
+                "kind": "literal",
+                "literal": {
+                  "kind": "integer",
+                  "value": 4096
+                }
+              }
+            }
+          ]
+        },
+        "notValid": false
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "media_object"
+      },
+      "constraint": {
+        "kind": "check",
+        "name": "media_object_purge_consistent",
+        "expression": {
+          "op": "or",
+          "items": [
+            {
+              "op": "and",
+              "items": [
+                {
+                  "op": "in",
+                  "column": "state",
+                  "values": [
+                    {
+                      "kind": "string",
+                      "value": "ORPHANED"
+                    },
+                    {
+                      "kind": "string",
+                      "value": "DELETING"
+                    }
+                  ]
+                },
+                {
+                  "op": "isNull",
+                  "column": "purge_after",
+                  "is": false
+                }
+              ]
+            },
+            {
+              "op": "and",
+              "items": [
+                {
+                  "op": "not",
+                  "item": {
+                    "op": "in",
+                    "column": "state",
+                    "values": [
+                      {
+                        "kind": "string",
+                        "value": "ORPHANED"
+                      },
+                      {
+                        "kind": "string",
+                        "value": "DELETING"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "op": "isNull",
+                  "column": "purge_after",
+                  "is": true
+                }
+              ]
+            }
+          ]
+        },
+        "notValid": false
+      }
+    },
+    {
+      "op": "createIndex",
+      "name": "media_object_owner_purpose_state_idx",
+      "table": {
+        "schema": "app",
+        "name": "media_object"
+      },
+      "columns": [
+        "owner_id",
+        "purpose",
+        "state"
+      ],
+      "unique": false
+    },
+    {
+      "op": "createIndex",
+      "name": "media_object_state_purge_after_idx",
+      "table": {
+        "schema": "app",
+        "name": "media_object"
+      },
+      "columns": [
+        "state",
+        "purge_after"
+      ],
+      "unique": false
+    },
+    {
+      "op": "grant",
+      "object": {
+        "kind": "table",
+        "schema": "app",
+        "name": "media_object"
+      },
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "role": "qr_runtime"
+    }
+  ]
+}
