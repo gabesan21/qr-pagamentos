@@ -14,9 +14,9 @@ checkout, storefront, or payment-provider surfaces.
 
 ## Requirements
 
-- The system keeps one named direction, `PIX ledger`: a restrained operational
-  payment ledger with ruled hierarchy, factual status presentation, one teal
-  action accent, graphite neutrals, and explicit feedback colors.
+- The system keeps one named direction, `PIX settlement desk`: a role-neutral
+  operational workspace grounded in PIX receipts, QR alignment, cashier
+  terminals, ruled hierarchy, factual status, and explicit feedback.
 - The implementation initializes shadcn through its official registry with a
   pinned CLI, configuration, direct dependencies, and lockfile. Added
   components are owned source under one shared component subtree.
@@ -28,7 +28,10 @@ checkout, storefront, or payment-provider surfaces.
 - Reference values live only in the designated token source. Semantic tokens
   cover surfaces, text, borders, actions, feedback, focus, spacing, typography,
   radius, shadow, motion, and layer roles; components never select raw colors.
-- Light and dark mappings preserve role hierarchy and pass WCAG 2.2 AA contrast:
+- Exactly six stable mappings (`pix-paper`, `cashier-daylight`,
+  `settlement-sand`, `midnight-clearing`, `vault-blue`, `terminal-amber`) use
+  identical semantic paths, three light and three dark. Light and dark mappings
+  preserve role hierarchy and pass WCAG 2.2 AA contrast:
   4.5:1 for normal text, 3:1 for large text and essential non-text boundaries.
 - Typography uses a pinned, self-hosted IBM Plex Sans variable package. Builds
   and rendered pages require no remote font request, and numeric facts use
@@ -43,8 +46,8 @@ checkout, storefront, or payment-provider surfaces.
   the same shared sources as production surfaces. It introduces no alternate
   locale route or page-local component variants.
 - The specimen has no horizontal overflow at 320 CSS pixels and has browser
-  evidence at widths 320, 375, 768, and 1440 in both light and dark modes.
-- Every evidence run creates a new run identifier and binds the eight fresh PNG
+  evidence at widths 320, 375, 768, and 1440 in all six themes.
+- Every evidence run creates a new run identifier and binds the 24 fresh PNG
   hashes, browser assertion results, and visual review to that identifier; stale
   captures or a review of another manifest fail validation.
 - Browser assertions verify at every width/theme that applicable interaction
@@ -68,16 +71,19 @@ checkout, storefront, or payment-provider surfaces.
   [[1.4.3-redesign-login-experience]].
 - Catalog, payment links, checkout, storefront, provider orders, and marketing
   presentation are outside Epoch 1.
-- Manual theme selection, new locales, remote fonts, decorative motion, charts,
-  and speculative components are excluded.
+- Theme-selection persistence, new locales, remote fonts, decorative motion,
+  charts, and speculative components are excluded.
 
 ## Details
 
-The color strategy is restrained: neutral surfaces carry the interface and the
-teal PIX accent is reserved for primary action, selection, and focus. Feedback
-roles retain independent success, warning, and danger semantics and never rely
-on color alone. Tokens follow reference, semantic, and component-consumption
-layers in CSS; DTCG JSON export is not required for this web-only slice.
+The color strategy is restrained: neutral surfaces carry the interface and
+each personality reserves one controlled accent for primary action, selection,
+and focus. Feedback roles retain independent success, warning, and danger
+semantics and never rely on color alone. DTCG-shaped source tokens resolve
+through one deterministic CSS projection; valid explicit identifiers win,
+absent light/dark selection maps to `pix-paper`/`midnight-clearing`, legacy
+aliases map to those defaults, and unknown identifiers fall back to
+`pix-paper`.
 
 Design-taste guidance is used only as a redesign audit and final anti-slop
 preflight because its dashboard implementation guidance is explicitly out of
@@ -85,6 +91,11 @@ scope. The product register governs implementation: familiarity, density, and
 consistent state behavior outrank marketing-page novelty.
 
 ## Implemented slice
+
+- [[6.2.1-create-six-theme-design-system]] (2026-07-23) — evolved the shared
+  foundation into the six stable PIX settlement desk personalities, with one
+  DTCG-shaped token graph, deterministic CSS projection, contrast/gamut/motion
+  gates, safe fallback resolution, and 24-capture specimen evidence.
 
 - [[1.4.2-rebuild-design-system-with-shadcn]] (2026-07-16) — initialized the
   pinned official shadcn `nova` preset with Radix base, local IBM Plex Sans,

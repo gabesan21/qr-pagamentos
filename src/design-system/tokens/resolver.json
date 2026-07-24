@@ -1,0 +1,21 @@
+{
+  "name": "qr-pagamentos",
+  "version": "2026.07",
+  "sets": {
+    "shared": { "sources": [{ "$ref": "themes.tokens.json#/motion" }] }
+  },
+  "modifiers": {
+    "theme": {
+      "default": "pix-paper",
+      "contexts": {
+        "pix-paper": [{ "$ref": "themes.tokens.json#/themes/pix-paper" }],
+        "cashier-daylight": [{ "$ref": "themes.tokens.json#/themes/cashier-daylight" }],
+        "settlement-sand": [{ "$ref": "themes.tokens.json#/themes/settlement-sand" }],
+        "midnight-clearing": [{ "$ref": "themes.tokens.json#/themes/midnight-clearing" }],
+        "vault-blue": [{ "$ref": "themes.tokens.json#/themes/vault-blue" }],
+        "terminal-amber": [{ "$ref": "themes.tokens.json#/themes/terminal-amber" }]
+      }
+    }
+  },
+  "resolutionOrder": [{ "$ref": "#/sets/shared" }, { "$ref": "#/modifiers/theme" }]
+}

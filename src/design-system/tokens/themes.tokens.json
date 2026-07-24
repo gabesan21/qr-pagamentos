@@ -1,0 +1,147 @@
+{
+  "$schema": "https://www.designtokens.org/schemas/2025.10/format.json",
+  "$extensions": {
+    "com.qr-pagamentos.theme": {
+      "direction": "PIX settlement desk",
+      "defaultLight": "pix-paper",
+      "defaultDark": "midnight-clearing"
+    }
+  },
+  "themes": {
+    "pix-paper": {
+      "$extensions": { "com.qr-pagamentos.theme": { "mode": "light" } },
+      "color": {
+        "$type": "color",
+        "background": { "$value": { "colorSpace": "oklch", "components": [0.98, 0.006, 165], "hex": "#f7faf8" } },
+        "foreground": { "$value": { "colorSpace": "oklch", "components": [0.22, 0.025, 170], "hex": "#16211e" } },
+        "card": { "$value": { "colorSpace": "oklch", "components": [1, 0, 0], "hex": "#ffffff" } },
+        "muted": { "$value": { "colorSpace": "oklch", "components": [0.945, 0.01, 165], "hex": "#e7efec" } },
+        "muted-foreground": { "$value": { "colorSpace": "oklch", "components": [0.42, 0.025, 170], "hex": "#42504c" } },
+        "primary": { "$value": { "colorSpace": "oklch", "components": [0.43, 0.1, 168], "hex": "#006b5b" } },
+        "primary-hover": { "$value": { "colorSpace": "oklch", "components": [0.36, 0.09, 168], "hex": "#005448" } },
+        "primary-foreground": { "$value": { "colorSpace": "oklch", "components": [1, 0, 0], "hex": "#ffffff" } },
+        "border": { "$value": { "colorSpace": "oklch", "components": [0.62, 0.02, 165], "hex": "#778681" } },
+        "danger": { "$value": { "colorSpace": "oklch", "components": [0.45, 0.16, 28], "hex": "#a52a23" } },
+        "danger-foreground": { "$value": { "colorSpace": "oklch", "components": [1, 0, 0], "hex": "#ffffff" } },
+        "warning": { "$value": { "colorSpace": "oklch", "components": [0.82, 0.12, 85], "hex": "#f5c451" } },
+        "warning-foreground": { "$value": { "colorSpace": "oklch", "components": [0.25, 0.05, 75], "hex": "#2d2400" } },
+        "success": { "$value": { "colorSpace": "oklch", "components": [0.92, 0.04, 165], "hex": "#d8f3e8" } },
+        "success-foreground": { "$value": { "colorSpace": "oklch", "components": [0.3, 0.06, 165], "hex": "#123b2f" } }
+      }
+    },
+    "cashier-daylight": {
+      "$extensions": { "com.qr-pagamentos.theme": { "mode": "light" } },
+      "color": {
+        "$type": "color",
+        "background": { "$value": { "colorSpace": "oklch", "components": [0.98, 0.01, 240], "hex": "#f5f9fc" } },
+        "foreground": { "$value": { "colorSpace": "oklch", "components": [0.25, 0.05, 250], "hex": "#10253d" } },
+        "card": { "$value": { "colorSpace": "oklch", "components": [1, 0, 0], "hex": "#ffffff" } },
+        "muted": { "$value": { "colorSpace": "oklch", "components": [0.94, 0.025, 235], "hex": "#e3eef5" } },
+        "muted-foreground": { "$value": { "colorSpace": "oklch", "components": [0.42, 0.05, 245], "hex": "#40566d" } },
+        "primary": { "$value": { "colorSpace": "oklch", "components": [0.43, 0.1, 240], "hex": "#075b8c" } },
+        "primary-hover": { "$value": { "colorSpace": "oklch", "components": [0.36, 0.09, 240], "hex": "#06476d" } },
+        "primary-foreground": { "$value": { "colorSpace": "oklch", "components": [1, 0, 0], "hex": "#ffffff" } },
+        "border": { "$value": { "colorSpace": "oklch", "components": [0.62, 0.035, 235], "hex": "#718899" } },
+        "danger": { "$value": { "colorSpace": "oklch", "components": [0.45, 0.16, 28], "hex": "#a52a23" } },
+        "danger-foreground": { "$value": { "colorSpace": "oklch", "components": [1, 0, 0], "hex": "#ffffff" } },
+        "warning": { "$value": { "colorSpace": "oklch", "components": [0.82, 0.12, 85], "hex": "#f5c451" } },
+        "warning-foreground": { "$value": { "colorSpace": "oklch", "components": [0.25, 0.05, 75], "hex": "#2d2400" } },
+        "success": { "$value": { "colorSpace": "oklch", "components": [0.91, 0.04, 175], "hex": "#d4f1e8" } },
+        "success-foreground": { "$value": { "colorSpace": "oklch", "components": [0.3, 0.06, 175], "hex": "#103b31" } }
+      }
+    },
+    "settlement-sand": {
+      "$extensions": { "com.qr-pagamentos.theme": { "mode": "light" } },
+      "color": {
+        "$type": "color",
+        "background": { "$value": { "colorSpace": "oklch", "components": [0.97, 0.025, 80], "hex": "#fbf4e8" } },
+        "foreground": { "$value": { "colorSpace": "oklch", "components": [0.25, 0.04, 55], "hex": "#352619" } },
+        "card": { "$value": { "colorSpace": "oklch", "components": [0.99, 0.012, 80], "hex": "#fffaf1" } },
+        "muted": { "$value": { "colorSpace": "oklch", "components": [0.92, 0.035, 75], "hex": "#eee1cf" } },
+        "muted-foreground": { "$value": { "colorSpace": "oklch", "components": [0.4, 0.04, 55], "hex": "#665444" } },
+        "primary": { "$value": { "colorSpace": "oklch", "components": [0.43, 0.08, 160], "hex": "#286b50" } },
+        "primary-hover": { "$value": { "colorSpace": "oklch", "components": [0.36, 0.07, 160], "hex": "#20543f" } },
+        "primary-foreground": { "$value": { "colorSpace": "oklch", "components": [1, 0, 0], "hex": "#ffffff" } },
+        "border": { "$value": { "colorSpace": "oklch", "components": [0.6, 0.04, 65], "hex": "#8c7965" } },
+        "danger": { "$value": { "colorSpace": "oklch", "components": [0.45, 0.16, 28], "hex": "#a52a23" } },
+        "danger-foreground": { "$value": { "colorSpace": "oklch", "components": [1, 0, 0], "hex": "#ffffff" } },
+        "warning": { "$value": { "colorSpace": "oklch", "components": [0.8, 0.1, 75], "hex": "#eabf68" } },
+        "warning-foreground": { "$value": { "colorSpace": "oklch", "components": [0.25, 0.05, 65], "hex": "#322300" } },
+        "success": { "$value": { "colorSpace": "oklch", "components": [0.9, 0.035, 155], "hex": "#d9ede3" } },
+        "success-foreground": { "$value": { "colorSpace": "oklch", "components": [0.3, 0.06, 155], "hex": "#183c2f" } }
+      }
+    },
+    "midnight-clearing": {
+      "$extensions": { "com.qr-pagamentos.theme": { "mode": "dark" } },
+      "color": {
+        "$type": "color",
+        "background": { "$value": { "colorSpace": "oklch", "components": [0.16, 0.015, 170], "hex": "#111916" } },
+        "foreground": { "$value": { "colorSpace": "oklch", "components": [0.95, 0.01, 165], "hex": "#eef7f3" } },
+        "card": { "$value": { "colorSpace": "oklch", "components": [0.21, 0.018, 170], "hex": "#19231f" } },
+        "muted": { "$value": { "colorSpace": "oklch", "components": [0.27, 0.018, 170], "hex": "#26332f" } },
+        "muted-foreground": { "$value": { "colorSpace": "oklch", "components": [0.78, 0.018, 165], "hex": "#b6c8c1" } },
+        "primary": { "$value": { "colorSpace": "oklch", "components": [0.82, 0.11, 165], "hex": "#66d9b8" } },
+        "primary-hover": { "$value": { "colorSpace": "oklch", "components": [0.87, 0.09, 165], "hex": "#82e5c7" } },
+        "primary-foreground": { "$value": { "colorSpace": "oklch", "components": [0.16, 0.02, 170], "hex": "#10221d" } },
+        "border": { "$value": { "colorSpace": "oklch", "components": [0.52, 0.025, 165], "hex": "#667872" } },
+        "danger": { "$value": { "colorSpace": "oklch", "components": [0.78, 0.12, 28], "hex": "#ffb4ab" } },
+        "danger-foreground": { "$value": { "colorSpace": "oklch", "components": [0.2, 0.05, 28], "hex": "#3b0906" } },
+        "warning": { "$value": { "colorSpace": "oklch", "components": [0.83, 0.11, 85], "hex": "#f8cf7c" } },
+        "warning-foreground": { "$value": { "colorSpace": "oklch", "components": [0.2, 0.04, 75], "hex": "#261d00" } },
+        "success": { "$value": { "colorSpace": "oklch", "components": [0.3, 0.06, 165], "hex": "#173b31" } },
+        "success-foreground": { "$value": { "colorSpace": "oklch", "components": [0.9, 0.08, 165], "hex": "#b8f5dd" } }
+      }
+    },
+    "vault-blue": {
+      "$extensions": { "com.qr-pagamentos.theme": { "mode": "dark" } },
+      "color": {
+        "$type": "color",
+        "background": { "$value": { "colorSpace": "oklch", "components": [0.17, 0.035, 250], "hex": "#0d1726" } },
+        "foreground": { "$value": { "colorSpace": "oklch", "components": [0.94, 0.02, 235], "hex": "#e9f4fb" } },
+        "card": { "$value": { "colorSpace": "oklch", "components": [0.22, 0.04, 250], "hex": "#152338" } },
+        "muted": { "$value": { "colorSpace": "oklch", "components": [0.28, 0.04, 250], "hex": "#21324b" } },
+        "muted-foreground": { "$value": { "colorSpace": "oklch", "components": [0.77, 0.035, 235], "hex": "#afc5d5" } },
+        "primary": { "$value": { "colorSpace": "oklch", "components": [0.8, 0.1, 215], "hex": "#65cbe5" } },
+        "primary-hover": { "$value": { "colorSpace": "oklch", "components": [0.86, 0.08, 215], "hex": "#85d9ec" } },
+        "primary-foreground": { "$value": { "colorSpace": "oklch", "components": [0.17, 0.035, 250], "hex": "#0d1726" } },
+        "border": { "$value": { "colorSpace": "oklch", "components": [0.53, 0.04, 240], "hex": "#60778e" } },
+        "danger": { "$value": { "colorSpace": "oklch", "components": [0.78, 0.12, 28], "hex": "#ffb4ab" } },
+        "danger-foreground": { "$value": { "colorSpace": "oklch", "components": [0.2, 0.05, 28], "hex": "#3b0906" } },
+        "warning": { "$value": { "colorSpace": "oklch", "components": [0.83, 0.11, 85], "hex": "#f8cf7c" } },
+        "warning-foreground": { "$value": { "colorSpace": "oklch", "components": [0.2, 0.04, 75], "hex": "#261d00" } },
+        "success": { "$value": { "colorSpace": "oklch", "components": [0.3, 0.055, 190], "hex": "#173b3d" } },
+        "success-foreground": { "$value": { "colorSpace": "oklch", "components": [0.9, 0.07, 190], "hex": "#b8f1ed" } }
+      }
+    },
+    "terminal-amber": {
+      "$extensions": { "com.qr-pagamentos.theme": { "mode": "dark" } },
+      "color": {
+        "$type": "color",
+        "background": { "$value": { "colorSpace": "oklch", "components": [0.14, 0.015, 70], "hex": "#17140f" } },
+        "foreground": { "$value": { "colorSpace": "oklch", "components": [0.9, 0.06, 80], "hex": "#f0ddb0" } },
+        "card": { "$value": { "colorSpace": "oklch", "components": [0.2, 0.02, 70], "hex": "#242019" } },
+        "muted": { "$value": { "colorSpace": "oklch", "components": [0.26, 0.025, 70], "hex": "#332d23" } },
+        "muted-foreground": { "$value": { "colorSpace": "oklch", "components": [0.74, 0.045, 80], "hex": "#bdaa7c" } },
+        "primary": { "$value": { "colorSpace": "oklch", "components": [0.79, 0.1, 75], "hex": "#d8ad55" } },
+        "primary-hover": { "$value": { "colorSpace": "oklch", "components": [0.84, 0.08, 75], "hex": "#e5bf72" } },
+        "primary-foreground": { "$value": { "colorSpace": "oklch", "components": [0.15, 0.02, 70], "hex": "#1d170d" } },
+        "border": { "$value": { "colorSpace": "oklch", "components": [0.5, 0.045, 75], "hex": "#746446" } },
+        "danger": { "$value": { "colorSpace": "oklch", "components": [0.78, 0.12, 28], "hex": "#ffb4ab" } },
+        "danger-foreground": { "$value": { "colorSpace": "oklch", "components": [0.2, 0.05, 28], "hex": "#3b0906" } },
+        "warning": { "$value": { "colorSpace": "oklch", "components": [0.83, 0.11, 85], "hex": "#f8cf7c" } },
+        "warning-foreground": { "$value": { "colorSpace": "oklch", "components": [0.2, 0.04, 75], "hex": "#261d00" } },
+        "success": { "$value": { "colorSpace": "oklch", "components": [0.28, 0.05, 150], "hex": "#23372b" } },
+        "success-foreground": { "$value": { "colorSpace": "oklch", "components": [0.85, 0.07, 150], "hex": "#b9dfbf" } }
+      }
+    }
+  },
+  "motion": {
+    "full": {
+      "duration": { "$type": "duration", "$value": { "value": 180, "unit": "ms" } },
+      "easing": { "$type": "cubicBezier", "$value": [0.22, 1, 0.36, 1] }
+    },
+    "reduced": {
+      "duration": { "$type": "duration", "$value": { "value": 0, "unit": "ms" } }
+    }
+  }
+}

@@ -20,6 +20,15 @@ import { getLocalePreferenceService } from "@/i18n/locale-preference";
 import { defaultLocale } from "@/i18n/locales";
 import { NauttCredentialSurface } from "@/app/nautt-credential-surface";
 
+const themeInventory = [
+  ["pix-paper", "light"],
+  ["cashier-daylight", "light"],
+  ["settlement-sand", "light"],
+  ["midnight-clearing", "dark"],
+  ["vault-blue", "dark"],
+  ["terminal-amber", "dark"],
+] as const;
+
 export default async function DesignSystemPage() {
   const token = (await cookies()).get("qr_session")?.value;
   const principal = token ? await getAuthorizationService().resolve(token) : null;
@@ -30,9 +39,16 @@ export default async function DesignSystemPage() {
     <header className="receipt-rail">
       <span className="receipt-rail__label">QR Pagamentos / radix-nova</span>
       <h1>{dictionary.designSystemHeading}</h1>
-      <div className="receipt-rail__facts ds-facts"><span>IBM Plex Sans</span><span>{dictionary.designSystemRole}</span><span>{dictionary.designSystemState}</span></div>
+      <div className="receipt-rail__facts ds-facts"><span>PIX settlement desk</span><span>IBM Plex Sans</span><span>{dictionary.designSystemRole}</span></div>
     </header>
     <p className="admin-shell__intro" data-ds-prose>{dictionary.designSystemIntroduction}</p>
+
+    <section aria-labelledby="ds-themes-title" className="ds-section" data-ds-section="themes">
+      <div className="ds-section__heading"><h2 id="ds-themes-title">{dictionary.designSystemThemesHeading}</h2><p data-ds-prose>{dictionary.designSystemThemesDescription}</p></div>
+      <div className="ds-row">
+        {themeInventory.map(([name, mode]) => <Badge data-theme-id={name} key={name} variant="outline">{name} · {mode === "light" ? dictionary.designSystemLight : dictionary.designSystemDark}</Badge>)}
+      </div>
+    </section>
 
     <section aria-labelledby="ds-actions-title" className="ds-section" data-ds-section="actions">
       <div className="ds-section__heading"><h2 id="ds-actions-title">{dictionary.designSystemActions}</h2><p data-ds-prose>{dictionary.designSystemActionsDescription}</p></div>
