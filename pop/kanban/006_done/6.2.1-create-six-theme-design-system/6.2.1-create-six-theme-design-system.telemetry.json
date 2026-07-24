@@ -124,6 +124,17 @@
       "tests": "13 focused token tests, token projection check, evidence manifest verification, lint, scope, diff, and PoP validation pass; independent theme, motion, and conflict-sensitive resolution-order mutations affect resolved/generated output; 24 unchanged-output captures pass visual review; aggregate retains exact baseline/environment failures",
       "test_seconds": 31,
       "result": "approved"
+    },
+    {
+      "at": "2026-07-24T00:29:10-03:00",
+      "event": "transition",
+      "from": "005_verifying",
+      "to": "006_done",
+      "contexts": [
+        "verify3_6_2_1"
+      ],
+      "test_seconds": 0,
+      "result": "advanced"
     }
   ]
 }
