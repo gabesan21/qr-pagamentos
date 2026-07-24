@@ -23,6 +23,17 @@
       "tests": "card, integrated 6.2.1 memory/spec/DESIGN/DOX, PROJECT, current favicon/metadata/assets, page consumers, and evidence-manifest conventions inspected; plan artifact and JSON validation",
       "test_seconds": 0,
       "result": "planned"
+    },
+    {
+      "at": "2026-07-24T00:36:27-03:00",
+      "event": "transition",
+      "from": "002_planning",
+      "to": "004_processing",
+      "contexts": [
+        "plan_6_2_2"
+      ],
+      "test_seconds": 0,
+      "result": "advanced"
     }
   ]
 }
