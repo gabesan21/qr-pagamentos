@@ -47,6 +47,54 @@ function motionVariables(tokens) {
   ].join("\n");
 }
 
+// Custom-property aliases resolve where they are declared, so the semantic
+// alias layers (`:root` and the Tailwind `@theme inline` color map in
+// globals.css) stay frozen to the page theme. A scoped preview container must
+// re-declare the color aliases inside its own block to recolor owned
+// primitives and authored rules that consume them; keep this list
+// byte-identical to those two layers' color entries.
+export const SCOPED_PREVIEW_COLOR_ALIASES = [
+  "--surface-page: var(--background)",
+  "--surface-raised: var(--card)",
+  "--surface-subtle: var(--muted)",
+  "--text-primary: var(--foreground)",
+  "--text-secondary: var(--muted-foreground)",
+  "--text-on-action: var(--primary-foreground)",
+  "--border-subtle: var(--border)",
+  "--action-primary: var(--primary)",
+  "--action-secondary: var(--secondary)",
+  "--feedback-success: var(--success)",
+  "--feedback-warning: var(--warning)",
+  "--feedback-danger: var(--destructive)",
+  "--text-on-success: var(--success-foreground)",
+  "--text-on-warning: var(--warning-foreground)",
+  "--text-on-danger: var(--destructive-foreground)",
+  "--focus-color: var(--ring)",
+  "--color-background: var(--background)",
+  "--color-foreground: var(--foreground)",
+  "--color-card: var(--card)",
+  "--color-card-foreground: var(--card-foreground)",
+  "--color-popover: var(--popover)",
+  "--color-popover-foreground: var(--popover-foreground)",
+  "--color-primary: var(--primary)",
+  "--color-primary-foreground: var(--primary-foreground)",
+  "--color-secondary: var(--secondary)",
+  "--color-secondary-foreground: var(--secondary-foreground)",
+  "--color-muted: var(--muted)",
+  "--color-muted-foreground: var(--muted-foreground)",
+  "--color-accent: var(--accent)",
+  "--color-accent-foreground: var(--accent-foreground)",
+  "--color-destructive: var(--destructive)",
+  "--color-destructive-foreground: var(--destructive-foreground)",
+  "--color-warning: var(--warning)",
+  "--color-warning-foreground: var(--warning-foreground)",
+  "--color-success: var(--success)",
+  "--color-success-foreground: var(--success-foreground)",
+  "--color-border: var(--border)",
+  "--color-input: var(--input)",
+  "--color-ring: var(--ring)",
+];
+
 export function buildGeneratedThemeTokens(source, resolver) {
   const projection = resolver.$extensions?.["com.qr-pagamentos.css"]?.color;
   if (!projection) throw new Error("Resolver CSS color projection extension is missing.");
@@ -66,10 +114,18 @@ export function buildGeneratedThemeTokens(source, resolver) {
     `:root {\n${references}\n  color-scheme: light dark;\n${colorVariables(defaultTokens, projection)}\n${motionVariables(defaultTokens)}\n}`,
     `:root.dark {\n  color-scheme: dark;\n${colorVariables(darkTokens, projection)}\n}`,
     `@media (prefers-color-scheme: dark) {\n  :root:not([data-theme]):not(.light) {\n    color-scheme: dark;\n${colorVariables(darkTokens, projection).split("\n").map((line) => `  ${line}`).join("\n")}\n  }\n}`,
-    ...themeNames.map((name) => {
+    ...themeNames.flatMap((name) => {
       const tokens = resolveDesignTokens(resolver, source, { theme: name }).tokens;
       const mode = tokens.$extensions["com.qr-pagamentos.theme"].mode;
-      return `:root[data-theme="${name}"] {\n  color-scheme: ${mode};\n${colorVariables(tokens, projection)}\n}`;
+      const colors = colorVariables(tokens, projection);
+      // The scoped preview block recolors one container (the storefront
+      // settings preview) without changing the page theme; its color
+      // declarations are byte-identical to the page-level block from the same
+      // resolution, plus the re-declared alias layer those colors feed.
+      return [
+        `:root[data-theme="${name}"] {\n  color-scheme: ${mode};\n${colors}\n}`,
+        `[data-theme-preview="${name}"] {\n  color-scheme: ${mode};\n${colors}\n${SCOPED_PREVIEW_COLOR_ALIASES.map((line) => `  ${line};`).join("\n")}\n}`,
+      ];
     }),
     `@media (prefers-reduced-motion: reduce) {\n  :root { ${motionVariables(reducedTokens).trim().replace("\n", " ")} }\n}`,
   ];
