@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "events": [
+    {
+      "at": "2026-07-24T00:07:07-03:00",
+      "event": "transition",
+      "from": "001_initial_task",
+      "to": "002_planning",
+      "contexts": [],
+      "test_seconds": 0,
+      "result": "advanced"
+    },
+    {
+      "at": "2026-07-24T00:09:10-03:00",
+      "event": "stage",
+      "stage": "002_planning",
+      "contexts": [
+        "plan_7_2_1"
+      ],
+      "strategy": "owner-local bilingual category identity, CAS and opaque owner mutations, atomic deterministic reassignment, restrictive deletion and V1 history compatibility, additive safe migration, deferred public exposure, and serialized Prisma lane",
+      "tests": "card, dependency memory, linked catalog/storefront/product specs, root/Prisma DOX, current product owner CRUD/CAS/public projections, safe migration policy, database harness, and active 6.3.2 lane inspected; no runtime tests in planning",
+      "test_seconds": 0,
+      "result": "planned"
+    }
+  ]
+}
