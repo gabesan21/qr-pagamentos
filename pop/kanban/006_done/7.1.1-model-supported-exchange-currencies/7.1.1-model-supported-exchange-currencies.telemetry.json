@@ -66,6 +66,27 @@
       "contexts": [],
       "test_seconds": 0,
       "result": "advanced"
+    },
+    {
+      "at": "2026-07-24T15:15:00-03:00",
+      "event": "stage",
+      "stage": "005_verifying",
+      "contexts": [
+        "critic_005_7_1_1"
+      ],
+      "strategy": "full (critical), return 0/2",
+      "tests": "CI db:generate, db:contract-check (baseline=19 future=4), db:test disposable PostgreSQL, 24 focused vitest, pnpm check + build (2 failures pre-existing on develop, owned by M-4.1), pop_validate --standalone",
+      "test_seconds": 0,
+      "result": "approved"
+    },
+    {
+      "at": "2026-07-24T15:15:59-03:00",
+      "event": "transition",
+      "from": "005_verifying",
+      "to": "006_done",
+      "contexts": [],
+      "test_seconds": 0,
+      "result": "advanced"
     }
   ]
 }
