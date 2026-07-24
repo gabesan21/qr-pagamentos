@@ -19,6 +19,7 @@ import { getDictionary } from "@/i18n/dictionaries";
 import { getLocalePreferenceService } from "@/i18n/locale-preference";
 import { defaultLocale } from "@/i18n/locales";
 import { NauttCredentialSurface } from "@/app/nautt-credential-surface";
+import { DataDirectorySpecimen } from "@/data-directory/ui/specimen";
 
 const themeInventory = [
   ["pix-paper", "light"],
@@ -92,6 +93,13 @@ export default async function DesignSystemPage() {
       <Separator />
       <Table className="ds-facts"><TableCaption>{dictionary.designSystemStatuses}</TableCaption><TableHeader><TableRow><TableHead>PIX</TableHead><TableHead>{dictionary.designSystemState}</TableHead><TableHead>BRL</TableHead></TableRow></TableHeader><TableBody><TableRow><TableCell>PIX-0716</TableCell><TableCell>{dictionary.designSystemSuccess}</TableCell><TableCell>128,40</TableCell></TableRow><TableRow><TableCell>PIX-0715</TableCell><TableCell>{dictionary.designSystemWarning}</TableCell><TableCell>72,00</TableCell></TableRow></TableBody></Table>
       <span className="sr-only"><LoaderCircleIcon />{dictionary.designSystemLoadingAction}</span>
+    </section>
+    <section aria-labelledby="ds-directory-title" className="ds-section" data-directory-section>
+      <div className="ds-section__heading">
+        <h2 id="ds-directory-title">{dictionary.dataDirectoryHeading}</h2>
+        <p data-ds-prose>{dictionary.dataDirectoryDescription}</p>
+      </div>
+      <DataDirectorySpecimen dictionary={dictionary} />
     </section>
     <NauttCredentialSurface dictionary={dictionary} idPrefix="specimen-empty" notice="invalid" status={{ credential: { hasCredential: false, credentialRevision: null, webhookRegistrationState: null, updatedAt: null }, balance: null, balanceUnavailable: false }} />
     <NauttCredentialSurface dictionary={dictionary} idPrefix="specimen-pending" status={{ credential: { hasCredential: true, credentialRevision: "00000000-0000-4000-8000-000000000001", webhookRegistrationState: "UNREGISTERED", updatedAt: new Date("2026-07-17T20:00:00Z") }, balance: null, balanceUnavailable: false }} />
