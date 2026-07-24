@@ -106,8 +106,9 @@ wide action table at narrow widths. Empty, loading, recovery,
 pending/disabled, success, error, and inline destructive-confirmation states are
 explicit without page-local variants or compatibility sources.
 
-The authenticated home also owns the bilingual Nautt onboarding ledger. Its
-password input never echoes a submitted key; validation, pending/disabled,
+The merchant Settings workspace owns the bilingual Nautt onboarding ledger and
+every opaque mutation notice or manual balance retry returns there. Its password
+input never echoes a submitted key; validation, pending/disabled,
 setup-changed, provider-unavailable, `UNREGISTERED` completion, non-retryable
 recovery, configured balance, and manual balance-retry states compose the same
 `Card`, `Alert`, `Field`/`Input`, `Button`, and `Spinner` inventory. Wallet facts

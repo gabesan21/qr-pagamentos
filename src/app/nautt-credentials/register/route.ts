@@ -18,13 +18,13 @@ export async function POST(request: Request) {
     try {
       const principal = await getAuthorizationService().requireUser((await cookies()).get("qr_session")?.value);
       await getOwnerOnboardingService().completeRegistration(principal, loadNauttWebhookCallbackUrl());
-      return relativeRedirect("/?nautt=configured");
+      return relativeRedirect("/settings?nautt=configured");
     } catch (error) {
       if (error instanceof UnauthenticatedError) return new Response(null, { status: 401 });
       if (error instanceof ForbiddenError) return new Response(null, { status: 403 });
-      if (error instanceof OwnerOnboardingChangedError) return relativeRedirect("/?nautt=changed");
-      if (error instanceof OwnerOnboardingRecoveryRequiredError) return relativeRedirect("/?nautt=recovery");
-      return relativeRedirect("/?nautt=unavailable");
+      if (error instanceof OwnerOnboardingChangedError) return relativeRedirect("/settings?nautt=changed");
+      if (error instanceof OwnerOnboardingRecoveryRequiredError) return relativeRedirect("/settings?nautt=recovery");
+      return relativeRedirect("/settings?nautt=unavailable");
     }
   });
 }

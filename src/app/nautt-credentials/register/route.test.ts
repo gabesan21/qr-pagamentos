@@ -7,6 +7,10 @@ vi.mock("@/auth/authorization", async (original) => ({ ...(await original()), ge
 vi.mock("@/integrations/nautt/owner-onboarding", async (original) => ({ ...(await original()), getOwnerOnboardingService: () => ({ completeRegistration }) }));
 
 import { ForbiddenError, UnauthenticatedError } from "@/auth/authorization";
+import {
+  OwnerOnboardingChangedError,
+  OwnerOnboardingRecoveryRequiredError,
+} from "@/integrations/nautt/owner-onboarding";
 import { POST } from "./route";
 
 const sameOriginRequest = () => new Request("http://local/nautt-credentials/register", { method: "POST", headers: { origin: "http://local", host: "local" } });
@@ -20,7 +24,7 @@ describe("owner webhook completion route", () => {
     requireUser.mockResolvedValue(principal);
     const response = await POST(sameOriginRequest());
     expect(completeRegistration).toHaveBeenCalledWith(principal, "https://payments.example/api/nautt/webhooks");
-    expect(response.headers.get("location")).toBe("/?nautt=configured");
+    expect(response.headers.get("location")).toBe("/settings?nautt=configured");
   });
 
   it("returns an empty 401", async () => {
@@ -38,5 +42,20 @@ describe("owner webhook completion route", () => {
     expect(response.status).toBe(403);
     expect(await response.text()).toBe("");
     expect(completeRegistration).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    [new OwnerOnboardingChangedError(), "/settings?nautt=changed"],
+    [new OwnerOnboardingRecoveryRequiredError(), "/settings?nautt=recovery"],
+    [new Error("provider detail"), "/settings?nautt=unavailable"],
+  ])("maps registration failures to the opaque Settings result %s", async (error, location) => {
+    requireUser.mockResolvedValue({ id: "owner" });
+    completeRegistration.mockRejectedValue(error);
+
+    const response = await POST(sameOriginRequest());
+
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toBe(location);
+    expect(await response.text()).toBe("");
   });
 });

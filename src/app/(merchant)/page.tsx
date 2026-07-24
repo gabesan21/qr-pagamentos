@@ -11,7 +11,6 @@ export default async function MerchantDashboardPage({
     "checkout-policy"?: string;
     "payment-links"?: string;
     language?: string;
-    nautt?: string;
     products?: string;
     storefront?: string;
   }>;

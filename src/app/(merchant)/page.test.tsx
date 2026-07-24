@@ -24,4 +24,18 @@ describe("merchant dashboard", () => {
     expect(html).toContain(ptBR.shellWorkspaceEmptyDescription);
     expect(html).not.toMatch(/gráfico|métrica|total/i);
   });
+
+  it("does not claim or render the Settings-owned Nautt feedback channel", async () => {
+    requireContext.mockResolvedValue({
+      dictionary: ptBR,
+      locale: "pt-BR",
+      principal: { id: "user-1", username: "lojista", role: "USER", status: "ACTIVE" },
+    });
+
+    const html = renderToStaticMarkup(await MerchantDashboardPage({
+      searchParams: Promise.resolve({ nautt: "configured" }),
+    } as never));
+
+    expect(html).not.toContain(ptBR.nauttConfigured);
+  });
 });
