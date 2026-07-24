@@ -2,9 +2,9 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 
-const { requireOwnerFromCookie, ownerProtectedMutationResponse, create, update, setActive, remove } = vi.hoisted(() => ({ requireOwnerFromCookie: vi.fn(), ownerProtectedMutationResponse: vi.fn(), create: vi.fn(), update: vi.fn(), setActive: vi.fn(), remove: vi.fn() }));
+const { requireOwnerFromCookie, ownerProtectedMutationResponse, create, update, setActive, archive, remove } = vi.hoisted(() => ({ requireOwnerFromCookie: vi.fn(), ownerProtectedMutationResponse: vi.fn(), create: vi.fn(), update: vi.fn(), setActive: vi.fn(), archive: vi.fn(), remove: vi.fn() }));
 vi.mock("@/app/owner-guard", () => ({ requireOwnerFromCookie, ownerProtectedMutationResponse }));
-vi.mock("@/auth/product", async (original) => ({ ...(await original<typeof import("@/auth/product")>()), getProductService: () => ({ create, update, setActive, delete: remove }) }));
+vi.mock("@/auth/product", async (original) => ({ ...(await original<typeof import("@/auth/product")>()), getProductService: () => ({ create, update, setActive, archive, delete: remove }) }));
 
 import { POST } from "./route";
 
@@ -34,5 +34,24 @@ describe("owner product route", () => {
     const response = await POST(request({ action: "create", internalName: "Donation", ownerId: "forged" }));
     expect(create).toHaveBeenCalledWith(owner, expect.objectContaining({ internalName: "Donation" }));
     expect(response.headers.get("location")).toBe("/?products=create");
+  });
+  it("forwards the archive action with only the identifier and version", async () => {
+    requireOwnerFromCookie.mockResolvedValue(owner); ownerProtectedMutationResponse.mockReturnValue(null);
+    const response = await POST(request({ action: "archive", id: "product-id", version: "3" }));
+    expect(archive).toHaveBeenCalledWith(owner, "product-id", "3");
+    expect(response.headers.get("location")).toBe("/?products=archive");
+  });
+  it("passes submitted catalog-media fields and omits absent ones", async () => {
+    requireOwnerFromCookie.mockResolvedValue(owner); ownerProtectedMutationResponse.mockReturnValue(null);
+    const withCatalog = await POST(request({ action: "update", id: "product-id", version: "1", currencyCode: "USD", imageMediaId: "", categoryId: "category-id" }));
+    expect(update).toHaveBeenCalledWith(owner, "product-id", "1", expect.objectContaining({ currencyCode: "USD", imageMediaId: "", categoryId: "category-id" }));
+    expect(withCatalog.headers.get("location")).toBe("/?products=update");
+
+    update.mockClear();
+    await POST(request({ action: "update", id: "product-id", version: "1" }));
+    const values = update.mock.calls[0]?.[3] as Record<string, unknown>;
+    expect(values).not.toHaveProperty("currencyCode");
+    expect(values).not.toHaveProperty("imageMediaId");
+    expect(values).not.toHaveProperty("categoryId");
   });
 });

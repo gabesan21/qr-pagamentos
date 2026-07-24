@@ -5,7 +5,19 @@ import { getProductService, ProductConflictError } from "@/auth/product";
 import { serverRequestRoutes, withServerRequestLog } from "@/observability/server-request-log";
 
 function productValues(form: FormData) {
-  return { internalName: form.get("internalName"), titlePtBr: form.get("titlePtBr"), titleEn: form.get("titleEn"), descriptionPtBr: form.get("descriptionPtBr"), descriptionEn: form.get("descriptionEn"), price: form.get("price") };
+  return {
+    internalName: form.get("internalName"),
+    titlePtBr: form.get("titlePtBr"),
+    titleEn: form.get("titleEn"),
+    descriptionPtBr: form.get("descriptionPtBr"),
+    descriptionEn: form.get("descriptionEn"),
+    price: form.get("price"),
+    // Absent keys leave the stored catalog-media values unchanged; an
+    // explicitly submitted blank clears them.
+    ...(form.has("categoryId") ? { categoryId: form.get("categoryId") } : {}),
+    ...(form.has("currencyCode") ? { currencyCode: form.get("currencyCode") } : {}),
+    ...(form.has("imageMediaId") ? { imageMediaId: form.get("imageMediaId") } : {}),
+  };
 }
 
 export async function POST(request: Request) {
@@ -20,6 +32,7 @@ export async function POST(request: Request) {
       if (action === "create") await service.create(actor, productValues(form));
       else if (action === "update") await service.update(actor, form.get("id"), form.get("version"), productValues(form));
       else if (action === "active") await service.setActive(actor, form.get("id"), form.get("version"), form.get("active"));
+      else if (action === "archive") await service.archive(actor, form.get("id"), form.get("version"));
       else if (action === "delete") await service.delete(actor, form.get("id"), form.get("version"));
       else throw new Error("Unsupported product action");
       return relativeRedirect(`/?products=${action}`);

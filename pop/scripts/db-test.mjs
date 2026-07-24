@@ -491,6 +491,9 @@ try {
     { column_name: "updated_at", data_type: "timestamp with time zone", udt_name: "timestamptz", is_nullable: "NO" },
     { column_name: "owner_id", data_type: "uuid", udt_name: "uuid", is_nullable: "NO" },
     { column_name: "category_id", data_type: "uuid", udt_name: "uuid", is_nullable: "YES" },
+    { column_name: "currency_code", data_type: "character varying", udt_name: "varchar", is_nullable: "YES" },
+    { column_name: "image_media_id", data_type: "character varying", udt_name: "varchar", is_nullable: "YES" },
+    { column_name: "archived_at", data_type: "timestamp with time zone", udt_name: "timestamptz", is_nullable: "YES" },
   ]), "Product columns differ from the contract");
   const productConstraints = await runtime.query(`
     SELECT c.conname, pg_get_userbyid(t.relowner) AS owner
@@ -501,7 +504,7 @@ try {
     ORDER BY c.conname
   `);
   const productConstraintNames = new Set(productConstraints.rows.map((row) => row.conname));
-  for (const name of ["product_pkey", "product_internal_name_bounds", "product_internal_name_single_line", "product_title_pt_br_bounds", "product_title_pt_br_single_line", "product_title_en_bounds", "product_title_en_single_line", "product_description_pt_br_bounds", "product_description_en_bounds", "product_price_canonical", "product_version_nonnegative", "product_owner_fkey", "product_id_owner_id_key", "product_category_owner_fkey"]) {
+  for (const name of ["product_pkey", "product_internal_name_bounds", "product_internal_name_single_line", "product_title_pt_br_bounds", "product_title_pt_br_single_line", "product_title_en_bounds", "product_title_en_single_line", "product_description_pt_br_bounds", "product_description_en_bounds", "product_price_canonical", "product_version_nonnegative", "product_currency_code_bounds", "product_owner_fkey", "product_id_owner_id_key", "product_category_owner_fkey"]) {
     assert(productConstraintNames.has(name), `Missing constraint ${name}`);
   }
   assert(productConstraints.rows.every((row) => row.owner === "qr_migrator"), "Runtime owns the product table");
@@ -542,6 +545,40 @@ try {
   assert(staleProductDelete.rowCount === 0, "Stale product version deleted the row");
   const winningProductDelete = await runtime.query(`DELETE FROM app.product WHERE id = $1 AND version = 1`, [productId]);
   assert(winningProductDelete.rowCount === 1, "Exact product version delete did not win");
+
+  const catalogMediaProduct = await runtime.query(`
+    INSERT INTO app.product (internal_name, title_pt_br, title_en, description_pt_br, description_en, price, owner_id)
+    VALUES ('catalog-media', 'Título', 'Title', 'Descrição', 'Description', '10.25', $1)
+    RETURNING id, currency_code, image_media_id, archived_at
+  `, [otherUserId]);
+  assert(
+    catalogMediaProduct.rows[0]?.currency_code === null
+      && catalogMediaProduct.rows[0]?.image_media_id === null
+      && catalogMediaProduct.rows[0]?.archived_at === null,
+    "Product catalog-media columns are not null by default",
+  );
+  const catalogMediaProductId = catalogMediaProduct.rows[0]?.id;
+  for (const invalidCode of ["AA", "A1A"]) {
+    await expectSqlState(runtime, `UPDATE app.product SET currency_code = '${invalidCode}' WHERE id = '${catalogMediaProductId}'`, { code: "23514", constraint: "product_currency_code_bounds" });
+  }
+  await runtime.query(`UPDATE app.product SET currency_code = 'USD', image_media_id = '${"i".repeat(43)}', version = version + 1 WHERE id = $1 AND version = 0`, [catalogMediaProductId]);
+  const catalogMediaValues = await runtime.query(`SELECT currency_code, image_media_id FROM app.product WHERE id = $1`, [catalogMediaProductId]);
+  assert(
+    catalogMediaValues.rows[0]?.currency_code === "USD" && catalogMediaValues.rows[0]?.image_media_id === "i".repeat(43),
+    "Product catalog-media values did not persist",
+  );
+  const staleArchive = await runtime.query(`UPDATE app.product SET active = FALSE, archived_at = CURRENT_TIMESTAMP, version = version + 1 WHERE id = $1 AND version = 0 AND archived_at IS NULL`, [catalogMediaProductId]);
+  assert(staleArchive.rowCount === 0, "Stale product version archived the row");
+  const winningArchive = await runtime.query(`UPDATE app.product SET active = FALSE, archived_at = CURRENT_TIMESTAMP, version = version + 1 WHERE id = $1 AND version = 1 AND archived_at IS NULL RETURNING active, archived_at, version`, [catalogMediaProductId]);
+  assert(
+    winningArchive.rows[0]?.active === false && winningArchive.rows[0]?.archived_at !== null && winningArchive.rows[0]?.version === 2,
+    "Exact product version archival CAS did not win",
+  );
+  const reArchive = await runtime.query(`UPDATE app.product SET archived_at = CURRENT_TIMESTAMP, version = version + 1 WHERE id = $1 AND version = 2 AND archived_at IS NULL`, [catalogMediaProductId]);
+  assert(reArchive.rowCount === 0, "Archived product was re-archived");
+  const archivedEditLock = await runtime.query(`UPDATE app.product SET price = '2', version = version + 1 WHERE id = $1 AND version = 2 AND archived_at IS NULL`, [catalogMediaProductId]);
+  assert(archivedEditLock.rowCount === 0, "Archived product was edited through the service CAS predicate");
+  await runtime.query(`DELETE FROM app.product WHERE id = $1`, [catalogMediaProductId]);
   console.log("PASS product-schema");
 
   const paymentLinkConstraints = await runtime.query(`
@@ -626,6 +663,18 @@ try {
   }
   await creationClient.end();
   await deactivationClient.end();
+
+  // Archival is terminal deactivation: the same baseline dependency trigger
+  // rejects new links to an archived product with no trigger or service change.
+  const archivedDependencies = await createActiveLinkDependencies("archived-product");
+  await runtime.query(`UPDATE app.product SET active = FALSE, archived_at = CURRENT_TIMESTAMP WHERE id = $1`, [archivedDependencies.productId]);
+  await expectSqlState(
+    runtime,
+    `INSERT INTO app.payment_link (identifier, owner_id, product_id, currency_pair_id, link_type) VALUES ('${randomUUID().replaceAll("-", "").slice(0, 24)}', '${otherUserId}', '${archivedDependencies.productId}', '${archivedDependencies.currencyPairId}', 'REUSABLE')`,
+    { code: "23514", constraint: "payment_link_product_active" },
+  );
+  const archivedProductState = await runtime.query(`SELECT active, archived_at FROM app.product WHERE id = $1`, [archivedDependencies.productId]);
+  assert(archivedProductState.rows[0]?.active === false && archivedProductState.rows[0]?.archived_at !== null, "Archived product state changed");
   console.log("PASS payment-link-schema-and-locking");
 
   const backfillUserId = randomUUID();
