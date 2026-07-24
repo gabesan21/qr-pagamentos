@@ -8,11 +8,13 @@ import { checkoutPolicyPtBR } from "./checkout-policy/pt-BR";
 import { storefrontPtBR } from "./storefront/pt-BR";
 import { checkoutPtBR } from "./checkout/pt-BR";
 import { ordersPtBR } from "./orders/pt-BR";
+import { dataDirectoryPtBR } from "./data-directory/pt-BR";
 
 export const ptBR = {
   ...sharedPtBR,
   ...nauttPtBR,
   ...designSystemPtBR,
+  ...dataDirectoryPtBR,
   ...administrationPtBR,
   ...productsPtBR,
   ...paymentLinksPtBR,

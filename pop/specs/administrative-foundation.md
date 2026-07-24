@@ -57,6 +57,28 @@ global read projections for orders, payment links, and analytics; those
 projections remain read-only, re-authorized, redacted, and separate from
 merchant routes and owner-scoped services.
 
+Shared data directories use one bounded contract without sharing a business
+projection. The only entry points receive an already-resolved active principal:
+`USER` derives its own owner scope and `ADMIN` derives an explicit global-read
+scope, with exact role denial before adapter I/O. Each registered directory
+fixes redacted row DTOs, at most eight text/closed-enum filters, page sizes
+25/50/100, and an immutable lexicographic order ending in a unique ID. Adapters
+request only `pageSize + 1`; offset, total count, arbitrary sorting, raw query
+fragments, client-side full-list filtering, and cross-request snapshot claims
+are excluded.
+
+Directory request targets are limited to 2048 exact raw UTF-8 bytes before form
+decoding and then strictly decode well-formed percent escapes and fatal UTF-8.
+They accept at most 32 entries and serialize valid input in one fixed canonical
+order. A valid noncanonical native GET receives one same-path relative `307`
+before data I/O; invalid input receives the generic reset state without echo.
+Keyset cursors have a separate 512 decoded-byte bound and authenticate a closed,
+non-identifying `MERCHANT_OWN`/`ADMIN_GLOBAL` purpose, directory, direction,
+size, filter digest, order, and tuple. HKDF/HMAC keys are domain-separated from
+the required server key and include the resolved merchant identity only in
+server-side derivation; no identity enters the token, and every request still
+re-authorizes and reapplies scope.
+
 | Route family | Canonical owner and capability | Unauthenticated / wrong role | Compatibility boundary |
 | --- | --- | --- | --- |
 | `/`, merchant dashboard, catalog/products, payment links, owner orders, checkout policy, Nautt credentials, storefront settings, and planned merchant profile/security | `USER` only; own business data and settings | page: `/login` / `/admin`; mutation: empty `401` / empty `403` | Merchant routes stay unprefixed. Owner scoping, redacted projections, opaque unavailable outcomes, and existing V1 identifiers remain unchanged. |

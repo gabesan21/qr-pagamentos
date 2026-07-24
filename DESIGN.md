@@ -91,6 +91,21 @@ deliberately small inventory is the only foundation introduced:
 | `Button`, `Field`/`Input`, `Textarea`, `NativeSelect`, `Checkbox` | current action and native form controls, including multiline descriptions | default, populated, loading where applicable, disabled, invalid, hover/focus; empty is not applicable to a control |
 | `Card`, `Alert`, `Badge`, `Separator`, `Skeleton`, `Table`, `Spinner` | grouped content, feedback, loading, and facts | documented default, empty/error/recovery, or loading state as applicable |
 
+The reusable data-directory composition deliberately adds no owned primitive:
+official `Empty` and `Pagination` registry preflight was attempted with the
+pinned shadcn `4.13.0` CLI, but registry DNS was unavailable. Existing `Card`,
+`Alert`, `Button` links, `FieldGroup`/`Field`, inputs, selects, skeletons,
+separators, and `Table` satisfy the contract without source duplication.
+
+Data directories have six closed states: ready, loading, empty, filtered-empty,
+invalid-query, and error. One definition produces a captioned native table from
+768 CSS pixels and ruled `dl` facts below it; CSS leaves one renderer and action
+set in the accessibility tree. GET toolbars have labels above controls, one
+primary submit, cursor-free native submissions, canonical reset/pagination
+links, visible focus, and targets of at least 44 by 44 CSS pixels. Numeric facts
+use tabular figures, and invalid/error states echo no submitted or internal
+detail.
+
 The deterministic `/design-system` exercise surface resolves its dictionary from
 the same server preference contract as the authenticated shell and presents all
 applicable states, including labelled default, populated, disabled, and invalid
@@ -98,6 +113,11 @@ applicable states, including labelled default, populated, disabled, and invalid
 primary action through fields and recovery actions. Enabled controls use a visible
 semantic focus outline or ring at least two pixels wide; disabled controls are not
 focusable.
+
+The specimen also exercises a bilingual, synthetic data directory without
+importing either role's business service. It renders all six states and both
+responsive semantics in every theme; its rows and URLs are fixtures only and
+introduce no production business directory.
 
 The `/admin` shell and authenticated home consume this inventory directly for
 account creation, account mutations, global BRL/PIX payment settings, language

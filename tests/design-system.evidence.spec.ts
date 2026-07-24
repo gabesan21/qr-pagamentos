@@ -138,7 +138,7 @@ test("creates current, responsive design-system evidence", async ({ page }) => {
       await page.evaluate((themeId) => { document.documentElement.dataset.theme = themeId; }, theme.id);
       await page.evaluate(async () => document.fonts.ready);
 
-      const focusTargets = page.locator('[data-ds-hit-target], [data-slot="table-container"][tabindex="0"]');
+      const focusTargets = page.locator('[data-ds-hit-target]:visible, [data-slot="table-container"][tabindex="0"]:visible');
       const focusTargetCount = await focusTargets.count();
       const focusTraversal = [];
       await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
@@ -192,6 +192,15 @@ test("creates current, responsive design-system evidence", async ({ page }) => {
         const maxProseWidth = reference.getBoundingClientRect().width;
         reference.remove();
         const textareas = selectors('[data-slot="textarea"]');
+        const directoryStates = selectors("[data-directory-specimen-state]");
+        const visible = (element: HTMLElement) => getComputedStyle(element).display !== "none"
+          && element.getClientRects().length > 0;
+        const duplicateIds = Array.from(document.querySelectorAll<HTMLElement>("[id]"))
+          .map((element) => element.id)
+          .filter((id, index, all) => all.indexOf(id) !== index);
+        const readyDirectory = document.querySelector<HTMLElement>('[data-directory-specimen-state="ready"]');
+        const wideRenderer = readyDirectory?.querySelector<HTMLElement>(".md\\:block");
+        const narrowRenderer = readyDirectory?.querySelector<HTMLElement>(".md\\:hidden");
         return {
           bodyFont: getComputedStyle(document.body).fontFamily,
           overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
@@ -216,6 +225,22 @@ test("creates current, responsive design-system evidence", async ({ page }) => {
               getComputedStyle(document.body).backgroundColor,
             ),
           },
+          directory: {
+            states: directoryStates.map((element) => element.getAttribute("data-directory-specimen-state")),
+            duplicateIds,
+            wideVisible: wideRenderer ? visible(wideRenderer) : null,
+            narrowVisible: narrowRenderer ? visible(narrowRenderer) : null,
+            tableCount: readyDirectory?.querySelectorAll("table").length ?? 0,
+            factListCount: readyDirectory?.querySelectorAll("dl").length ?? 0,
+            labelledForms: directoryStates.every((state) => {
+              const form = state.querySelector("form[method=get]");
+              if (!form || form.querySelector("[name=cursor]")) return false;
+              return Array.from(form.querySelectorAll("input,select")).every((control) => (
+                control.id && form.querySelector(`label[for="${control.id}"]`)
+              ));
+            }),
+            paginationLandmark: Boolean(readyDirectory?.querySelector('nav[aria-label] a[href*="cursor="]')),
+          },
           maxProseWidth,
         };
       });
@@ -236,6 +261,14 @@ test("creates current, responsive design-system evidence", async ({ page }) => {
       expect(measured.brand).toMatchObject({ identities: 4, visibleNames: 3 });
       expect(measured.brand.minimumMarkSize).toBeGreaterThanOrEqual(32);
       expect(measured.brand.contrast).toBeGreaterThanOrEqual(4.5);
+      expect(measured.directory.states).toEqual(["ready", "loading", "empty", "filtered-empty", "invalid-query", "error"]);
+      expect(measured.directory.duplicateIds).toEqual([]);
+      expect(measured.directory.tableCount).toBe(1);
+      expect(measured.directory.factListCount).toBe(2);
+      expect(measured.directory.labelledForms).toBe(true);
+      expect(measured.directory.paginationLandmark).toBe(true);
+      expect(measured.directory.wideVisible).toBe(width >= 768);
+      expect(measured.directory.narrowVisible).toBe(width < 768);
       expect(focusTargetCount).toBeGreaterThan(0);
       expect(severeAxe).toEqual([]);
       expect(externalRequests).toEqual([]);
