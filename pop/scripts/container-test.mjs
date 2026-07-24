@@ -605,7 +605,10 @@ NAUTT_WEBHOOK_CALLBACK_URL=https://container-test.invalid/api/nautt/webhooks
 
         const recovered = restore(backupSet, `RESTORE:${project}`, "primary-after-mutation");
         assert(recovered.status !== 0, "injected primary restore failure reported success");
-        assert(`${recovered.stdout ?? ""}${recovered.stderr ?? ""}`.includes("original pair recovered"), "primary failure did not report recovery");
+        assert(
+          `${recovered.stdout ?? ""}${recovered.stderr ?? ""}`.includes("original pair recovered"),
+          `primary failure did not report recovery\n${recovered.stdout ?? ""}${recovered.stderr ?? ""}`,
+        );
         await waitForApp();
         await assertRehearsalAbsent();
 

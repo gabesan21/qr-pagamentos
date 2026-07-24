@@ -220,7 +220,6 @@ restore_managed_pair() {
     -v "${PROJECT}_media-data:/app/media" -v "$set/media.tar:/run/media.tar:ro" --entrypoint tar \
     "$app_image" --numeric-owner -C /app/media -xpf /run/media.tar \
     || return 1
-  restore_injected "${attempt}-after-mutation" && return 1
   compose exec -T db psql -U postgres -p 5433 -d qr_pagamentos -Atc \
     'SELECT count(*) FROM app._prisma_migrations WHERE finished_at IS NULL OR rolled_back_at IS NOT NULL' \
     | grep -qx 0 \
@@ -234,7 +233,10 @@ restore_managed_pair() {
   compose up -d >/dev/null \
     || return 1
   for _ in {1..120}; do
-    if compose exec -T app node container/healthcheck.mjs >/dev/null 2>&1; then return 0; fi
+    if compose exec -T app node container/healthcheck.mjs >/dev/null 2>&1; then
+      restore_injected "${attempt}-after-mutation" && return 1
+      return 0
+    fi
     sleep 1
   done
   return 1
