@@ -392,7 +392,11 @@ if ! run_named_helper identity-seed "$seed_name"; then
 fi
 printf 'identity_seed_helper=%s\n' "$seed_name" >> "$evidence"
 target_checkout_valid || seal_pre_promotion_failure post-seed-checkout
-if update_injected target-recreate || ! compose up -d --no-deps --force-recreate app; then
+if update_injected target-recreate; then
+  compose stop app >/dev/null || seal_pre_promotion_failure target-stop
+  rollback_target_failure target-recreate
+fi
+if ! compose up -d --no-deps --force-recreate app; then
   rollback_target_failure target-recreate
 fi
 if ! target_app=$(wait_for_app); then
