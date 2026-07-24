@@ -22,7 +22,7 @@ await requirePrivateDirectory(join(root, "staging"));
 await requirePrivateDirectory(join(root, "objects"));
 
 const expectedObjects = new Set();
-for (const line of (await readFile(inventoryPath === "-" ? 0 : inventoryPath, "utf8")).split("\n").filter(Boolean)) {
+for (const line of (await readFile(inventoryPath === "-" ? "/dev/stdin" : inventoryPath, "utf8")).split("\n").filter(Boolean)) {
   const [storageKey, byteSizeText, digest, state] = line.split("\t");
   if (
     !/^[A-Za-z0-9_-]{43}$/.test(storageKey)
