@@ -1,10 +1,12 @@
 import "server-only";
 
 import { getDatabaseClient } from "../db/client";
+import { DEFAULT_STOREFRONT_THEME_ID } from "../design-system/themes";
 import type { SupportedLocale } from "../i18n/locales";
 
 const STOREFRONT_SLUG_PATTERN = /^[a-z0-9](-?[a-z0-9])*$/;
 const STOREFRONT_SLUG_MAXIMUM_LENGTH = 63;
+const DEFAULT_STOREFRONT_LAYOUT = "boxed";
 
 export type PublicStorefrontProduct = Readonly<{
   title: string;
@@ -16,6 +18,9 @@ export type PublicStorefrontProduct = Readonly<{
 export type PublicStorefront = Readonly<{
   displayName: string | null;
   accentColor: string | null;
+  themeId: string;
+  layout: string;
+  logoMediaIdentifier: string | null;
   products: readonly PublicStorefrontProduct[];
 }>;
 
@@ -23,6 +28,9 @@ export type PublicStorefrontRecord = Readonly<{
   storefrontDisplayNamePtBr: string | null;
   storefrontDisplayNameEn: string | null;
   storefrontAccentColor: string | null;
+  storefrontThemeId: string | null;
+  storefrontLayout: string | null;
+  storefrontLogoMediaIdentifier: string | null;
   products: readonly Readonly<{
     titlePtBr: string;
     titleEn: string;
@@ -52,7 +60,18 @@ function localizeStorefront(record: PublicStorefrontRecord, locale: SupportedLoc
     return [{ ...localized, price: product.price, paymentLinkIdentifier }];
   });
 
-  return { displayName, accentColor: record.storefrontAccentColor, products };
+  // Resolved presentation facts only: theme/layout fall back to the design
+  // system defaults; the logo identifier stays opaque and `/media/[identifier]`
+  // 404s for any non-ACTIVE object. Currency, toggles, and owner data never
+  // reach this projection.
+  return {
+    displayName,
+    accentColor: record.storefrontAccentColor,
+    themeId: record.storefrontThemeId ?? DEFAULT_STOREFRONT_THEME_ID,
+    layout: record.storefrontLayout ?? DEFAULT_STOREFRONT_LAYOUT,
+    logoMediaIdentifier: record.storefrontLogoMediaIdentifier,
+    products,
+  };
 }
 
 export function createPublicStorefrontService(store: PublicStorefrontStore, now: () => Date = () => new Date()) {
@@ -75,6 +94,9 @@ function prismaStore(): PublicStorefrontStore {
           storefrontDisplayNamePtBr: true,
           storefrontDisplayNameEn: true,
           storefrontAccentColor: true,
+          storefrontThemeId: true,
+          storefrontLayout: true,
+          storefrontLogoMediaIdentifier: true,
           products: {
             where: {
               active: true,

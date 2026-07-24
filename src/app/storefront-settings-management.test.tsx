@@ -12,6 +12,11 @@ const settings = {
   storefrontDisplayNameEn: null,
   storefrontAccentColor: "#1A2B3C",
   storefrontEnabled: true,
+  storefrontThemeId: null,
+  storefrontLayout: null,
+  storefrontLogoMediaIdentifier: null,
+  storefrontStandalonePaymentsEnabled: true,
+  storefrontDefaultCurrencyCode: null,
 };
 
 describe("storefront settings management", () => {
@@ -33,7 +38,7 @@ describe("storefront settings management", () => {
   });
 
   it("renders the disabled defaults as an empty, unchecked form", () => {
-    const markup = renderToStaticMarkup(<StorefrontSettingsManagement dictionary={getDictionary("en")} settings={{ storefrontSlug: null, storefrontDisplayNamePtBr: null, storefrontDisplayNameEn: null, storefrontAccentColor: null, storefrontEnabled: false }} />);
+    const markup = renderToStaticMarkup(<StorefrontSettingsManagement dictionary={getDictionary("en")} settings={{ storefrontSlug: null, storefrontDisplayNamePtBr: null, storefrontDisplayNameEn: null, storefrontAccentColor: null, storefrontEnabled: false, storefrontThemeId: null, storefrontLayout: null, storefrontLogoMediaIdentifier: null, storefrontStandalonePaymentsEnabled: true, storefrontDefaultCurrencyCode: null }} />);
     expect(markup).toContain('value=""');
     expect(markup).toContain('aria-checked="false"');
   });
