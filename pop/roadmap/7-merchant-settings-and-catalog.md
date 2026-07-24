@@ -28,7 +28,6 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[7.2.2-evolve-products-for-catalog-media]] | Add category, currency, image, archival, and immutable historical-reference contracts to products. · size: L | 001_initial_task |
 | [[7.2.3-build-product-category-management]] | Build dedicated product/category list, create, and edit pages with uploads, placeholders, and size guidance. · size: L | 001_initial_task |
 
 ## Phase 7.3 - Merchant profile
