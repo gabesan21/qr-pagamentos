@@ -231,9 +231,9 @@ test("creates the closed merchant orders evidence run", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
 
   await page.goto(`${baseUrl}/orders/v2/${seeded.orders.main}`);
-  await expect(page.getByText("Comentário original")).toBeVisible();
-  await expect(page.getByText("Nota revisada")).toBeVisible();
-  await expect(page.getByText("Editado")).toBeVisible();
+  await expect(page.getByText("Comentário original").first()).toBeVisible();
+  await expect(page.getByText("Nota revisada").first()).toBeVisible();
+  await expect(page.getByText("Editado").first()).toBeVisible();
   await expect(page.getByText(seeded.links.main.identifier).first()).toBeVisible();
   assertions.push({ state: "detail-comments", comments: 2, edited: true });
   await captureState("state-pt-BR-order-detail-comments-1440");
