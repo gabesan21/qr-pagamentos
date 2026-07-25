@@ -2,28 +2,45 @@ import "server-only";
 
 import { TextDecoder } from "node:util";
 
-export const DIRECTORY_PAGE_SIZES = [25, 50, 100] as const;
+export const DIRECTORY_PAGE_SIZES = [10, 20, 25, 50, 100] as const;
 export const DEFAULT_DIRECTORY_PAGE_SIZE = 25;
 export const MAX_RAW_QUERY_BYTES = 2048;
 export const MAX_QUERY_ENTRIES = 32;
 export const MAX_REGISTERED_FILTERS = 8;
 
 export type DirectoryPageSize = (typeof DIRECTORY_PAGE_SIZES)[number];
+
+// Each directory registers its own closed page-size subset and default; the
+// foundation-wide set above stays the superset every registration draws from.
+export type DirectoryPageSizePolicy = Readonly<{
+  sizes: readonly DirectoryPageSize[];
+  defaultSize: DirectoryPageSize;
+}>;
+
+export const DEFAULT_DIRECTORY_PAGE_SIZE_POLICY = {
+  sizes: [25, 50, 100],
+  defaultSize: DEFAULT_DIRECTORY_PAGE_SIZE,
+} as const satisfies DirectoryPageSizePolicy;
+
+// Size union of the default registration; consumers that never register their
+// own policy keep this narrow type instead of the foundation-wide superset.
+export type DefaultDirectoryPageSize = (typeof DEFAULT_DIRECTORY_PAGE_SIZE_POLICY)["sizes"][number];
+
 export type DirectoryFilterDefinition =
   | Readonly<{ name: string; kind: "text" }>
   | Readonly<{ name: string; kind: "enum"; values: readonly string[] }>;
 
-export type ParsedDirectoryQuery = Readonly<{
+export type ParsedDirectoryQuery<Size extends DirectoryPageSize = DirectoryPageSize> = Readonly<{
   q?: string;
   filters: Readonly<Record<string, string | readonly string[]>>;
-  pageSize: DirectoryPageSize;
+  pageSize: Size;
   cursor?: string;
   canonicalQuery: string;
   canonicalFilterQuery: string;
 }>;
 
-export type DirectoryQueryResult =
-  | Readonly<{ ok: true; value: ParsedDirectoryQuery }>
+export type DirectoryQueryResult<Size extends DirectoryPageSize = DirectoryPageSize> =
+  | Readonly<{ ok: true; value: ParsedDirectoryQuery<Size> }>
   | Readonly<{ ok: false }>;
 
 const fatalUtf8 = new TextDecoder("utf-8", { fatal: true });
@@ -130,11 +147,24 @@ function single(values: Map<string, string[]>, key: string): string | null | und
   return matches.length === 1 ? matches[0] : null;
 }
 
-export function parseDirectoryQuery(
+function validPageSizePolicy(
+  policy: DirectoryPageSizePolicy,
+): policy is DirectoryPageSizePolicy {
+  return (
+    policy.sizes.length > 0
+    && new Set(policy.sizes).size === policy.sizes.length
+    && policy.sizes.every((size) => DIRECTORY_PAGE_SIZES.includes(size))
+    && policy.sizes.includes(policy.defaultSize)
+  );
+}
+
+export function parseDirectoryQuery<const Policy extends DirectoryPageSizePolicy = typeof DEFAULT_DIRECTORY_PAGE_SIZE_POLICY>(
   requestTarget: string,
   definitions: readonly DirectoryFilterDefinition[],
-): DirectoryQueryResult {
-  if (!validDefinitions(definitions)) return { ok: false };
+  pageSizePolicy?: Policy,
+): DirectoryQueryResult<Policy["sizes"][number]> {
+  const policy: DirectoryPageSizePolicy = pageSizePolicy ?? DEFAULT_DIRECTORY_PAGE_SIZE_POLICY;
+  if (!validDefinitions(definitions) || !validPageSizePolicy(policy)) return { ok: false };
   const rawQuery = rawQueryFromTarget(requestTarget);
   if (!isRawDirectoryQueryWithinLimit(rawQuery)) return { ok: false };
   const entries = decodeEntries(rawQuery);
@@ -152,9 +182,9 @@ export function parseDirectoryQuery(
   if (rawSearch !== undefined && rawSearch !== "" && q === null) return { ok: false };
 
   const pageSize = rawSize === undefined || rawSize === ""
-    ? DEFAULT_DIRECTORY_PAGE_SIZE
+    ? policy.defaultSize
     : Number(rawSize);
-  if (!DIRECTORY_PAGE_SIZES.includes(pageSize as DirectoryPageSize)) return { ok: false };
+  if (!policy.sizes.includes(pageSize as DirectoryPageSize)) return { ok: false };
   const cursor = rawCursor === undefined || rawCursor === "" ? undefined : rawCursor;
 
   const filters: Record<string, string | readonly string[]> = {};
@@ -187,7 +217,7 @@ export function parseDirectoryQuery(
   }
   const canonicalFilterQuery = filterParams.toString();
   const canonical = new URLSearchParams(filterParams);
-  if (pageSize !== DEFAULT_DIRECTORY_PAGE_SIZE) canonical.append("pageSize", String(pageSize));
+  if (pageSize !== policy.defaultSize) canonical.append("pageSize", String(pageSize));
   if (cursor) canonical.append("cursor", cursor);
 
   return {
@@ -195,7 +225,7 @@ export function parseDirectoryQuery(
     value: {
       ...(q ? { q } : {}),
       filters,
-      pageSize: pageSize as DirectoryPageSize,
+      pageSize: pageSize as Policy["sizes"][number],
       ...(cursor ? { cursor } : {}),
       canonicalQuery: canonical.toString(),
       canonicalFilterQuery,

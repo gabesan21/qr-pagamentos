@@ -61,6 +61,14 @@ describe("authenticated directory cursor", () => {
     expect(codec.decode(token, { ...context, canonicalFilterQuery: "q=Other" }, () => true)).toEqual({ status: "stale" });
   });
 
+  it("accepts every foundation page size in the envelope", () => {
+    for (const size of [10, 20, 25, 50, 100] as const) {
+      const sized = { ...context, size };
+      const token = codec.encode(sized, "forward", [10, "row-2"]);
+      expect(codec.decode(token, sized, () => true)).toMatchObject({ status: "valid", cursor: { size } });
+    }
+  });
+
   it("rejects over-bound and non-canonical base64url input", () => {
     const huge = `${Buffer.alloc(513).toString("base64url")}.${Buffer.alloc(32).toString("base64url")}`;
     expect(codec.decode(huge, context, () => true)).toEqual({ status: "invalid" });

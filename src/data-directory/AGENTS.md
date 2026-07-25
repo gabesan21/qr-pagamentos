@@ -9,7 +9,8 @@
   a URL or cursor.
 - Measure the exact raw request-target query substring before decoding. Keep
   strict form decoding, registered filters, deterministic canonical `307`
-  locations, closed page sizes, bounded entries, and zero-I/O invalid paths.
+  locations, per-directory registered page-size subsets/defaults drawn from the
+  closed 10/20/25/50/100 superset, bounded entries, and zero-I/O invalid paths.
 - Cursors use the required server key only for domain-separated HKDF/HMAC.
   Never serialize an identity or treat a cursor as authorization; every read
   reapplies role and scope.

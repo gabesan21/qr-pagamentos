@@ -6,6 +6,7 @@ import {
   MAX_RAW_QUERY_BYTES,
   isRawDirectoryQueryWithinLimit,
   parseDirectoryQuery,
+  type DirectoryPageSizePolicy,
 } from "./query-contract";
 
 const definitions = [
@@ -70,5 +71,29 @@ describe("directory raw query contract", () => {
       value: { pageSize: 50, canonicalQuery: "pageSize=50" },
     });
     expect(parseDirectoryQuery("/directory?pageSize=10", definitions)).toEqual({ ok: false });
+  });
+
+  it("applies a registered per-directory page-size subset and default", () => {
+    const policy = { sizes: [10, 20, 50, 100], defaultSize: 20 } as const;
+    expect(parseDirectoryQuery("/directory", definitions, policy)).toMatchObject({
+      ok: true,
+      value: { pageSize: 20, canonicalQuery: "" },
+    });
+    expect(parseDirectoryQuery("/directory?pageSize=20", definitions, policy)).toMatchObject({
+      ok: true,
+      value: { pageSize: 20, canonicalQuery: "" },
+    });
+    expect(parseDirectoryQuery("/directory?pageSize=10", definitions, policy)).toMatchObject({
+      ok: true,
+      value: { pageSize: 10, canonicalQuery: "pageSize=10" },
+    });
+    expect(parseDirectoryQuery("/directory?pageSize=25", definitions, policy)).toEqual({ ok: false });
+  });
+
+  it("fails closed on an invalid page-size registration", () => {
+    expect(parseDirectoryQuery("/directory", definitions, { sizes: [], defaultSize: 20 })).toEqual({ ok: false });
+    expect(parseDirectoryQuery("/directory", definitions, { sizes: [10, 10], defaultSize: 10 })).toEqual({ ok: false });
+    expect(parseDirectoryQuery("/directory", definitions, { sizes: [10, 30], defaultSize: 10 } as unknown as DirectoryPageSizePolicy)).toEqual({ ok: false });
+    expect(parseDirectoryQuery("/directory", definitions, { sizes: [10, 20], defaultSize: 25 })).toEqual({ ok: false });
   });
 });
