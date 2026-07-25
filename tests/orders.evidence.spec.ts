@@ -1,4 +1,4 @@
-import { createHash, randomUUID } from "node:crypto";
+import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import { join } from "node:path";
@@ -42,7 +42,7 @@ async function setLocale(page: Page, locale: "pt-BR" | "en") {
   ]);
 }
 
-const identifier = () => Buffer.from(randomUUID().replaceAll("-", ""), "hex").toString("base64url").slice(0, 24);
+const identifier = () => randomBytes(18).toString("base64url");
 
 // The public V2 checkout is 9.3.1, so the harness seeds the lifecycle fixture
 // links, orders, comments, and local outcomes directly in the disposable
