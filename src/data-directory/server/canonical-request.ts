@@ -12,6 +12,7 @@ import {
   getRawDirectoryQuery,
   parseDirectoryQuery,
   type DirectoryFilterDefinition,
+  type DirectoryPageSizePolicy,
   type ParsedDirectoryQuery,
 } from "./query-contract";
 
@@ -24,6 +25,7 @@ type CanonicalRequestInput = Readonly<{
   principal: Principal;
   orderId: string;
   validateTuple: (tuple: DirectoryCursorEnvelope["tuple"]) => boolean;
+  pageSizePolicy?: DirectoryPageSizePolicy;
 }>;
 
 export type CanonicalDirectoryRequest =
@@ -42,7 +44,7 @@ export function canonicalizeDirectoryRequest(
   if (!input.path.startsWith("/") || input.path.includes("?") || input.path.includes("#") || input.path.startsWith("//")) {
     return { status: "invalid-query" };
   }
-  const parsed = parseDirectoryQuery(input.requestTarget, input.definitions);
+  const parsed = parseDirectoryQuery(input.requestTarget, input.definitions, input.pageSizePolicy);
   if (!parsed.ok) return { status: "invalid-query" };
 
   let decodedCursor: DirectoryCursorEnvelope | undefined;

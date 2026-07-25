@@ -2,8 +2,8 @@ import "server-only";
 
 import {
   parseDirectoryQuery,
+  type DefaultDirectoryPageSize,
   type DirectoryFilterDefinition,
-  type DirectoryPageSize,
 } from "@/data-directory/server/query-contract";
 
 // Single-page catalog directories reuse the foundation's strict query decoding
@@ -16,7 +16,7 @@ export type CatalogDirectoryQuery = Readonly<{
   status: "ready";
   q?: string;
   filters: Readonly<Record<string, string | readonly string[]>>;
-  pageSize: DirectoryPageSize;
+  pageSize: DefaultDirectoryPageSize;
   notice?: string;
 }> | Readonly<{ status: "redirect"; location: string }> | Readonly<{ status: "invalid-query" }>;
 

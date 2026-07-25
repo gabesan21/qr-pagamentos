@@ -9,7 +9,7 @@ import {
 
 import { loadEncryptionKey } from "@/lib/nautt-crypto";
 
-import type { DirectoryPageSize } from "./query-contract";
+import { DIRECTORY_PAGE_SIZES, type DirectoryPageSize } from "./query-contract";
 
 export const MAX_CURSOR_DECODED_BYTES = 512;
 const CURSOR_VERSION = 1;
@@ -91,7 +91,7 @@ function isExactEnvelope(value: unknown): value is DirectoryCursorEnvelope {
     && record.directory.length <= 64
     && (record.scopePurpose === "MERCHANT_OWN" || record.scopePurpose === "ADMIN_GLOBAL")
     && (record.direction === "forward" || record.direction === "backward")
-    && (record.size === 25 || record.size === 50 || record.size === 100)
+    && (typeof record.size === "number" && DIRECTORY_PAGE_SIZES.includes(record.size as DirectoryPageSize))
     && typeof record.filterHash === "string"
     && /^[A-Za-z0-9_-]{43}$/u.test(record.filterHash)
     && typeof record.orderId === "string"
