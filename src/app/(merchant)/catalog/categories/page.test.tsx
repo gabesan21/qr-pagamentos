@@ -40,7 +40,7 @@ const product = {
   titleEn: "Espresso shot",
   descriptionPtBr: "Descrição",
   descriptionEn: "Description",
-  price: "12.50",
+  price: "12.5",
   active: true,
   categoryId: drinks.id,
   currencyCode: null,

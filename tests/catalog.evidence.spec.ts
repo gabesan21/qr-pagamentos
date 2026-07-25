@@ -204,7 +204,7 @@ test("creates the closed merchant-catalog evidence run", async ({ page }) => {
   await page.getByLabel(/Título público em inglês|Public title in English/).fill("Espresso shot");
   await page.getByLabel(/Descrição pública em português|Public description in Portuguese/).fill("Dose dupla.");
   await page.getByLabel(/Descrição pública em inglês|Public description in English/).fill("Double shot.");
-  await page.getByLabel(/Preço|Price/).fill("12.50");
+  await page.getByLabel(/Preço|Price/).fill("12.5");
   const image = await sharp({ create: { width: 800, height: 800, channels: 3, background: { r: 24, g: 122, b: 108 } } }).png().toBuffer();
   const stagingRequests: string[] = [];
   page.on("response", (response) => {
@@ -294,7 +294,7 @@ test("creates the closed merchant-catalog evidence run", async ({ page }) => {
   await page.getByLabel(/Título público em inglês|Public title in English/).fill("Filter coffee");
   await page.getByLabel(/Descrição pública em português|Public description in Portuguese/).fill("Coado na hora.");
   await page.getByLabel(/Descrição pública em inglês|Public description in English/).fill("Freshly brewed.");
-  await page.getByLabel(/Preço|Price/).fill("9.90");
+  await page.getByLabel(/Preço|Price/).fill("9.9");
   await Promise.all([
     page.waitForURL(/\/catalog\?products=create$/),
     page.locator('form#product-create').getByRole("button", { name: /Criar produto|Create product/ }).click(),

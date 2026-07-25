@@ -40,7 +40,7 @@ const product = {
   titleEn: "Espresso shot",
   descriptionPtBr: "Descrição",
   descriptionEn: "Description",
-  price: "12.50",
+  price: "12.5",
   active: true,
   categoryId: category.id,
   currencyCode: "USD",
@@ -75,7 +75,7 @@ describe("merchant catalog directory page", () => {
     const markup = renderToStaticMarkup(await CatalogPage());
     expect(markup).toContain("Espresso");
     expect(markup).toContain("Espresso shot");
-    expect(markup).toContain("12.50 USD");
+    expect(markup).toContain("12.5 USD");
     expect(markup).toContain("Drinks");
     expect(markup).toContain("Active");
     expect(markup).toContain("Archived");
