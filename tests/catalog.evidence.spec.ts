@@ -176,15 +176,23 @@ test("creates the closed merchant-catalog evidence run", async ({ page }) => {
   await page.goto(`${baseUrl}/catalog/categories`);
   await captureState("state-pt-BR-categories-empty-375");
 
+
+  // Fail fast with the opaque outcome instead of hanging when a mutation
+  // does not land on its success notice.
+  async function submitAndExpect(path: "/catalog" | "/catalog/categories", key: "products" | "categories", success: string, act: () => Promise<void>) {
+    await Promise.all([
+      page.waitForURL(new RegExp(`${path.replaceAll("/", "\\/")}\\?${key}=`),),
+      act(),
+    ]);
+    expect(new URL(page.url()).searchParams.get(key)).toBe(success);
+  }
+
   async function createCategory(namePtBr: string, nameEn: string) {
     await page.goto(`${baseUrl}/catalog/categories`);
     const form = page.locator('form#category-create');
     await form.getByLabel(/Nome em português|Name in Portuguese/).fill(namePtBr);
     await form.getByLabel(/Nome em inglês|Name in English/).fill(nameEn);
-    await Promise.all([
-      page.waitForURL(/\/catalog\/categories\?categories=create$/),
-      form.getByRole("button").click(),
-    ]);
+    await submitAndExpect("/catalog/categories", "categories", "create", () => form.getByRole("button").click());
   }
 
   await createCategory("Bebidas", "Drinks");
@@ -226,10 +234,7 @@ test("creates the closed merchant-catalog evidence run", async ({ page }) => {
   page.on("request", (request) => {
     if (request.method() === "POST" && request.url() === `${baseUrl}/products`) createPosts.push(request.postData() ?? "");
   });
-  await Promise.all([
-    page.waitForURL(/\/catalog\?products=create$/),
-    createForm.getByRole("button", { name: /Criar produto|Create product/ }).click(),
-  ]);
+  await submitAndExpect("/catalog", "products", "create", () => createForm.getByRole("button", { name: /Criar produto|Create product/ }).click());
   expect(createPosts).toHaveLength(1);
   const createFields = Object.fromEntries(new URLSearchParams(createPosts[0]));
   expect(createFields.action).toBe("create");
@@ -252,10 +257,7 @@ test("creates the closed merchant-catalog evidence run", async ({ page }) => {
   page.on("request", (request) => {
     if (request.method() === "POST" && request.url() === `${baseUrl}/product-categories`) categoryPosts.push(request.postData() ?? "");
   });
-  await Promise.all([
-    page.waitForURL(/\/catalog\/categories\?categories=deactivate$/),
-    firstBlock.getByRole("button", { name: /Desativar categoria permanentemente|Deactivate category permanently/ }).click(),
-  ]);
+  await submitAndExpect("/catalog/categories", "categories", "deactivate", () => firstBlock.getByRole("button", { name: /Desativar categoria permanentemente|Deactivate category permanently/ }).click());
   expect(categoryPosts).toHaveLength(1);
   const deactivateFields = Object.fromEntries(new URLSearchParams(categoryPosts[0]));
   expect(deactivateFields.action).toBe("deactivate");
@@ -270,10 +272,7 @@ test("creates the closed merchant-catalog evidence run", async ({ page }) => {
   const productUrl = page.url();
   const archiveDetails = page.locator("details", { has: page.locator('input[value="archive"]') });
   await archiveDetails.locator("summary").click();
-  await Promise.all([
-    page.waitForURL(/\/catalog\?products=archive$/),
-    archiveDetails.getByRole("button", { name: /Arquivar produto permanentemente|Archive product permanently/ }).click(),
-  ]);
+  await submitAndExpect("/catalog", "products", "archive", () => archiveDetails.getByRole("button", { name: /Arquivar produto permanentemente|Archive product permanently/ }).click());
   await expect(page.getByText(/Arquivado|Archived/).first()).toBeVisible();
   await page.goto(productUrl);
   await expect(page.locator('form[action="/products"]')).toHaveCount(0);
@@ -295,10 +294,7 @@ test("creates the closed merchant-catalog evidence run", async ({ page }) => {
   await page.getByLabel(/Descrição pública em português|Public description in Portuguese/).fill("Coado na hora.");
   await page.getByLabel(/Descrição pública em inglês|Public description in English/).fill("Freshly brewed.");
   await page.getByLabel(/Preço|Price/).fill("9.9");
-  await Promise.all([
-    page.waitForURL(/\/catalog\?products=create$/),
-    page.locator('form#product-create').getByRole("button", { name: /Criar produto|Create product/ }).click(),
-  ]);
+  await submitAndExpect("/catalog", "products", "create", () => page.locator('form#product-create').getByRole("button", { name: /Criar produto|Create product/ }).click());
 
   await page.goto(`${baseUrl}/catalog`);
   await page.getByRole("link", { name: /^Edit$/ }).first().click();
