@@ -46,7 +46,6 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[8.4.1-build-merchant-analytics-projection]] | Define and query owner-scoped sales, conversion, abandonment, product, link, and best-seller metrics. · size: L | 001_initial_task |
 | [[8.4.2-build-merchant-dashboard-ui]] | Build the bilingual merchant KPI/chart dashboard with recent activity and a conditional View Store action. · size: L | 001_initial_task |
 
 ## Dependency and parallel-wave map
