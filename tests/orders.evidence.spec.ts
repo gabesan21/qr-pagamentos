@@ -57,38 +57,38 @@ function seedSql() {
   const at = (minutesAgo: number) => new Date(Date.now() - minutesAgo * 60_000).toISOString();
   const statements: string[] = [
     `INSERT INTO app.catalog_currency_pair (id, label, currency_uuid, exchange_currency_uuid, active, created_at, updated_at)
-     VALUES ('${pair.id}', 'BRL/USDT', '${pair.currency}', '${pair.exchange}', true, '${at(500)}', '${at(500)}')`,
+     VALUES ('${pair.id}', 'BRL/USDT', '${pair.currency}', '${pair.exchange}', true, '${at(600)}', '${at(600)}')`,
     `INSERT INTO app.payment_link_v2 (id, identifier, owner_id, composition_kind, description_pt_br, description_en, amount, currency_pair_id, link_type, active, version, created_at, updated_at)
-     SELECT '${links.main.id}', '${links.main.identifier}', u.id, 'FIXED_AMOUNT', 'Doação mensal', 'Monthly donation', '10.50', '${pair.id}', 'REUSABLE', true, 0, '${at(400)}', '${at(400)}'
+     SELECT '${links.main.id}', '${links.main.identifier}', u.id, 'FIXED_AMOUNT', 'Doação mensal', 'Monthly donation', '10.50', '${pair.id}', 'REUSABLE', true, 0, '${at(500)}', '${at(500)}'
      FROM app."user" u WHERE u.username = '${merchantUsername}'`,
     `INSERT INTO app.payment_link_v2 (id, identifier, owner_id, composition_kind, description_pt_br, description_en, amount, currency_pair_id, link_type, active, version, created_at, updated_at)
-     SELECT '${links.other.id}', '${links.other.identifier}', u.id, 'FIXED_AMOUNT', 'Cota do clube', 'Club dues', '25', '${pair.id}', 'REUSABLE', true, 0, '${at(390)}', '${at(390)}'
+     SELECT '${links.other.id}', '${links.other.identifier}', u.id, 'FIXED_AMOUNT', 'Cota do clube', 'Club dues', '25', '${pair.id}', 'REUSABLE', true, 0, '${at(490)}', '${at(490)}'
      FROM app."user" u WHERE u.username = '${merchantUsername}'`,
     // Main order: LINK, CONFIRMED, NAME_EMAIL payer, two comments (one edited),
     // lifecycle_version 1 so the set-outcome CAS flows can run through the UI.
     `INSERT INTO app.order_v2 (id, owner_id, source, payment_link_v2_id, state, lifecycle_version, amount, currency_uuid, exchange_currency_uuid, checkout_data_policy, name, email, settled_at, created_at, updated_at)
-     SELECT '${orders.main}', u.id, 'LINK', '${links.main.id}', 'CONFIRMED', 1, '10.50', '${pair.currency}', '${pair.exchange}', 'NAME_EMAIL', 'Ana Evidence', 'ana@example.com', '${at(300)}', '${at(320)}', '${at(300)}'
+     SELECT '${orders.main}', u.id, 'LINK', '${links.main.id}', 'CONFIRMED', 1, '10.50', '${pair.currency}', '${pair.exchange}', 'NAME_EMAIL', 'Ana Evidence', 'ana@example.com', '${at(18)}', '${at(20)}', '${at(18)}'
      FROM app."user" u WHERE u.username = '${merchantUsername}'`,
     `INSERT INTO app.order_comment_v2 (id, order_id, owner_id, author_id, body, version, created_at, edited_at)
-     SELECT '${comments.seeded}', '${orders.main}', u.id, u.id, 'Comentário original', 0, '${at(310)}', NULL
+     SELECT '${comments.seeded}', '${orders.main}', u.id, u.id, 'Comentário original', 0, '${at(15)}', NULL
      FROM app."user" u WHERE u.username = '${merchantUsername}'`,
     `INSERT INTO app.order_comment_v2 (id, order_id, owner_id, author_id, body, version, created_at, edited_at)
-     SELECT '${comments.edited}', '${orders.main}', u.id, u.id, 'Nota revisada', 1, '${at(309)}', '${at(308)}'
+     SELECT '${comments.edited}', '${orders.main}', u.id, u.id, 'Nota revisada', 1, '${at(14)}', '${at(13)}'
      FROM app."user" u WHERE u.username = '${merchantUsername}'`,
     // AD_HOC order: no payment state, no collected payer.
     `INSERT INTO app.order_v2 (id, owner_id, source, state, lifecycle_version, amount, currency_uuid, exchange_currency_uuid, description_pt_br, description_en, checkout_data_policy, created_at, updated_at)
-     SELECT '${orders.adhoc}', u.id, 'AD_HOC', NULL, 1, '7.25', '${pair.currency}', '${pair.exchange}', 'Venda avulsa', 'Ad hoc sale', 'NONE', '${at(200)}', '${at(200)}'
+     SELECT '${orders.adhoc}', u.id, 'AD_HOC', NULL, 1, '7.25', '${pair.currency}', '${pair.exchange}', 'Venda avulsa', 'Ad hoc sale', 'NONE', '${at(30)}', '${at(30)}'
      FROM app."user" u WHERE u.username = '${merchantUsername}'`,
     // Rejected LINK order with a cancelled local outcome.
     `INSERT INTO app.order_v2 (id, owner_id, source, payment_link_v2_id, state, lifecycle_version, amount, currency_uuid, exchange_currency_uuid, checkout_data_policy, email, created_at, updated_at)
-     SELECT '${orders.cancelled}', u.id, 'LINK', '${links.other.id}', 'REJECTED', 2, '25', '${pair.currency}', '${pair.exchange}', 'EMAIL', 'bruno@example.com', '${at(100)}', '${at(90)}'
+     SELECT '${orders.cancelled}', u.id, 'LINK', '${links.other.id}', 'REJECTED', 2, '25', '${pair.currency}', '${pair.exchange}', 'EMAIL', 'bruno@example.com', '${at(40)}', '${at(35)}'
      FROM app."user" u WHERE u.username = '${merchantUsername}'`,
     `INSERT INTO app.order_local_outcome_v2 (id, order_id, owner_id, outcome, note, actor_id, created_at)
-     SELECT '${randomUUID()}', '${orders.cancelled}', u.id, 'LOCAL_CANCELLED', 'Chargeback manual', u.id, '${at(90)}'
+     SELECT '${randomUUID()}', '${orders.cancelled}', u.id, 'LOCAL_CANCELLED', 'Chargeback manual', u.id, '${at(35)}'
      FROM app."user" u WHERE u.username = '${merchantUsername}'`,
     ...fillers.map((filler) =>
       `INSERT INTO app.order_v2 (id, owner_id, source, payment_link_v2_id, state, lifecycle_version, amount, currency_uuid, exchange_currency_uuid, checkout_data_policy, name, created_at, updated_at)
-       SELECT '${filler.id}', u.id, 'LINK', '${links.other.id}', 'PENDING', 1, '1', '${pair.currency}', '${pair.exchange}', 'NAME_EMAIL', 'Pagador ${filler.index}', '${at(80 - filler.index)}', '${at(80 - filler.index)}'
+       SELECT '${filler.id}', u.id, 'LINK', '${links.other.id}', 'PENDING', 1, '1', '${pair.currency}', '${pair.exchange}', 'NAME_EMAIL', 'Pagador ${filler.index}', '${at(100 + filler.index)}', '${at(100 + filler.index)}'
        FROM app."user" u WHERE u.username = '${merchantUsername}'`),
   ];
   return { sql: `${statements.join(";\n")};\n`, links, orders, comments };
