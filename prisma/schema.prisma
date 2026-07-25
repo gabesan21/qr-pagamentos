@@ -49,6 +49,10 @@ model User {
   paymentLinksV2   PaymentLinkV2[]
   paymentLinkOrders PaymentLinkOrder[]
   checkoutAttempts CheckoutAttempt[]
+  ordersV2         OrderV2[]
+  orderCommentsV2  OrderCommentV2[]
+  orderLocalOutcomesV2 OrderLocalOutcomeV2[]
+  checkoutAttemptsV2 CheckoutAttemptV2[]
   webhookDeliveries WebhookDelivery[]
   mediaObjects       MediaObject[]
   sessions          Session[]
@@ -202,6 +206,7 @@ model Product {
   paymentLinks    PaymentLink[]
   paymentLinkV2Lines PaymentLinkV2Line[]
   paymentLinkOrders PaymentLinkOrder[]
+  orderV2Lines    OrderV2Line[]
 
   @@unique([id, ownerId], map: "product_id_owner_id_key")
   @@index([ownerId, internalName, id], map: "product_owner_internal_name_id_idx")
@@ -275,6 +280,9 @@ model PaymentLinkV2 {
   owner           User                @relation(fields: [ownerId], references: [id], onDelete: Restrict)
   currencyPair    CatalogCurrencyPair @relation(fields: [currencyPairId], references: [id], onDelete: Restrict)
   lines           PaymentLinkV2Line[]
+  orders          OrderV2[]
+  checkoutAttempts CheckoutAttemptV2[]
+  singleUseSettlement PaymentLinkV2SingleUseSettlement?
 
   @@unique([id, ownerId], map: "payment_link_v2_id_owner_id_key")
   @@index([ownerId, createdAt, id], map: "payment_link_v2_owner_created_at_id_idx")
@@ -295,6 +303,140 @@ model PaymentLinkV2Line {
   @@id([paymentLinkV2Id, position], map: "payment_link_v2_line_pkey")
   @@unique([paymentLinkV2Id, productId], map: "payment_link_v2_line_link_product_key")
   @@map("payment_link_v2_line")
+  @@schema("app")
+}
+
+model OrderV2 {
+  id                   String    @id @db.Uuid
+  ownerId              String    @map("owner_id") @db.Uuid
+  source               String    @db.Text
+  paymentLinkV2Id      String?   @map("payment_link_v2_id") @db.Uuid
+  state                String?   @db.VarChar(13)
+  lifecycleVersion     Int       @map("lifecycle_version") @db.Integer
+  amount               String    @db.Text
+  currencyUuid         String    @map("currency_uuid") @db.Uuid
+  exchangeCurrencyUuid String    @map("exchange_currency_uuid") @db.Uuid
+  descriptionPtBr      String?   @map("description_pt_br") @db.VarChar(160)
+  descriptionEn        String?   @map("description_en") @db.VarChar(160)
+  checkoutDataPolicy   String    @map("checkout_data_policy") @db.VarChar(22)
+  name                 String?   @db.VarChar(160)
+  email                String?   @db.VarChar(254)
+  cpf                  String?   @db.VarChar(11)
+  street               String?   @db.VarChar(160)
+  number               String?   @db.VarChar(32)
+  district             String?   @db.VarChar(120)
+  city                 String?   @db.VarChar(120)
+  stateUf              String?   @map("state_uf") @db.VarChar(2)
+  postalCode           String?   @map("postal_code") @db.VarChar(8)
+  country              String?   @db.VarChar(2)
+  complement           String?   @db.VarChar(160)
+  settledAt            DateTime? @map("settled_at") @db.Timestamptz(3)
+  createdAt            DateTime  @map("created_at") @db.Timestamptz(3)
+  updatedAt            DateTime  @map("updated_at") @db.Timestamptz(3)
+  owner                User      @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  paymentLink          PaymentLinkV2? @relation(fields: [paymentLinkV2Id, ownerId], references: [id, ownerId], onDelete: Restrict)
+  lines                OrderV2Line[]
+  comments             OrderCommentV2[]
+  localOutcomes        OrderLocalOutcomeV2[]
+  providerOrders       ProviderOrder[]
+  checkoutAttempt      CheckoutAttemptV2?
+  singleUseSettlement  PaymentLinkV2SingleUseSettlement?
+
+  @@unique([id, ownerId], map: "order_v2_id_owner_id_key")
+  @@index([ownerId, createdAt, id], map: "order_v2_owner_created_at_id_idx")
+  @@index([ownerId, source, createdAt, id], map: "order_v2_owner_source_created_at_id_idx")
+  @@index([ownerId, state, createdAt, id], map: "order_v2_owner_state_created_at_id_idx")
+  @@index([paymentLinkV2Id, createdAt, id], map: "order_v2_link_created_at_id_idx")
+  @@map("order_v2")
+  @@schema("app")
+}
+
+model OrderV2Line {
+  orderId   String @map("order_id") @db.Uuid
+  ownerId   String @map("owner_id") @db.Uuid
+  productId String @map("product_id") @db.Uuid
+  position  Int    @db.Integer
+  quantity  Int    @db.Integer
+  unitPrice String @map("unit_price") @db.Text
+  order     OrderV2 @relation(fields: [orderId, ownerId], references: [id, ownerId], onDelete: Restrict)
+  product   Product @relation(fields: [productId, ownerId], references: [id, ownerId], onDelete: Restrict)
+
+  @@id([orderId, position], map: "order_v2_line_pkey")
+  @@unique([orderId, productId], map: "order_v2_line_order_product_key")
+  @@map("order_v2_line")
+  @@schema("app")
+}
+
+model OrderCommentV2 {
+  id        String    @id @db.Uuid
+  orderId   String    @map("order_id") @db.Uuid
+  ownerId   String    @map("owner_id") @db.Uuid
+  authorId  String    @map("author_id") @db.Uuid
+  body      String    @db.VarChar(2000)
+  version   Int       @db.Integer
+  createdAt DateTime  @map("created_at") @db.Timestamptz(3)
+  editedAt  DateTime? @map("edited_at") @db.Timestamptz(3)
+  order     OrderV2   @relation(fields: [orderId, ownerId], references: [id, ownerId], onDelete: Restrict)
+  author    User      @relation(fields: [authorId], references: [id], onDelete: Restrict)
+
+  @@index([orderId, createdAt, id], map: "order_comment_v2_order_created_at_id_idx")
+  @@map("order_comment_v2")
+  @@schema("app")
+}
+
+model OrderLocalOutcomeV2 {
+  id        String   @id @db.Uuid
+  orderId   String   @map("order_id") @db.Uuid
+  ownerId   String   @map("owner_id") @db.Uuid
+  outcome   String   @db.VarChar(16)
+  note      String?  @db.VarChar(2000)
+  actorId   String   @map("actor_id") @db.Uuid
+  createdAt DateTime @map("created_at") @db.Timestamptz(3)
+  order     OrderV2  @relation(fields: [orderId, ownerId], references: [id, ownerId], onDelete: Restrict)
+  actor     User     @relation(fields: [actorId], references: [id], onDelete: Restrict)
+
+  @@index([orderId, createdAt, id], map: "order_local_outcome_v2_order_created_at_id_idx")
+  @@map("order_local_outcome_v2")
+  @@schema("app")
+}
+
+model CheckoutAttemptV2 {
+  id                   String    @id @db.Uuid
+  ownerId              String    @map("owner_id") @db.Uuid
+  paymentLinkV2Id      String    @map("payment_link_v2_id") @db.Uuid
+  orderV2Id            String    @unique(map: "checkout_attempt_v2_order_v2_id_key") @map("order_v2_id") @db.Uuid
+  retryKeyVerifier     String    @map("retry_key_verifier") @db.VarChar(64)
+  requestVerifier      String    @map("request_verifier") @db.VarChar(64)
+  capabilityNonce      String    @map("capability_nonce") @db.VarChar(43)
+  capabilityKeyVersion String    @map("capability_key_version") @db.VarChar(16)
+  capabilityVerifier   String    @map("capability_verifier") @db.VarChar(64)
+  capabilityExpiresAt  DateTime  @map("capability_expires_at") @db.Timestamptz(3)
+  capabilityRevokedAt  DateTime? @map("capability_revoked_at") @db.Timestamptz(3)
+  state                String    @db.VarChar(13)
+  createdAt            DateTime  @map("created_at") @db.Timestamptz(3)
+  updatedAt            DateTime  @map("updated_at") @db.Timestamptz(3)
+  owner                User      @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  paymentLink          PaymentLinkV2 @relation(fields: [paymentLinkV2Id, ownerId], references: [id, ownerId], onDelete: Restrict)
+  order                OrderV2   @relation(fields: [orderV2Id, ownerId], references: [id, ownerId], onDelete: Restrict)
+
+  @@unique([paymentLinkV2Id, retryKeyVerifier], map: "checkout_attempt_v2_link_retry_key_verifier_key")
+  @@unique([orderV2Id, ownerId], map: "checkout_attempt_v2_order_owner_key")
+  @@index([ownerId, capabilityExpiresAt], map: "checkout_attempt_v2_owner_capability_expiry_idx")
+  @@map("checkout_attempt_v2")
+  @@schema("app")
+}
+
+model PaymentLinkV2SingleUseSettlement {
+  paymentLinkV2Id String   @id @map("payment_link_v2_id") @db.Uuid
+  ownerId         String   @map("owner_id") @db.Uuid
+  orderV2Id       String   @unique(map: "payment_link_v2_single_use_settlement_order_key") @map("order_v2_id") @db.Uuid
+  claimedAt       DateTime @map("claimed_at") @db.Timestamptz(3)
+  paymentLink     PaymentLinkV2 @relation(fields: [paymentLinkV2Id, ownerId], references: [id, ownerId], onDelete: Restrict)
+  order           OrderV2  @relation(fields: [orderV2Id, ownerId], references: [id, ownerId], onDelete: Restrict)
+
+  @@unique([paymentLinkV2Id, ownerId], map: "payment_link_v2_single_use_settlement_link_owner_key")
+  @@unique([orderV2Id, ownerId], map: "payment_link_v2_single_use_settlement_order_owner_key")
+  @@map("payment_link_v2_single_use_settlement")
   @@schema("app")
 }
 
@@ -328,6 +470,7 @@ model ProviderOrder {
   pixCopyPaste          String?   @map("pix_copy_paste") @db.Text
   pixQrcodeUrl          String?   @map("pix_qrcode_url") @db.Text
   paymentLinkOrderId    String?   @unique(map: "provider_order_payment_link_order_id_key") @map("payment_link_order_id") @db.Uuid
+  orderV2Id             String?   @map("order_v2_id") @db.Uuid
   reconciliationVersion Int       @default(0) @map("reconciliation_version") @db.Integer
   createdAt             DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt             DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
@@ -336,11 +479,13 @@ model ProviderOrder {
   webhookDeliveries     WebhookDelivery[]
   webhookRecoveryLease  WebhookRecoveryLease?
   paymentLinkOrder      PaymentLinkOrder? @relation("PaymentLinkOrderProviderOrder", fields: [paymentLinkOrderId, ownerId], references: [id, ownerId], onDelete: Restrict)
+  orderV2               OrderV2? @relation(fields: [orderV2Id, ownerId], references: [id, ownerId], onDelete: Restrict)
 
   @@index([ownerId, status], map: "provider_order_owner_status_idx")
   @@unique([id, ownerId], map: "provider_order_id_owner_id_key")
   @@unique([quoteUuid, ownerId], map: "provider_order_quote_uuid_owner_id_key")
   @@unique([paymentLinkOrderId, ownerId], map: "provider_order_payment_link_order_owner_key")
+  @@unique([orderV2Id, ownerId], map: "provider_order_order_v2_owner_key")
   @@map("provider_order")
   @@schema("app")
 }

@@ -72,3 +72,42 @@ BEGIN
   END IF;
 END
 $catalog_currency_pair_acl$;
+
+-- Commerce V2 least-privilege pinning: the blanket DML grant above re-grants
+-- every privilege on every pass, so these relation-guarded blocks restore the
+-- exact privilege set the owning migration pinned.
+DO $order_v2_line_acl$
+BEGIN
+  IF to_regclass('app.order_v2_line') IS NOT NULL THEN
+    REVOKE ALL PRIVILEGES ON TABLE app.order_v2_line FROM qr_runtime;
+    GRANT SELECT, INSERT ON TABLE app.order_v2_line TO qr_runtime;
+  END IF;
+END
+$order_v2_line_acl$;
+
+DO $order_comment_v2_acl$
+BEGIN
+  IF to_regclass('app.order_comment_v2') IS NOT NULL THEN
+    REVOKE ALL PRIVILEGES ON TABLE app.order_comment_v2 FROM qr_runtime;
+    GRANT SELECT, INSERT, UPDATE ON TABLE app.order_comment_v2 TO qr_runtime;
+  END IF;
+END
+$order_comment_v2_acl$;
+
+DO $order_local_outcome_v2_acl$
+BEGIN
+  IF to_regclass('app.order_local_outcome_v2') IS NOT NULL THEN
+    REVOKE ALL PRIVILEGES ON TABLE app.order_local_outcome_v2 FROM qr_runtime;
+    GRANT SELECT, INSERT ON TABLE app.order_local_outcome_v2 TO qr_runtime;
+  END IF;
+END
+$order_local_outcome_v2_acl$;
+
+DO $payment_link_v2_single_use_settlement_acl$
+BEGIN
+  IF to_regclass('app.payment_link_v2_single_use_settlement') IS NOT NULL THEN
+    REVOKE ALL PRIVILEGES ON TABLE app.payment_link_v2_single_use_settlement FROM qr_runtime;
+    GRANT SELECT, INSERT ON TABLE app.payment_link_v2_single_use_settlement TO qr_runtime;
+  END IF;
+END
+$payment_link_v2_single_use_settlement_acl$;
