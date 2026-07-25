@@ -37,7 +37,6 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[8.3.2-add-owner-order-local-actions]] | Add CAS-protected owner comment and local finalize/cancel commands without overwriting Nautt truth. · size: L | 001_initial_task |
 | [[8.3.3-build-owner-orders-management-ui]] | Build the bilingual responsive order table/detail UI with page-size localStorage preference and guarded actions. · size: L | 001_initial_task |
 
 ## Phase 8.4 - Merchant dashboard

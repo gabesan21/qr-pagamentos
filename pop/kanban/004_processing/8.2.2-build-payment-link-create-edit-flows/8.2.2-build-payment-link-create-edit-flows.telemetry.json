@@ -2,7 +2,7 @@
   "version": 1,
   "events": [
     {
-      "at": "2026-07-25T15:10:34-03:00",
+      "at": "2026-07-25T16:58:46-03:00",
       "event": "transition",
       "from": "001_initial_task",
       "to": "002_planning",
@@ -11,7 +11,7 @@
       "result": "advanced"
     },
     {
-      "at": "2026-07-25T15:17:41-03:00",
+      "at": "2026-07-25T17:08:51-03:00",
       "event": "transition",
       "from": "002_planning",
       "to": "003_human_approval",
@@ -20,13 +20,13 @@
       "result": "advanced"
     },
     {
-      "at": "2026-07-25T18:20:00Z",
-      "event": "gate_003_critic",
-      "stage": "003_human_approval",
-      "contexts": ["strong-critic"],
+      "at": "2026-07-25T17:33:00-03:00",
+      "event": "transition",
+      "from": "003_human_approval",
+      "to": "004_processing",
+      "contexts": [],
       "test_seconds": 0,
-      "result": "approved",
-      "returns": 0
+      "result": "advanced"
     }
   ]
 }
