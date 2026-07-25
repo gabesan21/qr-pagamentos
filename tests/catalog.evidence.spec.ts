@@ -273,7 +273,7 @@ test("creates the closed merchant-catalog evidence run", async ({ page }) => {
   const archiveDetails = page.locator("details", { has: page.locator('input[value="archive"]') });
   await archiveDetails.locator("summary").click();
   await submitAndExpect("/catalog", "products", "archive", () => archiveDetails.getByRole("button", { name: /Arquivar produto permanentemente|Archive product permanently/ }).click());
-  await expect(page.getByText(/Arquivado|Archived/).first()).toBeVisible();
+  await expect(page.locator('[data-slot="badge"]', { hasText: /Arquivado|Archived/ }).first()).toBeVisible();
   await page.goto(productUrl);
   await expect(page.locator('form[action="/products"]')).toHaveCount(0);
   await expect(page.getByRole("button", { name: /Editar|Edit|Arquivar|Archive/ })).toHaveCount(0);
