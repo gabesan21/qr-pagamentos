@@ -12,6 +12,7 @@ const token = randomUUID().replaceAll("-", "").slice(0, 12);
 const appShellMode = process.argv.includes("--app-shell");
 const profileMode = process.argv.includes("--profile");
 const storeSettingsMode = process.argv.includes("--store-settings");
+const catalogMode = process.argv.includes("--catalog");
 const project = `qrae${process.pid}${token}`.toLowerCase();
 const temporary = await mkdtemp(path.join(tmpdir(), `${project}-`));
 const sources = path.join(temporary, "sources");
@@ -71,9 +72,11 @@ try {
     ? "tests/profile.evidence.spec.ts"
     : storeSettingsMode
       ? "tests/store-settings.evidence.spec.ts"
-      : appShellMode
-        ? "tests/app-shell.evidence.spec.ts"
-        : "tests/admin.evidence.spec.ts";
+      : catalogMode
+        ? "tests/catalog.evidence.spec.ts"
+        : appShellMode
+          ? "tests/app-shell.evidence.spec.ts"
+          : "tests/admin.evidence.spec.ts";
   const playwright = spawn(path.join(process.cwd(), "node_modules/.bin/playwright"), ["test", evidenceTest, "--project=chromium", "--workers=1"], {
     cwd: process.cwd(),
     env: {
@@ -84,6 +87,7 @@ try {
       APP_SHELL_EVIDENCE_MERCHANT_PASSWORD: `Merchant-${token}-Password`,
       PROFILE_EVIDENCE_MERCHANT_PASSWORD: `Merchant-${token}-Password`,
       STORE_SETTINGS_EVIDENCE_MERCHANT_PASSWORD: `Merchant-${token}-Password`,
+      CATALOG_EVIDENCE_MERCHANT_PASSWORD: `Merchant-${token}-Password`,
     },
     stdio: "inherit",
   });

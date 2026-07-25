@@ -11,13 +11,12 @@ export default async function MerchantDashboardPage({
     "checkout-policy"?: string;
     "payment-links"?: string;
     language?: string;
-    products?: string;
     storefront?: string;
   }>;
 }> = {}) {
   const { dictionary } = await requireMerchantShellContext();
   const notices = await searchParams;
-  const ownerNotice = notices.products ?? notices["payment-links"] ?? notices["checkout-policy"] ?? notices.storefront;
+  const ownerNotice = notices["payment-links"] ?? notices["checkout-policy"] ?? notices.storefront;
   const failed = ownerNotice === "failed" || ownerNotice === "conflict";
 
   return (

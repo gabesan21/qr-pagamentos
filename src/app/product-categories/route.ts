@@ -35,14 +35,14 @@ export async function POST(request: Request) {
         } else {
           throw new Error("Unsupported category action");
         }
-        return relativeRedirect(`/?categories=${action}`);
+        return relativeRedirect(`/catalog/categories?categories=${action}`);
       } catch (error) {
         const protectedResponse = ownerProtectedMutationResponse(error);
         if (protectedResponse) return protectedResponse;
         return relativeRedirect(
           error instanceof ProductCategoryConflictError
-            ? "/?categories=conflict"
-            : "/?categories=failed",
+            ? "/catalog/categories?categories=conflict"
+            : "/catalog/categories?categories=failed",
         );
       }
     },

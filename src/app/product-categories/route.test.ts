@@ -102,9 +102,9 @@ describe("owner product category route", () => {
     expect(create).toHaveBeenCalledWith(owner, { namePtBr: "Doações", nameEn: "Donations" });
     expect(update).toHaveBeenCalledWith(owner, categoryId, "2", { namePtBr: "Cursos", nameEn: "Courses" });
     expect(deactivate).toHaveBeenCalledWith(owner, categoryId, "3", replacementId);
-    expect(createResponse.headers.get("location")).toBe("/?categories=create");
-    expect(editResponse.headers.get("location")).toBe("/?categories=edit");
-    expect(deactivateResponse.headers.get("location")).toBe("/?categories=deactivate");
+    expect(createResponse.headers.get("location")).toBe("/catalog/categories?categories=create");
+    expect(editResponse.headers.get("location")).toBe("/catalog/categories?categories=edit");
+    expect(deactivateResponse.headers.get("location")).toBe("/catalog/categories?categories=deactivate");
   });
 
   it("maps all unavailable category mutations to one opaque conflict redirect", async () => {
@@ -117,7 +117,7 @@ describe("owner product category route", () => {
       nameEn: "Unknown",
     }));
     expect(response.status).toBe(303);
-    expect(response.headers.get("location")).toBe("/?categories=conflict");
+    expect(response.headers.get("location")).toBe("/catalog/categories?categories=conflict");
     expect(await response.text()).toBe("");
   });
 });

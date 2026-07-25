@@ -35,11 +35,11 @@ export async function POST(request: Request) {
       else if (action === "archive") await service.archive(actor, form.get("id"), form.get("version"));
       else if (action === "delete") await service.delete(actor, form.get("id"), form.get("version"));
       else throw new Error("Unsupported product action");
-      return relativeRedirect(`/?products=${action}`);
+      return relativeRedirect(`/catalog?products=${action}`);
     } catch (error) {
       const protectedResponse = ownerProtectedMutationResponse(error);
       if (protectedResponse) return protectedResponse;
-      return relativeRedirect(error instanceof ProductConflictError ? "/?products=conflict" : "/?products=failed");
+      return relativeRedirect(error instanceof ProductConflictError ? "/catalog?products=conflict" : "/catalog?products=failed");
     }
   });
 }
