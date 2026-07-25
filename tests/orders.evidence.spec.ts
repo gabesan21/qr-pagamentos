@@ -338,6 +338,7 @@ test("creates the closed merchant orders evidence run", async ({ page }) => {
   await expect(page).toHaveURL(/\/orders\?pageSize=10$/);
   const explicit = await page.locator("#orders-v2-page-size").inputValue();
   expect(explicit).toBe("10");
+  await page.waitForFunction(() => window.localStorage.getItem("qr-orders-v2-page-size") === "10");
   const persisted = await page.evaluate(() => window.localStorage.getItem("qr-orders-v2-page-size"));
   expect(persisted).toBe("10");
   assertions.push({ state: "page-size-preference", applied: 50, persisted: 10 });
