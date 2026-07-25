@@ -343,6 +343,9 @@ test("creates the closed merchant orders evidence run", async ({ page }) => {
   expect(persisted).toBe("10");
   assertions.push({ state: "page-size-preference", applied: 50, persisted: 10 });
   await captureState("state-en-orders-page-size-preference-1440");
+  // The grid captures the default directory: drop the stored preference so
+  // the bare `/orders` visits below never trigger the client-side navigation.
+  await page.evaluate(() => window.localStorage.removeItem("qr-orders-v2-page-size"));
 
   // ---- shared directory grid: six themes, both locales, three widths ----
   for (const locale of locales) {
