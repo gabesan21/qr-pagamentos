@@ -43,6 +43,8 @@
     "store-settings:evidence:verify": "node scripts/verify-store-settings-evidence.mjs",
     "catalog:evidence": "node scripts/run-catalog-evidence.mjs",
     "catalog:evidence:verify": "node scripts/verify-catalog-evidence.mjs",
+    "links:evidence": "node scripts/run-payment-links-evidence.mjs",
+    "links:evidence:verify": "node scripts/verify-payment-links-evidence.mjs",
     "epoch1:source-check": "node scripts/check-epoch1-source.mjs",
     "media:decoder-preflight": "node scripts/media-decoder-preflight.mjs",
     "precheck": "pnpm db:generate",

@@ -141,6 +141,18 @@ the service's atomic reassignment; a referenced category with no active
 replacement explains the blocked deactivation instead of offering a submit,
 and inactive rows stay listed, badge-marked, and edit-locked.
 
+The merchant `/links` workspace composes the full data-directory contract —
+canonical `307` resets, signed keyset cursor URLs, and page sizes 25/50/100 —
+as the Commerce V2 payment-link directory above the untouched V1 management
+section. Rows carry summary, composition-kind and type facts, the derived
+never-color-only active/inactive/expired/paid `Badge` vocabulary, a tabular
+expiry, the `/pay/[identifier]` share page link, and a read-only view action;
+`/links/v2/[id]` renders the same ruled fact composition as the order detail,
+including ordered product lines or the fixed amount, the share URL with an
+observation-only copy button, and one opaque destructive-`Alert` unavailable
+view for cross-owner, malformed, or missing identities. No mutation control
+exists on either surface.
+
 The deterministic `/design-system` exercise surface resolves its dictionary from
 the same server preference contract as the authenticated shell and presents all
 applicable states, including labelled default, populated, disabled, and invalid
@@ -340,6 +352,21 @@ POSTs binding category, currency, staged image, and a distinct replacement, no
 mutation control on archived products, and the same axe, overflow, target, and
 focus gates as the other evidence surfaces; the review is manifest-hash-bound
 and accepts no unresolved severity 2 or greater finding.
+
+`pnpm links:evidence` and `pnpm links:evidence:verify` bind 44 merchant
+payment-link directory captures: the keyset-paginated `/links` V2 directory
+across six themes, both locales, and widths 375/768/1440 (36), plus eight
+localized state captures covering the empty directory, 320-pixel reflow, the
+product-lines and fixed-amount read-only details, the opaque unavailable
+detail, filtered-empty, invalid-query, and the second keyset page. The run
+seeds V2 links, orders, and a single-use settlement directly in the disposable
+database (the 8.2.2 create UI and 9.3.1 checkout do not exist yet), proves the
+four derived lifecycle badges, the share URL, bounded 25/10 pagination with
+distinct pages, and the same axe, overflow, target, and focus gates as the
+other evidence surfaces; the error directory state is covered by page tests
+because stopping the disposable database would break session resolution before
+the directory read. The review is manifest-hash-bound and accepts no
+unresolved severity 2 or greater finding.
 
 The status rail and panels use ruled separation and restrained corners. Never
 make a page-specific button variant: use owned `Button` variants. Motion is

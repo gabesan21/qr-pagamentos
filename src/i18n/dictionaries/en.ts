@@ -4,6 +4,7 @@ import { designSystemEn } from "./design-system/en";
 import { administrationEn } from "./administration/en";
 import { productsEn } from "./products/en";
 import { paymentLinksEn } from "./payment-links/en";
+import { paymentLinksDirectoryEn } from "./payment-links-directory/en";
 import { checkoutPolicyEn } from "./checkout-policy/en";
 import { storefrontEn } from "./storefront/en";
 import { checkoutEn } from "./checkout/en";
@@ -22,6 +23,7 @@ export const en = {
   ...administrationEn,
   ...productsEn,
   ...paymentLinksEn,
+  ...paymentLinksDirectoryEn,
   ...checkoutPolicyEn,
   ...storefrontEn,
   ...checkoutEn,
