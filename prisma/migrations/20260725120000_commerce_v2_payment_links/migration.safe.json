@@ -1,0 +1,655 @@
+{
+  "version": 1,
+  "id": "20260725120000_commerce_v2_payment_links",
+  "operations": [
+    {
+      "op": "createTable",
+      "table": {
+        "schema": "app",
+        "name": "payment_link_v2"
+      },
+      "columns": [
+        {
+          "name": "id",
+          "type": {
+            "name": "uuid"
+          },
+          "nullable": false
+        },
+        {
+          "name": "identifier",
+          "type": {
+            "name": "varchar",
+            "length": 24
+          },
+          "nullable": false
+        },
+        {
+          "name": "owner_id",
+          "type": {
+            "name": "uuid"
+          },
+          "nullable": false
+        },
+        {
+          "name": "composition_kind",
+          "type": {
+            "name": "varchar",
+            "length": 13
+          },
+          "nullable": false
+        },
+        {
+          "name": "description_pt_br",
+          "type": {
+            "name": "varchar",
+            "length": 160
+          },
+          "nullable": true
+        },
+        {
+          "name": "description_en",
+          "type": {
+            "name": "varchar",
+            "length": 160
+          },
+          "nullable": true
+        },
+        {
+          "name": "amount",
+          "type": {
+            "name": "text"
+          },
+          "nullable": true
+        },
+        {
+          "name": "currency_pair_id",
+          "type": {
+            "name": "uuid"
+          },
+          "nullable": false
+        },
+        {
+          "name": "link_type",
+          "type": {
+            "name": "varchar",
+            "length": 10
+          },
+          "nullable": false
+        },
+        {
+          "name": "expires_at",
+          "type": {
+            "name": "timestamptz"
+          },
+          "nullable": true
+        },
+        {
+          "name": "active",
+          "type": {
+            "name": "boolean"
+          },
+          "nullable": false
+        },
+        {
+          "name": "version",
+          "type": {
+            "name": "integer"
+          },
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "type": {
+            "name": "timestamptz"
+          },
+          "nullable": false
+        },
+        {
+          "name": "updated_at",
+          "type": {
+            "name": "timestamptz"
+          },
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "op": "createTable",
+      "table": {
+        "schema": "app",
+        "name": "payment_link_v2_line"
+      },
+      "columns": [
+        {
+          "name": "payment_link_v2_id",
+          "type": {
+            "name": "uuid"
+          },
+          "nullable": false
+        },
+        {
+          "name": "owner_id",
+          "type": {
+            "name": "uuid"
+          },
+          "nullable": false
+        },
+        {
+          "name": "product_id",
+          "type": {
+            "name": "uuid"
+          },
+          "nullable": false
+        },
+        {
+          "name": "position",
+          "type": {
+            "name": "integer"
+          },
+          "nullable": false
+        },
+        {
+          "name": "quantity",
+          "type": {
+            "name": "integer"
+          },
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "payment_link_v2"
+      },
+      "constraint": {
+        "kind": "primaryKey",
+        "name": "payment_link_v2_pkey",
+        "columns": [
+          "id"
+        ]
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "payment_link_v2"
+      },
+      "constraint": {
+        "kind": "unique",
+        "name": "payment_link_v2_identifier_key",
+        "columns": [
+          "identifier"
+        ]
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "payment_link_v2"
+      },
+      "constraint": {
+        "kind": "unique",
+        "name": "payment_link_v2_id_owner_id_key",
+        "columns": [
+          "id",
+          "owner_id"
+        ]
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "payment_link_v2"
+      },
+      "constraint": {
+        "kind": "foreignKey",
+        "name": "payment_link_v2_owner_fkey",
+        "columns": [
+          "owner_id"
+        ],
+        "references": {
+          "table": {
+            "schema": "app",
+            "name": "user"
+          },
+          "columns": [
+            "id"
+          ]
+        },
+        "onDelete": "RESTRICT",
+        "onUpdate": "CASCADE",
+        "notValid": false
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "payment_link_v2"
+      },
+      "constraint": {
+        "kind": "foreignKey",
+        "name": "payment_link_v2_currency_pair_fkey",
+        "columns": [
+          "currency_pair_id"
+        ],
+        "references": {
+          "table": {
+            "schema": "app",
+            "name": "catalog_currency_pair"
+          },
+          "columns": [
+            "id"
+          ]
+        },
+        "onDelete": "RESTRICT",
+        "onUpdate": "CASCADE",
+        "notValid": false
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "payment_link_v2"
+      },
+      "constraint": {
+        "kind": "check",
+        "name": "payment_link_v2_composition_kind_closed",
+        "expression": {
+          "op": "in",
+          "column": "composition_kind",
+          "values": [
+            {
+              "kind": "string",
+              "value": "PRODUCT_LINES"
+            },
+            {
+              "kind": "string",
+              "value": "FIXED_AMOUNT"
+            }
+          ]
+        },
+        "notValid": false
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "payment_link_v2"
+      },
+      "constraint": {
+        "kind": "check",
+        "name": "payment_link_v2_composition_complete",
+        "expression": {
+          "op": "or",
+          "items": [
+            {
+              "op": "and",
+              "items": [
+                {
+                  "op": "eq",
+                  "left": {
+                    "kind": "column",
+                    "name": "composition_kind"
+                  },
+                  "right": {
+                    "kind": "literal",
+                    "literal": {
+                      "kind": "string",
+                      "value": "FIXED_AMOUNT"
+                    }
+                  }
+                },
+                {
+                  "op": "isNull",
+                  "column": "description_pt_br",
+                  "is": false
+                },
+                {
+                  "op": "isNull",
+                  "column": "description_en",
+                  "is": false
+                },
+                {
+                  "op": "isNull",
+                  "column": "amount",
+                  "is": false
+                }
+              ]
+            },
+            {
+              "op": "and",
+              "items": [
+                {
+                  "op": "eq",
+                  "left": {
+                    "kind": "column",
+                    "name": "composition_kind"
+                  },
+                  "right": {
+                    "kind": "literal",
+                    "literal": {
+                      "kind": "string",
+                      "value": "PRODUCT_LINES"
+                    }
+                  }
+                },
+                {
+                  "op": "isNull",
+                  "column": "description_pt_br",
+                  "is": true
+                },
+                {
+                  "op": "isNull",
+                  "column": "description_en",
+                  "is": true
+                },
+                {
+                  "op": "isNull",
+                  "column": "amount",
+                  "is": true
+                }
+              ]
+            }
+          ]
+        },
+        "notValid": false
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "payment_link_v2"
+      },
+      "constraint": {
+        "kind": "check",
+        "name": "payment_link_v2_link_type_closed",
+        "expression": {
+          "op": "in",
+          "column": "link_type",
+          "values": [
+            {
+              "kind": "string",
+              "value": "SINGLE_USE"
+            },
+            {
+              "kind": "string",
+              "value": "REUSABLE"
+            }
+          ]
+        },
+        "notValid": false
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "payment_link_v2"
+      },
+      "constraint": {
+        "kind": "check",
+        "name": "payment_link_v2_version_nonnegative",
+        "expression": {
+          "op": "gte",
+          "left": {
+            "kind": "column",
+            "name": "version"
+          },
+          "right": {
+            "kind": "literal",
+            "literal": {
+              "kind": "integer",
+              "value": 0
+            }
+          }
+        },
+        "notValid": false
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "payment_link_v2_line"
+      },
+      "constraint": {
+        "kind": "primaryKey",
+        "name": "payment_link_v2_line_pkey",
+        "columns": [
+          "payment_link_v2_id",
+          "position"
+        ]
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "payment_link_v2_line"
+      },
+      "constraint": {
+        "kind": "unique",
+        "name": "payment_link_v2_line_link_product_key",
+        "columns": [
+          "payment_link_v2_id",
+          "product_id"
+        ]
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "payment_link_v2_line"
+      },
+      "constraint": {
+        "kind": "foreignKey",
+        "name": "payment_link_v2_line_link_owner_fkey",
+        "columns": [
+          "payment_link_v2_id",
+          "owner_id"
+        ],
+        "references": {
+          "table": {
+            "schema": "app",
+            "name": "payment_link_v2"
+          },
+          "columns": [
+            "id",
+            "owner_id"
+          ]
+        },
+        "onDelete": "RESTRICT",
+        "onUpdate": "CASCADE",
+        "notValid": false
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "payment_link_v2_line"
+      },
+      "constraint": {
+        "kind": "foreignKey",
+        "name": "payment_link_v2_line_product_owner_fkey",
+        "columns": [
+          "product_id",
+          "owner_id"
+        ],
+        "references": {
+          "table": {
+            "schema": "app",
+            "name": "product"
+          },
+          "columns": [
+            "id",
+            "owner_id"
+          ]
+        },
+        "onDelete": "RESTRICT",
+        "onUpdate": "CASCADE",
+        "notValid": false
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "payment_link_v2_line"
+      },
+      "constraint": {
+        "kind": "check",
+        "name": "payment_link_v2_line_position_bounds",
+        "expression": {
+          "op": "and",
+          "items": [
+            {
+              "op": "gte",
+              "left": {
+                "kind": "column",
+                "name": "position"
+              },
+              "right": {
+                "kind": "literal",
+                "literal": {
+                  "kind": "integer",
+                  "value": 1
+                }
+              }
+            },
+            {
+              "op": "lte",
+              "left": {
+                "kind": "column",
+                "name": "position"
+              },
+              "right": {
+                "kind": "literal",
+                "literal": {
+                  "kind": "integer",
+                  "value": 20
+                }
+              }
+            }
+          ]
+        },
+        "notValid": false
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "payment_link_v2_line"
+      },
+      "constraint": {
+        "kind": "check",
+        "name": "payment_link_v2_line_quantity_bounds",
+        "expression": {
+          "op": "and",
+          "items": [
+            {
+              "op": "gte",
+              "left": {
+                "kind": "column",
+                "name": "quantity"
+              },
+              "right": {
+                "kind": "literal",
+                "literal": {
+                  "kind": "integer",
+                  "value": 1
+                }
+              }
+            },
+            {
+              "op": "lte",
+              "left": {
+                "kind": "column",
+                "name": "quantity"
+              },
+              "right": {
+                "kind": "literal",
+                "literal": {
+                  "kind": "integer",
+                  "value": 9999
+                }
+              }
+            }
+          ]
+        },
+        "notValid": false
+      }
+    },
+    {
+      "op": "createIndex",
+      "name": "payment_link_v2_owner_created_at_id_idx",
+      "table": {
+        "schema": "app",
+        "name": "payment_link_v2"
+      },
+      "columns": [
+        "owner_id",
+        "created_at",
+        "id"
+      ],
+      "unique": false
+    },
+    {
+      "op": "createIndex",
+      "name": "payment_link_v2_owner_active_created_at_id_idx",
+      "table": {
+        "schema": "app",
+        "name": "payment_link_v2"
+      },
+      "columns": [
+        "owner_id",
+        "active",
+        "created_at",
+        "id"
+      ],
+      "unique": false
+    },
+    {
+      "op": "grant",
+      "object": {
+        "kind": "table",
+        "schema": "app",
+        "name": "payment_link_v2"
+      },
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "role": "qr_runtime"
+    },
+    {
+      "op": "grant",
+      "object": {
+        "kind": "table",
+        "schema": "app",
+        "name": "payment_link_v2_line"
+      },
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "role": "qr_runtime"
+    }
+  ]
+}
