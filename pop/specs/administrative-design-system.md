@@ -104,6 +104,8 @@ consistent state behavior outrank marketing-page novelty.
 
 ## Implemented slice
 
+- [[8.4.2-build-merchant-dashboard-ui]] (2026-07-25) — composed the bilingual server-rendered merchant dashboard on `/` from the existing cards, tables, badges, buttons, and skeletons over the 8.4.1 analytics projection: a plain GET period switcher with a non-color current marker, separate never-summed provider-confirmed and locally finalized sales groups, ruled funnel facts with exact-decimal localized percents, captioned best-seller/link-metrics/recent-activity tables, per-section explicit empty states, and the conditional View Store action; the closed 47-PNG/50-file production evidence contract seeds the analytics fixture directly in the disposable database without a new primitive, route, or projection change.
+
 - [[7.3.1-build-merchant-profile-management]] (2026-07-24) — composed the bilingual secondary merchant profile from existing cards, alerts, fields, inputs, buttons, skeletons, and spinners; added native payload-preserving pending scopes and the closed 50-PNG/53-file production evidence contract without a new primitive or theme variant.
 - [[6.2.2-create-official-brand-assets]] (2026-07-24) — delivered the original four-identity family, deterministic SVG/PNG/ICO manifest, accessible composition, and bounded integrations.
 - [[6.3.1-build-pagination-filter-table-foundation]] (2026-07-24) — added the role-neutral data-directory composition with native GET controls, canonical links, six states, responsive facts/table semantics, bilingual copy, and six-theme evidence. Registry preflight was network-blocked, so no source was duplicated.

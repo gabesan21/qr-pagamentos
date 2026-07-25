@@ -37,6 +37,15 @@
       "strategy": "differential",
       "tests": "pnpm check (exit 0); pnpm merchant-dashboard:evidence:verify (pass)",
       "result": "approved"
+    },
+    {
+      "at": "2026-07-25T20:44:06-03:00",
+      "event": "transition",
+      "from": "005_verifying",
+      "to": "006_done",
+      "contexts": [],
+      "test_seconds": 0,
+      "result": "advanced"
     }
   ]
 }

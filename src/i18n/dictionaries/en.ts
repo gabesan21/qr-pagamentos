@@ -12,10 +12,12 @@ import { ordersEn } from "./orders/en";
 import { dataDirectoryEn } from "./data-directory/en";
 import { appShellEn } from "./app-shell/en";
 import { profileEn } from "./profile/en";
+import { merchantDashboardEn } from "./merchant-dashboard/en";
 
 export const en = {
   ...appShellEn,
   ...profileEn,
+  ...merchantDashboardEn,
   ...sharedEn,
   ...nauttEn,
   ...designSystemEn,
