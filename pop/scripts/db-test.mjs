@@ -677,6 +677,82 @@ try {
   assert(archivedProductState.rows[0]?.active === false && archivedProductState.rows[0]?.archived_at !== null, "Archived product state changed");
   console.log("PASS payment-link-schema-and-locking");
 
+  const paymentLinkV2Constraints = await runtime.query(`
+    SELECT c.conname, pg_get_userbyid(t.relowner) AS owner
+    FROM pg_constraint c
+    JOIN pg_class t ON t.oid = c.conrelid
+    JOIN pg_namespace n ON n.oid = t.relnamespace
+    WHERE n.nspname = 'app' AND t.relname IN ('payment_link_v2', 'payment_link_v2_line')
+  `);
+  const paymentLinkV2ConstraintNames = new Set(paymentLinkV2Constraints.rows.map((row) => row.conname));
+  for (const name of ["payment_link_v2_pkey", "payment_link_v2_identifier_key", "payment_link_v2_id_owner_id_key", "payment_link_v2_owner_fkey", "payment_link_v2_currency_pair_fkey", "payment_link_v2_composition_kind_closed", "payment_link_v2_composition_complete", "payment_link_v2_link_type_closed", "payment_link_v2_version_nonnegative", "payment_link_v2_line_pkey", "payment_link_v2_line_link_product_key", "payment_link_v2_line_link_owner_fkey", "payment_link_v2_line_product_owner_fkey", "payment_link_v2_line_position_bounds", "payment_link_v2_line_quantity_bounds"]) {
+    assert(paymentLinkV2ConstraintNames.has(name), `Missing constraint ${name}`);
+  }
+  assert(paymentLinkV2Constraints.rows.every((row) => row.owner === "qr_migrator"), "Runtime owns a payment-link-v2 table");
+
+  const v2OwnerId = randomUUID();
+  const v2OtherOwnerId = randomUUID();
+  await runtime.query(`INSERT INTO app."user" (id, username, email, role, status) VALUES ($1, 'v2.owner', NULL, 'USER', 'ACTIVE'), ($2, 'v2.other', NULL, 'USER', 'ACTIVE')`, [v2OwnerId, v2OtherOwnerId]);
+  const v2Product = await runtime.query(`INSERT INTO app.product (internal_name, title_pt_br, title_en, description_pt_br, description_en, price, owner_id) VALUES ('v2-product', 'Produto V2', 'V2 Product', 'Descrição', 'Description', '10.25', $1) RETURNING id`, [v2OwnerId]);
+  const v2SecondProduct = await runtime.query(`INSERT INTO app.product (internal_name, title_pt_br, title_en, description_pt_br, description_en, price, owner_id) VALUES ('v2-second-product', 'Segundo', 'Second', 'Descrição', 'Description', '2', $1) RETURNING id`, [v2OwnerId]);
+  const v2OtherProduct = await runtime.query(`INSERT INTO app.product (internal_name, title_pt_br, title_en, description_pt_br, description_en, price, owner_id) VALUES ('v2-other-product', 'Outro', 'Other', 'Descrição', 'Description', '1', $1) RETURNING id`, [v2OtherOwnerId]);
+  const v2Pair = await runtime.query(`INSERT INTO app.catalog_currency_pair (label, currency_uuid, exchange_currency_uuid) VALUES ('v2-pair', $1, $2) RETURNING id`, [randomUUID(), randomUUID()]);
+  const v2ProductId = v2Product.rows[0].id;
+  const v2SecondProductId = v2SecondProduct.rows[0].id;
+  const v2OtherProductId = v2OtherProduct.rows[0].id;
+  const v2PairId = v2Pair.rows[0].id;
+
+  const v2Identifier = () => randomUUID().replaceAll("-", "").slice(0, 24);
+  const insertV2Link = (client, overrides = {}) => {
+    const values = {
+      id: randomUUID(), identifier: v2Identifier(), ownerId: v2OwnerId, compositionKind: "FIXED_AMOUNT",
+      descriptionPtBr: "'Doação'", descriptionEn: "'Donation'", amount: "'10.25'", linkType: "REUSABLE",
+      ...overrides,
+    };
+    return client.query(
+      `INSERT INTO app.payment_link_v2 (id, identifier, owner_id, composition_kind, description_pt_br, description_en, amount, currency_pair_id, link_type, expires_at, active, version, created_at, updated_at)
+       VALUES ('${values.id}', '${values.identifier}', '${values.ownerId}', '${values.compositionKind}', ${values.descriptionPtBr}, ${values.descriptionEn}, ${values.amount}, '${values.pairId ?? v2PairId}', '${values.linkType}', NULL, TRUE, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) RETURNING id`,
+    );
+  };
+
+  const v2FixedLink = await insertV2Link(runtime);
+  await expectSqlState(runtime, `INSERT INTO app.payment_link_v2 (id, identifier, owner_id, composition_kind, description_pt_br, description_en, amount, currency_pair_id, link_type, active, version, created_at, updated_at) VALUES ('${randomUUID()}', '${v2Identifier()}', '${v2OwnerId}', 'FIXED_AMOUNT', NULL, 'Donation', '10.25', '${v2PairId}', 'REUSABLE', TRUE, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`, { code: "23514", constraint: "payment_link_v2_composition_complete" });
+  await expectSqlState(runtime, `INSERT INTO app.payment_link_v2 (id, identifier, owner_id, composition_kind, description_pt_br, description_en, amount, currency_pair_id, link_type, active, version, created_at, updated_at) VALUES ('${randomUUID()}', '${v2Identifier()}', '${v2OwnerId}', 'PRODUCT_LINES', NULL, NULL, '10.25', '${v2PairId}', 'REUSABLE', TRUE, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`, { code: "23514", constraint: "payment_link_v2_composition_complete" });
+  // A kind outside the closed set violates both composition checks; assert the rejection code.
+  await expectSqlState(runtime, `INSERT INTO app.payment_link_v2 (id, identifier, owner_id, composition_kind, currency_pair_id, link_type, active, version, created_at, updated_at) VALUES ('${randomUUID()}', '${v2Identifier()}', '${v2OwnerId}', 'MULTI', '${v2PairId}', 'REUSABLE', TRUE, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`, { code: "23514" });
+  await expectSqlState(runtime, `INSERT INTO app.payment_link_v2 (id, identifier, owner_id, composition_kind, description_pt_br, description_en, amount, currency_pair_id, link_type, active, version, created_at, updated_at) VALUES ('${randomUUID()}', '${v2Identifier()}', '${v2OwnerId}', 'FIXED_AMOUNT', 'Doação', 'Donation', '10.25', '${v2PairId}', 'UNLIMITED', TRUE, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`, { code: "23514", constraint: "payment_link_v2_link_type_closed" });
+  await expectSqlState(runtime, `INSERT INTO app.payment_link_v2 (id, identifier, owner_id, composition_kind, description_pt_br, description_en, amount, currency_pair_id, link_type, active, version, created_at, updated_at) VALUES ('${randomUUID()}', '${v2Identifier()}', '${v2OwnerId}', 'FIXED_AMOUNT', 'Doação', 'Donation', '10.25', '${v2PairId}', 'REUSABLE', TRUE, -1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`, { code: "23514", constraint: "payment_link_v2_version_nonnegative" });
+  const v2LinkRow = await runtime.query(`SELECT identifier FROM app.payment_link_v2 WHERE id = $1`, [v2FixedLink.rows[0].id]);
+  await expectSqlState(runtime, `INSERT INTO app.payment_link_v2 (id, identifier, owner_id, composition_kind, description_pt_br, description_en, amount, currency_pair_id, link_type, active, version, created_at, updated_at) VALUES ('${randomUUID()}', '${v2LinkRow.rows[0].identifier}', '${v2OwnerId}', 'FIXED_AMOUNT', 'Doação', 'Donation', '10.25', '${v2PairId}', 'REUSABLE', TRUE, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`, { code: "23505", constraint: "payment_link_v2_identifier_key" });
+  await expectSqlState(runtime, `INSERT INTO app.payment_link_v2 (id, identifier, owner_id, composition_kind, description_pt_br, description_en, amount, currency_pair_id, link_type, active, version, created_at, updated_at) VALUES ('${randomUUID()}', '${v2Identifier()}', '${randomUUID()}', 'FIXED_AMOUNT', 'Doação', 'Donation', '10.25', '${v2PairId}', 'REUSABLE', TRUE, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`, { code: "23503", constraint: "payment_link_v2_owner_fkey" });
+  await expectSqlState(runtime, `INSERT INTO app.payment_link_v2 (id, identifier, owner_id, composition_kind, description_pt_br, description_en, amount, currency_pair_id, link_type, active, version, created_at, updated_at) VALUES ('${randomUUID()}', '${v2Identifier()}', '${v2OwnerId}', 'FIXED_AMOUNT', 'Doação', 'Donation', '10.25', '${randomUUID()}', 'REUSABLE', TRUE, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`, { code: "23503", constraint: "payment_link_v2_currency_pair_fkey" });
+
+  const v2LinesLink = await runtime.query(`INSERT INTO app.payment_link_v2 (id, identifier, owner_id, composition_kind, currency_pair_id, link_type, active, version, created_at, updated_at) VALUES ($1, $2, $3, 'PRODUCT_LINES', $4, 'SINGLE_USE', TRUE, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) RETURNING id`, [randomUUID(), v2Identifier(), v2OwnerId, v2PairId]);
+  const v2LinesLinkId = v2LinesLink.rows[0].id;
+  const insertV2Line = (position, quantity, productId = v2ProductId, ownerId = v2OwnerId, linkId = v2LinesLinkId) =>
+    `INSERT INTO app.payment_link_v2_line (payment_link_v2_id, owner_id, product_id, position, quantity) VALUES ('${linkId}', '${ownerId}', '${productId}', ${position}, ${quantity})`;
+  await runtime.query(insertV2Line(1, 2));
+  await expectSqlState(runtime, insertV2Line(1, 3, v2SecondProductId), { code: "23505", constraint: "payment_link_v2_line_pkey" });
+  await expectSqlState(runtime, insertV2Line(2, 3), { code: "23505", constraint: "payment_link_v2_line_link_product_key" });
+  await expectSqlState(runtime, insertV2Line(0, 1, v2SecondProductId), { code: "23514", constraint: "payment_link_v2_line_position_bounds" });
+  await expectSqlState(runtime, insertV2Line(21, 1, v2SecondProductId), { code: "23514", constraint: "payment_link_v2_line_position_bounds" });
+  await expectSqlState(runtime, insertV2Line(20, 0, v2SecondProductId), { code: "23514", constraint: "payment_link_v2_line_quantity_bounds" });
+  await expectSqlState(runtime, insertV2Line(20, 10000, v2SecondProductId), { code: "23514", constraint: "payment_link_v2_line_quantity_bounds" });
+  await expectSqlState(runtime, insertV2Line(19, 1, v2OtherProductId), { code: "23503", constraint: "payment_link_v2_line_product_owner_fkey" });
+  await expectSqlState(runtime, insertV2Line(19, 1, v2OtherProductId, v2OtherOwnerId), { code: "23503", constraint: "payment_link_v2_line_link_owner_fkey" });
+  await expectSqlState(admin, `DELETE FROM app.product WHERE id = '${v2ProductId}'`, { code: "23001", constraint: "payment_link_v2_line_product_owner_fkey" });
+  await expectSqlState(admin, `DELETE FROM app.catalog_currency_pair WHERE id = '${v2PairId}'`, { code: "23001", constraint: "payment_link_v2_currency_pair_fkey" });
+
+  const v2CasStale = await runtime.query(`UPDATE app.payment_link_v2 SET active = FALSE, version = version + 1, updated_at = CURRENT_TIMESTAMP WHERE id = $1 AND owner_id = $2 AND version = 1`, [v2LinesLinkId, v2OwnerId]);
+  const v2CasWinner = await runtime.query(`UPDATE app.payment_link_v2 SET active = FALSE, version = version + 1, updated_at = CURRENT_TIMESTAMP WHERE id = $1 AND owner_id = $2 AND version = 0 RETURNING active, version`, [v2LinesLinkId, v2OwnerId]);
+  assert(v2CasStale.rowCount === 0 && v2CasWinner.rowCount === 1 && v2CasWinner.rows[0]?.active === false && v2CasWinner.rows[0]?.version === 1, "Payment-link-v2 expected-version CAS is not exclusive");
+  await admin.query(`DELETE FROM app.payment_link_v2_line WHERE payment_link_v2_id = $1`, [v2LinesLinkId]);
+  await admin.query(`DELETE FROM app.payment_link_v2 WHERE owner_id = $1`, [v2OwnerId]);
+  await admin.query(`DELETE FROM app.product WHERE id IN ($1, $2, $3)`, [v2ProductId, v2SecondProductId, v2OtherProductId]);
+  await admin.query(`DELETE FROM app.catalog_currency_pair WHERE id = $1`, [v2PairId]);
+  await admin.query(`DELETE FROM app."user" WHERE id IN ($1, $2)`, [v2OwnerId, v2OtherOwnerId]);
+  console.log("PASS payment-link-v2-schema");
+
   const backfillUserId = randomUUID();
   const revisionMigrator = new Client({ connectionString: migratorUrl });
   await revisionMigrator.connect();
@@ -928,6 +1004,8 @@ try {
       has_table_privilege(current_user, 'app.product_category', 'SELECT,INSERT,UPDATE') AS product_category_dml,
       has_table_privilege(current_user, 'app.product_category', 'DELETE') AS product_category_delete,
       has_table_privilege(current_user, 'app.payment_link', 'SELECT,INSERT,UPDATE,DELETE') AS payment_link_dml,
+      has_table_privilege(current_user, 'app.payment_link_v2', 'SELECT,INSERT,UPDATE,DELETE') AS payment_link_v2_dml,
+      has_table_privilege(current_user, 'app.payment_link_v2_line', 'SELECT,INSERT,UPDATE,DELETE') AS payment_link_v2_line_dml,
       has_table_privilege(current_user, 'app.media_object', 'SELECT,INSERT,UPDATE,DELETE') AS media_object_dml,
       has_table_privilege(current_user, 'app.global_payment_settings', 'SELECT') AS settings_select,
       has_column_privilege(current_user, 'app.global_payment_settings', 'currencies', 'UPDATE')
@@ -944,6 +1022,8 @@ try {
       has_table_privilege(current_user, 'app.product', 'TRUNCATE,REFERENCES,TRIGGER') AS product_excess,
       has_table_privilege(current_user, 'app.product_category', 'TRUNCATE,REFERENCES,TRIGGER') AS product_category_excess,
       has_table_privilege(current_user, 'app.payment_link', 'TRUNCATE,REFERENCES,TRIGGER') AS payment_link_excess,
+      has_table_privilege(current_user, 'app.payment_link_v2', 'TRUNCATE,REFERENCES,TRIGGER') AS payment_link_v2_excess,
+      has_table_privilege(current_user, 'app.payment_link_v2_line', 'TRUNCATE,REFERENCES,TRIGGER') AS payment_link_v2_line_excess,
       has_table_privilege(current_user, 'app.media_object', 'TRUNCATE,REFERENCES,TRIGGER') AS media_object_excess,
       has_table_privilege(current_user, 'app.supported_exchange_currency', 'TRUNCATE,REFERENCES,TRIGGER') AS supported_exchange_currency_excess,
       has_table_privilege(current_user, 'app._database_foundation_fixture', 'MAINTAIN') AS table_maintain,
@@ -956,8 +1036,8 @@ try {
       pg_has_role(current_user, 'qr_migrator', 'SET') AS migrator_set
   `);
   const acl = privilege.rows[0];
-  assert(acl.current_user === "qr_runtime" && acl.schema_usage && acl.table_dml && acl.user_dml && acl.credential_dml && acl.bootstrap_dml && acl.session_dml && acl.nautt_credential_dml && acl.provider_quote_dml && acl.provider_order_dml && acl.webhook_delivery_dml && acl.webhook_attempt_dml && acl.webhook_recovery_lease_dml && acl.catalog_currency_pair_dml && acl.catalog_payment_method_dml && acl.supported_exchange_currency_dml && acl.product_dml && acl.product_category_dml && acl.payment_link_dml && acl.media_object_dml && acl.settings_select && acl.settings_column_update && acl.sequence_usage && acl.webhook_sequence_usage, "Runtime lacks intended privileges");
-  assert(!acl.settings_table_update && !acl.settings_write_extra && !acl.product_category_delete && !acl.catalog_currency_pair_delete && !acl.schema_create && !acl.table_truncate && !acl.table_references && !acl.table_trigger && !acl.provider_order_excess && !acl.webhook_delivery_excess && !acl.webhook_recovery_lease_excess && !acl.product_excess && !acl.product_category_excess && !acl.payment_link_excess && !acl.media_object_excess && !acl.supported_exchange_currency_excess && !acl.table_maintain && !acl.sequence_select && !acl.sequence_update && !acl.migration_access && !acl.migrator_member && !acl.migrator_set, "Runtime has excess privileges");
+  assert(acl.current_user === "qr_runtime" && acl.schema_usage && acl.table_dml && acl.user_dml && acl.credential_dml && acl.bootstrap_dml && acl.session_dml && acl.nautt_credential_dml && acl.provider_quote_dml && acl.provider_order_dml && acl.webhook_delivery_dml && acl.webhook_attempt_dml && acl.webhook_recovery_lease_dml && acl.catalog_currency_pair_dml && acl.catalog_payment_method_dml && acl.supported_exchange_currency_dml && acl.product_dml && acl.product_category_dml && acl.payment_link_dml && acl.payment_link_v2_dml && acl.payment_link_v2_line_dml && acl.media_object_dml && acl.settings_select && acl.settings_column_update && acl.sequence_usage && acl.webhook_sequence_usage, "Runtime lacks intended privileges");
+  assert(!acl.settings_table_update && !acl.settings_write_extra && !acl.product_category_delete && !acl.catalog_currency_pair_delete && !acl.schema_create && !acl.table_truncate && !acl.table_references && !acl.table_trigger && !acl.provider_order_excess && !acl.webhook_delivery_excess && !acl.webhook_recovery_lease_excess && !acl.product_excess && !acl.product_category_excess && !acl.payment_link_excess && !acl.payment_link_v2_excess && !acl.payment_link_v2_line_excess && !acl.media_object_excess && !acl.supported_exchange_currency_excess && !acl.table_maintain && !acl.sequence_select && !acl.sequence_update && !acl.migration_access && !acl.migrator_member && !acl.migrator_set, "Runtime has excess privileges");
   const ownership = await admin.query(`
     SELECT
       (SELECT count(*)::int FROM pg_class WHERE relowner = 'qr_runtime'::regrole) AS objects,

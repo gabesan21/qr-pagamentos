@@ -46,6 +46,7 @@ model User {
   products         Product[]
   productCategories ProductCategory[]
   paymentLinks     PaymentLink[]
+  paymentLinksV2   PaymentLinkV2[]
   paymentLinkOrders PaymentLinkOrder[]
   checkoutAttempts CheckoutAttempt[]
   webhookDeliveries WebhookDelivery[]
@@ -149,6 +150,7 @@ model CatalogCurrencyPair {
   createdAt            DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt            DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
   paymentLinks              PaymentLink[]
+  paymentLinksV2            PaymentLinkV2[]
   supportedExchangeCurrency SupportedExchangeCurrency?
 
   @@unique([currencyUuid, exchangeCurrencyUuid], map: "catalog_currency_pair_uuids_key")
@@ -198,6 +200,7 @@ model Product {
   owner           User     @relation(fields: [ownerId], references: [id], onDelete: Restrict)
   category        ProductCategory? @relation(fields: [categoryId, ownerId], references: [id, ownerId], onDelete: Restrict)
   paymentLinks    PaymentLink[]
+  paymentLinkV2Lines PaymentLinkV2Line[]
   paymentLinkOrders PaymentLinkOrder[]
 
   @@unique([id, ownerId], map: "product_id_owner_id_key")
@@ -251,6 +254,47 @@ model PaymentLink {
   @@index([productId], map: "payment_link_product_id_idx")
   @@index([currencyPairId], map: "payment_link_currency_pair_id_idx")
   @@map("payment_link")
+  @@schema("app")
+}
+
+model PaymentLinkV2 {
+  id              String    @id @db.Uuid
+  identifier      String    @unique(map: "payment_link_v2_identifier_key") @db.VarChar(24)
+  ownerId         String    @map("owner_id") @db.Uuid
+  compositionKind String    @map("composition_kind") @db.VarChar(13)
+  descriptionPtBr String?   @map("description_pt_br") @db.VarChar(160)
+  descriptionEn   String?   @map("description_en") @db.VarChar(160)
+  amount          String?   @db.Text
+  currencyPairId  String    @map("currency_pair_id") @db.Uuid
+  linkType        String    @map("link_type") @db.VarChar(10)
+  expiresAt       DateTime? @map("expires_at") @db.Timestamptz(3)
+  active          Boolean
+  version         Int       @db.Integer
+  createdAt       DateTime  @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime  @map("updated_at") @db.Timestamptz(3)
+  owner           User                @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  currencyPair    CatalogCurrencyPair @relation(fields: [currencyPairId], references: [id], onDelete: Restrict)
+  lines           PaymentLinkV2Line[]
+
+  @@unique([id, ownerId], map: "payment_link_v2_id_owner_id_key")
+  @@index([ownerId, createdAt, id], map: "payment_link_v2_owner_created_at_id_idx")
+  @@index([ownerId, active, createdAt, id], map: "payment_link_v2_owner_active_created_at_id_idx")
+  @@map("payment_link_v2")
+  @@schema("app")
+}
+
+model PaymentLinkV2Line {
+  paymentLinkV2Id String @map("payment_link_v2_id") @db.Uuid
+  ownerId         String @map("owner_id") @db.Uuid
+  productId       String @map("product_id") @db.Uuid
+  position        Int    @db.Integer
+  quantity        Int    @db.Integer
+  paymentLink     PaymentLinkV2 @relation(fields: [paymentLinkV2Id, ownerId], references: [id, ownerId], onDelete: Restrict)
+  product         Product       @relation(fields: [productId, ownerId], references: [id, ownerId], onDelete: Restrict)
+
+  @@id([paymentLinkV2Id, position], map: "payment_link_v2_line_pkey")
+  @@unique([paymentLinkV2Id, productId], map: "payment_link_v2_line_link_product_key")
+  @@map("payment_link_v2_line")
   @@schema("app")
 }
 
