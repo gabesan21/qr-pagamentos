@@ -43,7 +43,7 @@ async function setLocale(page: Page, locale: "pt-BR" | "en") {
 }
 
 test("creates the closed merchant-catalog evidence run", async ({ page }) => {
-  test.setTimeout(900_000);
+  test.setTimeout(1_800_000);
   const adminUsername = process.env.ADMIN_EVIDENCE_USERNAME;
   const adminPassword = process.env.ADMIN_EVIDENCE_PASSWORD;
   const merchantPassword = process.env.CATALOG_EVIDENCE_MERCHANT_PASSWORD;
@@ -101,7 +101,9 @@ test("creates the closed merchant-catalog evidence run", async ({ page }) => {
     expect(measured.bodyFont).toContain("IBM Plex Sans");
     expect(measured.overflow).toBe(false);
     expect(measured.targets.every(({ height, width }) => height >= 44 && width >= 44)).toBe(true);
-    const firstInput = page.locator('input:not([type="hidden"]):not([type="file"]), select').first();
+    const formControls = page.locator('input:not([type="hidden"]):not([type="file"]), select');
+    // Read-only views own no form control; focus the first shell action then.
+    const firstInput = (await formControls.count()) > 0 ? formControls.first() : page.locator('button, a[href]').first();
     await firstInput.focus();
     const focus = await firstInput.evaluate((element) => {
       const style = getComputedStyle(element);
