@@ -9,6 +9,7 @@ import { checkoutPolicyEn } from "./checkout-policy/en";
 import { storefrontEn } from "./storefront/en";
 import { checkoutEn } from "./checkout/en";
 import { ordersEn } from "./orders/en";
+import { ordersDirectoryEn } from "./orders-directory/en";
 import { dataDirectoryEn } from "./data-directory/en";
 import { appShellEn } from "./app-shell/en";
 import { profileEn } from "./profile/en";
@@ -30,4 +31,5 @@ export const en = {
   ...storefrontEn,
   ...checkoutEn,
   ...ordersEn,
+  ...ordersDirectoryEn,
 } as const;

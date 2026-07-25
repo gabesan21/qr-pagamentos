@@ -16,6 +16,8 @@ import { nauttEn } from "./nautt/en";
 import { nauttPtBR } from "./nautt/pt-BR";
 import { ordersEn } from "./orders/en";
 import { ordersPtBR } from "./orders/pt-BR";
+import { ordersDirectoryEn } from "./orders-directory/en";
+import { ordersDirectoryPtBR } from "./orders-directory/pt-BR";
 import { paymentLinksEn } from "./payment-links/en";
 import { paymentLinksDirectoryEn } from "./payment-links-directory/en";
 import { paymentLinksDirectoryPtBR } from "./payment-links-directory/pt-BR";
@@ -39,6 +41,7 @@ export const dictionaryDomains = {
   merchantDashboard: { en: merchantDashboardEn, "pt-BR": merchantDashboardPtBR },
   nautt: { en: nauttEn, "pt-BR": nauttPtBR },
   orders: { en: ordersEn, "pt-BR": ordersPtBR },
+  ordersDirectory: { en: ordersDirectoryEn, "pt-BR": ordersDirectoryPtBR },
   paymentLinks: { en: paymentLinksEn, "pt-BR": paymentLinksPtBR },
   paymentLinksDirectory: { en: paymentLinksDirectoryEn, "pt-BR": paymentLinksDirectoryPtBR },
   products: { en: productsEn, "pt-BR": productsPtBR },

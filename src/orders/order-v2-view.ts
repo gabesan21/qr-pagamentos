@@ -37,12 +37,19 @@ export type OrderV2Summary = Readonly<{
   state: OrderV2State | null;
   currentLocalOutcome: OrderV2LocalOutcomeView | null;
   checkoutDataPolicy: CheckoutDataPolicy;
+  // Policy-exact payer snapshot (8.3.3): the same fail-closed mapping as the
+  // detail customer, so directory rows can show payer facts without the raw
+  // customer columns ever leaving persistence.
+  payer: CustomerSnapshotV1;
   createdAt: Date;
   updatedAt: Date;
   settledAt: Date | null;
 }>;
 
 export type OrderV2View = OrderV2Summary & Readonly<{
+  // The lifecycle CAS version (8.3.3): the owner set-outcome route requires it
+  // and it is not derivable — reconciliation also bumps it.
+  lifecycleVersion: number;
   customer: CustomerSnapshotV1;
   lines: ReadonlyArray<OrderV2LineSnapshot>;
   comments: ReadonlyArray<OrderV2CommentView>;
@@ -65,7 +72,8 @@ type StoredCustomerColumns = Readonly<{
   complement: string | null;
 }>;
 
-export type StoredOrderV2View = Omit<OrderV2Summary, "currentLocalOutcome"> & StoredCustomerColumns & Readonly<{
+export type StoredOrderV2View = Omit<OrderV2Summary, "currentLocalOutcome" | "payer"> & StoredCustomerColumns & Readonly<{
+  lifecycleVersion: number;
   lines: ReadonlyArray<OrderV2LineSnapshot>;
   comments: ReadonlyArray<OrderV2CommentView>;
   latestLocalOutcome: OrderV2LocalOutcomeView | null;
@@ -115,14 +123,20 @@ export function toPolicySnapshotV2(policy: CheckoutDataPolicy, stored: StoredCus
 }
 
 function toSummary(stored: StoredOrderV2View): OrderV2Summary {
-  const { name, email, cpf, street, number, district, city, stateUf, postalCode, country, complement, lines, comments, latestLocalOutcome, ...summary } = stored;
-  return { ...summary, currentLocalOutcome: latestLocalOutcome };
+  const { name, email, cpf, street, number, district, city, stateUf, postalCode, country, complement, lifecycleVersion, lines, comments, latestLocalOutcome, ...summary } = stored;
+  return {
+    ...summary,
+    payer: toPolicySnapshotV2(stored.checkoutDataPolicy, stored),
+    currentLocalOutcome: latestLocalOutcome,
+  };
 }
 
 function toOrderV2View(stored: StoredOrderV2View): OrderV2View {
+  const summary = toSummary(stored);
   return {
-    ...toSummary(stored),
-    customer: toPolicySnapshotV2(stored.checkoutDataPolicy, stored),
+    ...summary,
+    lifecycleVersion: stored.lifecycleVersion,
+    customer: summary.payer,
     lines: stored.lines,
     comments: stored.comments,
   };
@@ -162,6 +176,11 @@ export function createOrderV2ViewService(store: OrderV2ViewStore) {
   };
 }
 
+const customerSelect = {
+  name: true, email: true, cpf: true, street: true, number: true, district: true,
+  city: true, stateUf: true, postalCode: true, country: true, complement: true,
+} satisfies Prisma.OrderV2Select;
+
 const summarySelect = {
   id: true,
   source: true,
@@ -175,6 +194,9 @@ const summarySelect = {
   createdAt: true,
   updatedAt: true,
   settledAt: true,
+  // The policy-exact payer snapshot on summaries (8.3.3) reads the raw columns
+  // here; only the fail-closed `payer` tuple leaves this module.
+  ...customerSelect,
   paymentLink: { select: { identifier: true } },
   localOutcomes: { select: { outcome: true, note: true, createdAt: true }, orderBy: [{ createdAt: "desc" as const }, { id: "desc" as const }], take: 1 },
 } satisfies Prisma.OrderV2Select;
@@ -183,14 +205,9 @@ const summarySelect = {
 // stays single-sourced.
 export const orderV2SummarySelect = summarySelect;
 
-const customerSelect = {
-  name: true, email: true, cpf: true, street: true, number: true, district: true,
-  city: true, stateUf: true, postalCode: true, country: true, complement: true,
-} satisfies Prisma.OrderV2Select;
-
 const detailSelect = {
   ...summarySelect,
-  ...customerSelect,
+  lifecycleVersion: true,
   lines: { select: { productId: true, position: true, quantity: true, unitPrice: true }, orderBy: { position: "asc" } },
   comments: { select: { id: true, body: true, version: true, createdAt: true, editedAt: true }, orderBy: [{ createdAt: "asc" as const }, { id: "asc" as const }] },
 } satisfies Prisma.OrderV2Select;
@@ -210,6 +227,7 @@ type PrismaOrderV2Row = {
   settledAt: Date | null;
   paymentLink: { identifier: string } | null;
   localOutcomes: Array<{ outcome: string; note: string | null; createdAt: Date }>;
+  lifecycleVersion?: number;
   lines?: Array<OrderV2LineSnapshot>;
   comments?: Array<OrderV2CommentView>;
 } & Partial<StoredCustomerColumns>;
@@ -226,6 +244,10 @@ function toStored(row: PrismaOrderV2Row): StoredOrderV2View {
     descriptionEn: row.descriptionEn,
     state: row.state as OrderV2State | null,
     checkoutDataPolicy: row.checkoutDataPolicy as CheckoutDataPolicy,
+    // The summary select omits lifecycle_version; `toSummary` strips it, so
+    // this placeholder never leaves the module. The detail select always
+    // includes the real value.
+    lifecycleVersion: row.lifecycleVersion ?? 0,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
     settledAt: row.settledAt,

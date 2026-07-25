@@ -43,6 +43,7 @@ function stored(overrides: Partial<StoredOrderV2View> = {}): StoredOrderV2View {
     postalCode: null,
     country: null,
     complement: null,
+    lifecycleVersion: 3,
     lines: [],
     comments: [{ id: "550e8400-e29b-41d4-a716-446655440055", body: "nota", version: 0, createdAt: new Date("2026-07-25T12:00:00.000Z"), editedAt: null }],
     latestLocalOutcome: { outcome: "LOCAL_FINALIZED", note: null, createdAt: new Date("2026-07-25T12:30:00.000Z") },
@@ -69,6 +70,8 @@ describe("order-v2 view service", () => {
     expect(result.order.state).toBeNull();
     expect(result.order.currentLocalOutcome).toEqual({ outcome: "LOCAL_FINALIZED", note: null, createdAt: new Date("2026-07-25T12:30:00.000Z") });
     expect(result.order.customer).toEqual({ name: "Ana", email: "ana@example.com", cpf: null, address: null });
+    expect(result.order.payer).toEqual(result.order.customer);
+    expect(result.order.lifecycleVersion).toBe(3);
     expect(result.order.comments).toHaveLength(1);
     expect(result.order).not.toHaveProperty("name");
     expect(result.order).not.toHaveProperty("cpf");
@@ -80,6 +83,9 @@ describe("order-v2 view service", () => {
     const list = await service.listForOwner(owner);
     expect(store.listForOwner).toHaveBeenCalledWith(ownerId, 50);
     expect(list[0]).not.toHaveProperty("customer");
+    expect(list[0]).not.toHaveProperty("lifecycleVersion");
+    expect(list[0]).not.toHaveProperty("name");
+    expect(list[0]?.payer).toEqual({ name: "Ana", email: "ana@example.com", cpf: null, address: null });
     expect(list[0]?.currentLocalOutcome?.outcome).toBe("LOCAL_FINALIZED");
   });
 

@@ -213,6 +213,7 @@ describe("merchant analytics service", () => {
       state: null,
       currentLocalOutcome: { outcome: "LOCAL_FINALIZED", note: "internal note", createdAt: new Date("2026-07-25T12:00:00.000Z") },
       checkoutDataPolicy: "NAME_EMAIL",
+      payer: { name: "Ana", email: "ana@example.com", cpf: null, address: null },
       createdAt: new Date("2026-07-25T11:00:00.000Z"),
       updatedAt: new Date("2026-07-25T12:00:00.000Z"),
       settledAt: null,

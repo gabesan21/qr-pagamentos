@@ -64,7 +64,7 @@ describe("DataDirectory", () => {
 
   it("keeps exactly one responsive renderer visible by CSS contract", () => {
     const html = renderToStaticMarkup(<DataDirectory {...common} state="ready" />);
-    expect(html).toContain('class="hidden md:block"');
+    expect(html).toContain('class="hidden min-w-0 md:block"');
     expect(html).toContain("md:hidden");
     expect(html).toContain('scope="col"');
     expect(html).toContain("tabular-nums");
@@ -87,6 +87,37 @@ describe("DataDirectory", () => {
   it("renders at most one primary action in the toolbar", () => {
     const html = renderToStaticMarkup(<DataDirectory {...common} state="empty" emptyAction={{ href: "/new", label: "Create" }} />);
     expect(html.match(/data-variant="default"/g)).toHaveLength(1);
+  });
+
+  it("renders registered page sizes and generic text/calendar-day filters when supplied", () => {
+    const html = renderToStaticMarkup(
+      <DataDirectory
+        {...common}
+        pageSize={20}
+        pageSizes={[10, 20, 50, 100]}
+        state="ready"
+        textFilters={[
+          { name: "link", label: "Link", placeholder: "Identifier", selected: "abc" },
+          { name: "from", label: "From", calendarDay: true, selected: "2026-07-01" },
+        ]}
+      />,
+    );
+    expect(html).toContain('value="10"');
+    expect(html).toContain('value="20"');
+    expect(html).toContain('name="filter.link"');
+    expect(html).toContain('type="text"');
+    expect(html).toContain('name="filter.from"');
+    expect(html).toContain('type="date"');
+    expect(html).toContain('value="2026-07-01"');
+  });
+
+  it("keeps the default 25/50/100 page-size options without the optional props", () => {
+    const html = renderToStaticMarkup(<DataDirectory {...common} state="ready" />);
+    expect(html).toContain('value="25"');
+    expect(html).toContain('value="50"');
+    expect(html).toContain('value="100"');
+    expect(html).not.toContain('value="10"');
+    expect(html).not.toContain('value="20"');
   });
 
   it("has no business store, auth service, theme, or role branch import", () => {

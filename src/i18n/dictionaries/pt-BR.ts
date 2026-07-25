@@ -9,6 +9,7 @@ import { checkoutPolicyPtBR } from "./checkout-policy/pt-BR";
 import { storefrontPtBR } from "./storefront/pt-BR";
 import { checkoutPtBR } from "./checkout/pt-BR";
 import { ordersPtBR } from "./orders/pt-BR";
+import { ordersDirectoryPtBR } from "./orders-directory/pt-BR";
 import { dataDirectoryPtBR } from "./data-directory/pt-BR";
 import { appShellPtBR } from "./app-shell/pt-BR";
 import { profilePtBR } from "./profile/pt-BR";
@@ -30,4 +31,5 @@ export const ptBR = {
   ...storefrontPtBR,
   ...checkoutPtBR,
   ...ordersPtBR,
+  ...ordersDirectoryPtBR,
 } as const;

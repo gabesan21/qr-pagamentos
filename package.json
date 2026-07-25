@@ -47,6 +47,8 @@
     "links:evidence:verify": "node scripts/verify-payment-links-evidence.mjs",
     "merchant-dashboard:evidence": "node scripts/run-merchant-dashboard-evidence.mjs",
     "merchant-dashboard:evidence:verify": "node scripts/verify-merchant-dashboard-evidence.mjs",
+    "orders:evidence": "node scripts/run-orders-evidence.mjs",
+    "orders:evidence:verify": "node scripts/verify-orders-evidence.mjs",
     "epoch1:source-check": "node scripts/check-epoch1-source.mjs",
     "media:decoder-preflight": "node scripts/media-decoder-preflight.mjs",
     "precheck": "pnpm db:generate",
