@@ -30,6 +30,7 @@ function fakeDatabase() {
       updateMany: transaction.paymentLinkV2.updateMany,
       findFirst: transaction.paymentLinkV2.findFirst,
     },
+    checkoutAttemptV2: { count: vi.fn(async (): Promise<number> => 0) },
   };
   return { database, transaction };
 }
@@ -122,7 +123,7 @@ describe("payment-link-v2 prisma store", () => {
     expect(transaction.paymentLinkV2Line.deleteMany).not.toHaveBeenCalled();
   });
 
-  it("toggles active through expected-version CAS and observes zero attempts until 8.1.3 wires the seam", async () => {
+  it("toggles active through expected-version CAS and observes real checkout_attempt_v2 existence", async () => {
     const { database } = fakeDatabase();
     const store = createPaymentLinkV2Store(database as never);
 
@@ -134,5 +135,8 @@ describe("payment-link-v2 prisma store", () => {
     database.paymentLinkV2.updateMany.mockResolvedValueOnce({ count: 0 });
     await expect(store.setActive(ownerId, linkId, 0, false, now)).resolves.toBeNull();
     await expect(store.hasCheckoutAttempt(linkId)).resolves.toBe(false);
+    expect(database.checkoutAttemptV2.count).toHaveBeenCalledWith({ where: { paymentLinkV2Id: linkId } });
+    database.checkoutAttemptV2.count.mockResolvedValueOnce(1);
+    await expect(store.hasCheckoutAttempt(linkId)).resolves.toBe(true);
   });
 });

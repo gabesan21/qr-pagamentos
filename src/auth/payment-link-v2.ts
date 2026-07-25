@@ -66,8 +66,8 @@ export type PaymentLinkV2Store = {
   create(ownerId: string, values: PaymentLinkV2CreateValues & Readonly<{ id: string; createdAt: Date; updatedAt: Date }>): Promise<OwnerPaymentLinkV2 | "dependency-unavailable">;
   edit(ownerId: string, id: string, version: number, values: PaymentLinkV2EditValues & Readonly<{ updatedAt: Date }>): Promise<OwnerPaymentLinkV2 | "dependency-unavailable" | null>;
   setActive(ownerId: string, id: string, version: number, active: boolean, updatedAt: Date): Promise<OwnerPaymentLinkV2 | null>;
-  // Hard 8.1.3 handoff: must observe checkout_attempt_v2 existence before any
-  // V2 checkout runs; until that table exists the seam observes zero attempts.
+  // Wired by 8.1.3: observes the real checkout_attempt_v2 existence read; one
+  // persisted attempt financially locks the link's composition.
   hasCheckoutAttempt(id: string): Promise<boolean>;
 };
 
@@ -448,10 +448,11 @@ export function createPaymentLinkV2Store(db: ReturnType<typeof getDatabaseClient
       const link = await db.paymentLinkV2.findFirst({ where: { id, ownerId }, select: projection });
       return link ? toOwnerPaymentLinkV2(link) : null;
     },
-    // 8.1.3 handoff: checkout_attempt_v2 does not exist yet; replace this with
-    // the real attempt-existence read before enabling any V2 checkout.
-    hasCheckoutAttempt() {
-      return Promise.resolve(false);
+    // 8.1.3 wiring: the real attempt-existence read over checkout_attempt_v2,
+    // queried by the link identity the financial-edit gate receives.
+    async hasCheckoutAttempt(id) {
+      const attempts = await db.checkoutAttemptV2.count({ where: { paymentLinkV2Id: id } });
+      return attempts > 0;
     },
   };
 }
