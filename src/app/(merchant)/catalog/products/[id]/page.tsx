@@ -81,26 +81,25 @@ function ArchivedProductView({
 }
 
 function ArchiveProductCard({ dictionary, product }: Readonly<{ dictionary: Dictionary; product: OwnerProduct }>) {
-  const formId = `product-${product.id}-archive`;
   return (
     <Card>
       <CardHeader>
         <CardTitle>{dictionary.catalogProductArchiveHeading}</CardTitle>
       </CardHeader>
       <CardContent>
-        <form action="/products" id={formId} method="post">
-          <Input name="action" type="hidden" value="archive" />
-          <Input name="id" type="hidden" value={product.id} />
-          <Input name="version" type="hidden" value={product.version} />
-          <details>
-            <summary>{dictionary.catalogProductArchiveConfirm}</summary>
-            <Alert variant="warning">
-              <AlertTitle>{dictionary.catalogProductArchiveConfirm}</AlertTitle>
-              <AlertDescription>{dictionary.catalogProductArchiveDescription}</AlertDescription>
-            </Alert>
-            <CatalogSubmit form={formId} label={dictionary.catalogProductArchive} tone="destructive" />
-          </details>
-        </form>
+        <details>
+          <summary>{dictionary.catalogProductArchiveConfirm}</summary>
+          <Alert variant="warning">
+            <AlertTitle>{dictionary.catalogProductArchiveConfirm}</AlertTitle>
+            <AlertDescription>{dictionary.catalogProductArchiveDescription}</AlertDescription>
+          </Alert>
+          <form action="/products" method="post">
+            <Input name="action" type="hidden" value="archive" />
+            <Input name="id" type="hidden" value={product.id} />
+            <Input name="version" type="hidden" value={product.version} />
+            <CatalogSubmit label={dictionary.catalogProductArchive} tone="destructive" />
+          </form>
+        </details>
       </CardContent>
     </Card>
   );
