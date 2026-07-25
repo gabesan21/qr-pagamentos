@@ -73,4 +73,24 @@ describe("links directory query", () => {
     expect(result.cursor?.direction).toBe("forward");
     expect(result.cursor?.tuple).toEqual(tuple);
   });
+
+  it("extracts each closed notice outcome before canonicalization", () => {
+    for (const notice of ["created", "edited", "activated", "deactivated", "failed"] as const) {
+      expect(resolve({ "payment-links-v2": notice })).toMatchObject({ status: "ready", notice });
+    }
+  });
+
+  it("rejects forged, repeated, or empty notice values with zero I/O", () => {
+    expect(resolve({ "payment-links-v2": "deleted" }).status).toBe("invalid-query");
+    expect(resolve({ "payment-links-v2": ["created", "edited"] }).status).toBe("invalid-query");
+    expect(resolve({ "payment-links-v2": "" }).status).toBe("invalid-query");
+  });
+
+  it("keeps the notice out of canonical URLs and drops it on a reset", () => {
+    const ready = resolve({ "payment-links-v2": "created", "filter.kind": "FIXED_AMOUNT" });
+    expect(ready).toMatchObject({ status: "ready", notice: "created" });
+    if (ready.status !== "ready") throw new Error("expected ready");
+    expect(ready.query.canonicalQuery).toBe("filter.kind=FIXED_AMOUNT");
+    expect(resolve({ "payment-links-v2": "created", pageSize: "25" })).toEqual({ status: "redirect", location: "/links" });
+  });
 });
