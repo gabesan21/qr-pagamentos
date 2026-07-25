@@ -224,7 +224,7 @@ export function DataDirectory<Row>(props: DataDirectoryProps<Row>) {
         : undefined;
 
   return (
-    <section aria-busy={props.state === "loading" ? true : undefined} className="flex flex-col gap-6" data-data-directory>
+    <section aria-busy={props.state === "loading" ? true : undefined} className="flex min-w-0 flex-col gap-6" data-data-directory>
       <DirectoryToolbar
         action={props.formAction}
         copy={props.copy}
@@ -260,7 +260,7 @@ export function DataDirectory<Row>(props: DataDirectoryProps<Row>) {
       ) : null}
       {props.state === "ready" ? (
         <>
-          <div className="hidden md:block" role="region" aria-label={props.caption}>
+          <div className="hidden min-w-0 md:block" role="region" aria-label={props.caption}>
             <Table>
               <TableCaption>{props.caption}</TableCaption>
               <TableHeader>

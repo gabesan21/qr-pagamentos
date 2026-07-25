@@ -64,7 +64,7 @@ describe("DataDirectory", () => {
 
   it("keeps exactly one responsive renderer visible by CSS contract", () => {
     const html = renderToStaticMarkup(<DataDirectory {...common} state="ready" />);
-    expect(html).toContain('class="hidden md:block"');
+    expect(html).toContain('class="hidden min-w-0 md:block"');
     expect(html).toContain("md:hidden");
     expect(html).toContain('scope="col"');
     expect(html).toContain("tabular-nums");
