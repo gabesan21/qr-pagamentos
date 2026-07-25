@@ -231,6 +231,21 @@ try {
   assert(categoryConcurrency.includes("3 passed"), "Product-category database ACL and concurrency scenarios did not all pass");
   console.log("PASS product-category-database-concurrency");
 
+  const merchantAnalyticsEnv = {
+    ...process.env,
+    DATABASE_URL: runtimeUrl,
+    MERCHANT_ANALYTICS_DATABASE_ADMIN_URL: adminUrl,
+    MERCHANT_ANALYTICS_DATABASE_TEST: "1",
+  };
+  delete merchantAnalyticsEnv.MIGRATION_DATABASE_URL;
+  const merchantAnalytics = run(
+    "pnpm",
+    ["exec", "vitest", "run", "src/orders/merchant-analytics.database.test.ts"],
+    { env: merchantAnalyticsEnv },
+  );
+  assert(merchantAnalytics.includes("4 passed"), "Merchant analytics database scenarios did not all pass");
+  console.log("PASS merchant-analytics-database");
+
   const runtime = new Client({ connectionString: runtimeUrl });
   await runtime.connect();
   const columns = await runtime.query(`
