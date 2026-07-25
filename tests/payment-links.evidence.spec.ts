@@ -241,9 +241,9 @@ test("creates the closed merchant payment-links evidence run", async ({ page }) 
   await page.setViewportSize({ width: 1440, height: 1000 });
 
   await page.goto(`${baseUrl}/links/v2/${seeded.links.productLinesPaid.id}`);
-  await expect(page.getByText("Café expresso")).toBeVisible();
-  await expect(page.getByText("Café coado")).toBeVisible();
-  await expect(page.getByText(seeded.links.productLinesPaid.identifier)).toBeVisible();
+  await expect(page.getByText("Café expresso").first()).toBeVisible();
+  await expect(page.getByText("Café coado").first()).toBeVisible();
+  await expect(page.getByText(seeded.links.productLinesPaid.identifier).first()).toBeVisible();
   assertions.push({ state: "detail-product-lines", identifier: seeded.links.productLinesPaid.identifier });
   await captureState("state-pt-BR-link-detail-1440");
 
