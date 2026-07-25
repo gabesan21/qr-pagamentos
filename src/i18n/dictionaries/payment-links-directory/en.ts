@@ -8,7 +8,6 @@ export const paymentLinksDirectoryEn = {
   paymentLinkDirectoryColumnType: "Type",
   paymentLinkDirectoryColumnState: "State",
   paymentLinkDirectoryColumnExpiry: "Expiry",
-  paymentLinkDirectoryColumnShare: "Share",
   paymentLinkDirectoryColumnActions: "Actions",
   paymentLinkDirectoryFilterState: "Lifecycle state",
   paymentLinkDirectoryFilterAllStates: "All states",

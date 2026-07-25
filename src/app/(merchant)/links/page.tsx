@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Share2Icon } from "lucide-react";
 
 import { OwnerPaymentLinkManagement } from "@/app/admin/payment-link-management";
 import { WorkspaceHeading } from "@/app-shell/workspace-heading";
@@ -70,15 +71,6 @@ function PaymentLinkDirectory({
     { id: "type", label: dictionary.paymentLinkDirectoryColumnType, value: (row) => linkTypeLabel(dictionary, row.linkType) },
     { id: "state", label: dictionary.paymentLinkDirectoryColumnState, value: (row) => <LinkStateBadge dictionary={dictionary} state={row.state} /> },
     { id: "expiry", label: dictionary.paymentLinkDirectoryColumnExpiry, numeric: true, value: (row) => row.expiresAt ? formatLinkInstant(row.expiresAt, locale) : dictionary.adminPaymentLinkNoExpiry },
-    {
-      id: "share",
-      label: dictionary.paymentLinkDirectoryColumnShare,
-      value: (row) => (
-        <Button asChild data-ds-hit-target variant="outline">
-          <a href={row.sharePath}>{dictionary.paymentLinkDirectoryShareOpen}</a>
-        </Button>
-      ),
-    },
   ];
 
   if (query.status === "invalid-query") {
@@ -151,9 +143,14 @@ function PaymentLinkDirectory({
       ]}
       formAction={LINKS_DIRECTORY_PATH}
       getRowActions={(row) => (
-        <Button asChild data-ds-hit-target variant="outline">
-          <Link href={`/links/v2/${row.id}`}>{dictionary.paymentLinkDirectoryView}</Link>
-        </Button>
+        <span className="flex flex-wrap gap-2">
+          <Button asChild data-ds-hit-target size="icon" variant="outline">
+            <a aria-label={dictionary.paymentLinkDirectoryShareOpen} href={row.sharePath}><Share2Icon aria-hidden /></a>
+          </Button>
+          <Button asChild data-ds-hit-target variant="outline">
+            <Link href={`/links/v2/${row.id}`}>{dictionary.paymentLinkDirectoryView}</Link>
+          </Button>
+        </span>
       )}
       idPrefix="payment-links-v2"
       {...(page?.nextCursor ? { nextUrl: pageUrl(query.query, page.nextCursor) } : {})}
