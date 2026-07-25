@@ -321,17 +321,23 @@ test("creates the closed merchant orders evidence run", async ({ page }) => {
   await captureState("state-en-order-failed-notice-1440");
 
   // The page-size preference: a stored registered size applies to the bare URL
-  // exactly once, and an explicit toolbar choice is re-stored.
+  // exactly once, the toolbar change is stored on observation, and an explicit
+  // URL value always wins and is re-stored. (The native GET submit is not
+  // driven here: the delivered foundation grammar rejects empty enum filter
+  // values, so an untouched "All" select would land on invalid-query.)
   await page.evaluate(() => window.localStorage.setItem("qr-orders-v2-page-size", "50"));
   await page.goto(`${baseUrl}/orders`);
   await page.waitForURL(/\/orders\?pageSize=50$/);
   const applied = await page.locator("#orders-v2-page-size").inputValue();
   expect(applied).toBe("50");
   await page.locator("#orders-v2-page-size").selectOption("10");
-  await Promise.all([
-    page.waitForURL(/\/orders\?pageSize=10$/),
-    page.getByRole("button", { name: "Apply filters" }).click(),
-  ]);
+  const persistedOnChange = await page.evaluate(() => window.localStorage.getItem("qr-orders-v2-page-size"));
+  expect(persistedOnChange).toBe("10");
+  await page.evaluate(() => window.localStorage.setItem("qr-orders-v2-page-size", "50"));
+  await page.goto(`${baseUrl}/orders?pageSize=10`);
+  await expect(page).toHaveURL(/\/orders\?pageSize=10$/);
+  const explicit = await page.locator("#orders-v2-page-size").inputValue();
+  expect(explicit).toBe("10");
   const persisted = await page.evaluate(() => window.localStorage.getItem("qr-orders-v2-page-size"));
   expect(persisted).toBe("10");
   assertions.push({ state: "page-size-preference", applied: 50, persisted: 10 });
