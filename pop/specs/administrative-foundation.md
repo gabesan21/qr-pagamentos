@@ -5,7 +5,7 @@
 - **Status:** implementada
 - **Implementation:** partial
 - **Created:** 2026-07-13
-- **Updated:** 2026-07-24
+- **Updated:** 2026-07-25 — task 8.3.1 makes the page-size set/default a per-directory registration drawn from the 10/20/25/50/100 superset.
 
 ## What it covers
 
@@ -65,8 +65,10 @@ Shared data directories use one bounded contract without sharing a business
 projection. The only entry points receive an already-resolved active principal:
 `USER` derives its own owner scope and `ADMIN` derives an explicit global-read
 scope, with exact role denial before adapter I/O. Each registered directory
-fixes redacted row DTOs, at most eight text/closed-enum filters, page sizes
-25/50/100, and an immutable lexicographic order ending in a unique ID. Adapters
+fixes redacted row DTOs, at most eight text/closed-enum filters, its own closed
+page-size subset with its own default drawn from the foundation-wide
+10/20/25/50/100 set (canonical URLs omit the directory's default size), and an
+immutable lexicographic order ending in a unique ID. Adapters
 request only `pageSize + 1`; offset, total count, arbitrary sorting, raw query
 fragments, client-side full-list filtering, and cross-request snapshot claims
 are excluded.
