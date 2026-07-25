@@ -231,6 +231,21 @@ try {
   assert(categoryConcurrency.includes("3 passed"), "Product-category database ACL and concurrency scenarios did not all pass");
   console.log("PASS product-category-database-concurrency");
 
+  const engagementContractEnv = {
+    ...process.env,
+    DATABASE_URL: runtimeUrl,
+    ORDER_ENGAGEMENT_V2_DATABASE_ADMIN_URL: adminUrl,
+    ORDER_ENGAGEMENT_V2_DATABASE_TEST: "1",
+  };
+  delete engagementContractEnv.MIGRATION_DATABASE_URL;
+  const engagementContract = run(
+    "pnpm",
+    ["exec", "vitest", "run", "src/orders/order-engagement-v2.database.test.ts"],
+    { env: engagementContractEnv },
+  );
+  assert(engagementContract.includes("4 passed"), "Order engagement V2 settlement-fencing and CAS scenarios did not all pass");
+  console.log("PASS order-engagement-v2-database-contract");
+
   const runtime = new Client({ connectionString: runtimeUrl });
   await runtime.connect();
   const columns = await runtime.query(`
