@@ -9,14 +9,16 @@ function requireSource(source, pattern, message) {
   if (!pattern.test(source)) throw new Error(message);
 }
 
-const [eslintConfig, tsconfig, loginPage, loginSubmit, loginRoute, loginEvidence, homePage, rootLayout, designSystemPage, languageRoute] = await Promise.all([
+const [eslintConfig, tsconfig, loginPage, loginSubmit, loginRoute, loginEvidence, merchantHomePage, merchantShellContext, ownerGuard, rootLayout, designSystemPage, languageRoute] = await Promise.all([
   readFile(join(root, "eslint.config.mjs"), "utf8"),
   readFile(join(root, "tsconfig.json"), "utf8"),
   readFile(join(root, "src/app/login/page.tsx"), "utf8"),
   readFile(join(root, "src/app/login/login-submit.tsx"), "utf8"),
   readFile(join(root, "src/app/login/submit/route.ts"), "utf8"),
   readFile(join(root, "tests/login.evidence.spec.ts"), "utf8"),
-  readFile(join(root, "src/app/page.tsx"), "utf8"),
+  readFile(join(root, "src/app/(merchant)/page.tsx"), "utf8"),
+  readFile(join(root, "src/app/(merchant)/shell-context.ts"), "utf8"),
+  readFile(join(root, "src/app/owner-guard.ts"), "utf8"),
   readFile(join(root, "src/app/layout.tsx"), "utf8"),
   readFile(join(root, "src/app/design-system/page.tsx"), "utf8"),
   readFile(join(root, "src/app/language-preference/route.ts"), "utf8"),
@@ -43,7 +45,12 @@ requireSource(loginEvidence, /\["click",\s*"enter"\]/, "Login evidence no longer
 requireSource(loginEvidence, /page\.route\("\*\*\/login\/submit"/, "Login evidence no longer delays the native POST response.");
 requireSource(loginEvidence, /busy:\s*"true"[\s\S]*disabled:\s*true[\s\S]*spinners:\s*1/, "Login evidence no longer asserts the pending state.");
 
-for (const [name, source] of [["login route", loginRoute], ["home page", homePage], ["root layout", rootLayout], ["design-system page", designSystemPage], ["language route", languageRoute]]) {
+requireSource(merchantHomePage, /requireMerchantShellContext\(/, "home page no longer rechecks the active principal.");
+requireSource(merchantShellContext, /requireOwnerFromCookie\(/, "merchant shell context no longer routes through the owner guard.");
+requireSource(ownerGuard, /getAuthorizationService\(\)\.requireUser\(/, "owner guard no longer rechecks the active principal.");
+if (/getSessionService\(\)\.validate\(/.test(ownerGuard)) throw new Error("owner guard bypasses status-aware authorization.");
+
+for (const [name, source] of [["login route", loginRoute], ["root layout", rootLayout], ["design-system page", designSystemPage], ["language route", languageRoute]]) {
   requireSource(source, /getAuthorizationService\(\)\.resolve\(/, `${name} no longer rechecks the active principal.`);
   if (/getSessionService\(\)\.validate\(/.test(source)) throw new Error(`${name} bypasses status-aware authorization.`);
 }
