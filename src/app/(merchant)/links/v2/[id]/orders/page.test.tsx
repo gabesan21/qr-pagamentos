@@ -59,6 +59,7 @@ function order(overrides: Partial<OrderV2Summary> = {}): OrderV2Summary {
     state: "CONFIRMED",
     currentLocalOutcome: null,
     checkoutDataPolicy: "NONE",
+    payer: { name: null, email: null, cpf: null, address: null },
     createdAt: new Date("2026-07-03T12:00:00.000Z"),
     updatedAt: new Date("2026-07-03T13:00:00.000Z"),
     settledAt: new Date("2026-07-03T14:00:00.000Z"),
