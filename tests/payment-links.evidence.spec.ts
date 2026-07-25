@@ -268,7 +268,7 @@ test("creates the closed merchant payment-links evidence run", async ({ page }) 
   // ---- pt-BR management surfaces: create form, edit form, outcome notice ----
   await page.goto(`${baseUrl}/links/new`);
   await expect(page.getByText("Novo link de pagamento").first()).toBeVisible();
-  await expect(page.getByText("Café expresso").first()).toBeVisible();
+  await expect(page.getByLabel("Produto")).toContainText("Café expresso");
   await captureState("state-pt-BR-link-new-1440");
 
   await page.setViewportSize({ width: 375, height: 1000 });
@@ -329,7 +329,7 @@ test("creates the closed merchant payment-links evidence run", async ({ page }) 
     page.getByRole("button", { name: "Create payment link" }).click(),
   ]);
   await expect(page.getByText("The payment link was created.")).toBeVisible();
-  await expect(page.getByText("Espresso shot").first()).toBeVisible();
+  await expect(directory.getByText("Espresso shot").first()).toBeVisible();
   assertions.push({ state: "create-product-lines", outcome: "created" });
   await captureState("state-en-link-created-notice-1440");
 
@@ -345,7 +345,7 @@ test("creates the closed merchant payment-links evidence run", async ({ page }) 
     page.getByRole("button", { name: "Create payment link" }).click(),
   ]);
   await expect(page.getByText("The payment link was created.")).toBeVisible();
-  await expect(page.getByText("Evidence dues")).toBeVisible();
+  await expect(directory.getByText("Evidence dues").first()).toBeVisible();
   assertions.push({ state: "create-fixed-amount", outcome: "created" });
   await captureState("state-en-link-fixed-created-1440");
 
