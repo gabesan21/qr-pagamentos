@@ -177,10 +177,16 @@ test("creates the closed merchant payment-links evidence run", async ({ page }) 
         return style.display !== "none" && style.visibility !== "hidden" && rectangle.width > 44 && rectangle.height > 10;
       };
       const controls = Array.from(document.querySelectorAll<HTMLElement>("input:not([type=hidden]):not([type=file]), button, select, a[href]")).filter(visible);
+      const clientWidth = document.documentElement.clientWidth;
+      const offenders = Array.from(document.querySelectorAll<HTMLElement>("body *"))
+        .filter((element) => element.getBoundingClientRect().right > clientWidth + 1)
+        .slice(0, 8)
+        .map((element) => `${element.tagName}.${element.className} right=${Math.round(element.getBoundingClientRect().right)} text=${(element.textContent ?? "").trim().slice(0, 40)}`);
       return {
         bodyFont: getComputedStyle(document.body).fontFamily,
         focusableCount: controls.length,
-        overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
+        overflow: document.documentElement.scrollWidth > clientWidth,
+        offenders,
         targets: controls.map((control) => ({
           height: control.getBoundingClientRect().height,
           width: control.getBoundingClientRect().width,
@@ -188,7 +194,7 @@ test("creates the closed merchant payment-links evidence run", async ({ page }) 
       };
     });
     expect(measured.bodyFont).toContain("IBM Plex Sans");
-    expect(measured.overflow).toBe(false);
+    expect(measured.overflow, `overflow offenders: ${JSON.stringify(measured.offenders)}`).toBe(false);
     expect(measured.targets.every(({ height, width }) => height >= 44 && width >= 44)).toBe(true);
     const formControls = page.locator('input:not([type="hidden"]):not([type="file"]), select');
     const firstInput = (await formControls.count()) > 0 ? formControls.first() : page.locator('button, a[href]').first();

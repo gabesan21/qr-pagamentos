@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Share2Icon } from "lucide-react";
+import { ListOrderedIcon, Share2Icon } from "lucide-react";
 
 import { OwnerPaymentLinkManagement } from "@/app/admin/payment-link-management";
 import { WorkspaceHeading } from "@/app-shell/workspace-heading";
@@ -152,8 +152,8 @@ function PaymentLinkDirectory({
           <Button asChild data-ds-hit-target variant="outline">
             <Link href={`/links/v2/${row.id}`}>{dictionary.paymentLinkDirectoryView}</Link>
           </Button>
-          <Button asChild data-ds-hit-target variant="outline">
-            <Link href={`/links/v2/${row.id}/orders`}>{dictionary.paymentLinkOrdersView}</Link>
+          <Button asChild data-ds-hit-target size="icon" variant="outline">
+            <Link aria-label={dictionary.paymentLinkOrdersView} href={`/links/v2/${row.id}/orders`}><ListOrderedIcon aria-hidden /></Link>
           </Button>
         </span>
       )}
