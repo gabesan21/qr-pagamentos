@@ -28,6 +28,9 @@ export default async function PaymentLinkV2DetailPage({ params }: Readonly<{ par
               <Button asChild data-ds-hit-target>
                 <Link href={`/links/v2/${result.link.id}/edit`}>{dictionary.paymentLinkEditAction}</Link>
               </Button>
+              <Button asChild data-ds-hit-target variant="outline">
+                <Link href={`/links/v2/${result.link.id}/orders`}>{dictionary.paymentLinkOrdersView}</Link>
+              </Button>
             </div>
             <PaymentLinkV2LifecycleCard active={result.link.active} dictionary={dictionary} id={result.link.id} version={prefill.version} />
           </>

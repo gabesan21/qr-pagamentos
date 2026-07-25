@@ -15,8 +15,8 @@ assert(current.review === `artifacts/links/${current.runId}/review.md`, "Links e
 const runDirectory = path.join(artifactRoot, current.runId);
 const manifest = await parse(path.join(root, current.manifest));
 assert(manifest.runId === current.runId, "Links evidence pointer, directory, and manifest disagree.");
-assert(manifest.baseCaptureCount === 36 && manifest.stateCaptureCount === 17 && manifest.totalPngCount === 53, "Links evidence capture counts are not closed.");
-assert(Array.isArray(manifest.captures) && manifest.captures.length === 53, "Links evidence manifest does not bind 53 captures.");
+assert(manifest.baseCaptureCount === 36 && manifest.stateCaptureCount === 20 && manifest.totalPngCount === 56, "Links evidence capture counts are not closed.");
+assert(Array.isArray(manifest.captures) && manifest.captures.length === 56, "Links evidence manifest does not bind 56 captures.");
 assert(manifest.externalRequests.length === 0 && manifest.consoleErrors.length === 0 && manifest.pageErrors.length === 0, "Links evidence records runtime or external-request failures.");
 
 const expected = new Set();
@@ -30,6 +30,9 @@ for (const name of [
   "state-pt-BR-links-ready-320",
   "state-pt-BR-link-detail-1440",
   "state-pt-BR-link-detail-unavailable-1440",
+  "state-pt-BR-link-orders-1440",
+  "state-pt-BR-link-order-detail-1440",
+  "state-pt-BR-link-order-unavailable-1440",
   "state-pt-BR-link-new-1440",
   "state-pt-BR-link-new-375",
   "state-pt-BR-link-edit-1440",
@@ -44,7 +47,7 @@ for (const name of [
   "state-en-link-failed-notice-1440",
   "state-en-link-deactivated-notice-1440",
 ]) expected.add(`${name}.png`);
-assert(expected.size === 53, `Links evidence expected capture inventory is invalid: ${expected.size}`);
+assert(expected.size === 56, `Links evidence expected capture inventory is invalid: ${expected.size}`);
 for (const capture of manifest.captures) {
   const fileName = path.basename(capture.path);
   assert(expected.delete(fileName), `Links evidence contains an unexpected or duplicate capture: ${fileName}`);
@@ -54,8 +57,8 @@ for (const capture of manifest.captures) {
 assert(expected.size === 0, `Links evidence is missing captures: ${[...expected].join(", ")}`);
 
 const runFiles = await readdir(runDirectory);
-assert(runFiles.length === 56, `Links evidence run must contain exactly 56 files, found ${runFiles.length}.`);
-assert(runFiles.filter((file) => file.endsWith(".png")).length === 53, "Links evidence run does not contain exactly 53 PNGs.");
+assert(runFiles.length === 59, `Links evidence run must contain exactly 59 files, found ${runFiles.length}.`);
+assert(runFiles.filter((file) => file.endsWith(".png")).length === 56, "Links evidence run does not contain exactly 56 PNGs.");
 assert(["assertions.json", "manifest.json", "review.md"].every((file) => runFiles.includes(file)), "Links evidence metadata inventory is incomplete.");
 
 const assertionsBytes = await readFile(path.join(root, manifest.assertions));
@@ -64,7 +67,7 @@ const assertions = JSON.parse(assertionsBytes);
 const grid = assertions.filter((entry) => typeof entry.state === "string" && /^directory-.+(?:375|768|1440)$/.test(entry.state));
 assert(grid.length === 36, "Links evidence objective grid assertions are incomplete.");
 const inspected = assertions.filter((entry) => entry.measured && entry.focus);
-assert(inspected.length === 53, "Links evidence does not inspect all 53 captures.");
+assert(inspected.length === 56, "Links evidence does not inspect all 56 captures.");
 assert(inspected.every((entry) => entry.severeAxe.length === 0
   && !entry.measured.overflow
   && entry.measured.targets.every((target) => target.height >= 44 && target.width >= 44)
@@ -80,6 +83,14 @@ const invalid = assertions.find((entry) => entry.state === "invalid-query-no-ech
 assert(invalid?.echoed === false, "Links evidence does not prove the invalid-query state echoes no input.");
 assert(assertions.some((entry) => entry.state === "detail-product-lines" && /^[A-Za-z0-9_-]{24}$/.test(entry.identifier ?? "")), "Links evidence does not prove the product-lines detail.");
 assert(assertions.some((entry) => entry.state === "detail-fixed-amount"), "Links evidence does not prove the fixed-amount detail.");
+const drilldownList = assertions.find((entry) => entry.state === "drilldown-list");
+assert(drilldownList && /^[A-Za-z0-9_-]{24}$/.test(drilldownList.identifier ?? "") && drilldownList.orders === 1, "Links evidence does not prove the drilldown order list.");
+assert(assertions.some((entry) => entry.state === "drilldown-detail" && entry.matched === true), "Links evidence does not prove the drilldown order detail.");
+const drilldownUnavailable = assertions.find((entry) => entry.state === "drilldown-order-unavailable");
+assert(drilldownUnavailable?.opaque === true, "Links evidence does not prove the opaque drilldown order mismatch.");
+const drilldownCount = assertions.find((entry) => entry.state === "directory-order-count");
+assert(drilldownCount?.count === 1, "Links evidence does not prove the directory order count.");
+assert(assertions.some((entry) => entry.state === "drilldown-empty" && entry.empty === true), "Links evidence does not prove the empty drilldown list.");
 const outcomes = Object.fromEntries(assertions.filter((entry) => typeof entry.outcome === "string").map((entry) => [entry.state, entry.outcome]));
 assert(outcomes["create-product-lines"] === "created", "Links evidence does not prove the product-lines create flow.");
 assert(outcomes["create-fixed-amount"] === "created", "Links evidence does not prove the fixed-amount create flow.");
