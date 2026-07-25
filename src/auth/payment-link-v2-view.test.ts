@@ -34,6 +34,7 @@ function stored(overrides: Partial<StoredPaymentLinkV2View> = {}): StoredPayment
     expiresAt: null,
     active: true,
     paid: false,
+    orderCount: 0,
     createdAt: new Date("2026-07-01T12:00:00.000Z"),
     updatedAt: new Date("2026-07-02T12:00:00.000Z"),
     lines: [],
@@ -142,6 +143,17 @@ describe("payment-link V2 directory adapter", () => {
     expect(window.map((row) => row.state)).toEqual(["paid", "inactive", "expired"]);
     expect(window[0].sharePath).toBe("/pay/abcdefghijklmnopqrstuvwx");
     expect(window[0].currencyPairLabel).toBe("BRL/USDT");
+  });
+
+  it("carries the stored LINK-order count onto directory rows and the owner detail", async () => {
+    const detail = stored({ orderCount: 3, paid: true });
+    const { store } = createStore([detail], detail);
+    const adapter = createPaymentLinkV2DirectoryAdapter(store, now);
+    const window = await adapter.readWindow(readInput());
+    expect(window[0].orderCount).toBe(3);
+    const service = createPaymentLinkV2ViewService(store, now);
+    const result = await service.getForOwner(merchant, detail.id);
+    expect(result).toEqual({ kind: "found", link: expect.objectContaining({ orderCount: 3 }) });
   });
 });
 

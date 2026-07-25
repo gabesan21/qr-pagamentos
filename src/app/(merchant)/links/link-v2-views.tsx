@@ -59,6 +59,7 @@ function DetailFacts({ dictionary, link, locale }: Readonly<{ dictionary: Dictio
       <div><dt>{dictionary.paymentLinkDirectoryColumnState}</dt><dd><LinkStateBadge dictionary={dictionary} state={link.state} /></dd></div>
       <div><dt>{dictionary.paymentLinkDirectoryColumnComposition}</dt><dd>{linkKindLabel(dictionary, link.compositionKind)}</dd></div>
       <div><dt>{dictionary.paymentLinkDirectoryColumnType}</dt><dd>{linkTypeLabel(dictionary, link.linkType)}</dd></div>
+      <div><dt>{dictionary.paymentLinkDirectoryColumnOrders}</dt><dd className="tabular-nums">{link.orderCount}</dd></div>
       <div><dt>{dictionary.paymentLinkDirectoryCurrencyPair}</dt><dd>{link.currencyPairLabel}</dd></div>
       <div><dt>{dictionary.paymentLinkDirectoryColumnExpiry}</dt><dd>{link.expiresAt ? formatLinkInstant(link.expiresAt, locale) : dictionary.adminPaymentLinkNoExpiry}</dd></div>
       <div><dt>{dictionary.paymentLinkDirectoryCreated}</dt><dd>{formatLinkInstant(link.createdAt, locale)}</dd></div>

@@ -43,6 +43,9 @@ export type PaymentLinkV2DirectoryRow = Readonly<{
   expiresAt: Date | null;
   active: boolean;
   paid: boolean;
+  // Read-time count of every LINK-source order this link generated, in any
+  // state; the confirmed subset remains the derived `paid` signal. Never stored.
+  orderCount: number;
   state: PaymentLinkV2DerivedState;
   createdAt: Date;
   updatedAt: Date;
@@ -190,6 +193,9 @@ const viewSelect = {
   },
   singleUseSettlement: { select: { paymentLinkV2Id: true } },
   orders: { where: { source: "LINK", state: "CONFIRMED" }, select: { id: true }, take: 1 },
+  // Filtered relation count rides the (payment_link_v2_id, created_at, id)
+  // index; one bounded count per listed link, never a stored column.
+  _count: { select: { orders: { where: { source: "LINK" } } } },
 } satisfies Prisma.PaymentLinkV2Select;
 
 type PrismaPaymentLinkV2ViewRow = {
@@ -208,6 +214,7 @@ type PrismaPaymentLinkV2ViewRow = {
   lines: Array<{ position: number; quantity: number; product: { titlePtBr: string; titleEn: string; price: string } }>;
   singleUseSettlement: { paymentLinkV2Id: string } | null;
   orders: Array<{ id: string }>;
+  _count: { orders: number };
 };
 
 function toStored(row: PrismaPaymentLinkV2ViewRow): StoredPaymentLinkV2View {
@@ -225,6 +232,7 @@ function toStored(row: PrismaPaymentLinkV2ViewRow): StoredPaymentLinkV2View {
     // Paid is the type-conditional confirmed settlement: the single-use claim
     // row for SINGLE_USE, at least one CONFIRMED LINK order for REUSABLE.
     paid: row.linkType === "SINGLE_USE" ? row.singleUseSettlement !== null : row.orders.length > 0,
+    orderCount: row._count.orders,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
     lines: row.lines.map((line) => ({

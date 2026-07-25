@@ -115,7 +115,7 @@ function seedSql() {
        SELECT '${filler.id}', '${filler.identifier}', u.id, 'FIXED_AMOUNT', 'Link de preenchimento ${filler.index}', 'Filler link ${filler.index}', '1', '${pair.id}', 'REUSABLE', true, 0, '${at(10 + filler.index)}', '${at(10 + filler.index)}'
        FROM app."user" u WHERE u.username = '${merchantUsername}'`),
   ];
-  return { sql: `${statements.join(";\n")};\n`, links, products, pair };
+  return { sql: `${statements.join(";\n")};\n`, links, products, pair, orders };
 }
 
 function seedDatabase(sql: string) {
@@ -177,10 +177,16 @@ test("creates the closed merchant payment-links evidence run", async ({ page }) 
         return style.display !== "none" && style.visibility !== "hidden" && rectangle.width > 44 && rectangle.height > 10;
       };
       const controls = Array.from(document.querySelectorAll<HTMLElement>("input:not([type=hidden]):not([type=file]), button, select, a[href]")).filter(visible);
+      const clientWidth = document.documentElement.clientWidth;
+      const offenders = Array.from(document.querySelectorAll<HTMLElement>("body *"))
+        .filter((element) => element.getBoundingClientRect().right > clientWidth + 1)
+        .slice(0, 8)
+        .map((element) => `${element.tagName}.${element.className} right=${Math.round(element.getBoundingClientRect().right)} text=${(element.textContent ?? "").trim().slice(0, 40)}`);
       return {
         bodyFont: getComputedStyle(document.body).fontFamily,
         focusableCount: controls.length,
-        overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
+        overflow: document.documentElement.scrollWidth > clientWidth,
+        offenders,
         targets: controls.map((control) => ({
           height: control.getBoundingClientRect().height,
           width: control.getBoundingClientRect().width,
@@ -188,7 +194,7 @@ test("creates the closed merchant payment-links evidence run", async ({ page }) 
       };
     });
     expect(measured.bodyFont).toContain("IBM Plex Sans");
-    expect(measured.overflow).toBe(false);
+    expect(measured.overflow, `overflow offenders: ${JSON.stringify(measured.offenders)}`).toBe(false);
     expect(measured.targets.every(({ height, width }) => height >= 44 && width >= 44)).toBe(true);
     const formControls = page.locator('input:not([type="hidden"]):not([type="file"]), select');
     const firstInput = (await formControls.count()) > 0 ? formControls.first() : page.locator('button, a[href]').first();
@@ -265,6 +271,36 @@ test("creates the closed merchant payment-links evidence run", async ({ page }) 
   assertions.push({ state: "detail-unavailable", opaque: true });
   await captureState("state-pt-BR-link-detail-unavailable-1440");
 
+  // ---- pt-BR order drilldown: directory count, forced-filter list, detail, opaque mismatch ----
+  await page.goto(`${baseUrl}/links`);
+  await expect(directory.getByRole("columnheader", { name: "Pedidos" })).toBeVisible();
+  await expect(directory.locator(`a[href="/links/v2/${seeded.links.productLinesPaid.id}/orders"]`).first()).toBeVisible();
+
+  await page.goto(`${baseUrl}/links/v2/${seeded.links.productLinesPaid.id}`);
+  await Promise.all([
+    page.waitForURL(`${baseUrl}/links/v2/${seeded.links.productLinesPaid.id}/orders`),
+    page.getByRole("link", { name: "Ver pedidos" }).click(),
+  ]);
+  await expect(page.getByText("Pagamento confirmado").first()).toBeVisible();
+  await expect(page.getByText("34,9").first()).toBeVisible();
+  assertions.push({ state: "drilldown-list", identifier: seeded.links.productLinesPaid.identifier, orders: 1 });
+  await captureState("state-pt-BR-link-orders-1440");
+
+  await Promise.all([
+    page.waitForURL(`${baseUrl}/links/v2/${seeded.links.productLinesPaid.id}/orders/${seeded.orders.reusable}`),
+    page.getByRole("link", { name: "Ver pedido" }).click(),
+  ]);
+  await expect(page.getByText("Pagamento confirmado").first()).toBeVisible();
+  await expect(page.getByText(seeded.links.productLinesPaid.identifier).first()).toBeVisible();
+  assertions.push({ state: "drilldown-detail", order: seeded.orders.reusable, matched: true });
+  await captureState("state-pt-BR-link-order-detail-1440");
+
+  await page.goto(`${baseUrl}/links/v2/${seeded.links.productLinesPaid.id}/orders/${seeded.orders.singleUse}`);
+  await expect(page.getByText("Este pedido está indisponível")).toBeVisible();
+  await expect(page.getByText("34,9")).toHaveCount(0);
+  assertions.push({ state: "drilldown-order-unavailable", opaque: true });
+  await captureState("state-pt-BR-link-order-unavailable-1440");
+
   // ---- pt-BR management surfaces: create form, edit form, outcome notice ----
   await page.goto(`${baseUrl}/links/new`);
   await expect(page.getByText("Novo link de pagamento").first()).toBeVisible();
@@ -318,6 +354,20 @@ test("creates the closed merchant payment-links evidence run", async ({ page }) 
   await expect(page.getByRole("button", { name: "Copy" })).toBeVisible();
   assertions.push({ state: "detail-fixed-amount", identifier: seeded.links.fixedSinglePaid.identifier });
   await captureState("state-en-link-detail-fixed-1440");
+
+  // ---- en drilldown assertions: count on the detail facts, forced-filter list, empty list ----
+  await expect(page.locator("dt", { hasText: "Orders" }).locator("..").locator("dd")).toHaveText("1");
+  assertions.push({ state: "directory-order-count", count: 1 });
+
+  await page.goto(`${baseUrl}/links/v2/${seeded.links.fixedSinglePaid.id}/orders`);
+  await expect(page.getByText("Payment confirmed").first()).toBeVisible();
+  await expect(page.getByText("10.50").first()).toBeVisible();
+  await expect(page.locator(`a[href="/links/v2/${seeded.links.fixedSinglePaid.id}/orders/${seeded.orders.singleUse}"]`).first()).toBeVisible();
+  assertions.push({ state: "drilldown-list-en", identifier: seeded.links.fixedSinglePaid.identifier, orders: 1 });
+
+  await page.goto(`${baseUrl}/links/v2/${seeded.links.inactive.id}/orders`);
+  await expect(page.getByText("No orders yet")).toBeVisible();
+  assertions.push({ state: "drilldown-empty", empty: true });
 
   // ---- en management flows: real UI mutations after the pagination proof ----
   // Create PRODUCT_LINES through the form.
@@ -421,7 +471,7 @@ test("creates the closed merchant payment-links evidence run", async ({ page }) 
     }
   }
 
-  expect(screenshots).toHaveLength(53);
+  expect(screenshots).toHaveLength(56);
   const assertionsPath = join(runDirectory, "assertions.json");
   await writeFile(assertionsPath, `${JSON.stringify(assertions, null, 2)}\n`);
   const captureRecords = await Promise.all(screenshots.map(async (capturePath) => {
@@ -448,6 +498,10 @@ test("creates the closed merchant payment-links evidence run", async ({ page }) 
     "src/app/(merchant)/links/new/page.tsx",
     "src/app/(merchant)/links/v2/[id]/page.tsx",
     "src/app/(merchant)/links/v2/[id]/edit/page.tsx",
+    "src/app/(merchant)/links/v2/[id]/orders/page.tsx",
+    "src/app/(merchant)/links/v2/[id]/orders/directory-copy.ts",
+    "src/app/(merchant)/links/v2/[id]/orders/order-v2-views.tsx",
+    "src/app/(merchant)/links/v2/[id]/orders/[orderId]/page.tsx",
     "src/i18n/dictionaries/payment-links-directory/en.ts",
     "src/i18n/dictionaries/payment-links-directory/pt-BR.ts",
     "src/observability/server-request-log.ts",
@@ -465,8 +519,8 @@ test("creates the closed merchant payment-links evidence run", async ({ page }) 
     startedAt,
     gitHead: execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim(),
     baseCaptureCount: 36,
-    stateCaptureCount: 17,
-    totalPngCount: 53,
+    stateCaptureCount: 20,
+    totalPngCount: 56,
     assertions: `artifacts/links/${runId}/assertions.json`,
     assertionsSha256: sha256(assertionsBytes),
     captures: captureRecords,
@@ -483,7 +537,7 @@ test("creates the closed merchant payment-links evidence run", async ({ page }) 
     "",
     `- Run: \`${runId}\``,
     `- Manifest SHA-256: \`${sha256(manifestBytes)}\``,
-    "- Grid: six themes × two locales × 375/768/1440 directory captures, plus seventeen localized state captures including 320-pixel reflow, detail, opaque miss, page 2, the create/edit forms, and every closed outcome notice.",
+    "- Grid: six themes × two locales × 375/768/1440 directory captures, plus twenty localized state captures including 320-pixel reflow, detail, opaque miss, page 2, the create/edit forms, every closed outcome notice, and the read-only order drilldown (list, detail, opaque mismatch).",
     "- Management flows run through the real 8.2.2 UI: both composition kinds create, expiry-only edit succeeds under a seeded checkout attempt (dirty omission), a financial edit on the same link fails opaquely, an explicit blank clears expiry, and activate/deactivate land on their notices.",
     "- Automated accessibility/runtime/target/overflow/focus findings: none.",
     "- The error directory state is induced only in unit/page tests: stopping the disposable database would break session resolution before the directory read, so no honest runtime capture exists.",

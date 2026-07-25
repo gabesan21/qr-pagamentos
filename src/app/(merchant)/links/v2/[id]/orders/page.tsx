@@ -1,0 +1,162 @@
+import Link from "next/link";
+import { redirect } from "next/navigation";
+
+import { formatCatalogPrice } from "@/app/(merchant)/catalog/price-format";
+import { WorkspaceHeading } from "@/app-shell/workspace-heading";
+import { getPaymentLinkV2ViewService } from "@/auth/payment-link-v2-view";
+import { Button } from "@/components/ui/button";
+import { DataDirectory, type DataDirectoryColumn, type DataDirectoryState } from "@/data-directory/ui/data-directory";
+import type { getDictionary } from "@/i18n/dictionaries";
+import type { SupportedLocale } from "@/i18n/locales";
+import { queryOwnerOrderV2Directory, type OrderV2DirectoryResult } from "@/orders/order-v2-directory";
+import type { OrderV2Summary } from "@/orders/order-v2-view";
+
+import { requireMerchantShellContext } from "../../../../shell-context";
+import type { LinksSearchParams } from "../../../directory-query";
+import { formatLinkInstant, PaymentLinkV2UnavailableCard } from "../../../link-v2-views";
+import { linkOrdersDirectoryCopy } from "./directory-copy";
+import { OrderV2LocalOutcomeBadge, OrderV2StateBadge, orderV2SummaryLabel } from "./order-v2-views";
+
+type Dictionary = ReturnType<typeof getDictionary>;
+
+// The parent link's identifier is force-bound server-side: a client-supplied
+// `filter.link` is never honored — the first occurrence is replaced in place
+// (keeping a canonical URL stable across the rebuild) and the rest are dropped.
+function drilldownRequestTarget(searchParams: LinksSearchParams, identifier: string, path: string) {
+  const entries: Array<[string, string]> = [];
+  let bound = false;
+  for (const [key, value] of Object.entries(searchParams)) {
+    if (value === undefined) continue;
+    const values = typeof value === "string" ? [value] : value;
+    for (const item of values) {
+      if (key === "filter.link") {
+        if (!bound) {
+          entries.push(["filter.link", identifier]);
+          bound = true;
+        }
+        continue;
+      }
+      entries.push([key, item]);
+    }
+  }
+  if (!bound) entries.push(["filter.link", identifier]);
+  return `${path}?${new URLSearchParams(entries).toString()}`;
+}
+
+function pageUrl(path: string, canonicalQuery: string, cursor: string) {
+  const parameters = new URLSearchParams(canonicalQuery);
+  parameters.delete("cursor");
+  return `${path}?${parameters.toString()}&cursor=${cursor}`;
+}
+
+function LinkOrderDirectory({
+  dictionary,
+  locale,
+  path,
+  requestTarget,
+  result,
+}: Readonly<{
+  dictionary: Dictionary;
+  locale: SupportedLocale;
+  path: string;
+  requestTarget: string;
+  result: Exclude<OrderV2DirectoryResult, { status: "redirect" }> | null;
+}>) {
+  const copy = linkOrdersDirectoryCopy(dictionary);
+  const columns: readonly DataDirectoryColumn<OrderV2Summary>[] = [
+    { id: "summary", label: dictionary.paymentLinkDirectoryColumnSummary, value: (row) => orderV2SummaryLabel(row, locale) },
+    { id: "amount", label: dictionary.orderAmount, numeric: true, value: (row) => formatCatalogPrice(row.amount, null, locale) },
+    { id: "state", label: dictionary.orderState, value: (row) => <OrderV2StateBadge dictionary={dictionary} state={row.state} /> },
+    { id: "outcome", label: dictionary.paymentLinkOrderLocalOutcome, value: (row) => <OrderV2LocalOutcomeBadge dictionary={dictionary} outcome={row.currentLocalOutcome} /> },
+    { id: "created", label: dictionary.orderCreated, value: (row) => formatLinkInstant(row.createdAt, locale) },
+  ];
+
+  if (result === null || result.status === "invalid-query") {
+    return (
+      <DataDirectory
+        caption={dictionary.paymentLinkOrdersHeading}
+        columns={columns}
+        copy={copy}
+        formAction={path}
+        idPrefix="payment-link-v2-orders"
+        resetUrl={path}
+        rowKey={(row) => row.id}
+        rows={[]}
+        state={result === null ? "error" : "invalid-query"}
+        {...(result === null ? { retryUrl: path } : {})}
+      />
+    );
+  }
+
+  const canonicalQuery = requestTarget.slice(requestTarget.indexOf("?") + 1);
+  const parameters = new URLSearchParams(canonicalQuery);
+  const search = parameters.get("q");
+  const filtering = [...parameters.keys()].some((key) => key !== "filter.link" && key !== "pageSize");
+  const state: DataDirectoryState = result.rows.length === 0
+    ? filtering ? "filtered-empty" : "empty"
+    : "ready";
+
+  return (
+    <DataDirectory
+      actionsLabel={dictionary.paymentLinkDirectoryColumnActions}
+      caption={dictionary.paymentLinkOrdersHeading}
+      columns={columns}
+      copy={copy}
+      formAction={path}
+      getRowActions={(row) => (
+        <Button asChild data-ds-hit-target variant="outline">
+          <Link href={`${path}/${row.id}`}>{dictionary.ordersView}</Link>
+        </Button>
+      )}
+      idPrefix="payment-link-v2-orders"
+      {...(result.nextCursor ? { nextUrl: pageUrl(path, canonicalQuery, result.nextCursor) } : {})}
+      pageSize={result.pageSize}
+      {...(result.previousCursor ? { previousUrl: pageUrl(path, canonicalQuery, result.previousCursor) } : {})}
+      resetUrl={path}
+      retryUrl={path}
+      rowKey={(row) => row.id}
+      rows={result.rows}
+      {...(search ? { search } : {})}
+      state={state}
+    />
+  );
+}
+
+export default async function PaymentLinkV2OrdersPage({
+  params,
+  searchParams = Promise.resolve({}),
+}: Readonly<{
+  params: Promise<{ id: string }>;
+  searchParams?: Promise<LinksSearchParams>;
+}>) {
+  const { dictionary, locale, principal } = await requireMerchantShellContext();
+  const id = (await params).id;
+  const linkResult = await getPaymentLinkV2ViewService().getForOwner(principal, id);
+  if (linkResult.kind !== "found") {
+    return (
+      <>
+        <WorkspaceHeading description={dictionary.paymentLinkDirectoryDescription} eyebrow={dictionary.shellMerchantEyebrow} title={dictionary.shellLinks} />
+        <PaymentLinkV2UnavailableCard backHref="/links" dictionary={dictionary} />
+      </>
+    );
+  }
+
+  const link = linkResult.link;
+  const path = `/links/v2/${link.id}/orders`;
+  const requestTarget = drilldownRequestTarget(await searchParams, link.identifier, path);
+  let result: OrderV2DirectoryResult | null = null;
+  try {
+    result = await queryOwnerOrderV2Directory(requestTarget, path);
+  } catch {
+    result = null;
+  }
+  if (result?.status === "redirect") redirect(result.location);
+
+  return (
+    <>
+      <WorkspaceHeading description={dictionary.paymentLinkOrdersDescription} eyebrow={dictionary.shellMerchantEyebrow} title={dictionary.paymentLinkOrdersHeading} />
+      <LinkOrderDirectory dictionary={dictionary} locale={locale} path={path} requestTarget={requestTarget} result={result} />
+      <Button asChild variant="outline"><Link href={`/links/v2/${link.id}`}>{dictionary.paymentLinkBackToDetail}</Link></Button>
+    </>
+  );
+}

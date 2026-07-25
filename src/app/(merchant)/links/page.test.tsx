@@ -44,6 +44,7 @@ function row(overrides: Partial<PaymentLinkV2DirectoryRow> = {}): PaymentLinkV2D
     expiresAt: null,
     active: true,
     paid: false,
+    orderCount: 2,
     state: "active",
     createdAt: new Date("2026-07-01T12:00:00.000Z"),
     updatedAt: new Date("2026-07-02T12:00:00.000Z"),
@@ -76,7 +77,7 @@ describe("merchant links directory page", () => {
       row(),
       row({ id: "440e8400-e29b-41d4-a716-446655440011", state: "paid", paid: true, linkType: "SINGLE_USE" }),
       row({ id: "440e8400-e29b-41d4-a716-446655440012", state: "expired", expiresAt: new Date("2026-07-01T00:00:00.000Z") }),
-      row({ id: "440e8400-e29b-41d4-a716-446655440013", state: "inactive", active: false, compositionKind: "PRODUCT_LINES", lines: [{ position: 1, quantity: 2, titlePtBr: "Café", titleEn: "Coffee", unitPrice: "9.9" }, { position: 2, quantity: 1, titlePtBr: "Bolo", titleEn: "Cake", unitPrice: "5" }] }),
+      row({ id: "440e8400-e29b-41d4-a716-446655440013", state: "inactive", active: false, compositionKind: "PRODUCT_LINES", orderCount: 7, lines: [{ position: 1, quantity: 2, titlePtBr: "Café", titleEn: "Coffee", unitPrice: "9.9" }, { position: 2, quantity: 1, titlePtBr: "Bolo", titleEn: "Cake", unitPrice: "5" }] }),
     ]);
 
     const markup = renderToStaticMarkup(await MerchantLinksPage());
@@ -91,6 +92,10 @@ describe("merchant links directory page", () => {
     expect(markup).toContain("Single use");
     expect(markup).toContain('href="/pay/abcdefghijklmnopqrstuvwx"');
     expect(markup).toContain('href="/links/v2/440e8400-e29b-41d4-a716-446655440010"');
+    expect(markup).toContain('href="/links/v2/440e8400-e29b-41d4-a716-446655440010/orders"');
+    expect(markup).toContain(">7</td>");
+    expect(markup).toContain("Orders");
+    expect(markup).toContain("View orders");
     expect(markup).toContain('action="/links"');
     expect(markup).toContain("Single-product links");
     expect(markup).toContain("No payment links are available.");

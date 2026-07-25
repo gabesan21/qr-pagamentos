@@ -38,6 +38,7 @@ const found = {
     expiresAt: new Date("2026-08-01T00:00:00.000Z"),
     active: true,
     paid: false,
+    orderCount: 3,
     state: "active" as const,
     createdAt: new Date("2026-07-01T12:00:00.000Z"),
     updatedAt: new Date("2026-07-02T12:00:00.000Z"),
@@ -60,9 +61,9 @@ describe("merchant V2 payment-link detail page", () => {
   });
 
   it.each([
-    ["en", "Coffee", "Cake", "Quantity"],
-    ["pt-BR", "Café", "Bolo", "Quantidade"],
-  ] as const)("renders the ordered line facts in %s", async (locale, firstTitle, secondTitle, quantityLabel) => {
+    ["en", "Coffee", "Cake", "Quantity", "View orders"],
+    ["pt-BR", "Café", "Bolo", "Quantidade", "Ver pedidos"],
+  ] as const)("renders the ordered line facts in %s", async (locale, firstTitle, secondTitle, quantityLabel, ordersLabel) => {
     requireOwnerFromCookie.mockResolvedValue(principal);
     resolveLocale.mockResolvedValue(locale);
     getForOwner.mockResolvedValue(found);
@@ -77,6 +78,9 @@ describe("merchant V2 payment-link detail page", () => {
     expect(markup).toContain("/pay/abcdefghijklmnopqrstuvwx");
     expect(markup).toContain("BRL/USDT");
     expect(markup).toContain('href="/links"');
+    expect(markup).toContain(`href="/links/v2/${linkId}/orders"`);
+    expect(markup).toContain(`>${ordersLabel}<`);
+    expect(markup).toContain(">3</dd>");
   });
 
   it.each([

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Share2Icon } from "lucide-react";
+import { ListOrderedIcon, Share2Icon } from "lucide-react";
 
 import { OwnerPaymentLinkManagement } from "@/app/admin/payment-link-management";
 import { WorkspaceHeading } from "@/app-shell/workspace-heading";
@@ -71,6 +71,7 @@ function PaymentLinkDirectory({
     { id: "composition", label: dictionary.paymentLinkDirectoryColumnComposition, value: (row) => <Badge variant="outline">{linkKindLabel(dictionary, row.compositionKind)}</Badge> },
     { id: "type", label: dictionary.paymentLinkDirectoryColumnType, value: (row) => linkTypeLabel(dictionary, row.linkType) },
     { id: "state", label: dictionary.paymentLinkDirectoryColumnState, value: (row) => <LinkStateBadge dictionary={dictionary} state={row.state} /> },
+    { id: "orders", label: dictionary.paymentLinkDirectoryColumnOrders, numeric: true, value: (row) => row.orderCount },
     { id: "expiry", label: dictionary.paymentLinkDirectoryColumnExpiry, numeric: true, value: (row) => row.expiresAt ? formatLinkInstant(row.expiresAt, locale) : dictionary.adminPaymentLinkNoExpiry },
   ];
 
@@ -150,6 +151,9 @@ function PaymentLinkDirectory({
           </Button>
           <Button asChild data-ds-hit-target variant="outline">
             <Link href={`/links/v2/${row.id}`}>{dictionary.paymentLinkDirectoryView}</Link>
+          </Button>
+          <Button asChild data-ds-hit-target size="icon" variant="outline">
+            <Link aria-label={dictionary.paymentLinkOrdersView} href={`/links/v2/${row.id}/orders`}><ListOrderedIcon aria-hidden /></Link>
           </Button>
         </span>
       )}
