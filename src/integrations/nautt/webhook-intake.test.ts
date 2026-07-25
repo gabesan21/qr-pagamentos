@@ -32,6 +32,7 @@ function harness(options: {
   now?: () => Date;
   loadCandidates?: () => Promise<readonly { ownerId: string; secret: Buffer }[]>;
   verifyOwner?: typeof verifyWebhookOwner;
+  resolveOwner?: (providerOrderUuid: string) => Promise<string | null>;
 } = {}) {
   const backingStore = options.deliveryStore ?? createInMemoryWebhookDeliveryStore();
   const deliveryStore = {
@@ -48,59 +49,81 @@ function harness(options: {
   });
   const candidateValues = options.candidates ?? [{ ownerId, secret }];
   const loadCandidates = vi.fn(options.loadCandidates ?? (async () => candidateValues.map((candidate) => ({ ownerId: candidate.ownerId, secret: Buffer.from(candidate.secret) }))));
+  const verifyOwner = vi.fn(options.verifyOwner ?? verifyWebhookOwner);
+  const resolveOwner = vi.fn(options.resolveOwner ?? (async () => ownerId));
   const parseEnvelope = vi.fn(parseWebhookEnvelope);
   const parseRejectedIdentity = vi.fn(parseRejectedWebhookIdentity);
   const intake = createWebhookIntake({
     deliveryStore,
     loadCandidates,
     orderReconciler: { reconcileWebhookOrder: reconcile },
+    resolveOwner,
     now: options.now,
     parseEnvelope,
     parseRejectedIdentity,
-    verifyOwner: options.verifyOwner,
+    verifyOwner,
   });
-  return { intake, reconcile, loadCandidates, parseEnvelope, parseRejectedIdentity, deliveryStore, apiKeyDecrypt, providerFetch };
+  return { intake, reconcile, loadCandidates, verifyOwner, resolveOwner, parseEnvelope, parseRejectedIdentity, deliveryStore, apiKeyDecrypt, providerFetch };
 }
 
-describe("webhook intake authentication", () => {
-  it.each([null, "sha256=bad", `sha256=${"0".repeat(64)}`])("rejects without parse/write/fetch side effects: %s", async (signature) => {
+describe("BETA(M-5.1) unverified webhook intake acceptance", () => {
+  it.each([null, "sha256=bad", `sha256=${"0".repeat(64)}`])("accepts a missing, malformed, or wrong signature: %s", async (signature) => {
     const effects = harness();
-    const { intake, reconcile, loadCandidates } = effects;
-    await expect(intake({ rawBody: body, signature, delivery, event: "order.paid" })).resolves.toEqual({ status: 401 });
-    if (signature === null || signature === "sha256=bad") expect(loadCandidates).not.toHaveBeenCalled();
-    expect(effects.parseEnvelope).not.toHaveBeenCalled();
-    expect(effects.parseRejectedIdentity).not.toHaveBeenCalled();
-    expect(effects.deliveryStore.claim).not.toHaveBeenCalled();
-    expect(effects.deliveryStore.bindOrder).not.toHaveBeenCalled();
-    expect(effects.deliveryStore.finalize).not.toHaveBeenCalled();
-    expect(effects.apiKeyDecrypt).not.toHaveBeenCalled();
-    expect(effects.providerFetch).not.toHaveBeenCalled();
-    expect(reconcile).not.toHaveBeenCalled();
+    const { intake, reconcile, loadCandidates, verifyOwner } = effects;
+    await expect(intake({ rawBody: body, signature, delivery, event: "order.paid" })).resolves.toEqual({ status: 204 });
+    expect(loadCandidates).not.toHaveBeenCalled();
+    expect(verifyOwner).not.toHaveBeenCalled();
+    expect(reconcile).toHaveBeenCalledOnce();
+    expect(reconcile).toHaveBeenCalledWith(ownerId, order);
   });
 
-  it("rejects multiple matching owners without reconciliation", async () => {
-    const effects = harness({ candidates: [{ ownerId, secret }, { ownerId: "550e8400-e29b-41d4-a716-446655440099", secret }] });
-    const { intake, reconcile } = effects;
-    await expect(intake({ rawBody: body, signature: validSignature, delivery, event: "order.paid" })).resolves.toEqual({ status: 401 });
-    expect(effects.parseEnvelope).not.toHaveBeenCalled();
-    expect(effects.parseRejectedIdentity).not.toHaveBeenCalled();
+  it("attributes the owner through the local provider order UUID with zero secret work", async () => {
+    const effects = harness();
+    await expect(effects.intake({ rawBody: body, signature: null, delivery, event: "order.paid" })).resolves.toEqual({ status: 204 });
+    expect(effects.resolveOwner).toHaveBeenCalledWith(order);
+    expect(effects.loadCandidates).not.toHaveBeenCalled();
+    expect(effects.verifyOwner).not.toHaveBeenCalled();
+  });
+
+  it("acknowledges an unknown provider order UUID with no evidence and zero provider GETs", async () => {
+    const effects = harness({ resolveOwner: async () => null });
+    await expect(effects.intake({ rawBody: body, signature: null, delivery, event: "order.paid" })).resolves.toEqual({ status: 204 });
     expect(effects.deliveryStore.claim).not.toHaveBeenCalled();
     expect(effects.deliveryStore.bindOrder).not.toHaveBeenCalled();
     expect(effects.deliveryStore.finalize).not.toHaveBeenCalled();
+    expect(effects.reconcile).not.toHaveBeenCalled();
     expect(effects.apiKeyDecrypt).not.toHaveBeenCalled();
     expect(effects.providerFetch).not.toHaveBeenCalled();
-    expect(reconcile).not.toHaveBeenCalled();
+  });
+
+  it("refuses a malformed body without evidence when the owner cannot be resolved", async () => {
+    const contradictory = Buffer.from(JSON.stringify({ id: "550e8400-e29b-41d4-a716-446655440099", event: "order.paid", created_at: "2026-07-17T20:00:00Z", data: { uuid: order } }));
+    const effects = harness({ resolveOwner: async () => null });
+    await expect(effects.intake({ rawBody: contradictory, signature: null, delivery, event: "order.paid" })).resolves.toEqual({ status: 400 });
+    expect(effects.deliveryStore.claim).not.toHaveBeenCalled();
+    expect(effects.deliveryStore.finalize).not.toHaveBeenCalled();
+    expect(effects.reconcile).not.toHaveBeenCalled();
+  });
+
+  it("returns 503 when owner resolution fails and changes no state", async () => {
+    const effects = harness({ resolveOwner: async () => { throw new Error("database unavailable"); } });
+    await expect(effects.intake({ rawBody: body, signature: null, delivery, event: "order.paid" })).resolves.toEqual({ status: 503 });
+    expect(effects.deliveryStore.claim).not.toHaveBeenCalled();
+    expect(effects.deliveryStore.finalize).not.toHaveBeenCalled();
+    expect(effects.reconcile).not.toHaveBeenCalled();
   });
 });
 
 describe("webhook intake decisions, deadline, capacity, and cost", () => {
-  it("durably rejects an authenticated contradictory envelope without a provider read", async () => {
+  it("durably rejects a contradictory envelope for a resolvable owner without a provider read", async () => {
     const contradictory = Buffer.from(JSON.stringify({ id: "550e8400-e29b-41d4-a716-446655440099", event: "order.paid", created_at: "2026-07-17T20:00:00Z", data: { uuid: order } }));
-    const contradictorySignature = `sha256=${createHmac("sha256", secret).update(contradictory).digest("hex")}`;
-    const { intake, reconcile } = harness();
-    await expect(intake({ rawBody: contradictory, signature: contradictorySignature, delivery, event: "order.paid" })).resolves.toEqual({ status: 400 });
-    await expect(intake({ rawBody: contradictory, signature: contradictorySignature, delivery, event: "order.paid" })).resolves.toEqual({ status: 400 });
+    const effects = harness();
+    const { intake, reconcile } = effects;
+    await expect(intake({ rawBody: contradictory, signature: null, delivery, event: "order.paid" })).resolves.toEqual({ status: 400 });
+    await expect(intake({ rawBody: contradictory, signature: null, delivery, event: "order.paid" })).resolves.toEqual({ status: 400 });
     expect(reconcile).not.toHaveBeenCalled();
+    expect(effects.deliveryStore.finalize).toHaveBeenCalledTimes(1);
+    expect(effects.deliveryStore.finalize).toHaveBeenCalledWith(expect.objectContaining({ decision: "REJECTED" }));
   });
 
   it("processes once, then acknowledges a durable duplicate with zero GET", async () => {
@@ -205,10 +228,9 @@ describe("webhook intake decisions, deadline, capacity, and cost", () => {
       created_at: "2026-07-17T20:00:00Z",
       data: { uuid: order, status: "finished" },
     }));
-    const notificationSignature = `sha256=${createHmac("sha256", secret).update(notification).digest("hex")}`;
     const effects = harness({ reconcile: service.reconcileWebhookOrder.bind(service) });
 
-    await expect(effects.intake({ rawBody: notification, signature: notificationSignature, delivery, event: "order.completed" })).resolves.toEqual({ status: 204 });
+    await expect(effects.intake({ rawBody: notification, signature: null, delivery, event: "order.completed" })).resolves.toEqual({ status: 204 });
 
     expect(apiKeyDecrypt).toHaveBeenCalledOnce();
     expect(getOrder).toHaveBeenCalledWith({ apiKey: "owner-api-key", orderUuid: order });
@@ -224,7 +246,7 @@ describe("webhook intake decisions, deadline, capacity, and cost", () => {
     expect(reconcile).toHaveBeenCalledTimes(2);
   });
 
-  it("advances a production-equivalent 1,000-secret, 10s GET, and durable-work timeline below 14.5s", async () => {
+  it("advances a beta 10s GET and durable-work timeline below 14.5s with zero secret loads, decryptions, or HMAC comparisons", async () => {
     const encryptionKey = Buffer.alloc(32, 7);
     const encryptedRows = Array.from({ length: 1_000 }, (_, index) => ({
       ownerId: index === 999 ? ownerId : `owner-${index}`,
@@ -287,11 +309,13 @@ describe("webhook intake decisions, deadline, capacity, and cost", () => {
 
     await expect(effects.intake({ rawBody: body, signature: validSignature, delivery, event: "order.paid" })).resolves.toEqual({ status: 204 });
 
-    expect(decryptions).toBe(1_000);
-    expect(comparisons).toBe(1_000);
+    expect(decryptions).toBe(0);
+    expect(comparisons).toBe(0);
+    expect(effects.loadCandidates).not.toHaveBeenCalled();
+    expect(effects.verifyOwner).not.toHaveBeenCalled();
     expect(providerGet).toHaveBeenCalledOnce();
     expect(durableEvidence).toEqual({ claims: 1, binds: 1, finalizes: 1 });
-    expect(elapsedMs).toBe(12_600);
+    expect(elapsedMs).toBe(10_600);
     expect(elapsedMs).toBeLessThan(WEBHOOK_ACCEPTED_PROCESSING_BUDGET_MS);
   });
 });
