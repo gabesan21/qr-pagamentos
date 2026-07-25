@@ -218,9 +218,10 @@ test("creates the closed merchant orders evidence run", async ({ page }) => {
   await expect(directory).toBeVisible();
   await expect(directory.getByText("Ana Evidence").first()).toBeVisible();
   await expect(directory.getByText("ana@example.com").first()).toBeVisible();
-  for (const label of ["Pagamento confirmado", "Pagamento recusado", "Aguardando pagamento", "Sem pagamento", "Cancelado localmente", "Avulso", "Não coletado"]) {
-    await expect(directory.getByText(label).first()).toBeVisible();
+  for (const label of ["Pagamento confirmado", "Pagamento recusado", "Aguardando pagamento", "Sem pagamento", "Cancelado localmente", "Avulso"]) {
+    await expect(directory.locator('[data-slot="badge"]', { hasText: label }).first()).toBeVisible();
   }
+  await expect(directory.getByText("Não coletado").first()).toBeVisible();
   await expect(directory.getByText(seeded.links.main.identifier).first()).toBeVisible();
   assertions.push({ state: "directory-facts", payer: "Ana Evidence", badges: ["CONFIRMED", "REJECTED", "PENDING", "none", "LOCAL_CANCELLED"], linkIdentifier: seeded.links.main.identifier });
 
