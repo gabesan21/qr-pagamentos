@@ -128,6 +128,13 @@ function toOrderV2View(stored: StoredOrderV2View): OrderV2View {
   };
 }
 
+export type OrderV2SummaryRow = PrismaOrderV2Row;
+
+// Summary-only mapping shared with the owner order directory query (8.3.1).
+export function toOrderV2Summary(row: OrderV2SummaryRow): OrderV2Summary {
+  return toSummary(toStored(row));
+}
+
 export function createOrderV2ViewService(store: OrderV2ViewStore) {
   return {
     async listForOwner(actor: Principal): Promise<OrderV2Summary[]> {
@@ -171,6 +178,10 @@ const summarySelect = {
   paymentLink: { select: { identifier: true } },
   localOutcomes: { select: { outcome: true, note: true, createdAt: true }, orderBy: [{ createdAt: "desc" as const }, { id: "desc" as const }], take: 1 },
 } satisfies Prisma.OrderV2Select;
+
+// Shared with the owner order directory query (8.3.1) so the summary projection
+// stays single-sourced.
+export const orderV2SummarySelect = summarySelect;
 
 const customerSelect = {
   name: true, email: true, cpf: true, street: true, number: true, district: true,
