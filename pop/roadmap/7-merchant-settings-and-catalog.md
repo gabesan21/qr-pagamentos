@@ -2,7 +2,7 @@
 
 - **Project:** [[PROJECT|QR Pagamentos]]
 - **Roadmap:** [[ROADMAP|Roadmap]]
-- **Status:** pendente
+- **Status:** concluída
 - **Yolo:** yes
 - **Description:** Give merchants a complete store/profile configuration and an owner-scoped category, product, currency, and image catalog.
 - **Pause if:** supported Nautt currency semantics or secure persistent media cannot be proven without weakening the current provider and deployment contracts.
@@ -22,16 +22,15 @@
 
 ## Phase 7.2 - Categories, products, and images
 
-- **Status:** pendente
+- **Status:** concluída
 - **Description:** Evolve the current owner product CRUD into a categorized, image-backed, currency-consistent catalog.
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[7.2.3-build-product-category-management]] | Build dedicated product/category list, create, and edit pages with uploads, placeholders, and size guidance. · size: L | 001_initial_task |
 
 ## Phase 7.3 - Merchant profile
 
-- **Status:** pendente
+- **Status:** concluída
 - **Description:** Separate profile data and password management from store configuration while keeping username as the only login identity.
 
 | Task | Description | Status |
