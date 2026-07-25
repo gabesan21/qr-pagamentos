@@ -4,7 +4,7 @@
 - **Epoch/Phase:** [[roadmap/3-catalog-and-payment-links|Epoch 3]]
 - **Status:** aprovada
 - **Created:** 2026-07-20
-- **Updated:** 2026-07-25 — task 8.1.1 adds the approved additive Commerce V2 payment-link contract (multi-item and fixed-value links, lifecycle vocabulary, immutable-version edit fork, identifier continuity); task 8.1.2 delivers the link slice (persistence, owner service, mutation routes, additive public resolution) while checkout, orders, and the 8.2.x projections remain future work; task 8.2.1 delivers the derived lifecycle projection and the merchant V2 payment-link directory with its read-only detail.
+- **Updated:** 2026-07-25 — task 8.1.1 adds the approved additive Commerce V2 payment-link contract (multi-item and fixed-value links, lifecycle vocabulary, immutable-version edit fork, identifier continuity); task 8.1.2 delivers the link slice (persistence, owner service, mutation routes, additive public resolution) while checkout, orders, and the 8.2.x projections remain future work; task 8.2.1 delivers the derived lifecycle projection and the merchant V2 payment-link directory with its read-only detail; task 8.4.1 consumes this V2 link/order model read-only for merchant analytics, whose durable definitions live in [[specs/checkout-and-order-lifecycle|Checkout and order lifecycle]] (Merchant analytics definitions).
 
 ## What it covers
 

@@ -47,6 +47,27 @@
       "contexts": [],
       "test_seconds": 0,
       "result": "advanced"
+    },
+    {
+      "at": "2026-07-25T20:45:00Z",
+      "event": "gate_005_critic",
+      "stage": "005_verifying",
+      "contexts": [
+        "strong-critic"
+      ],
+      "test_seconds": 0,
+      "result": "approved",
+      "mode": "full",
+      "returns": 0
+    },
+    {
+      "at": "2026-07-25T18:19:52-03:00",
+      "event": "transition",
+      "from": "005_verifying",
+      "to": "006_done",
+      "contexts": [],
+      "test_seconds": 0,
+      "result": "advanced"
     }
   ]
 }

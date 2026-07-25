@@ -245,6 +245,20 @@ try {
   );
   assert(engagementContract.includes("4 passed"), "Order engagement V2 settlement-fencing and CAS scenarios did not all pass");
   console.log("PASS order-engagement-v2-database-contract");
+  const merchantAnalyticsEnv = {
+    ...process.env,
+    DATABASE_URL: runtimeUrl,
+    MERCHANT_ANALYTICS_DATABASE_ADMIN_URL: adminUrl,
+    MERCHANT_ANALYTICS_DATABASE_TEST: "1",
+  };
+  delete merchantAnalyticsEnv.MIGRATION_DATABASE_URL;
+  const merchantAnalytics = run(
+    "pnpm",
+    ["exec", "vitest", "run", "src/orders/merchant-analytics.database.test.ts"],
+    { env: merchantAnalyticsEnv },
+  );
+  assert(merchantAnalytics.includes("4 passed"), "Merchant analytics database scenarios did not all pass");
+  console.log("PASS merchant-analytics-database");
 
   const runtime = new Client({ connectionString: runtimeUrl });
   await runtime.connect();
