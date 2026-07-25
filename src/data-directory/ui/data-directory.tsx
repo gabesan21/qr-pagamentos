@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+
+import type { DirectoryPageSize } from "@/data-directory/server/query-contract";
 import { AlertCircleIcon, RotateCcwIcon, SearchIcon } from "lucide-react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -70,7 +72,7 @@ type DataDirectoryProps<Row> = Readonly<{
   previousUrl?: string;
   nextUrl?: string;
   search?: string;
-  pageSize?: 25 | 50 | 100;
+  pageSize?: DirectoryPageSize;
   filters?: readonly DataDirectoryEnumFilter[];
   emptyAction?: Readonly<{ href: string; label: string }>;
   getRowActions?: (row: Row) => ReactNode;
@@ -89,7 +91,7 @@ function DirectoryToolbar({
   action: string;
   copy: DataDirectoryCopy;
   filters?: readonly DataDirectoryEnumFilter[];
-  pageSize?: 25 | 50 | 100;
+  pageSize?: DirectoryPageSize;
   resetUrl: string;
   search?: string;
   idPrefix: string;
