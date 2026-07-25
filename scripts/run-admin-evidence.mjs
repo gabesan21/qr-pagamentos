@@ -14,6 +14,7 @@ const profileMode = process.argv.includes("--profile");
 const storeSettingsMode = process.argv.includes("--store-settings");
 const catalogMode = process.argv.includes("--catalog");
 const linksMode = process.argv.includes("--links");
+const merchantDashboardMode = process.argv.includes("--merchant-dashboard");
 const project = `qrae${process.pid}${token}`.toLowerCase();
 const temporary = await mkdtemp(path.join(tmpdir(), `${project}-`));
 const sources = path.join(temporary, "sources");
@@ -69,7 +70,9 @@ try {
   const mapping = compose(["port", "app", "3000"]).stdout.trim();
   const port = Number(mapping.match(/:(\d+)$/)?.[1]);
   assert(port, "admin evidence loopback port could not be resolved");
-  const evidenceTest = linksMode
+  const evidenceTest = merchantDashboardMode
+    ? "tests/merchant-dashboard.evidence.spec.ts"
+    : linksMode
     ? "tests/payment-links.evidence.spec.ts"
     : profileMode
     ? "tests/profile.evidence.spec.ts"
@@ -93,6 +96,8 @@ try {
       CATALOG_EVIDENCE_MERCHANT_PASSWORD: `Merchant-${token}-Password`,
       LINKS_EVIDENCE_MERCHANT_PASSWORD: `Merchant-${token}-Password`,
       LINKS_EVIDENCE_COMPOSE_PROJECT: project,
+      MERCHANT_DASHBOARD_EVIDENCE_MERCHANT_PASSWORD: `Merchant-${token}-Password`,
+      MERCHANT_DASHBOARD_EVIDENCE_COMPOSE_PROJECT: project,
     },
     stdio: "inherit",
   });

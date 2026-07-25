@@ -165,6 +165,23 @@ created/edited/activated/deactivated/failed outcome banners extracted before
 directory canonicalization, success as a status `Alert` and the opaque failure
 as a destructive one.
 
+The merchant `/` dashboard is the server-rendered owner home above the 8.4.1
+analytics projection: a heading area holding at most one primary View Store
+action — rendered only when the storefront is enabled with a slug and linking
+the sessionless `/store/[slug]` — and a plain GET period switcher
+(`today`/`7d`/`30d`, pinned default `7d`; absent, unknown, or service-rejected
+values render the default). The current period is a non-link entry marked by
+`aria-current`, stronger type, and an underline, never color alone. Ruled
+ledger cards compose sales, the checkout funnel, best sellers, payment-link
+metrics, and recent activity; provider-confirmed and locally finalized sales
+render as separate ruled groups with one tabular per-currency line each and
+are never summed or merged anywhere in the composition. There are no charts:
+quantitative composition is ruled facts and captioned native tables, rates
+render as exact-decimal localized percents with an explicit n/a on a zero
+denominator, and an unlabeled currency pair renders an explicit localized
+unlabeled treatment. Every section owns an explicit empty state (zero data is
+not an error), and loading uses owned skeletons.
+
 The deterministic `/design-system` exercise surface resolves its dictionary from
 the same server preference contract as the authenticated shell and presents all
 applicable states, including labelled default, populated, disabled, and invalid
@@ -288,8 +305,9 @@ CSS pixels.
 
 The administrator composition uses the official compact role-shell lockup; the
 merchant composition uses the official fallback without implying merchant
-ownership. Dashboard and future-area scaffolds are explicit empty states with
-no invented metrics, tables, controls, or unapproved projection calls.
+ownership. The administrator dashboard and future-area scaffolds remain explicit empty
+states with no invented metrics, tables, controls, or unapproved projection
+calls; the delivered merchant dashboard composition is the single exception.
 Existing controls remain in their owned route areas and keep their POST URLs.
 
 The merchant principal block has one secondary `/profile` affordance outside
@@ -383,6 +401,20 @@ gates as the other evidence surfaces; the error directory state is covered by
 page tests because stopping the disposable database would break session
 resolution before the directory read. The review is manifest-hash-bound and
 accepts no unresolved severity 2 or greater finding.
+
+`pnpm merchant-dashboard:evidence` and `pnpm merchant-dashboard:evidence:verify`
+bind 47 merchant dashboard captures: the populated dashboard across six
+themes, both locales, and widths 375/768/1440 (36), plus eleven localized
+state captures covering the empty dashboard, View Store off and on, both
+period switches, and 320-pixel reflow. The run seeds the analytics fixture
+(labeled and unlabeled currency pairs, products, links, CONFIRMED and AD_HOC
+orders, local outcomes, and attempts) directly in the disposable database
+(public V2 checkout is 9.3.1), proves confirmed and locally finalized sales
+render separately and never summed, the unlabeled-currency treatment,
+exact-percent rates, non-color period switching through plain GET links, and
+the same axe, overflow, target, and focus gates as the other evidence
+surfaces; the review is manifest-hash-bound and accepts no unresolved
+severity 2 or greater finding.
 
 The status rail and panels use ruled separation and restrained corners. Never
 make a page-specific button variant: use owned `Button` variants. Motion is

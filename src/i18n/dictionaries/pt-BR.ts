@@ -12,10 +12,12 @@ import { ordersPtBR } from "./orders/pt-BR";
 import { dataDirectoryPtBR } from "./data-directory/pt-BR";
 import { appShellPtBR } from "./app-shell/pt-BR";
 import { profilePtBR } from "./profile/pt-BR";
+import { merchantDashboardPtBR } from "./merchant-dashboard/pt-BR";
 
 export const ptBR = {
   ...appShellPtBR,
   ...profilePtBR,
+  ...merchantDashboardPtBR,
   ...sharedPtBR,
   ...nauttPtBR,
   ...designSystemPtBR,

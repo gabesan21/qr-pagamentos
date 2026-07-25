@@ -10,6 +10,8 @@ import { designSystemEn } from "./design-system/en";
 import { designSystemPtBR } from "./design-system/pt-BR";
 import { dataDirectoryEn } from "./data-directory/en";
 import { dataDirectoryPtBR } from "./data-directory/pt-BR";
+import { merchantDashboardEn } from "./merchant-dashboard/en";
+import { merchantDashboardPtBR } from "./merchant-dashboard/pt-BR";
 import { nauttEn } from "./nautt/en";
 import { nauttPtBR } from "./nautt/pt-BR";
 import { ordersEn } from "./orders/en";
@@ -34,6 +36,7 @@ export const dictionaryDomains = {
   checkoutPolicy: { en: checkoutPolicyEn, "pt-BR": checkoutPolicyPtBR },
   designSystem: { en: designSystemEn, "pt-BR": designSystemPtBR },
   dataDirectory: { en: dataDirectoryEn, "pt-BR": dataDirectoryPtBR },
+  merchantDashboard: { en: merchantDashboardEn, "pt-BR": merchantDashboardPtBR },
   nautt: { en: nauttEn, "pt-BR": nauttPtBR },
   orders: { en: ordersEn, "pt-BR": ordersPtBR },
   paymentLinks: { en: paymentLinksEn, "pt-BR": paymentLinksPtBR },
