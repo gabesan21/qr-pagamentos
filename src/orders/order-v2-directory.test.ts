@@ -35,6 +35,7 @@ function summary(index: number): OrderV2Summary {
     state: null,
     currentLocalOutcome: null,
     checkoutDataPolicy: "NAME_EMAIL",
+    payer: { name: null, email: null, cpf: null, address: null },
     createdAt: new Date(Date.UTC(2026, 6, 25, 12, 0, 0) - index * 60_000),
     updatedAt: new Date(Date.UTC(2026, 6, 25, 12, 0, 0) - index * 60_000),
     settledAt: null,

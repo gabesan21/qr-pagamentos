@@ -58,6 +58,17 @@ export type DataDirectoryEnumFilter = Readonly<{
   options: readonly Readonly<{ value: string; label: string }>[];
 }>;
 
+// Generic labelled free-text filter; `calendarDay` renders the native date
+// control for exact `YYYY-MM-DD` bounds. Registered per directory, never
+// hardcoded to a concrete projection.
+export type DataDirectoryTextFilter = Readonly<{
+  name: string;
+  label: string;
+  selected?: string;
+  placeholder?: string;
+  calendarDay?: boolean;
+}>;
+
 type DataDirectoryProps<Row> = Readonly<{
   idPrefix: string;
   state: DataDirectoryState;
@@ -73,7 +84,9 @@ type DataDirectoryProps<Row> = Readonly<{
   nextUrl?: string;
   search?: string;
   pageSize?: DirectoryPageSize;
+  pageSizes?: readonly DirectoryPageSize[];
   filters?: readonly DataDirectoryEnumFilter[];
+  textFilters?: readonly DataDirectoryTextFilter[];
   emptyAction?: Readonly<{ href: string; label: string }>;
   getRowActions?: (row: Row) => ReactNode;
   actionsLabel?: string;
@@ -83,7 +96,9 @@ function DirectoryToolbar({
   action,
   copy,
   filters = [],
+  textFilters = [],
   pageSize = 25,
+  pageSizes = [25, 50, 100],
   resetUrl,
   search,
   idPrefix,
@@ -91,7 +106,9 @@ function DirectoryToolbar({
   action: string;
   copy: DataDirectoryCopy;
   filters?: readonly DataDirectoryEnumFilter[];
+  textFilters?: readonly DataDirectoryTextFilter[];
   pageSize?: DirectoryPageSize;
+  pageSizes?: readonly DirectoryPageSize[];
   resetUrl: string;
   search?: string;
   idPrefix: string;
@@ -126,12 +143,25 @@ function DirectoryToolbar({
             </NativeSelect>
           </Field>
         ))}
+        {textFilters.map((filter) => (
+          <Field key={filter.name}>
+            <FieldLabel htmlFor={`${idPrefix}-filter-${filter.name}`}>{filter.label}</FieldLabel>
+            <Input
+              data-ds-hit-target
+              defaultValue={filter.selected}
+              id={`${idPrefix}-filter-${filter.name}`}
+              name={`filter.${filter.name}`}
+              placeholder={filter.placeholder}
+              type={filter.calendarDay ? "date" : "text"}
+            />
+          </Field>
+        ))}
         <Field>
           <FieldLabel htmlFor={`${idPrefix}-page-size`}>{copy.pageSizeLabel}</FieldLabel>
           <NativeSelect data-ds-hit-target defaultValue={String(pageSize)} id={`${idPrefix}-page-size`} name="pageSize">
-            <NativeSelectOption value="25">25</NativeSelectOption>
-            <NativeSelectOption value="50">50</NativeSelectOption>
-            <NativeSelectOption value="100">100</NativeSelectOption>
+            {pageSizes.map((size) => (
+              <NativeSelectOption key={size} value={String(size)}>{size}</NativeSelectOption>
+            ))}
           </NativeSelect>
         </Field>
       </FieldGroup>
@@ -201,8 +231,10 @@ export function DataDirectory<Row>(props: DataDirectoryProps<Row>) {
         filters={props.filters}
         idPrefix={props.idPrefix}
         pageSize={props.pageSize}
+        pageSizes={props.pageSizes}
         resetUrl={props.resetUrl}
         search={props.search}
+        textFilters={props.textFilters}
       />
       <Separator />
       {props.state === "loading" ? (
