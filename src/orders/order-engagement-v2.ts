@@ -168,10 +168,11 @@ export function createOrderLocalOutcomeV2Store(prisma: PrismaClient): OrderLocal
           data: { lifecycleVersion: { increment: 1 }, updatedAt: values.updatedAt },
         });
         if (claimed.count !== 1) return null;
-        return tx.orderLocalOutcomeV2.create({
+        const created = await tx.orderLocalOutcomeV2.create({
           data: { id: values.id, orderId, ownerId, outcome: values.outcome, note: values.note, actorId: values.actorId, createdAt: values.createdAt },
           select: outcomeSelect,
         });
+        return { ...created, outcome: created.outcome as OrderV2LocalOutcome };
       });
     },
   };
