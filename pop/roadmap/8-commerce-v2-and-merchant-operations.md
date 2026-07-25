@@ -19,7 +19,6 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[8.1.1-specify-additive-commerce-v2]] | Fix the compatible multi-item/fixed-value link, standalone order, snapshot, state, comment, and legacy-read contracts. · size: L | 001_initial_task |
 | [[8.1.2-implement-composable-payment-links]] | Implement product-line and fixed-amount links with quantities, description, expiry, reusable/one-time type, and lifecycle status. · size: L | 001_initial_task |
 | [[8.1.3-implement-generalized-order-records]] | Implement link/ad-hoc order sources, immutable monetary/customer snapshots, comments, and separate local operator outcomes. · size: L | 001_initial_task |
 
