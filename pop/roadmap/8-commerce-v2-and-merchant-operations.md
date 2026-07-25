@@ -27,7 +27,6 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[8.2.1-build-merchant-payment-link-directory]] | Add the paginated/filterable link table and details with active, inactive, paid, expiry, type, and share states. · size: L | 001_initial_task |
 | [[8.2.2-build-payment-link-create-edit-flows]] | Add owner-safe product-cart and fixed-value create/edit commands and bilingual management flows. · size: L | 001_initial_task |
 | [[8.2.3-add-payment-link-order-drilldown]] | Add per-link order counts, navigation, and filtered order details without cross-owner disclosure. · size: M | 001_initial_task |
 
