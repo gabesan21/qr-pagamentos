@@ -1,4 +1,5 @@
 import { getPublicPaymentLinkService } from "@/auth/public-payment-link";
+import { getPublicPaymentLinkV2Service } from "@/auth/public-payment-link-v2";
 import { negotiateLocale } from "@/i18n/locales";
 import {
   allowPublicPaymentLinkRequest,
@@ -20,12 +21,14 @@ export async function GET(
       return publicRateLimitResponse();
     }
 
-    const paymentLink = await getPublicPaymentLinkService().read(
-      (await params).identifier,
-      negotiateLocale(request.headers.get("accept-language")),
-    );
+    const locale = negotiateLocale(request.headers.get("accept-language"));
+    // V1 first: a V1 identifier never returns a V2-shaped payload; V2
+    // resolution is additive and unreachable while any V1 link resolves.
+    const paymentLink = await getPublicPaymentLinkService().read((await params).identifier, locale);
+    if (paymentLink) return Response.json(paymentLink, { status: 200, headers: noStoreHeaders });
 
-    if (!paymentLink) return new Response(null, { status: 404, headers: noStoreHeaders });
-    return Response.json(paymentLink, { status: 200, headers: noStoreHeaders });
+    const paymentLinkV2 = await getPublicPaymentLinkV2Service().read((await params).identifier, locale);
+    if (!paymentLinkV2) return new Response(null, { status: 404, headers: noStoreHeaders });
+    return Response.json(paymentLinkV2, { status: 200, headers: noStoreHeaders });
   });
 }

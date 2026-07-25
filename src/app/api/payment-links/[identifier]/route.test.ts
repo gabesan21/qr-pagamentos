@@ -4,9 +4,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 
-const { allowRateLimit, read } = vi.hoisted(() => ({ allowRateLimit: vi.fn(), read: vi.fn() }));
+const { allowRateLimit, read, readV2 } = vi.hoisted(() => ({ allowRateLimit: vi.fn(), read: vi.fn(), readV2: vi.fn() }));
 
 vi.mock("@/auth/public-payment-link", () => ({ getPublicPaymentLinkService: () => ({ read }) }));
+vi.mock("@/auth/public-payment-link-v2", () => ({ getPublicPaymentLinkV2Service: () => ({ read: readV2 }) }));
 vi.mock("@/security/public-rate-limit", () => ({
   allowPublicPaymentLinkRequest: allowRateLimit,
   publicPaymentLinkRateLimitSurface: { read: "public-link-read" },
@@ -41,6 +42,7 @@ describe("GET /api/payment-links/[identifier]", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     allowRateLimit.mockReturnValue(true);
+    readV2.mockResolvedValue(null);
   });
 
   it("is a forced-dynamic, unlocalized public read that returns the exact DTO with no-store", async () => {
@@ -86,6 +88,41 @@ describe("GET /api/payment-links/[identifier]", () => {
     expect(response.headers.get("cache-control")).toContain("no-store");
     await expect(response.text()).resolves.toBe("");
     expect(read).not.toHaveBeenCalled();
+  });
+
+  it("never consults the V2 branch while a V1 identifier resolves", async () => {
+    read.mockResolvedValueOnce(paymentLink);
+
+    const response = await GET(request("en"), context());
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual(paymentLink);
+    expect(readV2).not.toHaveBeenCalled();
+  });
+
+  it("returns the additive V2 superset with no-store only for V2 identifiers", async () => {
+    const paymentLinkV2 = {
+      composition: {
+        kind: "PRODUCT_LINES",
+        lines: [{ product: { title: "Donation", description: "Support the project.", price: "0.000001" }, quantity: 3 }],
+      },
+      currencyPair: paymentLink.currencyPair,
+    };
+    read.mockResolvedValue(null);
+    readV2.mockResolvedValue(paymentLinkV2);
+
+    const response = await GET(request("en-US,en;q=0.9"), context());
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("cache-control")).toContain("no-store");
+    await expect(response.json()).resolves.toEqual(paymentLinkV2);
+    expect(readV2).toHaveBeenCalledWith(identifier, "en");
+
+    readV2.mockResolvedValue(null);
+    const missing = await GET(request("en"), context());
+    expect(missing.status).toBe(404);
+    expect(missing.headers.get("cache-control")).toContain("no-store");
+    await expect(missing.text()).resolves.toBe("");
   });
 
   it("does not import session, authorization, cookie, dictionary, or checkout behavior", async () => {
