@@ -19,7 +19,6 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[8.1.2-implement-composable-payment-links]] | Implement product-line and fixed-amount links with quantities, description, expiry, reusable/one-time type, and lifecycle status. · size: L | 001_initial_task |
 | [[8.1.3-implement-generalized-order-records]] | Implement link/ad-hoc order sources, immutable monetary/customer snapshots, comments, and separate local operator outcomes. · size: L | 001_initial_task |
 
 ## Phase 8.2 - Merchant payment-link management
