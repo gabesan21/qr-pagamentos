@@ -9,8 +9,9 @@ function requireSource(source, pattern, message) {
   if (!pattern.test(source)) throw new Error(message);
 }
 
-const [eslintConfig, loginPage, loginSubmit, loginRoute, loginEvidence, homePage, rootLayout, designSystemPage, languageRoute] = await Promise.all([
+const [eslintConfig, tsconfig, loginPage, loginSubmit, loginRoute, loginEvidence, homePage, rootLayout, designSystemPage, languageRoute] = await Promise.all([
   readFile(join(root, "eslint.config.mjs"), "utf8"),
+  readFile(join(root, "tsconfig.json"), "utf8"),
   readFile(join(root, "src/app/login/page.tsx"), "utf8"),
   readFile(join(root, "src/app/login/login-submit.tsx"), "utf8"),
   readFile(join(root, "src/app/login/submit/route.ts"), "utf8"),
@@ -30,6 +31,8 @@ if (await eslint.isPathIgnored(join(root, "scripts/epoch1-lint-control.ts"))) {
   throw new Error("The lint control path outside pop/worktrees is unexpectedly ignored.");
 }
 
+requireSource(tsconfig, /"exclude"\s*:\s*\[\s*"node_modules"\s*,\s*"pop\/worktrees"\s*\]/, "tsconfig.json does not exclude generated PoP worktrees.");
+
 requireSource(loginPage, /<form\s+action="\/login\/submit"[^>]*method="post"/, "Login no longer uses the native unprefixed POST form.");
 requireSource(loginSubmit, /addEventListener\("submit"/, "Login submit no longer observes the native submit event.");
 requireSource(loginSubmit, /removeEventListener\("submit"/, "Login submit observation no longer cleans up its listener.");
@@ -45,4 +48,4 @@ for (const [name, source] of [["login route", loginRoute], ["home page", homePag
   if (/getSessionService\(\)\.validate\(/.test(source)) throw new Error(`${name} bypasses status-aware authorization.`);
 }
 
-console.log("EPOCH1_SOURCE_OK eslint_worktrees=ignored eslint_control=visible login_post=native pending=click+enter authorization=status-aware");
+console.log("EPOCH1_SOURCE_OK eslint_worktrees=ignored tsconfig_worktrees=excluded eslint_control=visible login_post=native pending=click+enter authorization=status-aware");
