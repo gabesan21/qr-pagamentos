@@ -29,6 +29,9 @@
   filtered-empty, invalid-query, and error. Invalid/error copy never echoes
   input, identity, scope, or exception detail.
 - Generic copy belongs to the bilingual `data-directory` dictionary domain.
+- The toolbar's page-size options and labelled text/calendar-day filter fields
+  are optional registered props (defaults 25/50/100, enum-only filters);
+  never hardcode a concrete directory's sizes or filters into the composition.
 
 ## Related contracts
 

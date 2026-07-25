@@ -257,14 +257,24 @@ accepts that exact declaration only in this route and the matching declaration
 only in the settings `storefront-preview.tsx` preview container; no other
 inline style or raw visual value is allowed.
 
-The authenticated `/orders` owner ledger and the read-only `/admin/orders`
-administrator ledger reuse the same receipt rail, `admin-navigation`, ruled
-`admin-account` fact sections, `Badge` state vocabulary, and `Card`/`Alert`
-empty and unavailable states. Order states reuse the checkout state labels;
-the policy-exact customer snapshot renders as labelled facts. Cross-owner or
-missing order identities render one opaque destructive-`Alert` unavailable
-view with a single back action; no order surface owns a mutation control or
-page-specific visual variant.
+The authenticated `/orders` workspace composes the keyset-paginated Commerce V2
+order directory above the byte-frozen V1 ledger section, reusing the
+data-directory composition, the receipt rail, ruled `admin-account` fact
+sections, the `Badge` state vocabulary, and `Card`/`Alert` empty, unavailable,
+and notice states. Payer facts are the policy-exact snapshot; the payment
+state and the local outcome are separate badges; amounts are exact-decimal
+tabular; currency-pair UUIDs and line product UUIDs never render. The
+`/orders/v2/[id]` detail adds the comment thread and the local-outcome forms:
+native POSTs to `/orders-v2/[id]` behind `details` confirmations, with
+observation-only pending submits that never intercept the document POST. A
+single observation-only client boundary stores the toolbar page-size choice
+and, only when the URL carries no explicit `pageSize`, navigates once to the
+canonical URL with the stored registered size. Cross-owner or missing order
+identities render one opaque destructive-`Alert` unavailable view with a
+single back action. The read-only V1 ledger, `/orders/[id]`, and the
+`/admin/orders` administrator ledger keep their exact behavior: order states
+reuse the checkout state labels and the policy-exact customer snapshot renders
+as labelled facts.
 
 ## Role shell composition
 
@@ -383,6 +393,25 @@ gates as the other evidence surfaces; the error directory state is covered by
 page tests because stopping the disposable database would break session
 resolution before the directory read. The review is manifest-hash-bound and
 accepts no unresolved severity 2 or greater finding.
+
+`pnpm orders:evidence` and `pnpm orders:evidence:verify` bind 48 merchant
+orders captures: the keyset-paginated `/orders` V2 directory across six
+themes, both locales, and widths 375/768/1440 (36), plus twelve localized
+state captures covering the empty directory, 320-pixel reflow, the
+comment-thread detail, the opaque unavailable detail, filtered-empty,
+invalid-query, the second keyset page, the commented/comment-edited/
+outcome-set/failed outcome notices, and the page-size preference. The run
+seeds lifecycle fixture links, orders, comments, and a local outcome directly
+in the disposable database (public V2 checkout is 9.3.1), drives the real
+8.3.3 UI for the comment append, the author comment edit under CAS, the
+guarded local-outcome set, and a stale lifecycle CAS that fails opaquely, and
+proves the policy-exact payer facts, the separate state/outcome badges,
+bounded 20/5 pagination, the stored page size reapplied once on the bare URL,
+and the same axe, overflow, target, and focus gates as the other evidence
+surfaces; the error directory state is covered by page tests because stopping
+the disposable database would break session resolution before the directory
+read. The review is manifest-hash-bound and accepts no unresolved severity 2
+or greater finding.
 
 The status rail and panels use ruled separation and restrained corners. Never
 make a page-specific button variant: use owned `Button` variants. Motion is
