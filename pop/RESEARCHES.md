@@ -4,7 +4,7 @@ Project: [[PROJECT|QR Pagamentos]] · Roadmap: [[ROADMAP|Roadmap]]
 
 ## nautt-production-webhook-hmac-contract
 
-- **Status:** pending
+- **Status:** on-hold-by-beta-decision (M-5.1, human decision 2026-07-25) — the research is still required, and resuming it is now additionally gated by the human's explicit pre-production command to restore HMAC verification (see [[open_questions/2026-07-25-pre-production-gate-restore-webhook-hmac]]).
 - **Feeds:** Epoch 2 | [[specs/nautt-finance-integration|Nautt Finance integration]] | task [[2.3.1-verify-and-handle-nautt-webhooks]] pause condition
 - **Suggested prompt:**
 

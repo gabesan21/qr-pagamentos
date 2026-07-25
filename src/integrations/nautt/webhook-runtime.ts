@@ -25,6 +25,15 @@ export async function handleNauttWebhook(input: Parameters<ReturnType<typeof cre
       loadCandidates: loadActiveWebhookSecrets,
       deliveryStore: createPrismaWebhookDeliveryStore(prisma),
       orderReconciler: getOwnerPricingOrdersService(),
+      // BETA(M-5.1): owner attribution without HMAC — the globally unique provider_order.providerOrderUuid
+      // identifies exactly one owner; removed on reversal.
+      resolveOwner: async (providerOrderUuid) => {
+        const row = await prisma.providerOrder.findFirst({
+          where: { providerOrderUuid },
+          select: { ownerId: true },
+        });
+        return row?.ownerId ?? null;
+      },
     });
   }
   return sharedIntake(input);
