@@ -44,7 +44,6 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[8.4.2-build-merchant-dashboard-ui]] | Build the bilingual merchant KPI/chart dashboard with recent activity and a conditional View Store action. · size: L | 001_initial_task |
 
 ## Dependency and parallel-wave map
 
