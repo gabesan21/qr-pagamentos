@@ -155,4 +155,31 @@ describe("merchant links directory page", () => {
     expect(markup).toContain("cursor=next-token");
     expect(markup).toContain("cursor=previous-token");
   });
+
+  it("renders the create affordance and each closed outcome notice in both locales", async () => {
+    ready("en");
+    const created = renderToStaticMarkup(await MerchantLinksPage({ searchParams: Promise.resolve({ "payment-links-v2": "created" }) }));
+    expect(created).toContain('href="/links/new"');
+    expect(created).toContain("The payment link was created.");
+
+    ready("pt-BR");
+    for (const [notice, copy] of [
+      ["edited", "As alterações do link de pagamento foram salvas."],
+      ["activated", "O link de pagamento foi ativado."],
+      ["deactivated", "O link de pagamento foi desativado."],
+    ] as const) {
+      const markup = renderToStaticMarkup(await MerchantLinksPage({ searchParams: Promise.resolve({ "payment-links-v2": notice }) }));
+      expect(markup).toContain(copy);
+    }
+  });
+
+  it("renders the opaque failed notice and rejects a forged notice value before any read", async () => {
+    ready("en");
+    const failed = renderToStaticMarkup(await MerchantLinksPage({ searchParams: Promise.resolve({ "payment-links-v2": "failed" }) }));
+    expect(failed).toContain("The payment-link change could not be saved.");
+
+    const forged = renderToStaticMarkup(await MerchantLinksPage({ searchParams: Promise.resolve({ "payment-links-v2": "deleted" }) }));
+    expect(forged).toContain("The directory request is unavailable");
+    expect(forged).not.toContain("deleted");
+  });
 });

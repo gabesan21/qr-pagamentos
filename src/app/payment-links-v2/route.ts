@@ -21,9 +21,9 @@ export async function POST(request: Request) {
         descriptionEn: form.get("descriptionEn"),
         amount: form.get("amount"),
       });
-      return relativeRedirect("/?payment-links-v2=created");
+      return relativeRedirect("/links?payment-links-v2=created");
     } catch (error) {
-      return ownerProtectedMutationResponse(error) ?? relativeRedirect("/?payment-links-v2=failed");
+      return ownerProtectedMutationResponse(error) ?? relativeRedirect("/links?payment-links-v2=failed");
     }
   });
 }

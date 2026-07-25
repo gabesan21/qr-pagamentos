@@ -31,6 +31,7 @@ import {
   resolveLinksDirectoryQuery,
   type LinksSearchParams,
 } from "./directory-query";
+import { PaymentLinkV2Notice } from "./links-notices";
 import { formatLinkInstant, LinkStateBadge, linkKindLabel, linkSummary, linkTypeLabel } from "./link-v2-views";
 
 type Dictionary = ReturnType<typeof getDictionary>;
@@ -200,6 +201,12 @@ export default async function MerchantLinksPage({
   return (
     <>
       <WorkspaceHeading description={dictionary.paymentLinkDirectoryDescription} eyebrow={dictionary.shellMerchantEyebrow} title={dictionary.shellLinks} />
+      <div className="flex flex-wrap gap-3">
+        <Button asChild data-ds-hit-target>
+          <Link href="/links/new">{dictionary.paymentLinkCreateTitle}</Link>
+        </Button>
+      </div>
+      {query.status === "ready" && query.notice ? <PaymentLinkV2Notice dictionary={dictionary} notice={query.notice} /> : null}
       <PaymentLinkDirectory dictionary={dictionary} locale={locale} page={page} query={query} />
       <Separator />
       <section aria-labelledby="legacy-payment-links-heading" className="flex flex-col gap-6">

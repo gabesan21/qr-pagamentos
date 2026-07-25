@@ -27,6 +27,24 @@
       "contexts": [],
       "test_seconds": 0,
       "result": "advanced"
+    },
+    {
+      "at": "2026-07-25T18:21:44-03:00",
+      "event": "transition",
+      "from": "004_processing",
+      "to": "005_verifying",
+      "contexts": [],
+      "test_seconds": 0,
+      "result": "advanced"
+    },
+    {
+      "at": "2026-07-25T18:32:31-03:00",
+      "event": "transition",
+      "from": "005_verifying",
+      "to": "006_done",
+      "contexts": [],
+      "test_seconds": 0,
+      "result": "advanced"
     }
   ]
 }

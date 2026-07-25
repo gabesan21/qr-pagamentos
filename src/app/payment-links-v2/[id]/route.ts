@@ -33,11 +33,11 @@ export async function POST(request: Request, { params }: Readonly<{ params: Prom
         await service.setActive(actor, id, form.get("version"), "false");
         outcome = "deactivated";
       } else {
-        return relativeRedirect("/?payment-links-v2=failed");
+        return relativeRedirect("/links?payment-links-v2=failed");
       }
-      return relativeRedirect(`/?payment-links-v2=${outcome}`);
+      return relativeRedirect(`/links?payment-links-v2=${outcome}`);
     } catch (error) {
-      return ownerProtectedMutationResponse(error) ?? relativeRedirect("/?payment-links-v2=failed");
+      return ownerProtectedMutationResponse(error) ?? relativeRedirect("/links?payment-links-v2=failed");
     }
   });
 }

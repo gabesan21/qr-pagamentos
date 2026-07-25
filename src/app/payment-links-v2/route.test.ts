@@ -39,7 +39,7 @@ describe("owner payment-link-v2 create route", () => {
       descriptionEn: "Donation",
       amount: "10.25",
     });
-    expect(response.headers.get("location")).toBe("/?payment-links-v2=created");
+    expect(response.headers.get("location")).toBe("/links?payment-links-v2=created");
   });
 
   it("maps any service failure to the opaque failed redirect", async () => {
@@ -48,6 +48,6 @@ describe("owner payment-link-v2 create route", () => {
     create.mockRejectedValueOnce(new Error("validation"));
 
     const response = await POST(request(new URLSearchParams({ compositionKind: "PRODUCT_LINES" })));
-    expect(response.headers.get("location")).toBe("/?payment-links-v2=failed");
+    expect(response.headers.get("location")).toBe("/links?payment-links-v2=failed");
   });
 });

@@ -150,8 +150,20 @@ expiry, the `/pay/[identifier]` share page link, and a read-only view action;
 `/links/v2/[id]` renders the same ruled fact composition as the order detail,
 including ordered product lines or the fixed amount, the share URL with an
 observation-only copy button, and one opaque destructive-`Alert` unavailable
-view for cross-owner, malformed, or missing identities. No mutation control
-exists on either surface.
+view for cross-owner, malformed, or missing identities. The management flows
+delivered by 8.2.2 complete the workspace: a primary `/links/new` create
+affordance whose form switches between the ordered product-lines editor (1–20
+lines, 1–9,999 quantity, per-link uniqueness hinted by disabling chosen
+products) and the fixed-amount members, posting the hidden `lines` JSON the
+route parses; `/links/v2/[id]/edit` with the immutable kind/type/pair as
+read-only facts, the bilingual attempt-lock explanation, the `/links/new?from=`
+new-version affordance, and dirty-field omission so expiry and financial
+members stay unnamed until a real change (an explicit blank posts the clearing
+empty value); detail-page activate/deactivate behind native `details`
+confirmation posting the prefilled version CAS; and the closed
+created/edited/activated/deactivated/failed outcome banners extracted before
+directory canonicalization, success as a status `Alert` and the opaque failure
+as a destructive one.
 
 The deterministic `/design-system` exercise surface resolves its dictionary from
 the same server preference contract as the authenticated shell and presents all
@@ -353,20 +365,24 @@ mutation control on archived products, and the same axe, overflow, target, and
 focus gates as the other evidence surfaces; the review is manifest-hash-bound
 and accepts no unresolved severity 2 or greater finding.
 
-`pnpm links:evidence` and `pnpm links:evidence:verify` bind 44 merchant
+`pnpm links:evidence` and `pnpm links:evidence:verify` bind 53 merchant
 payment-link directory captures: the keyset-paginated `/links` V2 directory
-across six themes, both locales, and widths 375/768/1440 (36), plus eight
+across six themes, both locales, and widths 375/768/1440 (36), plus seventeen
 localized state captures covering the empty directory, 320-pixel reflow, the
 product-lines and fixed-amount read-only details, the opaque unavailable
-detail, filtered-empty, invalid-query, and the second keyset page. The run
-seeds V2 links, orders, and a single-use settlement directly in the disposable
-database (the 8.2.2 create UI and 9.3.1 checkout do not exist yet), proves the
-four derived lifecycle badges, the share URL, bounded 25/10 pagination with
-distinct pages, and the same axe, overflow, target, and focus gates as the
-other evidence surfaces; the error directory state is covered by page tests
-because stopping the disposable database would break session resolution before
-the directory read. The review is manifest-hash-bound and accepts no
-unresolved severity 2 or greater finding.
+detail, filtered-empty, invalid-query, the second keyset page, the create and
+edit forms, and the created/edited/failed/deactivated outcome notices. The run
+seeds lifecycle fixture links, orders, a single-use settlement, and one
+checkout attempt (the financial-edit lock) directly in the disposable database
+(public V2 checkout is 9.3.1), drives the real 8.2.2 management UI for both
+creates, the dirty-omission expiry edit under the attempt, the opaque locked
+financial edit, the blank-clear expiry edit, and activate/deactivate, and
+proves the four derived lifecycle badges, the share URL, bounded 25/10
+pagination with distinct pages, and the same axe, overflow, target, and focus
+gates as the other evidence surfaces; the error directory state is covered by
+page tests because stopping the disposable database would break session
+resolution before the directory read. The review is manifest-hash-bound and
+accepts no unresolved severity 2 or greater finding.
 
 The status rail and panels use ruled separation and restrained corners. Never
 make a page-specific button variant: use owned `Button` variants. Motion is

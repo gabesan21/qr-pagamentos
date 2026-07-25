@@ -44,9 +44,11 @@ async function setLocale(page: Page, locale: "pt-BR" | "en") {
 
 const identifier = () => randomBytes(18).toString("base64url");
 
-// The V2 create UI is 8.2.2 and public V2 checkout is 9.3.1, so the harness
-// seeds links, orders, and the single-use settlement directly in the
-// disposable database — never through app code or a test-only backdoor.
+// The public V2 checkout is 9.3.1, so the harness seeds the lifecycle fixture
+// links, orders, the single-use settlement, and one checkout attempt (the
+// financial-edit lock) directly in the disposable database — never through app
+// code or a test-only backdoor. Create/edit/activate/deactivate run through the
+// real 8.2.2 UI.
 function seedSql() {
   const pair = { id: randomUUID(), currency: randomUUID(), exchange: randomUUID() };
   const products = [
@@ -60,7 +62,9 @@ function seedSql() {
     inactive: { id: randomUUID(), identifier: identifier() },
     expired: { id: randomUUID(), identifier: identifier() },
   };
-  const orders = { reusable: randomUUID(), singleUse: randomUUID() };
+  const orders = { reusable: randomUUID(), singleUse: randomUUID(), attempt: randomUUID() };
+  const attempt = randomUUID();
+  const verifier = (length: number) => randomBytes(length).toString("base64url").slice(0, length);
   const fillers = Array.from({ length: 30 }, (_, index) => ({ id: randomUUID(), identifier: identifier(), index }));
   const at = (minutesAgo: number) => new Date(Date.now() - minutesAgo * 60_000).toISOString();
   const statements: string[] = [
@@ -97,6 +101,14 @@ function seedSql() {
      FROM app."user" u WHERE u.username = '${merchantUsername}'`,
     `INSERT INTO app.payment_link_v2_single_use_settlement (payment_link_v2_id, owner_id, order_v2_id, claimed_at)
      SELECT '${links.fixedSinglePaid.id}', u.id, '${orders.singleUse}', '${at(31)}'
+     FROM app."user" u WHERE u.username = '${merchantUsername}'`,
+    // One persisted checkout attempt financially locks fixedActive (8.1.3 seam);
+    // the order stays PENDING so the derived lifecycle remains active.
+    `INSERT INTO app.order_v2 (id, owner_id, source, payment_link_v2_id, state, lifecycle_version, amount, currency_uuid, exchange_currency_uuid, checkout_data_policy, created_at, updated_at)
+     SELECT '${orders.attempt}', u.id, 'LINK', '${links.fixedActive.id}', 'PENDING', 1, '25', '${pair.currency}', '${pair.exchange}', 'NONE', '${at(20)}', '${at(20)}'
+     FROM app."user" u WHERE u.username = '${merchantUsername}'`,
+    `INSERT INTO app.checkout_attempt_v2 (id, owner_id, payment_link_v2_id, order_v2_id, retry_key_verifier, request_verifier, capability_nonce, capability_key_version, capability_verifier, capability_expires_at, state, created_at, updated_at)
+     SELECT '${attempt}', u.id, '${links.fixedActive.id}', '${orders.attempt}', '${verifier(64)}', '${verifier(64)}', '${verifier(43)}', '${verifier(16)}', '${verifier(64)}', '2028-01-01T00:00:00.000Z', 'ISSUED', '${at(20)}', '${at(20)}'
      FROM app."user" u WHERE u.username = '${merchantUsername}'`,
     ...fillers.map((filler) =>
       `INSERT INTO app.payment_link_v2 (id, identifier, owner_id, composition_kind, description_pt_br, description_en, amount, currency_pair_id, link_type, active, version, created_at, updated_at)
@@ -253,6 +265,26 @@ test("creates the closed merchant payment-links evidence run", async ({ page }) 
   assertions.push({ state: "detail-unavailable", opaque: true });
   await captureState("state-pt-BR-link-detail-unavailable-1440");
 
+  // ---- pt-BR management surfaces: create form, edit form, outcome notice ----
+  await page.goto(`${baseUrl}/links/new`);
+  await expect(page.getByText("Novo link de pagamento").first()).toBeVisible();
+  await expect(page.getByLabel("Produto")).toContainText("Café expresso");
+  await captureState("state-pt-BR-link-new-1440");
+
+  await page.setViewportSize({ width: 375, height: 1000 });
+  await page.goto(`${baseUrl}/links/new`);
+  await captureState("state-pt-BR-link-new-375");
+  await page.setViewportSize({ width: 1440, height: 1000 });
+
+  await page.goto(`${baseUrl}/links/v2/${seeded.links.fixedActive.id}/edit`);
+  await expect(page.getByText("A composição bloqueia após a primeira tentativa de checkout")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Criar uma nova versão" })).toBeVisible();
+  await captureState("state-pt-BR-link-edit-1440");
+
+  await page.goto(`${baseUrl}/links?payment-links-v2=created`);
+  await expect(page.getByText("O link de pagamento foi criado.")).toBeVisible();
+  await captureState("state-pt-BR-link-created-notice-1440");
+
   // ---- en pass: honest states, keyset pagination, fixed-amount detail ----
   await setLocale(page, "en");
 
@@ -287,6 +319,91 @@ test("creates the closed merchant payment-links evidence run", async ({ page }) 
   assertions.push({ state: "detail-fixed-amount", identifier: seeded.links.fixedSinglePaid.identifier });
   await captureState("state-en-link-detail-fixed-1440");
 
+  // ---- en management flows: real UI mutations after the pagination proof ----
+  // Create PRODUCT_LINES through the form.
+  await page.goto(`${baseUrl}/links/new`);
+  await page.getByLabel("Currency pair").selectOption({ label: "BRL/USDT" });
+  await page.getByLabel("Product").selectOption({ label: "Espresso shot" });
+  await Promise.all([
+    page.waitForURL("**/links?payment-links-v2=created"),
+    page.getByRole("button", { name: "Create payment link" }).click(),
+  ]);
+  await expect(page.getByText("The payment link was created.")).toBeVisible();
+  await expect(directory.getByText("Espresso shot").first()).toBeVisible();
+  assertions.push({ state: "create-product-lines", outcome: "created" });
+  await captureState("state-en-link-created-notice-1440");
+
+  // Create FIXED_AMOUNT after switching the immutable-at-save kind select.
+  await page.goto(`${baseUrl}/links/new`);
+  await page.getByLabel("Composition").selectOption("FIXED_AMOUNT");
+  await page.getByLabel("Currency pair").selectOption({ label: "BRL/USDT" });
+  await page.getByLabel("Description in Portuguese").fill("Cota da evidência");
+  await page.getByLabel("Description in English").fill("Evidence dues");
+  await page.getByLabel("Amount").fill("7.25");
+  await Promise.all([
+    page.waitForURL("**/links?payment-links-v2=created"),
+    page.getByRole("button", { name: "Create payment link" }).click(),
+  ]);
+  await expect(page.getByText("The payment link was created.")).toBeVisible();
+  await expect(directory.getByText("Evidence dues").first()).toBeVisible();
+  assertions.push({ state: "create-fixed-amount", outcome: "created" });
+  await captureState("state-en-link-fixed-created-1440");
+
+  // Expiry-only edit on the attempt-locked link succeeds only because every
+  // financial member stays unnamed until a real change (absent = unchanged).
+  await page.goto(`${baseUrl}/links/v2/${seeded.links.fixedActive.id}/edit`);
+  await page.getByLabel(/Expiry/).fill("2027-12-01T10:00");
+  await Promise.all([
+    page.waitForURL("**/links?payment-links-v2=edited"),
+    page.getByRole("button", { name: "Save changes" }).click(),
+  ]);
+  await expect(page.getByText("The payment-link changes were saved.")).toBeVisible();
+  assertions.push({ state: "edit-expiry-only-under-attempt", outcome: "edited" });
+  await captureState("state-en-link-edited-notice-1440");
+
+  // A financial change on the same locked link fails opaquely.
+  await page.goto(`${baseUrl}/links/v2/${seeded.links.fixedActive.id}/edit`);
+  await page.getByLabel("Amount").fill("30");
+  await Promise.all([
+    page.waitForURL("**/links?payment-links-v2=failed"),
+    page.getByRole("button", { name: "Save changes" }).click(),
+  ]);
+  await expect(page.getByText("The payment-link change could not be saved.")).toBeVisible();
+  assertions.push({ state: "financial-edit-locked", outcome: "failed" });
+  await captureState("state-en-link-failed-notice-1440");
+
+  // An explicit blank expiry posts the empty value and clears the stored one.
+  await page.goto(`${baseUrl}/links/v2/${seeded.links.fixedActive.id}/edit`);
+  await page.getByLabel(/Expiry/).fill("");
+  await Promise.all([
+    page.waitForURL("**/links?payment-links-v2=edited"),
+    page.getByRole("button", { name: "Save changes" }).click(),
+  ]);
+  await page.goto(`${baseUrl}/links/v2/${seeded.links.fixedActive.id}`);
+  await expect(page.getByText("No expiry")).toBeVisible();
+  assertions.push({ state: "edit-blank-clear", outcome: "edited", cleared: true });
+
+  // Lifecycle: activate then deactivate the seeded inactive link, each behind
+  // its native confirmation, landing on the closed outcome notices.
+  await page.goto(`${baseUrl}/links/v2/${seeded.links.inactive.id}`);
+  await page.locator("summary", { hasText: "Confirm activation" }).click();
+  await Promise.all([
+    page.waitForURL("**/links?payment-links-v2=activated"),
+    page.getByRole("button", { name: "Activate link" }).click(),
+  ]);
+  await expect(page.getByText("The payment link was activated.")).toBeVisible();
+  assertions.push({ state: "activate", outcome: "activated" });
+
+  await page.goto(`${baseUrl}/links/v2/${seeded.links.inactive.id}`);
+  await page.locator("summary", { hasText: "Confirm deactivation" }).click();
+  await Promise.all([
+    page.waitForURL("**/links?payment-links-v2=deactivated"),
+    page.getByRole("button", { name: "Deactivate link" }).click(),
+  ]);
+  await expect(page.getByText("The payment link was deactivated.")).toBeVisible();
+  assertions.push({ state: "deactivate", outcome: "deactivated" });
+  await captureState("state-en-link-deactivated-notice-1440");
+
   // ---- shared directory grid: six themes, both locales, three widths ----
   for (const locale of locales) {
     await setLocale(page, locale);
@@ -304,7 +421,7 @@ test("creates the closed merchant payment-links evidence run", async ({ page }) 
     }
   }
 
-  expect(screenshots).toHaveLength(44);
+  expect(screenshots).toHaveLength(53);
   const assertionsPath = join(runDirectory, "assertions.json");
   await writeFile(assertionsPath, `${JSON.stringify(assertions, null, 2)}\n`);
   const captureRecords = await Promise.all(screenshots.map(async (capturePath) => {
@@ -313,13 +430,24 @@ test("creates the closed merchant payment-links evidence run", async ({ page }) 
   }));
   const sourceInventory = [
     "src/auth/payment-link-v2-view.ts",
+    "src/auth/payment-link-v2-prefill.ts",
+    "src/app/payment-links-v2/route.ts",
+    "src/app/payment-links-v2/[id]/route.ts",
     "src/app/(merchant)/links/page.tsx",
     "src/app/(merchant)/links/directory-query.ts",
     "src/app/(merchant)/links/directory-copy.ts",
     "src/app/(merchant)/links/link-v2-views.tsx",
     "src/app/(merchant)/links/share-copy.tsx",
     "src/app/(merchant)/links/loading.tsx",
+    "src/app/(merchant)/links/links-notices.tsx",
+    "src/app/(merchant)/links/dirty-input.tsx",
+    "src/app/(merchant)/links/link-lines-editor.tsx",
+    "src/app/(merchant)/links/link-v2-form.tsx",
+    "src/app/(merchant)/links/link-v2-form-copy.ts",
+    "src/app/(merchant)/links/link-v2-actions.tsx",
+    "src/app/(merchant)/links/new/page.tsx",
     "src/app/(merchant)/links/v2/[id]/page.tsx",
+    "src/app/(merchant)/links/v2/[id]/edit/page.tsx",
     "src/i18n/dictionaries/payment-links-directory/en.ts",
     "src/i18n/dictionaries/payment-links-directory/pt-BR.ts",
     "src/observability/server-request-log.ts",
@@ -337,8 +465,8 @@ test("creates the closed merchant payment-links evidence run", async ({ page }) 
     startedAt,
     gitHead: execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim(),
     baseCaptureCount: 36,
-    stateCaptureCount: 8,
-    totalPngCount: 44,
+    stateCaptureCount: 17,
+    totalPngCount: 53,
     assertions: `artifacts/links/${runId}/assertions.json`,
     assertionsSha256: sha256(assertionsBytes),
     captures: captureRecords,
@@ -355,7 +483,8 @@ test("creates the closed merchant payment-links evidence run", async ({ page }) 
     "",
     `- Run: \`${runId}\``,
     `- Manifest SHA-256: \`${sha256(manifestBytes)}\``,
-    "- Grid: six themes × two locales × 375/768/1440 directory captures, plus eight localized state captures including 320-pixel reflow, detail, opaque miss, and page 2.",
+    "- Grid: six themes × two locales × 375/768/1440 directory captures, plus seventeen localized state captures including 320-pixel reflow, detail, opaque miss, page 2, the create/edit forms, and every closed outcome notice.",
+    "- Management flows run through the real 8.2.2 UI: both composition kinds create, expiry-only edit succeeds under a seeded checkout attempt (dirty omission), a financial edit on the same link fails opaquely, an explicit blank clears expiry, and activate/deactivate land on their notices.",
     "- Automated accessibility/runtime/target/overflow/focus findings: none.",
     "- The error directory state is induced only in unit/page tests: stopping the disposable database would break session resolution before the directory read, so no honest runtime capture exists.",
     "- Visual findings requiring correction: none.",
