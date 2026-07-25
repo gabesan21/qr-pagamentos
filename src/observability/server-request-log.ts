@@ -13,6 +13,8 @@ export const serverRequestRoutes = {
   paymentLink: "/payment-links/[id]",
   paymentLinksV2: "/payment-links-v2",
   paymentLinkV2: "/payment-links-v2/[id]",
+  ordersV2: "/orders-v2",
+  orderV2: "/orders-v2/[id]",
   checkoutPolicy: "/checkout-policy",
   storefront: "/storefront",
   storefrontLogo: "/storefront/logo",

@@ -12,3 +12,4 @@
 - A duplicate exact request may reissue its existing unexpired, unrevoked capability only; it must never quote, attach, recover, or dispatch Nautt again.
 - Never hold a database transaction across provider I/O, release a dispatched attempt, retry an onramp POST, or turn an ambiguous attempt into a new creation.
 - Keep public outcomes redacted and no-store; browser UI/polling, owner views, and explicit recovery belong to separate approved tasks.
+- `app.checkout_attempt_v2` (8.1.3) rebinds the same reservation, replay-verifier, and capability columns to V2 link and order identities; every fence above applies to it unchanged, and 9.3.1 owns its public checkout wiring.

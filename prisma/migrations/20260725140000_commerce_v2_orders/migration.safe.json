@@ -1,0 +1,1603 @@
+{
+  "version": 1,
+  "id": "20260725140000_commerce_v2_orders",
+  "operations": [
+    {
+      "op": "createTable",
+      "table": {
+        "schema": "app",
+        "name": "order_v2"
+      },
+      "columns": [
+        {
+          "name": "id",
+          "type": {
+            "name": "uuid"
+          },
+          "nullable": false
+        },
+        {
+          "name": "owner_id",
+          "type": {
+            "name": "uuid"
+          },
+          "nullable": false
+        },
+        {
+          "name": "source",
+          "type": {
+            "name": "text"
+          },
+          "nullable": false
+        },
+        {
+          "name": "payment_link_v2_id",
+          "type": {
+            "name": "uuid"
+          },
+          "nullable": true
+        },
+        {
+          "name": "state",
+          "type": {
+            "name": "varchar",
+            "length": 13
+          },
+          "nullable": true
+        },
+        {
+          "name": "lifecycle_version",
+          "type": {
+            "name": "integer"
+          },
+          "nullable": false
+        },
+        {
+          "name": "amount",
+          "type": {
+            "name": "text"
+          },
+          "nullable": false
+        },
+        {
+          "name": "currency_uuid",
+          "type": {
+            "name": "uuid"
+          },
+          "nullable": false
+        },
+        {
+          "name": "exchange_currency_uuid",
+          "type": {
+            "name": "uuid"
+          },
+          "nullable": false
+        },
+        {
+          "name": "description_pt_br",
+          "type": {
+            "name": "varchar",
+            "length": 160
+          },
+          "nullable": true
+        },
+        {
+          "name": "description_en",
+          "type": {
+            "name": "varchar",
+            "length": 160
+          },
+          "nullable": true
+        },
+        {
+          "name": "checkout_data_policy",
+          "type": {
+            "name": "varchar",
+            "length": 22
+          },
+          "nullable": false
+        },
+        {
+          "name": "name",
+          "type": {
+            "name": "varchar",
+            "length": 160
+          },
+          "nullable": true
+        },
+        {
+          "name": "email",
+          "type": {
+            "name": "varchar",
+            "length": 254
+          },
+          "nullable": true
+        },
+        {
+          "name": "cpf",
+          "type": {
+            "name": "varchar",
+            "length": 11
+          },
+          "nullable": true
+        },
+        {
+          "name": "street",
+          "type": {
+            "name": "varchar",
+            "length": 160
+          },
+          "nullable": true
+        },
+        {
+          "name": "number",
+          "type": {
+            "name": "varchar",
+            "length": 32
+          },
+          "nullable": true
+        },
+        {
+          "name": "district",
+          "type": {
+            "name": "varchar",
+            "length": 120
+          },
+          "nullable": true
+        },
+        {
+          "name": "city",
+          "type": {
+            "name": "varchar",
+            "length": 120
+          },
+          "nullable": true
+        },
+        {
+          "name": "state_uf",
+          "type": {
+            "name": "varchar",
+            "length": 2
+          },
+          "nullable": true
+        },
+        {
+          "name": "postal_code",
+          "type": {
+            "name": "varchar",
+            "length": 8
+          },
+          "nullable": true
+        },
+        {
+          "name": "country",
+          "type": {
+            "name": "varchar",
+            "length": 2
+          },
+          "nullable": true
+        },
+        {
+          "name": "complement",
+          "type": {
+            "name": "varchar",
+            "length": 160
+          },
+          "nullable": true
+        },
+        {
+          "name": "settled_at",
+          "type": {
+            "name": "timestamptz"
+          },
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "type": {
+            "name": "timestamptz"
+          },
+          "nullable": false
+        },
+        {
+          "name": "updated_at",
+          "type": {
+            "name": "timestamptz"
+          },
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "order_v2"
+      },
+      "constraint": {
+        "kind": "primaryKey",
+        "name": "order_v2_pkey",
+        "columns": [
+          "id"
+        ]
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "order_v2"
+      },
+      "constraint": {
+        "kind": "unique",
+        "name": "order_v2_id_owner_id_key",
+        "columns": [
+          "id",
+          "owner_id"
+        ]
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "order_v2"
+      },
+      "constraint": {
+        "kind": "foreignKey",
+        "name": "order_v2_owner_fkey",
+        "columns": [
+          "owner_id"
+        ],
+        "references": {
+          "table": {
+            "schema": "app",
+            "name": "user"
+          },
+          "columns": [
+            "id"
+          ]
+        },
+        "onDelete": "RESTRICT",
+        "onUpdate": "CASCADE",
+        "notValid": false
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "order_v2"
+      },
+      "constraint": {
+        "kind": "foreignKey",
+        "name": "order_v2_link_owner_fkey",
+        "columns": [
+          "payment_link_v2_id",
+          "owner_id"
+        ],
+        "references": {
+          "table": {
+            "schema": "app",
+            "name": "payment_link_v2"
+          },
+          "columns": [
+            "id",
+            "owner_id"
+          ]
+        },
+        "onDelete": "RESTRICT",
+        "onUpdate": "CASCADE",
+        "notValid": false
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "order_v2"
+      },
+      "constraint": {
+        "kind": "check",
+        "name": "order_v2_state_closed",
+        "expression": {
+          "op": "or",
+          "items": [
+            {
+              "op": "isNull",
+              "column": "state",
+              "is": true
+            },
+            {
+              "op": "in",
+              "column": "state",
+              "values": [
+                {
+                  "kind": "string",
+                  "value": "CREATED"
+                },
+                {
+                  "kind": "string",
+                  "value": "PENDING"
+                },
+                {
+                  "kind": "string",
+                  "value": "INDETERMINATE"
+                },
+                {
+                  "kind": "string",
+                  "value": "CONFIRMED"
+                },
+                {
+                  "kind": "string",
+                  "value": "REJECTED"
+                },
+                {
+                  "kind": "string",
+                  "value": "CANCELLED"
+                },
+                {
+                  "kind": "string",
+                  "value": "EXPIRED"
+                },
+                {
+                  "kind": "string",
+                  "value": "REFUNDED"
+                }
+              ]
+            }
+          ]
+        },
+        "notValid": false
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "order_v2"
+      },
+      "constraint": {
+        "kind": "check",
+        "name": "order_v2_policy_closed",
+        "expression": {
+          "op": "in",
+          "column": "checkout_data_policy",
+          "values": [
+            {
+              "kind": "string",
+              "value": "NONE"
+            },
+            {
+              "kind": "string",
+              "value": "NAME_EMAIL"
+            },
+            {
+              "kind": "string",
+              "value": "EMAIL"
+            },
+            {
+              "kind": "string",
+              "value": "NAME_EMAIL_CPF"
+            },
+            {
+              "kind": "string",
+              "value": "NAME_EMAIL_CPF_ADDRESS"
+            }
+          ]
+        },
+        "notValid": false
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "order_v2"
+      },
+      "constraint": {
+        "kind": "check",
+        "name": "order_v2_lifecycle_version_nonnegative",
+        "expression": {
+          "op": "gte",
+          "left": {
+            "kind": "column",
+            "name": "lifecycle_version"
+          },
+          "right": {
+            "kind": "literal",
+            "literal": {
+              "kind": "integer",
+              "value": 0
+            }
+          }
+        },
+        "notValid": false
+      }
+    },
+    {
+      "op": "createTable",
+      "table": {
+        "schema": "app",
+        "name": "order_v2_line"
+      },
+      "columns": [
+        {
+          "name": "order_id",
+          "type": {
+            "name": "uuid"
+          },
+          "nullable": false
+        },
+        {
+          "name": "owner_id",
+          "type": {
+            "name": "uuid"
+          },
+          "nullable": false
+        },
+        {
+          "name": "product_id",
+          "type": {
+            "name": "uuid"
+          },
+          "nullable": false
+        },
+        {
+          "name": "position",
+          "type": {
+            "name": "integer"
+          },
+          "nullable": false
+        },
+        {
+          "name": "quantity",
+          "type": {
+            "name": "integer"
+          },
+          "nullable": false
+        },
+        {
+          "name": "unit_price",
+          "type": {
+            "name": "text"
+          },
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "order_v2_line"
+      },
+      "constraint": {
+        "kind": "primaryKey",
+        "name": "order_v2_line_pkey",
+        "columns": [
+          "order_id",
+          "position"
+        ]
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "order_v2_line"
+      },
+      "constraint": {
+        "kind": "unique",
+        "name": "order_v2_line_order_product_key",
+        "columns": [
+          "order_id",
+          "product_id"
+        ]
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "order_v2_line"
+      },
+      "constraint": {
+        "kind": "foreignKey",
+        "name": "order_v2_line_order_owner_fkey",
+        "columns": [
+          "order_id",
+          "owner_id"
+        ],
+        "references": {
+          "table": {
+            "schema": "app",
+            "name": "order_v2"
+          },
+          "columns": [
+            "id",
+            "owner_id"
+          ]
+        },
+        "onDelete": "RESTRICT",
+        "onUpdate": "CASCADE",
+        "notValid": false
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "order_v2_line"
+      },
+      "constraint": {
+        "kind": "foreignKey",
+        "name": "order_v2_line_product_owner_fkey",
+        "columns": [
+          "product_id",
+          "owner_id"
+        ],
+        "references": {
+          "table": {
+            "schema": "app",
+            "name": "product"
+          },
+          "columns": [
+            "id",
+            "owner_id"
+          ]
+        },
+        "onDelete": "RESTRICT",
+        "onUpdate": "CASCADE",
+        "notValid": false
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "order_v2_line"
+      },
+      "constraint": {
+        "kind": "check",
+        "name": "order_v2_line_position_bounds",
+        "expression": {
+          "op": "and",
+          "items": [
+            {
+              "op": "gte",
+              "left": {
+                "kind": "column",
+                "name": "position"
+              },
+              "right": {
+                "kind": "literal",
+                "literal": {
+                  "kind": "integer",
+                  "value": 1
+                }
+              }
+            },
+            {
+              "op": "lte",
+              "left": {
+                "kind": "column",
+                "name": "position"
+              },
+              "right": {
+                "kind": "literal",
+                "literal": {
+                  "kind": "integer",
+                  "value": 20
+                }
+              }
+            }
+          ]
+        },
+        "notValid": false
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "order_v2_line"
+      },
+      "constraint": {
+        "kind": "check",
+        "name": "order_v2_line_quantity_bounds",
+        "expression": {
+          "op": "and",
+          "items": [
+            {
+              "op": "gte",
+              "left": {
+                "kind": "column",
+                "name": "quantity"
+              },
+              "right": {
+                "kind": "literal",
+                "literal": {
+                  "kind": "integer",
+                  "value": 1
+                }
+              }
+            },
+            {
+              "op": "lte",
+              "left": {
+                "kind": "column",
+                "name": "quantity"
+              },
+              "right": {
+                "kind": "literal",
+                "literal": {
+                  "kind": "integer",
+                  "value": 9999
+                }
+              }
+            }
+          ]
+        },
+        "notValid": false
+      }
+    },
+    {
+      "op": "createTable",
+      "table": {
+        "schema": "app",
+        "name": "order_comment_v2"
+      },
+      "columns": [
+        {
+          "name": "id",
+          "type": {
+            "name": "uuid"
+          },
+          "nullable": false
+        },
+        {
+          "name": "order_id",
+          "type": {
+            "name": "uuid"
+          },
+          "nullable": false
+        },
+        {
+          "name": "owner_id",
+          "type": {
+            "name": "uuid"
+          },
+          "nullable": false
+        },
+        {
+          "name": "author_id",
+          "type": {
+            "name": "uuid"
+          },
+          "nullable": false
+        },
+        {
+          "name": "body",
+          "type": {
+            "name": "varchar",
+            "length": 2000
+          },
+          "nullable": false
+        },
+        {
+          "name": "version",
+          "type": {
+            "name": "integer"
+          },
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "type": {
+            "name": "timestamptz"
+          },
+          "nullable": false
+        },
+        {
+          "name": "edited_at",
+          "type": {
+            "name": "timestamptz"
+          },
+          "nullable": true
+        }
+      ]
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "order_comment_v2"
+      },
+      "constraint": {
+        "kind": "primaryKey",
+        "name": "order_comment_v2_pkey",
+        "columns": [
+          "id"
+        ]
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "order_comment_v2"
+      },
+      "constraint": {
+        "kind": "foreignKey",
+        "name": "order_comment_v2_order_owner_fkey",
+        "columns": [
+          "order_id",
+          "owner_id"
+        ],
+        "references": {
+          "table": {
+            "schema": "app",
+            "name": "order_v2"
+          },
+          "columns": [
+            "id",
+            "owner_id"
+          ]
+        },
+        "onDelete": "RESTRICT",
+        "onUpdate": "CASCADE",
+        "notValid": false
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "order_comment_v2"
+      },
+      "constraint": {
+        "kind": "foreignKey",
+        "name": "order_comment_v2_author_fkey",
+        "columns": [
+          "author_id"
+        ],
+        "references": {
+          "table": {
+            "schema": "app",
+            "name": "user"
+          },
+          "columns": [
+            "id"
+          ]
+        },
+        "onDelete": "RESTRICT",
+        "onUpdate": "CASCADE",
+        "notValid": false
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "order_comment_v2"
+      },
+      "constraint": {
+        "kind": "check",
+        "name": "order_comment_v2_version_nonnegative",
+        "expression": {
+          "op": "gte",
+          "left": {
+            "kind": "column",
+            "name": "version"
+          },
+          "right": {
+            "kind": "literal",
+            "literal": {
+              "kind": "integer",
+              "value": 0
+            }
+          }
+        },
+        "notValid": false
+      }
+    },
+    {
+      "op": "createTable",
+      "table": {
+        "schema": "app",
+        "name": "order_local_outcome_v2"
+      },
+      "columns": [
+        {
+          "name": "id",
+          "type": {
+            "name": "uuid"
+          },
+          "nullable": false
+        },
+        {
+          "name": "order_id",
+          "type": {
+            "name": "uuid"
+          },
+          "nullable": false
+        },
+        {
+          "name": "owner_id",
+          "type": {
+            "name": "uuid"
+          },
+          "nullable": false
+        },
+        {
+          "name": "outcome",
+          "type": {
+            "name": "varchar",
+            "length": 16
+          },
+          "nullable": false
+        },
+        {
+          "name": "note",
+          "type": {
+            "name": "varchar",
+            "length": 2000
+          },
+          "nullable": true
+        },
+        {
+          "name": "actor_id",
+          "type": {
+            "name": "uuid"
+          },
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "type": {
+            "name": "timestamptz"
+          },
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "order_local_outcome_v2"
+      },
+      "constraint": {
+        "kind": "primaryKey",
+        "name": "order_local_outcome_v2_pkey",
+        "columns": [
+          "id"
+        ]
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "order_local_outcome_v2"
+      },
+      "constraint": {
+        "kind": "foreignKey",
+        "name": "order_local_outcome_v2_order_owner_fkey",
+        "columns": [
+          "order_id",
+          "owner_id"
+        ],
+        "references": {
+          "table": {
+            "schema": "app",
+            "name": "order_v2"
+          },
+          "columns": [
+            "id",
+            "owner_id"
+          ]
+        },
+        "onDelete": "RESTRICT",
+        "onUpdate": "CASCADE",
+        "notValid": false
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "order_local_outcome_v2"
+      },
+      "constraint": {
+        "kind": "foreignKey",
+        "name": "order_local_outcome_v2_actor_fkey",
+        "columns": [
+          "actor_id"
+        ],
+        "references": {
+          "table": {
+            "schema": "app",
+            "name": "user"
+          },
+          "columns": [
+            "id"
+          ]
+        },
+        "onDelete": "RESTRICT",
+        "onUpdate": "CASCADE",
+        "notValid": false
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "order_local_outcome_v2"
+      },
+      "constraint": {
+        "kind": "check",
+        "name": "order_local_outcome_v2_outcome_closed",
+        "expression": {
+          "op": "in",
+          "column": "outcome",
+          "values": [
+            {
+              "kind": "string",
+              "value": "LOCAL_FINALIZED"
+            },
+            {
+              "kind": "string",
+              "value": "LOCAL_CANCELLED"
+            }
+          ]
+        },
+        "notValid": false
+      }
+    },
+    {
+      "op": "createTable",
+      "table": {
+        "schema": "app",
+        "name": "checkout_attempt_v2"
+      },
+      "columns": [
+        {
+          "name": "id",
+          "type": {
+            "name": "uuid"
+          },
+          "nullable": false
+        },
+        {
+          "name": "owner_id",
+          "type": {
+            "name": "uuid"
+          },
+          "nullable": false
+        },
+        {
+          "name": "payment_link_v2_id",
+          "type": {
+            "name": "uuid"
+          },
+          "nullable": false
+        },
+        {
+          "name": "order_v2_id",
+          "type": {
+            "name": "uuid"
+          },
+          "nullable": false
+        },
+        {
+          "name": "retry_key_verifier",
+          "type": {
+            "name": "varchar",
+            "length": 64
+          },
+          "nullable": false
+        },
+        {
+          "name": "request_verifier",
+          "type": {
+            "name": "varchar",
+            "length": 64
+          },
+          "nullable": false
+        },
+        {
+          "name": "capability_nonce",
+          "type": {
+            "name": "varchar",
+            "length": 43
+          },
+          "nullable": false
+        },
+        {
+          "name": "capability_key_version",
+          "type": {
+            "name": "varchar",
+            "length": 16
+          },
+          "nullable": false
+        },
+        {
+          "name": "capability_verifier",
+          "type": {
+            "name": "varchar",
+            "length": 64
+          },
+          "nullable": false
+        },
+        {
+          "name": "capability_expires_at",
+          "type": {
+            "name": "timestamptz"
+          },
+          "nullable": false
+        },
+        {
+          "name": "capability_revoked_at",
+          "type": {
+            "name": "timestamptz"
+          },
+          "nullable": true
+        },
+        {
+          "name": "state",
+          "type": {
+            "name": "varchar",
+            "length": 13
+          },
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "type": {
+            "name": "timestamptz"
+          },
+          "nullable": false
+        },
+        {
+          "name": "updated_at",
+          "type": {
+            "name": "timestamptz"
+          },
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "checkout_attempt_v2"
+      },
+      "constraint": {
+        "kind": "primaryKey",
+        "name": "checkout_attempt_v2_pkey",
+        "columns": [
+          "id"
+        ]
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "checkout_attempt_v2"
+      },
+      "constraint": {
+        "kind": "unique",
+        "name": "checkout_attempt_v2_link_retry_key_verifier_key",
+        "columns": [
+          "payment_link_v2_id",
+          "retry_key_verifier"
+        ]
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "checkout_attempt_v2"
+      },
+      "constraint": {
+        "kind": "unique",
+        "name": "checkout_attempt_v2_order_v2_id_key",
+        "columns": [
+          "order_v2_id"
+        ]
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "checkout_attempt_v2"
+      },
+      "constraint": {
+        "kind": "unique",
+        "name": "checkout_attempt_v2_order_owner_key",
+        "columns": [
+          "order_v2_id",
+          "owner_id"
+        ]
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "checkout_attempt_v2"
+      },
+      "constraint": {
+        "kind": "foreignKey",
+        "name": "checkout_attempt_v2_owner_fkey",
+        "columns": [
+          "owner_id"
+        ],
+        "references": {
+          "table": {
+            "schema": "app",
+            "name": "user"
+          },
+          "columns": [
+            "id"
+          ]
+        },
+        "onDelete": "RESTRICT",
+        "onUpdate": "CASCADE",
+        "notValid": false
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "checkout_attempt_v2"
+      },
+      "constraint": {
+        "kind": "foreignKey",
+        "name": "checkout_attempt_v2_link_owner_fkey",
+        "columns": [
+          "payment_link_v2_id",
+          "owner_id"
+        ],
+        "references": {
+          "table": {
+            "schema": "app",
+            "name": "payment_link_v2"
+          },
+          "columns": [
+            "id",
+            "owner_id"
+          ]
+        },
+        "onDelete": "RESTRICT",
+        "onUpdate": "CASCADE",
+        "notValid": false
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "checkout_attempt_v2"
+      },
+      "constraint": {
+        "kind": "foreignKey",
+        "name": "checkout_attempt_v2_order_owner_fkey",
+        "columns": [
+          "order_v2_id",
+          "owner_id"
+        ],
+        "references": {
+          "table": {
+            "schema": "app",
+            "name": "order_v2"
+          },
+          "columns": [
+            "id",
+            "owner_id"
+          ]
+        },
+        "onDelete": "RESTRICT",
+        "onUpdate": "CASCADE",
+        "notValid": false
+      }
+    },
+    {
+      "op": "createTable",
+      "table": {
+        "schema": "app",
+        "name": "payment_link_v2_single_use_settlement"
+      },
+      "columns": [
+        {
+          "name": "payment_link_v2_id",
+          "type": {
+            "name": "uuid"
+          },
+          "nullable": false
+        },
+        {
+          "name": "owner_id",
+          "type": {
+            "name": "uuid"
+          },
+          "nullable": false
+        },
+        {
+          "name": "order_v2_id",
+          "type": {
+            "name": "uuid"
+          },
+          "nullable": false
+        },
+        {
+          "name": "claimed_at",
+          "type": {
+            "name": "timestamptz"
+          },
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "payment_link_v2_single_use_settlement"
+      },
+      "constraint": {
+        "kind": "primaryKey",
+        "name": "payment_link_v2_single_use_settlement_pkey",
+        "columns": [
+          "payment_link_v2_id"
+        ]
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "payment_link_v2_single_use_settlement"
+      },
+      "constraint": {
+        "kind": "unique",
+        "name": "payment_link_v2_single_use_settlement_order_key",
+        "columns": [
+          "order_v2_id"
+        ]
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "payment_link_v2_single_use_settlement"
+      },
+      "constraint": {
+        "kind": "unique",
+        "name": "payment_link_v2_single_use_settlement_link_owner_key",
+        "columns": [
+          "payment_link_v2_id",
+          "owner_id"
+        ]
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "payment_link_v2_single_use_settlement"
+      },
+      "constraint": {
+        "kind": "unique",
+        "name": "payment_link_v2_single_use_settlement_order_owner_key",
+        "columns": [
+          "order_v2_id",
+          "owner_id"
+        ]
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "payment_link_v2_single_use_settlement"
+      },
+      "constraint": {
+        "kind": "foreignKey",
+        "name": "payment_link_v2_single_use_settlement_link_owner_fkey",
+        "columns": [
+          "payment_link_v2_id",
+          "owner_id"
+        ],
+        "references": {
+          "table": {
+            "schema": "app",
+            "name": "payment_link_v2"
+          },
+          "columns": [
+            "id",
+            "owner_id"
+          ]
+        },
+        "onDelete": "RESTRICT",
+        "onUpdate": "CASCADE",
+        "notValid": false
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "payment_link_v2_single_use_settlement"
+      },
+      "constraint": {
+        "kind": "foreignKey",
+        "name": "payment_link_v2_single_use_settlement_order_owner_fkey",
+        "columns": [
+          "order_v2_id",
+          "owner_id"
+        ],
+        "references": {
+          "table": {
+            "schema": "app",
+            "name": "order_v2"
+          },
+          "columns": [
+            "id",
+            "owner_id"
+          ]
+        },
+        "onDelete": "RESTRICT",
+        "onUpdate": "CASCADE",
+        "notValid": false
+      }
+    },
+    {
+      "op": "addColumn",
+      "table": {
+        "schema": "app",
+        "name": "provider_order"
+      },
+      "column": {
+        "name": "order_v2_id",
+        "type": {
+          "name": "uuid"
+        },
+        "nullable": true
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "provider_order"
+      },
+      "constraint": {
+        "kind": "unique",
+        "name": "provider_order_order_v2_owner_key",
+        "columns": [
+          "order_v2_id",
+          "owner_id"
+        ]
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "provider_order"
+      },
+      "constraint": {
+        "kind": "foreignKey",
+        "name": "provider_order_order_v2_owner_fkey",
+        "columns": [
+          "order_v2_id",
+          "owner_id"
+        ],
+        "references": {
+          "table": {
+            "schema": "app",
+            "name": "order_v2"
+          },
+          "columns": [
+            "id",
+            "owner_id"
+          ]
+        },
+        "onDelete": "RESTRICT",
+        "onUpdate": "CASCADE",
+        "notValid": false
+      }
+    },
+    {
+      "op": "createIndex",
+      "name": "order_v2_owner_created_at_id_idx",
+      "table": {
+        "schema": "app",
+        "name": "order_v2"
+      },
+      "columns": [
+        "owner_id",
+        "created_at",
+        "id"
+      ],
+      "unique": false
+    },
+    {
+      "op": "createIndex",
+      "name": "order_v2_owner_source_created_at_id_idx",
+      "table": {
+        "schema": "app",
+        "name": "order_v2"
+      },
+      "columns": [
+        "owner_id",
+        "source",
+        "created_at",
+        "id"
+      ],
+      "unique": false
+    },
+    {
+      "op": "createIndex",
+      "name": "order_v2_owner_state_created_at_id_idx",
+      "table": {
+        "schema": "app",
+        "name": "order_v2"
+      },
+      "columns": [
+        "owner_id",
+        "state",
+        "created_at",
+        "id"
+      ],
+      "unique": false
+    },
+    {
+      "op": "createIndex",
+      "name": "order_v2_link_created_at_id_idx",
+      "table": {
+        "schema": "app",
+        "name": "order_v2"
+      },
+      "columns": [
+        "payment_link_v2_id",
+        "created_at",
+        "id"
+      ],
+      "unique": false
+    },
+    {
+      "op": "createIndex",
+      "name": "order_comment_v2_order_created_at_id_idx",
+      "table": {
+        "schema": "app",
+        "name": "order_comment_v2"
+      },
+      "columns": [
+        "order_id",
+        "created_at",
+        "id"
+      ],
+      "unique": false
+    },
+    {
+      "op": "createIndex",
+      "name": "order_local_outcome_v2_order_created_at_id_idx",
+      "table": {
+        "schema": "app",
+        "name": "order_local_outcome_v2"
+      },
+      "columns": [
+        "order_id",
+        "created_at",
+        "id"
+      ],
+      "unique": false
+    },
+    {
+      "op": "createIndex",
+      "name": "checkout_attempt_v2_owner_capability_expiry_idx",
+      "table": {
+        "schema": "app",
+        "name": "checkout_attempt_v2"
+      },
+      "columns": [
+        "owner_id",
+        "capability_expires_at"
+      ],
+      "unique": false
+    },
+    {
+      "op": "grant",
+      "object": {
+        "kind": "table",
+        "schema": "app",
+        "name": "order_v2"
+      },
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "role": "qr_runtime"
+    },
+    {
+      "op": "grant",
+      "object": {
+        "kind": "table",
+        "schema": "app",
+        "name": "order_v2_line"
+      },
+      "privileges": [
+        "SELECT",
+        "INSERT"
+      ],
+      "role": "qr_runtime"
+    },
+    {
+      "op": "grant",
+      "object": {
+        "kind": "table",
+        "schema": "app",
+        "name": "order_comment_v2"
+      },
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE"
+      ],
+      "role": "qr_runtime"
+    },
+    {
+      "op": "grant",
+      "object": {
+        "kind": "table",
+        "schema": "app",
+        "name": "order_local_outcome_v2"
+      },
+      "privileges": [
+        "SELECT",
+        "INSERT"
+      ],
+      "role": "qr_runtime"
+    },
+    {
+      "op": "grant",
+      "object": {
+        "kind": "table",
+        "schema": "app",
+        "name": "checkout_attempt_v2"
+      },
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "role": "qr_runtime"
+    },
+    {
+      "op": "grant",
+      "object": {
+        "kind": "table",
+        "schema": "app",
+        "name": "payment_link_v2_single_use_settlement"
+      },
+      "privileges": [
+        "SELECT",
+        "INSERT"
+      ],
+      "role": "qr_runtime"
+    }
+  ]
+}
