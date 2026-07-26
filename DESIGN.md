@@ -263,6 +263,25 @@ status-recovery, terminal, and unavailable states remain explicit and use no
 page-specific visual primitive or token. QR images carry alternative text and
 copy/status feedback is announced politely.
 
+The Commerce V2 branch of `/pay/[identifier]` (9.3.1; V1 render first and
+byte-stable, one shared opaque unavailable view) is the branded two-column
+composition: the page root carries the scoped `data-theme-preview` from the
+link owner's persisted theme (design-system default when unset) and the
+validated `--storefront-accent` declaration — branding resolves from the owner
+record independent of storefront enablement, and
+`scripts/check-design-tokens.mjs` accepts that exact declaration in
+`public-checkout-v2-page.tsx` as its third whitelist entry. The summary column
+renders the merchant logo through `/media/[identifier]` or the official
+`BrandIdentity` merchant-fallback, the localized display name, the localized
+composition lines (title, description, quantity × unit price) or the fixed
+bilingual description, and the exact-decimal total with tabular figures plus
+the resolved display currency code or the explicit localized unlabeled
+treatment; the customer/payment column reuses the V1 form composition with
+the pinned V2 state union and identical polling cadence. Columns stack below
+the auto-fit track minimum; unavailable, waiting, status-recovery, terminal
+(success vs destructive badge), and the route `loading.tsx` skeleton and
+`error.tsx` retry states all compose the same inventory.
+
 The sessionless `/store/[slug]` storefront follows the same PIX-ledger rail and
 uses the existing `Card`, `Alert`, `Button`, and `Skeleton` primitives. Its
 applicable states are available products, loading skeleton, enabled-but-empty,
@@ -402,7 +421,7 @@ detail, filtered-empty, invalid-query, the second keyset page, the create and
 edit forms, and the created/edited/failed/deactivated outcome notices. The run
 seeds lifecycle fixture links, orders, a single-use settlement, and one
 checkout attempt (the financial-edit lock) directly in the disposable database
-(public V2 checkout is 9.3.1), drives the real 8.2.2 management UI for both
+(seeded before the 9.3.1 public V2 checkout), drives the real 8.2.2 management UI for both
 creates, the dirty-omission expiry edit under the attempt, the opaque locked
 financial edit, the blank-clear expiry edit, and activate/deactivate, and
 proves the four derived lifecycle badges, the share URL, bounded 25/10
@@ -419,7 +438,7 @@ state captures covering the empty dashboard, View Store off and on, both
 period switches, and 320-pixel reflow. The run seeds the analytics fixture
 (labeled and unlabeled currency pairs, products, links, CONFIRMED and AD_HOC
 orders, local outcomes, and attempts) directly in the disposable database
-(public V2 checkout is 9.3.1), proves confirmed and locally finalized sales
+(seeded before the 9.3.1 public V2 checkout), proves confirmed and locally finalized sales
 render separately and never summed, the unlabeled-currency treatment,
 exact-percent rates, non-color period switching through plain GET links, and
 the same axe, overflow, target, and focus gates as the other evidence
@@ -433,7 +452,7 @@ comment-thread detail, the opaque unavailable detail, filtered-empty,
 invalid-query, the second keyset page, the commented/comment-edited/
 outcome-set/failed outcome notices, and the page-size preference. The run
 seeds lifecycle fixture links, orders, comments, and a local outcome directly
-in the disposable database (public V2 checkout is 9.3.1), drives the real
+in the disposable database (seeded before the 9.3.1 public V2 checkout), drives the real
 8.3.3 UI for the comment append, the author comment edit under CAS, the
 guarded local-outcome set, and a stale lifecycle CAS that fails opaquely, and
 proves the policy-exact payer facts, the separate state/outcome badges,
@@ -443,6 +462,25 @@ surfaces; the error directory state is covered by page tests because stopping
 the disposable database would break session resolution before the directory
 read. The review is manifest-hash-bound and accepts no unresolved severity 2
 or greater finding.
+
+`pnpm checkout:evidence` and `pnpm checkout:evidence:verify` bind 52 public
+checkout captures: the branded Commerce V2 `/pay/[identifier]` composition
+across six persisted merchant themes, both locales, and widths 375/768/1440
+(36), plus sixteen localized state captures covering the unbranded
+fixed-amount composition with the unlabeled-currency treatment, the branded
+product-lines composition at 320 pixels, both opaque unavailable views
+(unknown identifier and consumed single-use, with no paid view), all five
+policy variants, inline validation, submit-pending, the opaque checkout
+error, QR with copy feedback, waiting-for-payment-data, status-error with
+manual retry recovery, the confirmed and destructive terminal badges, and the
+expired-capability opaque unavailable. The run drives the real storefront
+settings workspace for branding (logo upload, display names, accent — with
+the storefront disabled), seeds links, attempts, orders, and provider rows
+directly in the disposable database with the capability HMAC computed from
+the harness's own disposable `NAUTT_ENCRYPTION_KEY`, performs no provider
+call, and proves the same axe, overflow, target, and focus gates as the other
+evidence surfaces; the review is manifest-hash-bound and accepts no
+unresolved severity 2 or greater finding.
 
 The status rail and panels use ruled separation and restrained corners. Never
 make a page-specific button variant: use owned `Button` variants. Motion is
