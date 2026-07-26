@@ -59,4 +59,12 @@ export const ordersDirectoryEn = {
   orderV2OutcomeCancel: "Cancel locally",
   orderV2OutcomeCancelConfirm: "Confirm local cancellation",
   orderV2OutcomeCancelDescription: "Records a local cancellation in the order history. The payment state does not change.",
+  adminOrderV2DirectoryHeading: "Global order directory",
+  adminOrderV2DirectoryDescription: "Every Commerce V2 order across all owners, read-only, with owner attribution.",
+  adminOrderV2DirectoryEmpty: "No orders yet",
+  adminOrderV2DirectoryEmptyDescription: "Commerce V2 orders across owners appear here once they exist.",
+  adminOrderV2DirectoryColumnOwner: "Owner",
+  adminOrderV2DirectoryOwnerDeleted: "Deleted",
+  adminOrderV2DetailOwnerHeading: "Order owner",
+  adminOrderV2DetailOwnerAccount: "View accounts",
 } as const;
