@@ -1,6 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-import { AdministrationTargetNotFoundError, createAdministrationService, FinalAdministratorError, type AdministrationStore } from "./administration";
+import { acquireAuthorizationLock, AdministrationTargetNotFoundError, createAdministrationService, FinalAdministratorError, type AdministrationStore } from "./administration";
 
 const createdAt = new Date("2026-07-16T00:00:00Z");
 type TestUser = { id: string; username: string; email: string | null; role: "ADMIN" | "USER"; status: "ACTIVE" | "DISABLED"; deletedAt: Date | null; createdAt: Date };
@@ -89,6 +89,24 @@ function storeWith(users: TestUser[] = [admin]): AdministrationStore & {
 }
 
 describe("identity administration", () => {
+  it("acquires its authorization lock without deserializing PostgreSQL void", async () => {
+    const queryRaw = vi.fn(async () => {
+      throw new Error("void-returning advisory lock must not be read through $queryRaw");
+    });
+    const transaction = {
+      $executeRaw: async (strings: TemplateStringsArray, ...values: unknown[]) => {
+        expect(strings.join("?")).toBe("SELECT pg_advisory_xact_lock(hashtext('qr:authorization:active-admin'))");
+        expect(values).toHaveLength(0);
+        return 1;
+      },
+      $queryRaw: queryRaw,
+    };
+
+    await acquireAuthorizationLock(transaction);
+
+    expect(queryRaw).not.toHaveBeenCalled();
+  });
+
   it("revokes every affected session", async () => {
     for (const change of ["password", "role", "status"] as const) {
       const store = storeWith([admin, merchant]);
