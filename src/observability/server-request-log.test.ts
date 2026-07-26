@@ -12,6 +12,10 @@ describe("server request completion logging", () => {
     expect(serverRequestRoutes.standaloneCheckoutStatus).toBe("/api/store/[slug]/checkout/status");
   });
 
+  it("pins the storefront cart checkout route template", () => {
+    expect(serverRequestRoutes.storefrontCartCheckout).toBe("/api/store/[slug]/cart/checkout");
+  });
+
   it("retains only whole header-safe request ids", () => {
     for (const value of ["a", "req-42", "ABC.def_9", "a".repeat(64)]) {
       expect(normalizeRequestId(value)).toBe(value);
