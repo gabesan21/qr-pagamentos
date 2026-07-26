@@ -29,7 +29,6 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[9.2.1-implement-standalone-payment-orders]] | Add sessionless ad-hoc reservation, provider dispatch, retry fencing, and capability polling without a link record. · size: L | 001_initial_task |
 | [[9.2.2-build-standalone-payment-experience]] | Build the bilingual amount, QR, copy, status, failure, and return experience for standalone payments. · size: L | 001_initial_task |
 
 ## Phase 9.3 - Branded composable checkout
