@@ -4,7 +4,7 @@
 - **Epoch/Phase:** [[ROADMAP|Epochs 1-5]]
 - **Status:** aprovada
 - **Created:** 2026-07-13
-- **Updated:** 2026-07-21 — task 4.1.1 delivered owner isolation and the account checkout-data policy; task 4.3.1 delivered owner order inspection and read-only administrator order inspection.
+- **Updated:** 2026-07-26 — task 10.3.1 delivered terminal administrator-driven user soft deletion (identifiers retained, attribution preserved). Earlier: 2026-07-21 — task 4.1.1 delivered owner isolation and the account checkout-data policy; task 4.3.1 delivered owner order inspection and read-only administrator order inspection.
 
 ## What it covers
 
@@ -13,7 +13,7 @@ This spec defines the user-visible MVP boundaries for QR Pagamentos. Detailed pr
 ## Requirements
 
 - An administrator can configure the central webhook destination and database-backed Nautt currency/payment-method records; each enabled record carries the exact provider UUID required by pricing, and no provider UUID is sourced from environment variables.
-- An administrator can create, read, update, and disable users and inspect their orders.
+- An administrator can create, read, update, disable, and terminally soft-delete users (delivered by 10.3.1 with permanent identifier retention and preserved attribution) and inspect their orders.
 - A user can store a Nautt API key, automatically register the system's central webhook, and view the Nautt main-wallet balance on the same settings screen.
 - A user can create, update, and remove products in currencies enabled by the administrator's active Nautt currency records.
 - A user can create, activate, and deactivate owned payment links.
