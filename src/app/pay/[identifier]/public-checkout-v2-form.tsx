@@ -116,6 +116,7 @@ export function PublicCheckoutV2Form({ dictionary, identifier, policy }: Readonl
         if (!next) throw new Error("status-read-failed");
         setPayment(next);
         terminalRef.current = TERMINAL_STATES.has(next.state);
+        if (terminalRef.current) setCopyState(null);
         setStatusError(false);
         failures = 0;
         if (!terminalRef.current) schedule(5_000);
@@ -154,6 +155,7 @@ export function PublicCheckoutV2Form({ dictionary, identifier, policy }: Readonl
         : null;
       if (!accepted?.payment || typeof accepted.statusCapability !== "string") { setCheckoutError(true); return; }
       terminalRef.current = TERMINAL_STATES.has(accepted.payment.state);
+      if (terminalRef.current) setCopyState(null);
       setPayment(accepted.payment); setCapability(accepted.statusCapability);
     } catch { setCheckoutError(true); } finally { setSubmitting(false); }
   };

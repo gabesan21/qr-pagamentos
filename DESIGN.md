@@ -270,7 +270,11 @@ link owner's persisted theme (design-system default when unset) and the
 validated `--storefront-accent` declaration — branding resolves from the owner
 record independent of storefront enablement, and
 `scripts/check-design-tokens.mjs` accepts that exact declaration in
-`public-checkout-v2-page.tsx` as its third whitelist entry. The summary column
+`public-checkout-v2-page.tsx` as its third whitelist entry. The V2 container
+widens from the prose cap to the shell cap (`max-width: var(--shell-max)`)
+so the two auto-fit tracks (minimum `calc(var(--space-12) * 7)` each) render
+side by side at desktop widths and stack on narrow ones; the V1 branch keeps
+the prose-capped shell unchanged. The summary column
 renders the merchant logo through `/media/[identifier]` or the official
 `BrandIdentity` merchant-fallback, the localized display name, the localized
 composition lines (title, description, quantity × unit price) or the fixed
