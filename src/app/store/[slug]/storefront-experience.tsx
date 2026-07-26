@@ -18,10 +18,13 @@ import {
   storefrontCartStorageKey,
   storefrontCartTotals,
   type StorefrontCartItem,
+  type StorefrontCartProductItem,
 } from "@/storefront/cart";
 import type { PublicStorefrontCatalogGroup, PublicStorefrontCatalogProduct } from "@/storefront/public-storefront";
 
 export type StorefrontExperienceCopy = Readonly<{
+  cartCheckout: string;
+  cartCheckoutFailed: string;
   cartEmpty: string;
   cartHeading: string;
   cartRemove: string;
@@ -63,6 +66,44 @@ function writeStorage(key: string, value: string) {
 
 function formatAmount(amount: string, currencyCode: string | null): string {
   return currencyCode ? `${amount} ${currencyCode}` : amount;
+}
+
+// Cart checkout submission (9.1.3): the browser sends only product identity
+// and quantity to the sessionless command; success is exactly a 24-character
+// one-time link identifier, and every other outcome is the one opaque failure.
+const PAYMENT_LINK_IDENTIFIER_PATTERN = /^[A-Za-z0-9_-]{24}$/;
+
+export type StorefrontCartCheckoutOutcome =
+  | Readonly<{ kind: "issued"; paymentLinkIdentifier: string }>
+  | Readonly<{ kind: "failed" }>;
+
+export async function submitStorefrontCartCheckout(
+  slug: string,
+  items: readonly StorefrontCartItem[],
+  fetchImplementation: typeof fetch = fetch,
+): Promise<StorefrontCartCheckoutOutcome> {
+  const productItems = items.filter((item): item is StorefrontCartProductItem => item.kind === "product");
+  if (productItems.length === 0 || productItems.length !== items.length) return { kind: "failed" };
+  let response: Response;
+  try {
+    response = await fetchImplementation(`/api/store/${slug}/cart/checkout`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ items: productItems.map((item) => ({ reference: item.reference, quantity: item.quantity })) }),
+    });
+  } catch {
+    return { kind: "failed" };
+  }
+  if (response.status !== 201) return { kind: "failed" };
+  let payload: unknown;
+  try {
+    payload = await response.json();
+  } catch {
+    return { kind: "failed" };
+  }
+  const identifier = (payload as { paymentLinkIdentifier?: unknown })?.paymentLinkIdentifier;
+  if (typeof identifier !== "string" || !PAYMENT_LINK_IDENTIFIER_PATTERN.test(identifier)) return { kind: "failed" };
+  return { kind: "issued", paymentLinkIdentifier: identifier };
 }
 
 function QuantityStepper({ copy, onCommit, quantity }: Readonly<{
@@ -128,11 +169,14 @@ export function StorefrontExperienceView({
   amountDraft,
   amountInvalid,
   catalog,
+  checkoutFailed,
+  checkoutPending,
   copy,
   items,
   layout,
   onAmountDraftChange,
   onAmountSubmit,
+  onCheckout,
   onQuantityCommit,
   onRemove,
   recovered,
@@ -142,11 +186,14 @@ export function StorefrontExperienceView({
   amountDraft: string;
   amountInvalid: boolean;
   catalog: readonly PublicStorefrontCatalogGroup[];
+  checkoutFailed: boolean;
+  checkoutPending: boolean;
   copy: StorefrontExperienceCopy;
   items: readonly StorefrontCartItem[];
   layout: string;
   onAmountDraftChange: (value: string) => void;
   onAmountSubmit: () => void;
+  onCheckout: () => void;
   onQuantityCommit: QuantityCommit;
   onRemove: (item: StorefrontCartItem) => void;
   recovered: boolean;
@@ -278,6 +325,9 @@ export function StorefrontExperienceView({
         {recovered ? (
           <Alert><AlertDescription>{copy.cartUpdated}</AlertDescription></Alert>
         ) : null}
+        {checkoutFailed ? (
+          <Alert variant="destructive"><AlertDescription>{copy.cartCheckoutFailed}</AlertDescription></Alert>
+        ) : null}
         {items.length === 0 ? (
           <p className="storefront-cart__empty">{copy.cartEmpty}</p>
         ) : (
@@ -333,6 +383,17 @@ export function StorefrontExperienceView({
                 </li>
               ))}
             </ul>
+            {!customAmountInCart ? (
+              <Button
+                aria-busy={checkoutPending || undefined}
+                className="storefront-cart__checkout"
+                disabled={checkoutPending}
+                onClick={onCheckout}
+                type="button"
+              >
+                {copy.cartCheckout}
+              </Button>
+            ) : null}
           </>
         )}
       </section>
@@ -341,8 +402,10 @@ export function StorefrontExperienceView({
 }
 
 // The single client boundary of the public storefront: it owns the slug-scoped
-// versioned browser cart, hydration-time stale-item recovery, and every cart
-// mutation. The server-rendered catalog snapshot is the only catalog truth.
+// versioned browser cart, hydration-time stale-item recovery, every cart
+// mutation, and the product-only cart checkout submission (clear only this
+// store's key on issuance, then redirect). The server-rendered catalog snapshot
+// is the only catalog truth.
 export function StorefrontExperience({
   catalog,
   copy,
@@ -362,6 +425,8 @@ export function StorefrontExperience({
   const [recovered, setRecovered] = useState(false);
   const [amountDraft, setAmountDraft] = useState("");
   const [amountInvalid, setAmountInvalid] = useState(false);
+  const [checkoutPending, setCheckoutPending] = useState(false);
+  const [checkoutFailed, setCheckoutFailed] = useState(false);
   const catalogProducts = useMemo(() => catalog.flatMap((group) => group.products), [catalog]);
   const storageKey = storefrontCartStorageKey(slug);
 
@@ -384,11 +449,21 @@ export function StorefrontExperience({
     writeStorage(storageKey, serializeStorefrontCart(next));
   };
 
+  const clearStorage = () => {
+    try {
+      window.localStorage.removeItem(storageKey);
+    } catch {
+      // See readStorage: storage denial degrades to session-memory.
+    }
+  };
+
   return (
     <StorefrontExperienceView
       amountDraft={amountDraft}
       amountInvalid={amountInvalid}
       catalog={catalog}
+      checkoutFailed={checkoutFailed}
+      checkoutPending={checkoutPending}
       copy={copy}
       items={items}
       layout={layout}
@@ -403,6 +478,23 @@ export function StorefrontExperience({
         }
         setAmountInvalid(false);
         persist(setStorefrontCartCustomAmount(items, amountDraft));
+      }}
+      onCheckout={() => {
+        if (checkoutPending) return;
+        setCheckoutFailed(false);
+        setCheckoutPending(true);
+        void submitStorefrontCartCheckout(slug, items).then((outcome) => {
+          if (outcome.kind === "issued") {
+            // Success clears only this store's cart key, then redirects to the
+            // canonical public link route; the pending state rides the navigation.
+            clearStorage();
+            setItems([]);
+            window.location.assign(`/pay/${outcome.paymentLinkIdentifier}`);
+            return;
+          }
+          setCheckoutPending(false);
+          setCheckoutFailed(true);
+        });
       }}
       onQuantityCommit={(reference, quantity) => persist(setStorefrontCartProductQuantity(items, reference, quantity))}
       onRemove={(item) => persist(item.kind === "product"

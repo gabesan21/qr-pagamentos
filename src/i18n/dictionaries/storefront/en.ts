@@ -30,6 +30,8 @@ export const storefrontEn = {
   storefrontCartUpdated: "Your cart was updated because this store changed.",
   storefrontCartRemove: "Remove",
   storefrontCartTotalLabel: "Total",
+  storefrontCartCheckout: "Proceed to payment",
+  storefrontCartCheckoutFailed: "This cart could not be checked out. Try again.",
   storefrontErrorHeading: "This storefront could not be loaded",
   storefrontErrorDescription: "Something went wrong while displaying this storefront. Try again.",
   storefrontErrorRetry: "Try again",

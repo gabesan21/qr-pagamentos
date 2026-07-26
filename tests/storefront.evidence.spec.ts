@@ -302,6 +302,47 @@ test("creates the closed storefront evidence run", async ({ page }) => {
     assertions.push({ state: `${locale}-cart-recovered`, notice: dictionary.storefrontCartUpdated, droppedStale: true, productQuantity: 2 });
     await screenshot(`interaction-${locale}-cart-recovered`);
     await page.evaluate((key) => window.localStorage.removeItem(key), cartStorageKey);
+
+    // ---- Cart checkout (9.1.3): a product-only cart shows the control, a
+    // custom-amount cart never does, a mixed-currency cart fails opaquely with
+    // the cart intact, and a successful issuance clears only this store's cart
+    // key before redirecting to /pay/[identifier]. ----
+    await openStore();
+    const checkoutButton = page.getByRole("button", { name: dictionary.storefrontCartCheckout });
+    await increase.first().click();
+    await page.locator("#storefront-custom-amount").fill("5");
+    await page.getByRole("button", { name: dictionary.storefrontCustomAmountAdd }).click();
+    await expect(cart).toContainText(productTitle);
+    await expect(checkoutButton).toHaveCount(0);
+    assertions.push({ state: `${locale}-cart-checkout-hidden`, customAmountPresent: true, controlAbsent: true });
+
+    await page.getByRole("button", { name: `${dictionary.storefrontCartRemove}: ${dictionary.storefrontCustomAmountTitle}` }).click();
+    await expect(checkoutButton).toBeVisible();
+    assertions.push({ state: `${locale}-cart-checkout`, controlVisible: true, productOnly: true });
+    await screenshot(`interaction-${locale}-cart-checkout`);
+
+    await increase.nth(1).click();
+    const teaTitle = locale === "pt-BR" ? "Chá verde" : "Green tea";
+    await expect(cart).toContainText(teaTitle);
+    await checkoutButton.click();
+    await expect(cart).toContainText(dictionary.storefrontCartCheckoutFailed);
+    await expect(cart).toContainText("1 × 12.5 BRL");
+    const storedAfterFailure = await page.evaluate((key) => window.localStorage.getItem(key), cartStorageKey);
+    expect(storedAfterFailure).toContain(seeded.espressoReference);
+    assertions.push({ state: `${locale}-cart-checkout-failed`, notice: dictionary.storefrontCartCheckoutFailed, cartIntact: true });
+    await screenshot(`interaction-${locale}-cart-checkout-failed`);
+    // The deliberate 400 above logs one browser resource error; drain it so
+    // the global console gate keeps proving every other state is error-free.
+    consoleErrors.length = 0;
+
+    await page.getByRole("button", { name: `${dictionary.storefrontCartRemove}: ${teaTitle}` }).click();
+    await expect(cart).not.toContainText(teaTitle);
+    await Promise.all([
+      page.waitForURL(/\/pay\/[A-Za-z0-9_-]{24}$/),
+      checkoutButton.click(),
+    ]);
+    expect(await page.evaluate((key) => window.localStorage.getItem(key), cartStorageKey)).toBeNull();
+    assertions.push({ state: `${locale}-cart-checkout-issued`, redirected: true, cartCleared: true });
   }
 
   // ---- Table layout: the same catalog as ruled rows in both locales. ----
@@ -355,7 +396,7 @@ test("creates the closed storefront evidence run", async ({ page }) => {
   assertions.push({ state: "reflow-320", reflow: true });
   await screenshot("interaction-reflow-320");
 
-  expect(screenshots).toHaveLength(55);
+  expect(screenshots).toHaveLength(59);
   const assertionsPath = join(runDirectory, "assertions.json");
   await writeFile(assertionsPath, `${JSON.stringify(assertions, null, 2)}\n`);
   const captureRecords = await Promise.all(screenshots.map(async (capturePath) => {
@@ -367,6 +408,8 @@ test("creates the closed storefront evidence run", async ({ page }) => {
     "src/app/store/[slug]/loading.tsx",
     "src/app/store/[slug]/error.tsx",
     "src/app/store/[slug]/storefront-experience.tsx",
+    "src/app/api/store/[slug]/cart/checkout/route.ts",
+    "src/checkout/storefront-cart-checkout.ts",
     "src/storefront/public-storefront.ts",
     "src/storefront/cart.ts",
     "src/i18n/dictionaries/storefront/en.ts",
@@ -387,8 +430,8 @@ test("creates the closed storefront evidence run", async ({ page }) => {
     startedAt,
     gitHead: execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim(),
     baseCaptureCount: 36,
-    interactionCaptureCount: 19,
-    totalPngCount: 55,
+    interactionCaptureCount: 23,
+    totalPngCount: 59,
     assertions: `artifacts/storefront/${runId}/assertions.json`,
     assertionsSha256: sha256(assertionsBytes),
     captures: captureRecords,
@@ -405,7 +448,7 @@ test("creates the closed storefront evidence run", async ({ page }) => {
     "",
     `- Run: \`${runId}\``,
     `- Manifest SHA-256: \`${sha256(manifestBytes)}\``,
-    "- Grid: six themes × two locales × 375/768/1440 on the boxed storefront, plus nineteen localized state captures.",
+    "- Grid: six themes × two locales × 375/768/1440 on the boxed storefront, plus twenty-three localized state captures.",
     "- Automated accessibility/runtime/target/overflow/focus findings: none.",
     "- Visual findings requiring correction: none.",
     "",

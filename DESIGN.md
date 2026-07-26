@@ -287,7 +287,13 @@ section renders an explicit empty state, populated lines with exact-decimal
 line totals and per-currency grouped totals that are never summed across
 currencies (a null-code group renders without a code label), and exactly one
 status `Alert` when hydration-time reconciliation dropped or clamped stale
-entries. The cart carries no checkout control at all. Its applicable states
+entries. The 9.1.3 checkout control is the cart section's only primary action:
+it renders only for a populated product-only cart (a custom-amount member keeps
+9.2.1's separate command), posts only product identity and quantity to
+`POST /api/store/[slug]/cart/checkout`, disables with `aria-busy` while
+pending, clears only this store's cart key and redirects to `/pay/[identifier]`
+on issuance, and keeps the cart intact behind one opaque destructive `Alert` on
+any failure. Its applicable states
 are loading skeletons (catalog plus cart cards), enabled-but-empty (no groups
 and standalone off — the standalone item alone is a non-empty store), opaque
 unavailable, one opaque error with a retry action, cart
@@ -401,16 +407,20 @@ and a successful unchanged save after the stored currency's mapping is
 deactivated. The review is bound to the current manifest and accepts no
 unresolved severity 2 or greater finding.
 
-`pnpm storefront:evidence` and `pnpm storefront:evidence:verify` bind 55
+`pnpm storefront:evidence` and `pnpm storefront:evidence:verify` bind 59
 public storefront captures: the populated boxed storefront across six themes,
-both locales, and widths 375/768/1440 (36), plus nineteen localized state
+both locales, and widths 375/768/1440 (36), plus twenty-three localized state
 captures covering the table layout, cart add/quantity/reload-persistence/
-stale-recovery, standalone payments off, the logo and the official fallback,
+stale-recovery, the product-only cart checkout control, the custom-amount
+hidden control, the opaque mixed-currency checkout failure with the cart
+intact, standalone payments off, the logo and the official fallback,
 the empty store, the opaque unavailable store, and 320-pixel reflow. The run
 seeds the catalog fixture (registry pair, categories, products, storefront
 settings) directly in the disposable database, publishes a real logo through
 the existing staging route and one native settings save, drives the real
-browser cart with exact-decimal totals, and proves the scoped theme
+browser cart with exact-decimal totals, issues one real one-time link through
+the sessionless cart command to prove the cleared cart key and the
+`/pay/[identifier]` redirect, and proves the scoped theme
 attribute, 44-pixel stepper targets, the single recovered-cart notice, and
 the same axe, overflow, target, and focus gates as the other evidence
 surfaces; the review is manifest-hash-bound and accepts no unresolved

@@ -40,6 +40,7 @@ export const serverRequestRoutes = {
   publicCheckoutStatus: "/api/payment-links/[identifier]/checkout/status",
   standaloneCheckout: "/api/store/[slug]/checkout",
   standaloneCheckoutStatus: "/api/store/[slug]/checkout/status",
+  storefrontCartCheckout: "/api/store/[slug]/cart/checkout",
   nauttWebhook: "/api/nautt/webhooks",
 } as const;
 
