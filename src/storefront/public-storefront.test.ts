@@ -23,6 +23,7 @@ const record = {
   storefrontLogoMediaIdentifier: "l".repeat(43),
   storefrontStandalonePaymentsEnabled: true,
   storefrontDefaultCurrencyCode: "USD",
+  checkoutDataPolicy: "NAME_EMAIL_CPF",
   products: [
     {
       titlePtBr: "Café",
@@ -150,6 +151,7 @@ describe("public storefront", () => {
       catalog: expectedCatalogEn,
       standalonePayments: true,
       standalonePaymentCurrencyCode: "USD",
+      checkoutDataPolicy: "NAME_EMAIL_CPF",
     });
     expect(findEnabledBySlug).toHaveBeenCalledWith("ana-store", new Date("2026-07-21T12:00:00Z"));
   });
@@ -175,10 +177,12 @@ describe("public storefront", () => {
       catalog: expectedCatalogPtBr,
       standalonePayments: false,
       standalonePaymentCurrencyCode: "USD",
+      checkoutDataPolicy: "NAME_EMAIL_CPF",
     });
     expect(Object.keys(storefront ?? {}).sort()).toEqual([
       "accentColor",
       "catalog",
+      "checkoutDataPolicy",
       "displayName",
       "layout",
       "logoMediaIdentifier",
@@ -269,11 +273,14 @@ describe("public storefront", () => {
       "archivedAt",
       "categoryId",
       "expiresAt",
-      "checkoutDataPolicy",
       "internalName",
     ]) {
       expect(serialized).not.toContain(forbidden);
     }
+
+    // The 9.2.2 amendment exposes exactly the policy member (the same public
+    // exposure V1 ships as `checkoutPolicy`) and nothing else about the owner.
+    expect(storefront?.checkoutDataPolicy).toBe("NAME_EMAIL_CPF");
   });
 
   it("does not read storage for malformed or non-canonical storefront slugs", async () => {
@@ -310,6 +317,7 @@ describe("public storefront", () => {
       catalog: [],
       standalonePayments: true,
       standalonePaymentCurrencyCode: "USD",
+      checkoutDataPolicy: "NAME_EMAIL_CPF",
     });
   });
 
@@ -359,6 +367,7 @@ describe("public storefront prisma store", () => {
         storefrontLogoMediaIdentifier: true,
         storefrontStandalonePaymentsEnabled: true,
         storefrontDefaultCurrencyCode: true,
+        checkoutDataPolicy: true,
         products: {
           where: {
             active: true,
