@@ -68,3 +68,11 @@ type UserDtoSource = {
 export function toUserDto<T extends UserDtoSource>({ id, username, email, role, status, createdAt }: T): UserDtoSource {
   return { id, username, email, role, status, createdAt };
 }
+
+// The administrator directory is the only surface that may observe the
+// soft-deletion marker; the principal DTO above stays deletion-agnostic.
+export type AdminUserDtoSource = UserDtoSource & { deletedAt: Date | null };
+
+export function toAdminUserDto<T extends AdminUserDtoSource>({ id, username, email, role, status, createdAt, deletedAt }: T): AdminUserDtoSource {
+  return { id, username, email, role, status, createdAt, deletedAt };
+}

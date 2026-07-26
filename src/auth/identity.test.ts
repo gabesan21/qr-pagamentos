@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { normalizeOptionalEmail, normalizeUsername, toUserDto, validatePassword } from "./identity";
+import { normalizeOptionalEmail, normalizeUsername, toAdminUserDto, toUserDto, validatePassword } from "./identity";
 
 describe("identity input contracts", () => {
   it.each([
@@ -61,5 +61,16 @@ describe("safe user DTO", () => {
       id: "user-id", username: "admin", email: null, role: "ADMIN", status: "ACTIVE", createdAt,
       passwordHash: "forbidden", internalAuthorization: "forbidden",
     })).toEqual({ id: "user-id", username: "admin", email: null, role: "ADMIN", status: "ACTIVE", createdAt });
+  });
+});
+
+describe("safe administrator user DTO", () => {
+  it("adds only the deletion marker to the outward identity fields", () => {
+    const createdAt = new Date("2026-07-14T00:00:00Z");
+    const deletedAt = new Date("2026-07-26T00:00:00Z");
+    expect(toAdminUserDto({
+      id: "user-id", username: "admin", email: null, role: "ADMIN", status: "DISABLED", createdAt, deletedAt,
+      passwordHash: "forbidden", internalAuthorization: "forbidden",
+    })).toEqual({ id: "user-id", username: "admin", email: null, role: "ADMIN", status: "DISABLED", createdAt, deletedAt });
   });
 });
