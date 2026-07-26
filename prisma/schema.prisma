@@ -362,6 +362,8 @@ model OrderV2 {
   @@index([ownerId, source, createdAt, id], map: "order_v2_owner_source_created_at_id_idx")
   @@index([ownerId, state, createdAt, id], map: "order_v2_owner_state_created_at_id_idx")
   @@index([paymentLinkV2Id, createdAt, id], map: "order_v2_link_created_at_id_idx")
+  @@index([state, settledAt], map: "order_v2_state_settled_at_idx")
+  @@index([createdAt], map: "order_v2_created_at_idx")
   @@map("order_v2")
   @@schema("app")
 }
@@ -411,6 +413,7 @@ model OrderLocalOutcomeV2 {
   actor     User     @relation(fields: [actorId], references: [id], onDelete: Restrict)
 
   @@index([orderId, createdAt, id], map: "order_local_outcome_v2_order_created_at_id_idx")
+  @@index([outcome, createdAt], map: "order_local_outcome_v2_outcome_created_at_idx")
   @@map("order_local_outcome_v2")
   @@schema("app")
 }
@@ -437,6 +440,7 @@ model CheckoutAttemptV2 {
   @@unique([paymentLinkV2Id, retryKeyVerifier], map: "checkout_attempt_v2_link_retry_key_verifier_key")
   @@unique([orderV2Id, ownerId], map: "checkout_attempt_v2_order_owner_key")
   @@index([ownerId, capabilityExpiresAt], map: "checkout_attempt_v2_owner_capability_expiry_idx")
+  @@index([createdAt], map: "checkout_attempt_v2_created_at_idx")
   @@map("checkout_attempt_v2")
   @@schema("app")
 }
@@ -461,6 +465,7 @@ model StandaloneCheckoutAttempt {
   @@unique([ownerId, retryKeyVerifier], map: "standalone_checkout_attempt_owner_retry_key_verifier_key")
   @@unique([orderV2Id, ownerId], map: "standalone_checkout_attempt_order_owner_key")
   @@index([ownerId, capabilityExpiresAt], map: "standalone_checkout_attempt_owner_capability_expiry_idx")
+  @@index([createdAt], map: "standalone_checkout_attempt_created_at_idx")
   @@map("standalone_checkout_attempt")
   @@schema("app")
 }
