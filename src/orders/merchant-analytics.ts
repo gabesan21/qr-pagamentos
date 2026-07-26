@@ -107,7 +107,7 @@ export type StoredAdHocOutcomeOrder = Readonly<{
 }>;
 
 export type StoredAnalyticsAttempt = Readonly<{
-  paymentLinkV2Id: string;
+  paymentLinkV2Id: string | null;
   capabilityExpiresAt: Date;
   orderState: string | null;
 }>;
@@ -276,7 +276,8 @@ export function createMerchantAnalyticsService(store: MerchantAnalyticsStore, de
       let abandoned = 0;
       const attemptsPerLink = new Map<string, number>();
       for (const attempt of attempts) {
-        attemptsPerLink.set(attempt.paymentLinkV2Id, (attemptsPerLink.get(attempt.paymentLinkV2Id) ?? 0) + 1);
+        // Standalone attempts hold no link and never enter per-link metrics.
+        if (attempt.paymentLinkV2Id) attemptsPerLink.set(attempt.paymentLinkV2Id, (attemptsPerLink.get(attempt.paymentLinkV2Id) ?? 0) + 1);
         if (attempt.orderState === "CONFIRMED") converted += 1;
         else if (attempt.capabilityExpiresAt <= now) abandoned += 1;
       }
@@ -382,9 +383,11 @@ type PrismaConfirmedRow = {
 
 export function createPrismaMerchantAnalyticsStore(prisma: PrismaClient): MerchantAnalyticsStore {
   return {
+    // Provider-confirmed sales are (LINK ∪ STANDALONE) CONFIRMED in-period;
+    // locally finalized stays AD_HOC-only and the two are never merged.
     async listConfirmedOrders(ownerId, from, to) {
       const rows = await prisma.orderV2.findMany({
-        where: { ownerId, source: "LINK", state: "CONFIRMED", settledAt: { gte: from, lt: to } },
+        where: { ownerId, source: { in: ["LINK", "STANDALONE"] }, state: "CONFIRMED", settledAt: { gte: from, lt: to } },
         select: confirmedSelect,
       });
       return (rows as PrismaConfirmedRow[]).map((row) => ({
@@ -416,12 +419,23 @@ export function createPrismaMerchantAnalyticsStore(prisma: PrismaClient): Mercha
         latestOutcome: row.localOutcomes[0] ?? null,
       }));
     },
+    // The funnel reads both attempt tables; each order is attempt-bound in
+    // exactly one of them, so the union never double-counts.
     async listAttempts(ownerId, from, to) {
-      const rows = await prisma.checkoutAttemptV2.findMany({
-        where: { ownerId, createdAt: { gte: from, lt: to } },
-        select: { paymentLinkV2Id: true, capabilityExpiresAt: true, order: { select: { state: true } } },
-      });
-      return rows.map((row) => ({ paymentLinkV2Id: row.paymentLinkV2Id, capabilityExpiresAt: row.capabilityExpiresAt, orderState: row.order.state }));
+      const [linkRows, standaloneRows] = await Promise.all([
+        prisma.checkoutAttemptV2.findMany({
+          where: { ownerId, createdAt: { gte: from, lt: to } },
+          select: { paymentLinkV2Id: true, capabilityExpiresAt: true, order: { select: { state: true } } },
+        }),
+        prisma.standaloneCheckoutAttempt.findMany({
+          where: { ownerId, createdAt: { gte: from, lt: to } },
+          select: { capabilityExpiresAt: true, order: { select: { state: true } } },
+        }),
+      ]);
+      return [
+        ...linkRows.map((row) => ({ paymentLinkV2Id: row.paymentLinkV2Id as string | null, capabilityExpiresAt: row.capabilityExpiresAt, orderState: row.order.state })),
+        ...standaloneRows.map((row) => ({ paymentLinkV2Id: null, capabilityExpiresAt: row.capabilityExpiresAt, orderState: row.order.state })),
+      ];
     },
     async listLinks(ownerId) {
       return prisma.paymentLinkV2.findMany({

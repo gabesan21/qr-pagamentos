@@ -44,7 +44,7 @@ export const ORDER_V2_DIRECTORY_PAGE_SIZE_POLICY = {
 } as const satisfies DirectoryPageSizePolicy;
 
 export const ORDER_V2_DIRECTORY_FILTERS = [
-  { name: "source", kind: "enum", values: ["AD_HOC", "LINK"] },
+  { name: "source", kind: "enum", values: ["AD_HOC", "LINK", "STANDALONE"] },
   { name: "money", kind: "enum", values: ["FIAT", "USD"] },
   { name: "from", kind: "text" },
   { name: "to", kind: "text" },

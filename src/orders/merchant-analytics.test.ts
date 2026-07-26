@@ -200,6 +200,30 @@ describe("merchant analytics service", () => {
     ]);
   });
 
+  it("counts standalone attempts in the funnel without entering per-link metrics", async () => {
+    const links: StoredAnalyticsLink[] = [
+      { id: linkId, identifier: "link-a", descriptionPtBr: null, descriptionEn: null, active: true },
+    ];
+    const attempts: StoredAnalyticsAttempt[] = [
+      { paymentLinkV2Id: null, capabilityExpiresAt: new Date("2026-07-26T20:00:00.000Z"), orderState: "CONFIRMED" },
+      { paymentLinkV2Id: linkId, capabilityExpiresAt: new Date("2026-07-26T20:00:00.000Z"), orderState: "PENDING" },
+    ];
+    const store = storeWith({ listLinks: vi.fn(async () => links), listAttempts: vi.fn(async () => attempts) });
+    const result = await serviceWith(store).getForOwner(owner, "today");
+    if (result.kind !== "ready") throw new Error("expected ready");
+    expect(result.view.funnel).toEqual({
+      attempts: 2,
+      converted: 1,
+      abandoned: 0,
+      inProgress: 1,
+      conversionRate: "1.0000",
+      abandonmentRate: "0.0000",
+    });
+    expect(result.view.paymentLinks.metrics).toEqual([
+      { identifier: "link-a", descriptionPtBr: null, descriptionEn: null, attempts: 1, confirmedOrders: 0, confirmedVolume: [] },
+    ]);
+  });
+
   it("redacts the recent-activity feed and never leaks internal identities anywhere in the DTO", async () => {
     const recent: OrderV2Summary[] = [{
       id: "550e8400-e29b-41d4-a716-446655440055",
