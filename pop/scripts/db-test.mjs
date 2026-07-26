@@ -949,7 +949,7 @@ try {
   await runtime.query(insertSaAttempt(saOrderId));
   await expectSqlState(runtime, insertSaAttempt(saSecondOrder.rows[0].id), { code: "23505", constraint: "standalone_checkout_attempt_owner_retry_key_verifier_key" });
   await expectSqlState(runtime, insertSaAttempt(saOrderId, "e".repeat(64)), { code: "23505", constraint: "standalone_checkout_attempt_order_v2_id_key" });
-  await expectSqlState(runtime, insertSaAttempt(saOrderId, "f".repeat(64), saOtherOwnerId), { code: "23503", constraint: "standalone_checkout_attempt_order_owner_fkey" });
+  await expectSqlState(runtime, insertSaAttempt(saSecondOrder.rows[0].id, "f".repeat(64), saOtherOwnerId), { code: "23503", constraint: "standalone_checkout_attempt_order_owner_fkey" });
   await expectSqlState(runtime, insertSaAttempt(randomUUID(), "0".repeat(64)), { code: "23503", constraint: "standalone_checkout_attempt_order_owner_fkey" });
   await expectDenied(runtime, `DELETE FROM app.standalone_checkout_attempt WHERE owner_id = '${saOwnerId}'`);
   await runtime.query(`UPDATE app.standalone_checkout_attempt SET state = 'INDETERMINATE' WHERE owner_id = $1`, [saOwnerId]);

@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 
 import { PrismaPg } from "@prisma/adapter-pg";
 import pg from "pg";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 
@@ -61,6 +61,10 @@ describe.skipIf(!enabled)("standalone checkout PostgreSQL contract", () => {
     });
   });
 
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   afterAll(async () => {
     await admin.query(`DELETE FROM app.provider_order WHERE owner_id = $1`, [ownerId]);
     await admin.query(`DELETE FROM app.provider_quote WHERE owner_id = $1`, [ownerId]);
@@ -101,7 +105,7 @@ describe.skipIf(!enabled)("standalone checkout PostgreSQL contract", () => {
     expect(provider.quote).toHaveBeenCalledTimes(1);
     expect(provider.createOrder).toHaveBeenCalledTimes(1);
 
-    await expect(service.checkout(slug, { ...body, amount: "13.00" })).resolves.toEqual({ kind: "unavailable" });
+    await expect(service.checkout(slug, { ...body, amount: "13.5" })).resolves.toEqual({ kind: "unavailable" });
     expect(provider.quote).toHaveBeenCalledTimes(1);
 
     await admin.query(`UPDATE app."user" SET storefront_standalone_payments_enabled = FALSE WHERE id = $1`, [ownerId]);
@@ -129,8 +133,8 @@ describe.skipIf(!enabled)("standalone checkout PostgreSQL contract", () => {
     await admin.query(`INSERT INTO app.provider_quote (quote_uuid, owner_id, expires_at, created_at) VALUES ($1, $2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`, [randomUUID(), ownerId]);
     const quote = await admin.query(`SELECT quote_uuid FROM app.provider_quote WHERE owner_id = $1 LIMIT 1`, [ownerId]);
     const providerOrder = await admin.query(
-      `INSERT INTO app.provider_order (owner_id, quote_uuid, order_v2_id, provider_order_uuid, creation_state, status, reconciliation_version)
-       VALUES ($1, $2, $3, $4, 'CREATED', 'finished', 1) RETURNING id`,
+      `INSERT INTO app.provider_order (owner_id, quote_uuid, order_v2_id, provider_order_uuid, creation_state, status, fiat_amount, crypto_amount, nautt_quote, provider_expires_at, payment_method, reconciliation_version)
+       VALUES ($1, $2, $3, $4, 'CREATED', 'finished', '12.5', '2.5', '5.0', CURRENT_TIMESTAMP + INTERVAL '1 hour', 'pix', 1) RETURNING id`,
       [ownerId, quote.rows[0].quote_uuid, orderV2Id, providerOrderUuid],
     );
     const providerOrderId = providerOrder.rows[0].id as string;

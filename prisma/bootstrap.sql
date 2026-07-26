@@ -111,3 +111,12 @@ BEGIN
   END IF;
 END
 $payment_link_v2_single_use_settlement_acl$;
+
+DO $standalone_checkout_attempt_acl$
+BEGIN
+  IF to_regclass('app.standalone_checkout_attempt') IS NOT NULL THEN
+    REVOKE ALL PRIVILEGES ON TABLE app.standalone_checkout_attempt FROM qr_runtime;
+    GRANT SELECT, INSERT, UPDATE ON TABLE app.standalone_checkout_attempt TO qr_runtime;
+  END IF;
+END
+$standalone_checkout_attempt_acl$;
