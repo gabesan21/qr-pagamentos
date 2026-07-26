@@ -19,7 +19,6 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[9.1.2-build-storefront-catalog-and-cart]] | Build boxed/table storefront views with ad-hoc first item, quantities, slug-scoped localStorage cart, and exact totals. · size: L | 001_initial_task |
 | [[9.1.3-issue-storefront-one-time-links]] | Add a rate-limited sessionless cart command that revalidates everything and issues one owner-derived one-time link. · size: L | 001_initial_task |
 
 ## Phase 9.2 - Standalone payment
