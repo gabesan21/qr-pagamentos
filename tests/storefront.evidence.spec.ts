@@ -331,6 +331,9 @@ test("creates the closed storefront evidence run", async ({ page }) => {
     expect(storedAfterFailure).toContain(seeded.espressoReference);
     assertions.push({ state: `${locale}-cart-checkout-failed`, notice: dictionary.storefrontCartCheckoutFailed, cartIntact: true });
     await screenshot(`interaction-${locale}-cart-checkout-failed`);
+    // The deliberate 400 above logs one browser resource error; drain it so
+    // the global console gate keeps proving every other state is error-free.
+    consoleErrors.length = 0;
 
     await page.getByRole("button", { name: `${dictionary.storefrontCartRemove}: ${teaTitle}` }).click();
     await expect(cart).not.toContainText(teaTitle);
