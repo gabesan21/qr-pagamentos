@@ -54,6 +54,7 @@ const identifier = () => randomBytes(18).toString("base64url");
 function seedSql() {
   const pair = { id: randomUUID(), currency: randomUUID(), exchange: randomUUID() };
   const link = { id: randomUUID(), identifier: identifier() };
+  const goneLink = { id: randomUUID(), identifier: identifier() };
   const orders = { main: randomUUID(), adhoc: randomUUID(), cancelled: randomUUID(), goneMain: randomUUID(), goneAdhoc: randomUUID() };
   const fillers = Array.from({ length: 12 }, (_, index) => ({ id: randomUUID(), index }));
   const at = (minutesAgo: number) => new Date(Date.now() - minutesAgo * 60_000).toISOString();
@@ -78,9 +79,13 @@ function seedSql() {
     `INSERT INTO app.order_local_outcome_v2 (id, order_id, owner_id, outcome, note, actor_id, created_at)
      SELECT '${randomUUID()}', '${orders.cancelled}', u.id, 'LOCAL_CANCELLED', 'Chargeback manual', u.id, '${at(35)}'
      FROM app."user" u WHERE u.username = '${keptUsername}'`,
-    // Orders owned by the merchant that is soft-deleted mid-run.
+    // Orders owned by the merchant that is soft-deleted mid-run; the composite
+    // link+owner key requires a link owned by that same merchant.
+    `INSERT INTO app.payment_link_v2 (id, identifier, owner_id, composition_kind, description_pt_br, description_en, amount, currency_pair_id, link_type, active, version, created_at, updated_at)
+     SELECT '${goneLink.id}', '${goneLink.identifier}', u.id, 'FIXED_AMOUNT', 'Cota removida', 'Removed dues', '12.75', '${pair.id}', 'REUSABLE', true, 0, '${at(480)}', '${at(480)}'
+     FROM app."user" u WHERE u.username = '${goneUsername}'`,
     `INSERT INTO app.order_v2 (id, owner_id, source, payment_link_v2_id, state, lifecycle_version, amount, currency_uuid, exchange_currency_uuid, checkout_data_policy, email, settled_at, created_at, updated_at)
-     SELECT '${orders.goneMain}', u.id, 'LINK', '${link.id}', 'CONFIRMED', 1, '12.75', '${pair.currency}', '${pair.exchange}', 'EMAIL', 'bianca@example.com', '${at(22)}', '${at(25)}', '${at(22)}'
+     SELECT '${orders.goneMain}', u.id, 'LINK', '${goneLink.id}', 'CONFIRMED', 1, '12.75', '${pair.currency}', '${pair.exchange}', 'EMAIL', 'bianca@example.com', '${at(22)}', '${at(25)}', '${at(22)}'
      FROM app."user" u WHERE u.username = '${goneUsername}'`,
     `INSERT INTO app.order_v2 (id, owner_id, source, state, lifecycle_version, amount, currency_uuid, exchange_currency_uuid, description_pt_br, description_en, checkout_data_policy, created_at, updated_at)
      SELECT '${orders.goneAdhoc}', u.id, 'AD_HOC', NULL, 1, '3.40', '${pair.currency}', '${pair.exchange}', 'Cota removida', 'Removed dues', 'NONE', '${at(28)}', '${at(28)}'
