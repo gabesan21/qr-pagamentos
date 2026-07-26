@@ -120,3 +120,12 @@ BEGIN
   END IF;
 END
 $standalone_checkout_attempt_acl$;
+
+DO $user_deletion_acl$
+BEGIN
+  IF to_regclass('app.user_deletion') IS NOT NULL THEN
+    REVOKE ALL PRIVILEGES ON TABLE app.user_deletion FROM qr_runtime;
+    GRANT SELECT, INSERT ON TABLE app.user_deletion TO qr_runtime;
+  END IF;
+END
+$user_deletion_acl$;

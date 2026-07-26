@@ -12,6 +12,10 @@ describe("server request completion logging", () => {
     expect(serverRequestRoutes.standaloneCheckoutStatus).toBe("/api/store/[slug]/checkout/status");
   });
 
+  it("pins the administrator user deletion route template", () => {
+    expect(serverRequestRoutes.adminUserDelete).toBe("/admin/users/[id]/delete");
+  });
+
   it("retains only whole header-safe request ids", () => {
     for (const value of ["a", "req-42", "ABC.def_9", "a".repeat(64)]) {
       expect(normalizeRequestId(value)).toBe(value);

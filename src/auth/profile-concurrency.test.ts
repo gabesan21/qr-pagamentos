@@ -7,6 +7,7 @@ import { createSessionService, type SessionStore } from "./session";
 
 const merchant = {
   createdAt: new Date("2026-07-24T00:00:00Z"),
+  deletedAt: null,
   email: null,
   id: "merchant",
   role: "USER" as const,
@@ -77,6 +78,11 @@ function sharedHarness(initialPasswordHash: string) {
       credential = passwordHash;
     },
     async revokeSessions() { rows.splice(0); },
+    async markDeleted() {},
+    async disableStorefront() {},
+    async deactivatePaymentLinks() {},
+    async deactivatePaymentLinksV2() {},
+    async recordDeletion() {},
     async createUser() { return merchant; },
   };
   const administrationStore: AdministrationStore = {
