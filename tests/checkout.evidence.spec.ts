@@ -131,7 +131,15 @@ test("creates the closed public checkout evidence run", async ({ page }) => {
   page.on("request", (request) => {
     if (!request.url().startsWith(baseUrl) && !request.url().startsWith("data:")) externalRequests.push(request.url());
   });
-  page.on("console", (message) => { if (message.type() === "error") consoleErrors.push(message.text()); });
+  page.on("console", (message) => {
+    if (message.type() !== "error") return;
+    // The opaque 404/503 protocol outcomes the client intentionally triggers
+    // (unavailable, provider-unavailable, expired capability) surface as
+    // resource console errors; everything else is a real finding.
+    const location = message.location();
+    if (/\/api\/payment-links\//.test(location?.url ?? "") && /status of (404|503)/.test(message.text())) return;
+    consoleErrors.push(message.text());
+  });
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   const pairA = { id: randomUUID(), currency: randomUUID(), exchange: randomUUID() };
