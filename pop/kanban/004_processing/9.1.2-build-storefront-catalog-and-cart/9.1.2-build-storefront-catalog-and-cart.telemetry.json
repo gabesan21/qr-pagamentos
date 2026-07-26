@@ -9,6 +9,15 @@
       "contexts": [],
       "test_seconds": 0,
       "result": "advanced"
+    },
+    {
+      "at": "2026-07-25T22:45:32-03:00",
+      "event": "transition",
+      "from": "002_planning",
+      "to": "004_processing",
+      "contexts": [],
+      "test_seconds": 0,
+      "result": "advanced"
     }
   ]
 }
