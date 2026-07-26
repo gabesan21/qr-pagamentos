@@ -27,4 +27,12 @@ describe("unprefixed route contract", () => {
     expect(source).toContain("export async function GET");
     expect(source).toContain('export const dynamic = "force-dynamic"');
   });
+
+  it("keeps the standalone payment page an unlocalized dynamic sessionless route", async () => {
+    const source = await readFile("src/app/store/[slug]/pay/page.tsx", "utf8");
+
+    expect(source).toContain('export const dynamic = "force-dynamic"');
+    expect(source).toContain("export default async function StandalonePaymentPage");
+    expect(source).not.toContain("/api/store/");
+  });
 });

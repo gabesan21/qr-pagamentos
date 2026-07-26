@@ -34,6 +34,7 @@ export type StorefrontExperienceCopy = Readonly<{
   customAmountDescription: string;
   customAmountInvalid: string;
   customAmountLabel: string;
+  customAmountPay: string;
   customAmountTitle: string;
   customAmountUpdate: string;
   decreaseQuantity: string;
@@ -179,6 +180,7 @@ export function StorefrontExperienceView({
   onCheckout,
   onQuantityCommit,
   onRemove,
+  payHref,
   recovered,
   standalonePaymentCurrencyCode,
   standalonePayments,
@@ -196,6 +198,7 @@ export function StorefrontExperienceView({
   onCheckout: () => void;
   onQuantityCommit: QuantityCommit;
   onRemove: (item: StorefrontCartItem) => void;
+  payHref: string;
   recovered: boolean;
   standalonePaymentCurrencyCode: string | null;
   standalonePayments: boolean;
@@ -231,9 +234,16 @@ export function StorefrontExperienceView({
     </div>
   );
   const customAmountAction = (
-    <Button onClick={onAmountSubmit} type="button">
-      {customAmountInCart ? copy.customAmountUpdate : copy.customAmountAdd}
-    </Button>
+    <div className="storefront-custom-amount__actions">
+      <Button onClick={onAmountSubmit} type="button">
+        {customAmountInCart ? copy.customAmountUpdate : copy.customAmountAdd}
+      </Button>
+      {/* 9.2.2: the standalone-payment entry point; the amount rides the query
+          as prefill only and is revalidated by the pay page and by 9.2.1. */}
+      <Button asChild variant="outline">
+        <a href={payHref}>{copy.customAmountPay}</a>
+      </Button>
+    </div>
   );
 
   return (
@@ -429,6 +439,9 @@ export function StorefrontExperience({
   const [checkoutFailed, setCheckoutFailed] = useState(false);
   const catalogProducts = useMemo(() => catalog.flatMap((group) => group.products), [catalog]);
   const storageKey = storefrontCartStorageKey(slug);
+  // The pay link carries the draft amount as prefill only, and only while it
+  // matches the canonical amount grammar; the pay page and 9.2.1 revalidate it.
+  const payHref = `/store/${slug}/pay${isStorefrontCartAmount(amountDraft) ? `?amount=${encodeURIComponent(amountDraft)}` : ""}`;
 
   useEffect(() => {
     const hydration = hydrateStorefrontCart(readStorage(storageKey), catalogProducts, standalonePayments);
@@ -500,6 +513,7 @@ export function StorefrontExperience({
       onRemove={(item) => persist(item.kind === "product"
         ? setStorefrontCartProductQuantity(items, item.reference, 0)
         : setStorefrontCartCustomAmount(items, null))}
+      payHref={payHref}
       recovered={recovered}
       standalonePaymentCurrencyCode={standalonePaymentCurrencyCode}
       standalonePayments={standalonePayments}

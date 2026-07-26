@@ -1,0 +1,1406 @@
+[
+  {
+    "state": "pt-BR-pix-paper-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 143
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(39.8727 -30.6801 1.13491) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "pt-BR-pix-paper-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 143
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(39.8727 -30.6801 1.13491) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "pt-BR-pix-paper-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 143
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(39.8727 -30.6801 1.13491) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "pt-BR-cashier-daylight-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 143
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(36.2465 -8.27897 -34.0907) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "pt-BR-cashier-daylight-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 143
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(36.2465 -8.27897 -34.0907) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "pt-BR-cashier-daylight-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 143
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(36.2465 -8.27897 -34.0907) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "pt-BR-settlement-sand-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 143
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(40.4079 -27.4943 8.6053) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "pt-BR-settlement-sand-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 143
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(40.4079 -27.4943 8.6053) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "pt-BR-settlement-sand-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 143
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(40.4079 -27.4943 8.6053) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "pt-BR-midnight-clearing-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 143
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(79.3882 -40.2089 5.85816) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "pt-BR-midnight-clearing-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 143
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(79.3882 -40.2089 5.85816) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "pt-BR-midnight-clearing-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 143
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(79.3882 -40.2089 5.85816) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "pt-BR-vault-blue-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 143
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(76.3495 -25.5148 -22.5364) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "pt-BR-vault-blue-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 143
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(76.3495 -25.5148 -22.5364) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "pt-BR-vault-blue-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 143
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(76.3495 -25.5148 -22.5364) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "pt-BR-terminal-amber-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 143
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(73.4068 9.05746 50.4544) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "pt-BR-terminal-amber-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 143
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(73.4068 9.05746 50.4544) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "pt-BR-terminal-amber-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 143
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(73.4068 9.05746 50.4544) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "en-pix-paper-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 142
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(39.8727 -30.6801 1.13491) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "en-pix-paper-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 142
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(39.8727 -30.6801 1.13491) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "en-pix-paper-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 142
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(39.8727 -30.6801 1.13491) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "en-cashier-daylight-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 142
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(36.2465 -8.27897 -34.0907) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "en-cashier-daylight-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 142
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(36.2465 -8.27897 -34.0907) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "en-cashier-daylight-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 142
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(36.2465 -8.27897 -34.0907) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "en-settlement-sand-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 142
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(40.4079 -27.4943 8.6053) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "en-settlement-sand-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 142
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(40.4079 -27.4943 8.6053) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "en-settlement-sand-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 142
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(40.4079 -27.4943 8.6053) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "en-midnight-clearing-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 142
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(79.3882 -40.2089 5.85816) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "en-midnight-clearing-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 142
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(79.3882 -40.2089 5.85816) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "en-midnight-clearing-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 142
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(79.3882 -40.2089 5.85816) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "en-vault-blue-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 142
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(76.3495 -25.5148 -22.5364) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "en-vault-blue-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 142
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(76.3495 -25.5148 -22.5364) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "en-vault-blue-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 142
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(76.3495 -25.5148 -22.5364) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "en-terminal-amber-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 142
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(73.4068 9.05746 50.4544) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "en-terminal-amber-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 142
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(73.4068 9.05746 50.4544) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "en-terminal-amber-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 578
+        },
+        {
+          "height": 44,
+          "width": 142
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(73.4068 9.05746 50.4544) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "pt-BR-prefill",
+    "prefilled": "12.5"
+  },
+  {
+    "state": "pt-BR-amount-invalid",
+    "errorVisible": true
+  },
+  {
+    "state": "pt-BR-policy-none",
+    "fields": []
+  },
+  {
+    "state": "pt-BR-policy-email",
+    "fields": [
+      "email"
+    ]
+  },
+  {
+    "state": "pt-BR-policy-cpf",
+    "fields": [
+      "name",
+      "email",
+      "cpf"
+    ]
+  },
+  {
+    "state": "pt-BR-policy-address",
+    "fields": [
+      "name",
+      "email",
+      "cpf",
+      "street",
+      "number",
+      "district",
+      "city",
+      "stateUf",
+      "postalCode"
+    ]
+  },
+  {
+    "state": "pt-BR-payment-waiting",
+    "waitingVisible": true,
+    "returnLink": true
+  },
+  {
+    "state": "pt-BR-payment-qr",
+    "qrLoaded": true,
+    "pixVisible": true
+  },
+  {
+    "state": "pt-BR-payment-copy",
+    "copied": true
+  },
+  {
+    "state": "pt-BR-payment-status-error",
+    "statusErrorVisible": true,
+    "retryVisible": true,
+    "returnLink": true
+  },
+  {
+    "state": "pt-BR-payment-terminal-confirmed",
+    "terminal": "CONFIRMED",
+    "destructive": false,
+    "returnLink": true
+  },
+  {
+    "state": "pt-BR-payment-expired",
+    "unavailableVisible": true,
+    "returnLink": true
+  },
+  {
+    "state": "pt-BR-payment-submit-failed",
+    "errorVisible": true,
+    "returnLink": true
+  },
+  {
+    "state": "pt-BR-pay-unavailable",
+    "unavailableVisible": true,
+    "noThemeAttribute": true,
+    "returnLink": true
+  },
+  {
+    "state": "pt-BR-pay-standalone-off",
+    "unavailableVisible": true,
+    "noThemeAttribute": true,
+    "returnLink": true
+  },
+  {
+    "state": "en-prefill",
+    "prefilled": "12.5"
+  },
+  {
+    "state": "en-amount-invalid",
+    "errorVisible": true
+  },
+  {
+    "state": "en-policy-none",
+    "fields": []
+  },
+  {
+    "state": "en-policy-email",
+    "fields": [
+      "email"
+    ]
+  },
+  {
+    "state": "en-policy-cpf",
+    "fields": [
+      "name",
+      "email",
+      "cpf"
+    ]
+  },
+  {
+    "state": "en-policy-address",
+    "fields": [
+      "name",
+      "email",
+      "cpf",
+      "street",
+      "number",
+      "district",
+      "city",
+      "stateUf",
+      "postalCode"
+    ]
+  },
+  {
+    "state": "en-payment-waiting",
+    "waitingVisible": true,
+    "returnLink": true
+  },
+  {
+    "state": "en-payment-qr",
+    "qrLoaded": true,
+    "pixVisible": true
+  },
+  {
+    "state": "en-payment-copy",
+    "copied": true
+  },
+  {
+    "state": "en-payment-status-error",
+    "statusErrorVisible": true,
+    "retryVisible": true,
+    "returnLink": true
+  },
+  {
+    "state": "en-payment-terminal-rejected",
+    "terminal": "REJECTED",
+    "destructive": true,
+    "returnLink": true
+  },
+  {
+    "state": "en-payment-expired",
+    "unavailableVisible": true,
+    "returnLink": true
+  },
+  {
+    "state": "en-payment-submit-failed",
+    "errorVisible": true,
+    "returnLink": true
+  },
+  {
+    "state": "en-pay-unavailable",
+    "unavailableVisible": true,
+    "noThemeAttribute": true,
+    "returnLink": true
+  },
+  {
+    "state": "en-pay-standalone-off",
+    "unavailableVisible": true,
+    "noThemeAttribute": true,
+    "returnLink": true
+  },
+  {
+    "state": "reflow-320",
+    "reflow": true
+  }
+]

@@ -8,6 +8,7 @@ const visualValue = /#[\da-f]{3,8}\b|\b\d*\.?\d+(?:px|rem|em|ch)\b|\brgb\(|\bfon
 const inlineStyle = /\bstyle\s*=/i;
 const allowedAccentStyles = [
   { path: "src/app/store/[slug]/page.tsx", pattern: /style=\{\{ "--storefront-accent": storefront\.accentColor \} as CSSProperties\}/g },
+  { path: "src/app/store/[slug]/pay/page.tsx", pattern: /style=\{\{ "--storefront-accent": storefront\.accentColor \} as CSSProperties\}/g },
   { path: "src/app/storefront-preview.tsx", pattern: /style=\{\{ "--storefront-accent": accentColor \} as CSSProperties\}/g },
 ];
 

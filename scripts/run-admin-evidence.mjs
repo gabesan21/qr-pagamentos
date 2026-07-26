@@ -17,6 +17,7 @@ const catalogMode = process.argv.includes("--catalog");
 const linksMode = process.argv.includes("--links");
 const merchantDashboardMode = process.argv.includes("--merchant-dashboard");
 const ordersMode = process.argv.includes("--orders");
+const standalonePaymentMode = process.argv.includes("--standalone-payment");
 const project = `qrae${process.pid}${token}`.toLowerCase();
 const temporary = await mkdtemp(path.join(tmpdir(), `${project}-`));
 const sources = path.join(temporary, "sources");
@@ -72,7 +73,9 @@ try {
   const mapping = compose(["port", "app", "3000"]).stdout.trim();
   const port = Number(mapping.match(/:(\d+)$/)?.[1]);
   assert(port, "admin evidence loopback port could not be resolved");
-  const evidenceTest = merchantDashboardMode
+  const evidenceTest = standalonePaymentMode
+    ? "tests/standalone-payment.evidence.spec.ts"
+    : merchantDashboardMode
     ? "tests/merchant-dashboard.evidence.spec.ts"
     : ordersMode
     ? "tests/orders.evidence.spec.ts"
@@ -108,6 +111,9 @@ try {
       MERCHANT_DASHBOARD_EVIDENCE_COMPOSE_PROJECT: project,
       ORDERS_EVIDENCE_MERCHANT_PASSWORD: `Merchant-${token}-Password`,
       ORDERS_EVIDENCE_COMPOSE_PROJECT: project,
+      STANDALONE_PAYMENT_EVIDENCE_MERCHANT_PASSWORD: `Merchant-${token}-Password`,
+      STANDALONE_PAYMENT_EVIDENCE_COMPOSE_PROJECT: project,
+      STANDALONE_PAYMENT_EVIDENCE_ENCRYPTION_KEY: nauttEncryptionKey,
     },
     stdio: "inherit",
   });

@@ -20,6 +20,7 @@ const copy: StorefrontExperienceCopy = {
   customAmountDescription: storefrontPtBR.storefrontCustomAmountDescription,
   customAmountInvalid: storefrontPtBR.storefrontCustomAmountInvalid,
   customAmountLabel: storefrontPtBR.storefrontCustomAmountLabel,
+  customAmountPay: storefrontPtBR.storefrontCustomAmountPay,
   customAmountTitle: storefrontPtBR.storefrontCustomAmountTitle,
   customAmountUpdate: storefrontPtBR.storefrontCustomAmountUpdate,
   decreaseQuantity: storefrontPtBR.storefrontDecreaseQuantity,
@@ -77,6 +78,7 @@ function renderView(overrides: Partial<Parameters<typeof StorefrontExperienceVie
       onCheckout={vi.fn()}
       onQuantityCommit={vi.fn()}
       onRemove={vi.fn()}
+      payHref="/store/ana-store/pay"
       recovered={false}
       standalonePaymentCurrencyCode="BRL"
       standalonePayments
@@ -98,6 +100,14 @@ describe("storefront experience view", () => {
     expect(markup).toContain("Seu carrinho está vazio.");
     expect(markup).not.toContain("Seu carrinho foi atualizado");
     expect(markup).toContain("Mais produtos");
+  });
+
+  it("renders the standalone pay action linking to the pay page with the draft amount as prefill only", () => {
+    const markup = renderView({ payHref: "/store/ana-store/pay?amount=12.5" });
+
+    expect(markup).toContain('href="/store/ana-store/pay?amount=12.5"');
+    expect(markup).toContain("Pagar agora");
+    expect(markup).toContain("Adicionar ao carrinho");
   });
 
   it("renders the table layout with ruled rows and the standalone row first", () => {
