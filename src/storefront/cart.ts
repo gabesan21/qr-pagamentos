@@ -14,7 +14,8 @@ export const STOREFRONT_CART_QUANTITY_MAXIMUM = 9_999;
 // twelve integer digits without leading zeros and up to six fraction digits
 // with a non-zero last digit.
 const AMOUNT_PATTERN = /^(?:0\.[0-9]{0,5}[1-9]|[1-9][0-9]{0,11}(?:\.[0-9]{0,5}[1-9])?)$/;
-const MICRO_UNIT_SCALE = 1_000_000n;
+const MICRO_UNIT_SCALE = BigInt(1_000_000);
+const ZERO_MICRO_UNITS = BigInt(0);
 const MICRO_UNIT_DIGITS = 6;
 
 export type StorefrontCartProductItem = Readonly<{
@@ -187,7 +188,7 @@ export function storefrontCartTotals(
 
   const record = (currencyCode: string | null, microUnits: bigint) => {
     if (!grouped.has(currencyCode)) groupOrder.push(currencyCode);
-    grouped.set(currencyCode, (grouped.get(currencyCode) ?? 0n) + microUnits);
+    grouped.set(currencyCode, (grouped.get(currencyCode) ?? ZERO_MICRO_UNITS) + microUnits);
   };
 
   for (const item of items) {
@@ -208,7 +209,7 @@ export function storefrontCartTotals(
     lines,
     groups: groupOrder.map((currencyCode) => ({
       currencyCode,
-      total: storefrontCartMicroUnitsToAmount(grouped.get(currencyCode) ?? 0n),
+      total: storefrontCartMicroUnitsToAmount(grouped.get(currencyCode) ?? ZERO_MICRO_UNITS),
     })),
   };
 }

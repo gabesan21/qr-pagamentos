@@ -130,15 +130,15 @@ describe("storefront cart amount grammar and exact arithmetic", () => {
   });
 
   it("converts between canonical decimals and 6-place micro units without floats", () => {
-    expect(storefrontCartAmountToMicroUnits("0.000001")).toBe(1n);
-    expect(storefrontCartAmountToMicroUnits("1")).toBe(1_000_000n);
-    expect(storefrontCartAmountToMicroUnits("12.5")).toBe(12_500_000n);
-    expect(storefrontCartAmountToMicroUnits("999999999999.000001")).toBe(999_999_999_999_000_001n);
-    expect(storefrontCartMicroUnitsToAmount(1n)).toBe("0.000001");
-    expect(storefrontCartMicroUnitsToAmount(1_000_000n)).toBe("1");
-    expect(storefrontCartMicroUnitsToAmount(12_500_000n)).toBe("12.5");
-    expect(storefrontCartMicroUnitsToAmount(9_999n)).toBe("0.009999");
-    expect(storefrontCartMicroUnitsToAmount(999_999_999_999_000_001n)).toBe("999999999999.000001");
+    expect(storefrontCartAmountToMicroUnits("0.000001")).toBe(BigInt(1));
+    expect(storefrontCartAmountToMicroUnits("1")).toBe(BigInt(1_000_000));
+    expect(storefrontCartAmountToMicroUnits("12.5")).toBe(BigInt(12_500_000));
+    expect(storefrontCartAmountToMicroUnits("999999999999.000001")).toBe(BigInt("999999999999000001"));
+    expect(storefrontCartMicroUnitsToAmount(BigInt(1))).toBe("0.000001");
+    expect(storefrontCartMicroUnitsToAmount(BigInt(1_000_000))).toBe("1");
+    expect(storefrontCartMicroUnitsToAmount(BigInt(12_500_000))).toBe("12.5");
+    expect(storefrontCartMicroUnitsToAmount(BigInt(9_999))).toBe("0.009999");
+    expect(storefrontCartMicroUnitsToAmount(BigInt("999999999999000001"))).toBe("999999999999.000001");
   });
 });
 
