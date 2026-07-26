@@ -480,18 +480,13 @@
     "state": "checkout-pix-paper-pt-BR-375",
     "measured": {
       "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
-      "focusableCount": 1,
+      "focusableCount": 0,
       "overflow": false,
-      "targets": [
-        {
-          "height": 44,
-          "width": 311
-        }
-      ]
+      "targets": []
     },
     "focus": {
-      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(39.8727 -30.6801 1.13491) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
-      "outlineWidth": 2
+      "boxShadow": "none",
+      "outlineWidth": 3
     },
     "severeAxe": []
   },
@@ -499,18 +494,13 @@
     "state": "checkout-pix-paper-pt-BR-768",
     "measured": {
       "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
-      "focusableCount": 1,
+      "focusableCount": 0,
       "overflow": false,
-      "targets": [
-        {
-          "height": 44,
-          "width": 578
-        }
-      ]
+      "targets": []
     },
     "focus": {
-      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(39.8727 -30.6801 1.13491) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
-      "outlineWidth": 2
+      "boxShadow": "none",
+      "outlineWidth": 3
     },
     "severeAxe": []
   },
@@ -575,18 +565,13 @@
     "state": "checkout-cashier-daylight-pt-BR-1440",
     "measured": {
       "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
-      "focusableCount": 1,
+      "focusableCount": 0,
       "overflow": false,
-      "targets": [
-        {
-          "height": 44,
-          "width": 578
-        }
-      ]
+      "targets": []
     },
     "focus": {
-      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(36.2465 -8.27897 -34.0907) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
-      "outlineWidth": 2
+      "boxShadow": "none",
+      "outlineWidth": 3
     },
     "severeAxe": []
   },
@@ -613,13 +598,18 @@
     "state": "checkout-settlement-sand-pt-BR-768",
     "measured": {
       "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
-      "focusableCount": 0,
+      "focusableCount": 1,
       "overflow": false,
-      "targets": []
+      "targets": [
+        {
+          "height": 44,
+          "width": 578
+        }
+      ]
     },
     "focus": {
-      "boxShadow": "none",
-      "outlineWidth": 3
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(40.4079 -27.4943 8.6053) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
     },
     "severeAxe": []
   },
@@ -703,18 +693,13 @@
     "state": "checkout-vault-blue-pt-BR-375",
     "measured": {
       "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
-      "focusableCount": 1,
+      "focusableCount": 0,
       "overflow": false,
-      "targets": [
-        {
-          "height": 44,
-          "width": 311
-        }
-      ]
+      "targets": []
     },
     "focus": {
-      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(76.3495 -25.5148 -22.5364) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
-      "outlineWidth": 2
+      "boxShadow": "none",
+      "outlineWidth": 3
     },
     "severeAxe": []
   },
@@ -760,18 +745,13 @@
     "state": "checkout-terminal-amber-pt-BR-375",
     "measured": {
       "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
-      "focusableCount": 1,
+      "focusableCount": 0,
       "overflow": false,
-      "targets": [
-        {
-          "height": 44,
-          "width": 311
-        }
-      ]
+      "targets": []
     },
     "focus": {
-      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(73.4068 9.05746 50.4544) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
-      "outlineWidth": 2
+      "boxShadow": "none",
+      "outlineWidth": 3
     },
     "severeAxe": []
   },
@@ -964,13 +944,18 @@
     "state": "checkout-settlement-sand-en-1440",
     "measured": {
       "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
-      "focusableCount": 0,
+      "focusableCount": 1,
       "overflow": false,
-      "targets": []
+      "targets": [
+        {
+          "height": 44,
+          "width": 578
+        }
+      ]
     },
     "focus": {
-      "boxShadow": "none",
-      "outlineWidth": 3
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(40.4079 -27.4943 8.6053) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
     },
     "severeAxe": []
   },
@@ -1016,13 +1001,18 @@
     "state": "checkout-midnight-clearing-en-1440",
     "measured": {
       "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
-      "focusableCount": 0,
+      "focusableCount": 1,
       "overflow": false,
-      "targets": []
+      "targets": [
+        {
+          "height": 44,
+          "width": 578
+        }
+      ]
     },
     "focus": {
-      "boxShadow": "none",
-      "outlineWidth": 3
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(79.3882 -40.2089 5.85816) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
     },
     "severeAxe": []
   },
