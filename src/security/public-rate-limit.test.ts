@@ -11,6 +11,30 @@ import {
 } from "./public-rate-limit";
 
 describe("PublicPaymentLinkRateLimiter", () => {
+  it("keeps the closed surface inventory with the standalone budgets mirroring checkout and status", () => {
+    expect(publicPaymentLinkRateLimitSurface).toEqual({
+      read: "public-link-read",
+      checkout: "public-checkout-submit",
+      status: "public-payment-status-poll",
+      standaloneCheckout: "standalone-checkout-submit",
+      standaloneStatus: "standalone-payment-status-poll",
+    });
+
+    const limiter = new PublicPaymentLinkRateLimiter({ now: () => 0 });
+    for (let count = 0; count < 12; count += 1) {
+      expect(limiter.allow(publicPaymentLinkRateLimitSurface.standaloneCheckout, "203.0.113.10")).toBe(true);
+    }
+    expect(limiter.allow(publicPaymentLinkRateLimitSurface.standaloneCheckout, "203.0.113.10")).toBe(false);
+    expect(limiter.allow(publicPaymentLinkRateLimitSurface.checkout, "203.0.113.10")).toBe(true);
+
+    const statusLimiter = new PublicPaymentLinkRateLimiter({ now: () => 0 });
+    for (let count = 0; count < 120; count += 1) {
+      expect(statusLimiter.allow(publicPaymentLinkRateLimitSurface.standaloneStatus, "203.0.113.10")).toBe(true);
+    }
+    expect(statusLimiter.allow(publicPaymentLinkRateLimitSurface.standaloneStatus, "203.0.113.10")).toBe(false);
+    expect(statusLimiter.allow(publicPaymentLinkRateLimitSurface.status, "203.0.113.10")).toBe(true);
+  });
+
   it("enforces each surface's burst and refills with a monotonic clock", () => {
     let now = 0;
     const limiter = new PublicPaymentLinkRateLimiter({ now: () => now });

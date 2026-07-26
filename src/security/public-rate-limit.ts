@@ -7,6 +7,8 @@ export const publicPaymentLinkRateLimitSurface = {
   read: "public-link-read",
   checkout: "public-checkout-submit",
   status: "public-payment-status-poll",
+  standaloneCheckout: "standalone-checkout-submit",
+  standaloneStatus: "standalone-payment-status-poll",
 } as const;
 
 export type PublicPaymentLinkRateLimitSurface =
@@ -16,6 +18,8 @@ const RATE_LIMITS: Record<PublicPaymentLinkRateLimitSurface, Readonly<{ burst: n
   "public-link-read": { burst: 60, refillTokensPerMillisecond: 60 / 60_000 },
   "public-checkout-submit": { burst: 12, refillTokensPerMillisecond: 12 / 60_000 },
   "public-payment-status-poll": { burst: 120, refillTokensPerMillisecond: 120 / 60_000 },
+  "standalone-checkout-submit": { burst: 12, refillTokensPerMillisecond: 12 / 60_000 },
+  "standalone-payment-status-poll": { burst: 120, refillTokensPerMillisecond: 120 / 60_000 },
 };
 
 const MAX_ENTRIES = 2_048;

@@ -52,7 +52,7 @@ function outcomeId() {
 
 type SeedOrder = Readonly<{
   ownerId: string;
-  source: "LINK" | "AD_HOC";
+  source: "LINK" | "AD_HOC" | "STANDALONE";
   linkId?: string;
   state?: string;
   amount: string;
@@ -102,6 +102,18 @@ async function seedAttempt(admin: pg.Client, ownerId: string, linkId: string, or
         state, created_at, updated_at)
      VALUES ($1, $2, $3, $4, md5($7), md5($7), md5($7), 'v1', md5($7), $5, 'PENDING', $6, $6)`,
     [id, ownerId, linkId, orderV2Id, expiresAt, createdAt, id],
+  );
+}
+
+async function seedStandaloneAttempt(admin: pg.Client, ownerId: string, orderV2Id: string, expiresAt: string, createdAt: string) {
+  const id = attemptId();
+  await admin.query(
+    `INSERT INTO app.standalone_checkout_attempt
+       (id, owner_id, order_v2_id, retry_key_verifier, request_verifier,
+        capability_nonce, capability_key_version, capability_verifier, capability_expires_at,
+        state, created_at, updated_at)
+     VALUES ($1, $2, $3, md5($6), md5($6), md5($6), 'v1', md5($6), $4, 'PENDING', $5, $5)`,
+    [id, ownerId, orderV2Id, expiresAt, createdAt, id],
   );
 }
 
@@ -185,6 +197,11 @@ describe.skipIf(!enabled)("merchant analytics PostgreSQL contract", () => {
     await seedAttempt(admin, ownerAId, linkAId, o11, "2026-07-21T15:00:00Z", "2026-07-20T06:30:00Z"); // in progress
     await seedAttempt(admin, ownerAId, linkAId, o12, "2026-06-02T15:00:00Z", "2026-06-01T06:30:00Z"); // created out of period
 
+    // Owner A standalone: one in-period CONFIRMED sale (provider-confirmed group
+    // only, no lines, no link) and one converted funnel attempt.
+    const o13 = await seedOrder(admin, { ownerId: ownerAId, source: "STANDALONE", state: "CONFIRMED", amount: "0.4", pair: pairA1, settledAt: "2026-07-19T13:00:00Z", createdAt: "2026-07-10T09:00:00Z" });
+    await seedStandaloneAttempt(admin, ownerAId, o13, "2026-07-21T15:00:00Z", "2026-07-19T11:30:00Z"); // converted (order CONFIRMED)
+
     // Owner B mirrors with disjoint values to prove isolation.
     const ob1 = await seedOrder(admin, { ownerId: ownerBId, source: "LINK", linkId: linkCId, state: "CONFIRMED", amount: "1000", pair: pairB1, settledAt: "2026-07-20T09:00:00Z", createdAt: "2026-07-20T08:00:00Z", lines: [{ productId: productCId, quantity: 1, unitPrice: "1000" }] });
     const ob2 = await seedOrder(admin, { ownerId: ownerBId, source: "AD_HOC", amount: "2000", pair: pairB1, createdAt: "2026-07-19T08:00:00Z" });
@@ -198,6 +215,7 @@ describe.skipIf(!enabled)("merchant analytics PostgreSQL contract", () => {
     if (database) await database.$disconnect();
     if (admin) {
       await admin.query(`DELETE FROM app.checkout_attempt_v2 WHERE owner_id = ANY($1)`, [[ownerAId, ownerBId]]);
+      await admin.query(`DELETE FROM app.standalone_checkout_attempt WHERE owner_id = ANY($1)`, [[ownerAId, ownerBId]]);
       await admin.query(`DELETE FROM app.order_local_outcome_v2 WHERE owner_id = ANY($1)`, [[ownerAId, ownerBId]]);
       await admin.query(`DELETE FROM app.order_v2_line WHERE owner_id = ANY($1)`, [[ownerAId, ownerBId]]);
       await admin.query(`DELETE FROM app.order_v2 WHERE owner_id = ANY($1)`, [[ownerAId, ownerBId]]);
@@ -219,7 +237,7 @@ describe.skipIf(!enabled)("merchant analytics PostgreSQL contract", () => {
     if (result.kind !== "ready") throw new Error("expected ready");
     expect(result.view.confirmedSales).toEqual([
       { currency: { code: "USD", label: "USD pair" }, amount: "5", orderCount: 1 },
-      { currency: { code: "BRL", label: "BRL via PIX" }, amount: "0.3", orderCount: 2 },
+      { currency: { code: "BRL", label: "BRL via PIX" }, amount: "0.7", orderCount: 3 },
     ]);
     expect(result.view.locallyFinalizedSales).toEqual([
       { currency: { code: "BRL", label: "BRL via PIX" }, amount: "0.3", orderCount: 1 },
@@ -243,12 +261,12 @@ describe.skipIf(!enabled)("merchant analytics PostgreSQL contract", () => {
     const result = await service().getForOwner(ownerA, "30d");
     if (result.kind !== "ready") throw new Error("expected ready");
     expect(result.view.funnel).toEqual({
-      attempts: 4,
-      converted: 1,
+      attempts: 5,
+      converted: 2,
       abandoned: 2,
       inProgress: 1,
-      conversionRate: "0.3333",
-      abandonmentRate: "0.6666",
+      conversionRate: "0.5000",
+      abandonmentRate: "0.5000",
     });
 
     const other = await service().getForOwner(ownerB, "30d");

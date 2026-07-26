@@ -260,6 +260,21 @@ try {
   assert(merchantAnalytics.includes("4 passed"), "Merchant analytics database scenarios did not all pass");
   console.log("PASS merchant-analytics-database");
 
+  const standaloneCheckoutEnv = {
+    ...process.env,
+    DATABASE_URL: runtimeUrl,
+    STANDALONE_CHECKOUT_DATABASE_ADMIN_URL: adminUrl,
+    STANDALONE_CHECKOUT_DATABASE_TEST: "1",
+  };
+  delete standaloneCheckoutEnv.MIGRATION_DATABASE_URL;
+  const standaloneCheckout = run(
+    "pnpm",
+    ["exec", "vitest", "run", "src/checkout/standalone-checkout.database.test.ts"],
+    { env: standaloneCheckoutEnv },
+  );
+  assert(standaloneCheckout.includes("3 passed"), "Standalone checkout database scenarios did not all pass");
+  console.log("PASS standalone-checkout-database");
+
   const runtime = new Client({ connectionString: runtimeUrl });
   await runtime.connect();
   const columns = await runtime.query(`
@@ -898,6 +913,54 @@ try {
   await admin.query(`DELETE FROM app."user" WHERE id IN ($1, $2)`, [o2OwnerId, o2OtherOwnerId]);
   console.log("PASS order-v2-schema");
 
+  const standaloneConstraints = await runtime.query(`
+    SELECT c.conname, pg_get_userbyid(t.relowner) AS owner
+    FROM pg_constraint c
+    JOIN pg_class t ON t.oid = c.conrelid
+    JOIN pg_namespace n ON n.oid = t.relnamespace
+    WHERE n.nspname = 'app' AND t.relname = 'standalone_checkout_attempt'
+  `);
+  const standaloneConstraintNames = new Set(standaloneConstraints.rows.map((row) => row.conname));
+  for (const name of [
+    "standalone_checkout_attempt_pkey", "standalone_checkout_attempt_owner_retry_key_verifier_key", "standalone_checkout_attempt_order_v2_id_key", "standalone_checkout_attempt_order_owner_key", "standalone_checkout_attempt_owner_fkey", "standalone_checkout_attempt_order_owner_fkey",
+  ]) {
+    assert(standaloneConstraintNames.has(name), `Missing constraint ${name}`);
+  }
+  assert(standaloneConstraints.rows.every((row) => row.owner === "qr_migrator"), "Runtime owns the standalone attempt table");
+
+  const saOwnerId = randomUUID();
+  const saOtherOwnerId = randomUUID();
+  await runtime.query(`INSERT INTO app."user" (id, username, email, role, status) VALUES ($1, 'sa.owner', NULL, 'USER', 'ACTIVE'), ($2, 'sa.other', NULL, 'USER', 'ACTIVE')`, [saOwnerId, saOtherOwnerId]);
+  const saPair = await runtime.query(`INSERT INTO app.catalog_currency_pair (label, currency_uuid, exchange_currency_uuid) VALUES ('sa-pair', $1, $2) RETURNING currency_uuid, exchange_currency_uuid`, [randomUUID(), randomUUID()]);
+  const saOrder = await runtime.query(
+    `INSERT INTO app.order_v2 (id, owner_id, source, payment_link_v2_id, state, lifecycle_version, amount, currency_uuid, exchange_currency_uuid, description_pt_br, description_en, checkout_data_policy, created_at, updated_at)
+     VALUES ($1, $2, 'STANDALONE', NULL, 'CREATED', 0, '12.5', $3, $4, 'Pagamento avulso', 'Standalone payment', 'NONE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) RETURNING id`,
+    [randomUUID(), saOwnerId, saPair.rows[0].currency_uuid, saPair.rows[0].exchange_currency_uuid],
+  );
+  const saOrderId = saOrder.rows[0].id;
+  const saSecondOrder = await runtime.query(
+    `INSERT INTO app.order_v2 (id, owner_id, source, payment_link_v2_id, state, lifecycle_version, amount, currency_uuid, exchange_currency_uuid, description_pt_br, description_en, checkout_data_policy, created_at, updated_at)
+     VALUES ($1, $2, 'STANDALONE', NULL, 'CREATED', 0, '9.99', $3, $4, 'Pagamento avulso', 'Standalone payment', 'NONE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) RETURNING id`,
+    [randomUUID(), saOwnerId, saPair.rows[0].currency_uuid, saPair.rows[0].exchange_currency_uuid],
+  );
+  const saRetryVerifier = "a".repeat(64);
+  const insertSaAttempt = (orderId, retryKeyVerifier = saRetryVerifier, attemptOwnerId = saOwnerId) =>
+    `INSERT INTO app.standalone_checkout_attempt (id, owner_id, order_v2_id, retry_key_verifier, request_verifier, capability_nonce, capability_key_version, capability_verifier, capability_expires_at, state, created_at, updated_at) VALUES ('${randomUUID()}', '${attemptOwnerId}', '${orderId}', '${retryKeyVerifier}', '${"b".repeat(64)}', '${"c".repeat(43)}', 'v1', '${"d".repeat(64)}', CURRENT_TIMESTAMP, 'RESERVED', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`;
+  await runtime.query(insertSaAttempt(saOrderId));
+  await expectSqlState(runtime, insertSaAttempt(saSecondOrder.rows[0].id), { code: "23505", constraint: "standalone_checkout_attempt_owner_retry_key_verifier_key" });
+  await expectSqlState(runtime, insertSaAttempt(saOrderId, "e".repeat(64)), { code: "23505", constraint: "standalone_checkout_attempt_order_v2_id_key" });
+  await expectSqlState(runtime, insertSaAttempt(saSecondOrder.rows[0].id, "f".repeat(64), saOtherOwnerId), { code: "23503", constraint: "standalone_checkout_attempt_order_owner_fkey" });
+  await expectSqlState(runtime, insertSaAttempt(randomUUID(), "0".repeat(64)), { code: "23503", constraint: "standalone_checkout_attempt_order_owner_fkey" });
+  await expectDenied(runtime, `DELETE FROM app.standalone_checkout_attempt WHERE owner_id = '${saOwnerId}'`);
+  await runtime.query(`UPDATE app.standalone_checkout_attempt SET state = 'INDETERMINATE' WHERE owner_id = $1`, [saOwnerId]);
+
+  await expectSqlState(admin, `DELETE FROM app.order_v2 WHERE id = '${saOrderId}'`, { code: "23001", constraint: "standalone_checkout_attempt_order_owner_fkey" });
+  await admin.query(`DELETE FROM app.standalone_checkout_attempt WHERE owner_id = $1`, [saOwnerId]);
+  await admin.query(`DELETE FROM app.order_v2 WHERE owner_id = $1`, [saOwnerId]);
+  await admin.query(`DELETE FROM app.catalog_currency_pair WHERE currency_uuid = $1`, [saPair.rows[0].currency_uuid]);
+  await admin.query(`DELETE FROM app."user" WHERE id IN ($1, $2)`, [saOwnerId, saOtherOwnerId]);
+  console.log("PASS standalone-checkout-attempt-schema");
+
   const backfillUserId = randomUUID();
   const revisionMigrator = new Client({ connectionString: migratorUrl });
   await revisionMigrator.connect();
@@ -1159,6 +1222,8 @@ try {
       has_table_privilege(current_user, 'app.order_local_outcome_v2', 'SELECT,INSERT') AS order_local_outcome_v2_dml,
       has_table_privilege(current_user, 'app.order_local_outcome_v2', 'UPDATE,DELETE') AS order_local_outcome_v2_extra,
       has_table_privilege(current_user, 'app.checkout_attempt_v2', 'SELECT,INSERT,UPDATE,DELETE') AS checkout_attempt_v2_dml,
+      has_table_privilege(current_user, 'app.standalone_checkout_attempt', 'SELECT,INSERT,UPDATE') AS standalone_checkout_attempt_dml,
+      has_table_privilege(current_user, 'app.standalone_checkout_attempt', 'DELETE') AS standalone_checkout_attempt_delete,
       has_table_privilege(current_user, 'app.payment_link_v2_single_use_settlement', 'SELECT,INSERT') AS settlement_v2_dml,
       has_table_privilege(current_user, 'app.payment_link_v2_single_use_settlement', 'UPDATE,DELETE') AS settlement_v2_extra,
       has_table_privilege(current_user, 'app.media_object', 'SELECT,INSERT,UPDATE,DELETE') AS media_object_dml,
@@ -1184,6 +1249,7 @@ try {
       has_table_privilege(current_user, 'app.order_comment_v2', 'TRUNCATE,REFERENCES,TRIGGER') AS order_comment_v2_excess,
       has_table_privilege(current_user, 'app.order_local_outcome_v2', 'TRUNCATE,REFERENCES,TRIGGER') AS order_local_outcome_v2_excess,
       has_table_privilege(current_user, 'app.checkout_attempt_v2', 'TRUNCATE,REFERENCES,TRIGGER') AS checkout_attempt_v2_excess,
+      has_table_privilege(current_user, 'app.standalone_checkout_attempt', 'TRUNCATE,REFERENCES,TRIGGER') AS standalone_checkout_attempt_excess,
       has_table_privilege(current_user, 'app.payment_link_v2_single_use_settlement', 'TRUNCATE,REFERENCES,TRIGGER') AS settlement_v2_excess,
       has_table_privilege(current_user, 'app.media_object', 'TRUNCATE,REFERENCES,TRIGGER') AS media_object_excess,
       has_table_privilege(current_user, 'app.supported_exchange_currency', 'TRUNCATE,REFERENCES,TRIGGER') AS supported_exchange_currency_excess,
@@ -1197,8 +1263,8 @@ try {
       pg_has_role(current_user, 'qr_migrator', 'SET') AS migrator_set
   `);
   const acl = privilege.rows[0];
-  assert(acl.current_user === "qr_runtime" && acl.schema_usage && acl.table_dml && acl.user_dml && acl.credential_dml && acl.bootstrap_dml && acl.session_dml && acl.nautt_credential_dml && acl.provider_quote_dml && acl.provider_order_dml && acl.webhook_delivery_dml && acl.webhook_attempt_dml && acl.webhook_recovery_lease_dml && acl.catalog_currency_pair_dml && acl.catalog_payment_method_dml && acl.supported_exchange_currency_dml && acl.product_dml && acl.product_category_dml && acl.payment_link_dml && acl.payment_link_v2_dml && acl.payment_link_v2_line_dml && acl.order_v2_dml && acl.order_v2_line_dml && acl.order_comment_v2_dml && acl.order_local_outcome_v2_dml && acl.checkout_attempt_v2_dml && acl.settlement_v2_dml && acl.media_object_dml && acl.settings_select && acl.settings_column_update && acl.sequence_usage && acl.webhook_sequence_usage, "Runtime lacks intended privileges");
-  assert(!acl.settings_table_update && !acl.settings_write_extra && !acl.product_category_delete && !acl.catalog_currency_pair_delete && !acl.order_v2_line_extra && !acl.order_comment_v2_delete && !acl.order_local_outcome_v2_extra && !acl.settlement_v2_extra && !acl.schema_create && !acl.table_truncate && !acl.table_references && !acl.table_trigger && !acl.provider_order_excess && !acl.webhook_delivery_excess && !acl.webhook_recovery_lease_excess && !acl.product_excess && !acl.product_category_excess && !acl.payment_link_excess && !acl.payment_link_v2_excess && !acl.payment_link_v2_line_excess && !acl.order_v2_excess && !acl.order_v2_line_excess && !acl.order_comment_v2_excess && !acl.order_local_outcome_v2_excess && !acl.checkout_attempt_v2_excess && !acl.settlement_v2_excess && !acl.media_object_excess && !acl.supported_exchange_currency_excess && !acl.table_maintain && !acl.sequence_select && !acl.sequence_update && !acl.migration_access && !acl.migrator_member && !acl.migrator_set, "Runtime has excess privileges");
+  assert(acl.current_user === "qr_runtime" && acl.schema_usage && acl.table_dml && acl.user_dml && acl.credential_dml && acl.bootstrap_dml && acl.session_dml && acl.nautt_credential_dml && acl.provider_quote_dml && acl.provider_order_dml && acl.webhook_delivery_dml && acl.webhook_attempt_dml && acl.webhook_recovery_lease_dml && acl.catalog_currency_pair_dml && acl.catalog_payment_method_dml && acl.supported_exchange_currency_dml && acl.product_dml && acl.product_category_dml && acl.payment_link_dml && acl.payment_link_v2_dml && acl.payment_link_v2_line_dml && acl.order_v2_dml && acl.order_v2_line_dml && acl.order_comment_v2_dml && acl.order_local_outcome_v2_dml && acl.checkout_attempt_v2_dml && acl.standalone_checkout_attempt_dml && acl.settlement_v2_dml && acl.media_object_dml && acl.settings_select && acl.settings_column_update && acl.sequence_usage && acl.webhook_sequence_usage, "Runtime lacks intended privileges");
+  assert(!acl.settings_table_update && !acl.settings_write_extra && !acl.product_category_delete && !acl.catalog_currency_pair_delete && !acl.order_v2_line_extra && !acl.order_comment_v2_delete && !acl.order_local_outcome_v2_extra && !acl.settlement_v2_extra && !acl.standalone_checkout_attempt_delete && !acl.schema_create && !acl.table_truncate && !acl.table_references && !acl.table_trigger && !acl.provider_order_excess && !acl.webhook_delivery_excess && !acl.webhook_recovery_lease_excess && !acl.product_excess && !acl.product_category_excess && !acl.payment_link_excess && !acl.payment_link_v2_excess && !acl.payment_link_v2_line_excess && !acl.order_v2_excess && !acl.order_v2_line_excess && !acl.order_comment_v2_excess && !acl.order_local_outcome_v2_excess && !acl.checkout_attempt_v2_excess && !acl.standalone_checkout_attempt_excess && !acl.settlement_v2_excess && !acl.media_object_excess && !acl.supported_exchange_currency_excess && !acl.table_maintain && !acl.sequence_select && !acl.sequence_update && !acl.migration_access && !acl.migrator_member && !acl.migrator_set, "Runtime has excess privileges");
   const ownership = await admin.query(`
     SELECT
       (SELECT count(*)::int FROM pg_class WHERE relowner = 'qr_runtime'::regrole) AS objects,

@@ -33,6 +33,7 @@
 - Keep quote/order persistence replaceable behind `ProviderOrderStore`; production uses the Prisma store, and tests may use the process-local implementation only as an injected double.
 - Never release a quote after dispatch starts. Persist `INDETERMINATE` even when the provider UUID is unknown; only a durable known UUID authorizes explicit one-read recovery.
 - Poll and recover only by trusted owner plus local order UUID. Final rows and unknown-ID ambiguity perform zero decryption/GET; versioned reconciliation discards stale responses without a second GET.
+- The Commerce V2 attach is additive: `claimForCreation` accepts an optional `orderV2Id` (never reusing `paymentLinkOrderId`), and `createOrder` validates it pre-claim. After the authoritative owner-bound webhook GET reconciliation persists status/version, the injected settlement hook settles a V2-attached provider order via `orderV2Service.settle` with exact persisted identities/versions plus the fresh local lifecycle fence; the V1 settle path stays unwired (open question), and poll/recover never invoke the hook.
 
 ## Webhook intake
 

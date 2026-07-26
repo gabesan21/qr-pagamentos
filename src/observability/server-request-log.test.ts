@@ -7,6 +7,11 @@ import { normalizeRequestId, serverRequestRoutes, withServerRequestLog } from ".
 afterEach(() => vi.restoreAllMocks());
 
 describe("server request completion logging", () => {
+  it("pins the standalone checkout route templates", () => {
+    expect(serverRequestRoutes.standaloneCheckout).toBe("/api/store/[slug]/checkout");
+    expect(serverRequestRoutes.standaloneCheckoutStatus).toBe("/api/store/[slug]/checkout/status");
+  });
+
   it("retains only whole header-safe request ids", () => {
     for (const value of ["a", "req-42", "ABC.def_9", "a".repeat(64)]) {
       expect(normalizeRequestId(value)).toBe(value);

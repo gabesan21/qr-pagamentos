@@ -156,6 +156,9 @@ describe("owner order V2 directory", () => {
     await service.query(owner, "/orders?filter.source=LINK");
     expect(readWindow.mock.calls.at(-1)?.[0].where).toMatchObject({ ownerId, AND: [{ source: "LINK" }] });
 
+    await service.query(owner, "/orders?filter.source=STANDALONE");
+    expect(readWindow.mock.calls.at(-1)?.[0].where).toMatchObject({ ownerId, AND: [{ source: "STANDALONE" }] });
+
     await service.query(owner, "/orders?filter.source=AD_HOC&filter.source=LINK");
     expect(readWindow.mock.calls.at(-1)?.[0].where).toEqual({ ownerId });
 

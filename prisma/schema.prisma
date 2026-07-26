@@ -53,6 +53,7 @@ model User {
   orderCommentsV2  OrderCommentV2[]
   orderLocalOutcomesV2 OrderLocalOutcomeV2[]
   checkoutAttemptsV2 CheckoutAttemptV2[]
+  standaloneCheckoutAttempts StandaloneCheckoutAttempt[]
   webhookDeliveries WebhookDelivery[]
   mediaObjects       MediaObject[]
   sessions          Session[]
@@ -340,6 +341,7 @@ model OrderV2 {
   localOutcomes        OrderLocalOutcomeV2[]
   providerOrders       ProviderOrder[]
   checkoutAttempt      CheckoutAttemptV2?
+  standaloneCheckoutAttempt StandaloneCheckoutAttempt?
   singleUseSettlement  PaymentLinkV2SingleUseSettlement?
 
   @@unique([id, ownerId], map: "order_v2_id_owner_id_key")
@@ -423,6 +425,30 @@ model CheckoutAttemptV2 {
   @@unique([orderV2Id, ownerId], map: "checkout_attempt_v2_order_owner_key")
   @@index([ownerId, capabilityExpiresAt], map: "checkout_attempt_v2_owner_capability_expiry_idx")
   @@map("checkout_attempt_v2")
+  @@schema("app")
+}
+
+model StandaloneCheckoutAttempt {
+  id                   String    @id @db.Uuid
+  ownerId              String    @map("owner_id") @db.Uuid
+  orderV2Id            String    @unique(map: "standalone_checkout_attempt_order_v2_id_key") @map("order_v2_id") @db.Uuid
+  retryKeyVerifier     String    @map("retry_key_verifier") @db.VarChar(64)
+  requestVerifier      String    @map("request_verifier") @db.VarChar(64)
+  capabilityNonce      String    @map("capability_nonce") @db.VarChar(43)
+  capabilityKeyVersion String    @map("capability_key_version") @db.VarChar(16)
+  capabilityVerifier   String    @map("capability_verifier") @db.VarChar(64)
+  capabilityExpiresAt  DateTime  @map("capability_expires_at") @db.Timestamptz(3)
+  capabilityRevokedAt  DateTime? @map("capability_revoked_at") @db.Timestamptz(3)
+  state                String    @db.VarChar(13)
+  createdAt            DateTime  @map("created_at") @db.Timestamptz(3)
+  updatedAt            DateTime  @map("updated_at") @db.Timestamptz(3)
+  owner                User      @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  order                OrderV2   @relation(fields: [orderV2Id, ownerId], references: [id, ownerId], onDelete: Restrict)
+
+  @@unique([ownerId, retryKeyVerifier], map: "standalone_checkout_attempt_owner_retry_key_verifier_key")
+  @@unique([orderV2Id, ownerId], map: "standalone_checkout_attempt_order_owner_key")
+  @@index([ownerId, capabilityExpiresAt], map: "standalone_checkout_attempt_owner_capability_expiry_idx")
+  @@map("standalone_checkout_attempt")
   @@schema("app")
 }
 

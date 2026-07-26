@@ -1,0 +1,251 @@
+{
+  "version": 1,
+  "id": "20260726020000_standalone_checkout_attempt",
+  "operations": [
+    {
+      "op": "createTable",
+      "table": {
+        "schema": "app",
+        "name": "standalone_checkout_attempt"
+      },
+      "columns": [
+        {
+          "name": "id",
+          "type": {
+            "name": "uuid"
+          },
+          "nullable": false
+        },
+        {
+          "name": "owner_id",
+          "type": {
+            "name": "uuid"
+          },
+          "nullable": false
+        },
+        {
+          "name": "order_v2_id",
+          "type": {
+            "name": "uuid"
+          },
+          "nullable": false
+        },
+        {
+          "name": "retry_key_verifier",
+          "type": {
+            "name": "varchar",
+            "length": 64
+          },
+          "nullable": false
+        },
+        {
+          "name": "request_verifier",
+          "type": {
+            "name": "varchar",
+            "length": 64
+          },
+          "nullable": false
+        },
+        {
+          "name": "capability_nonce",
+          "type": {
+            "name": "varchar",
+            "length": 43
+          },
+          "nullable": false
+        },
+        {
+          "name": "capability_key_version",
+          "type": {
+            "name": "varchar",
+            "length": 16
+          },
+          "nullable": false
+        },
+        {
+          "name": "capability_verifier",
+          "type": {
+            "name": "varchar",
+            "length": 64
+          },
+          "nullable": false
+        },
+        {
+          "name": "capability_expires_at",
+          "type": {
+            "name": "timestamptz"
+          },
+          "nullable": false
+        },
+        {
+          "name": "capability_revoked_at",
+          "type": {
+            "name": "timestamptz"
+          },
+          "nullable": true
+        },
+        {
+          "name": "state",
+          "type": {
+            "name": "varchar",
+            "length": 13
+          },
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "type": {
+            "name": "timestamptz"
+          },
+          "nullable": false
+        },
+        {
+          "name": "updated_at",
+          "type": {
+            "name": "timestamptz"
+          },
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "standalone_checkout_attempt"
+      },
+      "constraint": {
+        "kind": "primaryKey",
+        "name": "standalone_checkout_attempt_pkey",
+        "columns": [
+          "id"
+        ]
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "standalone_checkout_attempt"
+      },
+      "constraint": {
+        "kind": "unique",
+        "name": "standalone_checkout_attempt_owner_retry_key_verifier_key",
+        "columns": [
+          "owner_id",
+          "retry_key_verifier"
+        ]
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "standalone_checkout_attempt"
+      },
+      "constraint": {
+        "kind": "unique",
+        "name": "standalone_checkout_attempt_order_v2_id_key",
+        "columns": [
+          "order_v2_id"
+        ]
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "standalone_checkout_attempt"
+      },
+      "constraint": {
+        "kind": "unique",
+        "name": "standalone_checkout_attempt_order_owner_key",
+        "columns": [
+          "order_v2_id",
+          "owner_id"
+        ]
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "standalone_checkout_attempt"
+      },
+      "constraint": {
+        "kind": "foreignKey",
+        "name": "standalone_checkout_attempt_owner_fkey",
+        "columns": [
+          "owner_id"
+        ],
+        "references": {
+          "table": {
+            "schema": "app",
+            "name": "user"
+          },
+          "columns": [
+            "id"
+          ]
+        },
+        "onDelete": "RESTRICT",
+        "onUpdate": "CASCADE",
+        "notValid": false
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "standalone_checkout_attempt"
+      },
+      "constraint": {
+        "kind": "foreignKey",
+        "name": "standalone_checkout_attempt_order_owner_fkey",
+        "columns": [
+          "order_v2_id",
+          "owner_id"
+        ],
+        "references": {
+          "table": {
+            "schema": "app",
+            "name": "order_v2"
+          },
+          "columns": [
+            "id",
+            "owner_id"
+          ]
+        },
+        "onDelete": "RESTRICT",
+        "onUpdate": "CASCADE",
+        "notValid": false
+      }
+    },
+    {
+      "op": "createIndex",
+      "name": "standalone_checkout_attempt_owner_capability_expiry_idx",
+      "table": {
+        "schema": "app",
+        "name": "standalone_checkout_attempt"
+      },
+      "columns": [
+        "owner_id",
+        "capability_expires_at"
+      ],
+      "unique": false
+    },
+    {
+      "op": "grant",
+      "object": {
+        "kind": "table",
+        "schema": "app",
+        "name": "standalone_checkout_attempt"
+      },
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE"
+      ],
+      "role": "qr_runtime"
+    }
+  ]
+}
