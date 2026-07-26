@@ -37,8 +37,10 @@ async function setLocale(page: Page, locale: "pt-BR" | "en") {
   await page.goto(`${baseUrl}/admin/settings`);
   const form = page.locator('form[action="/language-preference"]');
   await form.locator('select[name="locale"]').selectOption(locale);
+  // The preference POST redirects to `/?language=saved`, and `/` dispatches
+  // the administrator to `/admin` (the query is not preserved).
   await Promise.all([
-    page.waitForURL(/\?language=saved$/),
+    page.waitForURL(`${baseUrl}/admin`),
     form.getByRole("button").click(),
   ]);
 }
