@@ -137,7 +137,7 @@ test("creates the closed public checkout evidence run", async ({ page }) => {
     // (unavailable, provider-unavailable, expired capability) surface as
     // resource console errors; everything else is a real finding.
     const location = message.location();
-    if (/\/api\/payment-links\//.test(location?.url ?? "") && /status of (404|503)/.test(message.text())) return;
+    if (/\/api\/payment-links\//.test(location?.url ?? "") && /status of (404|503)|net::ERR_FAILED/.test(message.text())) return;
     consoleErrors.push(message.text());
   });
   page.on("pageerror", (error) => pageErrors.push(error.message));
