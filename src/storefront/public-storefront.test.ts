@@ -149,6 +149,7 @@ describe("public storefront", () => {
       products: [{ title: "Coffee", description: "Specialty coffee.", price: "12.50", paymentLinkIdentifier: "AbCdEfGhIjKlMnOpQrStUvWx" }],
       catalog: expectedCatalogEn,
       standalonePayments: true,
+      standalonePaymentCurrencyCode: "USD",
     });
     expect(findEnabledBySlug).toHaveBeenCalledWith("ana-store", new Date("2026-07-21T12:00:00Z"));
   });
@@ -173,6 +174,7 @@ describe("public storefront", () => {
       products: [{ title: "Café", description: "Café especial.", price: "12.50", paymentLinkIdentifier: "AbCdEfGhIjKlMnOpQrStUvWx" }],
       catalog: expectedCatalogPtBr,
       standalonePayments: false,
+      standalonePaymentCurrencyCode: "USD",
     });
     expect(Object.keys(storefront ?? {}).sort()).toEqual([
       "accentColor",
@@ -181,6 +183,7 @@ describe("public storefront", () => {
       "layout",
       "logoMediaIdentifier",
       "products",
+      "standalonePaymentCurrencyCode",
       "standalonePayments",
       "themeId",
     ]);
@@ -198,6 +201,7 @@ describe("public storefront", () => {
     const service = createPublicStorefrontService({ findEnabledBySlug });
 
     const storefront = await service.read("ana-store", "en");
+    expect(storefront?.standalonePaymentCurrencyCode).toBeNull();
     expect(storefront?.catalog).toEqual([
       {
         name: null,
@@ -305,6 +309,7 @@ describe("public storefront", () => {
       products: [],
       catalog: [],
       standalonePayments: true,
+      standalonePaymentCurrencyCode: "USD",
     });
   });
 

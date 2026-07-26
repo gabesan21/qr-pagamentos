@@ -50,6 +50,11 @@ export type PublicStorefront = Readonly<{
   // Derived capability for the future standalone-payment entry point; the raw
   // toggle and every other settings value stay server-side.
   standalonePayments: boolean;
+  // Display metadata only: the stored store-default code labelling the
+  // standalone custom amount. It survives later registry deactivation like
+  // every stored code and is never a pair UUID or an inactive-code discovery
+  // surface (the deliberate 9.1.2 boundary amendment).
+  standalonePaymentCurrencyCode: string | null;
 }>;
 
 export type PublicStorefrontCatalogCategoryRecord = Readonly<{
@@ -166,6 +171,7 @@ function localizeStorefront(record: PublicStorefrontRecord, locale: SupportedLoc
     products,
     catalog: localizeCatalog(record, locale),
     standalonePayments: record.storefrontStandalonePaymentsEnabled,
+    standalonePaymentCurrencyCode: record.storefrontDefaultCurrencyCode,
   };
 }
 
