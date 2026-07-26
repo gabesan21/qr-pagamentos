@@ -252,6 +252,15 @@ test("creates the closed public checkout evidence run", async ({ page }) => {
     });
   }
 
+  async function submitWhenHydrated(buttonName: string | RegExp, marker: () => Promise<void>) {
+    // A submit click before hydration is a no-op; retry the click until the
+    // expected client-side marker proves the submit actually ran.
+    await expect(async () => {
+      await page.getByRole("button", { name: buttonName }).click();
+      await marker();
+    }).toPass({ timeout: 30_000, intervals: [1_000, 2_000, 5_000] });
+  }
+
   // ---- merchant provisioning and direct fixture seeding ----
   await signIn(page, adminUsername!, adminPassword!, "/admin");
   await page.goto(`${baseUrl}/admin/accounts`);
@@ -345,6 +354,10 @@ test("creates the closed public checkout evidence run", async ({ page }) => {
 
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto(`${baseUrl}/pay/${links.main.identifier}`);
+  // Prove hydration through the controlled input before relying on onSubmit.
+  await page.getByLabel("Nome").fill("hidratação");
+  await expect(page.getByLabel("Nome")).toHaveValue("hidratação");
+  await page.getByLabel("Nome").fill("");
   await page.getByRole("button", { name: "Continuar para o pagamento" }).click();
   await expect(page.getByText("Preencha este campo obrigatório antes de continuar.").first()).toBeVisible();
   const validationErrors = await page.getByText("Preencha este campo obrigatório antes de continuar.").count();
@@ -393,8 +406,9 @@ test("creates the closed public checkout evidence run", async ({ page }) => {
   await page.context().grantPermissions(["clipboard-read", "clipboard-write"], { origin: baseUrl });
   await rewriteRetryKey(seededAttempts.qr.attempt.retryKey, true);
   await page.goto(`${baseUrl}/pay/${links.main.identifier}`);
-  await page.getByRole("button", { name: "Continue to payment" }).click();
-  await expect(page.locator("img.checkout-qr")).toBeVisible();
+  await submitWhenHydrated("Continue to payment", async () => {
+    await expect(page.locator("img.checkout-qr")).toBeVisible({ timeout: 2_000 });
+  });
   await expect(page.getByLabel("PIX copy and paste code")).toBeVisible();
   await page.getByRole("button", { name: "Copy PIX code" }).click();
   await expect(page.getByText("PIX code copied.")).toBeVisible();
@@ -418,15 +432,17 @@ test("creates the closed public checkout evidence run", async ({ page }) => {
 
   await rewriteRetryKey(seededAttempts.waiting.attempt.retryKey, true);
   await page.goto(`${baseUrl}/pay/${links.main.identifier}`);
-  await page.getByRole("button", { name: "Continue to payment" }).click();
-  await expect(page.getByText("Payment details are still being prepared.")).toBeVisible();
+  await submitWhenHydrated("Continue to payment", async () => {
+    await expect(page.getByText("Payment details are still being prepared.")).toBeVisible({ timeout: 2_000 });
+  });
   assertions.push({ state: "waiting-payment-data", shown: true });
   await captureState("state-en-waiting-payment-data-1440");
 
   await rewriteRetryKey(seededAttempts.rejected.attempt.retryKey, true);
   await page.goto(`${baseUrl}/pay/${links.fixed.identifier}`);
-  await page.getByRole("button", { name: "Continue to payment" }).click();
-  await expect(page.getByText("Payment rejected")).toBeVisible({ timeout: 30_000 });
+  await submitWhenHydrated("Continue to payment", async () => {
+    await expect(page.getByText("Payment rejected")).toBeVisible({ timeout: 5_000 });
+  });
   const rejectedBadgeVariant = await page.locator('[data-slot="badge"]', { hasText: "Payment rejected" }).getAttribute("class");
   expect(rejectedBadgeVariant).toContain("destructive");
   assertions.push({ state: "terminal-rejected", destructive: true });
@@ -434,8 +450,9 @@ test("creates the closed public checkout evidence run", async ({ page }) => {
 
   await rewriteRetryKey(seededAttempts.expired.attempt.retryKey, true);
   await page.goto(`${baseUrl}/pay/${links.main.identifier}`);
-  await page.getByRole("button", { name: "Continue to payment" }).click();
-  await expect(page.getByText("This payment link is unavailable")).toBeVisible();
+  await submitWhenHydrated("Continue to payment", async () => {
+    await expect(page.getByText("This payment link is unavailable")).toBeVisible({ timeout: 2_000 });
+  });
   assertions.push({ state: "expired-capability", opaque: true });
   await captureState("state-en-capability-unavailable-1440");
   await rewriteRetryKey("", false);
