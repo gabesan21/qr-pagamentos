@@ -291,12 +291,12 @@ test("creates the closed public checkout evidence run", async ({ page }) => {
 
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto(`${baseUrl}/pay/${identifier()}`);
-  await expect(page.getByText("Este link de pagamento está indisponível")).toBeVisible();
+  await expect(page.getByText("Este link de pagamento está indisponível").first()).toBeVisible();
   assertions.push({ state: "unavailable-unknown", opaque: true });
   await captureState("state-pt-BR-unavailable-1440");
 
   await page.goto(`${baseUrl}/pay/${links.consumed.identifier}`);
-  await expect(page.getByText("Este link de pagamento está indisponível")).toBeVisible();
+  await expect(page.getByText("Este link de pagamento está indisponível").first()).toBeVisible();
   await expect(page.getByText("Cota do clube")).toHaveCount(0);
   assertions.push({ state: "unavailable-consumed-single-use", opaque: true, paidView: false });
   await captureState("state-pt-BR-consumed-single-use-1440");
