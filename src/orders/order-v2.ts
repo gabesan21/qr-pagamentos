@@ -16,10 +16,18 @@ import {
 // The source vocabulary and its link/state coherence are service-fenced: the
 // safe migration language cannot express a droppable closed-set check on
 // `source` or a "present exactly when" invariant, so every write path below is
-// the only place `LINK`/`AD_HOC` rows are shaped.
-export const ORDER_V2_SOURCES = ["LINK", "AD_HOC"] as const;
+// the only place `LINK`/`AD_HOC`/`STANDALONE` rows are shaped.
+export const ORDER_V2_SOURCES = ["LINK", "AD_HOC", "STANDALONE"] as const;
 export type OrderV2Source = (typeof ORDER_V2_SOURCES)[number];
 export type OrderV2State = PaymentLinkOrderState;
+
+// STANDALONE orders carry the V1 state vocabulary, hold no link and no lines,
+// and snapshot this fixed server-side bilingual description pair — never
+// browser-supplied text.
+export const STANDALONE_ORDER_DESCRIPTION = {
+  ptBr: "Pagamento avulso",
+  en: "Standalone payment",
+} as const;
 
 export const ORDER_V2_LOCAL_OUTCOMES = ["LOCAL_FINALIZED", "LOCAL_CANCELLED"] as const;
 export type OrderV2LocalOutcome = (typeof ORDER_V2_LOCAL_OUTCOMES)[number];
@@ -113,6 +121,12 @@ function validateAmount(value: unknown): string {
   return value;
 }
 
+// Sessionless standalone checkout validates the browser-supplied amount against
+// exactly the same canonical grammar, never through Number.
+export function isCanonicalOrderAmount(value: unknown): value is string {
+  return typeof value === "string" && AMOUNT_PATTERN.test(value);
+}
+
 function validateDescription(value: unknown, field: string): string {
   if (typeof value !== "string") throw new OrderV2ValidationError(`${field} is required`);
   const trimmed = value.trim();
@@ -190,6 +204,49 @@ function customerColumns(snapshot: CustomerSnapshotV1) {
   };
 }
 
+export type StandaloneOrderRowValues = Readonly<{
+  id: string;
+  ownerId: string;
+  amount: string;
+  currencyUuid: string;
+  exchangeCurrencyUuid: string;
+  checkoutDataPolicy: CheckoutDataPolicy;
+  customer: CustomerSnapshotV1;
+  createdAt: Date;
+  updatedAt: Date;
+}>;
+
+// Server-only STANDALONE creation seam: the only place standalone rows are
+// shaped (no link, no lines, fixed bilingual description, V1 state vocabulary
+// starting at CREATED). Called inside the sessionless checkout reservation
+// transaction by src/checkout/standalone-checkout.ts — never from an owner
+// route or with browser-derived owner/currency/description values.
+export async function createStandaloneOrderRow(
+  transaction: Prisma.TransactionClient,
+  values: StandaloneOrderRowValues,
+): Promise<void> {
+  await transaction.orderV2.create({
+    data: {
+      id: values.id,
+      ownerId: values.ownerId,
+      source: "STANDALONE",
+      paymentLinkV2Id: null,
+      state: "CREATED",
+      lifecycleVersion: 0,
+      amount: values.amount,
+      currencyUuid: values.currencyUuid,
+      exchangeCurrencyUuid: values.exchangeCurrencyUuid,
+      descriptionPtBr: STANDALONE_ORDER_DESCRIPTION.ptBr,
+      descriptionEn: STANDALONE_ORDER_DESCRIPTION.en,
+      checkoutDataPolicy: values.checkoutDataPolicy,
+      ...customerColumns(values.customer),
+      settledAt: null,
+      createdAt: values.createdAt,
+      updatedAt: values.updatedAt,
+    },
+  });
+}
+
 export function createOrderV2Service(store: OrderV2Store, dependencies: Dependencies = activeDependencies) {
   return {
     // AD_HOC orders are owner-only, stateless (no `state`, no link, no attempt,
@@ -223,7 +280,8 @@ export function createOrderV2Service(store: OrderV2Store, dependencies: Dependen
     },
     // Server-only V2 settlement: the settlement map V1 and the versioned
     // reconciliation CAS rebound to V2 identities, with the atomic single-use
-    // claim recorded before CONFIRMED in the V2 claim table.
+    // claim recorded before CONFIRMED in the V2 claim table. Link-less
+    // STANDALONE orders settle through the same CAS with no claim.
     async settle(input: SettlementInputV2): Promise<SettlementResultV2> {
       const validated = validSettlementInput(input);
       return validated ? store.settle(validated, mapSettlementStatus(validated.authoritativeProviderStatus), dependencies.now()) : { kind: "no-op" };
@@ -253,8 +311,7 @@ type LockedLinkLine = Readonly<{
 type LockedSettlement = Readonly<{
   orderId: string;
   ownerId: string;
-  paymentLinkV2Id: string;
-  linkType: "SINGLE_USE" | "REUSABLE";
+  paymentLinkV2Id: string | null;
   state: OrderV2State;
   lifecycleVersion: number;
 }>;
@@ -410,23 +467,36 @@ export function createOrderV2Store(prisma: PrismaClient): OrderV2Store {
     },
     async settle(input, nextState, settledAt) {
       return prisma.$transaction(async (tx) => {
+        // Link-less STANDALONE orders take the same versioned CAS with no link
+        // join and no single-use claim; the link row (when present) is locked
+        // separately because FOR UPDATE cannot name the nullable side of an
+        // outer join.
         const rows = await tx.$queryRaw<LockedSettlement[]>`
           SELECT o."id" AS "orderId", o."owner_id" AS "ownerId", o."payment_link_v2_id" AS "paymentLinkV2Id",
-                 l."link_type" AS "linkType", o."state", o."lifecycle_version" AS "lifecycleVersion"
+                 o."state", o."lifecycle_version" AS "lifecycleVersion"
           FROM "app"."provider_order" po
           JOIN "app"."order_v2" o ON o."id" = po."order_v2_id" AND o."owner_id" = po."owner_id"
-          JOIN "app"."payment_link_v2" l ON l."id" = o."payment_link_v2_id" AND l."owner_id" = o."owner_id"
           WHERE po."id" = ${input.providerOrderId}::uuid AND po."owner_id" = ${input.ownerId}::uuid
             AND po."order_v2_id" = ${input.orderV2Id}::uuid
             AND po."provider_order_uuid" = ${input.providerOrderUuid}::uuid
             AND po."reconciliation_version" = ${input.observedProviderReconciliationVersion}
             AND po."status" = ${input.authoritativeProviderStatus}
             AND o."lifecycle_version" = ${input.observedLocalLifecycleVersion}
-          FOR UPDATE OF po, o, l
+          FOR UPDATE OF po, o
         `;
         const locked = rows[0];
         if (!locked || locked.state === nextState || !isEligibleTransition(locked.state, nextState)) return { kind: "no-op" };
-        if (nextState === "CONFIRMED" && locked.linkType === "SINGLE_USE") {
+        let linkType: "SINGLE_USE" | "REUSABLE" | null = null;
+        if (locked.paymentLinkV2Id) {
+          const links = await tx.$queryRaw<Array<{ linkType: "SINGLE_USE" | "REUSABLE" }>>`
+            SELECT l."link_type" AS "linkType"
+            FROM "app"."payment_link_v2" l
+            WHERE l."id" = ${locked.paymentLinkV2Id}::uuid AND l."owner_id" = ${locked.ownerId}::uuid
+            FOR UPDATE
+          `;
+          linkType = links[0]?.linkType ?? null;
+        }
+        if (nextState === "CONFIRMED" && locked.paymentLinkV2Id && linkType === "SINGLE_USE") {
           try {
             await tx.paymentLinkV2SingleUseSettlement.create({ data: { paymentLinkV2Id: locked.paymentLinkV2Id, ownerId: locked.ownerId, orderV2Id: locked.orderId, claimedAt: settledAt } });
           } catch (error) {

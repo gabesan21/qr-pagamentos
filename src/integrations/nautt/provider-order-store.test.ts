@@ -70,4 +70,17 @@ describe("Prisma provider order store", () => {
     await expect(store.claimForCreation({ quoteUuid, ownerId: otherOwnerId, now })).resolves.toEqual({ kind: "unavailable" });
     await expect(store.claimForCreation({ quoteUuid, ownerId, now })).resolves.toMatchObject({ kind: "claimed" });
   });
+
+  it("persists the additive V2 attach identity on claim without reusing the V1 attach column", async () => {
+    const prisma = durablePrismaFake();
+    const orderV2Id = "440e8400-e29b-41d4-a716-446655440044";
+    const providerOrder = (prisma as unknown as { providerOrder: { create: (input: unknown) => Promise<unknown> } }).providerOrder;
+    const createSpy = vi.spyOn(providerOrder, "create");
+    const store = createPrismaProviderOrderStore(prisma);
+    await store.register({ quoteUuid, ownerId, expiresAt: new Date("2026-07-18T20:05:00.000Z") });
+
+    await expect(store.claimForCreation({ quoteUuid, ownerId, now, orderV2Id })).resolves.toMatchObject({ kind: "claimed" });
+
+    expect(createSpy).toHaveBeenCalledWith({ data: expect.objectContaining({ orderV2Id, paymentLinkOrderId: undefined }) });
+  });
 });

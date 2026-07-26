@@ -43,6 +43,8 @@ function row(overrides: Partial<StoredProviderOrder> = {}): StoredProviderOrder 
     paymentMethod: "pix",
     pixCopyPaste: null,
     pixQrcodeUrl: null,
+    paymentLinkOrderId: null,
+    orderV2Id: null,
     reconciliationVersion: 1,
     ...overrides,
   };

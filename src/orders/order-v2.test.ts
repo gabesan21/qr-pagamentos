@@ -4,9 +4,13 @@ vi.mock("server-only", () => ({}));
 
 import { ForbiddenError } from "../auth/authorization";
 import {
+  ORDER_V2_SOURCES,
   OrderV2DependencyError,
   OrderV2ValidationError,
+  STANDALONE_ORDER_DESCRIPTION,
   createOrderV2Service,
+  createStandaloneOrderRow,
+  isCanonicalOrderAmount,
   totalFromLines,
   type OrderV2Store,
   type SettlementInputV2,
@@ -188,5 +192,52 @@ describe("order-v2 settlement", () => {
     const service = createOrderV2Service(store);
     expect(await service.settle(input(overrides))).toEqual({ kind: "no-op" });
     expect(store.settle).not.toHaveBeenCalled();
+  });
+});
+
+describe("order-v2 STANDALONE source", () => {
+  it("extends the service-fenced source vocabulary without touching LINK or AD_HOC", () => {
+    expect(ORDER_V2_SOURCES).toEqual(["LINK", "AD_HOC", "STANDALONE"]);
+  });
+
+  it("validates the sessionless amount with exactly the canonical product-price grammar", () => {
+    for (const accepted of ["1", "0.01", "12.5", "999999999999.999999", "0.000001"]) {
+      expect(isCanonicalOrderAmount(accepted)).toBe(true);
+    }
+    for (const rejected of ["0", "0.00", "-1", "1e5", " 12.50", "12.50 ", "10.2.5", "0.0000001", "1.", ".5", 12.5, null, undefined]) {
+      expect(isCanonicalOrderAmount(rejected)).toBe(false);
+    }
+  });
+
+  it("shapes standalone rows with no link, no lines, CREATED state, and the fixed bilingual description", async () => {
+    const create = vi.fn().mockResolvedValue({});
+    const transaction = { orderV2: { create } };
+    await createStandaloneOrderRow(transaction as never, {
+      id: ids.order,
+      ownerId: ids.owner,
+      amount: "12.5",
+      currencyUuid: ids.pair,
+      exchangeCurrencyUuid: ids.providerUuid,
+      checkoutDataPolicy: "NONE",
+      customer: blankCustomer,
+      createdAt: new Date("2026-07-26T12:00:00.000Z"),
+      updatedAt: new Date("2026-07-26T12:00:00.000Z"),
+    });
+    expect(create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        id: ids.order,
+        ownerId: ids.owner,
+        source: "STANDALONE",
+        paymentLinkV2Id: null,
+        state: "CREATED",
+        lifecycleVersion: 0,
+        amount: "12.5",
+        descriptionPtBr: STANDALONE_ORDER_DESCRIPTION.ptBr,
+        descriptionEn: STANDALONE_ORDER_DESCRIPTION.en,
+        checkoutDataPolicy: "NONE",
+        settledAt: null,
+      }),
+    });
+    expect(create.mock.calls[0]?.[0]).not.toHaveProperty("data.lines");
   });
 });

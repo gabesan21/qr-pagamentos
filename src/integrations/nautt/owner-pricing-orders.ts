@@ -2,6 +2,8 @@ import "server-only";
 
 import { getNauttCredentialService } from "../../auth/nautt-credential";
 import { getDatabaseClient } from "../../db/client";
+import type { PrismaClient } from "../../generated/prisma/client";
+import { getOrderV2Service, type SettlementInputV2 } from "../../orders/order-v2";
 
 import { isExactPositiveDecimal, isUuid } from "./decimal";
 import {
@@ -15,7 +17,7 @@ import {
   type NauttQuoteAmount,
   NauttOrderValidationError,
 } from "./pricing-orders-client";
-import { createPrismaProviderOrderStore, storedOrderView, type ProviderOrderStore } from "./provider-order-store";
+import { createPrismaProviderOrderStore, storedOrderView, type ProviderOrderStore, type StoredProviderOrder } from "./provider-order-store";
 
 export class OwnerPricingOrdersError extends Error {
   constructor() {
@@ -59,11 +61,18 @@ function isValidQuoteInput(input: OwnerQuoteInput): boolean {
   );
 }
 
+// V2 settlement wiring (9.2.1): invoked only after the authoritative
+// owner-bound GET reconciliation has persisted status/version, only for a
+// provider order attached to `orderV2Id`. Notification payloads stay
+// non-evidence; the hook reads exact persisted identities/versions.
+export type OrderV2SettlementHook = (persisted: StoredProviderOrder) => Promise<void>;
+
 export function createOwnerPricingOrdersService(
   credentialPort: OwnerNauttCredentialPort,
   adapter: PricingOrdersAdapter,
   orderStore: ProviderOrderStore,
   now: () => Date = () => new Date(),
+  settlementHook?: OrderV2SettlementHook,
 ) {
   return {
     async quote(ownerId: string, input: OwnerQuoteInput): Promise<NauttQuote> {
@@ -100,20 +109,22 @@ export function createOwnerPricingOrdersService(
       quoteReference: NauttQuoteReference,
       input: NauttOnrampOrderOptions,
       paymentLinkOrderId?: string,
+      orderV2Id?: string,
     ): Promise<NauttOrderView> {
       if (
         !isUuid(ownerId) ||
         !isPlainObject(quoteReference) ||
         !isUuid(quoteReference.quoteUuid) ||
         !isPlainObject(input) ||
-        !isValidOnrampOrderOptions(input)
+        !isValidOnrampOrderOptions(input) ||
+        (orderV2Id !== undefined && !isUuid(orderV2Id))
       ) {
         throw new OwnerPricingOrdersError();
       }
 
       let claim: Awaited<ReturnType<ProviderOrderStore["claimForCreation"]>>;
       try {
-        claim = await orderStore.claimForCreation({ quoteUuid: quoteReference.quoteUuid, ownerId, now: now(), paymentLinkOrderId });
+        claim = await orderStore.claimForCreation({ quoteUuid: quoteReference.quoteUuid, ownerId, now: now(), paymentLinkOrderId, orderV2Id });
       } catch {
         throw new OwnerPricingOrdersError();
       }
@@ -185,7 +196,8 @@ export function createOwnerPricingOrdersService(
         throw new OwnerPricingOrdersError();
       }
       if (!observed) return { kind: "ignored" };
-      await reconcileObserved(observed, credentialPort, adapter, orderStore);
+      const persisted = await reconcileObserved(observed, credentialPort, adapter, orderStore);
+      if (settlementHook) await settlementHook(persisted);
       return { kind: "processed", localOrderId: observed.id };
     },
   };
@@ -210,7 +222,7 @@ async function reconcileOne(
   }
   if (!observed?.providerOrderUuid) throw new OwnerPricingOrdersError();
 
-  return reconcileObserved(observed, credentialPort, adapter, orderStore);
+  return storedOrderView(await reconcileObserved(observed, credentialPort, adapter, orderStore));
 }
 
 async function reconcileObserved(
@@ -218,7 +230,7 @@ async function reconcileObserved(
   credentialPort: OwnerNauttCredentialPort,
   adapter: PricingOrdersAdapter,
   orderStore: ProviderOrderStore,
-): Promise<NauttOrderView> {
+): Promise<StoredProviderOrder> {
   if (!observed.providerOrderUuid) throw new OwnerPricingOrdersError();
   let apiKey: string;
   try {
@@ -229,7 +241,7 @@ async function reconcileObserved(
   try {
     const fetched = await adapter.getOrder({ apiKey, orderUuid: observed.providerOrderUuid });
     if (fetched.orderUuid !== observed.providerOrderUuid) throw new OwnerPricingOrdersError();
-    return storedOrderView(await orderStore.reconcile(observed, fetched));
+    return await orderStore.reconcile(observed, fetched);
   } catch (error) {
     if (error instanceof OwnerPricingOrdersError) throw error;
     throw new OwnerPricingOrdersError();
@@ -238,9 +250,42 @@ async function reconcileObserved(
   }
 }
 
+// The standalone/LINK V2 settle invocation: exact persisted identities and
+// versions from the authoritative reconciliation read, with the local
+// lifecycle fence read fresh immediately before the versioned CAS. A stale
+// fence is a durable no-op inside `settle`, never a retry or a second GET.
+export function createOrderV2SettlementHook(
+  db: PrismaClient,
+  settle: (input: SettlementInputV2) => Promise<unknown>,
+): OrderV2SettlementHook {
+  return async (persisted) => {
+    if (!persisted.orderV2Id || !persisted.providerOrderUuid || !persisted.status) return;
+    const fence = await db.orderV2.findFirst({
+      where: { id: persisted.orderV2Id, ownerId: persisted.ownerId },
+      select: { lifecycleVersion: true },
+    });
+    if (!fence) return;
+    await settle({
+      ownerId: persisted.ownerId,
+      orderV2Id: persisted.orderV2Id,
+      providerOrderId: persisted.id,
+      providerOrderUuid: persisted.providerOrderUuid,
+      observedProviderReconciliationVersion: persisted.reconciliationVersion,
+      observedLocalLifecycleVersion: fence.lifecycleVersion,
+      authoritativeProviderStatus: persisted.status,
+    });
+  };
+}
+
 let sharedProviderOrderStore: ProviderOrderStore | undefined;
 
 export function getOwnerPricingOrdersService() {
   sharedProviderOrderStore ??= createPrismaProviderOrderStore(getDatabaseClient());
-  return createOwnerPricingOrdersService(getNauttCredentialService(), getPricingOrdersAdapter(), sharedProviderOrderStore);
+  return createOwnerPricingOrdersService(
+    getNauttCredentialService(),
+    getPricingOrdersAdapter(),
+    sharedProviderOrderStore,
+    () => new Date(),
+    createOrderV2SettlementHook(getDatabaseClient(), (input) => getOrderV2Service().settle(input)),
+  );
 }

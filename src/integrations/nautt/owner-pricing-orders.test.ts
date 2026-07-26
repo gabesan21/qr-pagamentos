@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("server-only", () => ({}));
 
 import {
+  createOrderV2SettlementHook,
   createOwnerPricingOrdersService,
   OwnerPricingOrdersError,
 } from "./owner-pricing-orders";
@@ -11,7 +12,7 @@ import {
   NauttOrderCreationIndeterminateError,
   NauttPricingAdapterError,
 } from "./pricing-orders-client";
-import { createInMemoryProviderOrderStore, type ProviderOrderStore } from "./provider-order-store";
+import { createInMemoryProviderOrderStore, type ProviderOrderStore, type StoredProviderOrder } from "./provider-order-store";
 
 const ownerA = "110e8400-e29b-41d4-a716-446655440011";
 const ownerB = "220e8400-e29b-41d4-a716-446655440022";
@@ -392,5 +393,133 @@ describe("in-memory quote ownership store", () => {
     expect(await store.claimForCreation({ quoteUuid, ownerId: ownerB, now: T0 })).toEqual({ kind: "unavailable" });
     expect((await store.claimForCreation({ quoteUuid, ownerId: ownerA, now: T0 })).kind).toBe("claimed");
     expect(await store.claimForCreation({ quoteUuid, ownerId: ownerA, now: T0 })).toEqual({ kind: "unavailable" });
+  });
+});
+
+describe("Commerce V2 attach and settlement wiring", () => {
+  const orderV2Id = "bb0e8400-e29b-41d4-a716-446655440018";
+
+  it("attaches the V2 order identity at claim time and validates it before any claim or fetch", async () => {
+    const { fetch, service, store } = harness();
+    fetch.mockResolvedValueOnce(quoteSuccess());
+    await service.quote(ownerA, fiatQuoteInput);
+
+    await expect(service.createOrder(ownerA, { quoteUuid }, {}, undefined, "not-a-uuid")).rejects.toBeInstanceOf(OwnerPricingOrdersError);
+    expect(fetch).toHaveBeenCalledTimes(1);
+
+    fetch.mockResolvedValueOnce(orderCreated());
+    await service.createOrder(ownerA, { quoteUuid }, {}, undefined, orderV2Id);
+    const persisted = await store.findWebhookActionable(ownerA, orderUuid);
+    expect(persisted?.orderV2Id).toBe(orderV2Id);
+    expect(persisted?.paymentLinkOrderId).toBeNull();
+  });
+
+  it("invokes the settlement hook with the persisted row only after the authoritative reconciliation", async () => {
+    const fetch = vi.fn();
+    const credentials = fakeCredentialPort({ [ownerA]: keyA });
+    const store = createInMemoryProviderOrderStore();
+    const adapter = createPricingOrdersAdapter({ fetch, now: () => T0 });
+    const settlementHook = vi.fn().mockResolvedValue(undefined);
+    const service = createOwnerPricingOrdersService(credentials, adapter, store, () => T0, settlementHook);
+    fetch.mockResolvedValueOnce(quoteSuccess());
+    const quote = await service.quote(ownerA, fiatQuoteInput);
+    fetch.mockResolvedValueOnce(orderCreated());
+    await service.createOrder(ownerA, { quoteUuid: quote.quoteUuid }, {}, undefined, orderV2Id);
+    fetch.mockResolvedValueOnce(orderRetrieved());
+
+    await expect(service.reconcileWebhookOrder(ownerA, orderUuid)).resolves.toEqual({ kind: "processed", localOrderId: expect.any(String) });
+
+    expect(settlementHook).toHaveBeenCalledTimes(1);
+    expect(settlementHook).toHaveBeenCalledWith(expect.objectContaining({
+      ownerId: ownerA,
+      orderV2Id,
+      providerOrderUuid: orderUuid,
+      creationState: "CREATED",
+      status: "new",
+      reconciliationVersion: 2,
+    }));
+  });
+
+  it("never invokes the settlement hook for an unknown or final webhook order", async () => {
+    const fetch = vi.fn();
+    const credentials = fakeCredentialPort({ [ownerA]: keyA });
+    const store = createInMemoryProviderOrderStore();
+    const adapter = createPricingOrdersAdapter({ fetch, now: () => T0 });
+    const settlementHook = vi.fn().mockResolvedValue(undefined);
+    const service = createOwnerPricingOrdersService(credentials, adapter, store, () => T0, settlementHook);
+
+    await expect(service.reconcileWebhookOrder(ownerA, orderUuid)).resolves.toEqual({ kind: "ignored" });
+    expect(settlementHook).not.toHaveBeenCalled();
+    expect(fetch).not.toHaveBeenCalled();
+  });
+});
+
+describe("order V2 settlement hook", () => {
+  const orderV2Id = "bb0e8400-e29b-41d4-a716-446655440018";
+  const localOrderId = "cc0e8400-e29b-41d4-a716-446655440019";
+  function persisted(overrides: Partial<StoredProviderOrder> = {}): StoredProviderOrder {
+    return {
+      id: localOrderId,
+      ownerId: ownerA,
+      quoteUuid,
+      providerOrderUuid: orderUuid,
+      creationState: "CREATED",
+      status: "finished",
+      fiatAmount: "1000.00",
+      cryptoAmount: "196.07",
+      nauttQuote: "5.10",
+      providerExpiresAt: new Date("2026-07-18T21:00:00.000Z"),
+      paymentMethod: "pix",
+      pixCopyPaste: null,
+      pixQrcodeUrl: null,
+      paymentLinkOrderId: null,
+      orderV2Id,
+      reconciliationVersion: 4,
+      ...overrides,
+    };
+  }
+
+  it("settles with exact persisted identities and the fresh local lifecycle fence", async () => {
+    const findFirst = vi.fn().mockResolvedValue({ lifecycleVersion: 7 });
+    const settle = vi.fn().mockResolvedValue({ kind: "settled", state: "CONFIRMED" });
+    const hook = createOrderV2SettlementHook({ orderV2: { findFirst } } as never, settle);
+
+    await hook(persisted());
+
+    expect(findFirst).toHaveBeenCalledWith({ where: { id: orderV2Id, ownerId: ownerA }, select: { lifecycleVersion: true } });
+    expect(settle).toHaveBeenCalledWith({
+      ownerId: ownerA,
+      orderV2Id,
+      providerOrderId: localOrderId,
+      providerOrderUuid: orderUuid,
+      observedProviderReconciliationVersion: 4,
+      observedLocalLifecycleVersion: 7,
+      authoritativeProviderStatus: "finished",
+    });
+  });
+
+  it.each([
+    ["no V2 attach", { orderV2Id: null }],
+    ["unknown provider UUID", { providerOrderUuid: null }],
+    ["missing authoritative status", { status: null }],
+  ])("performs no read or settle when the row has %s", async (_label, overrides) => {
+    const findFirst = vi.fn();
+    const settle = vi.fn();
+    const hook = createOrderV2SettlementHook({ orderV2: { findFirst } } as never, settle);
+
+    await hook(persisted(overrides));
+
+    expect(findFirst).not.toHaveBeenCalled();
+    expect(settle).not.toHaveBeenCalled();
+  });
+
+  it("performs no settle when the local fence vanished", async () => {
+    const findFirst = vi.fn().mockResolvedValue(null);
+    const settle = vi.fn();
+    const hook = createOrderV2SettlementHook({ orderV2: { findFirst } } as never, settle);
+
+    await hook(persisted());
+
+    expect(settle).not.toHaveBeenCalled();
   });
 });

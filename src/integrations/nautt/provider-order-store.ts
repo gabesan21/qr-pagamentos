@@ -24,10 +24,15 @@ export type StoredProviderOrder = {
   readonly paymentMethod: string | null;
   readonly pixCopyPaste: string | null;
   readonly pixQrcodeUrl: string | null;
+  readonly paymentLinkOrderId: string | null;
+  readonly orderV2Id: string | null;
   readonly reconciliationVersion: number;
 };
 
 export interface ProviderOrderStore extends QuoteOwnershipStore {
+  // Additive Commerce V2 attach: `orderV2Id` binds the provider order to a V2
+  // order identity and is never reused through `paymentLinkOrderId`.
+  claimForCreation(input: { quoteUuid: string; ownerId: string; now: Date; paymentLinkOrderId?: string; orderV2Id?: string }): Promise<QuoteClaimResult>;
   releasePreDispatch(attempt: ClaimedOrderAttempt): Promise<void>;
   markIndeterminate(attempt: ClaimedOrderAttempt, providerOrderUuid?: string): Promise<void>;
   completeCreation(attempt: ClaimedOrderAttempt, order: NauttOrderView): Promise<StoredProviderOrder>;
@@ -66,14 +71,14 @@ export function createPrismaProviderOrderStore(prisma: PrismaClient): ProviderOr
       }
     },
 
-    async claimForCreation({ quoteUuid, ownerId, now, paymentLinkOrderId }): Promise<QuoteClaimResult> {
+    async claimForCreation({ quoteUuid, ownerId, now, paymentLinkOrderId, orderV2Id }): Promise<QuoteClaimResult> {
       return prisma.$transaction(async (tx) => {
         const claimed = await tx.providerQuote.updateMany({
           where: { quoteUuid, ownerId, claimedAt: null, expiresAt: { gt: now }, order: null },
           data: { claimedAt: now },
         });
         if (claimed.count !== 1) return { kind: "unavailable" };
-        const attempt = await tx.providerOrder.create({ data: { quoteUuid, ownerId, paymentLinkOrderId } });
+        const attempt = await tx.providerOrder.create({ data: { quoteUuid, ownerId, paymentLinkOrderId, orderV2Id } });
         return { kind: "claimed", attempt: { id: attempt.id, ownerId, quoteUuid } };
       });
     },
@@ -189,7 +194,7 @@ export function createInMemoryProviderOrderStore(): ProviderOrderStore {
       quotes.set(quoteUuid, { ownerId, expiresAt, claimedAt: null });
       return Promise.resolve(true);
     },
-    claimForCreation({ quoteUuid, ownerId, now }) {
+    claimForCreation({ quoteUuid, ownerId, now, paymentLinkOrderId, orderV2Id }) {
       const quote = quotes.get(quoteUuid);
       if (!quote || quote.ownerId !== ownerId || quote.claimedAt || quote.expiresAt <= now) {
         return Promise.resolve({ kind: "unavailable" });
@@ -208,6 +213,8 @@ export function createInMemoryProviderOrderStore(): ProviderOrderStore {
         paymentMethod: null,
         pixCopyPaste: null,
         pixQrcodeUrl: null,
+        paymentLinkOrderId: paymentLinkOrderId ?? null,
+        orderV2Id: orderV2Id ?? null,
         reconciliationVersion: 0,
       });
       return Promise.resolve({ kind: "claimed", attempt });
