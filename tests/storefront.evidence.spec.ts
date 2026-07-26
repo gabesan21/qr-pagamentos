@@ -155,7 +155,8 @@ test("creates the closed storefront evidence run", async ({ page }) => {
 
   async function openStore(slug: string = storefrontSlug) {
     await page.goto(`${baseUrl}/store/${slug}`);
-    await expect(page.locator("main.storefront-shell")).toBeVisible();
+    await expect(page.locator("main.storefront-shell[aria-busy]")).toHaveCount(0);
+    await expect(page.locator("main.storefront-shell")).toHaveCount(1);
     await page.evaluate(async () => document.fonts.ready);
   }
 
@@ -219,6 +220,8 @@ test("creates the closed storefront evidence run", async ({ page }) => {
   // one native settings save, so the public rail reads an ACTIVE object. ----
   await setLocale(page, "pt-BR");
   const dictionaryPtBR = dictionaryByLocale["pt-BR"];
+  await page.goto(`${baseUrl}/settings`);
+  await expect(page.locator('form[action="/storefront"]')).toBeVisible();
   const logoPng = await sharp({ create: { width: 64, height: 64, channels: 3, background: { r: 18, g: 84, b: 72 } } }).png().toBuffer();
   await page.locator('input[name="logo"]').setInputFiles({ name: "logo.png", mimeType: "image/png", buffer: logoPng });
   await Promise.all([

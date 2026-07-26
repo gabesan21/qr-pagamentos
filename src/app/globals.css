@@ -1239,7 +1239,7 @@ p { text-wrap: pretty; }
 .checkout-qr { border: var(--focus-width) solid var(--border-subtle); border-radius: var(--radius-control); max-width: 100%; }
 .checkout-privacy { color: var(--text-secondary); margin: 0; max-width: var(--layout-max); }
 .storefront-shell { display: grid; gap: var(--space-8); max-width: var(--layout-max); }
-.storefront-shell:not(.storefront-shell--unavailable) { --storefront-action: var(--storefront-accent, var(--action-primary)); }
+.storefront-shell:not(.storefront-shell--unavailable) { --storefront-action: var(--storefront-accent, var(--action-primary)); background: var(--surface-page); box-shadow: 0 0 0 100vmax var(--surface-page); clip-path: inset(0 -100vmax); color: var(--text-primary); min-block-size: 100svh; }
 .storefront-rail { border-block-color: var(--storefront-action); }
 .storefront-heading { overflow-wrap: anywhere; }
 .storefront-introduction { color: var(--text-secondary); margin: 0; max-width: var(--layout-max); }
