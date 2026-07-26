@@ -22,8 +22,8 @@ Components consume semantic custom properties exclusively; `pnpm tokens:check`
 and token lint reject projection drift and raw authored visual values. Each
 theme block is projected twice from the same resolution: the page-level
 `:root[data-theme="…"]` selector and the scoped `[data-theme-preview="…"]`
-selector, which recolors one container (the storefront settings preview)
-without changing the page theme. Custom-property aliases resolve where they
+selector, which recolors one container (the storefront settings preview and
+the public sessionless storefront) without changing the page theme. Custom-property aliases resolve where they
 are declared, so each scoped block also re-declares the color alias layers
 (semantic and Tailwind `@theme` color maps) to recolor owned primitives inside
 the preview; a contract test pins that alias layer to the `globals.css`
@@ -264,15 +264,36 @@ page-specific visual primitive or token. QR images carry alternative text and
 copy/status feedback is announced politely.
 
 The sessionless `/store/[slug]` storefront follows the same PIX-ledger rail and
-uses the existing `Card`, `Alert`, `Button`, and `Skeleton` primitives. Its
-applicable states are available products, loading skeleton, enabled-but-empty,
-opaque unavailable/error, and visible hover/focus on the checkout action;
-there is no disabled storefront action. The page may declare only the validated
-`--storefront-accent` custom property at its root. Scoped CSS uses
+uses the existing `Card`, `Alert`, `Button`, `Input`, `Table`, and `Skeleton`
+primitives. The page scopes the resolved owner theme with
+`data-theme-preview` on `<main>` and declares only the validated
+`--storefront-accent` custom property at its root; scoped CSS uses
 `--action-primary` as the fallback, and `scripts/check-design-tokens.mjs`
 accepts that exact declaration only in this route and the matching declaration
 only in the settings `storefront-preview.tsx` preview container; no other
-inline style or raw visual value is allowed.
+inline style or raw visual value is allowed. The header rail renders the
+merchant logo through `/media/[identifier]` with a localized alt, or the
+official merchant-fallback lockup while no logo exists. The grouped redacted
+catalog is the single browsing surface: the standalone custom-amount item
+comes first when standalone payments are on (labelled by the store-default
+currency code when one is stored, with inline local validation), followed by
+the localized category groups with one uncategorized group last. The `boxed`
+layout composes product `Card`s with optional media images; the `table`
+layout composes ruled `Table` rows. Each product owns a quantity stepper
+(decrease/increase `Button`s plus a numeric `Input`, all at least 44 pixels,
+keyboard reachable, disabled at the 0 and 9,999 bounds). One focused client
+boundary owns the slug-scoped versioned browser-local cart: the ruled cart
+section renders an explicit empty state, populated lines with exact-decimal
+line totals and per-currency grouped totals that are never summed across
+currencies (a null-code group renders without a code label), and exactly one
+status `Alert` when hydration-time reconciliation dropped or clamped stale
+entries. The cart carries no checkout control at all. Its applicable states
+are loading skeletons (catalog plus cart cards), enabled-but-empty (no groups
+and standalone off — the standalone item alone is a non-empty store), opaque
+unavailable, one opaque error with a retry action, cart
+empty/populated/recovered, and visible hover/focus from the owned
+primitives; names wrap anywhere and amounts use tabular figures at 320 CSS
+pixels.
 
 The authenticated `/orders` workspace composes the keyset-paginated Commerce V2
 order directory above the byte-frozen V1 ledger section, reusing the
@@ -379,6 +400,21 @@ fields, immediate busy/disabled feedback, keyboard traversal in control order,
 and a successful unchanged save after the stored currency's mapping is
 deactivated. The review is bound to the current manifest and accepts no
 unresolved severity 2 or greater finding.
+
+`pnpm storefront:evidence` and `pnpm storefront:evidence:verify` bind 55
+public storefront captures: the populated boxed storefront across six themes,
+both locales, and widths 375/768/1440 (36), plus nineteen localized state
+captures covering the table layout, cart add/quantity/reload-persistence/
+stale-recovery, standalone payments off, the logo and the official fallback,
+the empty store, the opaque unavailable store, and 320-pixel reflow. The run
+seeds the catalog fixture (registry pair, categories, products, storefront
+settings) directly in the disposable database, publishes a real logo through
+the existing staging route and one native settings save, drives the real
+browser cart with exact-decimal totals, and proves the scoped theme
+attribute, 44-pixel stepper targets, the single recovered-cart notice, and
+the same axe, overflow, target, and focus gates as the other evidence
+surfaces; the review is manifest-hash-bound and accepts no unresolved
+severity 2 or greater finding.
 
 `pnpm catalog:evidence` and `pnpm catalog:evidence:verify` bind 49 merchant
 catalog captures: the products directory across six themes, both locales, and
