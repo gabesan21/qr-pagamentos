@@ -79,7 +79,7 @@ function seedSql() {
      SELECT '${randomUUID()}', '${orders.cancelled}', u.id, 'LOCAL_CANCELLED', 'Chargeback manual', u.id, '${at(35)}'
      FROM app."user" u WHERE u.username = '${keptUsername}'`,
     // Orders owned by the merchant that is soft-deleted mid-run.
-    `INSERT INTO app.order_v2 (id, owner_id, source, payment_link_v2_id, state, lifecycle_version, amount, currency_uuid, exchange_currency_uuid, checkout_data_policy, name, email, settled_at, created_at, updated_at)
+    `INSERT INTO app.order_v2 (id, owner_id, source, payment_link_v2_id, state, lifecycle_version, amount, currency_uuid, exchange_currency_uuid, checkout_data_policy, email, settled_at, created_at, updated_at)
      SELECT '${orders.goneMain}', u.id, 'LINK', '${link.id}', 'CONFIRMED', 1, '12.75', '${pair.currency}', '${pair.exchange}', 'EMAIL', 'bianca@example.com', '${at(22)}', '${at(25)}', '${at(22)}'
      FROM app."user" u WHERE u.username = '${goneUsername}'`,
     `INSERT INTO app.order_v2 (id, owner_id, source, state, lifecycle_version, amount, currency_uuid, exchange_currency_uuid, description_pt_br, description_en, checkout_data_policy, created_at, updated_at)
