@@ -268,9 +268,14 @@ test("creates the closed administrator orders evidence run", async ({ page }) =>
   // ---- soft-delete the second merchant through the delivered route ----
   const goneId = userId(goneUsername);
   expect(goneId).toMatch(/^[0-9a-f-]{36}$/);
-  const deleted = await page.request.post(`${baseUrl}/admin/users/${goneId}/delete`, { headers: { Origin: baseUrl } });
-  expect(deleted.status()).toBe(200);
-  expect(deleted.url()).toContain("/admin?success=deleted");
+  // The browser's own fetch carries the session cookie and same-origin
+  // headers (the API request context does not share them here).
+  const deleted = await page.evaluate(async (url) => {
+    const response = await fetch(url, { method: "POST" });
+    return { status: response.status, url: response.url };
+  }, `${baseUrl}/admin/users/${goneId}/delete`);
+  expect(deleted.status).toBe(200);
+  expect(deleted.url).toContain("/admin?success=deleted");
   assertions.push({ state: "soft-delete", outcome: "deleted" });
 
   await page.goto(`${baseUrl}/admin/orders`);
