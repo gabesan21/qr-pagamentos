@@ -24,6 +24,7 @@ model User {
   email           String?             @unique(map: "user_email_key") @db.VarChar(254)
   role            String              @db.VarChar(5)
   status          String              @default("ACTIVE") @db.VarChar(8)
+  deletedAt       DateTime?           @map("deleted_at") @db.Timestamptz(3)
   preferredLocale String?             @map("preferred_locale") @db.VarChar(5)
   profileVersion  Int                 @default(0) @map("profile_version") @db.Integer
   checkoutDataPolicy String            @default("NONE") @map("checkout_data_policy") @db.VarChar(22)
@@ -57,8 +58,20 @@ model User {
   webhookDeliveries WebhookDelivery[]
   mediaObjects       MediaObject[]
   sessions          Session[]
+  userDeletions     UserDeletion[]
 
   @@map("user")
+  @@schema("app")
+}
+
+model UserDeletion {
+  id        String   @id @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  actorId   String   @map("actor_id") @db.Uuid
+  createdAt DateTime @map("created_at") @db.Timestamptz(3)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@map("user_deletion")
   @@schema("app")
 }
 
