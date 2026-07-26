@@ -269,7 +269,8 @@ primitives. The page scopes the resolved owner theme with
 `data-theme-preview` on `<main>` and declares only the validated
 `--storefront-accent` custom property at its root; scoped CSS uses
 `--action-primary` as the fallback, and `scripts/check-design-tokens.mjs`
-accepts that exact declaration only in this route and the matching declaration
+accepts that exact declaration only in this route and the `/store/[slug]/pay`
+route, and the matching declaration
 only in the settings `storefront-preview.tsx` preview container; no other
 inline style or raw visual value is allowed. The header rail renders the
 merchant logo through `/media/[identifier]` with a localized alt, or the
@@ -300,6 +301,28 @@ unavailable, one opaque error with a retry action, cart
 empty/populated/recovered, and visible hover/focus from the owned
 primitives; names wrap anywhere and amounts use tabular figures at 320 CSS
 pixels.
+
+The sessionless `/store/[slug]/pay` standalone payment page (9.2.2) reuses the
+storefront's exact theme and branding treatment — `data-theme-preview` on
+`<main>`, the validated `--storefront-accent` declaration (the token-check
+whitelist extends by exactly this route), the logo rail or official
+merchant-fallback lockup — and composes the V1 checkout inventory (`Card`,
+`Field`/`Input`, `NativeSelect`, `Alert`, `Badge`, `Separator`, `Button`,
+`Spinner`, `Skeleton`) with no page-specific primitive or token. The amount
+field leads the policy-exact customer form, labelled by the store-default
+currency code when one is stored; amounts render as canonical decimal strings
+with tabular figures, never money math. The custom-amount storefront item owns
+one pay action linking here with the draft amount as prefill only. Its states
+are the loading skeleton, the one opaque unavailable view (unknown/disabled
+slug, standalone off, submit or poll `404`, expired capability — unscoped,
+with the return-to-store link as the only affordance), one opaque error with a
+render retry, amount empty/invalid with an inline `FieldError`, the five
+policy variants from `NONE` to `NAME_EMAIL_CPF_ADDRESS`, submitting
+(`Spinner`, `aria-busy`, disabled), the waiting treatment for
+`RESERVED`/`CREATING`/`CREATED` and data-less non-terminal polls, QR plus
+copy with polite success/error feedback, the polling status error with manual
+retry, and the terminal views — `CONFIRMED` as a secondary badge, the failure
+vocabulary as a destructive badge — each keeping the return link.
 
 The authenticated `/orders` workspace composes the keyset-paginated Commerce V2
 order directory above the byte-frozen V1 ledger section, reusing the
@@ -426,7 +449,23 @@ the same axe, overflow, target, and focus gates as the other evidence
 surfaces; the review is manifest-hash-bound and accepts no unresolved
 severity 2 or greater finding.
 
-`pnpm catalog:evidence` and `pnpm catalog:evidence:verify` bind 49 merchant
+`pnpm standalone-payment:evidence` and `pnpm standalone-payment:evidence:verify`
+bind 67 standalone payment captures: the payment form across six themes, both
+locales, and widths 375/768/1440 (36), plus thirty-one localized state
+captures covering the prefill-only amount, inline amount validation, the four
+policy variants, the waiting treatment, the QR and copy-paste code, copy
+feedback, the polling status error with manual retry, the CONFIRMED and
+destructive terminal views, the expired-capability opaque unavailable, the
+opaque submit failure, the unknown-slug and standalone-off unavailable pages,
+and 320-pixel reflow. The run seeds the storefront fixture and the standalone
+attempt/order/provider rows directly in the disposable database, computes the
+capability HMAC from its own known disposable `NAUTT_ENCRYPTION_KEY` so
+polling exercises the real capability verification path with zero provider
+calls (live submit → dispatch stays covered by 9.2.1's route tests), and
+proves the scoped theme attribute, the policy-exact fields, the return link
+on waiting/failure/terminal views, and the same axe, overflow, target, and
+focus gates as the other evidence surfaces; the review is manifest-hash-bound
+and accepts no unresolved severity 2 or greater finding.
 catalog captures: the products directory across six themes, both locales, and
 widths 375/768/1440 (36), plus thirteen localized state captures covering the
 empty directories, the disabled currency-unmapped select, the staged upload
