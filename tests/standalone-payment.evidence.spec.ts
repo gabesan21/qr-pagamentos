@@ -97,7 +97,7 @@ function seedAttempt(options: { state: string }) {
     `INSERT INTO app.provider_quote (quote_uuid, owner_id, expires_at, created_at)
      SELECT '${quoteUuid}', u.id, '${CAPABILITY_EXPIRES_AT}', '${at}' FROM app."user" u WHERE u.username = '${merchantUsername}'`,
     `INSERT INTO app.provider_order (owner_id, quote_uuid, provider_order_uuid, creation_state, status, fiat_amount, crypto_amount, nautt_quote, provider_expires_at, payment_method, pix_copy_paste, pix_qrcode_url, order_v2_id, created_at, updated_at)
-     SELECT u.id, '${quoteUuid}', '${randomUUID()}', 'CREATED', 'PENDING', '25', '0.001', '{}', '${CAPABILITY_EXPIRES_AT}', 'PIX', 'pix-copy-paste-evidence-code', '${baseUrl}/file.svg', '${orderId}', '${at}', '${at}'
+     SELECT u.id, '${quoteUuid}', '${randomUUID()}', 'CREATED', 'PENDING', '25', '0.001', '25', '${CAPABILITY_EXPIRES_AT}', 'PIX', 'pix-copy-paste-evidence-code', '${baseUrl}/file.svg', '${orderId}', '${at}', '${at}'
      FROM app."user" u WHERE u.username = '${merchantUsername}'`,
   ].join(";\n") + ";\n";
   return { sql, bearer, attemptId, orderId };
