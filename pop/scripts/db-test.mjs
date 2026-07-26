@@ -290,6 +290,21 @@ try {
   assert(storefrontCartCheckout.includes("3 passed"), "Storefront cart checkout database scenarios did not all pass");
   console.log("PASS storefront-cart-checkout-database");
 
+  const administrationEnv = {
+    ...process.env,
+    DATABASE_URL: runtimeUrl,
+    ADMINISTRATION_DATABASE_ADMIN_URL: adminUrl,
+    ADMINISTRATION_DATABASE_TEST: "1",
+  };
+  delete administrationEnv.MIGRATION_DATABASE_URL;
+  const administration = run(
+    "pnpm",
+    ["exec", "vitest", "run", "src/auth/administration.database.test.ts"],
+    { env: administrationEnv },
+  );
+  assert(administration.includes("2 passed"), "Administration locked-mutation database scenarios did not all pass");
+  console.log("PASS administration-database-locked-mutations");
+
   const runtime = new Client({ connectionString: runtimeUrl });
   await runtime.connect();
   const columns = await runtime.query(`
