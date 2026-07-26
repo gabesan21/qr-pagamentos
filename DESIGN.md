@@ -466,6 +466,8 @@ proves the scoped theme attribute, the policy-exact fields, the return link
 on waiting/failure/terminal views, and the same axe, overflow, target, and
 focus gates as the other evidence surfaces; the review is manifest-hash-bound
 and accepts no unresolved severity 2 or greater finding.
+
+`pnpm catalog:evidence` and `pnpm catalog:evidence:verify` bind 49 merchant
 catalog captures: the products directory across six themes, both locales, and
 widths 375/768/1440 (36), plus thirteen localized state captures covering the
 empty directories, the disabled currency-unmapped select, the staged upload
