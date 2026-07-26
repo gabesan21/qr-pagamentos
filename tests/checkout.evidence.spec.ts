@@ -302,16 +302,18 @@ test("creates the closed public checkout evidence run", async ({ page }) => {
   await captureState("state-pt-BR-consumed-single-use-1440");
 
   // ---- branding through the real storefront settings workspace ----
+  // The upload is a separate navigating form, so it runs before the field
+  // fills; the reload would otherwise discard them.
   await page.goto(`${baseUrl}/settings`);
-  await page.locator("#storefront-display-name-pt-br").fill("Café da Ana");
-  await page.locator("#storefront-display-name-en").fill("Ana's Coffee");
-  await page.locator("#storefront-accent-color").fill("#125448");
   const logoPng = await sharp({ create: { width: 64, height: 64, channels: 3, background: { r: 18, g: 84, b: 72 } } }).png().toBuffer();
   await page.locator('input[name="logo"]').setInputFiles({ name: "logo.png", mimeType: "image/png", buffer: logoPng });
   await Promise.all([
     page.waitForURL(/storefront-logo=staged&logo=[A-Za-z0-9_-]{43}$/),
     page.locator('button[form="storefront-logo-upload"]').click(),
   ]);
+  await page.locator("#storefront-display-name-pt-br").fill("Café da Ana");
+  await page.locator("#storefront-display-name-en").fill("Ana's Coffee");
+  await page.locator("#storefront-accent-color").fill("#125448");
   await Promise.all([
     page.waitForURL(/storefront=changed$/),
     page.getByRole("button", { name: /Salvar configurações da vitrine|Save storefront settings/ }).click(),
