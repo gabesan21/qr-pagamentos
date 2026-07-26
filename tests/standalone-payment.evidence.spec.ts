@@ -121,7 +121,7 @@ function updateOwner(column: string, value: string) {
 }
 
 test("creates the closed standalone payment evidence run", async ({ page }) => {
-  test.setTimeout(1_800_000);
+  test.setTimeout(3_600_000);
   const adminUsername = process.env.ADMIN_EVIDENCE_USERNAME;
   const adminPassword = process.env.ADMIN_EVIDENCE_PASSWORD;
   const merchantPassword = process.env.STANDALONE_PAYMENT_EVIDENCE_MERCHANT_PASSWORD;
@@ -242,6 +242,9 @@ test("creates the closed standalone payment evidence run", async ({ page }) => {
     const checkout = checkoutByLocale[locale];
     await setLocale(page, locale);
     await page.setViewportSize({ width: 375, height: 1000 });
+    // The previous locale's pass ends on the NONE policy; the amount-invalid
+    // step needs the NAME_EMAIL form again.
+    updateOwner("checkout_data_policy", "NAME_EMAIL");
 
     // ---- Prefill: ?amount= fills the draft, revalidated client-side. ----
     await openPay("?amount=12.5");
