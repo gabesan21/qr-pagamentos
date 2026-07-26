@@ -366,7 +366,9 @@ test("creates the closed standalone payment evidence run", async ({ page }) => {
     // ---- Unavailable surfaces: unknown slug and standalone off share the one
     // opaque unscoped view. ----
     await page.goto(`${baseUrl}/store/unknown-evidence-pay/pay`);
-    await expect(page.locator("main")).toContainText(storefront.storefrontUnavailableHeading);
+    await expect(page.locator("main.storefront-shell[aria-busy]")).toHaveCount(0);
+    const unavailableShell = page.locator("main.storefront-shell--unavailable");
+    await expect(unavailableShell).toContainText(storefront.storefrontUnavailableHeading);
     expect(await page.locator("main[data-theme-preview]").count()).toBe(0);
     await expect(page.locator(`main a[href="/store/unknown-evidence-pay"]`)).toBeVisible();
     assertions.push({ state: `${locale}-pay-unavailable`, unavailableVisible: true, noThemeAttribute: true, returnLink: true });
