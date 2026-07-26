@@ -2,8 +2,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 
-const { allowRateLimit, read } = vi.hoisted(() => ({ allowRateLimit: vi.fn(), read: vi.fn() }));
+const { allowRateLimit, read, readV2 } = vi.hoisted(() => ({ allowRateLimit: vi.fn(), read: vi.fn(), readV2: vi.fn() }));
 vi.mock("@/checkout/payment-status", () => ({ getPublicPaymentStatusService: () => ({ read }) }));
+vi.mock("@/checkout/payment-status-v2", () => ({ getPublicPaymentStatusV2Service: () => ({ read: readV2 }) }));
 vi.mock("@/security/public-rate-limit", () => ({
   allowPublicPaymentLinkRequest: allowRateLimit,
   publicPaymentLinkRateLimitSurface: { status: "public-payment-status-poll" },
@@ -16,6 +17,7 @@ describe("POST /api/payment-links/[identifier]/checkout/status", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     allowRateLimit.mockReturnValue(true);
+    readV2.mockResolvedValue(null);
   });
 
   it("is dynamic, sessionless and returns only the closed redacted payment body", async () => {
@@ -53,5 +55,25 @@ describe("POST /api/payment-links/[identifier]/checkout/status", () => {
     expect(response.headers.get("cache-control")).toContain("no-store");
     await expect(response.text()).resolves.toBe("");
     expect(read).not.toHaveBeenCalled();
+  });
+
+  it("keeps V1 resolution first and reads the V2 branch only on a V1 miss", async () => {
+    read.mockResolvedValueOnce({ state: "CONFIRMED" });
+    const v1 = await POST(new Request("https://example.test", { method: "POST", body: JSON.stringify({ statusCapability: "v1-capability" }) }));
+    expect(v1.status).toBe(200);
+    expect(readV2).not.toHaveBeenCalled();
+
+    read.mockResolvedValueOnce(null);
+    readV2.mockResolvedValueOnce({ state: "PENDING", pixQrCodeUrl: "https://qr.example.test/opaque" });
+    const v2 = await POST(new Request("https://example.test", { method: "POST", body: JSON.stringify({ statusCapability: "v2-capability" }) }));
+    expect(v2.status).toBe(200);
+    expect(v2.headers.get("cache-control")).toContain("no-store");
+    await expect(v2.json()).resolves.toEqual({ payment: { state: "PENDING", pixQrCodeUrl: "https://qr.example.test/opaque" } });
+    expect(readV2).toHaveBeenCalledWith("v2-capability");
+
+    read.mockResolvedValueOnce(null);
+    const miss = await POST(new Request("https://example.test", { method: "POST", body: JSON.stringify({ statusCapability: "unknown-capability" }) }));
+    expect(miss.status).toBe(404);
+    await expect(miss.text()).resolves.toBe("");
   });
 });
