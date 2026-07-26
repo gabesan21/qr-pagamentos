@@ -41,6 +41,8 @@
     "profile:evidence:verify": "node scripts/verify-profile-evidence.mjs",
     "store-settings:evidence": "node scripts/run-store-settings-evidence.mjs",
     "store-settings:evidence:verify": "node scripts/verify-store-settings-evidence.mjs",
+    "storefront:evidence": "node scripts/run-storefront-evidence.mjs",
+    "storefront:evidence:verify": "node scripts/verify-storefront-evidence.mjs",
     "catalog:evidence": "node scripts/run-catalog-evidence.mjs",
     "catalog:evidence:verify": "node scripts/verify-catalog-evidence.mjs",
     "links:evidence": "node scripts/run-payment-links-evidence.mjs",

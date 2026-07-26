@@ -12,6 +12,7 @@ const token = randomUUID().replaceAll("-", "").slice(0, 12);
 const appShellMode = process.argv.includes("--app-shell");
 const profileMode = process.argv.includes("--profile");
 const storeSettingsMode = process.argv.includes("--store-settings");
+const storefrontMode = process.argv.includes("--storefront");
 const catalogMode = process.argv.includes("--catalog");
 const linksMode = process.argv.includes("--links");
 const merchantDashboardMode = process.argv.includes("--merchant-dashboard");
@@ -81,7 +82,9 @@ try {
     ? "tests/profile.evidence.spec.ts"
     : storeSettingsMode
       ? "tests/store-settings.evidence.spec.ts"
-      : catalogMode
+      : storefrontMode
+        ? "tests/storefront.evidence.spec.ts"
+        : catalogMode
         ? "tests/catalog.evidence.spec.ts"
         : appShellMode
           ? "tests/app-shell.evidence.spec.ts"
@@ -96,6 +99,8 @@ try {
       APP_SHELL_EVIDENCE_MERCHANT_PASSWORD: `Merchant-${token}-Password`,
       PROFILE_EVIDENCE_MERCHANT_PASSWORD: `Merchant-${token}-Password`,
       STORE_SETTINGS_EVIDENCE_MERCHANT_PASSWORD: `Merchant-${token}-Password`,
+      STOREFRONT_EVIDENCE_MERCHANT_PASSWORD: `Merchant-${token}-Password`,
+      STOREFRONT_EVIDENCE_COMPOSE_PROJECT: project,
       CATALOG_EVIDENCE_MERCHANT_PASSWORD: `Merchant-${token}-Password`,
       LINKS_EVIDENCE_MERCHANT_PASSWORD: `Merchant-${token}-Password`,
       LINKS_EVIDENCE_COMPOSE_PROJECT: project,
