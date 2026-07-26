@@ -249,9 +249,13 @@ test("creates the closed standalone payment evidence run", async ({ page }) => {
     assertions.push({ state: `${locale}-prefill`, prefilled: "12.5" });
     await screenshot(`interaction-${locale}-prefill`);
 
-    // ---- Amount validation: the canonical grammar rejects inline, no fetch. ----
+    // ---- Amount validation: the canonical grammar rejects inline, no fetch.
+    // The grid left the NAME_EMAIL policy, so the required customer fields are
+    // filled to pass native validation and reach the client check. ----
     await openPay();
     await page.locator("#standalone-amount").fill("abc");
+    await page.locator("#standalone-name").fill("Ana");
+    await page.locator("#standalone-email").fill("ana@example.com");
     await page.getByRole("button", { name: checkout.checkoutSubmit }).click();
     await expect(page.locator("main")).toContainText(storefront.storefrontCustomAmountInvalid);
     assertions.push({ state: `${locale}-amount-invalid`, errorVisible: true });
