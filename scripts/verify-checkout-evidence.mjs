@@ -75,7 +75,7 @@ assert(byState["product-lines-branded"]?.composition === "PRODUCT_LINES" && bySt
 assert(byState["branding-persisted"]?.storefrontEnabled === false && byState["branding-persisted"]?.accent === "#125448" && byState["branding-persisted"]?.logo === true, "Checkout evidence does not prove persisted branding with the storefront disabled.");
 assert(byState["unavailable-unknown"]?.opaque === true, "Checkout evidence does not prove the opaque unknown-identifier outcome.");
 assert(byState["unavailable-consumed-single-use"]?.opaque === true && byState["unavailable-consumed-single-use"]?.paidView === false, "Checkout evidence does not prove the consumed single-use opaque unavailable outcome without a paid view.");
-assert(byState["inline-validation"]?.errors === 2, "Checkout evidence does not prove the inline validation state.");
+assert(byState["inline-validation"]?.native === true && byState["inline-validation"]?.invalidFields === 2 && byState["inline-validation"]?.posts === 0, "Checkout evidence does not prove the native inline validation state.");
 assert(byState["submit-pending"]?.busy === true && byState["submit-pending"]?.disabled === true, "Checkout evidence does not prove the submit-pending state.");
 assert(byState["checkout-error"]?.opaque === true, "Checkout evidence does not prove the opaque checkout error state.");
 assert(byState["policies"]?.seen?.length === 5, "Checkout evidence does not prove all five policy variants.");

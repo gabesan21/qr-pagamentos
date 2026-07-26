@@ -4,7 +4,7 @@ import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
 import AxeBuilder from "@axe-core/playwright";
-import { expect, type Page, test } from "@playwright/test";
+import { expect, type Page, type Request as PlaywrightRequest, test } from "@playwright/test";
 import sharp from "sharp";
 
 const themes = [
@@ -358,11 +358,22 @@ test("creates the closed public checkout evidence run", async ({ page }) => {
   await page.getByLabel("Nome").fill("hidratação");
   await expect(page.getByLabel("Nome")).toHaveValue("hidratação");
   await page.getByLabel("Nome").fill("");
+  // Native constraint validation is the honest local-validation state (the
+  // form mirrors V1 with no noValidate): an empty submit dispatches no POST,
+  // marks both required fields :invalid, and focuses the first one.
+  const checkoutPosts: string[] = [];
+  const observeCheckoutPost = (request: PlaywrightRequest) => {
+    if (request.method() === "POST" && request.url().endsWith(`/api/payment-links/${links.main.identifier}/checkout`)) checkoutPosts.push(request.url());
+  };
+  page.on("request", observeCheckoutPost);
   await page.getByRole("button", { name: "Continuar para o pagamento" }).click();
-  await expect(page.getByText("Preencha este campo obrigatório antes de continuar.").first()).toBeVisible();
-  const validationErrors = await page.getByText("Preencha este campo obrigatório antes de continuar.").count();
-  expect(validationErrors).toBe(2);
-  assertions.push({ state: "inline-validation", errors: validationErrors });
+  await page.waitForTimeout(500);
+  page.off("request", observeCheckoutPost);
+  const nameValidation = await page.getByLabel("Nome").evaluate((element: HTMLInputElement) => ({ invalid: element.matches(":invalid"), message: element.validationMessage, focused: document.activeElement === element }));
+  const emailInvalid = await page.getByLabel("E-mail").evaluate((element: HTMLInputElement) => element.matches(":invalid"));
+  expect(checkoutPosts).toHaveLength(0);
+  expect(nameValidation.invalid && nameValidation.message.length > 0 && nameValidation.focused && emailInvalid).toBe(true);
+  assertions.push({ state: "inline-validation", native: true, invalidFields: 2, posts: 0 });
   await captureState("state-pt-BR-inline-validation-1440");
 
   await page.getByLabel("Nome").fill("Ana Evidence");
