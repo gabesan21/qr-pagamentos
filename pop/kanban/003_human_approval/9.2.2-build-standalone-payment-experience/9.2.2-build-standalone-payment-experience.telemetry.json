@@ -9,6 +9,15 @@
       "contexts": [],
       "test_seconds": 0,
       "result": "advanced"
+    },
+    {
+      "at": "2026-07-26T00:04:54-03:00",
+      "event": "transition",
+      "from": "002_planning",
+      "to": "003_human_approval",
+      "contexts": [],
+      "test_seconds": 0,
+      "result": "advanced"
     }
   ]
 }
