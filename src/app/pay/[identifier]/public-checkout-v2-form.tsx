@@ -12,7 +12,7 @@ import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/ui/spinner";
 import type { getDictionary } from "@/i18n/dictionaries";
-import { PAYMENT_LINK_ORDER_STATES, type CheckoutDataPolicy, type CustomerSnapshotV1, type PaymentLinkOrderState } from "@/orders/payment-link-order";
+import type { CheckoutDataPolicy, CustomerSnapshotV1, PaymentLinkOrderState } from "@/orders/payment-link-order";
 
 import { createPollingController } from "./public-checkout-form";
 
@@ -27,7 +27,7 @@ type Payment = Readonly<{ state: CheckoutV2PaymentState; pixCopyPaste?: string; 
 type CheckoutAttempt = Readonly<{ idempotencyKey: string; customer: CustomerSnapshotV1 }>;
 
 const ADDRESS_FIELDS: readonly FieldName[] = ["street", "number", "district", "city", "stateUf", "postalCode"];
-const PAYMENT_STATES = new Set<CheckoutV2PaymentState>(["RESERVED", "CREATING", ...PAYMENT_LINK_ORDER_STATES]);
+const PAYMENT_STATES = new Set<CheckoutV2PaymentState>(["RESERVED", "CREATING", "CREATED", "PENDING", "INDETERMINATE", "CONFIRMED", "REJECTED", "CANCELLED", "EXPIRED", "REFUNDED"]);
 const TERMINAL_STATES = new Set<CheckoutV2PaymentState>(["CONFIRMED", "REJECTED", "CANCELLED", "EXPIRED", "REFUNDED"]);
 const INITIAL_VALUES: FormValues = { name: "", email: "", cpf: "", street: "", number: "", district: "", city: "", stateUf: "", postalCode: "", complement: "" };
 const BRAZILIAN_UFS = ["AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"] as const;
