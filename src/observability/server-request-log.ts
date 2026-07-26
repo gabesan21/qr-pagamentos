@@ -37,6 +37,8 @@ export const serverRequestRoutes = {
   publicPaymentLink: "/api/payment-links/[identifier]",
   publicCheckout: "/api/payment-links/[identifier]/checkout",
   publicCheckoutStatus: "/api/payment-links/[identifier]/checkout/status",
+  standaloneCheckout: "/api/store/[slug]/checkout",
+  standaloneCheckoutStatus: "/api/store/[slug]/checkout/status",
   nauttWebhook: "/api/nautt/webhooks",
 } as const;
 
