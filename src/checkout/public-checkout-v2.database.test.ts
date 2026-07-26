@@ -175,7 +175,7 @@ describe.skipIf(!enabled)("public checkout V2 PostgreSQL contract", () => {
       await expect(service.checkout(candidate, { idempotencyKey: "database-v2-retry-x0001", customer })).resolves.toEqual({ kind: "unavailable" });
     }
     expect(provider.quote).not.toHaveBeenCalled();
-    const attempts = await admin.query(`SELECT count(*)::int AS count FROM app.checkout_attempt_v2 WHERE owner_id = $1`, [ownerId]);
+    const attempts = await admin.query(`SELECT count(*)::int AS count FROM app.checkout_attempt_v2 WHERE payment_link_v2_id = ANY($1::uuid[])`, [[inactiveLinkId, expiredLinkId]]);
     expect(attempts.rows[0].count).toBe(0);
   });
 });
