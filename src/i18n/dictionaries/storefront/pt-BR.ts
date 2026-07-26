@@ -30,6 +30,8 @@ export const storefrontPtBR = {
   storefrontCartUpdated: "Seu carrinho foi atualizado porque esta loja mudou.",
   storefrontCartRemove: "Remover",
   storefrontCartTotalLabel: "Total",
+  storefrontCartCheckout: "Ir para o pagamento",
+  storefrontCartCheckoutFailed: "Não foi possível iniciar o pagamento deste carrinho. Tente novamente.",
   storefrontErrorHeading: "Não foi possível carregar esta vitrine",
   storefrontErrorDescription: "Ocorreu um problema ao exibir esta vitrine. Tente novamente.",
   storefrontErrorRetry: "Tentar novamente",

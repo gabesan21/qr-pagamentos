@@ -3,12 +3,14 @@ import { describe, expect, it, vi } from "vitest";
 
 import { storefrontPtBR } from "@/i18n/dictionaries/storefront/pt-BR";
 
-import { StorefrontExperienceView, type StorefrontExperienceCopy } from "./storefront-experience";
+import { StorefrontExperienceView, submitStorefrontCartCheckout, type StorefrontExperienceCopy } from "./storefront-experience";
 
 const coffeeReference = "11111111-1111-4111-8111-111111111111";
 const teaReference = "22222222-2222-4222-8222-222222222222";
 
 const copy: StorefrontExperienceCopy = {
+  cartCheckout: storefrontPtBR.storefrontCartCheckout,
+  cartCheckoutFailed: storefrontPtBR.storefrontCartCheckoutFailed,
   cartEmpty: storefrontPtBR.storefrontCartEmpty,
   cartHeading: storefrontPtBR.storefrontCartHeading,
   cartRemove: storefrontPtBR.storefrontCartRemove,
@@ -65,11 +67,14 @@ function renderView(overrides: Partial<Parameters<typeof StorefrontExperienceVie
       amountDraft=""
       amountInvalid={false}
       catalog={catalog}
+      checkoutFailed={false}
+      checkoutPending={false}
       copy={copy}
       items={[]}
       layout="boxed"
       onAmountDraftChange={vi.fn()}
       onAmountSubmit={vi.fn()}
+      onCheckout={vi.fn()}
       onQuantityCommit={vi.fn()}
       onRemove={vi.fn()}
       recovered={false}
@@ -143,5 +148,73 @@ describe("storefront experience view", () => {
     expect(markup.match(/carrinho foi atualizado/g)).toHaveLength(1);
     expect(markup).toContain("Informe um valor válido maior que zero");
     expect(markup).toContain('aria-invalid="true"');
+  });
+
+  it("renders the checkout control only for a populated product-only cart", () => {
+    const productOnly = renderView({ items: [{ kind: "product", reference: coffeeReference, quantity: 2 }] });
+    expect(productOnly).toContain("Ir para o pagamento");
+    expect(productOnly.match(/Ir para o pagamento/g)).toHaveLength(1);
+
+    const withCustomAmount = renderView({
+      items: [{ kind: "custom-amount", amount: "5" }, { kind: "product", reference: coffeeReference, quantity: 2 }],
+    });
+    expect(withCustomAmount).not.toContain("Ir para o pagamento");
+
+    const empty = renderView();
+    expect(empty).not.toContain("Ir para o pagamento");
+  });
+
+  it("disables the pending checkout control and announces the opaque failure", () => {
+    const items = [{ kind: "product" as const, reference: coffeeReference, quantity: 1 }];
+    const pending = renderView({ items, checkoutPending: true });
+    expect(pending).toContain("Ir para o pagamento");
+    expect(pending).toContain("disabled");
+    expect(pending).toContain('aria-busy="true"');
+
+    const failed = renderView({ items, checkoutFailed: true });
+    expect(failed).toContain("Não foi possível iniciar o pagamento deste carrinho. Tente novamente.");
+    expect(failed.match(/Não foi possível iniciar o pagamento/g)).toHaveLength(1);
+  });
+});
+
+describe("submitStorefrontCartCheckout", () => {
+  const slug = "minha-loja";
+  const items = [
+    { kind: "product" as const, reference: coffeeReference, quantity: 2 },
+    { kind: "product" as const, reference: teaReference, quantity: 1 },
+  ];
+
+  it("posts only product identity and quantity and accepts the exact 201 contract", async () => {
+    const fetchImplementation = vi.fn(async () => new Response(JSON.stringify({ paymentLinkIdentifier: "a".repeat(24) }), { status: 201 }));
+    const outcome = await submitStorefrontCartCheckout(slug, items, fetchImplementation);
+
+    expect(outcome).toEqual({ kind: "issued", paymentLinkIdentifier: "a".repeat(24) });
+    expect(fetchImplementation).toHaveBeenCalledTimes(1);
+    const [url, init] = fetchImplementation.mock.calls[0] as unknown as [string, RequestInit];
+    expect(url).toBe(`/api/store/${slug}/cart/checkout`);
+    expect(init.method).toBe("POST");
+    expect(JSON.parse(String(init.body))).toEqual({
+      items: [
+        { reference: coffeeReference, quantity: 2 },
+        { reference: teaReference, quantity: 1 },
+      ],
+    });
+  });
+
+  it("refuses a custom-amount member or an empty cart without a request", async () => {
+    const fetchImplementation = vi.fn();
+    await expect(submitStorefrontCartCheckout(slug, [{ kind: "custom-amount", amount: "5" }, ...items], fetchImplementation)).resolves.toEqual({ kind: "failed" });
+    await expect(submitStorefrontCartCheckout(slug, [], fetchImplementation)).resolves.toEqual({ kind: "failed" });
+    expect(fetchImplementation).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["a non-201 response", async () => new Response(null, { status: 400 })],
+    ["a network failure", async () => { throw new Error("offline"); }],
+    ["an unparseable payload", async () => new Response("{", { status: 201 })],
+    ["a foreign payload key", async () => new Response(JSON.stringify({ identifier: "a".repeat(24) }), { status: 201 })],
+    ["a malformed identifier", async () => new Response(JSON.stringify({ paymentLinkIdentifier: "../admin" }), { status: 201 })],
+  ])("fails opaquely on %s", async (_label, fetchImplementation) => {
+    await expect(submitStorefrontCartCheckout(slug, items, fetchImplementation)).resolves.toEqual({ kind: "failed" });
   });
 });
