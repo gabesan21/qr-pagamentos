@@ -24,6 +24,7 @@
     "weekly-review",
     "optimize-memory",
     "yolo-critic",
+    "recon-project",
     "clean-code-change",
     "clean-code-review",
     "delegate-coding",
@@ -86,7 +87,7 @@
     "pop/kanban",
     "pop/worktrees/.gitkeep"
   ],
-  "content_sha": "0a27cfb0645ad52bd0b3630149756a18850527eca1608893712d2000e8ed10b8",
+  "content_sha": "4308c1a789d3402a792628b38d191afd4e41a255b4b2afa4fec87029ac3359c8",
   "installed": [
     ".agents/skills/advance-task/SKILL.md",
     ".agents/skills/clean-code-change/SKILL.md",
@@ -96,6 +97,7 @@
     ".agents/skills/optimize-memory/SKILL.md",
     ".agents/skills/optimize-memory/agents/openai.yaml",
     ".agents/skills/plan-roadmap/SKILL.md",
+    ".agents/skills/recon-project/SKILL.md",
     ".agents/skills/run-codex/SKILL.md",
     ".agents/skills/run-cursor-agent/SKILL.md",
     ".agents/skills/run-droid/SKILL.md",
@@ -135,6 +137,7 @@
     "pop/scripts/pop_delivery.py",
     "pop/scripts/pop_install_included.py",
     "pop/scripts/pop_move.py",
+    "pop/scripts/pop_recon.py",
     "pop/scripts/pop_roadmap.py",
     "pop/scripts/pop_status.py",
     "pop/scripts/pop_task.py",
