@@ -2,11 +2,19 @@
 """pop_move — move uma task entre estágios do kanban.
 
 Encontra a pasta da task em qualquer projeto/estágio, valida a transição
-(001→002→003→004→005→006, retornos 003→002, 004→002 e 005→004; task
-`yolo: true` não crítica transita 002→004 direto, sem rodada 003 — o 003 do
-yolo só existe para `critical: true`; `--force` libera exceções), move a
-pasta inteira, atualiza `stage:` e `updated:` no frontmatter do card e
-registra a linha no `## Log`.
+(001→002→003→004→005_closing; retornos 003→002, 004→002, 005_closing→004 e
+005_closing→002; task `yolo: true` não crítica transita 002→004 direto, sem
+rodada 003 — o 003 do yolo só existe para `critical: true`; `--force` libera
+exceções), move a pasta inteira, atualiza `stage:` e `updated:` no
+frontmatter do card e registra a linha no `## Log`.
+
+O retorno `005_closing→002` é a rota de **defeito de plano**: conta como
+devolução de plano (`yolo_003_returns`), não de execução.
+
+Todo retorno saindo de `005_closing` grava `return_kind:` no card, porque a
+devolução é incremental: o tipo dimensiona a emenda de plano, decide quais
+frentes reentram em 004 e escolhe o modo da re-revisão. `→002` exige
+`--return-kind lacuna|premissa`; `→004` assume `execucao`.
 
 Travas (sobrepostas só com `--force`): task com claim ativo de **outro**
 agente não se move (`--by` identifica quem pede, default usuario@host);
@@ -28,7 +36,14 @@ import poplib
 RETURNS = {
     ("003_human_approval", "002_planning"),
     ("004_processing", "002_planning"),
-    ("005_verifying", "004_processing"),
+    ("005_closing", "004_processing"),
+    ("005_closing", "002_planning"),
+}
+
+# Retornos que reprovam o plano, não a execução (contador `yolo_003_returns`).
+PLAN_RETURNS = {
+    ("003_human_approval", "002_planning"),
+    ("005_closing", "002_planning"),
 }
 
 
@@ -36,8 +51,8 @@ def transition_allowed(src, dst, *, yolo_single_gate=False):
     """True se dst é o próximo estágio de src ou um retorno permitido.
 
     `yolo_single_gate` (task yolo não crítica) libera o salto 002→004: o
-    gate único de qualidade do yolo é o 005 (ver seção Yolo mode do
-    WORKFLOW).
+    gate único de qualidade do yolo é o do 005_closing (ver seção Yolo mode
+    do WORKFLOW).
     """
     stages = poplib.STAGES
     if stages.index(dst) == stages.index(src) + 1:
@@ -45,6 +60,37 @@ def transition_allowed(src, dst, *, yolo_single_gate=False):
     if yolo_single_gate and (src, dst) == ("002_planning", "004_processing"):
         return True
     return (src, dst) in RETURNS
+
+
+def resolve_return_kind(src, dst, requested):
+    """Classificação a gravar em `return_kind:`, ou (None, mensagem de erro).
+
+    A devolução é incremental, então o tipo é obrigatório onde ele muda o que
+    acontece depois: `005_closing→002` decide entre emendar o plano (`lacuna`)
+    e replanejar (`premissa`), e essa escolha também define o modo da
+    re-revisão. `005_closing→004` é sempre `execucao`. Nas demais transições o
+    campo não se aplica — em `003→002` nada foi executado ainda.
+    """
+    if (src, dst) == ("005_closing", "002_planning"):
+        if requested in ("lacuna", "premissa"):
+            return requested, None
+        return None, ("CLASSIFIQUE O RETORNO: defeito de plano exige "
+                      "`--return-kind lacuna` (plano incompleto, o entregue "
+                      "está correto → emenda) ou `--return-kind premissa` "
+                      "(estratégia errada → replanejamento). Sem isso o 002 "
+                      "não sabe o tamanho da correção (use --force para "
+                      "exceções).")
+    if (src, dst) == ("005_closing", "004_processing"):
+        if requested in (None, "execucao"):
+            return "execucao", None
+        return None, (f"RETORNO INCOMPATÍVEL: `{requested}` classifica defeito "
+                      "de plano e vai para 002_planning; a rota para 004 é "
+                      "sempre `execucao` (use --force para exceções).")
+    if requested:
+        return None, (f"`--return-kind` não se aplica a {src} → {dst}: só "
+                      "retornos saindo de 005_closing são classificados "
+                      "(use --force para exceções).")
+    return None, None
 
 
 def update_card(card, new_stage, reason, fields=None):
@@ -98,6 +144,10 @@ def main():
                         help="estágio de destino")
     parser.add_argument("--reason", default="transição via pop_move",
                         help="motivo curto registrado no Log do card")
+    parser.add_argument("--return-kind", choices=poplib.RETURN_KINDS,
+                        help="classificação do retorno saindo de 005_closing: "
+                             "lacuna|premissa (→002, obrigatório) ou execucao "
+                             "(→004, default)")
     parser.add_argument("--context", action="append", default=[],
                         help="contexto de agente colhido neste estágio; repetível")
     parser.add_argument("--test-seconds", type=float, default=0,
@@ -130,9 +180,10 @@ def main():
                                yolo_single_gate=yolo_single_gate)
             and not args.force):
         print(f"Transição não permitida: {src} → {args.stage}. "
-              f"Fluxo: 001→002→003→004→005→006 (yolo não crítica: 002→004 "
-              f"direto, sem 003); retornos: 003→002, 004→002, 005→004. "
-              f"Use --force para exceções.")
+              f"Fluxo: 001→002→003→004→005_closing (yolo não crítica: "
+              f"002→004 direto, sem 003); retornos: 003→002, 004→002, "
+              f"005_closing→004 (execução) e 005_closing→002 (defeito de "
+              f"plano). Use --force para exceções.")
         return 1
 
     if card_src.is_file() and not args.force:
@@ -151,11 +202,20 @@ def main():
             return 1
 
     return_gate = None
-    if (src, args.stage) == ("003_human_approval", "002_planning"):
+    if (src, args.stage) in PLAN_RETURNS:
         return_gate = "003"
-    elif (src, args.stage) == ("005_verifying", "004_processing"):
+    elif (src, args.stage) == ("005_closing", "004_processing"):
         return_gate = "005"
+
+    return_kind, kind_error = resolve_return_kind(src, args.stage,
+                                                  args.return_kind)
+    if kind_error and not args.force:
+        print(kind_error)
+        return 1
+
     fields = {}
+    if return_kind:
+        fields["return_kind"] = return_kind
     if meta.get("yolo") is True and return_gate:
         key = f"yolo_{return_gate}_returns"
         try:
@@ -190,6 +250,7 @@ def main():
         poplib.record_telemetry(dest, {
             "event": "transition", "from": src, "to": args.stage,
             "contexts": args.context, "test_seconds": args.test_seconds,
+            "return_kind": return_kind,
             "result": "returned" if return_gate else "advanced"})
     else:
         print(f"[AVISO] card não encontrado para atualizar: {card}")

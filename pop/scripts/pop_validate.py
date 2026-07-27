@@ -2,7 +2,8 @@
 """pop_validate — valida os limites e invariantes do vault PoP.
 
 Checa: descrições do INDEX.md raiz (<=144 chars) e dos INDEX.md de categoria
-(<=600 chars); notas de harness com <=150 linhas (whitelist
+(<=600 chars); notas de harness com <=150 linhas, raiz de plano com <=80 e
+arquivo de frente em `subtasks/` com <=50 (whitelist
 positiva — só as pastas de harness, nunca o código do produto); anatomia
 `pop/` obrigatória nos projetos de `categories/` (harness na raiz da pasta —
 `kanban/` ou `.included-harness.json` fora de `pop/` — é violação, a
@@ -33,6 +34,11 @@ import pop_roadmap
 MAX_ROOT_DESC = 144
 MAX_CAT_DESC = 600
 MAX_NOTE_LINES = 150
+MAX_PLAN_LINES = 80      # raiz do plano (`<id>.plan.md`), independente de size
+MAX_FRONT_LINES = 50     # arquivo de frente em `subtasks/`: fatia de 1 executor
+MAX_PROJECT_AGENTS = 60  # AGENTS.md de projeto: ponteiro, não cópia do fluxo
+# Aplicação embute o processo DOX e só por isso excede o teto (regra 5).
+DOX_MARKER = "Processo DOX"
 EXEMPT_NAMES = {"AGENTS.md", "WORKFLOW.md", "README.md"}
 CARD_REQUIRED = ("id", "project", "stage", "created", "updated")
 ORIGIN_VALUES = ("roadmap", "modifications")
@@ -58,7 +64,7 @@ INLINE_CODE = re.compile(r"`[^`]*`")
 LINK_SKIP_PARTS = {"external-repository", ".obsidian", ".git", "worktrees",
                    "__pycache__", "node_modules", "vendor"}
 # Sufixos dos artefatos de estágio da própria task (criados só ao avançar no
-# kanban): um card em 001-005 linka `.plan/.approval/.verify` que ainda não
+# kanban): um card recém-criado linka `.plan/.approval/.verify` que ainda não
 # nasceram — link de navegação esperado, não quebra real (ver [[WORKFLOW]]).
 STAGE_ARTIFACT_SUFFIXES = (".plan", ".approval", ".verify")
 EXTERNAL_PROJECT_LINK = re.compile(r"\[\[categories/[^/]+/[^/]+/")
@@ -154,7 +160,14 @@ def check_spec_collections(root, projects, violations):
             else:
                 ids[spec_id] = path
 
-            if meta.get("project") != expected_project:
+            # Mesmo critério do `memory_valid`: o rótulo separa projetos
+            # irmãos, então só vale onde existem irmãos. Num clone standalone
+            # (escopo == raiz) a spec carrega o rótulo do vault pai, que o
+            # clone não reproduz — basta o campo estar preenchido.
+            if project == root:
+                if not meta.get("project"):
+                    violations.append(f"{path}:1: `project` vazio")
+            elif meta.get("project") != expected_project:
                 violations.append(
                     f"{path}:1: `project` `{meta.get('project')}` difere do "
                     f"label do escopo `{expected_project}`")
@@ -322,16 +335,26 @@ def check_category_indexes(root, categories, violations):
 
 
 def note_limit(path):
-    """Limite de linhas do arquivo, ou None se isento."""
+    """Limite de linhas do arquivo, ou None se isento.
+
+    Artefatos de planejamento têm régua própria e mais curta: a raiz do plano
+    é a fatia lida por todo mundo e o arquivo de frente é a fatia lida por um
+    executor. Plano que não couber **modulariza** em `subtasks/`; comprimir ou
+    dividir a task é exceção (ver seção 002 do WORKFLOW).
+    """
     if path.name in EXEMPT_NAMES:
         return None
     if path.name.endswith(".excalidraw.md"):
         return None  # diagrama Excalidraw: JSON embutido, não é nota
+    if path.name.endswith(".plan.md"):
+        return MAX_PLAN_LINES
+    if path.parent.name == "subtasks":
+        return MAX_FRONT_LINES
     return MAX_NOTE_LINES
 
 
 def check_note_sizes(root, projects, violations):
-    """(c) .md de harness <=150 linhas.
+    """(c) .md de harness <=150 linhas (plano: 80; frente em `subtasks/`: 50).
 
     Whitelist positiva (`poplib.iter_harness_markdown`): a régua só alcança as
     pastas de harness de cada escopo descoberto — nunca arquivos do projeto
@@ -388,6 +411,11 @@ def check_cards(root, projects, violations):
             if size not in (None, "") and str(size) not in SIZE_VALUES:
                 violations.append(f"{card}:1: `size` inválido `{size}` "
                                   f"(use S | M | L)")
+            kind = meta.get("return_kind")
+            if kind not in (None, "") and str(kind) not in poplib.RETURN_KINDS:
+                violations.append(
+                    f"{card}:1: `return_kind` inválido `{kind}` "
+                    f"(use {' | '.join(poplib.RETURN_KINDS)})")
             for gate in ("003", "005"):
                 key = f"yolo_{gate}_returns"
                 if key not in meta:
@@ -569,6 +597,62 @@ def check_hash_pins(root, violations):
                         f"atualize para sha256={actual}")
 
 
+def check_project_agents(root, projects, violations):
+    """(j) AGENTS.md de projeto cabe em 60 linhas — é ponteiro, não cópia.
+
+    O arquivo cresce sozinho quando narra o fluxo em vez de linkar o WORKFLOW,
+    e a narração apodrece na primeira mudança de estágio. Aplicação que embute
+    o processo DOX é a única isenta (regra 5). O AGENTS.md da raiz é o do
+    vault, não de projeto: fora do alcance.
+    """
+    for project in projects:
+        if project == root:
+            continue
+        path = project / "AGENTS.md"
+        if not path.is_file():
+            continue
+        text = path.read_text(encoding="utf-8")
+        if DOX_MARKER in text:
+            continue
+        total = len(text.splitlines())
+        if total > MAX_PROJECT_AGENTS:
+            violations.append(
+                f"{path}:1: {total} linhas (máx. {MAX_PROJECT_AGENTS}) — "
+                f"aponte para o WORKFLOW em vez de narrar o fluxo")
+
+
+def check_harness_freshness(root, projects, violations):
+    """(i) harness instalado num projeto está na versão da origem.
+
+    O PoP raiz é a fonte única: um projeto com `pop/.included-harness.json`
+    recebeu uma cópia gerida do WORKFLOW, dos templates e dos scripts. Se o
+    carimbo `content_sha` divergir, aquele projeto está operando um fluxo que
+    o vault já abandonou — falha fechada, porque o remédio é um comando só.
+    Só o vault que **é** a origem faz esta checagem (o clone não se audita).
+    """
+    try:
+        import pop_install_included as installer
+    except ImportError:
+        return
+    if installer.SOURCE != root or not installer.MANIFEST.is_file():
+        return
+    current = installer.content_sha()
+    for project in projects:
+        marker, stamped = installer.installed_stamp(project)
+        if marker is None:
+            continue
+        label = project.relative_to(root)
+        if stamped is None:
+            violations.append(
+                f"{marker}: harness sem carimbo `content_sha` — reinstale com "
+                f"`python3 scripts/pop_install_included.py {label}`")
+        elif stamped != current:
+            violations.append(
+                f"{marker}: harness DEFASADO ({stamped[:12]} ≠ origem "
+                f"{current[:12]}) — reinstale com "
+                f"`python3 scripts/pop_install_included.py {label}`")
+
+
 def check_standalone(root, violations):
     """Contrato estrito para um clone included, sem fallback ao vault pai.
 
@@ -640,6 +724,8 @@ def main():
     check_spec_collections(root, projects, violations)
     check_wikilinks(root, warnings)
     check_hash_pins(root, violations)
+    check_project_agents(root, projects, violations)
+    check_harness_freshness(root, projects, violations)
     if args.standalone:
         check_standalone(root, violations)
 

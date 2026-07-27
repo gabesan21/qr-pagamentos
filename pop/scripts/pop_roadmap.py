@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Mantém arquivos de epoch e de modification apenas com tasks ainda abertas.
 
-`close <id>` é a operação de 006: exige memory canônica válida no mesmo
+`close <id>` é a operação de fechamento do 005_closing: exige memory
+canônica válida no mesmo
 escopo e remove somente a linha da task — em `roadmap/*.md` ou
 `modifications/*.md` — ou, para modification de task única, apenas o wikilink
 `[[M-N.T-slug]]` da linha correspondente em `MODIFICATIONS.md` (a linha da
@@ -57,7 +58,14 @@ def memory_valid(root: Path, scope: Path, task_id: str, *, canonical: bool) -> b
         return False
     if meta.get("task") != task_id:
         return False
-    if meta.get("project") != poplib.project_label(root, scope):
+    # O rótulo distingue projetos irmãos, então só faz sentido quando o escopo
+    # é um projeto **dentro** de um vault agregador. Num clone standalone o
+    # escopo é a própria raiz: ali a memory foi escrita com o rótulo relativo
+    # ao vault pai, que o clone não tem como reproduzir — exigir igualdade
+    # tornaria o repo incapaz de validar as próprias memories.
+    if scope != root and meta.get("project") != poplib.project_label(root, scope):
+        return False
+    if scope == root and not meta.get("project"):
         return False
     try:
         started = datetime.date.fromisoformat(str(meta["started"]))
@@ -215,8 +223,9 @@ def main() -> int:
             print(f"task não encontrada no kanban: {args.task_id}", file=sys.stderr)
             return 1
         scope, stage, _ = found
-        if stage != "006_done":
-            print(f"task deve estar em 006_done, está em {stage}", file=sys.stderr)
+        if stage != "005_closing":
+            print(f"task deve estar em 005_closing, está em {stage}",
+                  file=sys.stderr)
             return 1
         targets = [(scope, args.task_id)]
         canonical = True

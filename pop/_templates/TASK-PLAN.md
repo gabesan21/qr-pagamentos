@@ -4,7 +4,8 @@
 
 - **Etapa:** 002_planning · **Responsável:** agent planejador
 
-> O planejador é separado do executor. Este arquivo guarda o resultado do planejamento: um brief suficiente para orientar agentes capazes, sem reasoning, pseudocódigo, trechos de implementação ou edição passo a passo. Alvo: ≤80 linhas; teto ~150. Se as frentes não couberem, proponha tasks encadeadas por `depends_on`.
+> O planejador é separado do executor. Este arquivo guarda o resultado do planejamento: um brief suficiente para orientar agentes capazes, sem reasoning, pseudocódigo, trechos de implementação ou edição passo a passo.
+> **Teto: 80 linhas, em qualquer `size`** (validado por `pop_validate`). Esta é a fatia que todos leem, então ela não cresce com a task — o que cresce é o número de arquivos de frente. Não couber significa **modularizar** em `subtasks/`, nunca comprimir a ponto de perder decisão. Dividir a task por `depends_on` é exceção, para quando as frentes não compartilham objetivo.
 
 ## Objetivo e resultado esperado
 
@@ -26,11 +27,12 @@ Poucos parágrafos sobre a abordagem base, decisões que restringem a execução
 
 ## Frentes de execução
 
-> Uma frente é uma unidade de ownership, não uma lista de edições. Use [[_templates/SUBTASKS|SUBTASKS]] somente quando uma frente precisar de arquivo próprio. Frentes sem dependência lógica **e** sem sobreposição de escrita podem rodar em paralelo; as demais rodam em ondas.
+> Uma frente é uma unidade de ownership, não uma lista de edições. **Toda frente que for para um contexto separado ganha arquivo próprio** em `subtasks/` ([[_templates/SUBTASKS|SUBTASKS]], ≤50 linhas) — é a fatia de leitura daquele executor; aqui fica só a linha de resumo e o link. Task de frente única não tem `subtasks/`: o executor lê o plano, que já é curto. Frentes sem dependência lógica **e** sem sobreposição de escrita podem rodar em paralelo; as demais rodam em ondas.
 
 ### <F01> — <nome>
 
 - **Entrega:** <resultado desta frente>.
+- **Contrato:** [[<id>-<slug>.g01-<slug-da-frente>]] — *siga como fatia única de execução desta frente* (omita quando a task tem uma frente só: os campos abaixo bastam).
 - **Escopo:** <limite funcional>.
 - **Owns:** `<arquivos ou padrões que pode alterar>`.
 - **May read:** `<contexto permitido/recomendado>`.
@@ -59,7 +61,8 @@ Poucos parágrafos sobre a abordagem base, decisões que restringem a execução
 
 ## Critérios de aceite
 
-> Critérios observáveis, comparados pelo revisor independente em 005. Prefira o gate agregado. Superfície de runtime exige ao menos um `re-run`.
+> Critérios observáveis, comparados no gate de `005_closing`. Eles são **o contrato**: valem para o executor e para o gate, e precisam cobrir o "O quê / Por quê" do card — critério que não cobre o pedido é defeito de plano e volta para cá. Prefira o gate agregado. Superfície de runtime exige ao menos um `re-run`.
+> **Append-only entre rodadas:** devolução por `lacuna` acrescenta linha e mantém os IDs existentes — renumerar critério ou frente quebra as referências do `.verify.md` e da telemetria, e força a re-revisão a recomeçar do zero.
 
 | # | Critério | Verificação | Pass é | Modo 005 |
 |---|----------|-------------|--------|----------|

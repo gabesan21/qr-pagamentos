@@ -7,7 +7,7 @@
 - **Descrição:** uma linha — o que muda e por quê.
 - **Yolo:** sim | não — bullet **opcional** (ausente = não); só o humano marca.
 
-> Somente tasks ainda abertas — **sempre descrições de uma linha**. Detalhe vai para a spec ou para a pasta da task no kanban. Task iniciada ganha link `[[M-<n>.<t>-<slug>]]`; ao concluir 006, sai da tabela depois de sua memory válida (ver [[WORKFLOW|WORKFLOW]]). Opt-in/out de yolo por task: anexe ` · yolo: sim` (ou ` · yolo: não`) ao fim da célula Descrição — sem coluna nova.
+> Somente tasks ainda abertas — **sempre descrições de uma linha**. Detalhe vai para a spec ou para a pasta da task no kanban. Task iniciada ganha link `[[M-<n>.<t>-<slug>]]`; ao concluir o `005_closing`, sai da tabela depois de sua memory válida (ver [[WORKFLOW|WORKFLOW]]). Opt-in/out de yolo por task: anexe ` · yolo: sim` (ou ` · yolo: não`) ao fim da célula Descrição — sem coluna nova.
 
 | Task | Descrição (≤1 linha) | Status |
 |------|----------------------|--------|

@@ -9,6 +9,19 @@
 - **Idiomas suportados (i18n):** <lista de idiomas que a aplicação deve suportar — tratados no roadmap e nas specs. Só para aplicações; remova se não se aplica.>
 - **Ficha:** [[pop/PROJECT|PROJECT]] · **Roadmap:** [[pop/ROADMAP|ROADMAP]] · **Modifications:** [[pop/MODIFICATIONS|MODIFICATIONS]] (criado sob demanda)
 
+## O que NÃO entra neste arquivo
+
+> Instrução de preenchimento — **mantenha esta seção no projeto**: ela é o que impede o arquivo de inchar.
+
+Fonte única: o que está no vault não se copia para cá, porque duplicata é drift garantido — muda o fluxo, e a cópia fica mentindo. **Nunca** escreva aqui:
+
+- narração dos estágios do kanban (nomes, ordem, o que cada um faz) — só [[WORKFLOW|WORKFLOW]];
+- protocolo de contexto e qualquer heurística de leitura/busca — [[WORKFLOW|WORKFLOW]] e as skills;
+- regras gerais do vault (kanban obrigatório, memory/roadmap enxuto, soberania do comando humano) — "Regras transversais" do [[WORKFLOW|WORKFLOW]], que o instalador entrega junto do harness;
+- qualquer trecho copiável de [[WORKFLOW|WORKFLOW]] ou [[TYPES|TYPES]] — linke com gatilho em vez de reproduzir.
+
+Aqui entra só o que é **deste projeto**: type, idioma, repos e branch de PR, skills e comandos de verificação, DOX. **Teto: ~60 linhas** — a única exceção é a seção DOX das aplicações.
+
 ## Repositórios
 
 | Repo | URL | Clone em | Branch de PR |
@@ -21,26 +34,11 @@ _Sem repositório externo: o trabalho vive no repositório do PoP e os PRs de ta
 
 ## Workflow
 
-Toda alteração no projeto passa pelo kanban (`pop/kanban/001_initial_task → … → 006_done`), com tasks vindas do roadmap (`<n>.<m>.<t>-<slug>`) ou das modifications (`M-<n>.<t>-<slug>` — hotfixes, ajustes e features emergentes pequenas fora do planejamento; fronteira no AGENTS.md do vault):
+Toda alteração no projeto passa pelo kanban em `pop/kanban/`, com tasks vindas do roadmap (`<n>.<m>.<t>-<slug>`) ou das modifications (`M-<n>.<t>-<slug>`).
 
-Pedido de alteração sem card aciona `new-task` → `advance-task`; “iniciar o fluxo em yolo” materializa/libera a task e percorre a rota yolo inteira, nunca execução direta.
-
-1. **001** — task nasce (skill `new-task`), com `depends_on:` listando as tasks pré-requisito.
-2. **002** — planejador separado produz brief com estratégia, frentes, contratos e critérios.
-3. **003** — gate humano: o agente só avança com `- [x] Feito`. Em yolo, este gate **só existe para `critical: true`** (crítico strong); as demais tasks yolo transitam 002 → 004 direto.
-4. **004** — orquestrador escolhe executor único ou especialistas em sequência/ondas; paralelos usam worktrees e ownership isolados.
-5. **005** — um revisor independente verifica primeiro se o **pedido original** (objetivo do card) foi atendido, depois specs, diff, testes e qualidade (+ humano se `critical`). No yolo é o **gate único de qualidade**, sempre strong.
-6. **006** — fora de yolo, PR da task → branch de PR declarada e **o humano merga**; em yolo, tasks integram `develop` e o fechamento do **escopo marcado** (task avulsa, phase/epoch ou modification) abre PR automático `develop` → `main`, sempre com merge humano. Depois o agente valida `pop/memory/<id>.md`, retira a task do roadmap/modifications, remove a worktree e conclui.
-
-**Uma execução = até o próximo gate humano:** planejador, execução e revisão usam contextos separados. O plano guarda decisões, não reasoning; o 004 especializa por frente quando houver skills/ownership distintos. Detalhe: [[WORKFLOW|WORKFLOW]].
-
-## Protocolo de contexto
-
-1. Comece pelo card/brief e leia **só** specs, skills e contratos que eles acionam.
-2. Faltou contexto → subagente com pergunta específica, nunca "ler a pasta para se ambientar".
-3. Pare de buscar quando souber responder *o que muda e onde* — mais que isso é overthinking.
-4. Dúvida que a busca não resolveu = **RECON NEEDED** no plano ou `blocked:` no card — nunca suposição.
-5. Specs e memory existem para não reler o passado: consulte-as antes de qualquer arqueologia em git/código.
+- Pedido de alteração sem card aciona `new-task` → `advance-task`; “iniciar o fluxo em yolo” materializa/libera a task e percorre a rota yolo inteira, nunca execução direta.
+- **Entrega:** o PR da task aponta para a **branch de PR declarada** na tabela de repositórios acima; o merge é sempre do humano.
+- **Estágios, gates, rota yolo e protocolo de contexto:** [[WORKFLOW|WORKFLOW]] é a fonte única — leia antes de criar, avançar, verificar ou fechar qualquer task deste projeto, e não replique nada dele aqui.
 
 ## Skills
 
@@ -67,13 +65,11 @@ Pedido de alteração sem card aciona `new-task` → `advance-task`; “iniciar 
 
 ## Processo DOX (só aplicações)
 
-> Projetos de **aplicação** colam aqui a seção completa de [[_templates/DOX|_templates/DOX.md]] — árvore de AGENTS.md no código como contratos hierárquicos. Este AGENTS.md pode exceder as ~150 linhas para comportá-la. **Remova esta seção nos demais tipos de projeto.**
+> Projetos de **aplicação** colam aqui a seção completa de [[_templates/DOX|_templates/DOX.md]] — árvore de AGENTS.md no código como contratos hierárquicos. Este AGENTS.md pode exceder o teto de ~60 linhas para comportá-la — e só por causa dela. **Remova esta seção nos demais tipos de projeto.**
 
 ## Regras essenciais
 
-- Conteúdo em pt-BR; wikilinks para referências internas; arquivos ≤~150 linhas; datas AAAA-MM-DD.
-- **Nunca** alterar o projeto real fora de uma task que chegou legitimamente a `004_processing` (003 aprovado ou yolo não crítico 002→004).
-- Comando humano sobrescreve somente a regra/gate que nomeia; “aplique”, “execute”, “urgente”, “até finalizar” ou “em yolo” não dispensam o fluxo. Só dispensa literal ativa o protocolo de desvio do [[WORKFLOW|WORKFLOW]], sempre com memory e avaliação de specs/DOX.
+- Conteúdo no idioma declarado acima; wikilinks para referências internas; arquivos ≤~150 linhas; datas AAAA-MM-DD.
 - **Nunca** marcar `- [ ] Feito` nem executar itens `(user)` — são exclusivos do humano.
 - **Nunca** fazer merge de PR de task — o merge é do humano (ou comandado por ele na rodada de merge).
-- Toda task concluída gera `pop/memory/<id>.md` (ledger ≤2000 chars, commit final, datas); após validar a memory, 006 remove a linha da task do roadmap ou das modifications e apaga a pasta em `006_done`.
+- **Regras gerais do vault** — kanban obrigatório para tocar o projeto, memory + roadmap enxuto no fechamento, soberania do comando humano sem waiver implícito: seção "Regras transversais" do [[WORKFLOW|WORKFLOW]], que acompanha o harness instalado. *Leia antes de agir fora de uma task ou de interpretar um pedido como dispensa do fluxo.*

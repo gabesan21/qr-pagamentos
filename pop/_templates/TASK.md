@@ -19,6 +19,7 @@ pr:
 awaiting_merge: false
 yolo_003_returns: 0
 yolo_005_returns: 0
+return_kind:
 circuit_breaker: false
 created: AAAA-MM-DD
 updated: AAAA-MM-DD
@@ -28,6 +29,7 @@ updated: AAAA-MM-DD
 
 > Blockquotes deste template são instruções de preenchimento — **apague-os ao preencher**. Caminhos de harness levam o prefixo `pop/`; no meta-projeto da raiz do vault, não.
 > **Origem:** task de roadmap (`origin: roadmap`) usa id `<n>.<m>.<t>` e preenche `epoch`/`phase` (apague `modification`); task de modification (`origin: modifications`) usa id `M-<n>.<t>` e preenche `modification: M-<n>` (apague `epoch`/`phase`).
+> **Campos de máquina:** `yolo_*_returns`, `return_kind` e `circuit_breaker` nascem vazios/zerados e são escritos **só** por `pop_move`/orquestrador — editar à mão infla contadores e faz o gate escolher o modo de revisão errado.
 
 - **Origem:** [[pop/roadmap/<n>-<slug-da-epoch>|Phase <n>.<m>]] — *ou* [[pop/MODIFICATIONS|M-<n>]] para task de modification.
 - **Plano:** [[<id>-<slug>.plan]] · **Aprovação:** [[<id>-<slug>.approval]] · **Verificação:** [[<id>-<slug>.verify]]
@@ -48,13 +50,13 @@ Uma frase: por que agora e o que destrava.
 
 ## Skills por etapa
 
-> 002 é preenchida na criação; 004/005, pelo planejador. Liste apenas skills que mudem como o responsável deve trabalhar.
+> 002 é preenchida na criação; 004 e `005_closing`, pelo planejador. A linha de `005_closing` só vale em `yolo: true` — fora de yolo o gate é o PR humano. Liste apenas skills que mudem como o responsável deve trabalhar.
 
 | Etapa | Skills do projeto | Responsável |
 |-------|-------------------|-------------|
 | 002_planning | [[pop/skills/<skill>\|<skill>]] | agent |
 | 004_processing | [[pop/skills/<skill>\|<skill>]] | agent |
-| 005_verifying | [[pop/skills/<skill>\|<skill>]] | agent |
+| 005_closing | [[pop/skills/<skill>\|<skill>]] | agent |
 
 ## Dependências
 

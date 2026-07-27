@@ -31,10 +31,15 @@ def set_fields(card, fields):
 
 
 def dependencies_done(root, project, meta):
+    """Dependência satisfeita exige `memory/<id>.md`.
+
+    Não existe mais janela transitória por estágio: em `005_closing` a task
+    ainda pode estar aguardando o gate de qualidade, e a memory só nasce
+    depois da aprovação/merge.
+    """
     for task_id in meta.get("depends_on") or []:
         memory = poplib.harness_root(project) / "memory" / f"{task_id}.md"
-        found = poplib.find_task(root, str(task_id))
-        if not memory.is_file() and (not found or found[1] != "006_done"):
+        if not memory.is_file():
             return False
     return True
 
@@ -44,8 +49,8 @@ def eligible(root, *, by, allow_same_project, limit):
     for project in poplib.discover_projects(root):
         label = poplib.project_label(root, project)
         for stage, task_dir, card in poplib.iter_cards(project):
-            if stage == "006_done":
-                continue
+            # Sem filtro de estágio: a pasta só existe enquanto a task está em
+            # voo — o fechamento do 005_closing apaga o card.
             meta = poplib.read_card(card)
             if meta.get("yolo") is not True or meta.get("blocked") is True:
                 continue
@@ -122,12 +127,17 @@ def main():
     meta = poplib.read_card(card)
 
     if args.command == "verify-mode":
-        try:
-            returns = int(meta.get("yolo_005_returns") or 0)
-        except (TypeError, ValueError):
-            returns = 0
-        mode = "full" if meta.get("critical") is True or returns else "differential"
-        why = "critical/retorno anterior" if mode == "full" else "não critical e primeira rodada"
+        # Retorno não implica revisão cheia: só `premissa` invalida o que já
+        # foi verificado. Lacuna e falha de execução reveem o delta.
+        kind = meta.get("return_kind")
+        if meta.get("critical") is True:
+            mode, why = "full", "critical"
+        elif kind == "premissa":
+            mode, why = "full", "retorno por premissa errada: replanejamento"
+        elif kind in ("lacuna", "execucao"):
+            mode, why = "differential", f"retorno por {kind}: diferencial sobre o delta"
+        else:
+            mode, why = "differential", "não critical e primeira rodada"
         print(f"{mode}\t{why}")
         return 0
     if args.command == "record":

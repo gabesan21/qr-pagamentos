@@ -24,13 +24,18 @@ STAGES = [
     "002_planning",
     "003_human_approval",
     "004_processing",
-    "005_verifying",
-    "006_done",
+    "005_closing",
 ]
 
 # Lease padrão do claim de task (ver pop_claim.py).
 DEFAULT_LEASE_HOURS = 2
 YOLO_RETURN_LIMIT = 2
+
+# Classificação do último retorno (`return_kind:` no card, escrito só pelo
+# pop_move). `lacuna` = plano incompleto, o entregue está correto → emenda;
+# `premissa` = estratégia errada → replanejamento; `execucao` = o executor não
+# cumpriu os critérios que recebeu. Dimensiona a emenda e o modo da re-revisão.
+RETURN_KINDS = ("lacuna", "premissa", "execucao")
 
 # Checkbox de liberação humana no card (gate de saída do 001).
 RELEASE_MARK = re.compile(r"^\s*[-*]\s*\[[xX]\]\s*Pronto para planejar")
@@ -279,7 +284,7 @@ def now() -> datetime.datetime:
 
 
 def telemetry_path(task_dir: Path) -> Path:
-    """Sidecar efêmero da task; o 006 resume e descarta junto com o card."""
+    """Sidecar efêmero da task; o 005_closing resume e descarta com o card."""
     return task_dir / f"{task_dir.name}.telemetry.json"
 
 
@@ -311,12 +316,17 @@ def telemetry_summary(task_dir: Path) -> dict:
     events = read_telemetry(task_dir)["events"]
     contexts = sum(len(e.get("contexts") or []) for e in events)
     returns = {"003": 0, "005": 0}
+    kinds = {kind: 0 for kind in RETURN_KINDS}
     test_seconds = 0.0
     for event in events:
-        if event.get("from") == "003_human_approval" and event.get("to") == "002_planning":
+        src, dst = event.get("from"), event.get("to")
+        # Devolução de plano: gate 003 ou defeito de plano detectado no 005.
+        if dst == "002_planning" and src in ("003_human_approval", "005_closing"):
             returns["003"] += 1
-        if event.get("from") == "005_verifying" and event.get("to") == "004_processing":
+        if src == "005_closing" and dst == "004_processing":
             returns["005"] += 1
+        if event.get("return_kind") in kinds:
+            kinds[event["return_kind"]] += 1
         test_seconds += float(event.get("test_seconds") or 0)
     duration = None
     if len(events) >= 2:
@@ -328,6 +338,8 @@ def telemetry_summary(task_dir: Path) -> dict:
             pass
     return {"duration_seconds": duration, "contexts": contexts,
             "returns_003": returns["003"], "returns_005": returns["005"],
+            # Causa das devoluções, para aferir se o gargalo é plano ou execução.
+            **{f"returns_{kind}": count for kind, count in kinds.items()},
             "test_seconds": test_seconds, "events": len(events)}
 
 

@@ -16,7 +16,7 @@ O que um agente precisa saber antes de trabalhar nisso: histórico, motivação,
 
 ## Estrutura de pastas
 
-Anatomia padrão (ver AGENTS.md da raiz): `AGENTS.md` do projeto + `.agents/skills/` na raiz; **todo o harness em `pop/`** — `pop/PROJECT.md` + `pop/ROADMAP.md` + `pop/roadmap/` (epochs), `pop/researches/` (pesquisas por assunto), `pop/skills/`, `pop/specs/`, `pop/notes/` (learnings/decisions/ideas/references), `pop/memory/` (resumos de tasks concluídas), `pop/worktrees/` (gitignorada), `pop/kanban/` (estágios 001–006 do [[WORKFLOW|WORKFLOW]]); o **conteúdo do projeto** (código, manuscrito, clones — conforme o type, [[TYPES|TYPES]]) vive direto na raiz. Liste aqui apenas o que fugir do padrão.
+Anatomia padrão (ver AGENTS.md da raiz): `AGENTS.md` do projeto + `.agents/skills/` na raiz; **todo o harness em `pop/`** — `pop/PROJECT.md` + `pop/ROADMAP.md` + `pop/roadmap/` (epochs), `pop/researches/` (pesquisas por assunto), `pop/skills/`, `pop/specs/`, `pop/notes/` (learnings/decisions/ideas/references), `pop/memory/` (resumos de tasks concluídas), `pop/worktrees/` (gitignorada), `pop/kanban/` (estágios 001–005_closing do [[WORKFLOW|WORKFLOW]]); o **conteúdo do projeto** (código, manuscrito, clones — conforme o type, [[TYPES|TYPES]]) vive direto na raiz. Liste aqui apenas o que fugir do padrão.
 
 ## Harness do agente
 

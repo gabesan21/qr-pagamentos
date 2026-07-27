@@ -20,30 +20,13 @@ In yolo scopes, the orchestrator mechanically integrates task branches into `dev
 
 ## Workflow
 
-Every change to the application passes through `kanban/001_initial_task` -> `kanban/006_done`, with tasks coming from the roadmap (`<n>.<m>.<t>-<slug>`) or from modifications (`M-<n>.<t>-<slug>` — work arriving outside the plan):
+Every change to the application goes through `pop/kanban/` (`001_initial_task` -> `005_closing`), with tasks coming from the roadmap (`<n>.<m>.<t>-<slug>`) or from modifications (`M-<n>.<t>-<slug>` — work arriving outside the plan).
 
-A change request without an active card triggers `new-task` -> `advance-task`; the absence of a card is workflow input, never permission to edit directly. “Start the flow in yolo” materializes and releases the task with `yolo: true`, records the conversational origin, and traverses the complete yolo route.
-
-1. **001** - create the task with `new-task` and explicit `depends_on` prerequisites.
-2. **002** - a planner separate from execution writes a concise brief with objective, strategy, fronts, dependencies, contracts, risks, and acceptance criteria.
-3. **003** - obtain human approval. In yolo this gate **only exists for `critical: true`** (strong independent critic; two returns allowed before the third failure trips the circuit breaker); non-critical yolo tasks transit 002 -> 004 directly.
-4. **004** - send a cohesive front directly to one executor; use an execution orchestrator only for a DAG, multiple skills, or multiple write sets.
-5. **005** - one fresh independent critic reviews the delivery. In yolo this is the **single quality gate** (always strong): it first verifies that the original request (the card's objective) was met — the brief is strategy, not an approved contract — choosing differential or full verification; full is mandatory for critical tasks or after a return, and the third rejection trips the circuit breaker.
-6. **006** - mechanically integrate yolo tasks into `develop`, write memory and telemetry summary, clean the task, and automatically open the final scope PR to `main`.
-
-Up to three independent yolo tasks may advance as a wave. Parallel execution requires logical and write independence plus repository/worktree isolation; any collision serializes. A missing dependency is `BLOCKED` and is never implemented opportunistically.
-
-One execution continues until the next real gate. The complete state machine is in [[WORKFLOW|WORKFLOW]].
-
-A direct human command overrides only the rule or gate it explicitly names. “Apply”, “execute”, “urgent”, “until finished”, or “in yolo” do not waive the card, kanban, memory, specs, or DOX. Only an unequivocal instruction such as “without kanban” or “outside PoP” activates [[WORKFLOW|the explicit deviation protocol]], which still requires an identifiable memory and a recorded specs/DOX impact assessment; those contracts are edited only when affected.
-
-## Context protocol
-
-1. Start from the card and plan; read only what they link.
-2. If context is missing, delegate a specific question instead of reading a directory broadly.
-3. Stop searching when the affected behavior and paths are known.
-4. Record unresolved uncertainty as `RECON NEEDED` or `blocked`; never guess.
-5. Consult specs and memory before archaeology in Git history or code.
+- [[WORKFLOW|WORKFLOW]] is the single source for the stages, owners, gates, yolo route, return paths, and the explicit-deviation protocol — read it before creating, planning, executing, verifying, or closing any task, and never restate it here.
+- A change request without an active card triggers `new-task` -> `advance-task`; the absence of a card is workflow input, never permission to edit directly.
+- **Project-specific delivery:** task branches integrate into `develop` and the scope closes with the `develop` -> `main` PR (see Repository above); the meta-PoP `main` exception never applies here.
+- **Project-specific gates:** every code task passes `pnpm check` before `005_closing`, plus `pnpm db:test`, `pnpm container:contract-check`, or `install/test.sh` when it touches those subtrees.
+- **Project-specific context:** read the affected `pop/specs/` documents and walk the DOX tree (root contract in this file's DOX index down to every touched path) before editing code; unresolved uncertainty is `RECON NEEDED` or `blocked`, never a guess.
 
 ## Skills
 
@@ -199,7 +182,7 @@ Código sem árvore DOX → varredura recursiva e construção da árvore: AGENT
 
 - **002 (brief):** o recon inclui os AGENTS.md aplicáveis aos caminhos que a task toca; o brief lista os contratos que precisarão de atualização, sem microedições ou trechos de implementação.
 - **004:** edite só depois de caminhar a árvore; os AGENTS.md alterados entram na mesma worktree/PR da task.
-- **005:** a verificação confere que os contratos afetados foram atualizados — critério de aceite implícito de toda task de aplicação.
+- **005_closing:** o gate de qualidade confere que os contratos afetados foram atualizados — critério de aceite implícito de toda task de aplicação.
 - **Type `default` com repo externo que deve ficar limpo de arquivos de IA:** decida com o usuário na entrevista — commitar a árvore DOX no repo (padrão do PoP) ou manter apenas o contrato raiz no AGENTS.md do projeto, dentro do PoP.
 
 ## Essential rules

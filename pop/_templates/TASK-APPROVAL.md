@@ -34,9 +34,9 @@ _(após o Feito: `aprovado → 004` ou `mudanças pedidas → 002: <resumo>`)_
 - **Decisão:** aprovado → 004 | devolvido → 002 | circuit breaker.
 - **Motivo/evidência:** <objetivo, sem reasoning>.
 
-## Merge — 006 — AAAA-MM-DD
+## Merge — 005_closing — AAAA-MM-DD
 
-> Rodada criada quando o fluxo aplicável exigir merge humano. Em yolo, siga a política de integração de [[WORKFLOW|WORKFLOW]]; não invente um segundo gate de qualidade aqui.
+> Rodada criada quando o fluxo aplicável exigir merge humano. **Fora de yolo, revisar este PR é a verificação** — não existe revisor agêntico, e nada de memory, specs ou limpeza do roadmap acontece antes do `- [x] Feito`. Em yolo, siga a política de integração de [[WORKFLOW|WORKFLOW]]; não invente um segundo gate de qualidade aqui.
 
 - **PR:** <link> — `task/<id>-<slug>` → `<branch de PR>`.
 - _Sem repositório git: registre a aprovação final aplicável._
@@ -46,6 +46,14 @@ _(após o Feito: `aprovado → 004` ou `mudanças pedidas → 002: <resumo>`)_
 _(mergeie, ou autorize explicitamente o agente)_
 
 - [ ] Feito
+
+### Delta da devolução
+
+> Preencha **somente** se pedir correção em vez de mergear. Reentrada parcial não é privilégio do yolo: nomear o delta evita que a correção de uma frente reexecute a task inteira. O agente transporta o tipo com `pop_move --return-kind <tipo>`.
+
+- **Tipo:** lacuna (faltou critério; o entregue está correto) | premissa (estratégia errada) | execucao (não cumpriu o combinado).
+- **Critérios/frentes afetados:** <IDs> — <o que falta, uma linha>.
+- **Frentes intactas:** `<Fxx>` — **não** reexecutar.
 
 ### Decisão do agente
 

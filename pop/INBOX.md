@@ -20,15 +20,9 @@ WHERE stage = "003_human_approval" AND yolo != true
 SORT updated ASC
 ```
 
-## Aguardando aprovação de verificação (005, tasks críticas)
+## Aguardando merge (005_closing) — este é o gate de verificação fora de yolo
 
-```dataview
-TABLE WITHOUT ID file.link AS Task, project AS Projeto, updated AS "Desde"
-WHERE stage = "005_verifying" AND critical = true AND yolo != true
-SORT updated ASC
-```
-
-## Aguardando merge (006)
+Fora de yolo não há revisor agêntico: revisar o PR **é** a verificação. Enquanto você não fizer o merge, nada de memory, specs ou limpeza do roadmap acontece.
 
 ```dataview
 TABLE WITHOUT ID file.link AS Task, project AS Projeto, pr AS PR
@@ -61,7 +55,7 @@ Informativo (não pede decisão): tasks com gates delegados ao agente crítico �
 
 ```dataview
 TABLE WITHOUT ID file.link AS Task, project AS Projeto, stage AS Estágio, updated AS "Desde"
-WHERE yolo = true AND stage != "006_done"
+WHERE yolo = true
 SORT updated ASC
 ```
 
@@ -78,6 +72,8 @@ SORT claimed_at ASC
 ## Revisões
 
 Relatórios da skill `weekly-review` são linkados aqui, mais recente primeiro.
+
+- [[REVIEW-2026-07-27|2026-07-27 — weekly-review do vault]]
 
 ---
 

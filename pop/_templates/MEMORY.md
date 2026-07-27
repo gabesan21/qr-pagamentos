@@ -10,7 +10,7 @@ authorization: <somente para D-AAAAMMDD-<slug>: comando humano que dispensou o k
 
 # <id>-<slug> — <título curto>
 
-> Ledger durável, escrito e validado antes de retirar a task do roadmap e apagar `kanban/006_done/<id>/`. Limite total: **2000 caracteres**. Registre fatos e ponteiros, não refaça a narrativa do plano ou da execução; use [[.agents/skills/optimize-memory/SKILL|optimize-memory]] se crescer sem perder cronologia ou decisões críticas. Desvio humano que dispense literalmente o kanban usa `task: D-AAAAMMDD-<slug>`, preenche `authorization` e não possui card/linha de roadmap.
+> Ledger durável, escrito e validado antes de retirar a task do roadmap e apagar `kanban/005_closing/<id>/`. Limite total: **2000 caracteres**. Registre fatos e ponteiros, não refaça a narrativa do plano ou da execução; use [[.agents/skills/optimize-memory/SKILL|optimize-memory]] se crescer sem perder cronologia ou decisões críticas. Desvio humano que dispense literalmente o kanban usa `task: D-AAAAMMDD-<slug>`, preenche `authorization` e não possui card/linha de roadmap.
 
 - **Entrega:** <o que passou a existir ou mudou>.
 - **Áreas alteradas:** `<subtree/arquivo>` — <uma linha>.

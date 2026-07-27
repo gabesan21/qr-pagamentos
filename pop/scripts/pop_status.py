@@ -3,9 +3,10 @@
 
 Mostra, por projeto, a contagem de tasks por estágio do kanban e as listas
 que pedem atenção humana: aguardando liberação (001), aguardando aprovação
-(003), verificação crítica (005 + critical), aguardando merge, bloqueadas
-e alerta de WIP > 3 em 004. Tasks `yolo: true` ficam fora das listas de
-aprovação/revisão/merge — os julgamentos são delegados ao revisor independente
+(003), aguardando merge (005_closing), bloqueadas e alerta de WIP > 3 em
+004. Fora de yolo o gate de verificação é o próprio PR, então não há lista
+de revisão agêntica pendente; tasks `yolo: true` ficam fora das listas de
+aprovação/merge — os julgamentos são delegados ao revisor independente
 (seção Yolo mode do WORKFLOW).
 
 Uso:
@@ -35,7 +36,7 @@ def _stale_since(meta):
 def collect(project):
     """Coleta contagens e listas de atenção de um projeto."""
     counts = {stage: 0 for stage in poplib.STAGES}
-    attention = {"release": [], "approval": [], "critical": [], "merge": [],
+    attention = {"release": [], "approval": [], "merge": [],
                  "blocked": [], "circuit": [], "stale": [], "claimed": []}
     for stage, task_dir, card in poplib.iter_cards(project):
         counts[stage] += 1
@@ -46,8 +47,6 @@ def collect(project):
         yolo = meta.get("yolo") is True
         if stage == "003_human_approval" and not yolo:
             attention["approval"].append(tid)
-        if stage == "005_verifying" and meta.get("critical") is True and not yolo:
-            attention["critical"].append(tid)
         if meta.get("awaiting_merge") is True and not yolo:
             attention["merge"].append(tid)
         if meta.get("blocked") is True:
@@ -58,12 +57,13 @@ def collect(project):
             r005 = meta.get("yolo_005_returns") or 0
             attention["circuit"].append(
                 f"{tid} — devoluções 003={r003}, 005={r005}")
-        if stage != "006_done":
+        # Task aguardando merge já aparece na lista própria; não duplique.
+        if meta.get("awaiting_merge") is not True:
             days = _stale_since(meta)
             if days is not None and days > STALE_DAYS:
                 attention["stale"].append(f"{tid} — sem update há {days} dias")
         by, at = poplib.parse_claim(meta)
-        if by and stage != "006_done":
+        if by:
             when = at.isoformat(timespec="minutes") if at else "?"
             mark = "" if not poplib.claim_expired(at) else " [EXPIRADO]"
             attention["claimed"].append(f"{tid} — {by} desde {when}{mark}")
@@ -114,7 +114,7 @@ def main():
         print("Nenhum projeto com kanban encontrado no vault — tudo tranquilo.")
         return 0
 
-    merged = {"release": [], "approval": [], "critical": [], "merge": [],
+    merged = {"release": [], "approval": [], "merge": [],
               "blocked": [], "circuit": [], "stale": [], "claimed": []}
     print(f"Vault: {root}")
     for project in projects:
@@ -127,12 +127,12 @@ def main():
     print_list("Aguardando liberação do humano (001, sem "
                "`- [x] Pronto para planejar`)", merged["release"])
     print_list("Aguardando aprovação humana (003)", merged["approval"])
-    print_list("Verificação crítica pendente (005, critical)", merged["critical"])
-    print_list("Aguardando merge (awaiting_merge)", merged["merge"])
+    print_list("Aguardando merge (awaiting_merge — gate de verificação "
+               "não-yolo)", merged["merge"])
     print_list("Bloqueadas", merged["blocked"])
     print_list("Circuit breakers yolo (intervenção humana)", merged["circuit"])
-    print_list(f"Paradas (sem update há >{STALE_DAYS} dias, fora de 006)",
-               merged["stale"])
+    print_list(f"Paradas (sem update há >{STALE_DAYS} dias, fora das que "
+               f"aguardam merge)", merged["stale"])
     print_list("Em execução (claim ativo — não pegue estas tasks)",
                merged["claimed"])
     if not any(merged.values()):

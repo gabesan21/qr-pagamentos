@@ -1,6 +1,8 @@
 # Frente <F01> — <nome> — [[<id>-<slug>]]
 
-> Blockquotes deste template são instruções de preenchimento — **apague-os ao preencher**. Este arquivo é opcional: crie-o somente quando a frente tiver ownership próprio, responsável distinto ou dependência que mereça acompanhamento separado. Não descreva código nem microedições.
+> Blockquotes deste template são instruções de preenchimento — **apague-os ao preencher**.
+> Este arquivo é a **unidade de leitura de um executor**: obrigatório para toda frente que vá para um contexto separado, dispensável só quando a task tem uma frente única. Junto com o "O quê / Por quê" do card e o objetivo/estratégia do plano, ele é *tudo* o que o executor recebe — nunca o plano inteiro, nunca as frentes alheias. Teto de 50 linhas (validado por `pop_validate`): se não couber, a frente está grande demais e se divide em duas.
+> Não descreva código nem microedições.
 
 - **Entrega:** <resultado desta frente>.
 - **Escopo:** <limite funcional>.
