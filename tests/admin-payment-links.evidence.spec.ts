@@ -192,12 +192,14 @@ test("creates the closed administrator payment-links evidence run", async ({ pag
         targets: controls.map((control) => ({
           height: control.getBoundingClientRect().height,
           width: control.getBoundingClientRect().width,
+          html: control.outerHTML.slice(0, 160),
         })),
       };
     });
     expect(measured.bodyFont).toContain("IBM Plex Sans");
     expect(measured.overflow).toBe(false);
-    expect(measured.targets.every(({ height, width }) => height >= 44 && width >= 44)).toBe(true);
+    const undersized = measured.targets.filter(({ height, width }) => height < 44 || width < 44);
+    expect(undersized, JSON.stringify(undersized)).toEqual([]);
     const formControls = page.locator('input:not([type="hidden"]):not([type="file"]), select, textarea');
     const firstInput = (await formControls.count()) > 0 ? formControls.first() : page.locator("button, a[href]").first();
     await firstInput.focus();
@@ -329,17 +331,20 @@ test("creates the closed administrator payment-links evidence run", async ({ pag
   await captureState("state-en-links-invalid-query-1440");
 
   await page.goto(`${baseUrl}/admin/payment-links?pageSize=10`);
-  const firstPageSummaries = await page.locator("[data-data-directory] tbody tr td:first-child").allTextContents();
-  expect(firstPageSummaries).toHaveLength(10);
+  // Distinctness rides the unique per-link detail links; the two owners
+  // legitimately share pages in a global directory.
+  const detailLinks = "[data-data-directory] tbody tr td:last-child a[href^='/admin/payment-links/v2/']";
+  const firstPageLinks = await page.locator(detailLinks).evaluateAll((links) => links.map((link) => link.getAttribute("href")));
+  expect(firstPageLinks).toHaveLength(10);
   await Promise.all([
     page.waitForURL(/\/admin\/payment-links\?pageSize=10&cursor=/),
     page.getByRole("link", { name: "Next page" }).click(),
   ]);
-  const secondPageSummaries = await page.locator("[data-data-directory] tbody tr td:first-child").allTextContents();
-  expect(secondPageSummaries).toHaveLength(7);
-  expect(secondPageSummaries.some((summary) => firstPageSummaries.includes(summary))).toBe(false);
+  const secondPageLinks = await page.locator(detailLinks).evaluateAll((links) => links.map((link) => link.getAttribute("href")));
+  expect(secondPageLinks).toHaveLength(7);
+  expect(secondPageLinks.some((link) => firstPageLinks.includes(link))).toBe(false);
   await expect(page.getByRole("link", { name: "Previous page" })).toBeVisible();
-  assertions.push({ state: "pagination", firstPage: firstPageSummaries.length, secondPage: secondPageSummaries.length, distinct: true });
+  assertions.push({ state: "pagination", firstPage: firstPageLinks.length, secondPage: secondPageLinks.length, distinct: true });
   await captureState("state-en-links-page-2-1440");
 
   await page.goto(`${baseUrl}/admin/payment-links?q=Monthly`);

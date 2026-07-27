@@ -48,11 +48,14 @@ function pageUrl(query: Readonly<{ canonicalFilterQuery: string; pageSize: numbe
 
 // The owner attribution cell: the interim target is the delivered accounts
 // surface (10.3.3 repoints it to the per-user profile); a soft-deleted owner
-// keeps its rows and gains the localized non-color deleted badge.
+// keeps its rows and gains the localized non-color deleted badge. The link is
+// a ghost button so the control keeps the design-system hit target in the cell.
 function OwnerCell({ dictionary, owner }: Readonly<{ dictionary: Dictionary; owner: AdminPaymentLinkV2DirectoryRow["owner"] }>) {
   return (
     <>
-      <Link href="/admin/accounts">{owner.username}</Link>
+      <Button asChild data-ds-hit-target variant="ghost">
+        <Link href="/admin/accounts">{owner.username}</Link>
+      </Button>
       {owner.deletedAt !== null ? <> <Badge variant="outline">{dictionary.adminPaymentLinkV2DirectoryOwnerDeleted}</Badge></> : null}
     </>
   );
