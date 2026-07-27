@@ -1,0 +1,140 @@
+{
+  "version": 1,
+  "id": "20260727233000_password_reset_token",
+  "operations": [
+    {
+      "op": "createTable",
+      "table": {
+        "schema": "app",
+        "name": "password_reset_token"
+      },
+      "columns": [
+        {
+          "name": "id",
+          "type": {
+            "name": "uuid"
+          },
+          "nullable": false
+        },
+        {
+          "name": "user_id",
+          "type": {
+            "name": "uuid"
+          },
+          "nullable": false
+        },
+        {
+          "name": "token_digest",
+          "type": {
+            "name": "varchar",
+            "length": 64
+          },
+          "nullable": false
+        },
+        {
+          "name": "expires_at",
+          "type": {
+            "name": "timestamptz"
+          },
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "type": {
+            "name": "timestamptz"
+          },
+          "nullable": false
+        },
+        {
+          "name": "consumed_at",
+          "type": {
+            "name": "timestamptz"
+          },
+          "nullable": true
+        }
+      ]
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "password_reset_token"
+      },
+      "constraint": {
+        "kind": "primaryKey",
+        "name": "password_reset_token_pkey",
+        "columns": [
+          "id"
+        ]
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "password_reset_token"
+      },
+      "constraint": {
+        "kind": "unique",
+        "name": "password_reset_token_token_digest_key",
+        "columns": [
+          "token_digest"
+        ]
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "password_reset_token"
+      },
+      "constraint": {
+        "kind": "foreignKey",
+        "name": "password_reset_token_user_fkey",
+        "columns": [
+          "user_id"
+        ],
+        "references": {
+          "table": {
+            "schema": "app",
+            "name": "user"
+          },
+          "columns": [
+            "id"
+          ]
+        },
+        "onDelete": "CASCADE",
+        "onUpdate": "CASCADE",
+        "notValid": false
+      }
+    },
+    {
+      "op": "createIndex",
+      "name": "password_reset_token_user_created_at_idx",
+      "table": {
+        "schema": "app",
+        "name": "password_reset_token"
+      },
+      "columns": [
+        "user_id",
+        "created_at"
+      ],
+      "unique": false
+    },
+    {
+      "op": "grant",
+      "object": {
+        "kind": "table",
+        "schema": "app",
+        "name": "password_reset_token"
+      },
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "role": "qr_runtime"
+    }
+  ]
+}

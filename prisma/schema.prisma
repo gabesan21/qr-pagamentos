@@ -40,8 +40,9 @@ model User {
   storefrontDefaultCurrencyCode String? @map("storefront_default_currency_code") @db.VarChar(3)
   createdAt       DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt       DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
-  credential       PasswordCredential?
-  nauttCredential  NauttCredential?
+  credential          PasswordCredential?
+  passwordResetTokens PasswordResetToken[]
+  nauttCredential     NauttCredential?
   providerQuotes   ProviderQuote[]
   providerOrders   ProviderOrder[]
   products         Product[]
@@ -121,6 +122,20 @@ model PasswordCredential {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("password_credential")
+  @@schema("app")
+}
+
+model PasswordResetToken {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String    @map("user_id") @db.Uuid
+  tokenDigest String    @unique(map: "password_reset_token_token_digest_key") @map("token_digest") @db.VarChar(64)
+  expiresAt   DateTime  @map("expires_at") @db.Timestamptz(3)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  consumedAt  DateTime? @map("consumed_at") @db.Timestamptz(3)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt], map: "password_reset_token_user_created_at_idx")
+  @@map("password_reset_token")
   @@schema("app")
 }
 
