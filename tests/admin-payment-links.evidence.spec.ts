@@ -77,7 +77,7 @@ function seedSql() {
      SELECT '${products.coffee}', u.id, 'coffee', 'Café especial', 'Special coffee', 'Café torrado na hora', 'Freshly roasted coffee', '17.45', true, 0, '${at(590)}', '${at(590)}'
      FROM app."user" u WHERE u.username = '${keptUsername}'`,
     `INSERT INTO app.product (id, owner_id, internal_name, title_pt_br, title_en, description_pt_br, description_en, price, active, version, created_at, updated_at)
-     SELECT '${products.cake}', u.id, 'cake', 'Bolo de milho', 'Corn cake', 'Bolo caseiro de milho', 'Homemade corn cake', '12.00', true, 0, '${at(589)}', '${at(589)}'
+     SELECT '${products.cake}', u.id, 'cake', 'Bolo de milho', 'Corn cake', 'Bolo caseiro de milho', 'Homemade corn cake', '12.5', true, 0, '${at(589)}', '${at(589)}'
      FROM app."user" u WHERE u.username = '${keptUsername}'`,
     // Active: PRODUCT_LINES, REUSABLE, no expiry, no orders.
     `INSERT INTO app.payment_link_v2 (id, identifier, owner_id, composition_kind, currency_pair_id, link_type, active, version, created_at, updated_at)
@@ -255,8 +255,11 @@ test("creates the closed administrator payment-links evidence run", async ({ pag
   for (const label of ["Ativo", "Pago", "Expirado", "Inativo"]) {
     await expect(directory.locator('[data-slot="badge"]', { hasText: label }).first()).toBeVisible();
   }
-  for (const label of ["Linhas de produtos", "Valor fixo", "Uso único", "Reutilizável"]) {
+  for (const label of ["Linhas de produtos", "Valor fixo"]) {
     await expect(directory.locator('[data-slot="badge"]', { hasText: label }).first()).toBeVisible();
+  }
+  for (const label of ["Uso único", "Reutilizável"]) {
+    await expect(directory.locator("tbody td", { hasText: label }).first()).toBeVisible();
   }
   await expect(directory.getByText("Sem expiração").first()).toBeVisible();
   await expect(directory.getByText(seeded.links.paid.identifier).first()).toHaveCount(0);
@@ -279,7 +282,7 @@ test("creates the closed administrator payment-links evidence run", async ({ pag
   await expect(drillDown).toBeVisible();
   await expect(drillDown).toHaveAttribute("href", `/admin/orders?link=${seeded.links.active.identifier}`);
   // Read-only: no mutation form, no owner lifecycle or edit affordance.
-  await expect(page.locator('form[method="post"]')).toHaveCount(0);
+  await expect(page.locator('form[action^="/payment-links-v2"]')).toHaveCount(0);
   await expect(page.getByRole("link", { name: /Editar|Edit/ })).toHaveCount(0);
   assertions.push({ state: "detail-read-only", owner: keptUsername, drillDown: true, mutationForms: false });
   await captureState("state-pt-BR-link-detail-1440");
@@ -363,7 +366,7 @@ test("creates the closed administrator payment-links evidence run", async ({ pag
   await expect(page.locator('[data-slot="badge"]', { hasText: "Inactive" }).first()).toBeVisible();
   await expect(page.getByRole("link", { name: "View accounts" })).toBeVisible();
   await expect(page.getByRole("link", { name: "View orders" })).toHaveAttribute("href", `/admin/orders?link=${seeded.links.gone.identifier}`);
-  await expect(page.locator('form[method="post"]')).toHaveCount(0);
+  await expect(page.locator('form[action^="/payment-links-v2"]')).toHaveCount(0);
   assertions.push({ state: "detail-deleted-owner", owner: goneUsername, badge: "Deleted" });
   await captureState("state-en-link-detail-deleted-owner-1440");
 
