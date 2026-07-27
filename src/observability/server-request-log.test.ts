@@ -16,6 +16,13 @@ describe("server request completion logging", () => {
     expect(serverRequestRoutes.adminUserDelete).toBe("/admin/users/[id]/delete");
   });
 
+  it("pins the administrator profile editor route templates", () => {
+    expect(serverRequestRoutes.adminUserIdentity).toBe("/admin/users/[id]/identity");
+    expect(serverRequestRoutes.adminUserLocale).toBe("/admin/users/[id]/locale");
+    expect(serverRequestRoutes.adminUserCheckoutPolicy).toBe("/admin/users/[id]/checkout-policy");
+    expect(serverRequestRoutes.adminUserStorefront).toBe("/admin/users/[id]/storefront");
+  });
+
   it("pins the storefront cart checkout route template", () => {
     expect(serverRequestRoutes.storefrontCartCheckout).toBe("/api/store/[slug]/cart/checkout");
   });
