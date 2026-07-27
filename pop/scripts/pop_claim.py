@@ -51,7 +51,7 @@ def main():
                         help=f"validade do claim em horas (default {DEFAULT_LEASE_HOURS})")
     parser.add_argument("--force", action="store_true",
                         help="ignora dono/lease (release ou takeover forçado)")
-    parser.add_argument("--vault", metavar="DIR")
+    parser.add_argument("--scope", "--vault", dest="vault", metavar="DIR")
     args = parser.parse_args()
 
     root = poplib.vault_root(args.vault)

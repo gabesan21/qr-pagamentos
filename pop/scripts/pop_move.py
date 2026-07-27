@@ -158,7 +158,7 @@ def main():
     parser.add_argument("--force", action="store_true",
                         help="permite transição fora do fluxo padrão e "
                              "sobrepõe claim/liberação")
-    parser.add_argument("--vault", metavar="DIR",
+    parser.add_argument("--scope", "--vault", dest="vault", metavar="DIR",
                         help="raiz do vault (default: pasta acima de scripts/)")
     args = parser.parse_args()
 

@@ -27,7 +27,7 @@ updated: AAAA-MM-DD
 
 # <id>-<slug> — <título curto>
 
-> Blockquotes deste template são instruções de preenchimento — **apague-os ao preencher**. Caminhos de harness levam o prefixo `pop/`; no meta-projeto da raiz do vault, não.
+> Blockquotes deste template são instruções de preenchimento — **apague-os ao preencher**. Caminhos de harness levam o prefixo `pop/`; escopo com o harness na própria raiz, não.
 > **Origem:** task de roadmap (`origin: roadmap`) usa id `<n>.<m>.<t>` e preenche `epoch`/`phase` (apague `modification`); task de modification (`origin: modifications`) usa id `M-<n>.<t>` e preenche `modification: M-<n>` (apague `epoch`/`phase`).
 > **Campos de máquina:** `yolo_*_returns`, `return_kind` e `circuit_breaker` nascem vazios/zerados e são escritos **só** por `pop_move`/orquestrador — editar à mão infla contadores e faz o gate escolher o modo de revisão errado.
 

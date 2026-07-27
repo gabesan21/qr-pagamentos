@@ -38,7 +38,7 @@ Preferir fatos curtos em ordem cronológica. Não adicionar história nova, rein
 1. Produzir a versão compacta mantendo o frontmatter e a estrutura mínima do [[_templates/MEMORY|template de memory]].
 2. Comparar original e candidato com o inventário do preflight; qualquer perda irredutível reprova o candidato.
 3. Confirmar `≤2000` caracteres e datas em `AAAA-MM-DD`.
-4. Validar wikilinks e executar `python3 pop/scripts/pop_validate.py` no vault/projeto aplicável.
+4. Validar wikilinks e executar `python3 pop/scripts/pop_validate.py` no escopo corrente.
 5. Revisar o diff arquivo a arquivo. Se a prova de preservação falhar, restaurar o original e reportar **BLOCKED**.
 
 ## Saída

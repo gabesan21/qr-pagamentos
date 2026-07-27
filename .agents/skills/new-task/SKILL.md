@@ -22,14 +22,14 @@ Materializa uma task do roadmap ou de uma modification como pasta no kanban, no 
 5. **Specs e pesquisas:** quais contratos duráveis ela afeta? Linke spec existente; tema sem spec só recebe rascunho via `write-spec` se introduzir comportamento, interface ou invariante durável. Decisão técnica sem pesquisa prévia → sugira prompt no `RESEARCHES.md` antes de 002.
 6. **Tamanho:** a mudança cabe em **um brief coeso** (≤~150 linhas, preferencialmente muito menos — ver WORKFLOW)? Se reúne objetivos independentes ou frentes demais para uma DAG legível, **proponha dividir em tasks** encadeadas por `depends_on` — em modification, multi-task ganha arquivo próprio em `pop/modifications/`.
 7. **Effort (`size`):** **proponha** `S | M | L` pelo volume da entrega, justificando em 1 linha. Size não escolhe sozinho a topologia: risco, skills, dependências e write sets determinam executor único ou frentes/ondas; planejador e revisor continuam separados.
-8. Proponha **id e slug** — roadmap: `<n>.<m>.<t>-<slug>` (`t` é o próximo número livre na phase); modification: `M-<n>.<t>-<slug>` (`t` é o próximo livre na modification, começando em 1). Slug kebab-case, único no vault. Confirme.
+8. Proponha **id e slug** — roadmap: `<n>.<m>.<t>-<slug>` (`t` é o próximo número livre na phase); modification: `M-<n>.<t>-<slug>` (`t` é o próximo livre na modification, começando em 1). Slug kebab-case, único no escopo. Confirme.
 
 ## Procedimento
 
 1. Confirme que a task existe (ou adicione-a) na origem:
    - **Roadmap:** tabela da phase em `pop/roadmap/<n>-<slug-da-epoch>.md`.
    - **Modifications:** se `pop/MODIFICATIONS.md` não existir, crie-o a partir de `_templates/MODIFICATIONS.md` e adicione a linha `M-<n>`. Modification **multi-task**: crie também `pop/modifications/m-<n>-<slug>.md` a partir de `_templates/MODIFICATION.md` e liste a task lá; modification de **task única** vive só na linha do MODIFICATIONS.md.
-2. Crie a pasta `pop/kanban/001_initial_task/<id>-<slug>/` (meta-projeto da raiz do vault e projetos ainda não migrados: harness na raiz, sem `pop/`) com o card `<id>-<slug>.md` copiado de `_templates/TASK.md`:
+2. Crie a pasta `pop/kanban/001_initial_task/<id>-<slug>/` (escopo com o harness na própria raiz: os mesmos caminhos, sem o prefixo `pop/`) com o card `<id>-<slug>.md` copiado de `_templates/TASK.md`:
    - Frontmatter completo (`id`, `project`, `origin`, `epoch`/`phase` **ou** `modification`, `stage: 001_initial_task`, `critical`, `yolo`, `size`, `blocked: false`, `depends_on: [...]`, `awaiting_merge: false`, datas) — apague o bloco da origem não usada.
    - **Resolva a herança yolo** (epoch → phase → marcador da task, ou modification → marcador da task; opt-out ` · yolo: não` vence): herdou/marcou → `yolo: true` + linha no Log com a origem (`yolo herdado da phase X.Y` / `yolo herdado da modification M-N`).
    - **Estampe o `size`:** marcador ` · size:` da linha da task na origem, ou a sugestão da entrevista (modo yolo sem marcador: sugira você) — sempre com justificativa de 1 linha no Log (`size M sugerido: <motivo>`). O humano corrige à vontade em 001.

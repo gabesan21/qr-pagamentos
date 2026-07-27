@@ -7,7 +7,7 @@ created: AAAA-MM-DD
 
 > Blockquotes deste template são instruções de preenchimento — **apague-os ao preencher**.
 
-> Vive em `pop/notes/<categoria>/` (no meta-projeto da raiz do vault: sem o prefixo `pop/`): `learnings/` (aprendizados de tasks), `decisions/` (decisões extraídas da ficha), `ideas/` (ideias soltas) ou `references/` (links e materiais externos).
+> Vive em `pop/notes/<categoria>/` (escopo com o harness na própria raiz: sem o prefixo `pop/`): `learnings/` (aprendizados de tasks), `decisions/` (decisões extraídas da ficha), `ideas/` (ideias soltas) ou `references/` (links e materiais externos).
 
 Conteúdo livre — mas ≤150 linhas e respondendo a **uma** pergunta. Linke a origem (task, spec, conversa): [[<id-da-task>]] · [[pop/specs/<spec>|<spec>]]
 

@@ -692,7 +692,8 @@ def check_standalone(root, violations):
             continue
         for n, line in lines_outside_fences(path):
             if EXTERNAL_PROJECT_LINK.search(line):
-                violations.append(f"{path}:{n}: link aponta para vault pai")
+                violations.append(
+                    f"{path}:{n}: link aponta para fora do escopo")
 
 
 def main():
@@ -701,7 +702,7 @@ def main():
                     "frontmatter dos cards, worktrees órfãs, wikilinks "
                     "quebrados, specs adotadas e anotações pop-hash de "
                     "citação de código.")
-    parser.add_argument("--vault", metavar="DIR",
+    parser.add_argument("--scope", "--vault", dest="vault", metavar="DIR",
                         help="raiz do vault (default: pasta acima de scripts/)")
     parser.add_argument("--standalone", action="store_true",
                         help="falha fechada para o contrato included local")

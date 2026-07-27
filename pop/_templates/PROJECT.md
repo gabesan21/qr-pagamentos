@@ -22,7 +22,7 @@ Anatomia padrão (ver AGENTS.md da raiz): `AGENTS.md` do projeto + `.agents/skil
 
 Regras específicas para agentes trabalhando neste projeto:
 
-- **Type e repositórios:** declarados no [[AGENTS|AGENTS do projeto]] (`default` | `included` | `multi-repo` | `full-multi-repo`, repos e branch de PR — ver [[TYPES|TYPES]]).
+- **Type e repositórios:** declarados no [[AGENTS|AGENTS do projeto]] — onde mora o conteúdo, quais repos existem e qual é a branch de PR.
 - **Worktree por task:** sim (padrão) | não (aceitável só em projeto sem repositório git — tasks perdem o isolamento e o PR).
 - **Ferramentas e restrições:** o que pode e o que não pode.
 - **Tom/estilo:** se aplicável.

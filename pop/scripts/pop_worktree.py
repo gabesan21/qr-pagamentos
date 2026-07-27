@@ -99,7 +99,7 @@ def main():
                         help="branch de partida para a nova branch (só no add)")
     parser.add_argument("--delete-branch", action="store_true",
                         help="no remove, apaga a branch mesmo sem merge")
-    parser.add_argument("--vault", metavar="DIR",
+    parser.add_argument("--scope", "--vault", dest="vault", metavar="DIR",
                         help="raiz do vault (default: pasta acima de scripts/)")
     args = parser.parse_args()
 

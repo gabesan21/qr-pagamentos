@@ -80,11 +80,11 @@ def main():
     wave.add_argument("--allow-same-project", action="store_true",
                       help="use só após validar independência de escrita/repo")
     wave.add_argument("--json", action="store_true")
-    wave.add_argument("--vault", metavar="DIR")
+    wave.add_argument("--scope", "--vault", dest="vault", metavar="DIR")
 
     mode = sub.add_parser("verify-mode", help="decide differential ou full")
     mode.add_argument("task_id")
-    mode.add_argument("--vault", metavar="DIR")
+    mode.add_argument("--scope", "--vault", dest="vault", metavar="DIR")
 
     record = sub.add_parser("record", help="registra contexto/testes sem mover")
     record.add_argument("task_id")
@@ -92,18 +92,18 @@ def main():
     record.add_argument("--context", action="append", default=[])
     record.add_argument("--test-seconds", type=float, default=0)
     record.add_argument("--result", default="completed")
-    record.add_argument("--vault", metavar="DIR")
+    record.add_argument("--scope", "--vault", dest="vault", metavar="DIR")
 
     summary = sub.add_parser("telemetry", help="resume a telemetria da task")
     summary.add_argument("task_id")
     summary.add_argument("--json", action="store_true")
-    summary.add_argument("--vault", metavar="DIR")
+    summary.add_argument("--scope", "--vault", dest="vault", metavar="DIR")
 
     reset = sub.add_parser("reset", help="intervenção humana zera um gate")
     reset.add_argument("task_id")
     reset.add_argument("--gate", required=True, choices=("003", "005"))
     reset.add_argument("--reason", required=True)
-    reset.add_argument("--vault", metavar="DIR")
+    reset.add_argument("--scope", "--vault", dest="vault", metavar="DIR")
     args = parser.parse_args()
     root = poplib.vault_root(args.vault)
 

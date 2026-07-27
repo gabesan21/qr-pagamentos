@@ -98,7 +98,7 @@ def main():
         description="Panorama do vault: tasks por estágio e gates pendentes.")
     parser.add_argument("--project", metavar="CATEGORIA/PROJETO",
                         help="limita a um projeto (ex.: agents/meu-projeto)")
-    parser.add_argument("--vault", metavar="DIR",
+    parser.add_argument("--scope", "--vault", dest="vault", metavar="DIR",
                         help="raiz do vault (default: pasta acima de scripts/)")
     args = parser.parse_args()
 

@@ -6,7 +6,7 @@ created: AAAA-MM-DD
 
 # <a pergunta, em uma linha>
 
-> Arquivo `pop/open_questions/AAAA-MM-DD-<slug>.md` (na raiz do vault, fora de projeto: `open_questions/`, sem o prefixo `pop/`), criado pelo **agente** quando uma decisão depende do humano e não pertence a nenhum card. As `status: aberta` aparecem no [[INBOX|INBOX]]. Blockquotes são instruções — apague-as ao preencher.
+> Arquivo `pop/open_questions/AAAA-MM-DD-<slug>.md` (escopo com o harness na própria raiz: `open_questions/`, sem o prefixo `pop/`), criado pelo **agente** quando uma decisão depende do humano e não pertence a nenhum card. As `status: aberta` aparecem no [[INBOX|INBOX]]. Blockquotes são instruções — apague-as ao preencher.
 
 Contexto em poucas linhas: por que a pergunta existe e o que ela bloqueia, com link para a origem (rascunho, projeto, nota). Se houver opções, cada uma com trade-off de uma linha.
 

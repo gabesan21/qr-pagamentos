@@ -4,7 +4,7 @@
 
 Ficha: [[pop/PROJECT|<Nome do projeto>]] · Roadmap: [[pop/ROADMAP|Roadmap]]
 
-> Arquivo **opcional**, ao lado do ROADMAP.md. Prompts de **pesquisa profunda** propostos pelo agente para o **usuário** rodar na ferramenta que preferir (deep research) e depositar o resultado em `pop/researches/<assunto>/` (no meta-projeto da raiz do vault: sem o prefixo `pop/`). Pesquisa entregue enriquece o roadmap (recon das epochs), as specs e o projeto em si.
+> Arquivo **opcional**, ao lado do ROADMAP.md. Prompts de **pesquisa profunda** propostos pelo agente para o **usuário** rodar na ferramenta que preferir (deep research) e depositar o resultado em `pop/researches/<assunto>/` (escopo com o harness na própria raiz: sem o prefixo `pop/`). Pesquisa entregue enriquece o roadmap (recon das epochs), as specs e o projeto em si.
 
 ## <assunto-em-kebab-case>
 
@@ -12,7 +12,7 @@ Ficha: [[pop/PROJECT|<Nome do projeto>]] · Roadmap: [[pop/ROADMAP|Roadmap]]
 - **Alimenta:** epoch <n> | spec [[pop/specs/<spec>|<spec>]] | RECON NEEDED <qual>
 - **Prompt sugerido:**
 
-> Prompt completo e autocontido: contexto do projeto em 2–3 frases, a pergunta central, o que a resposta precisa cobrir (comparações, fontes, critérios) e o formato esperado do resultado. Deve funcionar colado em qualquer ferramenta de pesquisa, sem este vault por perto.
+> Prompt completo e autocontido: contexto do projeto em 2–3 frases, a pergunta central, o que a resposta precisa cobrir (comparações, fontes, critérios) e o formato esperado do resultado. Deve funcionar colado em qualquer ferramenta de pesquisa, sem este repositório por perto.
 
 ## Como usar
 

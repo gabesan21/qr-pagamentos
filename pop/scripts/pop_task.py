@@ -85,7 +85,7 @@ def main():
                              "ou M-1.1-ajusta-contrato)")
     parser.add_argument("--title", help="título curto do card "
                                         "(default: slug com espaços)")
-    parser.add_argument("--vault", metavar="DIR",
+    parser.add_argument("--scope", "--vault", dest="vault", metavar="DIR",
                         help="raiz do vault (default: pasta acima de scripts/)")
     args = parser.parse_args()
 

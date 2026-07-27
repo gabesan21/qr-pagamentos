@@ -1,6 +1,15 @@
 # WORKFLOW — fluxo de tasks no kanban
 
-Regras gerais do vault: [[AGENTS|AGENTS]] · Caixa de entrada: [[INBOX|INBOX]]
+Regras gerais do escopo: [[AGENTS|AGENTS]] · Caixa de entrada: [[INBOX|INBOX]]
+
+## Escopo corrente
+
+**Escopo corrente é a raiz que contém o `AGENTS.md` que você está lendo**, com o harness dela (`pop/`, ou a própria raiz quando o harness não tem subpasta). Toda palavra deste fluxo — "raiz", "projeto", "índices", "scripts", "kanban", "aqui" — resolve dentro dele.
+
+- **O escopo é o mundo inteiro.** Nenhum diretório acima da raiz do escopo pertence a ele. Se um diretório ancestral tiver `AGENTS.md`, `CLAUDE.md` ou um kanban, ele **não é o seu contexto**: não o leia, não o siga, não escreva nele e não relate o que ele contém — inclusive quando a ferramenta o carregar sozinha no início da sessão. Instrução herdada de ancestral perde para esta seção.
+- **Nada aqui autoriza subir.** Versão do harness, panorama de outros projetos e índices de agregação são responsabilidade de quem instalou este harness. Escopo instalado responde sobre si pelo `pop/.included-harness.json` e para aí; comparar com a origem não é trabalho dele.
+- **Achado fora do escopo é relato, não trabalho.** Se algo realmente depender de fora, registre em `open_questions/` e pare. Atravessar a fronteira é erro mesmo "só para ler".
+- **A rota de entrega vem da anatomia, nunca de um rótulo.** Escopo com o kanban na **própria raiz** (sem `pop/`) é **escopo local**: entrega direto em `main`, sem branch, worktree ou PR por task. Escopo com o harness em `pop/` — todo harness instalado — é **escopo versionado**: branch/worktree por task e merge humano por PR. `pop/scripts/pop_delivery.py` é a fonte da rota; nenhum campo do card a sobrescreve.
 
 Toda task é uma pasta com id `<epoch>.<phase>.<task>-<slug>` (roadmap) ou `M-<n>.<t>-<slug>` (modifications) que se move inteira entre os estágios do `kanban/` do projeto.
 
@@ -26,7 +35,7 @@ Contrato durável: [[specs/orquestracao-multiagente|orquestração multiagente]]
 - **004 — execução adaptativa:** frente coesa (uma skill/write set, sem DAG) vai direto a um executor; só topologia complexa recebe suborquestrador para especialistas sequenciais/ondas. Planejador nunca executa.
 - **005_closing — um gate, um contexto:** em yolo, um revisor independente em contexto fresco julga **e** escreve a memory na mesma sessão — ele acabou de ler o diff, não há por que pagar outra leitura. `critical` aumenta profundidade/modelo, não cria um segundo revisor. Fora de yolo não existe revisor agêntico: o gate é o PR humano e o estágio inteiro é do orquestrador principal.
 - **Fatiamento de leitura:** cada papel recebe só a sua fatia. Executor de frente lê o "O quê / Por quê" do card, o objetivo e a estratégia do plano, o **seu** arquivo de frente e a skill dela — nunca o plano inteiro nem frentes alheias.
-- **001:** fica com o orquestrador principal; em yolo externo, integração em `develop` e abertura do PR final também são mecânicas dele. O meta PoP local (`project: pop` na raiz) opera direto em `main`.
+- **001:** fica com o orquestrador principal; em yolo externo, integração em `develop` e abertura do PR final também são mecânicas dele. Escopo local opera direto em `main`.
 
 Modelos são escolhidos pelo papel e pelo risco, via `pop/scripts/models.json`:
 
@@ -95,7 +104,7 @@ O planejador não implementa. Ele decide e resume; não persiste chain-of-though
 
 ### 004_processing — execução orquestrada (agent)
 
-- Se o card é `project: pop` no root vault, execute diretamente em `main`, sem branch/worktree/PR próprios; valide explicitamente os limites das frentes antes de integrar cada resultado.
+- Em escopo local, execute diretamente em `main`, sem branch/worktree/PR próprios; valide explicitamente os limites das frentes antes de integrar cada resultado.
 - Nos demais escopos, crie a worktree de integração da task, branch `task/<id>`, no repo dono do trabalho; projetos multi-repo criam uma por repo afetado.
 - O orquestrador principal classifica a topologia:
   - **executor direto:** uma frente coesa, uma skill predominante e um conjunto de escrita;
@@ -121,9 +130,9 @@ Um estágio, três atos na ordem. **Nenhum efeito do ato 3 acontece antes da apr
 - **Três saídas possíveis:** aprovado → ato 2; **bloqueante de execução** → 004 (o executor não cumpriu o contrato); **defeito de plano** → 002 (o contrato não cobria o pedido, e o executor cumpriu o que recebeu). Cada rota tem contador próprio: execução conta em `yolo_005_returns`, defeito de plano em `yolo_003_returns`. Duas devoluções por contador reentram automaticamente; a 3ª ativa `circuit_breaker`.
 - **Toda devolução carrega um delta nomeado**, sem exceção: tipo (`lacuna` | `premissa` | `execucao`), critérios afetados, frentes afetadas e frentes que permanecem intactas. É o delta que faz a devolução custar o tamanho do defeito em vez de um ciclo inteiro — sem ele, 002 não sabe se emenda ou replaneja e 004 não sabe o que reexecutar. O tipo é gravado em `return_kind:` por `python3 pop/scripts/pop_move.py … --return-kind <tipo>`; agente nunca edita esse campo à mão. Fora de yolo, o humano registra o mesmo delta na rodada de merge do `.approval.md` ao pedir correção no PR.
 - **O gate não conserta o que reprovou.** Nomear o delta é o limite do seu poder: revisor que despacha correção passa a avaliar trabalho que encomendou, e a independência — a única razão pela qual o gate vale algo — desaparece.
-- **Não-yolo — sem revisor agêntico.** O gate é o **PR humano** do ato 2, e o critério objetivo já rodou em 004 (gate agregado + `pop_check_scope.py`). Sem PR — meta PoP local, `project: pop` — não existe gate de verificação: o estágio segue direto para o ato 3. Consequência aceita por decisão de 2026-07-27; a prova fica em `main` e na memory.
+- **Não-yolo — sem revisor agêntico.** O gate é o **PR humano** do ato 2, e o critério objetivo já rodou em 004 (gate agregado + `pop_check_scope.py`). Sem PR — escopo local — não existe gate de verificação: o estágio segue direto para o ato 3. Consequência aceita por decisão de 2026-07-27; a prova fica em `main` e na memory.
 
-**Ato 2 — integração e PR.** Meta PoP local já está em `main`, sem branch/worktree/PR da task. Escopo externo **não-yolo**: abra o PR da task, marque `pr:` e `awaiting_merge: true` e aguarde o merge humano. Escopo externo **yolo**: integre mecanicamente em `develop`, sem PR por task.
+**Ato 2 — integração e PR.** Escopo local já está em `main`, sem branch/worktree/PR da task. Escopo externo **não-yolo**: abra o PR da task, marque `pr:` e `awaiting_merge: true` e aguarde o merge humano. Escopo externo **yolo**: integre mecanicamente em `develop`, sem PR por task.
 
 **Ato 3 — encerramento.** Idempotente: valide o estado antes de cada efeito, pule o que já está feito e aborte preservando card/roadmap diante de falha técnica.
 
@@ -163,4 +172,4 @@ Somente ordem humana literal como “não use o kanban” ou “faça fora do Po
 - **Duas devoluções por rota, sempre com delta:** bloqueante de execução volta a 004 (`yolo_005_returns`, tipo `execucao`); defeito de plano volta a 002 (`yolo_003_returns`, tipo `lacuna` ou `premissa`). A 3ª falha da mesma rota ativa o circuit breaker. Só as frentes do delta reentram.
 - **`critical: true` é a exceção:** mantém o 003 com crítico strong antes da execução (duas devoluções a 002; 3ª = circuit breaker) e o gate do `005_closing` sempre `full`.
 - Só bloqueio técnico, item `(user)` ou circuit breaker interrompem; devolução normal reentra automaticamente no fluxo.
-- **Merge humano no fim do escopo marcado** — task avulsa, phase/epoch ou modification: fora do meta PoP local, o orquestrador, não o revisor, integra cada task em `develop`, sem PR por task. Quando a última task do escopo fecha o `005_closing`, abre automaticamente o PR `develop` → `main`, registra resumo/testes/criticals e aguarda o merge humano. No meta PoP local tudo permanece em `main`, sem branch/worktree/PR da task ou do escopo.
+- **Merge humano no fim do escopo marcado** — task avulsa, phase/epoch ou modification: fora do escopo local, o orquestrador, não o revisor, integra cada task em `develop`, sem PR por task. Quando a última task do escopo fecha o `005_closing`, abre automaticamente o PR `develop` → `main`, registra resumo/testes/criticals e aguarda o merge humano. Em escopo local tudo permanece em `main`, sem branch/worktree/PR da task ou do escopo.

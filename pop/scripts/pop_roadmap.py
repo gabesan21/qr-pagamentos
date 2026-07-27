@@ -204,7 +204,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("command", choices=("check", "close", "prune"))
     parser.add_argument("task_id", nargs="?")
-    parser.add_argument("--vault", metavar="DIR")
+    parser.add_argument("--scope", "--vault", dest="vault", metavar="DIR")
     parser.add_argument("--tracked-only", action="store_true")
     args = parser.parse_args()
     root = poplib.vault_root(args.vault)

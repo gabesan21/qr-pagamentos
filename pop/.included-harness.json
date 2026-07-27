@@ -3,7 +3,6 @@
   "harness_root": "pop",
   "files": [
     "WORKFLOW.md",
-    "TYPES.md",
     "INBOX.md"
   ],
   "directories": [
@@ -14,6 +13,11 @@
     "__pycache__",
     "tests",
     ".pytest_cache"
+  ],
+  "exclude_files": [
+    "_templates/NEW_PROJECT.md",
+    "_templates/IMPORT_PROJECT.md",
+    "skills/weekly-review/origin-scope.md"
   ],
   "skills": [
     "new-task",
@@ -71,7 +75,6 @@
   ],
   "managed": [
     "pop/WORKFLOW.md",
-    "pop/TYPES.md",
     "pop/INBOX.md",
     "pop/_templates",
     "pop/scripts",
@@ -87,7 +90,7 @@
     "pop/kanban",
     "pop/worktrees/.gitkeep"
   ],
-  "content_sha": "4308c1a789d3402a792628b38d191afd4e41a255b4b2afa4fec87029ac3359c8",
+  "content_sha": "b15d1f17eb6b63a8d7fa6f0d5e06caadee9e532edf0dd7fed4fe4b2f7bd08ef2",
   "installed": [
     ".agents/skills/advance-task/SKILL.md",
     ".agents/skills/clean-code-change/SKILL.md",
@@ -107,16 +110,13 @@
     ".agents/skills/write-spec/SKILL.md",
     ".agents/skills/yolo-critic/SKILL.md",
     "pop/INBOX.md",
-    "pop/TYPES.md",
     "pop/WORKFLOW.md",
     "pop/_templates/AGENTS-PROJECT.md",
     "pop/_templates/DOX.md",
     "pop/_templates/EPOCH.md",
-    "pop/_templates/IMPORT_PROJECT.md",
     "pop/_templates/MEMORY.md",
     "pop/_templates/MODIFICATION.md",
     "pop/_templates/MODIFICATIONS.md",
-    "pop/_templates/NEW_PROJECT.md",
     "pop/_templates/NOTE.md",
     "pop/_templates/OPEN-QUESTION.md",
     "pop/_templates/PROJECT.md",

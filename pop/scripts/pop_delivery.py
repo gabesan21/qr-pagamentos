@@ -82,7 +82,7 @@ def main():
     merge.add_argument("task_id")
     merge.add_argument("--repo")
     merge.add_argument("--dry-run", action="store_true")
-    merge.add_argument("--vault")
+    merge.add_argument("--scope", "--vault", dest="vault")
     pr = sub.add_parser("scope-pr")
     pr.add_argument("--repo", default=".")
     pr.add_argument("--dry-run", action="store_true")

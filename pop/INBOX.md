@@ -40,7 +40,7 @@ SORT updated ASC
 
 ## Questões abertas
 
-Perguntas do agente que não pertencem a nenhum card — decisões de projeto novo, estrutura do vault etc. (pasta `open_questions/`).
+Perguntas do agente que não pertencem a nenhum card — decisões de estrutura do escopo etc. (pasta `open_questions/`).
 
 ```dataview
 TABLE WITHOUT ID file.link AS Questão, origem AS Origem, created AS "Desde"
@@ -73,7 +73,6 @@ SORT claimed_at ASC
 
 Relatórios da skill `weekly-review` são linkados aqui, mais recente primeiro.
 
-- [[REVIEW-2026-07-27|2026-07-27 — weekly-review do vault]]
 
 ---
 

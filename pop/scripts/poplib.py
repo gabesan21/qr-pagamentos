@@ -41,11 +41,14 @@ RETURN_KINDS = ("lacuna", "premissa", "execucao")
 RELEASE_MARK = re.compile(r"^\s*[-*]\s*\[[xX]\]\s*Pronto para planejar")
 
 def vault_root(override: Optional[str] = None) -> Path:
-    """Raiz do vault: `--vault` se dado, senão a pasta acima de `scripts/`.
+    """Raiz do escopo corrente: `--vault` se dado, senão a pasta acima de
+    `scripts/`.
 
-    Em clone included de anatomia nova os scripts moram em `pop/scripts/`:
-    se a pasta acima chama `pop` e carrega `.included-harness.json`, a raiz
-    é a pasta acima dela (a raiz do repo).
+    Em harness instalado os scripts moram em `pop/scripts/`: se a pasta acima
+    chama `pop` e carrega `.included-harness.json`, a raiz é a pasta acima dela
+    (a raiz do repo) — e a busca **para ali**. O marcador é a fronteira: nenhum
+    script sobe além dele procurando um escopo maior, mesmo que exista um no
+    disco. Harness instalado é um mundo completo.
     """
     if override:
         return Path(override).resolve()
@@ -53,6 +56,16 @@ def vault_root(override: Optional[str] = None) -> Path:
     if base.name == "pop" and (base / ".included-harness.json").is_file():
         return base.parent
     return base
+
+
+def is_installed_scope(root: Path) -> bool:
+    """O escopo recebeu o harness de uma origem (não é ele a origem).
+
+    Marcado por `pop/.included-harness.json` na raiz. Um escopo instalado não
+    hospeda outros projetos, não mantém índices de agregação e não responde
+    sobre a versão da origem.
+    """
+    return (root / "pop" / ".included-harness.json").is_file()
 
 
 def harness_root(project: Path) -> Path:
@@ -205,9 +218,14 @@ def iter_all_harness_markdown(root: Path) -> Iterator[Path]:
 def project_label(root: Path, project: Path) -> str:
     """Nome curto `<categoria>/<projeto>` de uma pasta de projeto — ou
     `<categoria>/<projeto>/<repo>` para repo embutido de full-multi-repo.
-    A raiz do vault (meta-projeto) tem o rótulo fixo `pop`."""
+
+    A raiz só se chama `pop` quando é o escopo que hospeda os outros (kanban
+    na própria raiz). Escopo instalado também tem `project == root`, mas usar
+    ali o mesmo rótulo faria o card dizer `project: pop` e herdar por engano a
+    rota de entrega do escopo hospedeiro — ele usa o nome da própria raiz.
+    """
     if project == root:
-        return "pop"
+        return "pop" if (root / "kanban").is_dir() else root.name
     parts = project.relative_to(root / "categories").parts
     return "/".join(parts)
 
@@ -218,9 +236,9 @@ def project_dir(root: Path, label: str) -> Path:
     `<cat>/<proj>` -> `categories/<cat>/<proj>`;
     `<cat>/<proj>/<repo>` -> `categories/<cat>/<proj>/<repo>` (repo embutido
     de full-multi-repo, anatomia `pop/`);
-    `pop` -> raiz do vault (meta-projeto).
+    rótulo da própria raiz -> a raiz do escopo corrente.
     """
-    if label == "pop":
+    if label == project_label(root, root):
         return root
     parts = [p for p in label.split("/") if p]
     return root.joinpath("categories", *parts)

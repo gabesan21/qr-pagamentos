@@ -14,7 +14,7 @@
 
 ## Recon e forks
 
-> Pesquisas em `pop/researches/` (no meta-projeto da raiz do vault: sem o prefixo `pop/`) que embasaram o detalhamento; o que ficou sem resposta é RECON NEEDED, com o check que resolve. Forks: mudanças de rota pré-identificadas.
+> Pesquisas em `pop/researches/` (escopo com o harness na própria raiz: sem o prefixo `pop/`) que embasaram o detalhamento; o que ficou sem resposta é RECON NEEDED, com o check que resolve. Forks: mudanças de rota pré-identificadas.
 
 - [[pop/researches/<assunto>/<nota>|<assunto>]] — o que estabeleceu, em uma linha.
 - [ ] RECON NEEDED: <suposição> — check: <pesquisa/experimento/task que resolve>.

@@ -39,10 +39,20 @@ def manifest():
     return json.loads(MANIFEST.read_text(encoding="utf-8"))
 
 
-def excluded(data, relative: Path) -> bool:
-    """Caminho que o instalador não propaga (bytecode, suíte do pai)."""
+def excluded(data, relative: Path, label: str = "") -> bool:
+    """Caminho que o instalador não propaga.
+
+    Duas listas, dois motivos. `exclude` tira ruído por nome de pasta
+    (bytecode, suíte da origem). `exclude_files` tira, por rótulo exato,
+    material que **só existe para quem hospeda outros projetos** — índices de
+    agregação, criação de projeto, panorama entre escopos. Ele não é omitido
+    por economia: se chegasse ao alvo, o harness instalado voltaria a
+    descrever um mundo acima da própria raiz.
+    """
     names = set(data.get("exclude", DEFAULT_EXCLUDE))
-    return bool(names.intersection(relative.parts))
+    if names.intersection(relative.parts):
+        return True
+    return bool(label) and label in set(data.get("exclude_files", ()))
 
 
 def managed_sources(data):
@@ -57,14 +67,16 @@ def managed_sources(data):
         base = SOURCE / name
         for path in sorted(base.rglob("*")):
             relative = path.relative_to(base)
-            if path.is_file() and not excluded(data, relative):
-                yield f"{name}/{relative.as_posix()}", path
+            label = f"{name}/{relative.as_posix()}"
+            if path.is_file() and not excluded(data, relative, label):
+                yield label, path
     for name in data["skills"]:
         base = SKILLS_SOURCE / name
         for path in sorted(base.rglob("*")):
             relative = path.relative_to(base)
-            if path.is_file() and not excluded(data, relative):
-                yield f"skills/{name}/{relative.as_posix()}", path
+            label = f"skills/{name}/{relative.as_posix()}"
+            if path.is_file() and not excluded(data, relative, label):
+                yield label, path
     yield "manifest", MANIFEST
 
 
@@ -94,12 +106,12 @@ def installed_stamp(target: Path, key: str = "content_sha"):
 
 
 def is_vendored() -> bool:
-    """Este script é a cópia instalada num projeto, não o original do pai.
+    """Este script é a cópia instalada num escopo, não o original da origem.
 
-    A cópia não consegue responder sobre frescor: seu `SOURCE` é o harness
-    local, já localizado na instalação, então o hash nunca bate com o do pai.
-    Responder "DEFASADO" ali ensinaria a reinstalar o harness a partir de si
-    mesmo — o oposto da fonte única.
+    A cópia não consegue **comparar** versões: seu `SOURCE` é o harness local,
+    já localizado na instalação, então o hash nunca bate com o da origem. Ela
+    responde o que sabe de si — a versão carimbada — e para aí. Mandar procurar
+    a origem seria transformar uma pergunta local em travessia de fronteira.
     """
     return (SOURCE / ".included-harness.json").is_file()
 
@@ -129,7 +141,7 @@ def copy_file(source: Path, dest: Path, *, overwrite: bool = True,
 
 
 def copy_tree(source: Path, dest: Path, *, included_paths: bool = False,
-              data=None) -> list:
+              data=None, label_prefix: str = "") -> list:
     """Copia `source` em `dest` e devolve os arquivos escritos.
 
     Não varre o destino: pasta gerida **não** é pasta exclusiva. O projeto
@@ -142,7 +154,8 @@ def copy_tree(source: Path, dest: Path, *, included_paths: bool = False,
     written = []
     for path in source.rglob("*"):
         relative = path.relative_to(source)
-        if path.is_dir() or excluded(data, relative):
+        label = f"{label_prefix}{relative.as_posix()}" if label_prefix else ""
+        if path.is_dir() or excluded(data, relative, label):
             continue
         target_file = dest / relative
         copy_file(path, target_file, included_paths=included_paths)
@@ -190,6 +203,73 @@ def preserve_worktree_marker(target: Path, prefix: str = "") -> None:
     ignore.write_text(text, encoding="utf-8")
 
 
+# Termos que descrevem um mundo **acima** da raiz do escopo. Se qualquer um
+# chega ao alvo, o harness instalado volta a ensinar o agente a subir — a falha
+# que `exclude_files` e esta trava existem para impedir. O gate é sobre o texto
+# que o agente lê como instrução.
+BOUNDARY_TOKENS = ("vault", "categories/", "meta-projeto", "pop raiz",
+                   "pop pai", "vault pai", "drafts/", "external-repository",
+                   "repositórios agregados", "projeto-mãe", "full-multi-repo")
+# Em código, identificador e glob não são instrução: `vault_root`, `--vault` e
+# o padrão `categories/*/*` são mecânica interna e ficam. O que não pode é
+# **texto dito ao agente** mandando-o sair do escopo — por isso o gate de `.py`
+# olha só as mensagens (print, help, erro), não comentários nem regex.
+BOUNDARY_TOKENS_CODE = ("meta-projeto", "pop raiz", "pop pai", "vault pai")
+
+
+def _spoken_strings(source: str):
+    """Literais que o script **diz** ao usuário: print, help= e erros."""
+    import ast
+    try:
+        tree = ast.parse(source)
+    except SyntaxError:
+        return
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+        target = node.func
+        name = getattr(target, "id", None) or getattr(target, "attr", None)
+        spoken = name in {"print", "error", "RuntimeError", "ValueError",
+                          "SystemExit", "append"}
+        for argument in (node.args if spoken else []):
+            for piece in ast.walk(argument):
+                if isinstance(piece, ast.Constant) and isinstance(piece.value, str):
+                    yield piece.value
+        for keyword in node.keywords:
+            if keyword.arg != "help":
+                continue
+            for piece in ast.walk(keyword.value):
+                if isinstance(piece, ast.Constant) and isinstance(piece.value, str):
+                    yield piece.value
+
+
+def boundary_violations() -> list[str]:
+    """Rótulos do conjunto gerido que nomeiam algo fora do escopo do alvo.
+
+    Falha fechada: instalar um harness que descreve o hospedeiro é o defeito,
+    não um detalhe de redação. O alvo não deve nem ter vocabulário para
+    descrever quem o instalou.
+    """
+    data = manifest()
+    found = []
+    for label, path in sorted(managed_sources(data)):
+        if path.suffix not in {".md", ".py"}:
+            continue
+        # Audita o que **chega** ao alvo: `localize` já reescreve os wikilinks
+        # com prefixo de categoria, e reprovar por eles seria falso positivo.
+        text = localize(path.read_text(encoding="utf-8"),
+                        included_paths=path.suffix == ".md")
+        if path.suffix == ".md":
+            haystacks, tokens = [text], BOUNDARY_TOKENS
+        else:
+            haystacks, tokens = list(_spoken_strings(text)), BOUNDARY_TOKENS_CODE
+        hits = sorted({token for token in tokens
+                       for hay in haystacks if token in hay.lower()})
+        if hits:
+            found.append(f"{label}: {', '.join(hits)}")
+    return found
+
+
 def audit() -> list[str]:
     data = manifest()
     missing = []
@@ -209,6 +289,10 @@ def install(target: Path) -> None:
     missing = audit()
     if missing:
         raise RuntimeError("manifesto incompleto: " + ", ".join(missing))
+    leaks = boundary_violations()
+    if leaks:
+        raise RuntimeError("conjunto gerido cita o escopo hospedeiro: "
+                           + "; ".join(leaks))
     data = manifest()
     # harness_root: "pop" no manifest v2; "" (raiz do target) no v1 legado.
     hr = data.get("harness_root", "") or ""
@@ -221,11 +305,12 @@ def install(target: Path) -> None:
         written.append(hb / name)
     for name in data["directories"]:
         written += copy_tree(SOURCE / name, hb / name, included_paths=True,
-                             data=data)
+                             data=data, label_prefix=f"{name}/")
     for name in data["skills"]:
         written += copy_tree(SKILLS_SOURCE / name,
                              target / ".agents/skills" / name,
-                             included_paths=True, data=data)
+                             included_paths=True, data=data,
+                             label_prefix=f"skills/{name}/")
     inventory = sorted(path.relative_to(target).as_posix() for path in written)
     prune(target, previous or [], [path.relative_to(target).as_posix()
                                    for path in written])
@@ -267,6 +352,8 @@ def main() -> int:
     parser.add_argument("--check-fresh", action="store_true",
                         help="o harness do alvo está na versão da origem?")
     parser.add_argument("--audit-manifest", action="store_true")
+    parser.add_argument("--audit-boundary", action="store_true",
+                        help="o conjunto gerido está livre do escopo hospedeiro?")
     parser.add_argument("--sha", action="store_true",
                         help="imprime o content_sha do harness na origem")
     args = parser.parse_args()
@@ -275,10 +362,22 @@ def main() -> int:
         if missing:
             print("manifesto incompleto: " + ", ".join(missing), file=sys.stderr); return 1
         print("manifesto fechado"); return 0
+    if args.audit_boundary:
+        leaks = boundary_violations()
+        if leaks:
+            print("conjunto gerido cita o escopo hospedeiro:", file=sys.stderr)
+            for leak in leaks:
+                print(f"  {leak}", file=sys.stderr)
+            return 1
+        print("fronteira íntegra"); return 0
     if (args.sha or args.check_fresh) and is_vendored():
-        print("comando só existe na origem: este é o harness instalado de um "
-              "projeto. Rode do PoP pai, que é a fonte única.", file=sys.stderr)
-        return 2
+        # Resposta local e completa. Comparar com a origem é responsabilidade
+        # de quem instalou; o escopo não sai daqui para descobrir isso.
+        _, stamped = installed_stamp(SOURCE.parent)
+        version = stamped[:12] if stamped else "sem carimbo"
+        print(f"harness instalado na versão {version} — a comparação com a "
+              f"origem é feita por quem instalou, não por este escopo")
+        return 0
     if args.sha:
         print(content_sha()); return 0
     if not args.target:

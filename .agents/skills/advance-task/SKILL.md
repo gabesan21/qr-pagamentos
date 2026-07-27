@@ -11,7 +11,7 @@ Você é o **orquestrador**: identifica o estágio da task, resolve gates e tran
 
 ## Entrada
 
-- **id da task** (ex.: `1.1.1-user-table-creation`, `M-1.1-ajusta-contrato`). Localize a pasta: `find <projeto>/pop/kanban -maxdepth 2 -name "<id>*" -type d` (meta-projeto da raiz do vault e projetos ainda não migrados: harness na raiz, sem `pop/`).
+- **id da task** (ex.: `1.1.1-user-table-creation`, `M-1.1-ajusta-contrato`). Localize a pasta: `find <projeto>/pop/kanban -maxdepth 2 -name "<id>*" -type d` (escopo com o harness na própria raiz: os mesmos caminhos, sem o prefixo `pop/`).
 - **Pedido de alteração sem id/card:** execute primeiro `new-task` com o contexto já dado pelo humano e então retome este loop. Ausência de card é entrada do fluxo, nunca autorização para escrever. Se o humano disse “iniciar o fluxo em yolo”, materialize/libere com `yolo: true` e percorra a rota integral.
 
 ## Loop do orquestrador
@@ -38,7 +38,7 @@ Você é o **orquestrador**: identifica o estágio da task, resolve gates e tran
 
 ## Subagentes por estágio
 
-Cada subagente recebe **só** a skill da sua etapa (tabela "Skills por etapa" do card) + o contexto mínimo — nunca o vault inteiro. O contrato de todo subagente de estágio inclui: **sem web** (lacuna de conhecimento → prompt no `RESEARCHES.md` + `blocked`, seção 002 do WORKFLOW), **teto de resposta** ("escreva o arquivo, devolva caminho + resumo ≤10 linhas") e **modelo pelo tier** da matriz papel × size da Orquestração (`pop/scripts/models.json`). Reasoning pesado, prompts operacionais e tentativas descartadas são **efêmeros**; o kanban guarda decisões, estratégia, contratos e evidências:
+Cada subagente recebe **só** a skill da sua etapa (tabela "Skills por etapa" do card) + o contexto mínimo — nunca o escopo inteiro. O contrato de todo subagente de estágio inclui: **sem web** (lacuna de conhecimento → prompt no `RESEARCHES.md` + `blocked`, seção 002 do WORKFLOW), **teto de resposta** ("escreva o arquivo, devolva caminho + resumo ≤10 linhas") e **modelo pelo tier** da matriz papel × size da Orquestração (`pop/scripts/models.json`). Reasoning pesado, prompts operacionais e tentativas descartadas são **efêmeros**; o kanban guarda decisões, estratégia, contratos e evidências:
 
 - **002 — planejador (sempre separado):** recebe card + pesquisas e specs linkadas → devolve a raiz do `.plan.md` (**≤80 linhas em qualquer `size`**) com objetivo, áreas, estratégia, frentes, dependências, riscos reais e critérios, **mais um arquivo em `subtasks/` (≤50 linhas) por frente que vá para contexto separado**; sem código, pseudocódigo ou microedições. Plano que não cabe **modulariza**, não comprime. Abre recon **orçado** só para lacuna concreta acima do piso da regra 18; **0 workers é válido**.
 - **004:** uma frente coesa recebe executor direto com `owns`, deny e critério. Só topologia complexa recebe suborquestrador, contratos completos e sequência/ondas; valide escopo e gate agregado. **Entregue a fatia, não o plano:** cada executor recebe o "O quê / Por quê" do card, o objetivo e a estratégia, o **seu** arquivo de frente e a skill dela — nunca o plano inteiro nem frentes alheias.

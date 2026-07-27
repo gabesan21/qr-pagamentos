@@ -4,7 +4,7 @@ Ficha: [[pop/PROJECT|<Nome do projeto>]]
 
 > O que chega **fora do planejamento** (hotfix, ajuste, feature emergente pequena) não entra aqui — vai para o [[pop/MODIFICATIONS|MODIFICATIONS]] ([[_templates/MODIFICATIONS|template]], criado sob demanda). Fronteira no [[AGENTS|AGENTS]].
 
-> Só as **epochs**, uma linha cada. Phases e tasks ficam no arquivo de cada epoch em `pop/roadmap/` ([[_templates/EPOCH|template]]; no meta-projeto da raiz do vault: sem o prefixo `pop/`). Nunca detalhe aqui.
+> Só as **epochs**, uma linha cada. Phases e tasks ficam no arquivo de cada epoch em `pop/roadmap/` ([[_templates/EPOCH|template]]; escopo com o harness na própria raiz: sem o prefixo `pop/`). Nunca detalhe aqui.
 
 | # | Epoch | Descrição (≤1 linha) | Status |
 |---|-------|----------------------|--------|
