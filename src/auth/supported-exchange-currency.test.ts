@@ -217,6 +217,21 @@ describe("supported exchange currency service", () => {
     await expect(service.requireActivePair("cop")).rejects.toBeInstanceOf(ExchangeCurrencyValidationError);
   });
 
+  it("lists active mappings for administrators only, redacted and ordered by code", async () => {
+    const { store } = testStore();
+    const service = createSupportedExchangeCurrencyService(store);
+    const admin = principal("admin", "ADMIN");
+
+    await service.register(admin, mapping({ code: "USD", label: "USD/USDT" }));
+    await service.register(admin, mapping({ code: "BRL", label: "BRL/USDT" }));
+
+    const mappings = await service.listMappings(admin);
+    expect(mappings).toEqual([{ code: "BRL", label: "BRL/USDT" }, { code: "USD", label: "USD/USDT" }]);
+    expect(mappings.every((mapping) => Object.keys(mapping).sort().join(",") === "code,label")).toBe(true);
+    await expect(service.listMappings(principal("owner"))).rejects.toBeInstanceOf(ForbiddenError);
+    await expect(service.listMappings(principal("admin", "ADMIN", "DISABLED"))).rejects.toBeInstanceOf(ForbiddenError);
+  });
+
   it("keeps a single active mapping per code under concurrent registration and replacement", async () => {
     const { store, pointers } = testStore();
     const service = createSupportedExchangeCurrencyService(store);

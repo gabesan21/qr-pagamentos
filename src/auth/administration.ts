@@ -5,6 +5,7 @@ import { normalizeOptionalEmail, normalizeUsername, toAdminUserDto, USER_ROLES, 
 import { hashPassword } from "./password";
 import { ForbiddenError, type Principal } from "./authorization";
 import { acquireUserSessionLock } from "./session";
+import { effectiveDefaultThemeId, SYSTEM_SETTINGS_SINGLETON_ID } from "./system-settings";
 
 type UserRecord = Principal & { deletedAt: Date | null };
 type MutationStore = {
@@ -20,7 +21,8 @@ type MutationStore = {
   deactivatePaymentLinksV2(ownerId: string): Promise<void>;
   recordDeletion(deletion: { id: string; userId: string; actorId: string; createdAt: Date }): Promise<void>;
   revokeSessions(userId: string): Promise<void>;
-  createUser(input: { username: string; email: string | null; role: UserRole; passwordHash: string }): Promise<UserRecord>;
+  resolveDefaultThemeId(): Promise<string>;
+  createUser(input: { username: string; email: string | null; role: UserRole; passwordHash: string; storefrontThemeId: string | null }): Promise<UserRecord>;
 };
 
 export interface AdministrationStore extends MutationStore {
@@ -77,7 +79,11 @@ export function createAdministrationService(store: AdministrationStore) {
         const username = normalizeUsername(input.username);
         const email = normalizeOptionalEmail(input.email);
         const passwordHash = await hashPassword(input.password);
-        return toAdminUserDto(await store.createUser({ username, email, role: input.role as UserRole, passwordHash }));
+        // Creation-time stamping: only new merchant users receive the current
+        // effective default theme; administrators keep NULL and existing rows
+        // are never rewritten.
+        const storefrontThemeId = input.role === "USER" ? await store.resolveDefaultThemeId() : null;
+        return toAdminUserDto(await store.createUser({ username, email, role: input.role as UserRole, passwordHash, storefrontThemeId }));
       } catch (error) {
         if (error instanceof AdministrationValidationError) throw error;
         throw new AdministrationValidationError("Invalid account details");
@@ -152,9 +158,13 @@ function prismaStore(): AdministrationStore {
     async deactivatePaymentLinksV2(ownerId) { await client.paymentLinkV2.updateMany({ where: { ownerId }, data: { active: false } }); },
     async recordDeletion(deletion) { await client.userDeletion.create({ data: deletion }); },
     async revokeSessions(userId) { await client.session.deleteMany({ where: { userId } }); },
+    async resolveDefaultThemeId() {
+      const row = await client.systemSettings.findUnique({ where: { id: SYSTEM_SETTINGS_SINGLETON_ID }, select: { defaultThemeId: true } });
+      return effectiveDefaultThemeId(row?.defaultThemeId ?? null);
+    },
     async createUser(input) {
       return (await client.user.create({
-        data: { username: input.username, email: input.email, role: input.role, status: "ACTIVE", credential: { create: { passwordHash: input.passwordHash } } },
+        data: { username: input.username, email: input.email, role: input.role, status: "ACTIVE", storefrontThemeId: input.storefrontThemeId, credential: { create: { passwordHash: input.passwordHash } } },
         select: userSelect,
       })) as UserRecord;
     },
