@@ -6,6 +6,7 @@
 - **Yolo:** yes
 - **Description:** Deliver administrator analytics and read-only global order/link directories plus user lifecycle and system settings management.
 - **Pause if:** global reads cannot keep payer data, owner identity, soft-deleted history, and administrator-only authorization within explicit redaction contracts.
+- **Release gate (2026-07-27):** every phase task is integrated in `develop` and PR #9 (`develop` → `main`, "Epoch 10: Administrative operations") is open, awaiting human testing and merge. This roadmap has no "delivered, awaiting merge" status, so the phases below read `concluída` while that human merge stays pending.
 
 ## Recon and forks
 
@@ -14,7 +15,7 @@
 
 ## Phase 10.1 - Administrative dashboard
 
-- **Status:** pendente
+- **Status:** concluída
 - **Description:** Define trustworthy platform KPIs and render accessible operational summaries and charts.
 
 | Task | Description | Status |
@@ -22,7 +23,7 @@
 
 ## Phase 10.2 - Global order and payment-link directories
 
-- **Status:** pendente
+- **Status:** concluída
 - **Description:** Provide read-only administrator tables over all users' orders and payment links.
 
 | Task | Description | Status |
@@ -30,7 +31,7 @@
 
 ## Phase 10.3 - User lifecycle and support
 
-- **Status:** pendente
+- **Status:** concluída
 - **Description:** Replace the flat account list with safe soft deletion, a detailed directory, and editable user profiles.
 
 | Task | Description | Status |
@@ -38,7 +39,7 @@
 
 ## Phase 10.4 - System settings
 
-- **Status:** pendente
+- **Status:** concluída
 - **Description:** Organize exchange currencies, payment methods, default theme, and existing administrator-only settings.
 
 | Task | Description | Status |
