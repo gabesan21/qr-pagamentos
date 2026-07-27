@@ -28,7 +28,6 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[10.2.2-build-admin-payment-links-directory]] | Add the global payment-link query/table with status, owner, products/value, expiry, and order drill-down. · size: L | 001_initial_task |
 
 ## Phase 10.3 - User lifecycle and support
 
