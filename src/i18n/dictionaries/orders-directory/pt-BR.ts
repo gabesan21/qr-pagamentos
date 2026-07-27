@@ -59,4 +59,12 @@ export const ordersDirectoryPtBR = {
   orderV2OutcomeCancel: "Cancelar localmente",
   orderV2OutcomeCancelConfirm: "Confirmar cancelamento local",
   orderV2OutcomeCancelDescription: "Registra um cancelamento local no histórico do pedido. O estado do pagamento não muda.",
+  adminOrderV2DirectoryHeading: "Diretório global de pedidos",
+  adminOrderV2DirectoryDescription: "Todos os pedidos Commerce V2 de todos os proprietários, somente leitura, com a atribuição do proprietário.",
+  adminOrderV2DirectoryEmpty: "Nenhum pedido ainda",
+  adminOrderV2DirectoryEmptyDescription: "Os pedidos Commerce V2 de todos os proprietários aparecem aqui quando existirem.",
+  adminOrderV2DirectoryColumnOwner: "Proprietário",
+  adminOrderV2DirectoryOwnerDeleted: "Excluída",
+  adminOrderV2DetailOwnerHeading: "Proprietário do pedido",
+  adminOrderV2DetailOwnerAccount: "Ver contas",
 } as const;

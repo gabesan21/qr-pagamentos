@@ -27,6 +27,22 @@
       "contexts": [],
       "test_seconds": 0,
       "result": "advanced"
+    },
+    {
+      "at": "2026-07-26T22:50:00-03:00",
+      "event": "execution",
+      "stage": "004_processing",
+      "contexts": ["executor"],
+      "test_seconds": 0,
+      "result": "blocked: delivered withAuthorizationLock used $queryRaw on a void advisory lock (deleteUser/changeStatus/changeRole broken in production); reported, originated M-6.1"
+    },
+    {
+      "at": "2026-07-27T00:05:00-03:00",
+      "event": "execution",
+      "stage": "004_processing",
+      "contexts": ["executor"],
+      "test_seconds": 0,
+      "result": "delivered: F01-F04 + develop merge (M-6.1, 9.2.2; additive harness/spec conflicts); green gates: pnpm check, pnpm db:test, admin:contract-check, admin-orders:evidence/:verify run 20260727030000"
     }
   ]
 }

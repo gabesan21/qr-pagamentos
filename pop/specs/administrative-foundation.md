@@ -5,7 +5,7 @@
 - **Status:** implementada
 - **Implementation:** partial
 - **Created:** 2026-07-13
-- **Updated:** 2026-07-26 — task 10.1.1 delivers the server-only global administrator analytics projection (re-authorized, redacted, the 8.4.1 definitions reused globally, 10.3.1 deletion semantics preserved). Earlier: 2026-07-26 — task 10.3.1 delivers the terminal user soft-delete lifecycle (marker + `DISABLED`, atomic public-surface withdrawal, append-only audit, permanent identifier retention). Earlier: 2026-07-25 — task 8.3.1 makes the page-size set/default a per-directory registration drawn from the 10/20/25/50/100 superset.
+- **Updated:** 2026-07-26 — task 10.2.1 delivers the administrator-global Commerce V2 order directory and read-only V2 detail (payer-exposure and deleted-owner amendments below). Earlier: 2026-07-26 — task 10.1.1 delivers the server-only global administrator analytics projection (re-authorized, redacted, the 8.4.1 definitions reused globally, 10.3.1 deletion semantics preserved). Earlier: 2026-07-26 — task 10.3.1 delivers the terminal user soft-delete lifecycle (marker + `DISABLED`, atomic public-surface withdrawal, append-only audit, permanent identifier retention). Earlier: 2026-07-25 — task 8.3.1 makes the page-size set/default a per-directory registration drawn from the 10/20/25/50/100 superset.
 
 ## What it covers
 
@@ -86,6 +86,30 @@ the required server key and include the resolved merchant identity only in
 server-side derivation; no identity enters the token, and every request still
 re-authorizes and reapplies scope.
 
+The administrator-global Commerce V2 order directory (10.2.1) is the first
+approved `ADMIN_GLOBAL` directory: a server-only `admin-order-v2` registration
+bound to `/admin/orders` with page sizes 10/20/50/100 and default 50, the same
+`(created_at desc, id desc)` keyset order, the same `source`/`money`/`from`/`to`/
+`link` filter set, and the same `q` search (local/provider order-UUID equality,
+otherwise payer-text containment) as the owner directory — provider order UUIDs
+remain match-only and never render. Its rows are the delivered V2 summary
+projection plus exactly the owner attribution tuple (`username`, `deletedAt`);
+the policy-exact `CustomerSnapshotV1` payer snapshot already carried by that
+summary is the sanctioned administrator payer exposure (the same exposure Task
+4.3.1's V1 global projection grants), and nothing else — no provider data,
+verifiers, capability material, lifecycle fields, or owner email/id — leaves
+persistence. Soft-deleted owners are never filtered out of any page, filter, or
+position: their rows keep full attribution and render the username with a
+localized non-color deleted badge (the administrator-only `deletedAt` fact,
+this surface only). The owner cell navigates to the delivered `/admin/accounts`
+surface as an interim target; task 10.3.3 repoints it to the per-user profile
+route. `/admin/orders/v2/[id]` is the read-only administrator V2 detail: it
+re-authorizes the administrator, resolves the delivered global V2 read, and
+only then issues one bounded owner-attribution read — every cross, malformed,
+missing, or attribution-missing identity shares the one opaque unavailable
+outcome, and the owner-only comment thread and local-outcome forms never
+render. The V1 administrator ledger below the directory stays byte-frozen.
+
 | Route family | Canonical owner and capability | Unauthenticated / wrong role | Compatibility boundary |
 | --- | --- | --- | --- |
 | `/`, merchant dashboard, catalog/products, payment links, owner orders, checkout policy, Nautt credentials, storefront settings, and merchant profile/security | `USER` only; own business data and settings | page: `/login` / `/admin`; mutation: empty `401` / empty `403` | Merchant routes stay unprefixed. Owner scoping, redacted projections, opaque unavailable outcomes, and existing V1 identifiers remain unchanged. |
@@ -136,6 +160,8 @@ This section pins the durable business definitions behind the global administrat
 - Email-based password reset and administrator TOTP MFA are deferred until after the currently planned roadmap.
 
 ## Implemented slices
+
+- [[10.2.1-build-admin-orders-directory]] (2026-07-26) — delivered the administrator-global Commerce V2 order directory on the data-directory foundation: the server-only `admin-order-v2` registration over `queryAdministratorDirectory` with the `ADMIN_GLOBAL` scope purpose, page sizes 10/20/50/100 (default 50), the `(createdAt, id)` keyset, the owner directory's filter set and payer/UUID `q` search, rows reusing `toOrderV2Summary` plus the additive owner `username`/`deletedAt` attribution, and one bounded owner-attribution read for the read-only `/admin/orders/v2/[id]` detail (one opaque unavailable outcome, no comment/outcome surface). Soft-deleted owners keep every row with a localized non-color badge and the interim `/admin/accounts` owner navigation. The `/admin/orders` page composes the directory above the byte-frozen V1 ledger; contract tests and the run-bound `admin-orders:evidence`/`:verify` pair prove authorization, redaction, pagination, filters, deleted-owner rendering, and accessibility.
 
 - [[10.1.1-build-admin-analytics-projection]] (2026-07-26) — delivered the server-only, re-authorized, redacted global administrator analytics projection over Commerce V2: closed-period reporting-zone bounds, separate registered/active/deleted user counts, in-period order counts by source and state, the 8.4.1 two-member sales and funnel definitions computed globally with per-pair BigInt exact-decimal discipline and registry-redacted labels, V2 link and product counts, bounded top-5 owner (identity exactly `{ username, deleted }`) and top-product leaderboards, and 10.3.1 deletion semantics preserved inside every aggregate; additive plain-column index support through one canonical safe-language migration. Contract tests, migration-policy, disposable-database, and aggregate gates passed. No route or UI — 10.1.2 owns the `/admin` dashboard rendering.
 
