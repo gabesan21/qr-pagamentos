@@ -53,6 +53,15 @@
       "test_seconds": 0,
       "result": "fixed",
       "reason": "V2 container widened to shell cap; evidence 20260726231945 proves two columns at 1440px; pnpm check exit 0"
+    },
+    {
+      "at": "2026-07-27T02:18:45-03:00",
+      "event": "transition",
+      "from": "003_human_approval",
+      "to": "004_processing",
+      "contexts": [],
+      "test_seconds": 0,
+      "result": "advanced"
     }
   ]
 }
