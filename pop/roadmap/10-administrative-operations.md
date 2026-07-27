@@ -19,7 +19,6 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[10.1.2-build-admin-dashboard-ui]] | Render bilingual KPI cards and accessible responsive charts with period, empty, loading, and error states. · size: L | 001_initial_task |
 
 ## Phase 10.2 - Global order and payment-link directories
 
