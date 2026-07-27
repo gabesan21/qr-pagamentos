@@ -18,6 +18,7 @@ const linksMode = process.argv.includes("--links");
 const merchantDashboardMode = process.argv.includes("--merchant-dashboard");
 const ordersMode = process.argv.includes("--orders");
 const adminOrdersMode = process.argv.includes("--admin-orders");
+const adminUsersMode = process.argv.includes("--admin-users");
 const standalonePaymentMode = process.argv.includes("--standalone-payment");
 const checkoutMode = process.argv.includes("--checkout");
 const project = `qrae${process.pid}${token}`.toLowerCase();
@@ -75,7 +76,9 @@ try {
   const mapping = compose(["port", "app", "3000"]).stdout.trim();
   const port = Number(mapping.match(/:(\d+)$/)?.[1]);
   assert(port, "admin evidence loopback port could not be resolved");
-  const evidenceTest = checkoutMode
+  const evidenceTest = adminUsersMode
+    ? "tests/admin-users.evidence.spec.ts"
+    : checkoutMode
     ? "tests/checkout.evidence.spec.ts"
     : adminOrdersMode
     ? "tests/admin-orders.evidence.spec.ts"
@@ -125,6 +128,8 @@ try {
       CHECKOUT_EVIDENCE_MERCHANT_PASSWORD: `Merchant-${token}-Password`,
       CHECKOUT_EVIDENCE_COMPOSE_PROJECT: project,
       CHECKOUT_EVIDENCE_ENCRYPTION_KEY: nauttEncryptionKey,
+      ADMIN_USERS_EVIDENCE_MERCHANT_PASSWORD: `Merchant-${token}-Password`,
+      ADMIN_USERS_EVIDENCE_COMPOSE_PROJECT: project,
     },
     stdio: "inherit",
   });
