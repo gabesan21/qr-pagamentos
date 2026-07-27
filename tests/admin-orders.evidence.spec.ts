@@ -299,17 +299,20 @@ test("creates the closed administrator orders evidence run", async ({ page }) =>
   await captureState("state-en-orders-invalid-query-1440");
 
   await page.goto(`${baseUrl}/admin/orders?pageSize=10`);
-  const firstPageOwners = await page.locator("[data-data-directory] tbody tr td:first-child").allTextContents();
-  expect(firstPageOwners).toHaveLength(10);
+  // Distinctness rides the unique per-order detail links; the two owners
+  // legitimately share pages in a global directory.
+  const detailLinks = "[data-data-directory] tbody tr td:last-child a[href^='/admin/orders/v2/']";
+  const firstPageOrders = await page.locator(detailLinks).evaluateAll((links) => links.map((link) => link.getAttribute("href")));
+  expect(firstPageOrders).toHaveLength(10);
   await Promise.all([
     page.waitForURL(/\/admin\/orders\?pageSize=10&cursor=/),
     page.getByRole("link", { name: "Next page" }).click(),
   ]);
-  const secondPageOwners = await page.locator("[data-data-directory] tbody tr td:first-child").allTextContents();
-  expect(secondPageOwners).toHaveLength(7);
-  expect(secondPageOwners.some((owner) => firstPageOwners.includes(owner))).toBe(false);
+  const secondPageOrders = await page.locator(detailLinks).evaluateAll((links) => links.map((link) => link.getAttribute("href")));
+  expect(secondPageOrders).toHaveLength(7);
+  expect(secondPageOrders.some((order) => firstPageOrders.includes(order))).toBe(false);
   await expect(page.getByRole("link", { name: "Previous page" })).toBeVisible();
-  assertions.push({ state: "pagination", firstPage: firstPageOwners.length, secondPage: secondPageOwners.length, distinct: true });
+  assertions.push({ state: "pagination", firstPage: firstPageOrders.length, secondPage: secondPageOrders.length, distinct: true });
   await captureState("state-en-orders-page-2-1440");
 
   await page.goto(`${baseUrl}/admin/orders?q=Ana`);
