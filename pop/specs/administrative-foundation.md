@@ -5,7 +5,7 @@
 - **Status:** implementada
 - **Implementation:** partial
 - **Created:** 2026-07-13
-- **Updated:** 2026-07-26 — task 10.2.1 delivers the administrator-global Commerce V2 order directory and read-only V2 detail (payer-exposure and deleted-owner amendments below). Earlier: 2026-07-26 — task 10.1.1 delivers the server-only global administrator analytics projection (re-authorized, redacted, the 8.4.1 definitions reused globally, 10.3.1 deletion semantics preserved). Earlier: 2026-07-26 — task 10.3.1 delivers the terminal user soft-delete lifecycle (marker + `DISABLED`, atomic public-surface withdrawal, append-only audit, permanent identifier retention). Earlier: 2026-07-25 — task 8.3.1 makes the page-size set/default a per-directory registration drawn from the 10/20/25/50/100 superset.
+- **Updated:** 2026-07-27 — task 10.1.2 delivers the read-only `/admin` administrator dashboard over the 10.1.1 global projection. Earlier: 2026-07-26 — task 10.2.1 delivers the administrator-global Commerce V2 order directory and read-only V2 detail (payer-exposure and deleted-owner amendments below). Earlier: 2026-07-26 — task 10.1.1 delivers the server-only global administrator analytics projection (re-authorized, redacted, the 8.4.1 definitions reused globally, 10.3.1 deletion semantics preserved). Earlier: 2026-07-26 — task 10.3.1 delivers the terminal user soft-delete lifecycle (marker + `DISABLED`, atomic public-surface withdrawal, append-only audit, permanent identifier retention). Earlier: 2026-07-25 — task 8.3.1 makes the page-size set/default a per-directory registration drawn from the 10/20/25/50/100 superset.
 
 ## What it covers
 
@@ -131,8 +131,10 @@ Every page and role layout re-authorize the cookie principal before role-owned
 work. Existing mutation endpoints remain `/admin/users*`,
 `/admin/payment-settings`, `/admin/catalog/*`, `/products`, `/payment-links*`,
 `/checkout-policy`, `/storefront`, `/nautt-credentials*`, and
-`/language-preference`; no page shadows them. The dashboard and global
-payment-link areas are honest scaffolds and call no unapproved projection.
+`/language-preference`; no page shadows them. The global payment-link area
+remains an honest scaffold and calls no unapproved projection; the `/admin`
+dashboard is the delivered 10.1.2 read-only composition over the approved
+10.1.1 projection.
 Nested order pages inherit only their role shell.
 
 `/profile` is secondary to the five merchant business links and reads only the active merchant's username, nullable contact email, and profile version. Identity updates use own-user CAS, retain sessions, map stale/unique collisions to one conflict, and map invalid/unavailable input to failure. Every parsed password attempt performs exactly one fixed verification scrypt, using forced-false dummy work for malformed or unavailable records. Sign-in, admin reset, and merchant rotation share one per-user transaction lock; successful rotation conditionally replaces the observed credential, revokes every session atomically, expires authentication, and returns `/login?password=changed` using a validated non-auth cookie carrying the persisted locale. Email remains contact-only and never enters sign-in or public projections.
@@ -160,6 +162,8 @@ This section pins the durable business definitions behind the global administrat
 - Email-based password reset and administrator TOTP MFA are deferred until after the currently planned roadmap.
 
 ## Implemented slices
+
+- [[10.1.2-build-admin-dashboard-ui]] (2026-07-27) — delivered the read-only server-rendered `/admin` administrator dashboard over the 10.1.1 global projection: the closed `today`/`7d`/`30d` plain-GET period switcher with the pinned `7d` default for absent/unknown/invalid values (no redirect, no client fetching), sectioned ruled cards for users, orders by source and provider state (explicit null-state label), the two never-merged sales groups with exact-decimal per-pair amounts plus unlabeled-currency and n/a-rate treatments, the funnel, the period-independent links/products counts with explicit captions, and the bounded top-owner (localized non-color deleted badge) and top-product leaderboards, every section owning an explicit empty state. The composition owns its local period navigation and exact-decimal rate/price shifters, imports no merchant module, and adds no route, mutation, or client boundary; page/component tests and the run-bound `admin-dashboard:evidence`/`:verify` pair (45 captures) prove the composition, redaction, period handling, deleted-owner rendering, and accessibility gates.
 
 - [[10.2.1-build-admin-orders-directory]] (2026-07-26) — delivered the administrator-global Commerce V2 order directory on the data-directory foundation: the server-only `admin-order-v2` registration over `queryAdministratorDirectory` with the `ADMIN_GLOBAL` scope purpose, page sizes 10/20/50/100 (default 50), the `(createdAt, id)` keyset, the owner directory's filter set and payer/UUID `q` search, rows reusing `toOrderV2Summary` plus the additive owner `username`/`deletedAt` attribution, and one bounded owner-attribution read for the read-only `/admin/orders/v2/[id]` detail (one opaque unavailable outcome, no comment/outcome surface). Soft-deleted owners keep every row with a localized non-color badge and the interim `/admin/accounts` owner navigation. The `/admin/orders` page composes the directory above the byte-frozen V1 ledger; contract tests and the run-bound `admin-orders:evidence`/`:verify` pair prove authorization, redaction, pagination, filters, deleted-owner rendering, and accessibility.
 

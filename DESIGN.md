@@ -182,6 +182,28 @@ denominator, and an unlabeled currency pair renders an explicit localized
 unlabeled treatment. Every section owns an explicit empty state (zero data is
 not an error), and loading uses owned skeletons.
 
+The administrator `/admin` dashboard is the server-rendered global operator
+home above the 10.1.1 administrator analytics projection: the same plain GET
+period switcher (`today`/`7d`/`30d`, pinned default `7d`; absent, unknown, or
+service-rejected values render the default) with the current period a non-link
+entry marked by `aria-current`, stronger type, and an underline, never color
+alone. Ruled ledger cards compose users, orders by source and by provider
+state (the stateless group gets an explicit localized no-provider-state
+label), sales, the checkout funnel, links and products, and the bounded
+top-owner and top-product leaderboards; provider-confirmed and locally
+finalized sales render as separate ruled groups with one tabular per-currency
+line each and are never summed or merged anywhere in the composition. The
+users, links, and products counts are period-independent and carry an explicit
+localized caption saying so. Leaderboard rows of soft-deleted owners render a
+localized non-color badge while every aggregate stays unchanged. There are no
+charts: quantitative composition is ruled facts and captioned native tables,
+rates render as exact-decimal localized percents with an explicit n/a on a
+zero denominator, and an unlabeled currency pair renders an explicit localized
+unlabeled treatment. Every section owns an explicit empty state (zero data is
+not an error), and loading uses owned skeletons. The composition never imports
+merchant modules: the period navigation and the exact-decimal rate and price
+shifters are administrator-owned local copies.
+
 The deterministic `/design-system` exercise surface resolves its dictionary from
 the same server preference contract as the authenticated shell and presents all
 applicable states, including labelled default, populated, disabled, and invalid
@@ -400,9 +422,10 @@ CSS pixels.
 
 The administrator composition uses the official compact role-shell lockup; the
 merchant composition uses the official fallback without implying merchant
-ownership. The administrator dashboard and future-area scaffolds remain explicit empty
+ownership. The administrator future-area scaffolds remain explicit empty
 states with no invented metrics, tables, controls, or unapproved projection
-calls; the delivered merchant dashboard composition is the single exception.
+calls; the delivered merchant and administrator dashboard compositions are the
+only exceptions.
 Existing controls remain in their owned route areas and keep their POST URLs.
 
 The merchant principal block has one secondary `/profile` affordance outside
@@ -547,6 +570,22 @@ exact-percent rates, non-color period switching through plain GET links, and
 the same axe, overflow, target, and focus gates as the other evidence
 surfaces; the review is manifest-hash-bound and accepts no unresolved
 severity 2 or greater finding.
+`pnpm admin-dashboard:evidence` and `pnpm admin-dashboard:evidence:verify`
+bind 45 administrator dashboard captures: the populated dashboard across six
+themes, both locales, and widths 375/768/1440 (36), plus nine localized state
+captures covering the empty dashboard, both period switches, the deleted-owner
+badge, and 320-pixel reflow. The run creates both merchants through the
+delivered account surface, seeds the global analytics fixture (labeled and
+unlabeled currency pairs, products, links, CONFIRMED LINK/STANDALONE and
+AD_HOC orders, local outcomes, and attempts across both attempt tables)
+directly in the disposable database (seeded before the 9.3.1 public V2
+checkout), soft-deletes one owner through the delivered deletion route, proves
+confirmed and locally finalized sales render separately and never summed, the
+unlabeled-currency treatment, exact-percent rates, non-color period switching
+through plain GET links, the deleted-owner leaderboard badge, and the same
+axe, overflow, target, and focus gates as the other evidence surfaces; the
+review is manifest-hash-bound and accepts no unresolved severity 2 or greater
+finding.
 `pnpm orders:evidence` and `pnpm orders:evidence:verify` bind 48 merchant
 orders captures: the keyset-paginated `/orders` V2 directory across six
 themes, both locales, and widths 375/768/1440 (36), plus twelve localized
