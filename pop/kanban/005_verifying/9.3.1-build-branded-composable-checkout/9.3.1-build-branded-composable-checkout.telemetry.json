@@ -2,7 +2,7 @@
   "version": 1,
   "events": [
     {
-      "at": "2026-07-26T20:00:23-03:00",
+      "at": "2026-07-26T00:09:59-03:00",
       "event": "transition",
       "from": "001_initial_task",
       "to": "002_planning",
@@ -11,16 +11,25 @@
       "result": "advanced"
     },
     {
-      "at": "2026-07-26T20:01:10-03:00",
+      "at": "2026-07-26T00:18:51-03:00",
       "event": "transition",
       "from": "002_planning",
+      "to": "003_human_approval",
+      "contexts": [],
+      "test_seconds": 0,
+      "result": "advanced"
+    },
+    {
+      "at": "2026-07-26T00:24:25-03:00",
+      "event": "transition",
+      "from": "003_human_approval",
       "to": "004_processing",
       "contexts": [],
       "test_seconds": 0,
       "result": "advanced"
     },
     {
-      "at": "2026-07-26T20:12:50-03:00",
+      "at": "2026-07-26T20:03:43-03:00",
       "event": "transition",
       "from": "004_processing",
       "to": "005_verifying",
@@ -29,10 +38,19 @@
       "result": "advanced"
     },
     {
-      "at": "2026-07-26T20:18:59-03:00",
+      "at": "2026-07-26T20:15:24-03:00",
       "event": "transition",
       "from": "005_verifying",
-      "to": "006_done",
+      "to": "004_processing",
+      "contexts": [],
+      "test_seconds": 0,
+      "result": "returned"
+    },
+    {
+      "at": "2026-07-26T23:34:52-03:00",
+      "event": "transition",
+      "from": "004_processing",
+      "to": "005_verifying",
       "contexts": [],
       "test_seconds": 0,
       "result": "advanced"
