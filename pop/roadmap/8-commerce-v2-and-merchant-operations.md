@@ -2,10 +2,11 @@
 
 - **Project:** [[PROJECT|QR Pagamentos]]
 - **Roadmap:** [[ROADMAP|Roadmap]]
-- **Status:** pendente
+- **Status:** concluída
 - **Yolo:** yes
 - **Description:** Add compatible multi-item/fixed-value links, generalized orders, and complete merchant link/order management.
 - **Pause if:** an additive design cannot preserve V1 public identifiers, order history, exact-decimal values, and provider reconciliation fences.
+- **Release gate (2026-07-27):** every phase task is delivered and integrated in `develop`, each with its memory in `pop/memory/`; the human merge of PR #9 (`develop` → `main`) is the remaining release step. This roadmap has no "delivered, awaiting merge" status, so the phases below read `concluída` while that merge stays pending.
 
 ## Recon and forks
 
@@ -14,7 +15,7 @@
 
 ## Phase 8.1 - Additive link and order contracts
 
-- **Status:** pendente
+- **Status:** concluída
 - **Description:** Specify and implement compatible V2 records without destructive edits to the immutable migration baseline.
 
 | Task | Description | Status |
@@ -22,7 +23,7 @@
 
 ## Phase 8.2 - Merchant payment-link management
 
-- **Status:** pendente
+- **Status:** concluída
 - **Description:** Give merchants complete paginated link creation, editing, lifecycle control, sharing, and order inspection.
 
 | Task | Description | Status |
@@ -30,7 +31,7 @@
 
 ## Phase 8.3 - Merchant order operations
 
-- **Status:** pendente
+- **Status:** concluída
 - **Description:** Deliver the requested owner order directory, filters, local preferences, comments, and local-only lifecycle actions.
 
 | Task | Description | Status |
@@ -38,7 +39,7 @@
 
 ## Phase 8.4 - Merchant dashboard
 
-- **Status:** pendente
+- **Status:** concluída
 - **Description:** Give each merchant trustworthy sales, product, link, and order insight with direct store access.
 
 | Task | Description | Status |

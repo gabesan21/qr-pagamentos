@@ -101,7 +101,7 @@ This section pins the durable business definitions behind the global administrat
 - Nautt credentials, provider orders, polling, and webhooks belong to [[specs/nautt-finance-integration|Nautt Finance integration]].
 - Product, payment-link, checkout, and storefront behavior belongs to later epochs.
 - External identity providers and external authentication frameworks are excluded by product decision.
-- Email-based password reset and administrator TOTP MFA are deferred until after the currently planned roadmap.
+- Email-based password reset and administrator TOTP MFA left this spec's scope as deferred work; as of 2026-07-27 the roadmap has taken them up in [[roadmap/11-identity-security-and-release|Epoch 11]], so their contracts are owned there, not here. This spec is not the place to specify them.
 
 ## Implemented slices
 

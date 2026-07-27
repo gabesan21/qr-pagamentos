@@ -2,10 +2,11 @@
 
 - **Project:** [[PROJECT|QR Pagamentos]]
 - **Roadmap:** [[ROADMAP|Roadmap]]
-- **Status:** pendente
+- **Status:** concluída
 - **Yolo:** yes
 - **Description:** Deliver the branded storefront cart, standalone payment, and composable public QR checkout journeys.
 - **Pause if:** any sessionless flow must trust browser-supplied owner, price, currency, total, status, or provider data.
+- **Release gate (2026-07-27):** every phase task is delivered and integrated in `develop`, each with its memory in `pop/memory/`; the human merge of PR #9 (`develop` → `main`) is the remaining release step. This roadmap has no "delivered, awaiting merge" status, so the phases below read `concluída` while that merge stays pending.
 
 ## Recon and forks
 
@@ -14,7 +15,7 @@
 
 ## Phase 9.1 - Storefront catalog and cart
 
-- **Status:** pendente
+- **Status:** concluída
 - **Description:** Publish a redacted branded catalog in boxed/table layouts with an isolated browser cart.
 
 | Task | Description | Status |
@@ -22,7 +23,7 @@
 
 ## Phase 9.2 - Standalone payment
 
-- **Status:** pendente
+- **Status:** concluída
 - **Description:** Let a buyer enter an amount and open a direct order in the store default currency without creating a payment link.
 
 | Task | Description | Status |
@@ -30,7 +31,7 @@
 
 ## Phase 9.3 - Branded composable checkout
 
-- **Status:** pendente
+- **Status:** concluída
 - **Description:** Generalize public checkout for product lines or fixed descriptions and apply the merchant's selected brand.
 
 | Task | Description | Status |
