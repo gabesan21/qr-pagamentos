@@ -91,7 +91,7 @@ export type MerchantAnalyticsResult =
   | Readonly<{ kind: "ready"; view: MerchantAnalyticsView }>
   | Readonly<{ kind: "invalid-period" }>;
 
-type CurrencyPairRef = Readonly<{ currencyUuid: string; exchangeCurrencyUuid: string }>;
+export type CurrencyPairRef = Readonly<{ currencyUuid: string; exchangeCurrencyUuid: string }>;
 
 export type StoredConfirmedOrder = Readonly<{
   paymentLinkV2Id: string | null;
@@ -158,12 +158,12 @@ export function resolvePeriodBounds(period: MerchantAnalyticsPeriod, now: Date):
   };
 }
 
-function parseDecimalUnits(value: string): bigint {
+export function parseDecimalUnits(value: string): bigint {
   const [integer, fraction = ""] = value.split(".");
   return BigInt(integer) * FRACTION_SCALE + BigInt((fraction + "000000").slice(0, FRACTION_DIGITS));
 }
 
-function formatDecimalUnits(units: bigint): string {
+export function formatDecimalUnits(units: bigint): string {
   const rendered = units.toString().padStart(FRACTION_DIGITS + 1, "0");
   const integer = rendered.slice(0, -FRACTION_DIGITS);
   const fraction = rendered.slice(-FRACTION_DIGITS).replace(/0+$/, "");
@@ -172,26 +172,26 @@ function formatDecimalUnits(units: bigint): string {
 
 // Rates are exact decimals truncated to four fraction digits, null on a zero
 // denominator; in-progress attempts never enter either denominator.
-function formatRate(numerator: number, denominator: number): string | null {
+export function formatRate(numerator: number, denominator: number): string | null {
   if (denominator === 0) return null;
   const scaled = (BigInt(numerator) * RATE_SCALE) / BigInt(denominator);
   const rendered = scaled.toString().padStart(RATE_DIGITS + 1, "0");
   return `${rendered.slice(0, -RATE_DIGITS)}.${rendered.slice(-RATE_DIGITS)}`;
 }
 
-function pairKey(pair: CurrencyPairRef): string {
+export function pairKey(pair: CurrencyPairRef): string {
   return `${pair.currencyUuid}/${pair.exchangeCurrencyUuid}`;
 }
 
-type AccumulatedGroup = { pair: CurrencyPairRef; units: bigint };
+export type AccumulatedGroup = { pair: CurrencyPairRef; units: bigint };
 
-function accumulate(groups: Map<string, AccumulatedGroup>, pair: CurrencyPairRef, units: bigint) {
+export function accumulate(groups: Map<string, AccumulatedGroup>, pair: CurrencyPairRef, units: bigint) {
   const key = pairKey(pair);
   const existing = groups.get(key);
   groups.set(key, { pair, units: (existing?.units ?? BigInt(0)) + units });
 }
 
-function labelFor(labels: Map<string, StoredCurrencyLabel>, pair: CurrencyPairRef): MerchantAnalyticsCurrencyLabel {
+export function labelFor(labels: Map<string, StoredCurrencyLabel>, pair: CurrencyPairRef): MerchantAnalyticsCurrencyLabel {
   const stored = labels.get(pairKey(pair));
   return { code: stored?.code ?? null, label: stored?.label ?? null };
 }
@@ -214,11 +214,11 @@ function sortedGroups(groups: Map<string, AccumulatedGroup>, labels: Map<string,
     });
 }
 
-function toAmounts(groups: Map<string, AccumulatedGroup>, labels: Map<string, StoredCurrencyLabel>): MerchantAnalyticsCurrencyAmount[] {
+export function toAmounts(groups: Map<string, AccumulatedGroup>, labels: Map<string, StoredCurrencyLabel>): MerchantAnalyticsCurrencyAmount[] {
   return sortedGroups(groups, labels).map((group) => ({ currency: group.currency, amount: formatDecimalUnits(group.units) }));
 }
 
-function toSalesGroups(
+export function toSalesGroups(
   groups: Map<string, AccumulatedGroup>,
   counts: Map<string, number>,
   labels: Map<string, StoredCurrencyLabel>,

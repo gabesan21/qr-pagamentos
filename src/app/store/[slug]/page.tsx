@@ -52,6 +52,8 @@ export default async function PublicStorefrontPage({ params }: Readonly<{ params
         <StorefrontExperience
           catalog={storefront.catalog}
           copy={{
+            cartCheckout: dictionary.storefrontCartCheckout,
+            cartCheckoutFailed: dictionary.storefrontCartCheckoutFailed,
             cartEmpty: dictionary.storefrontCartEmpty,
             cartHeading: dictionary.storefrontCartHeading,
             cartRemove: dictionary.storefrontCartRemove,
@@ -61,6 +63,7 @@ export default async function PublicStorefrontPage({ params }: Readonly<{ params
             customAmountDescription: dictionary.storefrontCustomAmountDescription,
             customAmountInvalid: dictionary.storefrontCustomAmountInvalid,
             customAmountLabel: dictionary.storefrontCustomAmountLabel,
+            customAmountPay: dictionary.storefrontCustomAmountPay,
             customAmountTitle: dictionary.storefrontCustomAmountTitle,
             customAmountUpdate: dictionary.storefrontCustomAmountUpdate,
             decreaseQuantity: dictionary.storefrontDecreaseQuantity,

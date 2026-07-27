@@ -275,6 +275,36 @@ try {
   assert(standaloneCheckout.includes("3 passed"), "Standalone checkout database scenarios did not all pass");
   console.log("PASS standalone-checkout-database");
 
+  const storefrontCartCheckoutEnv = {
+    ...process.env,
+    DATABASE_URL: runtimeUrl,
+    STOREFRONT_CART_CHECKOUT_DATABASE_ADMIN_URL: adminUrl,
+    STOREFRONT_CART_CHECKOUT_DATABASE_TEST: "1",
+  };
+  delete storefrontCartCheckoutEnv.MIGRATION_DATABASE_URL;
+  const storefrontCartCheckout = run(
+    "pnpm",
+    ["exec", "vitest", "run", "src/checkout/storefront-cart-checkout.database.test.ts"],
+    { env: storefrontCartCheckoutEnv },
+  );
+  assert(storefrontCartCheckout.includes("3 passed"), "Storefront cart checkout database scenarios did not all pass");
+  console.log("PASS storefront-cart-checkout-database");
+
+  const administrationEnv = {
+    ...process.env,
+    DATABASE_URL: runtimeUrl,
+    ADMINISTRATION_DATABASE_ADMIN_URL: adminUrl,
+    ADMINISTRATION_DATABASE_TEST: "1",
+  };
+  delete administrationEnv.MIGRATION_DATABASE_URL;
+  const administration = run(
+    "pnpm",
+    ["exec", "vitest", "run", "src/auth/administration.database.test.ts"],
+    { env: administrationEnv },
+  );
+  assert(administration.includes("2 passed"), "Administration locked-mutation database scenarios did not all pass");
+  console.log("PASS administration-database-locked-mutations");
+
   const runtime = new Client({ connectionString: runtimeUrl });
   await runtime.connect();
   const columns = await runtime.query(`

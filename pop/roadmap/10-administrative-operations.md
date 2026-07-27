@@ -19,7 +19,6 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[10.1.1-build-admin-analytics-projection]] | Define and query registered/active users, orders, abandonment, links, products, volume, conversion, and top-owner metrics. · size: L | 001_initial_task |
 | [[10.1.2-build-admin-dashboard-ui]] | Render bilingual KPI cards and accessible responsive charts with period, empty, loading, and error states. · size: L | 001_initial_task |
 
 ## Phase 10.2 - Global order and payment-link directories

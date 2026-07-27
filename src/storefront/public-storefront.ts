@@ -3,6 +3,7 @@ import "server-only";
 import { getDatabaseClient } from "../db/client";
 import { DEFAULT_STOREFRONT_THEME_ID } from "../design-system/themes";
 import type { SupportedLocale } from "../i18n/locales";
+import type { CheckoutDataPolicy } from "../orders/payment-link-order";
 
 const STOREFRONT_SLUG_PATTERN = /^[a-z0-9](-?[a-z0-9])*$/;
 const STOREFRONT_SLUG_MAXIMUM_LENGTH = 63;
@@ -55,6 +56,13 @@ export type PublicStorefront = Readonly<{
   // every stored code and is never a pair UUID or an inactive-code discovery
   // surface (the deliberate 9.1.2 boundary amendment).
   standalonePaymentCurrencyCode: string | null;
+  // The owner's checkout data policy, exposed so the standalone-payment page
+  // renders the policy-exact customer form before any submit — the same
+  // public-safe exposure V1 already ships as `checkoutPolicy` through
+  // `src/checkout/public-checkout-presentation.ts` (the deliberate 9.2.2
+  // boundary amendment). The server re-derives the policy from the locked
+  // owner row on every checkout command; this member never grants authority.
+  checkoutDataPolicy: CheckoutDataPolicy;
 }>;
 
 export type PublicStorefrontCatalogCategoryRecord = Readonly<{
@@ -84,6 +92,7 @@ export type PublicStorefrontRecord = Readonly<{
   storefrontLogoMediaIdentifier: string | null;
   storefrontStandalonePaymentsEnabled: boolean;
   storefrontDefaultCurrencyCode: string | null;
+  checkoutDataPolicy: CheckoutDataPolicy;
   products: readonly Readonly<{
     titlePtBr: string;
     titleEn: string;
@@ -172,6 +181,7 @@ function localizeStorefront(record: PublicStorefrontRecord, locale: SupportedLoc
     catalog: localizeCatalog(record, locale),
     standalonePayments: record.storefrontStandalonePaymentsEnabled,
     standalonePaymentCurrencyCode: record.storefrontDefaultCurrencyCode,
+    checkoutDataPolicy: record.checkoutDataPolicy,
   };
 }
 
@@ -201,6 +211,7 @@ function prismaStore(): PublicStorefrontStore {
           storefrontLogoMediaIdentifier: true,
           storefrontStandalonePaymentsEnabled: true,
           storefrontDefaultCurrencyCode: true,
+          checkoutDataPolicy: true,
           products: {
             where: {
               active: true,
@@ -226,6 +237,8 @@ function prismaStore(): PublicStorefrontStore {
       if (!row) return null;
 
       // The owner id scopes the two catalog reads and never leaves the store.
+      // The policy column stores the closed CHECKOUT_DATA_POLICIES vocabulary;
+      // the cast mirrors the V1 public-checkout-presentation precedent.
       const { id: ownerId, ...storefront } = row;
       const [categories, catalogProducts] = await Promise.all([
         db.productCategory.findMany({
@@ -251,7 +264,7 @@ function prismaStore(): PublicStorefrontStore {
           },
         }),
       ]);
-      return { ...storefront, catalog: { categories, products: catalogProducts } };
+      return { ...storefront, checkoutDataPolicy: storefront.checkoutDataPolicy as CheckoutDataPolicy, catalog: { categories, products: catalogProducts } };
     },
   };
 }

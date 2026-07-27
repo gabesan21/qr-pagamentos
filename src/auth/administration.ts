@@ -32,6 +32,14 @@ export class FinalAdministratorError extends Error {}
 export class AdministrationValidationError extends Error {}
 export class AdministrationTargetNotFoundError extends Error {}
 
+interface AuthorizationLockTransaction {
+  $executeRaw(query: TemplateStringsArray, ...values: unknown[]): Promise<number>;
+}
+
+export async function acquireAuthorizationLock(transaction: AuthorizationLockTransaction) {
+  await transaction.$executeRaw`SELECT pg_advisory_xact_lock(hashtext('qr:authorization:active-admin'))`;
+}
+
 function requireAdmin(actor: Principal) {
   if (actor.role !== "ADMIN" || actor.status !== "ACTIVE") throw new ForbiddenError("Administrator access is required");
 }
@@ -155,7 +163,7 @@ function prismaStore(): AdministrationStore {
     ...scoped(db),
     async withAuthorizationLock(work) {
       return db.$transaction(async (transaction) => {
-        await transaction.$queryRaw`SELECT pg_advisory_xact_lock(hashtext('qr:authorization:active-admin'))`;
+        await acquireAuthorizationLock(transaction);
         return work(scoped(transaction as typeof db));
       });
     },

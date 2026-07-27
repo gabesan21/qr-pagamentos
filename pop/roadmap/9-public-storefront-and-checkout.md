@@ -19,7 +19,6 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[9.1.3-issue-storefront-one-time-links]] | Add a rate-limited sessionless cart command that revalidates everything and issues one owner-derived one-time link. · size: L | 001_initial_task |
 
 ## Phase 9.2 - Standalone payment
 
@@ -28,7 +27,6 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[9.2.2-build-standalone-payment-experience]] | Build the bilingual amount, QR, copy, status, failure, and return experience for standalone payments. · size: L | 001_initial_task |
 
 ## Phase 9.3 - Branded composable checkout
 

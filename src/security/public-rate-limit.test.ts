@@ -18,6 +18,7 @@ describe("PublicPaymentLinkRateLimiter", () => {
       status: "public-payment-status-poll",
       standaloneCheckout: "standalone-checkout-submit",
       standaloneStatus: "standalone-payment-status-poll",
+      storefrontCartCheckout: "storefront-cart-checkout-submit",
     });
 
     const limiter = new PublicPaymentLinkRateLimiter({ now: () => 0 });
@@ -26,6 +27,13 @@ describe("PublicPaymentLinkRateLimiter", () => {
     }
     expect(limiter.allow(publicPaymentLinkRateLimitSurface.standaloneCheckout, "203.0.113.10")).toBe(false);
     expect(limiter.allow(publicPaymentLinkRateLimitSurface.checkout, "203.0.113.10")).toBe(true);
+
+    const cartLimiter = new PublicPaymentLinkRateLimiter({ now: () => 0 });
+    for (let count = 0; count < 12; count += 1) {
+      expect(cartLimiter.allow(publicPaymentLinkRateLimitSurface.storefrontCartCheckout, "203.0.113.10")).toBe(true);
+    }
+    expect(cartLimiter.allow(publicPaymentLinkRateLimitSurface.storefrontCartCheckout, "203.0.113.10")).toBe(false);
+    expect(cartLimiter.allow(publicPaymentLinkRateLimitSurface.standaloneCheckout, "203.0.113.10")).toBe(true);
 
     const statusLimiter = new PublicPaymentLinkRateLimiter({ now: () => 0 });
     for (let count = 0; count < 120; count += 1) {
