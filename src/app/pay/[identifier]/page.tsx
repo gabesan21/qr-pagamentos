@@ -10,7 +10,7 @@ import { getLocalePreferenceService } from "@/i18n/locale-preference";
 import { defaultLocale } from "@/i18n/locales";
 
 import { PublicCheckoutForm } from "./public-checkout-form";
-import { PublicCheckoutV2Page } from "./public-checkout-v2-page";
+import { PublicCheckoutV2Page, PublicCheckoutV2PaidPage } from "./public-checkout-v2-page";
 
 export const dynamic = "force-dynamic";
 
@@ -21,11 +21,13 @@ export default async function PublicCheckoutPage({ params }: Readonly<{ params: 
   const dictionary = getDictionary(locale);
   const identifier = (await params).identifier;
   // V1 first: a V1 identifier renders through the untouched V1 path; only a
-  // V1 miss resolves the additive Commerce V2 presentation, and one opaque
-  // unavailable view covers every other outcome.
+  // V1 miss resolves the additive Commerce V2 presentation — the checkout
+  // view, the 9.3.2 paid terminal view for a consumed single-use link, or
+  // the one opaque unavailable view covering every other outcome.
   const presentation = await getPublicCheckoutPresentationService().read(identifier, locale);
   if (presentation) return <main className="checkout-shell"><header className="receipt-rail"><span className="receipt-rail__label">QR Pagamentos</span><h1>{presentation.product.title}</h1><p className="checkout-description">{presentation.product.description}</p><div className="receipt-rail__facts"><span>{dictionary.checkoutPriceLabel}: {presentation.product.price}</span></div></header><PublicCheckoutForm dictionary={dictionary} identifier={identifier} policy={presentation.checkoutPolicy} /></main>;
-  const presentationV2 = await getPublicCheckoutV2PresentationService().read(identifier, locale);
-  if (!presentationV2) return <main className="checkout-shell"><Card className="checkout-card"><CardHeader><CardTitle>{dictionary.checkoutUnavailableHeading}</CardTitle></CardHeader><CardContent><Alert variant="warning"><AlertTitle>{dictionary.checkoutUnavailableHeading}</AlertTitle><AlertDescription>{dictionary.checkoutUnavailableDescription}</AlertDescription></Alert></CardContent></Card></main>;
-  return <PublicCheckoutV2Page dictionary={dictionary} identifier={identifier} presentation={presentationV2} />;
+  const outcomeV2 = await getPublicCheckoutV2PresentationService().read(identifier, locale);
+  if (!outcomeV2) return <main className="checkout-shell"><Card className="checkout-card"><CardHeader><CardTitle>{dictionary.checkoutUnavailableHeading}</CardTitle></CardHeader><CardContent><Alert variant="warning"><AlertTitle>{dictionary.checkoutUnavailableHeading}</AlertTitle><AlertDescription>{dictionary.checkoutUnavailableDescription}</AlertDescription></Alert></CardContent></Card></main>;
+  if (outcomeV2.kind === "paid") return <PublicCheckoutV2PaidPage dictionary={dictionary} presentation={outcomeV2.paid} />;
+  return <PublicCheckoutV2Page dictionary={dictionary} identifier={identifier} presentation={outcomeV2.presentation} />;
 }

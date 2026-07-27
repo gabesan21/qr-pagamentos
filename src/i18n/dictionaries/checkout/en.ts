@@ -47,4 +47,7 @@ export const checkoutEn = {
   checkoutMerchantLogoAlt: "Merchant logo",
   checkoutMerchantFallbackAlt: "QR Pagamentos placeholder logo",
   checkoutErrorRetry: "Try again",
+  checkoutPaidBadge: "Paid",
+  checkoutPaidHeading: "This payment link is already paid",
+  checkoutPaidDescription: "This one-time link was already used and cannot take a new payment.",
 } as const;

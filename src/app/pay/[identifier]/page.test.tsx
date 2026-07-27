@@ -71,17 +71,20 @@ describe("public checkout page", () => {
     get.mockReturnValue(undefined);
     read.mockResolvedValueOnce(null);
     readV2.mockResolvedValueOnce({
-      composition: {
-        kind: "PRODUCT_LINES",
-        lines: [
-          { product: { title: "Espresso shot", description: "Freshly pulled", price: "12.5" }, quantity: 2 },
-          { product: { title: "Filter coffee", description: "Slow brewed", price: "9.9" }, quantity: 1 },
-        ],
-        total: "34.9",
+      kind: "checkout",
+      presentation: {
+        composition: {
+          kind: "PRODUCT_LINES",
+          lines: [
+            { product: { title: "Espresso shot", description: "Freshly pulled", price: "12.5" }, quantity: 2 },
+            { product: { title: "Filter coffee", description: "Slow brewed", price: "9.9" }, quantity: 1 },
+          ],
+          total: "34.9",
+        },
+        currencyCode: "BRL",
+        checkoutPolicy: "NAME_EMAIL",
+        branding: { displayName: "Ana's Coffee", accentColor: "#125448", themeId: "vault-blue", logoMediaIdentifier: "logo-media-identifier-00000000000000000" },
       },
-      currencyCode: "BRL",
-      checkoutPolicy: "NAME_EMAIL",
-      branding: { displayName: "Ana's Coffee", accentColor: "#125448", themeId: "vault-blue", logoMediaIdentifier: "logo-media-identifier-00000000000000000" },
     });
     const markup = renderToStaticMarkup(await PublicCheckoutPage({ params: Promise.resolve({ identifier }) })).replaceAll("<!-- -->", "");
 
@@ -105,10 +108,13 @@ describe("public checkout page", () => {
     get.mockReturnValue(undefined);
     read.mockResolvedValueOnce(null);
     readV2.mockResolvedValueOnce({
-      composition: { kind: "FIXED_AMOUNT", description: "Monthly donation", amount: "10.50" },
-      currencyCode: null,
-      checkoutPolicy: "NONE",
-      branding: { displayName: null, accentColor: null, themeId: "pix-paper", logoMediaIdentifier: null },
+      kind: "checkout",
+      presentation: {
+        composition: { kind: "FIXED_AMOUNT", description: "Monthly donation", amount: "10.50" },
+        currencyCode: null,
+        checkoutPolicy: "NONE",
+        branding: { displayName: null, accentColor: null, themeId: "pix-paper", logoMediaIdentifier: null },
+      },
     });
     const markup = renderToStaticMarkup(await PublicCheckoutPage({ params: Promise.resolve({ identifier }) })).replaceAll("<!-- -->", "");
 
@@ -130,5 +136,75 @@ describe("public checkout page", () => {
     expect(markup).toContain("Este link de pagamento está indisponível");
     expect(markup).not.toContain('data-slot="field-group"');
     expect(markup).not.toContain('data-theme-preview');
+  });
+
+  it("renders the branded paid terminal view for a consumed single-use product-lines link without any form", async () => {
+    get.mockReturnValue(undefined);
+    read.mockResolvedValueOnce(null);
+    readV2.mockResolvedValueOnce({
+      kind: "paid",
+      paid: {
+        composition: {
+          kind: "PRODUCT_LINES",
+          lines: [
+            { product: { title: "Café expresso", description: "Extraído na hora", price: "12.5" }, quantity: 2 },
+            { product: { title: "Café coado", description: "Coado devagar", price: "9.9" }, quantity: 1 },
+          ],
+          total: "34.9",
+        },
+        currencyCode: "BRL",
+        branding: { displayName: "Café da Ana", accentColor: "#125448", themeId: "vault-blue", logoMediaIdentifier: "logo-media-identifier-00000000000000000" },
+      },
+    });
+    const markup = renderToStaticMarkup(await PublicCheckoutPage({ params: Promise.resolve({ identifier }) })).replaceAll("<!-- -->", "");
+
+    expect(markup).toContain('data-theme-preview="vault-blue"');
+    expect(markup).toContain("--storefront-accent:#125448");
+    expect(markup).toContain("/media/logo-media-identifier-00000000000000000");
+    expect(markup).toContain("Café da Ana");
+    expect(markup).toContain('data-slot="badge"');
+    expect(markup).toContain("Pago");
+    expect(markup).toContain("Este link de pagamento já foi pago");
+    expect(markup).toContain("Este link de uso único já foi utilizado e não aceita um novo pagamento.");
+    expect(markup).toContain("Café expresso");
+    expect(markup).toContain("2 × 12.5");
+    expect(markup).toContain("34.9");
+    expect(markup).toContain("BRL");
+    // No mutation affordance, no status oracle, no lifecycle disclosure.
+    expect(markup).not.toContain('data-slot="field-group"');
+    expect(markup).not.toContain("Este link de pagamento está indisponível");
+    expect(markup).not.toContain("checkoutPolicy");
+    expect(markup).not.toContain("claimedAt");
+    expect(markup).not.toContain("REFUNDED");
+    expect(markup).not.toMatch(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
+    expect(markup).not.toMatch(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/);
+  });
+
+  it("renders the English paid terminal view for a consumed fixed-amount link with the unlabeled treatment", async () => {
+    get.mockReturnValue({ value: "session-token" });
+    resolve.mockResolvedValueOnce({ id: "account-id" });
+    resolveLocale.mockResolvedValueOnce("en");
+    read.mockResolvedValueOnce(null);
+    readV2.mockResolvedValueOnce({
+      kind: "paid",
+      paid: {
+        composition: { kind: "FIXED_AMOUNT", description: "Club dues", amount: "25" },
+        currencyCode: null,
+        branding: { displayName: null, accentColor: null, themeId: "pix-paper", logoMediaIdentifier: null },
+      },
+    });
+    const markup = renderToStaticMarkup(await PublicCheckoutPage({ params: Promise.resolve({ identifier }) })).replaceAll("<!-- -->", "");
+
+    expect(readV2).toHaveBeenCalledWith(identifier, "en");
+    expect(markup).toContain('data-theme-preview="pix-paper"');
+    expect(markup).toContain('data-brand-identity="merchant-fallback"');
+    expect(markup).toContain("Paid");
+    expect(markup).toContain("This payment link is already paid");
+    expect(markup).toContain("This one-time link was already used and cannot take a new payment.");
+    expect(markup).toContain("Club dues");
+    expect(markup).toContain("25");
+    expect(markup).toContain("unlabeled currency");
+    expect(markup).not.toContain("/media/");
+    expect(markup).not.toContain('data-slot="field-group"');
   });
 });

@@ -47,4 +47,7 @@ export const checkoutPtBR = {
   checkoutMerchantLogoAlt: "Logotipo da loja",
   checkoutMerchantFallbackAlt: "Logotipo provisório QR Pagamentos",
   checkoutErrorRetry: "Tentar novamente",
+  checkoutPaidBadge: "Pago",
+  checkoutPaidHeading: "Este link de pagamento já foi pago",
+  checkoutPaidDescription: "Este link de uso único já foi utilizado e não aceita um novo pagamento.",
 } as const;
