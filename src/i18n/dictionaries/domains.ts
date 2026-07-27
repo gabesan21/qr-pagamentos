@@ -4,6 +4,8 @@ import { adminDashboardEn } from "./admin-dashboard/en";
 import { adminDashboardPtBR } from "./admin-dashboard/pt-BR";
 import { adminUsersDirectoryEn } from "./admin-users-directory/en";
 import { adminUsersDirectoryPtBR } from "./admin-users-directory/pt-BR";
+import { adminUserProfileEn } from "./admin-user-profile/en";
+import { adminUserProfilePtBR } from "./admin-user-profile/pt-BR";
 import { appShellEn } from "./app-shell/en";
 import { appShellPtBR } from "./app-shell/pt-BR";
 import { checkoutEn } from "./checkout/en";
@@ -40,6 +42,7 @@ export const dictionaryDomains = {
   administration: { en: administrationEn, "pt-BR": administrationPtBR },
   adminDashboard: { en: adminDashboardEn, "pt-BR": adminDashboardPtBR },
   adminUsersDirectory: { en: adminUsersDirectoryEn, "pt-BR": adminUsersDirectoryPtBR },
+  adminUserProfile: { en: adminUserProfileEn, "pt-BR": adminUserProfilePtBR },
   checkout: { en: checkoutEn, "pt-BR": checkoutPtBR },
   checkoutPolicy: { en: checkoutPolicyEn, "pt-BR": checkoutPolicyPtBR },
   designSystem: { en: designSystemEn, "pt-BR": designSystemPtBR },

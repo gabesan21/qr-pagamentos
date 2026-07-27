@@ -67,8 +67,8 @@ assert(inspected.every((entry) => entry.severeAxe.length === 0
 
 const facts = assertions.find((entry) => entry.state === "directory-facts");
 assert(Array.isArray(facts?.users) && facts.users.length === 2 && facts.badges?.length === 2 && facts.stores?.length === 3, "Admin users evidence does not prove the user, badge, and store facts.");
-const readOnly = assertions.find((entry) => entry.state === "detail-read-only");
-assert(readOnly?.user === "admin.users.keep" && readOnly.deleteForm === true && readOnly.legacyForms === false, "Admin users evidence does not prove the read-only administrator detail with only the delete form.");
+const detailEditor = assertions.find((entry) => entry.state === "detail-editor");
+assert(detailEditor?.user === "admin.users.keep" && detailEditor.deleteForm === true && detailEditor.editorForms === true, "Admin users evidence does not prove the administrator account detail with the profile editor forms.");
 const unavailable = assertions.find((entry) => entry.state === "detail-unavailable");
 assert(unavailable?.opaque === true, "Admin users evidence does not prove the opaque unavailable detail outcome.");
 const softDelete = assertions.find((entry) => entry.state === "soft-delete");

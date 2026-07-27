@@ -226,13 +226,18 @@ test("creates the closed administrator users evidence run", async ({ page }) => 
   await expect(page.getByText(keptUsername).first()).toBeVisible();
   await expect(page.getByText("keep-store")).toBeVisible();
   await expect(page.getByText("Slug da vitrine")).toBeVisible();
-  // Read-only: the delete form is the only action; the legacy role, status,
-  // and password mutation forms never render.
+  // The non-deleted account detail renders the account facts plus the profile
+  // editor: identity CAS, access (role/status/password), locale, checkout
+  // policy, storefront, and the destructive delete form.
+  await expect(page.locator(`form[action="/admin/users/${keptId}/identity"]`)).toHaveCount(1);
+  await expect(page.locator(`form[action="/admin/users/${keptId}/role"]`)).toHaveCount(1);
+  await expect(page.locator(`form[action="/admin/users/${keptId}/status"]`)).toHaveCount(1);
+  await expect(page.locator(`form[action="/admin/users/${keptId}/password"]`)).toHaveCount(1);
+  await expect(page.locator(`form[action="/admin/users/${keptId}/locale"]`)).toHaveCount(1);
+  await expect(page.locator(`form[action="/admin/users/${keptId}/checkout-policy"]`)).toHaveCount(1);
+  await expect(page.locator(`form[action="/admin/users/${keptId}/storefront"]`)).toHaveCount(1);
   await expect(page.locator(`form[action="/admin/users/${keptId}/delete"]`)).toHaveCount(1);
-  await expect(page.locator('form[action$="/role"]')).toHaveCount(0);
-  await expect(page.locator('form[action$="/status"]')).toHaveCount(0);
-  await expect(page.locator('input[name="password"]')).toHaveCount(0);
-  assertions.push({ state: "detail-read-only", user: keptUsername, deleteForm: true, legacyForms: false });
+  assertions.push({ state: "detail-editor", user: keptUsername, deleteForm: true, editorForms: true });
   await captureState("state-pt-BR-account-detail-1440");
 
   await page.goto(`${baseUrl}/admin/accounts/${randomUUID()}`);
@@ -265,8 +270,17 @@ test("creates the closed administrator users evidence run", async ({ page }) => 
   await page.goto(`${baseUrl}/admin/accounts/${goneId}`);
   await expect(page.getByText(goneUsername).first()).toBeVisible();
   await expect(page.locator('[data-slot="badge"]', { hasText: "Excluída" }).first()).toBeVisible();
+  // Deleted accounts render the read-only facts card only: no editor forms
+  // and no delete form.
+  await expect(page.locator('form[action$="/identity"]')).toHaveCount(0);
+  await expect(page.locator('form[action$="/role"]')).toHaveCount(0);
+  await expect(page.locator('form[action$="/status"]')).toHaveCount(0);
+  await expect(page.locator('form[action$="/password"]')).toHaveCount(0);
+  await expect(page.locator('form[action$="/locale"]')).toHaveCount(0);
+  await expect(page.locator('form[action$="/checkout-policy"]')).toHaveCount(0);
+  await expect(page.locator('form[action$="/storefront"]')).toHaveCount(0);
   await expect(page.locator('form[action$="/delete"]')).toHaveCount(0);
-  assertions.push({ state: "detail-deleted", user: goneUsername, badge: "Excluída", deleteForm: false });
+  assertions.push({ state: "detail-deleted", user: goneUsername, badge: "Excluída", deleteForm: false, editorForms: false });
   await captureState("state-pt-BR-account-detail-deleted-1440");
 
   // ---- en pass: honest states, pagination, filters, deleted badge ----
@@ -348,15 +362,22 @@ test("creates the closed administrator users evidence run", async ({ page }) => 
   }));
   const sourceInventory = [
     "src/auth/admin-user-directory.ts",
+    "src/auth/admin-user-profile.ts",
     "src/app/admin/accounts/page.tsx",
     "src/app/admin/accounts/directory-query.ts",
     "src/app/admin/accounts/directory-copy.ts",
     "src/app/admin/accounts/instant.ts",
     "src/app/admin/accounts/[id]/page.tsx",
+    "src/app/admin/users/[id]/identity/route.ts",
+    "src/app/admin/users/[id]/locale/route.ts",
+    "src/app/admin/users/[id]/checkout-policy/route.ts",
+    "src/app/admin/users/[id]/storefront/route.ts",
     "src/app/admin/admin-surface.tsx",
     "src/data-directory/ui/data-directory.tsx",
     "src/i18n/dictionaries/admin-users-directory/en.ts",
     "src/i18n/dictionaries/admin-users-directory/pt-BR.ts",
+    "src/i18n/dictionaries/admin-user-profile/en.ts",
+    "src/i18n/dictionaries/admin-user-profile/pt-BR.ts",
     "tests/admin-users.evidence.spec.ts",
     "scripts/run-admin-evidence.mjs",
     "scripts/run-admin-users-evidence.mjs",
@@ -388,8 +409,8 @@ test("creates the closed administrator users evidence run", async ({ page }) => 
     "",
     `- Run: \`${runId}\``,
     `- Manifest SHA-256: \`${sha256(manifestBytes)}\``,
-    "- Grid: six themes × two locales × 375/768/1440 directory captures, plus twelve localized state captures including 320-pixel reflow, the read-only account detail, the opaque miss, page 2, username search, the derived-state filter, and the deleted badge in both locales.",
-    "- The directory is read-mostly: edit navigates to the read-only detail and delete posts the delivered byte-frozen POST /admin/users/[id]/delete route; no legacy role, status, or password form renders anywhere on the accounts surface.",
+    "- Grid: six themes × two locales × 375/768/1440 directory captures, plus twelve localized state captures including 320-pixel reflow, the account detail with the profile editor, the opaque miss, page 2, username search, the derived-state filter, and the deleted badge in both locales.",
+    "- The directory is read-mostly: edit navigates to `/admin/accounts/[id]`, which renders the account facts plus the profile editor for non-deleted users (identity CAS, role/status/password access, locale, checkout policy, and storefront corrections) and the delivered byte-frozen POST /admin/users/[id]/delete route; deleted accounts render the facts card only with no editor and no delete form.",
     "- Soft-delete runs through the delivered route; the deleted account stays listed and viewable with the localized non-color badge and no actions.",
     "- Automated accessibility/runtime/target/overflow/focus findings: none.",
     "- The empty and error directory states are induced only in unit/page tests: the initial administrator always exists, and stopping the disposable database would break session resolution before the directory read, so no honest runtime capture exists.",

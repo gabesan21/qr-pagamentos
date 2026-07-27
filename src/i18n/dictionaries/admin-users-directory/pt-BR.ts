@@ -24,7 +24,7 @@ export const adminUsersDirectoryPtBR = {
   adminUsersDirectoryFilterTo: "Até",
   adminUsersDirectoryEdit: "Editar",
   adminUsersDirectoryDelete: "Excluir",
-  adminUsersDirectoryDetailDescription: "Dados da conta e a ação de exclusão definitiva entregue; a edição de função, situação e senha chega com o editor de perfil.",
+  adminUsersDirectoryDetailDescription: "Dados da conta, as seções do editor de perfil e a ação de exclusão definitiva entregue.",
   adminUsersDirectoryDetailStorefrontSlug: "Slug da vitrine",
   adminUsersDirectoryDetailBack: "Voltar às contas",
   adminUsersDirectoryDetailUnavailable: "Esta conta está indisponível",
