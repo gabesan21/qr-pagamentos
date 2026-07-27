@@ -1,22 +1,226 @@
-import { EmptyWorkspace } from "@/app-shell/empty-workspace";
+import Link from "next/link";
+import { redirect } from "next/navigation";
+
+import {
+  formatLinkInstant,
+  LinkStateBadge,
+  linkKindLabel,
+  linkSummary,
+  linkTypeLabel,
+} from "@/app/(merchant)/links/link-v2-views";
 import { WorkspaceHeading } from "@/app-shell/workspace-heading";
+import {
+  ADMIN_PAYMENT_LINK_V2_DIRECTORY_PAGE_SIZE_POLICY,
+  ADMIN_PAYMENT_LINK_V2_DIRECTORY_PATH,
+  queryAdminPaymentLinkV2Directory,
+  type AdminPaymentLinkV2DirectoryResult,
+  type AdminPaymentLinkV2DirectoryRow,
+} from "@/auth/payment-link-v2-admin-directory";
+import { PAYMENT_LINK_V2_DERIVED_STATES } from "@/auth/payment-link-v2-view";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { DataDirectory, type DataDirectoryColumn, type DataDirectoryState } from "@/data-directory/ui/data-directory";
+import type { getDictionary } from "@/i18n/dictionaries";
+import type { SupportedLocale } from "@/i18n/locales";
 
 import { requireAdminShellContext } from "../shell-context";
+import { adminPaymentLinksDirectoryCopy } from "./directory-copy";
+import {
+  adminPaymentLinksCanonicalTarget,
+  resolveAdminPaymentLinksDirectoryQuery,
+  type AdminPaymentLinksSearchParams,
+} from "./directory-query";
 
-export default async function AdminPaymentLinksPage() {
-  const { dictionary } = await requireAdminShellContext();
+type Dictionary = ReturnType<typeof getDictionary>;
+
+function firstValue(value: string | readonly string[] | undefined) {
+  return typeof value === "string" ? value : value?.[0];
+}
+
+function pageUrl(query: Readonly<{ canonicalFilterQuery: string; pageSize: number }>, cursor: string | undefined) {
+  const parameters = [
+    query.canonicalFilterQuery,
+    query.pageSize === ADMIN_PAYMENT_LINK_V2_DIRECTORY_PAGE_SIZE_POLICY.defaultSize ? "" : `pageSize=${query.pageSize}`,
+    cursor ? `cursor=${cursor}` : "",
+  ].filter((entry) => entry !== "").join("&");
+  return parameters ? `${ADMIN_PAYMENT_LINK_V2_DIRECTORY_PATH}?${parameters}` : ADMIN_PAYMENT_LINK_V2_DIRECTORY_PATH;
+}
+
+// The owner attribution cell: the interim target is the delivered accounts
+// surface (10.3.3 repoints it to the per-user profile); a soft-deleted owner
+// keeps its rows and gains the localized non-color deleted badge. The link is
+// a ghost button so the control keeps the design-system hit target in the cell.
+function OwnerCell({ dictionary, owner }: Readonly<{ dictionary: Dictionary; owner: AdminPaymentLinkV2DirectoryRow["owner"] }>) {
+  return (
+    <>
+      <Button asChild data-ds-hit-target variant="ghost">
+        <Link href="/admin/accounts">{owner.username}</Link>
+      </Button>
+      {owner.deletedAt !== null ? <> <Badge variant="outline">{dictionary.adminPaymentLinkV2DirectoryOwnerDeleted}</Badge></> : null}
+    </>
+  );
+}
+
+function AdminPaymentLinkV2Directory({
+  dictionary,
+  locale,
+  page,
+  query,
+  serviceInvalid = false,
+}: Readonly<{
+  dictionary: Dictionary;
+  locale: SupportedLocale;
+  page: Extract<AdminPaymentLinkV2DirectoryResult, { status: "ready" }> | null;
+  query: Extract<ReturnType<typeof resolveAdminPaymentLinksDirectoryQuery>, { status: "ready" | "invalid-query" }>;
+  serviceInvalid?: boolean;
+}>) {
+  const copy = adminPaymentLinksDirectoryCopy(dictionary);
+  const columns: readonly DataDirectoryColumn<AdminPaymentLinkV2DirectoryRow>[] = [
+    { id: "summary", label: dictionary.paymentLinkDirectoryColumnSummary, value: (row) => linkSummary(row, locale) },
+    { id: "composition", label: dictionary.paymentLinkDirectoryColumnComposition, value: (row) => <Badge variant="outline">{linkKindLabel(dictionary, row.compositionKind)}</Badge> },
+    { id: "type", label: dictionary.paymentLinkDirectoryColumnType, value: (row) => linkTypeLabel(dictionary, row.linkType) },
+    { id: "state", label: dictionary.paymentLinkDirectoryColumnState, value: (row) => <LinkStateBadge dictionary={dictionary} state={row.state} /> },
+    { id: "owner", label: dictionary.adminPaymentLinkV2DirectoryColumnOwner, value: (row) => <OwnerCell dictionary={dictionary} owner={row.owner} /> },
+    { id: "orders", label: dictionary.paymentLinkDirectoryColumnOrders, numeric: true, value: (row) => row.orderCount },
+    { id: "expiry", label: dictionary.paymentLinkDirectoryColumnExpiry, numeric: true, value: (row) => row.expiresAt ? formatLinkInstant(row.expiresAt, locale) : dictionary.adminPaymentLinkNoExpiry },
+  ];
+
+  if (query.status === "invalid-query" || serviceInvalid) {
+    return (
+      <DataDirectory
+        caption={dictionary.adminPaymentLinkV2DirectoryHeading}
+        columns={columns}
+        copy={copy}
+        formAction={ADMIN_PAYMENT_LINK_V2_DIRECTORY_PATH}
+        idPrefix="admin-payment-links-v2"
+        resetUrl={ADMIN_PAYMENT_LINK_V2_DIRECTORY_PATH}
+        rowKey={(row) => row.id}
+        rows={[]}
+        state="invalid-query"
+      />
+    );
+  }
+
+  const rows = page?.rows ?? [];
+  const filtering = Boolean(query.query.q) || Object.keys(query.query.filters).length > 0 || query.cursor !== undefined;
+  const state: DataDirectoryState = page === null
+    ? "error"
+    : rows.length === 0
+      ? filtering ? "filtered-empty" : "empty"
+      : "ready";
+
+  return (
+    <DataDirectory
+      actionsLabel={dictionary.paymentLinkDirectoryColumnActions}
+      caption={dictionary.adminPaymentLinkV2DirectoryHeading}
+      columns={columns}
+      copy={copy}
+      filters={[
+        {
+          name: "state",
+          label: dictionary.paymentLinkDirectoryFilterState,
+          allLabel: dictionary.paymentLinkDirectoryFilterAllStates,
+          ...(firstValue(query.query.filters.state) ? { selected: firstValue(query.query.filters.state) } : {}),
+          options: PAYMENT_LINK_V2_DERIVED_STATES.map((value) => ({
+            value,
+            label: value === "active"
+              ? dictionary.paymentLinkDirectoryStateActive
+              : value === "inactive"
+                ? dictionary.paymentLinkDirectoryStateInactive
+                : value === "expired"
+                  ? dictionary.paymentLinkDirectoryStateExpired
+                  : dictionary.paymentLinkDirectoryStatePaid,
+          })),
+        },
+        {
+          name: "type",
+          label: dictionary.paymentLinkDirectoryFilterType,
+          allLabel: dictionary.paymentLinkDirectoryFilterAllTypes,
+          ...(firstValue(query.query.filters.type) ? { selected: firstValue(query.query.filters.type) } : {}),
+          options: [
+            { value: "SINGLE_USE", label: dictionary.adminPaymentLinkSingleUse },
+            { value: "REUSABLE", label: dictionary.adminPaymentLinkReusable },
+          ],
+        },
+        {
+          name: "kind",
+          label: dictionary.paymentLinkDirectoryFilterKind,
+          allLabel: dictionary.paymentLinkDirectoryFilterAllKinds,
+          ...(firstValue(query.query.filters.kind) ? { selected: firstValue(query.query.filters.kind) } : {}),
+          options: [
+            { value: "PRODUCT_LINES", label: dictionary.paymentLinkDirectoryKindProductLines },
+            { value: "FIXED_AMOUNT", label: dictionary.paymentLinkDirectoryKindFixedAmount },
+          ],
+        },
+      ]}
+      formAction={ADMIN_PAYMENT_LINK_V2_DIRECTORY_PATH}
+      getRowActions={(row) => (
+        <Button asChild data-ds-hit-target variant="outline">
+          <Link href={`/admin/payment-links/v2/${row.id}`}>{dictionary.paymentLinkDirectoryView}</Link>
+        </Button>
+      )}
+      idPrefix="admin-payment-links-v2"
+      {...(page?.nextCursor ? { nextUrl: pageUrl(query.query, page.nextCursor) } : {})}
+      pageSize={query.query.pageSize}
+      pageSizes={ADMIN_PAYMENT_LINK_V2_DIRECTORY_PAGE_SIZE_POLICY.sizes}
+      {...(page?.previousCursor ? { previousUrl: pageUrl(query.query, page.previousCursor) } : {})}
+      resetUrl={ADMIN_PAYMENT_LINK_V2_DIRECTORY_PATH}
+      retryUrl={ADMIN_PAYMENT_LINK_V2_DIRECTORY_PATH}
+      rowKey={(row) => row.id}
+      rows={rows}
+      {...(query.query.q ? { search: query.query.q } : {})}
+      state={state}
+      textFilters={[
+        {
+          name: "from",
+          label: dictionary.paymentLinkDirectoryFilterFrom,
+          calendarDay: true,
+          ...(firstValue(query.query.filters.from) ? { selected: firstValue(query.query.filters.from) } : {}),
+        },
+        {
+          name: "to",
+          label: dictionary.paymentLinkDirectoryFilterTo,
+          calendarDay: true,
+          ...(firstValue(query.query.filters.to) ? { selected: firstValue(query.query.filters.to) } : {}),
+        },
+      ]}
+    />
+  );
+}
+
+// The administrator global Commerce V2 payment-link directory is V2-only and
+// read-only: no administrator V1 link projection exists, and V1 links remain
+// merchant-managed through the frozen V1 surfaces.
+export default async function AdminPaymentLinksPage({
+  searchParams = Promise.resolve({}),
+}: Readonly<{
+  searchParams?: Promise<AdminPaymentLinksSearchParams>;
+}> = {}) {
+  const { dictionary, locale, principal } = await requireAdminShellContext();
+  const query = resolveAdminPaymentLinksDirectoryQuery({ searchParams: await searchParams, principal });
+  if (query.status === "redirect") redirect(query.location);
+
+  let page: Extract<AdminPaymentLinkV2DirectoryResult, { status: "ready" }> | null = null;
+  // The delivered service rejects ungrammatical calendar days after
+  // canonicalization; that is the same zero-I/O invalid-query state.
+  let serviceInvalid = false;
+  let serviceRedirect: string | null = null;
+  if (query.status === "ready") {
+    try {
+      const result = await queryAdminPaymentLinkV2Directory(adminPaymentLinksCanonicalTarget(query));
+      if (result.status === "ready") page = result;
+      else if (result.status === "invalid-query") serviceInvalid = true;
+      else serviceRedirect = result.location;
+    } catch {
+      page = null;
+    }
+  }
+  if (serviceRedirect !== null) redirect(serviceRedirect);
 
   return (
     <>
-      <WorkspaceHeading
-        description={dictionary.shellAdminLinksDescription}
-        eyebrow={dictionary.shellAdminEyebrow}
-        title={dictionary.shellAdminLinksTitle}
-      />
-      <EmptyWorkspace
-        description={dictionary.shellWorkspaceEmptyDescription}
-        title={dictionary.shellWorkspaceEmptyTitle}
-      />
+      <WorkspaceHeading description={dictionary.adminPaymentLinkV2DirectoryDescription} eyebrow={dictionary.shellAdminEyebrow} title={dictionary.shellAdminLinksTitle} />
+      <AdminPaymentLinkV2Directory dictionary={dictionary} locale={locale} page={page} query={query} serviceInvalid={serviceInvalid} />
     </>
   );
 }
