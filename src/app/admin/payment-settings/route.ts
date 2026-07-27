@@ -21,11 +21,11 @@ export async function POST(request: Request) {
         currencies: selected(form, "currencies", SUPPORTED_CURRENCIES),
         paymentMethods: selected(form, "paymentMethods", SUPPORTED_PAYMENT_METHODS),
       });
-      return relativeRedirect("/admin?success=settings");
+      return relativeRedirect("/admin/settings?success=settings");
     } catch (error) {
       const protectedResponse = protectedMutationResponse(error);
       if (protectedResponse) return protectedResponse;
-      return relativeRedirect("/admin?error=settings-failed");
+      return relativeRedirect("/admin/settings?error=settings-failed");
     }
   });
 }

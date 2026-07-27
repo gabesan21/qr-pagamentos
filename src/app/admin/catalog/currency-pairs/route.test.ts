@@ -37,7 +37,7 @@ describe("catalog currency pairs create route", () => {
     const exchangeCurrencyUuid = randomUUID();
     const response = await POST(request(new URLSearchParams({ label: "BRL/USDT", currencyUuid, exchangeCurrencyUuid })));
     expect(response.status).toBe(303);
-    expect(response.headers.get("location")).toBe("/admin?success=catalog-created");
+    expect(response.headers.get("location")).toBe("/admin/settings?success=catalog-created");
   });
 
   it("normalizes uppercase UUIDs to lowercase before persistence", async () => {
@@ -47,7 +47,7 @@ describe("catalog currency pairs create route", () => {
     const exchangeCurrencyUuid = randomUUID().toUpperCase();
     const response = await POST(request(new URLSearchParams({ label: "BRL/USDT", currencyUuid, exchangeCurrencyUuid })));
     expect(response.status).toBe(303);
-    expect(response.headers.get("location")).toBe("/admin?success=catalog-created");
+    expect(response.headers.get("location")).toBe("/admin/settings?success=catalog-created");
   });
 
   it("redirects validation failures without value disclosure", async () => {
@@ -57,12 +57,12 @@ describe("catalog currency pairs create route", () => {
 
     const malformed = await POST(request(new URLSearchParams({ label: "BRL/USDT", currencyUuid: "not-a-uuid", exchangeCurrencyUuid: validUuid })));
     expect(malformed.status).toBe(303);
-    expect(malformed.headers.get("location")).toBe("/admin?error=catalog-create-failed");
+    expect(malformed.headers.get("location")).toBe("/admin/settings?error=catalog-create-failed");
 
     const empty = await POST(request(new URLSearchParams({ label: "BRL/USDT", currencyUuid: validUuid, exchangeCurrencyUuid: "" })));
-    expect(empty.headers.get("location")).toBe("/admin?error=catalog-create-failed");
+    expect(empty.headers.get("location")).toBe("/admin/settings?error=catalog-create-failed");
 
     const missing = await POST(request(new URLSearchParams({ label: "BRL/USDT", currencyUuid: validUuid })));
-    expect(missing.headers.get("location")).toBe("/admin?error=catalog-create-failed");
+    expect(missing.headers.get("location")).toBe("/admin/settings?error=catalog-create-failed");
   });
 });

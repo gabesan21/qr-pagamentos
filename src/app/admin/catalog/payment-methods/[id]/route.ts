@@ -21,11 +21,11 @@ export async function POST(request: Request, { params }: Readonly<{ params: Prom
       } else {
         await service.updatePaymentMethod(actor, id, form.get("label"));
       }
-      return relativeRedirect("/admin?success=catalog-changed");
+      return relativeRedirect("/admin/settings?success=catalog-changed");
     } catch (error) {
       const protectedResponse = protectedMutationResponse(error);
       if (protectedResponse) return protectedResponse;
-      return relativeRedirect("/admin?error=catalog-change-failed");
+      return relativeRedirect("/admin/settings?error=catalog-change-failed");
     }
   });
 }

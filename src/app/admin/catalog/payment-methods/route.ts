@@ -15,11 +15,11 @@ export async function POST(request: Request) {
         label: form.get("label"),
         paymentMethodUuid: form.get("paymentMethodUuid"),
       });
-      return relativeRedirect("/admin?success=catalog-created");
+      return relativeRedirect("/admin/settings?success=catalog-created");
     } catch (error) {
       const protectedResponse = protectedMutationResponse(error);
       if (protectedResponse) return protectedResponse;
-      return relativeRedirect("/admin?error=catalog-create-failed");
+      return relativeRedirect("/admin/settings?error=catalog-create-failed");
     }
   });
 }
