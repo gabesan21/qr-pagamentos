@@ -1,4 +1,5 @@
 import { getPublicCheckoutService } from "@/checkout/public-checkout";
+import { getPublicCheckoutV2Service, type PublicCheckoutV2Result } from "@/checkout/public-checkout-v2";
 import {
   allowPublicPaymentLinkRequest,
   publicPaymentLinkRateLimitSurface,
@@ -18,7 +19,12 @@ export async function POST(request: Request, { params }: Readonly<{ params: Prom
 
     let body: unknown;
     try { body = await request.json(); } catch { return new Response(null, { status: 400, headers: noStoreHeaders }); }
-    const result = await getPublicCheckoutService().checkout((await params).identifier, body);
+    const identifier = (await params).identifier;
+    // V1 first: a V1 identifier never reaches the additive V2 branch; only the
+    // opaque V1 unavailable outcome falls through to V2 resolution, which
+    // shares the same closed outcome matrix.
+    let result: PublicCheckoutV2Result = await getPublicCheckoutService().checkout(identifier, body);
+    if (result.kind === "unavailable") result = await getPublicCheckoutV2Service().checkout(identifier, body);
     if (result.kind === "invalid") return new Response(null, { status: 400, headers: noStoreHeaders });
     if (result.kind === "unavailable") return new Response(null, { status: 404, headers: noStoreHeaders });
     if (result.kind === "provider-unavailable") return new Response(null, { status: 503, headers: noStoreHeaders });

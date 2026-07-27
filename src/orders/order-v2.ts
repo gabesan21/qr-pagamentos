@@ -452,7 +452,6 @@ export function createOrderV2Store(prisma: PrismaClient): OrderV2Store {
             updatedAt: identity.updatedAt,
             lines: {
               create: lines.map((line) => ({
-                ownerId: link.ownerId,
                 productId: line.productId,
                 position: line.position,
                 quantity: line.quantity,

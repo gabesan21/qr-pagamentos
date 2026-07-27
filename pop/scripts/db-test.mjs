@@ -304,6 +304,20 @@ try {
   );
   assert(administration.includes("2 passed"), "Administration locked-mutation database scenarios did not all pass");
   console.log("PASS administration-database-locked-mutations");
+  const publicCheckoutV2Env = {
+    ...process.env,
+    DATABASE_URL: runtimeUrl,
+    PUBLIC_CHECKOUT_V2_DATABASE_ADMIN_URL: adminUrl,
+    PUBLIC_CHECKOUT_V2_DATABASE_TEST: "1",
+  };
+  delete publicCheckoutV2Env.MIGRATION_DATABASE_URL;
+  const publicCheckoutV2 = run(
+    "pnpm",
+    ["exec", "vitest", "run", "src/checkout/public-checkout-v2.database.test.ts"],
+    { env: publicCheckoutV2Env },
+  );
+  assert(publicCheckoutV2.includes("3 passed"), "Public checkout V2 database scenarios did not all pass");
+  console.log("PASS public-checkout-v2-database");
 
   const runtime = new Client({ connectionString: runtimeUrl });
   await runtime.connect();

@@ -2,8 +2,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 
-const { allowRateLimit, checkout } = vi.hoisted(() => ({ allowRateLimit: vi.fn(), checkout: vi.fn() }));
+const { allowRateLimit, checkout, checkoutV2 } = vi.hoisted(() => ({ allowRateLimit: vi.fn(), checkout: vi.fn(), checkoutV2: vi.fn() }));
 vi.mock("@/checkout/public-checkout", () => ({ getPublicCheckoutService: () => ({ checkout }) }));
+vi.mock("@/checkout/public-checkout-v2", () => ({ getPublicCheckoutV2Service: () => ({ checkout: checkoutV2 }) }));
 vi.mock("@/security/public-rate-limit", () => ({
   allowPublicPaymentLinkRequest: allowRateLimit,
   publicPaymentLinkRateLimitSurface: { checkout: "public-checkout-submit" },
@@ -20,6 +21,7 @@ describe("POST /api/payment-links/[identifier]/checkout", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     allowRateLimit.mockReturnValue(true);
+    checkoutV2.mockResolvedValue({ kind: "unavailable" });
   });
   it("is sessionless, dynamic and maps only the redacted accepted capability", async () => {
     checkout.mockResolvedValueOnce({ kind: "accepted", status: 201, payment: { state: "PENDING", pixCopyPaste: "000201" }, statusCapability: "opaque-bearer" });
@@ -56,5 +58,36 @@ describe("POST /api/payment-links/[identifier]/checkout", () => {
     expect(response.headers.get("cache-control")).toContain("no-store");
     await expect(response.text()).resolves.toBe("");
     expect(checkout).not.toHaveBeenCalled();
+  });
+
+  it("keeps V1 resolution first and never calls the V2 branch while V1 resolves", async () => {
+    for (const resolution of [
+      { kind: "accepted", status: 201, payment: { state: "PENDING" }, statusCapability: "v1-bearer" },
+      { kind: "invalid" },
+      { kind: "provider-unavailable" },
+    ]) {
+      checkout.mockResolvedValueOnce(resolution);
+      const response = await POST(new Request("https://example.test", { method: "POST", body: JSON.stringify(body) }), context);
+      expect(response.status).not.toBe(404);
+      expect(checkoutV2).not.toHaveBeenCalled();
+    }
+  });
+
+  it("maps the additive V2 branch through the same closed outcome matrix", async () => {
+    checkout.mockResolvedValue({ kind: "unavailable" });
+    checkoutV2.mockResolvedValueOnce({ kind: "accepted", status: 201, payment: { state: "PENDING", pixCopyPaste: "000201" }, statusCapability: "v2-bearer" });
+    const accepted = await POST(new Request("https://example.test", { method: "POST", body: JSON.stringify(body) }), context);
+    expect(accepted.status).toBe(201);
+    expect(accepted.headers.get("cache-control")).toContain("no-store");
+    await expect(accepted.json()).resolves.toEqual({ payment: { state: "PENDING", pixCopyPaste: "000201" }, statusCapability: "v2-bearer" });
+    expect(checkoutV2).toHaveBeenCalledWith(identifier, body);
+
+    for (const [kind, status] of [["invalid", 400], ["unavailable", 404], ["provider-unavailable", 503]] as const) {
+      checkoutV2.mockResolvedValueOnce({ kind });
+      const response = await POST(new Request("https://example.test", { method: "POST", body: JSON.stringify(body) }), context);
+      expect(response.status).toBe(status);
+      expect(response.headers.get("cache-control")).toContain("no-store");
+      await expect(response.text()).resolves.toBe("");
+    }
   });
 });

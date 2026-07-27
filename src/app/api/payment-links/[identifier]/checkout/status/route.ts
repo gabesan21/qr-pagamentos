@@ -1,4 +1,5 @@
 import { getPublicPaymentStatusService } from "@/checkout/payment-status";
+import { getPublicPaymentStatusV2Service } from "@/checkout/payment-status-v2";
 import {
   allowPublicPaymentLinkRequest,
   publicPaymentLinkRateLimitSurface,
@@ -22,7 +23,10 @@ export async function POST(request: Request) {
       && Object.keys(body).length === 1 && "statusCapability" in body
       ? (body as { statusCapability?: unknown }).statusCapability
       : null;
-    const payment = await getPublicPaymentStatusService().read(statusCapability);
+    // V1 first: a V1 capability never reaches the additive V2 branch; only a
+    // V1 miss falls through to the V2 capability read, sharing the one opaque
+    // 404 outcome.
+    const payment = await getPublicPaymentStatusService().read(statusCapability) ?? await getPublicPaymentStatusV2Service().read(statusCapability);
     if (!payment) return new Response(null, { status: 404, headers: noStoreHeaders });
     return Response.json({ payment }, { status: 200, headers: noStoreHeaders });
   });

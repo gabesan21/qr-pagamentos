@@ -41,4 +41,10 @@ export const checkoutPtBR = {
   checkoutStatusErrorDescription: "O pagamento não foi alterado. Você pode verificar o status novamente.",
   checkoutRetryStatus: "Verificar status novamente",
   checkoutPrivacyNotice: "Seus dados são usados apenas para preparar este pagamento e nunca aparecem no status do pagamento.",
+  checkoutSummaryHeading: "Resumo do pedido",
+  checkoutTotalLabel: "Total",
+  checkoutUnlabeledCurrency: "moeda sem rótulo",
+  checkoutMerchantLogoAlt: "Logotipo da loja",
+  checkoutMerchantFallbackAlt: "Logotipo provisório QR Pagamentos",
+  checkoutErrorRetry: "Tentar novamente",
 } as const;

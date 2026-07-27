@@ -41,4 +41,10 @@ export const checkoutEn = {
   checkoutStatusErrorDescription: "The payment has not been changed. You can check its status again.",
   checkoutRetryStatus: "Check status again",
   checkoutPrivacyNotice: "Your details are used only to prepare this payment and are never included in payment status.",
+  checkoutSummaryHeading: "Order summary",
+  checkoutTotalLabel: "Total",
+  checkoutUnlabeledCurrency: "unlabeled currency",
+  checkoutMerchantLogoAlt: "Merchant logo",
+  checkoutMerchantFallbackAlt: "QR Pagamentos placeholder logo",
+  checkoutErrorRetry: "Try again",
 } as const;

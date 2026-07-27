@@ -35,4 +35,16 @@ describe("unprefixed route contract", () => {
     expect(source).toContain("export default async function StandalonePaymentPage");
     expect(source).not.toContain("/api/store/");
   });
+
+  it("keeps /pay/[identifier] the single canonical checkout route with a V1-first additive V2 branch", async () => {
+    const source = await readFile("src/app/pay/[identifier]/page.tsx", "utf8");
+
+    expect(source).toContain('export const dynamic = "force-dynamic"');
+    expect(source.indexOf("getPublicCheckoutPresentationService")).toBeGreaterThan(-1);
+    expect(source.indexOf("getPublicCheckoutPresentationService")).toBeLessThan(source.indexOf("getPublicCheckoutV2PresentationService"));
+    const checkoutRoute = await readFile("src/app/api/payment-links/[identifier]/checkout/route.ts", "utf8");
+    expect(checkoutRoute.indexOf("public-checkout")).toBeLessThan(checkoutRoute.indexOf("public-checkout-v2"));
+    const statusRoute = await readFile("src/app/api/payment-links/[identifier]/checkout/status/route.ts", "utf8");
+    expect(statusRoute.indexOf("payment-status")).toBeLessThan(statusRoute.indexOf("payment-status-v2"));
+  });
 });
