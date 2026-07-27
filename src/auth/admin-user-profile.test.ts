@@ -48,7 +48,7 @@ function createHarness() {
   const store: AdminUserProfileStore = {
     ...locked,
     updateIdentity: vi.fn(),
-    withUserLock: vi.fn((_id: string, work: (store: LockedAdminUserProfileStore) => Promise<unknown>) => work(locked)),
+    withUserLock: vi.fn((_: string, work: (store: LockedAdminUserProfileStore) => Promise<unknown>) => work(locked)) as unknown as AdminUserProfileStore["withUserLock"],
   };
   const deps = {
     requireActiveCurrencyPair: vi.fn<() => Promise<unknown>>().mockResolvedValue({}),
