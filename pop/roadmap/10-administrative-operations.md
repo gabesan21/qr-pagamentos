@@ -44,7 +44,6 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[10.4.1-build-admin-settings-hub]] | Build the settings route and persist the default theme for new users plus the closed currency/payment configuration. · size: L | 001_initial_task |
 
 ## Dependency and parallel-wave map
 
