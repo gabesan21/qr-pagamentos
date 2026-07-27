@@ -5,7 +5,7 @@
 - **Status:** implementada
 - **Implementation:** partial
 - **Created:** 2026-07-13
-- **Updated:** 2026-07-26 — task 10.2.1 delivers the administrator-global Commerce V2 order directory and read-only V2 detail (payer-exposure and deleted-owner amendments below). Earlier: 2026-07-26 — task 10.1.1 delivers the server-only global administrator analytics projection (re-authorized, redacted, the 8.4.1 definitions reused globally, 10.3.1 deletion semantics preserved). Earlier: 2026-07-26 — task 10.3.1 delivers the terminal user soft-delete lifecycle (marker + `DISABLED`, atomic public-surface withdrawal, append-only audit, permanent identifier retention). Earlier: 2026-07-25 — task 8.3.1 makes the page-size set/default a per-directory registration drawn from the 10/20/25/50/100 superset.
+- **Updated:** 2026-07-27 — task 10.3.2 delivers the administrator-global user directory and read-only account detail (derived-state, store, last-activity, delete-action, interim-window, and 10.3.3-route amendments below). Earlier: 2026-07-26 — task 10.2.1 delivers the administrator-global Commerce V2 order directory and read-only V2 detail (payer-exposure and deleted-owner amendments below). Earlier: 2026-07-26 — task 10.1.1 delivers the server-only global administrator analytics projection (re-authorized, redacted, the 8.4.1 definitions reused globally, 10.3.1 deletion semantics preserved). Earlier: 2026-07-26 — task 10.3.1 delivers the terminal user soft-delete lifecycle (marker + `DISABLED`, atomic public-surface withdrawal, append-only audit, permanent identifier retention). Earlier: 2026-07-25 — task 8.3.1 makes the page-size set/default a per-directory registration drawn from the 10/20/25/50/100 superset.
 
 ## What it covers
 
@@ -49,66 +49,15 @@ This spec defines the reproducible runtime, local identity boundary, role model,
 
 ## Panel architecture and permissions
 
-`ADMIN` and merchant `USER` are mutually exclusive business personas. Shared
-means only session, login/logout, persisted locale, and common visual sources;
-it never grants a business read, mutation, shell, navigation entry, or fallback
-to the other role. Every protected read and mutation resolves an active cookie
-principal before owner-scoped work. `/` is the compatibility entry: it resolves
-the role before merchant work, sends `ADMIN` to `/admin`, and sends an active
-`USER` to the merchant dashboard. An administrator may never enter a merchant
-route, call an owner-scoped service as the owner, or perform a merchant
-mutation. This prohibition preserves explicitly approved administrator-only
-global read projections for orders, payment links, and analytics; those
-projections remain read-only, re-authorized, redacted, and separate from
-merchant routes and owner-scoped services.
+`ADMIN` and merchant `USER` are mutually exclusive business personas. Shared means only session, login/logout, persisted locale, and common visual sources; it never grants a business read, mutation, shell, navigation entry, or fallback to the other role. Every protected read and mutation resolves an active cookie principal before owner-scoped work. `/` is the compatibility entry: it resolves the role before merchant work, sends `ADMIN` to `/admin`, and sends an active `USER` to the merchant dashboard. An administrator may never enter a merchant route, call an owner-scoped service as the owner, or perform a merchant mutation. This prohibition preserves explicitly approved administrator-only global read projections for orders, payment links, and analytics; those projections remain read-only, re-authorized, redacted, and separate from merchant routes and owner-scoped services.
 
-Shared data directories use one bounded contract without sharing a business
-projection. The only entry points receive an already-resolved active principal:
-`USER` derives its own owner scope and `ADMIN` derives an explicit global-read
-scope, with exact role denial before adapter I/O. Each registered directory
-fixes redacted row DTOs, at most eight text/closed-enum filters, its own closed
-page-size subset with its own default drawn from the foundation-wide
-10/20/25/50/100 set (canonical URLs omit the directory's default size), and an
-immutable lexicographic order ending in a unique ID. Adapters
-request only `pageSize + 1`; offset, total count, arbitrary sorting, raw query
-fragments, client-side full-list filtering, and cross-request snapshot claims
-are excluded.
+Shared data directories use one bounded contract without sharing a business projection. The only entry points receive an already-resolved active principal: `USER` derives its own owner scope and `ADMIN` derives an explicit global-read scope, with exact role denial before adapter I/O. Each registered directory fixes redacted row DTOs, at most eight text/closed-enum filters, its own closed page-size subset with its own default drawn from the foundation-wide 10/20/25/50/100 set (canonical URLs omit the directory's default size), and an immutable lexicographic order ending in a unique ID. Adapters request only `pageSize + 1`; offset, total count, arbitrary sorting, raw query fragments, client-side full-list filtering, and cross-request snapshot claims are excluded.
 
-Directory request targets are limited to 2048 exact raw UTF-8 bytes before form
-decoding and then strictly decode well-formed percent escapes and fatal UTF-8.
-They accept at most 32 entries and serialize valid input in one fixed canonical
-order. A valid noncanonical native GET receives one same-path relative `307`
-before data I/O; invalid input receives the generic reset state without echo.
-Keyset cursors have a separate 512 decoded-byte bound and authenticate a closed,
-non-identifying `MERCHANT_OWN`/`ADMIN_GLOBAL` purpose, directory, direction,
-size, filter digest, order, and tuple. HKDF/HMAC keys are domain-separated from
-the required server key and include the resolved merchant identity only in
-server-side derivation; no identity enters the token, and every request still
-re-authorizes and reapplies scope.
+Directory request targets are limited to 2048 exact raw UTF-8 bytes before form decoding and then strictly decode well-formed percent escapes and fatal UTF-8. They accept at most 32 entries and serialize valid input in one fixed canonical order. A valid noncanonical native GET receives one same-path relative `307` before data I/O; invalid input receives the generic reset state without echo. Keyset cursors have a separate 512 decoded-byte bound and authenticate a closed, non-identifying `MERCHANT_OWN`/`ADMIN_GLOBAL` purpose, directory, direction, size, filter digest, order, and tuple. HKDF/HMAC keys are domain-separated from the required server key and include the resolved merchant identity only in server-side derivation; no identity enters the token, and every request still re-authorizes and reapplies scope.
 
-The administrator-global Commerce V2 order directory (10.2.1) is the first
-approved `ADMIN_GLOBAL` directory: a server-only `admin-order-v2` registration
-bound to `/admin/orders` with page sizes 10/20/50/100 and default 50, the same
-`(created_at desc, id desc)` keyset order, the same `source`/`money`/`from`/`to`/
-`link` filter set, and the same `q` search (local/provider order-UUID equality,
-otherwise payer-text containment) as the owner directory — provider order UUIDs
-remain match-only and never render. Its rows are the delivered V2 summary
-projection plus exactly the owner attribution tuple (`username`, `deletedAt`);
-the policy-exact `CustomerSnapshotV1` payer snapshot already carried by that
-summary is the sanctioned administrator payer exposure (the same exposure Task
-4.3.1's V1 global projection grants), and nothing else — no provider data,
-verifiers, capability material, lifecycle fields, or owner email/id — leaves
-persistence. Soft-deleted owners are never filtered out of any page, filter, or
-position: their rows keep full attribution and render the username with a
-localized non-color deleted badge (the administrator-only `deletedAt` fact,
-this surface only). The owner cell navigates to the delivered `/admin/accounts`
-surface as an interim target; task 10.3.3 repoints it to the per-user profile
-route. `/admin/orders/v2/[id]` is the read-only administrator V2 detail: it
-re-authorizes the administrator, resolves the delivered global V2 read, and
-only then issues one bounded owner-attribution read — every cross, malformed,
-missing, or attribution-missing identity shares the one opaque unavailable
-outcome, and the owner-only comment thread and local-outcome forms never
-render. The V1 administrator ledger below the directory stays byte-frozen.
+The administrator-global Commerce V2 order directory (10.2.1) is the first approved `ADMIN_GLOBAL` directory: a server-only `admin-order-v2` registration bound to `/admin/orders` with page sizes 10/20/50/100 and default 50, the same `(created_at desc, id desc)` keyset order, the same `source`/`money`/`from`/`to`/`link` filter set, and the same `q` search (local/provider order-UUID equality, otherwise payer-text containment) as the owner directory — provider order UUIDs remain match-only and never render. Its rows are the delivered V2 summary projection plus exactly the owner attribution tuple (`username`, `deletedAt`); the policy-exact `CustomerSnapshotV1` payer snapshot already carried by that summary is the sanctioned administrator payer exposure (the same exposure Task 4.3.1's V1 global projection grants), and nothing else — no provider data, verifiers, capability material, lifecycle fields, or owner email/id — leaves persistence. Soft-deleted owners are never filtered out of any page, filter, or position: their rows keep full attribution and render the username with a localized non-color deleted badge (the administrator-only `deletedAt` fact, this surface only). The owner cell navigates to the delivered `/admin/accounts` surface as an interim target; task 10.3.3 repoints it to the per-user profile route. `/admin/orders/v2/[id]` is the read-only administrator V2 detail: it re-authorizes the administrator, resolves the delivered global V2 read, and only then issues one bounded owner-attribution read — every cross, malformed, missing, or attribution-missing identity shares the one opaque unavailable outcome, and the owner-only comment thread and local-outcome forms never render. The V1 administrator ledger below the directory stays byte-frozen.
+
+The administrator-global user directory (10.3.2) is the second approved `ADMIN_GLOBAL` directory: a server-only `admin-users` registration bound to `/admin/accounts` with page sizes 10/20/50/100 and default 50, the `(created_at desc, id desc)` keyset order, and five filters — `role` (closed `ADMIN`/`USER`), `state` (the closed derived three), `from`/`to` created calendar-day bounds, and `q` (username or email containment, the two sanctioned administrator DTO text fields). Rows carry exactly the administrator user DTO plus two read-time derived facts and one bounded aggregate: the render state (`deleted` > `disabled` > `active`, computed from `deleted_at` and `status`, never stored), the store state (`active` = enabled with slug, `configured` = slug but disabled, `none`), and `lastActivityAt` = the newest session `last_seen_at` sighting — never a session identifier, digest, or count, and never credential, provider, locale, profile-version, checkout-policy, audit, or raw storefront fields. Soft-deleted users are never filtered out of any page, filter, or position: their rows keep the username with a localized non-color deleted badge and render no actions. Edit navigates to `/admin/accounts/[id]`; delete posts the delivered byte-frozen `POST /admin/users/[id]/delete` route (whose notices `/admin` already renders), and no new mutation route exists. `/admin/accounts/[id]` is the read-only administrator account detail: it re-authorizes the administrator, resolves one bounded global read by UUID id, renders the row facts plus the storefront slug and the delete form (absent on a deleted account), and shares one opaque unavailable outcome for malformed or missing identities; task 10.3.3 extends this same route into the profile editor and must not move it. The legacy inline role/status/password forms retired from `/admin/accounts`; their routes stay byte-frozen and live through the interim window until 10.3.3 re-houses those mutations in the editor, and the create-account section and notice strip remain.
 
 | Route family | Canonical owner and capability | Unauthenticated / wrong role | Compatibility boundary |
 | --- | --- | --- | --- |
@@ -127,13 +76,7 @@ The fixed authenticated page map is:
 | `ADMIN` | Dashboard `/admin`; orders `/admin/orders`; payment-link scaffold `/admin/payment-links`; users `/admin/accounts`; settings `/admin/settings` |
 | `USER` | Dashboard `/`; orders `/orders`; links `/links`; products `/catalog`; settings `/settings` |
 
-Every page and role layout re-authorize the cookie principal before role-owned
-work. Existing mutation endpoints remain `/admin/users*`,
-`/admin/payment-settings`, `/admin/catalog/*`, `/products`, `/payment-links*`,
-`/checkout-policy`, `/storefront`, `/nautt-credentials*`, and
-`/language-preference`; no page shadows them. The dashboard and global
-payment-link areas are honest scaffolds and call no unapproved projection.
-Nested order pages inherit only their role shell.
+Every page and role layout re-authorize the cookie principal before role-owned work. Existing mutation endpoints remain `/admin/users*`, `/admin/payment-settings`, `/admin/catalog/*`, `/products`, `/payment-links*`, `/checkout-policy`, `/storefront`, `/nautt-credentials*`, and `/language-preference`; no page shadows them. The dashboard and global payment-link areas are honest scaffolds and call no unapproved projection. Nested order pages inherit only their role shell.
 
 `/profile` is secondary to the five merchant business links and reads only the active merchant's username, nullable contact email, and profile version. Identity updates use own-user CAS, retain sessions, map stale/unique collisions to one conflict, and map invalid/unavailable input to failure. Every parsed password attempt performs exactly one fixed verification scrypt, using forced-false dummy work for malformed or unavailable records. Sign-in, admin reset, and merchant rotation share one per-user transaction lock; successful rotation conditionally replaces the observed credential, revokes every session atomically, expires authentication, and returns `/login?password=changed` using a validated non-auth cookie carrying the persisted locale. Email remains contact-only and never enters sign-in or public projections.
 
@@ -160,6 +103,8 @@ This section pins the durable business definitions behind the global administrat
 - Email-based password reset and administrator TOTP MFA are deferred until after the currently planned roadmap.
 
 ## Implemented slices
+
+- [[10.3.2-build-admin-user-directory]] (2026-07-27) — delivered the administrator-global user directory on the data-directory foundation: the server-only `admin-users` registration over `queryAdministratorDirectory` with the `ADMIN_GLOBAL` scope purpose, page sizes 10/20/50/100 (default 50), the `(createdAt, id)` keyset, role/derived-state/created-day/`q` filters, rows carrying exactly the administrator user DTO plus the read-time derived state (`deleted` > `disabled` > `active`), the derived store state, and the `lastActivityAt` max-session-sighting aggregate. Soft-deleted users stay listed with a localized non-color badge and no actions; edit navigates to the read-only `/admin/accounts/[id]` detail (row facts plus storefront slug and the delivered delete form, one opaque unavailable outcome — the route 10.3.3 extends into the profile editor) and delete posts the byte-frozen `POST /admin/users/[id]/delete` route. `/admin/accounts` recomposes onto the notice strip, the unchanged create-account section, and the directory; the legacy inline mutation forms retired from the page while their routes stay byte-frozen. Contract tests and the run-bound `admin-users:evidence`/`:verify` pair prove authorization, redaction, pagination, filters, deleted-account rendering, and accessibility.
 
 - [[10.2.1-build-admin-orders-directory]] (2026-07-26) — delivered the administrator-global Commerce V2 order directory on the data-directory foundation: the server-only `admin-order-v2` registration over `queryAdministratorDirectory` with the `ADMIN_GLOBAL` scope purpose, page sizes 10/20/50/100 (default 50), the `(createdAt, id)` keyset, the owner directory's filter set and payer/UUID `q` search, rows reusing `toOrderV2Summary` plus the additive owner `username`/`deletedAt` attribution, and one bounded owner-attribution read for the read-only `/admin/orders/v2/[id]` detail (one opaque unavailable outcome, no comment/outcome surface). Soft-deleted owners keep every row with a localized non-color badge and the interim `/admin/accounts` owner navigation. The `/admin/orders` page composes the directory above the byte-frozen V1 ledger; contract tests and the run-bound `admin-orders:evidence`/`:verify` pair prove authorization, redaction, pagination, filters, deleted-owner rendering, and accessibility.
 
