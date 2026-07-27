@@ -36,6 +36,15 @@
       "contexts": [],
       "test_seconds": 0,
       "result": "advanced"
+    },
+    {
+      "at": "2026-07-27T00:32:28-03:00",
+      "event": "transition",
+      "from": "005_verifying",
+      "to": "006_done",
+      "contexts": [],
+      "test_seconds": 0,
+      "result": "advanced"
     }
   ]
 }
