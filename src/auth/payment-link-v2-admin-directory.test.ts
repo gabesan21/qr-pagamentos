@@ -52,7 +52,7 @@ function storedLink(index: number, owner: AdminPaymentLinkV2Owner = ownerAttribu
 
 function storeWith(rows: readonly AdminStoredPaymentLinkV2[]) {
   const readWindow = vi.fn(async (_input: AdminPaymentLinkV2DirectoryRead) => [...rows]);
-  const findForAdmin = vi.fn(async (_id: string) => rows[0] ?? null);
+  const findForAdmin = vi.fn<AdminPaymentLinkV2DirectoryStore["findForAdmin"]>(async (_id: string) => rows[0] ?? null);
   const store: AdminPaymentLinkV2DirectoryStore = { readWindow, findForAdmin };
   return { store, readWindow, findForAdmin };
 }
