@@ -35,7 +35,6 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[10.3.2-build-admin-user-directory]] | Build the paginated searchable user table with status, role, store, activity evidence, and edit/delete actions. · size: L | 001_initial_task |
 | [[10.3.3-build-admin-user-profile-editor]] | Add the protected user profile editor for approved account/store fields and a safe public-store link. · size: L | 001_initial_task |
 
 ## Phase 10.4 - System settings
