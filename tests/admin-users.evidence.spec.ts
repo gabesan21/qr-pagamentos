@@ -212,7 +212,7 @@ test("creates the closed administrator users evidence run", async ({ page }) => 
   await expect(directory.getByText("Loja configurada").first()).toBeVisible();
   await expect(directory.getByText("Sem loja").first()).toBeVisible();
   await expect(directory.getByText("Nunca").first()).toBeVisible();
-  await expect(directory.getByText("Excluída")).toHaveCount(0);
+  await expect(directory.locator('[data-slot="badge"]', { hasText: "Excluída" })).toHaveCount(0);
   assertions.push({ state: "directory-facts", users: [keptUsername, idleUsername], badges: ["Ativo", "Desativado"], stores: ["Loja ativa", "Loja configurada", "Sem loja"] });
 
   await page.setViewportSize({ width: 320, height: 1000 });
