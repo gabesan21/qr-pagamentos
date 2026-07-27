@@ -172,8 +172,8 @@ test("creates the closed administrator settings hub evidence run", async ({ page
 
   // Creation-time stamping proof against the disposable database: a merchant
   // created now receives the saved default; a new administrator stays NULL.
-  await page.goto(`${baseUrl}/admin/accounts`);
   for (const [username, role] of [[merchantUsername, "USER"], [secondAdminUsername, "ADMIN"]] as const) {
+    await page.goto(`${baseUrl}/admin/accounts`);
     const createAccount = page.locator('form[action$="/admin/users"]');
     await createAccount.getByLabel(/Nome de usuário|Username/).fill(username);
     await createAccount.getByLabel(/^Senha$|^Password/).fill(merchantPassword!);
