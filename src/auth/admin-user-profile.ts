@@ -1,3 +1,5 @@
+import "server-only";
+
 import { getDatabaseClient } from "../db/client";
 import { isSupportedLocale, type SupportedLocale } from "../i18n/locales";
 import { ForbiddenError, type Principal } from "./authorization";
