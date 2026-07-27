@@ -16,6 +16,7 @@ import { profileEn } from "./profile/en";
 import { merchantDashboardEn } from "./merchant-dashboard/en";
 import { adminDashboardEn } from "./admin-dashboard/en";
 import { adminUsersDirectoryEn } from "./admin-users-directory/en";
+import { adminUserProfileEn } from "./admin-user-profile/en";
 
 export const en = {
   ...appShellEn,
@@ -23,6 +24,7 @@ export const en = {
   ...merchantDashboardEn,
   ...adminDashboardEn,
   ...adminUsersDirectoryEn,
+  ...adminUserProfileEn,
   ...sharedEn,
   ...nauttEn,
   ...designSystemEn,

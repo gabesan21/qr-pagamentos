@@ -33,6 +33,11 @@ import type { AdminUserDtoSource } from "./identity";
 // version, locale, checkout policy, audit rows, or raw storefront fields
 // beyond the derived state (the slug appears only on the detail). The
 // mutation service stays byte-frozen; no mutation exists on this surface.
+// 10.3.3 extends the bounded detail read — and only it — with the additive
+// editor projection (profile version, locale, checkout policy, and the nine
+// administrator-editable storefront fields): still never password hashes,
+// sessions, credential/provider data, audit rows, or the owner-fenced logo
+// media identifier.
 
 export const ADMIN_USER_DIRECTORY_ID = "admin-users";
 export const ADMIN_USER_DIRECTORY_PATH = "/admin/accounts";
@@ -77,10 +82,29 @@ export type AdminUserSummary = AdminUserDtoSource & Readonly<{
   lastActivityAt: Date | null;
 }>;
 
-// The detail adds only the storefront slug to the row facts; it is the read
-// 10.3.3 extends into the profile editor on the same route.
+// The 10.3.3 additive editor projection: the current values the profile
+// editor form renders, drawn from the bounded detail read only. It never
+// carries password hashes, session data, credential/provider data, audit
+// rows, or the owner-fenced logo media identifier.
+export type AdminUserEditorProjection = Readonly<{
+  profileVersion: number;
+  preferredLocale: string | null;
+  checkoutDataPolicy: string;
+  storefrontEnabled: boolean;
+  storefrontDisplayNamePtBr: string | null;
+  storefrontDisplayNameEn: string | null;
+  storefrontAccentColor: string | null;
+  storefrontThemeId: string | null;
+  storefrontLayout: string | null;
+  storefrontStandalonePaymentsEnabled: boolean;
+  storefrontDefaultCurrencyCode: string | null;
+}>;
+
+// The detail adds the storefront slug and the editor projection to the row
+// facts; it is the read the 10.3.3 profile editor consumes on the same route.
 export type AdminUserDetail = AdminUserSummary & Readonly<{
   storefrontSlug: string | null;
+  editor: AdminUserEditorProjection;
 }>;
 
 const directoryOrder = [
@@ -321,8 +345,41 @@ function createPrismaAdminUserDirectoryStore(prisma: PrismaClient): AdminUserDir
       return rows.map(toSummary);
     },
     async readDetail(userId) {
-      const row = await prisma.user.findUnique({ where: { id: userId }, select: rowSelect });
-      return row ? { ...toSummary(row), storefrontSlug: row.storefrontSlug } : null;
+      const row = await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          ...rowSelect,
+          profileVersion: true,
+          preferredLocale: true,
+          checkoutDataPolicy: true,
+          storefrontDisplayNamePtBr: true,
+          storefrontDisplayNameEn: true,
+          storefrontAccentColor: true,
+          storefrontThemeId: true,
+          storefrontLayout: true,
+          storefrontStandalonePaymentsEnabled: true,
+          storefrontDefaultCurrencyCode: true,
+        },
+      });
+      return row
+        ? {
+          ...toSummary(row),
+          storefrontSlug: row.storefrontSlug,
+          editor: {
+            profileVersion: row.profileVersion,
+            preferredLocale: row.preferredLocale,
+            checkoutDataPolicy: row.checkoutDataPolicy,
+            storefrontEnabled: row.storefrontEnabled,
+            storefrontDisplayNamePtBr: row.storefrontDisplayNamePtBr,
+            storefrontDisplayNameEn: row.storefrontDisplayNameEn,
+            storefrontAccentColor: row.storefrontAccentColor,
+            storefrontThemeId: row.storefrontThemeId,
+            storefrontLayout: row.storefrontLayout,
+            storefrontStandalonePaymentsEnabled: row.storefrontStandalonePaymentsEnabled,
+            storefrontDefaultCurrencyCode: row.storefrontDefaultCurrencyCode,
+          },
+        }
+        : null;
     },
   };
 }

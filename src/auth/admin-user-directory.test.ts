@@ -37,7 +37,24 @@ function summary(index: number, overrides: Partial<AdminUserSummary> = {}): Admi
 }
 
 function detail(index: number, overrides: Partial<AdminUserDetail> = {}): AdminUserDetail {
-  return { ...summary(index), storefrontSlug: `store-${index}`, ...overrides };
+  return {
+    ...summary(index),
+    storefrontSlug: `store-${index}`,
+    editor: {
+      profileVersion: 1,
+      preferredLocale: null,
+      checkoutDataPolicy: "NONE",
+      storefrontEnabled: false,
+      storefrontDisplayNamePtBr: null,
+      storefrontDisplayNameEn: null,
+      storefrontAccentColor: null,
+      storefrontThemeId: null,
+      storefrontLayout: null,
+      storefrontStandalonePaymentsEnabled: false,
+      storefrontDefaultCurrencyCode: null,
+    },
+    ...overrides,
+  };
 }
 
 function storeWith(rows: readonly AdminUserSummary[], detailRow: AdminUserDetail | null = detail(1)) {
@@ -309,7 +326,7 @@ describe("administrator user directory", () => {
     await expect(service.getAdminUserDetail(admin, "440e8400-e29b-41d4-a716-000000000099")).resolves.toBeNull();
   });
 
-  it("carries only the row facts plus the storefront slug on the detail", async () => {
+  it("carries only the row facts plus the storefront slug and the editor projection on the detail", async () => {
     const { store } = storeWith([]);
     const service = serviceWith(store);
     const found = await service.getAdminUserDetail(admin, "440e8400-e29b-41d4-a716-000000000001");
@@ -317,6 +334,7 @@ describe("administrator user directory", () => {
     expect(Object.keys(found as AdminUserDetail).sort()).toEqual([
       "createdAt",
       "deletedAt",
+      "editor",
       "email",
       "id",
       "lastActivityAt",
@@ -326,6 +344,22 @@ describe("administrator user directory", () => {
       "storefrontSlug",
       "storeState",
       "username",
+    ].sort());
+    // The editor projection is a closed whitelist: never password hashes,
+    // sessions, credential/provider data, audit rows, or the logo media
+    // identifier.
+    expect(Object.keys((found as AdminUserDetail).editor).sort()).toEqual([
+      "checkoutDataPolicy",
+      "preferredLocale",
+      "profileVersion",
+      "storefrontAccentColor",
+      "storefrontDefaultCurrencyCode",
+      "storefrontDisplayNameEn",
+      "storefrontDisplayNamePtBr",
+      "storefrontEnabled",
+      "storefrontLayout",
+      "storefrontStandalonePaymentsEnabled",
+      "storefrontThemeId",
     ].sort());
   });
 });

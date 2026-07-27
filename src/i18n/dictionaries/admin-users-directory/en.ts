@@ -24,7 +24,7 @@ export const adminUsersDirectoryEn = {
   adminUsersDirectoryFilterTo: "To",
   adminUsersDirectoryEdit: "Edit",
   adminUsersDirectoryDelete: "Delete",
-  adminUsersDirectoryDetailDescription: "Account facts and the delivered soft-delete action; role, status, and password editing arrives with the profile editor.",
+  adminUsersDirectoryDetailDescription: "Account facts, the profile editor sections, and the delivered soft-delete action.",
   adminUsersDirectoryDetailStorefrontSlug: "Storefront slug",
   adminUsersDirectoryDetailBack: "Back to accounts",
   adminUsersDirectoryDetailUnavailable: "This account is unavailable",

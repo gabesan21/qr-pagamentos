@@ -16,6 +16,7 @@ import { profilePtBR } from "./profile/pt-BR";
 import { merchantDashboardPtBR } from "./merchant-dashboard/pt-BR";
 import { adminDashboardPtBR } from "./admin-dashboard/pt-BR";
 import { adminUsersDirectoryPtBR } from "./admin-users-directory/pt-BR";
+import { adminUserProfilePtBR } from "./admin-user-profile/pt-BR";
 
 export const ptBR = {
   ...appShellPtBR,
@@ -23,6 +24,7 @@ export const ptBR = {
   ...merchantDashboardPtBR,
   ...adminDashboardPtBR,
   ...adminUsersDirectoryPtBR,
+  ...adminUserProfilePtBR,
   ...sharedPtBR,
   ...nauttPtBR,
   ...designSystemPtBR,
