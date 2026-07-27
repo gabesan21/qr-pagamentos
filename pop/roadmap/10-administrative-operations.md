@@ -2,7 +2,7 @@
 
 - **Project:** [[PROJECT|QR Pagamentos]]
 - **Roadmap:** [[ROADMAP|Roadmap]]
-- **Status:** pendente
+- **Status:** concluída
 - **Yolo:** yes
 - **Description:** Deliver administrator analytics and read-only global order/link directories plus user lifecycle and system settings management.
 - **Pause if:** global reads cannot keep payer data, owner identity, soft-deleted history, and administrator-only authorization within explicit redaction contracts.
