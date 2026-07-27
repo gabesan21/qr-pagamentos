@@ -52,7 +52,7 @@ function pageUrl(query: Readonly<{ canonicalFilterQuery: string; pageSize: numbe
 // The owner attribution cell: the interim target is the delivered accounts
 // surface (10.3.3 repoints it to the per-user profile); a soft-deleted owner
 // keeps its rows and gains the localized non-color deleted badge. The link is
-// a ghost button so the control keeps the 44px hit target inside the cell.
+// a ghost button so the control keeps the design-system hit target in the cell.
 function OwnerCell({ dictionary, owner }: Readonly<{ dictionary: Dictionary; owner: AdminOrderV2Summary["owner"] }>) {
   return (
     <>
