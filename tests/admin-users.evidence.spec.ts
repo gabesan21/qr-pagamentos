@@ -196,6 +196,11 @@ test("creates the closed administrator users evidence run", async ({ page }) => 
 
   await page.setViewportSize({ width: 375, height: 1000 });
   await page.goto(`${baseUrl}/admin/accounts`);
+  await expect(page.locator("[data-data-directory]")).toBeVisible();
+  await captureState("state-pt-BR-accounts-ready-375");
+
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto(`${baseUrl}/admin/accounts`);
   const directory = page.locator("[data-data-directory]");
   await expect(directory).toBeVisible();
   await expect(directory.getByText(keptUsername).first()).toBeVisible();
@@ -209,7 +214,6 @@ test("creates the closed administrator users evidence run", async ({ page }) => 
   await expect(directory.getByText("Nunca").first()).toBeVisible();
   await expect(directory.getByText("Excluída")).toHaveCount(0);
   assertions.push({ state: "directory-facts", users: [keptUsername, idleUsername], badges: ["Ativo", "Desativado"], stores: ["Loja ativa", "Loja configurada", "Sem loja"] });
-  await captureState("state-pt-BR-accounts-ready-375");
 
   await page.setViewportSize({ width: 320, height: 1000 });
   await page.goto(`${baseUrl}/admin/accounts`);
