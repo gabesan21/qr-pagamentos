@@ -18,6 +18,7 @@ const linksMode = process.argv.includes("--links");
 const merchantDashboardMode = process.argv.includes("--merchant-dashboard");
 const ordersMode = process.argv.includes("--orders");
 const adminOrdersMode = process.argv.includes("--admin-orders");
+const adminSettingsMode = process.argv.includes("--admin-settings");
 const standalonePaymentMode = process.argv.includes("--standalone-payment");
 const checkoutMode = process.argv.includes("--checkout");
 const project = `qrae${process.pid}${token}`.toLowerCase();
@@ -79,6 +80,8 @@ try {
     ? "tests/checkout.evidence.spec.ts"
     : adminOrdersMode
     ? "tests/admin-orders.evidence.spec.ts"
+    : adminSettingsMode
+    ? "tests/admin-settings.evidence.spec.ts"
     : standalonePaymentMode
     ? "tests/standalone-payment.evidence.spec.ts"
     : merchantDashboardMode
@@ -119,6 +122,8 @@ try {
       ORDERS_EVIDENCE_COMPOSE_PROJECT: project,
       ADMIN_ORDERS_EVIDENCE_MERCHANT_PASSWORD: `Merchant-${token}-Password`,
       ADMIN_ORDERS_EVIDENCE_COMPOSE_PROJECT: project,
+      ADMIN_SETTINGS_EVIDENCE_MERCHANT_PASSWORD: `Merchant-${token}-Password`,
+      ADMIN_SETTINGS_EVIDENCE_COMPOSE_PROJECT: project,
       STANDALONE_PAYMENT_EVIDENCE_MERCHANT_PASSWORD: `Merchant-${token}-Password`,
       STANDALONE_PAYMENT_EVIDENCE_COMPOSE_PROJECT: project,
       STANDALONE_PAYMENT_EVIDENCE_ENCRYPTION_KEY: nauttEncryptionKey,
