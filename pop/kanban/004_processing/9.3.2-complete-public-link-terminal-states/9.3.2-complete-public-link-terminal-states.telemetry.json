@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "events": [
+    {
+      "at": "2026-07-26T18:40:11-03:00",
+      "event": "transition",
+      "from": "001_initial_task",
+      "to": "002_planning",
+      "contexts": [],
+      "test_seconds": 0,
+      "result": "advanced"
+    },
+    {
+      "at": "2026-07-26T18:44:34-03:00",
+      "event": "transition",
+      "from": "002_planning",
+      "to": "003_human_approval",
+      "contexts": [],
+      "test_seconds": 0,
+      "result": "advanced"
+    },
+    {
+      "at": "2026-07-26T23:44:37-03:00",
+      "event": "transition",
+      "from": "003_human_approval",
+      "to": "004_processing",
+      "contexts": [],
+      "test_seconds": 0,
+      "result": "advanced"
+    },
+    {
+      "at": "2026-07-26T22:50:00-03:00",
+      "event": "execution",
+      "stage": "004_processing",
+      "contexts": ["executor"],
+      "test_seconds": 0,
+      "result": "blocked: delivered withAuthorizationLock used $queryRaw on a void advisory lock (deleteUser/changeStatus/changeRole broken in production); reported, originated M-6.1"
+    },
+    {
+      "at": "2026-07-27T00:05:00-03:00",
+      "event": "execution",
+      "stage": "004_processing",
+      "contexts": ["executor"],
+      "test_seconds": 0,
+      "result": "delivered: F01-F04 + develop merge (M-6.1, 9.2.2; additive harness/spec conflicts); green gates: pnpm check, pnpm db:test, admin:contract-check, admin-orders:evidence/:verify run 20260727030000"
+    }
+  ]
+}
