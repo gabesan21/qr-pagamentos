@@ -101,7 +101,7 @@ function ExchangeCurrencies({ dictionary, mappings }: Readonly<{ dictionary: Dic
         {mappings.length === 0 ? <Alert><AlertTitle>{dictionary.adminExchangeCurrencyEmpty}</AlertTitle><AlertDescription>{dictionary.adminExchangeCurrencyEmptyDescription}</AlertDescription></Alert> : (
           <div className="admin-catalog-list" role="list">
             {mappings.map((mapping) => (
-              <section key={mapping.code} aria-labelledby={`exchange-currency-${mapping.code}`} className="admin-catalog-item">
+              <section key={mapping.code} aria-labelledby={`exchange-currency-${mapping.code}`} className="admin-catalog-item" role="listitem">
                 <div className="admin-catalog-item__facts">
                   <h3 id={`exchange-currency-${mapping.code}`}>{mapping.code}</h3>
                   <dl><div><dt>{dictionary.adminCatalogLabelLabel}</dt><dd>{mapping.label}</dd></div></dl>
@@ -136,7 +136,7 @@ function CatalogCurrencyPairs({ dictionary, pairs }: Readonly<{ dictionary: Dict
         {pairs.length === 0 ? <Alert><AlertTitle>{dictionary.adminCatalogEmptyCurrencyPairs}</AlertTitle><AlertDescription>{dictionary.adminCatalogEmptyDescription}</AlertDescription></Alert> : (
           <div className="admin-catalog-list" role="list">
             {pairs.map((pair) => (
-              <section key={pair.id} aria-labelledby={`currency-pair-${pair.id}`} className="admin-catalog-item">
+              <section key={pair.id} aria-labelledby={`currency-pair-${pair.id}`} className="admin-catalog-item" role="listitem">
                 <div className="admin-catalog-item__facts">
                   <h3 id={`currency-pair-${pair.id}`}>{pair.label}</h3>
                   <dl><div><dt>{dictionary.adminCatalogCurrencyUuidLabel}</dt><dd>{pair.currencyUuid}</dd></div><div><dt>{dictionary.adminCatalogExchangeCurrencyUuidLabel}</dt><dd>{pair.exchangeCurrencyUuid}</dd></div><div><dt>{dictionary.adminCatalogActiveLabel}</dt><dd><Badge variant={pair.active ? "secondary" : "destructive"}>{pair.active ? dictionary.adminActive : dictionary.adminDisabled}</Badge></dd></div></dl>
@@ -175,7 +175,7 @@ function CatalogPaymentMethods({ dictionary, methods }: Readonly<{ dictionary: D
         {methods.length === 0 ? <Alert><AlertTitle>{dictionary.adminCatalogEmptyPaymentMethods}</AlertTitle><AlertDescription>{dictionary.adminCatalogEmptyDescription}</AlertDescription></Alert> : (
           <div className="admin-catalog-list" role="list">
             {methods.map((method) => (
-              <section key={method.id} aria-labelledby={`payment-method-${method.id}`} className="admin-catalog-item">
+              <section key={method.id} aria-labelledby={`payment-method-${method.id}`} className="admin-catalog-item" role="listitem">
                 <div className="admin-catalog-item__facts">
                   <h3 id={`payment-method-${method.id}`}>{method.label}</h3>
                   <dl><div><dt>{dictionary.adminCatalogPaymentMethodUuidLabel}</dt><dd>{method.paymentMethodUuid}</dd></div><div><dt>{dictionary.adminCatalogActiveLabel}</dt><dd><Badge variant={method.active ? "secondary" : "destructive"}>{method.active ? dictionary.adminActive : dictionary.adminDisabled}</Badge></dd></div></dl>
