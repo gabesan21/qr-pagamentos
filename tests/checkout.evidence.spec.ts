@@ -110,7 +110,7 @@ function seedAttemptSql(input: {
 }
 
 test("creates the closed public checkout evidence run", async ({ page }) => {
-  test.setTimeout(1_800_000);
+  test.setTimeout(3_600_000);
   const adminUsername = process.env.ADMIN_EVIDENCE_USERNAME;
   const adminPassword = process.env.ADMIN_EVIDENCE_PASSWORD;
   const merchantPassword = process.env.CHECKOUT_EVIDENCE_MERCHANT_PASSWORD;
@@ -152,8 +152,14 @@ test("creates the closed public checkout evidence run", async ({ page }) => {
     main: { id: randomUUID(), identifier: identifier() },
     fixed: { id: randomUUID(), identifier: identifier() },
     consumed: { id: randomUUID(), identifier: identifier() },
+    consumedLines: { id: randomUUID(), identifier: identifier() },
+    consumedExpired: { id: randomUUID(), identifier: identifier() },
+    inactive: { id: randomUUID(), identifier: identifier() },
+    expired: { id: randomUUID(), identifier: identifier() },
   };
   const consumedOrder = randomUUID();
+  const consumedLinesOrder = randomUUID();
+  const consumedExpiredOrder = randomUUID();
   const at = (minutesAgo: number) => new Date(Date.now() - minutesAgo * 60_000).toISOString();
 
   function seedFixtureSql() {
@@ -184,6 +190,34 @@ test("creates the closed public checkout evidence run", async ({ page }) => {
        FROM app."user" u WHERE u.username = '${merchantUsername}'`,
       `INSERT INTO app.payment_link_v2_single_use_settlement (payment_link_v2_id, owner_id, order_v2_id, claimed_at)
        SELECT '${links.consumed.id}', u.id, '${consumedOrder}', '${at(90)}'
+       FROM app."user" u WHERE u.username = '${merchantUsername}'`,
+      `INSERT INTO app.payment_link_v2 (id, identifier, owner_id, composition_kind, currency_pair_id, link_type, active, version, created_at, updated_at)
+       SELECT '${links.consumedLines.id}', '${links.consumedLines.identifier}', u.id, 'PRODUCT_LINES', '${pairA.id}', 'SINGLE_USE', true, 0, '${at(97)}', '${at(97)}'
+       FROM app."user" u WHERE u.username = '${merchantUsername}'`,
+      `INSERT INTO app.payment_link_v2_line (payment_link_v2_id, owner_id, product_id, position, quantity)
+       SELECT '${links.consumedLines.id}', u.id, '${products[0]!.id}', 1, 2 FROM app."user" u WHERE u.username = '${merchantUsername}'`,
+      `INSERT INTO app.payment_link_v2_line (payment_link_v2_id, owner_id, product_id, position, quantity)
+       SELECT '${links.consumedLines.id}', u.id, '${products[1]!.id}', 2, 1 FROM app."user" u WHERE u.username = '${merchantUsername}'`,
+      `INSERT INTO app.order_v2 (id, owner_id, source, payment_link_v2_id, state, lifecycle_version, amount, currency_uuid, exchange_currency_uuid, checkout_data_policy, settled_at, created_at, updated_at)
+       SELECT '${consumedLinesOrder}', u.id, 'LINK', '${links.consumedLines.id}', 'CONFIRMED', 1, '34.9', '${pairA.currency}', '${pairA.exchange}', 'NONE', '${at(89)}', '${at(94)}', '${at(89)}'
+       FROM app."user" u WHERE u.username = '${merchantUsername}'`,
+      `INSERT INTO app.payment_link_v2_single_use_settlement (payment_link_v2_id, owner_id, order_v2_id, claimed_at)
+       SELECT '${links.consumedLines.id}', u.id, '${consumedLinesOrder}', '${at(89)}'
+       FROM app."user" u WHERE u.username = '${merchantUsername}'`,
+      `INSERT INTO app.payment_link_v2 (id, identifier, owner_id, composition_kind, description_pt_br, description_en, amount, currency_pair_id, link_type, active, expires_at, version, created_at, updated_at)
+       SELECT '${links.consumedExpired.id}', '${links.consumedExpired.identifier}', u.id, 'FIXED_AMOUNT', 'Mensalidade vencida', 'Overdue dues', '40', '${pairA.id}', 'SINGLE_USE', true, '${at(30)}', 0, '${at(96)}', '${at(96)}'
+       FROM app."user" u WHERE u.username = '${merchantUsername}'`,
+      `INSERT INTO app.order_v2 (id, owner_id, source, payment_link_v2_id, state, lifecycle_version, amount, currency_uuid, exchange_currency_uuid, checkout_data_policy, settled_at, created_at, updated_at)
+       SELECT '${consumedExpiredOrder}', u.id, 'LINK', '${links.consumedExpired.id}', 'CONFIRMED', 1, '40', '${pairA.currency}', '${pairA.exchange}', 'NONE', '${at(88)}', '${at(93)}', '${at(88)}'
+       FROM app."user" u WHERE u.username = '${merchantUsername}'`,
+      `INSERT INTO app.payment_link_v2_single_use_settlement (payment_link_v2_id, owner_id, order_v2_id, claimed_at)
+       SELECT '${links.consumedExpired.id}', u.id, '${consumedExpiredOrder}', '${at(88)}'
+       FROM app."user" u WHERE u.username = '${merchantUsername}'`,
+      `INSERT INTO app.payment_link_v2 (id, identifier, owner_id, composition_kind, description_pt_br, description_en, amount, currency_pair_id, link_type, active, version, created_at, updated_at)
+       SELECT '${links.inactive.id}', '${links.inactive.identifier}', u.id, 'FIXED_AMOUNT', 'Link desativado', 'Deactivated link', '15', '${pairA.id}', 'REUSABLE', false, 0, '${at(93)}', '${at(92)}'
+       FROM app."user" u WHERE u.username = '${merchantUsername}'`,
+      `INSERT INTO app.payment_link_v2 (id, identifier, owner_id, composition_kind, description_pt_br, description_en, amount, currency_pair_id, link_type, active, expires_at, version, created_at, updated_at)
+       SELECT '${links.expired.id}', '${links.expired.identifier}', u.id, 'FIXED_AMOUNT', 'Link expirado', 'Expired link', '77', '${pairB.id}', 'REUSABLE', true, '${at(20)}', 0, '${at(91)}', '${at(91)}'
        FROM app."user" u WHERE u.username = '${merchantUsername}'`,
     ];
     return `${statements.join(";\n")};\n`;
@@ -285,6 +319,10 @@ test("creates the closed public checkout evidence run", async ({ page }) => {
   await setLocale(page, "pt-BR");
 
   seedDatabase(seedFixtureSql());
+  // Claim-keying proof (9.3.2): every consumed order flips to REFUNDED before
+  // any paid capture — the paid view must persist unchanged, keyed only to
+  // the persisted settlement claim, never to live order state.
+  seedDatabase(`UPDATE app.order_v2 SET state = 'REFUNDED' WHERE id IN ('${consumedOrder}', '${consumedLinesOrder}', '${consumedExpiredOrder}');\n`);
   const qrPng = await sharp({ create: { width: 96, height: 96, channels: 3, background: { r: 18, g: 84, b: 72 } } }).png().toBuffer();
   const qrDataUrl = `data:image/png;base64,${qrPng.toString("base64")}`;
   const expires = new Date(Date.now() + 23 * 60 * 60 * 1000);
@@ -313,10 +351,26 @@ test("creates the closed public checkout evidence run", async ({ page }) => {
   await captureState("state-pt-BR-unavailable-1440");
 
   await page.goto(`${baseUrl}/pay/${links.consumed.identifier}`);
+  await expect(page.getByText("Este link de pagamento já foi pago")).toBeVisible();
+  await expect(page.getByText("Pago", { exact: true })).toBeVisible();
+  await expect(page.getByText("Cota do clube")).toBeVisible();
+  await expect(page.locator(".checkout-v2__total")).toContainText("25");
+  await expect(page.locator(".checkout-v2__total")).toContainText("BRL");
+  await expect(page.locator("form")).toHaveCount(0);
+  await expect(page.locator('img.checkout-v2__logo')).toHaveCount(0);
+  assertions.push({ state: "paid-consumed-single-use", composition: "FIXED_AMOUNT", total: "25", currency: "BRL", logo: false, form: false, refundedOrder: true });
+  await captureState("state-pt-BR-paid-fixed-unbranded-1440");
+
+  await page.goto(`${baseUrl}/pay/${links.consumedExpired.identifier}`);
+  await expect(page.getByText("Este link de pagamento já foi pago")).toBeVisible();
+  await expect(page.getByText("Mensalidade vencida")).toBeVisible();
+  assertions.push({ state: "paid-consumed-expired-link", claimKeyed: true, expiredLink: true, refundedOrder: true });
+  await captureState("state-pt-BR-paid-expired-1440");
+
+  await page.goto(`${baseUrl}/pay/${links.inactive.identifier}`);
   await expect(page.getByText("Este link de pagamento está indisponível").first()).toBeVisible();
-  await expect(page.getByText("Cota do clube")).toHaveCount(0);
-  assertions.push({ state: "unavailable-consumed-single-use", opaque: true, paidView: false });
-  await captureState("state-pt-BR-consumed-single-use-1440");
+  assertions.push({ state: "unavailable-inactive", opaque: true });
+  await captureState("state-pt-BR-inactive-link-1440");
 
   // ---- branding through the real storefront settings workspace ----
   // The upload is a separate navigating form, so it runs before the field
@@ -476,7 +530,14 @@ test("creates the closed public checkout evidence run", async ({ page }) => {
   await captureState("state-en-capability-unavailable-1440");
   await rewriteRetryKey("", false);
 
+  await page.goto(`${baseUrl}/pay/${links.expired.identifier}`);
+  await expect(page.getByText("This payment link is unavailable").first()).toBeVisible();
+  assertions.push({ state: "unavailable-expired", opaque: true });
+  await captureState("state-en-expired-link-1440");
+
   // ---- shared branded grid: six persisted themes, both locales, three widths ----
+  // Each grid step captures the payable checkout plus the two paid terminal
+  // views (both composition kinds) under the same theme/locale/width.
   for (const locale of locales) {
     await setLocale(page, locale);
     for (const theme of themes) {
@@ -489,12 +550,22 @@ test("creates the closed public checkout evidence run", async ({ page }) => {
         await page.emulateMedia({ reducedMotion: "reduce" });
         await inspectCheckout(`checkout-${theme}-${locale}-${width}`);
         await screenshot(`checkout-${theme}-${locale}-${width}`);
+        for (const [kind, link] of [["lines", links.consumedLines], ["fixed", links.consumed]] as const) {
+          await page.goto(`${baseUrl}/pay/${link.identifier}`);
+          await expect(page.locator("main.checkout-v2")).toHaveAttribute("data-theme-preview", theme);
+          await expect(page.locator('[data-slot="badge"]')).toBeVisible();
+          await page.evaluate(async () => document.fonts.ready);
+          await page.emulateMedia({ reducedMotion: "reduce" });
+          await inspectCheckout(`paid-${kind}-${theme}-${locale}-${width}`);
+          await screenshot(`paid-${kind}-${theme}-${locale}-${width}`);
+        }
       }
     }
   }
   assertions.push({ state: "branding-grid", themes: themes.length, locales: locales.length, widths: widths.length });
+  assertions.push({ state: "paid-grid", kinds: 2, themes: themes.length, locales: locales.length, widths: widths.length });
 
-  expect(screenshots).toHaveLength(52);
+  expect(screenshots).toHaveLength(127);
   const assertionsPath = join(runDirectory, "assertions.json");
   await writeFile(assertionsPath, `${JSON.stringify(assertions, null, 2)}\n`);
   const captureRecords = await Promise.all(screenshots.map(async (capturePath) => {
@@ -533,8 +604,9 @@ test("creates the closed public checkout evidence run", async ({ page }) => {
     startedAt,
     gitHead: execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim(),
     baseCaptureCount: 36,
-    stateCaptureCount: 16,
-    totalPngCount: 52,
+    paidCaptureCount: 72,
+    stateCaptureCount: 19,
+    totalPngCount: 127,
     assertions: `artifacts/checkout/${runId}/assertions.json`,
     assertionsSha256: sha256(assertionsBytes),
     captures: captureRecords,
@@ -551,7 +623,8 @@ test("creates the closed public checkout evidence run", async ({ page }) => {
     "",
     `- Run: \`${runId}\``,
     `- Manifest SHA-256: \`${sha256(manifestBytes)}\``,
-    "- Grid: six persisted merchant themes × two locales × 375/768/1440 branded checkout captures, plus sixteen localized state captures covering both compositions, all five policy variants, 320-pixel reflow, inline validation, submit-pending, the opaque checkout error, QR/copy feedback, waiting-for-payment-data, status-error with manual retry, both terminal badges, the expired-capability opaque unavailable, and the unknown/consumed-single-use opaque unavailable views.",
+    "- Grid: six persisted merchant themes × two locales × 375/768/1440 branded checkout captures, mirrored by the 9.3.2 paid terminal grid (both composition kinds: the consumed product-lines link and the consumed fixed-amount link) under the same themes, locales, and widths, plus nineteen localized state captures covering both compositions, all five policy variants, 320-pixel reflow, inline validation, submit-pending, the opaque checkout error, QR/copy feedback, waiting-for-payment-data, status-error with manual retry, both terminal badges, the expired-capability opaque unavailable, the unknown/inactive/expired opaque unavailable views, and the unbranded paid view with the non-color paid marker.",
+    "- The paid terminal views are claim-keyed: every consumed order is flipped to REFUNDED before any paid capture, and one consumed link carries a past expiry — the paid view persists unchanged in both cases, proving the persisted settlement claim (never live order state, active flag, or expiry) is the only consumption signal.",
     "- Branding resolves from the owner's persisted settings with the storefront disabled: the real settings workspace saves the display names, accent, and logo, and the checkout renders them through the scoped theme mechanism.",
     "- QR, polling, and terminal states run against checkout_attempt_v2/order_v2/provider_order rows seeded directly in the disposable database with the capability HMAC computed from the harness's own disposable NAUTT_ENCRYPTION_KEY; no provider call occurs in the run.",
     "- The loading skeleton and the render error state are structural states without an honest runtime capture; they ship as route-level loading.tsx/error.tsx and are exercised only by unit-level rendering.",

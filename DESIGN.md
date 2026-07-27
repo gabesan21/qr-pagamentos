@@ -286,6 +286,18 @@ the auto-fit track minimum; unavailable, waiting, status-recovery, terminal
 (success vs destructive badge), and the route `loading.tsx` skeleton and
 `error.tsx` retry states all compose the same inventory.
 
+The 9.3.2 paid terminal view for a consumed single-use link renders inside
+the same branded shell — the whitelisted page root keeps exactly one
+`--storefront-accent` declaration, shared by the checkout and paid views
+through one shell composition. The paid column carries a non-color paid
+marker (`Badge` secondary with the check icon plus localized text), the
+already-paid heading, the one-time-use explanation, and the same composition
+summary (localized lines or fixed description, ruled separators, the tabular
+exact total with the display code or the explicit unlabeled treatment) — no
+form, polling client, or mutation affordance. It introduces no new token,
+primitive, class, or whitelist entry, and the claim-keyed view never renders
+order state, timestamps, or refund state.
+
 The sessionless `/store/[slug]` storefront follows the same PIX-ledger rail and
 uses the existing `Card`, `Alert`, `Button`, `Input`, `Table`, and `Skeleton`
 primitives. The page scopes the resolved owner theme with
@@ -554,17 +566,23 @@ the disposable database would break session resolution before the directory
 read. The review is manifest-hash-bound and accepts no unresolved severity 2
 or greater finding.
 
-`pnpm checkout:evidence` and `pnpm checkout:evidence:verify` bind 52 public
+`pnpm checkout:evidence` and `pnpm checkout:evidence:verify` bind 127 public
 checkout captures: the branded Commerce V2 `/pay/[identifier]` composition
 across six persisted merchant themes, both locales, and widths 375/768/1440
-(36), plus sixteen localized state captures covering the unbranded
-fixed-amount composition with the unlabeled-currency treatment, the branded
-product-lines composition at 320 pixels, both opaque unavailable views
-(unknown identifier and consumed single-use, with no paid view), all five
-policy variants, inline validation, submit-pending, the opaque checkout
-error, QR with copy feedback, waiting-for-payment-data, status-error with
-manual retry recovery, the confirmed and destructive terminal badges, and the
-expired-capability opaque unavailable. The run drives the real storefront
+(36), the 9.3.2 paid terminal grid mirroring the same themes, locales, and
+widths for both composition kinds (72), plus nineteen localized state
+captures covering the unbranded fixed-amount composition with the
+unlabeled-currency treatment, the branded product-lines composition at 320
+pixels, the opaque unavailable views (unknown, inactive, and expired
+identifiers), the unbranded paid view with the non-color paid marker, the
+claim-keyed paid view outliving link expiry, all five policy variants,
+inline validation, submit-pending, the opaque checkout error, QR with copy
+feedback, waiting-for-payment-data, status-error with manual retry recovery,
+the confirmed and destructive terminal badges, and the expired-capability
+opaque unavailable. Claim-keying is proven at runtime: every consumed order
+is flipped to `REFUNDED` before any paid capture, and one consumed link
+carries a past expiry — the paid views persist unchanged. The run drives
+the real storefront
 settings workspace for branding (logo upload, display names, accent — with
 the storefront disabled), seeds links, attempts, orders, and provider rows
 directly in the disposable database with the capability HMAC computed from
