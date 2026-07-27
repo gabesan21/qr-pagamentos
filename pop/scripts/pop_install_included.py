@@ -80,17 +80,28 @@ def content_sha(data=None) -> str:
     return digest.hexdigest()
 
 
-def installed_stamp(target: Path):
-    """`(caminho do marcador, content_sha gravado)` do alvo; sha `None` se ausente."""
+def installed_stamp(target: Path, key: str = "content_sha"):
+    """`(caminho do marcador, campo gravado)` do alvo; `None` se ausente."""
     marker = target / "pop" / ".included-harness.json"
     if not marker.is_file():
         marker = target / ".included-harness.json"
     if not marker.is_file():
         return None, None
     try:
-        return marker, json.loads(marker.read_text(encoding="utf-8")).get("content_sha")
+        return marker, json.loads(marker.read_text(encoding="utf-8")).get(key)
     except json.JSONDecodeError:
         return marker, None
+
+
+def is_vendored() -> bool:
+    """Este script é a cópia instalada num projeto, não o original do pai.
+
+    A cópia não consegue responder sobre frescor: seu `SOURCE` é o harness
+    local, já localizado na instalação, então o hash nunca bate com o do pai.
+    Responder "DEFASADO" ali ensinaria a reinstalar o harness a partir de si
+    mesmo — o oposto da fonte única.
+    """
+    return (SOURCE / ".included-harness.json").is_file()
 
 
 def localize(text: str, *, included_paths: bool = False) -> str:
@@ -118,28 +129,46 @@ def copy_file(source: Path, dest: Path, *, overwrite: bool = True,
 
 
 def copy_tree(source: Path, dest: Path, *, included_paths: bool = False,
-              data=None) -> None:
-    """Espelha `source` em `dest`: copia o que existe e **remove o que saiu**.
+              data=None) -> list:
+    """Copia `source` em `dest` e devolve os arquivos escritos.
 
-    Sem a poda, arquivo apagado na origem sobrevive para sempre no alvo — o
-    clone continuaria oferecendo um template ou script que o fluxo já retirou.
+    Não varre o destino: pasta gerida **não** é pasta exclusiva. O projeto
+    legitimamente guarda arquivos seus em `pop/scripts/` (verificação própria,
+    fixtures), e apagar tudo o que não vem da origem destrói trabalho do
+    projeto. A poda é feita pelo inventário da instalação anterior — ver
+    `prune`.
     """
     data = data or manifest()
-    kept = set()
+    written = []
     for path in source.rglob("*"):
         relative = path.relative_to(source)
         if path.is_dir() or excluded(data, relative):
             continue
-        kept.add(relative)
-        copy_file(path, dest / relative, included_paths=included_paths)
-    if not dest.is_dir():
-        return
-    for path in sorted(dest.rglob("*"), reverse=True):
-        relative = path.relative_to(dest)
-        if path.is_file() and relative not in kept:
-            path.unlink()
-        elif path.is_dir() and not any(path.iterdir()):
-            path.rmdir()
+        target_file = dest / relative
+        copy_file(path, target_file, included_paths=included_paths)
+        written.append(target_file)
+    return written
+
+
+def prune(target: Path, previous, written) -> list:
+    """Remove o que a instalação anterior trouxe e a atual não traz mais.
+
+    Só arquivos que o **próprio instalador** escreveu antes são candidatos:
+    é a única forma de retirar um template ou script aposentado sem tocar no
+    que pertence ao projeto. Sem inventário anterior, nada é removido.
+    """
+    removed = []
+    for rel in sorted(set(previous) - {str(p) for p in written}, reverse=True):
+        path = target / rel
+        if not path.is_file():
+            continue
+        path.unlink()
+        removed.append(rel)
+        parent = path.parent
+        while parent != target and parent.is_dir() and not any(parent.iterdir()):
+            parent.rmdir()
+            parent = parent.parent
+    return removed
 
 
 def preserve_worktree_marker(target: Path, prefix: str = "") -> None:
@@ -184,16 +213,25 @@ def install(target: Path) -> None:
     # harness_root: "pop" no manifest v2; "" (raiz do target) no v1 legado.
     hr = data.get("harness_root", "") or ""
     hb = target / hr if hr else target
+    _, previous = installed_stamp(target, key="installed")
     # Preflight: somente caminhos explicitamente geridos podem ser escritos.
+    written = []
     for name in data["files"]:
         copy_file(SOURCE / name, hb / name, included_paths=True)
+        written.append(hb / name)
     for name in data["directories"]:
-        copy_tree(SOURCE / name, hb / name, included_paths=True, data=data)
+        written += copy_tree(SOURCE / name, hb / name, included_paths=True,
+                             data=data)
     for name in data["skills"]:
-        copy_tree(SKILLS_SOURCE / name, target / ".agents/skills" / name,
-                  included_paths=True, data=data)
-    # O marcador é o manifest + o carimbo de conteúdo desta instalação.
-    stamp = dict(data, content_sha=content_sha(data))
+        written += copy_tree(SKILLS_SOURCE / name,
+                             target / ".agents/skills" / name,
+                             included_paths=True, data=data)
+    inventory = sorted(path.relative_to(target).as_posix() for path in written)
+    prune(target, previous or [], [path.relative_to(target).as_posix()
+                                   for path in written])
+    # O marcador é o manifest + o carimbo de conteúdo e o inventário desta
+    # instalação — o inventário é o que autoriza a poda da próxima.
+    stamp = dict(data, content_sha=content_sha(data), installed=inventory)
     (hb / ".included-harness.json").write_text(
         json.dumps(stamp, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     for rel in data["anatomy"]:
@@ -237,6 +275,10 @@ def main() -> int:
         if missing:
             print("manifesto incompleto: " + ", ".join(missing), file=sys.stderr); return 1
         print("manifesto fechado"); return 0
+    if (args.sha or args.check_fresh) and is_vendored():
+        print("comando só existe na origem: este é o harness instalado de um "
+              "projeto. Rode do PoP pai, que é a fonte única.", file=sys.stderr)
+        return 2
     if args.sha:
         print(content_sha()); return 0
     if not args.target:
