@@ -53,6 +53,8 @@
     "orders:evidence:verify": "node scripts/verify-orders-evidence.mjs",
     "admin-orders:evidence": "node scripts/run-admin-orders-evidence.mjs",
     "admin-orders:evidence:verify": "node scripts/verify-admin-orders-evidence.mjs",
+    "admin-dashboard:evidence": "node scripts/run-admin-dashboard-evidence.mjs",
+    "admin-dashboard:evidence:verify": "node scripts/verify-admin-dashboard-evidence.mjs",
     "standalone-payment:evidence": "node scripts/run-standalone-payment-evidence.mjs",
     "standalone-payment:evidence:verify": "node scripts/verify-standalone-payment-evidence.mjs",
     "checkout:evidence": "node scripts/run-checkout-evidence.mjs",

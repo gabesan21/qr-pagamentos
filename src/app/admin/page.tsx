@@ -1,14 +1,30 @@
-import { EmptyWorkspace } from "@/app-shell/empty-workspace";
 import { WorkspaceHeading } from "@/app-shell/workspace-heading";
+import type { Principal } from "@/auth/authorization";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { getAdminAnalyticsService, type AdminAnalyticsView } from "@/orders/admin-analytics";
 
+import { AdminDashboard, AdminDashboardPeriodNavigation } from "./dashboard";
 import { requireAdminShellContext } from "./shell-context";
+
+// The period controls emit only the closed set; an absent or hand-edited value
+// renders the pinned default, exactly like the service's invalid-period kind.
+const DEFAULT_PERIOD = "7d";
+
+async function readDashboardView(principal: Principal, period: unknown): Promise<AdminAnalyticsView> {
+  const service = getAdminAnalyticsService();
+  const result = await service.getGlobal(principal, period);
+  if (result.kind === "ready") return result.view;
+  const fallback = await service.getGlobal(principal, DEFAULT_PERIOD);
+  if (fallback.kind === "ready") return fallback.view;
+  throw new Error("Administrator analytics rejected the pinned default period");
+}
 
 export default async function AdminPage({
   searchParams = Promise.resolve({}),
-}: Readonly<{ searchParams?: Promise<{ error?: string; success?: string }> }> = {}) {
-  const { dictionary } = await requireAdminShellContext();
+}: Readonly<{ searchParams?: Promise<{ error?: string; period?: string; success?: string }> }> = {}) {
+  const { dictionary, locale, principal } = await requireAdminShellContext();
   const query = await searchParams;
+  const view = await readDashboardView(principal, query.period);
   const succeeded = Boolean(query.success);
   const failed = Boolean(query.error);
   const noticeText = query.success === "created" ? dictionary.adminCreated
@@ -34,10 +50,8 @@ export default async function AdminPage({
           <AlertDescription>{noticeText}</AlertDescription>
         </Alert>
       ) : null}
-      <EmptyWorkspace
-        description={dictionary.shellWorkspaceEmptyDescription}
-        title={dictionary.shellWorkspaceEmptyTitle}
-      />
+      <AdminDashboardPeriodNavigation current={view.period.id} dictionary={dictionary} />
+      <AdminDashboard dictionary={dictionary} locale={locale} view={view} />
     </>
   );
 }
