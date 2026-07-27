@@ -57,6 +57,8 @@
     "standalone-payment:evidence:verify": "node scripts/verify-standalone-payment-evidence.mjs",
     "checkout:evidence": "node scripts/run-checkout-evidence.mjs",
     "checkout:evidence:verify": "node scripts/verify-checkout-evidence.mjs",
+    "admin-payment-links:evidence": "node scripts/run-admin-payment-links-evidence.mjs",
+    "admin-payment-links:evidence:verify": "node scripts/verify-admin-payment-links-evidence.mjs",
     "epoch1:source-check": "node scripts/check-epoch1-source.mjs",
     "media:decoder-preflight": "node scripts/media-decoder-preflight.mjs",
     "precheck": "pnpm db:generate",
