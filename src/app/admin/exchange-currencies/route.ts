@@ -31,11 +31,11 @@ export async function POST(request: Request) {
       } else {
         throw new Error("Unsupported exchange currency intent");
       }
-      return relativeRedirect("/admin?success=exchange-currency");
+      return relativeRedirect("/admin/settings?success=exchange-currency");
     } catch (error) {
       const protectedResponse = protectedMutationResponse(error);
       if (protectedResponse) return protectedResponse;
-      return relativeRedirect("/admin?error=exchange-currency-failed");
+      return relativeRedirect("/admin/settings?error=exchange-currency-failed");
     }
   });
 }

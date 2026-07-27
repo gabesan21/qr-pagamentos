@@ -129,3 +129,12 @@ BEGIN
   END IF;
 END
 $user_deletion_acl$;
+
+DO $system_settings_acl$
+BEGIN
+  IF to_regclass('app.system_settings') IS NOT NULL THEN
+    REVOKE ALL PRIVILEGES ON TABLE app.system_settings FROM qr_runtime;
+    GRANT SELECT, INSERT, UPDATE ON TABLE app.system_settings TO qr_runtime;
+  END IF;
+END
+$system_settings_acl$;

@@ -34,6 +34,8 @@
     "admin:contract-check": "node scripts/check-admin-contract-sync.mjs",
     "admin:evidence": "node scripts/run-admin-evidence.mjs",
     "admin:evidence:verify": "node scripts/verify-admin-evidence.mjs",
+    "admin-settings:evidence": "node scripts/run-admin-settings-evidence.mjs",
+    "admin-settings:evidence:verify": "node scripts/verify-admin-settings-evidence.mjs",
     "app-shell:evidence": "node scripts/run-admin-evidence.mjs --app-shell",
     "app-shell:evidence:verify": "node scripts/verify-app-shell-evidence.mjs",
     "profile:shadcn-preflight": "node scripts/run-profile-shadcn-preflight.mjs",

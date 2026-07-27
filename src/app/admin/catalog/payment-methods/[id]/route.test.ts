@@ -33,10 +33,10 @@ describe("catalog payment method update route", () => {
     const method = await testStore().createPaymentMethod({ label: "PIX", paymentMethodUuid: validUuid });
 
     const updateResponse = await POST(request(new URLSearchParams({ label: "PIX Copy-and-Paste" }), method.id), { params: Promise.resolve({ id: method.id }) });
-    expect(updateResponse.headers.get("location")).toBe("/admin?success=catalog-changed");
+    expect(updateResponse.headers.get("location")).toBe("/admin/settings?success=catalog-changed");
 
     const toggleResponse = await POST(request(new URLSearchParams({ intent: "toggle-inactive" }), method.id), { params: Promise.resolve({ id: method.id }) });
-    expect(toggleResponse.headers.get("location")).toBe("/admin?success=catalog-changed");
+    expect(toggleResponse.headers.get("location")).toBe("/admin/settings?success=catalog-changed");
   });
 
   it("returns empty protected outcomes", async () => {
@@ -54,15 +54,15 @@ describe("catalog payment method update route", () => {
     protectedMutationResponse.mockReturnValue(null);
 
     const invalidId = await POST(request(new URLSearchParams({ label: "PIX Copy-and-Paste" }), "not-a-uuid"), { params: Promise.resolve({ id: "not-a-uuid" }) });
-    expect(invalidId.headers.get("location")).toBe("/admin?error=catalog-change-failed");
+    expect(invalidId.headers.get("location")).toBe("/admin/settings?error=catalog-change-failed");
 
     const validUuid = randomUUID();
     const method = await testStore().createPaymentMethod({ label: "PIX", paymentMethodUuid: validUuid });
 
     const emptyLabel = await POST(request(new URLSearchParams({ label: "" }), method.id), { params: Promise.resolve({ id: method.id }) });
-    expect(emptyLabel.headers.get("location")).toBe("/admin?error=catalog-change-failed");
+    expect(emptyLabel.headers.get("location")).toBe("/admin/settings?error=catalog-change-failed");
 
     const notFound = await POST(request(new URLSearchParams({ label: "PIX Copy-and-Paste" }), method.id), { params: Promise.resolve({ id: randomUUID() }) });
-    expect(notFound.headers.get("location")).toBe("/admin?error=catalog-change-failed");
+    expect(notFound.headers.get("location")).toBe("/admin/settings?error=catalog-change-failed");
   });
 });

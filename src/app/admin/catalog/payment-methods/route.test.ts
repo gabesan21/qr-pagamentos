@@ -36,7 +36,7 @@ describe("catalog payment methods create route", () => {
     const paymentMethodUuid = randomUUID();
     const response = await POST(request(new URLSearchParams({ label: "PIX", paymentMethodUuid })));
     expect(response.status).toBe(303);
-    expect(response.headers.get("location")).toBe("/admin?success=catalog-created");
+    expect(response.headers.get("location")).toBe("/admin/settings?success=catalog-created");
   });
 
   it("normalizes uppercase UUIDs to lowercase before persistence", async () => {
@@ -45,7 +45,7 @@ describe("catalog payment methods create route", () => {
     const paymentMethodUuid = randomUUID().toUpperCase();
     const response = await POST(request(new URLSearchParams({ label: "PIX", paymentMethodUuid })));
     expect(response.status).toBe(303);
-    expect(response.headers.get("location")).toBe("/admin?success=catalog-created");
+    expect(response.headers.get("location")).toBe("/admin/settings?success=catalog-created");
   });
 
   it("redirects validation failures without value disclosure", async () => {
@@ -54,12 +54,12 @@ describe("catalog payment methods create route", () => {
 
     const malformed = await POST(request(new URLSearchParams({ label: "PIX", paymentMethodUuid: "not-a-uuid" })));
     expect(malformed.status).toBe(303);
-    expect(malformed.headers.get("location")).toBe("/admin?error=catalog-create-failed");
+    expect(malformed.headers.get("location")).toBe("/admin/settings?error=catalog-create-failed");
 
     const empty = await POST(request(new URLSearchParams({ label: "PIX", paymentMethodUuid: "" })));
-    expect(empty.headers.get("location")).toBe("/admin?error=catalog-create-failed");
+    expect(empty.headers.get("location")).toBe("/admin/settings?error=catalog-create-failed");
 
     const missing = await POST(request(new URLSearchParams({ label: "PIX" })));
-    expect(missing.headers.get("location")).toBe("/admin?error=catalog-create-failed");
+    expect(missing.headers.get("location")).toBe("/admin/settings?error=catalog-create-failed");
   });
 });

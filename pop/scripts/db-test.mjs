@@ -304,6 +304,20 @@ try {
   );
   assert(administration.includes("2 passed"), "Administration locked-mutation database scenarios did not all pass");
   console.log("PASS administration-database-locked-mutations");
+  const systemSettingsEnv = {
+    ...process.env,
+    DATABASE_URL: runtimeUrl,
+    SYSTEM_SETTINGS_DATABASE_ADMIN_URL: adminUrl,
+    SYSTEM_SETTINGS_DATABASE_TEST: "1",
+  };
+  delete systemSettingsEnv.MIGRATION_DATABASE_URL;
+  const systemSettings = run(
+    "pnpm",
+    ["exec", "vitest", "run", "src/auth/system-settings.database.test.ts"],
+    { env: systemSettingsEnv },
+  );
+  assert(systemSettings.includes("2 passed"), "System settings database scenarios did not all pass");
+  console.log("PASS system-settings-database");
   const publicCheckoutV2Env = {
     ...process.env,
     DATABASE_URL: runtimeUrl,
@@ -1005,6 +1019,25 @@ try {
   await admin.query(`DELETE FROM app."user" WHERE id IN ($1, $2)`, [saOwnerId, saOtherOwnerId]);
   console.log("PASS standalone-checkout-attempt-schema");
 
+  const systemSettingsConstraints = await runtime.query(`
+    SELECT c.conname, pg_get_userbyid(t.relowner) AS owner
+    FROM pg_constraint c
+    JOIN pg_class t ON t.oid = c.conrelid
+    JOIN pg_namespace n ON n.oid = t.relnamespace
+    WHERE n.nspname = 'app' AND t.relname = 'system_settings'
+  `);
+  const systemSettingsConstraintNames = new Set(systemSettingsConstraints.rows.map((row) => row.conname));
+  for (const name of ["system_settings_pkey", "system_settings_singleton", "system_settings_default_theme_id_closed"]) {
+    assert(systemSettingsConstraintNames.has(name), `Missing constraint ${name}`);
+  }
+  assert(systemSettingsConstraints.rows.every((row) => row.owner === "qr_migrator"), "Runtime owns the system settings table");
+  await runtime.query(`INSERT INTO app.system_settings (id, default_theme_id, updated_at) VALUES (1, 'vault-blue', CURRENT_TIMESTAMP)`);
+  await expectSqlState(runtime, `INSERT INTO app.system_settings (id, default_theme_id, updated_at) VALUES (2, 'pix-paper', CURRENT_TIMESTAMP)`, { code: "23514", constraint: "system_settings_singleton" });
+  await expectSqlState(runtime, `UPDATE app.system_settings SET default_theme_id = 'unknown-theme' WHERE id = 1`, { code: "23514", constraint: "system_settings_default_theme_id_closed" });
+  await expectDenied(runtime, `DELETE FROM app.system_settings WHERE id = 1`);
+  await admin.query(`DELETE FROM app.system_settings WHERE id = 1`);
+  console.log("PASS system-settings-schema");
+
   const backfillUserId = randomUUID();
   const revisionMigrator = new Client({ connectionString: migratorUrl });
   await revisionMigrator.connect();
@@ -1277,6 +1310,8 @@ try {
         AND has_column_privilege(current_user, 'app.global_payment_settings', 'updated_at', 'UPDATE') AS settings_column_update,
       has_table_privilege(current_user, 'app.global_payment_settings', 'UPDATE') AS settings_table_update,
       has_table_privilege(current_user, 'app.global_payment_settings', 'INSERT,DELETE') AS settings_write_extra,
+      has_table_privilege(current_user, 'app.system_settings', 'SELECT,INSERT,UPDATE') AS system_settings_dml,
+      has_table_privilege(current_user, 'app.system_settings', 'DELETE') AS system_settings_delete,
       has_table_privilege(current_user, 'app._database_foundation_fixture', 'TRUNCATE') AS table_truncate,
       has_table_privilege(current_user, 'app._database_foundation_fixture', 'REFERENCES') AS table_references,
       has_table_privilege(current_user, 'app._database_foundation_fixture', 'TRIGGER') AS table_trigger,
@@ -1297,6 +1332,7 @@ try {
       has_table_privilege(current_user, 'app.payment_link_v2_single_use_settlement', 'TRUNCATE,REFERENCES,TRIGGER') AS settlement_v2_excess,
       has_table_privilege(current_user, 'app.media_object', 'TRUNCATE,REFERENCES,TRIGGER') AS media_object_excess,
       has_table_privilege(current_user, 'app.supported_exchange_currency', 'TRUNCATE,REFERENCES,TRIGGER') AS supported_exchange_currency_excess,
+      has_table_privilege(current_user, 'app.system_settings', 'TRUNCATE,REFERENCES,TRIGGER') AS system_settings_excess,
       has_table_privilege(current_user, 'app._database_foundation_fixture', 'MAINTAIN') AS table_maintain,
       has_sequence_privilege(current_user, 'app._database_foundation_fixture_id_seq', 'USAGE') AS sequence_usage,
       has_sequence_privilege(current_user, 'app.webhook_delivery_attempt_id_seq', 'USAGE') AS webhook_sequence_usage,
@@ -1307,8 +1343,8 @@ try {
       pg_has_role(current_user, 'qr_migrator', 'SET') AS migrator_set
   `);
   const acl = privilege.rows[0];
-  assert(acl.current_user === "qr_runtime" && acl.schema_usage && acl.table_dml && acl.user_dml && acl.credential_dml && acl.bootstrap_dml && acl.session_dml && acl.nautt_credential_dml && acl.provider_quote_dml && acl.provider_order_dml && acl.webhook_delivery_dml && acl.webhook_attempt_dml && acl.webhook_recovery_lease_dml && acl.catalog_currency_pair_dml && acl.catalog_payment_method_dml && acl.supported_exchange_currency_dml && acl.product_dml && acl.product_category_dml && acl.payment_link_dml && acl.payment_link_v2_dml && acl.payment_link_v2_line_dml && acl.order_v2_dml && acl.order_v2_line_dml && acl.order_comment_v2_dml && acl.order_local_outcome_v2_dml && acl.checkout_attempt_v2_dml && acl.standalone_checkout_attempt_dml && acl.settlement_v2_dml && acl.media_object_dml && acl.settings_select && acl.settings_column_update && acl.sequence_usage && acl.webhook_sequence_usage, "Runtime lacks intended privileges");
-  assert(!acl.settings_table_update && !acl.settings_write_extra && !acl.product_category_delete && !acl.catalog_currency_pair_delete && !acl.order_v2_line_extra && !acl.order_comment_v2_delete && !acl.order_local_outcome_v2_extra && !acl.settlement_v2_extra && !acl.standalone_checkout_attempt_delete && !acl.schema_create && !acl.table_truncate && !acl.table_references && !acl.table_trigger && !acl.provider_order_excess && !acl.webhook_delivery_excess && !acl.webhook_recovery_lease_excess && !acl.product_excess && !acl.product_category_excess && !acl.payment_link_excess && !acl.payment_link_v2_excess && !acl.payment_link_v2_line_excess && !acl.order_v2_excess && !acl.order_v2_line_excess && !acl.order_comment_v2_excess && !acl.order_local_outcome_v2_excess && !acl.checkout_attempt_v2_excess && !acl.standalone_checkout_attempt_excess && !acl.settlement_v2_excess && !acl.media_object_excess && !acl.supported_exchange_currency_excess && !acl.table_maintain && !acl.sequence_select && !acl.sequence_update && !acl.migration_access && !acl.migrator_member && !acl.migrator_set, "Runtime has excess privileges");
+  assert(acl.current_user === "qr_runtime" && acl.schema_usage && acl.table_dml && acl.user_dml && acl.credential_dml && acl.bootstrap_dml && acl.session_dml && acl.nautt_credential_dml && acl.provider_quote_dml && acl.provider_order_dml && acl.webhook_delivery_dml && acl.webhook_attempt_dml && acl.webhook_recovery_lease_dml && acl.catalog_currency_pair_dml && acl.catalog_payment_method_dml && acl.supported_exchange_currency_dml && acl.product_dml && acl.product_category_dml && acl.payment_link_dml && acl.payment_link_v2_dml && acl.payment_link_v2_line_dml && acl.order_v2_dml && acl.order_v2_line_dml && acl.order_comment_v2_dml && acl.order_local_outcome_v2_dml && acl.checkout_attempt_v2_dml && acl.standalone_checkout_attempt_dml && acl.settlement_v2_dml && acl.media_object_dml && acl.settings_select && acl.settings_column_update && acl.system_settings_dml && acl.sequence_usage && acl.webhook_sequence_usage, "Runtime lacks intended privileges");
+  assert(!acl.settings_table_update && !acl.settings_write_extra && !acl.system_settings_delete && !acl.system_settings_excess && !acl.product_category_delete && !acl.catalog_currency_pair_delete && !acl.order_v2_line_extra && !acl.order_comment_v2_delete && !acl.order_local_outcome_v2_extra && !acl.settlement_v2_extra && !acl.standalone_checkout_attempt_delete && !acl.schema_create && !acl.table_truncate && !acl.table_references && !acl.table_trigger && !acl.provider_order_excess && !acl.webhook_delivery_excess && !acl.webhook_recovery_lease_excess && !acl.product_excess && !acl.product_category_excess && !acl.payment_link_excess && !acl.payment_link_v2_excess && !acl.payment_link_v2_line_excess && !acl.order_v2_excess && !acl.order_v2_line_excess && !acl.order_comment_v2_excess && !acl.order_local_outcome_v2_excess && !acl.checkout_attempt_v2_excess && !acl.standalone_checkout_attempt_excess && !acl.settlement_v2_excess && !acl.media_object_excess && !acl.supported_exchange_currency_excess && !acl.table_maintain && !acl.sequence_select && !acl.sequence_update && !acl.migration_access && !acl.migrator_member && !acl.migrator_set, "Runtime has excess privileges");
   const ownership = await admin.query(`
     SELECT
       (SELECT count(*)::int FROM pg_class WHERE relowner = 'qr_runtime'::regrole) AS objects,

@@ -159,6 +159,15 @@ model GlobalPaymentSettings {
   @@schema("app")
 }
 
+model SystemSettings {
+  id             Int      @id @db.SmallInt
+  defaultThemeId String?  @map("default_theme_id") @db.VarChar(24)
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@map("system_settings")
+  @@schema("app")
+}
+
 model CatalogCurrencyPair {
   id                   String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   label                String   @db.VarChar(128)

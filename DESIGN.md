@@ -224,6 +224,20 @@ wide action table at narrow widths. Empty, loading, recovery,
 pending/disabled, success, error, and inline destructive-confirmation states are
 explicit without page-local variants or compatibility sources.
 
+The administrator settings hub at `/admin/settings` composes one bilingual page
+of six anchored `Card` sections in a fixed order — exchange currencies, Nautt
+currency pairs, Nautt payment methods, global payment settings, appearance, and
+language — with an in-page anchor navigation row (outline `Button` links) before
+the sections. Each section owns exactly one primary submit (secondary outline
+actions such as replace/deactivate/toggle never compete with it), its own
+explicit empty state, and safe-dependency copy that states delivered semantics
+(pointer-only deactivation, atomic re-pointing, inactive-record preservation).
+The appearance section holds the default-theme-for-new-users `NativeSelect`
+whose labels reuse the design-system theme-id export and the shared localized
+theme names, never duplicated literals. Every composed mutation redirects back
+to `/admin/settings?…` and the hub renders the closed bilingual notice set
+through the same success/destructive `Alert` pattern.
+
 The merchant Settings workspace owns the bilingual Nautt onboarding ledger and
 every opaque mutation notice or manual balance retry returns there. Its password
 input never echoes a submitted key; validation, pending/disabled,

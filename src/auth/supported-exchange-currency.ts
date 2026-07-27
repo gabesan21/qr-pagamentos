@@ -97,6 +97,12 @@ export function createSupportedExchangeCurrencyService(store: SupportedExchangeC
       requireAdmin(actor);
       await store.deactivate(validateCode(code));
     },
+    // Administrator read for the settings hub: active pointers redacted to
+    // { code, label } ordered by code; pair UUIDs stay in the catalog section.
+    async listMappings(actor: Principal) {
+      requireAdmin(actor);
+      return store.listActive();
+    },
     async listActiveChoices(actor: Principal) {
       requireUserPrincipal(actor);
       return store.listActive();

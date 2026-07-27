@@ -72,7 +72,7 @@ describe("admin exchange-currency mutation route", () => {
       exchangeCurrencyUuid: "exchange-uuid",
     });
     expect(response.status).toBe(303);
-    expect(response.headers.get("location")).toBe("/admin?success=exchange-currency");
+    expect(response.headers.get("location")).toBe("/admin/settings?success=exchange-currency");
   });
 
   it("dispatches replace and deactivate intents", async () => {
@@ -86,13 +86,13 @@ describe("admin exchange-currency mutation route", () => {
   it("maps unknown intents, validation failures, and typed conflicts to the same opaque failure redirect", async () => {
     const unknown = await POST(submit({ intent: "drop-everything" }));
     expect(unknown.status).toBe(303);
-    expect(unknown.headers.get("location")).toBe("/admin?error=exchange-currency-failed");
+    expect(unknown.headers.get("location")).toBe("/admin/settings?error=exchange-currency-failed");
     expect(await unknown.text()).toBe("");
 
     register.mockRejectedValueOnce(new Error("Currency pair is already registered"));
     const conflict = await POST(submit({ intent: "register", code: "BRL", label: "BRL/USDT", currencyUuid: "leaked?", exchangeCurrencyUuid: "b" }));
     expect(conflict.status).toBe(303);
-    expect(conflict.headers.get("location")).toBe("/admin?error=exchange-currency-failed");
+    expect(conflict.headers.get("location")).toBe("/admin/settings?error=exchange-currency-failed");
     expect(await conflict.text()).toBe("");
   });
 });

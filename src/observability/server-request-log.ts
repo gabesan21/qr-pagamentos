@@ -35,6 +35,7 @@ export const serverRequestRoutes = {
   adminUserStatus: "/admin/users/[id]/status",
   adminUserDelete: "/admin/users/[id]/delete",
   adminUserNauttCredentials: "/admin/users/[id]/nautt-credentials",
+  adminSettingsDefaultTheme: "/admin/settings/default-theme",
   publicPaymentLink: "/api/payment-links/[identifier]",
   publicCheckout: "/api/payment-links/[identifier]/checkout",
   publicCheckoutStatus: "/api/payment-links/[identifier]/checkout/status",

@@ -33,10 +33,10 @@ describe("catalog currency pair update route", () => {
     const pair = await testStore().createCurrencyPair({ label: "BRL/USDT", currencyUuid: validUuid, exchangeCurrencyUuid: validUuid });
 
     const updateResponse = await POST(request(new URLSearchParams({ label: "BRL / USDT" }), pair.id), { params: Promise.resolve({ id: pair.id }) });
-    expect(updateResponse.headers.get("location")).toBe("/admin?success=catalog-changed");
+    expect(updateResponse.headers.get("location")).toBe("/admin/settings?success=catalog-changed");
 
     const toggleResponse = await POST(request(new URLSearchParams({ intent: "toggle-inactive" }), pair.id), { params: Promise.resolve({ id: pair.id }) });
-    expect(toggleResponse.headers.get("location")).toBe("/admin?success=catalog-changed");
+    expect(toggleResponse.headers.get("location")).toBe("/admin/settings?success=catalog-changed");
   });
 
   it("returns empty protected outcomes", async () => {
@@ -54,15 +54,15 @@ describe("catalog currency pair update route", () => {
     protectedMutationResponse.mockReturnValue(null);
 
     const invalidId = await POST(request(new URLSearchParams({ label: "BRL / USDT" }), "not-a-uuid"), { params: Promise.resolve({ id: "not-a-uuid" }) });
-    expect(invalidId.headers.get("location")).toBe("/admin?error=catalog-change-failed");
+    expect(invalidId.headers.get("location")).toBe("/admin/settings?error=catalog-change-failed");
 
     const validUuid = randomUUID();
     const pair = await testStore().createCurrencyPair({ label: "BRL/USDT", currencyUuid: validUuid, exchangeCurrencyUuid: validUuid });
 
     const emptyLabel = await POST(request(new URLSearchParams({ label: "" }), pair.id), { params: Promise.resolve({ id: pair.id }) });
-    expect(emptyLabel.headers.get("location")).toBe("/admin?error=catalog-change-failed");
+    expect(emptyLabel.headers.get("location")).toBe("/admin/settings?error=catalog-change-failed");
 
     const notFound = await POST(request(new URLSearchParams({ label: "BRL / USDT" }), pair.id), { params: Promise.resolve({ id: randomUUID() }) });
-    expect(notFound.headers.get("location")).toBe("/admin?error=catalog-change-failed");
+    expect(notFound.headers.get("location")).toBe("/admin/settings?error=catalog-change-failed");
   });
 });

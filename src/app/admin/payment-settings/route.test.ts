@@ -28,7 +28,7 @@ describe("payment settings route", () => {
     save.mockResolvedValue(undefined);
     const response = await POST(request(new URLSearchParams({ currencies: "BRL", paymentMethods: "PIX", actorId: "attacker" })));
     expect(save).toHaveBeenCalledWith(actor, { currencies: ["BRL"], paymentMethods: ["PIX"] });
-    expect(response.headers.get("location")).toBe("/admin?success=settings");
+    expect(response.headers.get("location")).toBe("/admin/settings?success=settings");
   });
 
   it("redirects invalid and unknown input without value disclosure", async () => {
@@ -36,6 +36,6 @@ describe("payment settings route", () => {
     protectedMutationResponse.mockReturnValue(null);
     const response = await POST(request(new URLSearchParams({ currencies: "USD" })));
     expect(response.status).toBe(303);
-    expect(response.headers.get("location")).toBe("/admin?error=settings-failed");
+    expect(response.headers.get("location")).toBe("/admin/settings?error=settings-failed");
   });
 });

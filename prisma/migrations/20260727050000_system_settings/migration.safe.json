@@ -1,0 +1,133 @@
+{
+  "version": 1,
+  "id": "20260727050000_system_settings",
+  "operations": [
+    {
+      "op": "createTable",
+      "table": {
+        "schema": "app",
+        "name": "system_settings"
+      },
+      "columns": [
+        {
+          "name": "id",
+          "type": {
+            "name": "smallint"
+          },
+          "nullable": false
+        },
+        {
+          "name": "default_theme_id",
+          "type": {
+            "name": "varchar",
+            "length": 24
+          },
+          "nullable": true
+        },
+        {
+          "name": "updated_at",
+          "type": {
+            "name": "timestamptz"
+          },
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "system_settings"
+      },
+      "constraint": {
+        "kind": "primaryKey",
+        "name": "system_settings_pkey",
+        "columns": [
+          "id"
+        ]
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "system_settings"
+      },
+      "constraint": {
+        "kind": "check",
+        "name": "system_settings_singleton",
+        "expression": {
+          "op": "eq",
+          "left": {
+            "kind": "column",
+            "name": "id"
+          },
+          "right": {
+            "kind": "literal",
+            "literal": {
+              "kind": "integer",
+              "value": 1
+            }
+          }
+        },
+        "notValid": false
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "system_settings"
+      },
+      "constraint": {
+        "kind": "check",
+        "name": "system_settings_default_theme_id_closed",
+        "expression": {
+          "op": "in",
+          "column": "default_theme_id",
+          "values": [
+            {
+              "kind": "string",
+              "value": "pix-paper"
+            },
+            {
+              "kind": "string",
+              "value": "cashier-daylight"
+            },
+            {
+              "kind": "string",
+              "value": "settlement-sand"
+            },
+            {
+              "kind": "string",
+              "value": "midnight-clearing"
+            },
+            {
+              "kind": "string",
+              "value": "vault-blue"
+            },
+            {
+              "kind": "string",
+              "value": "terminal-amber"
+            }
+          ]
+        },
+        "notValid": false
+      }
+    },
+    {
+      "op": "grant",
+      "object": {
+        "kind": "table",
+        "schema": "app",
+        "name": "system_settings"
+      },
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE"
+      ],
+      "role": "qr_runtime"
+    }
+  ]
+}

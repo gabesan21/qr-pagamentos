@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { acquireAuthorizationLock, AdministrationTargetNotFoundError, createAdministrationService, FinalAdministratorError, type AdministrationStore } from "./administration";
 
 const createdAt = new Date("2026-07-16T00:00:00Z");
-type TestUser = { id: string; username: string; email: string | null; role: "ADMIN" | "USER"; status: "ACTIVE" | "DISABLED"; deletedAt: Date | null; createdAt: Date };
+type TestUser = { id: string; username: string; email: string | null; role: "ADMIN" | "USER"; status: "ACTIVE" | "DISABLED"; deletedAt: Date | null; createdAt: Date; storefrontThemeId?: string | null };
 const admin: TestUser = { id: "admin", username: "admin", email: null, role: "ADMIN", status: "ACTIVE", deletedAt: null, createdAt };
 const merchant: TestUser = { ...admin, id: "target", username: "target", role: "USER" };
 
@@ -16,6 +16,7 @@ function storeWith(users: TestUser[] = [admin]): AdministrationStore & {
   deletions: Array<{ id: string; userId: string; actorId: string; createdAt: Date }>;
   failDeletion(): void;
   validatesTargetToken(): boolean;
+  userByUsername(username: string): TestUser | undefined;
 } {
   const sessions = users.map((user) => user.id);
   const data = new Map(users.map((user) => [user.id, { ...user }]));
@@ -41,8 +42,9 @@ function storeWith(users: TestUser[] = [admin]): AdministrationStore & {
       deletions.push(row);
     },
     async revokeSessions(id: string) { for (let index = sessions.length - 1; index >= 0; index -= 1) if (sessions[index] === id) sessions.splice(index, 1); },
-    async createUser(input: { username: string; email: string | null; role: "ADMIN" | "USER" }) {
-      const user: TestUser = { id: `user-${data.size}`, username: input.username, email: input.email, role: input.role, status: "ACTIVE", deletedAt: null, createdAt };
+    async resolveDefaultThemeId() { return "vault-blue"; },
+    async createUser(input: { username: string; email: string | null; role: "ADMIN" | "USER"; storefrontThemeId: string | null }) {
+      const user: TestUser = { id: `user-${data.size}`, username: input.username, email: input.email, role: input.role, status: "ACTIVE", deletedAt: null, createdAt, storefrontThemeId: input.storefrontThemeId };
       data.set(user.id, user);
       return user;
     },
@@ -78,6 +80,7 @@ function storeWith(users: TestUser[] = [admin]): AdministrationStore & {
     deletions,
     failDeletion: () => { deletionFails = true; },
     validatesTargetToken: () => sessions.includes("target"),
+    userByUsername: (username: string) => [...data.values()].find((user) => user.username === username),
     get lockScopes() { return lockScopes; },
     async withAuthorizationLock(work) {
       lockScopes += 1;
@@ -142,6 +145,17 @@ describe("identity administration", () => {
     await expect(service.createUser(admin, { username: " New.User ", email: " NEW@example.com ", password: "correct horse battery staple", role: "USER" })).resolves.toMatchObject({ username: "new.user", email: "new@example.com", role: "USER", status: "ACTIVE", deletedAt: null });
     await expect(service.createUser({ ...admin, role: "USER" }, { username: "other.user", password: "correct horse battery staple", role: "USER" })).rejects.toThrow("Administrator access is required");
     await expect(service.createUser(admin, { username: "bad name", password: "short", role: "OTHER" })).rejects.toThrow("Invalid role");
+  });
+
+  it("stamps the effective default theme only on new merchant users at creation time", async () => {
+    const store = storeWith();
+    const service = createAdministrationService(store);
+
+    await service.createUser(admin, { username: "merchant.one", password: "correct horse battery staple", role: "USER" });
+    await service.createUser(admin, { username: "admin.two", password: "correct horse battery staple", role: "ADMIN" });
+
+    expect(store.userByUsername("merchant.one")?.storefrontThemeId).toBe("vault-blue");
+    expect(store.userByUsername("admin.two")?.storefrontThemeId).toBeNull();
   });
 });
 
