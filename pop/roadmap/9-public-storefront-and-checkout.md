@@ -35,7 +35,6 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[9.3.2-complete-public-link-terminal-states]] | Render an explicit paid view for consumed one-time links and opaque 404 outcomes for inactive or unavailable links. · size: M | 001_initial_task |
 
 ## Dependency and parallel-wave map
 
