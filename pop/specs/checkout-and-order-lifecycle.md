@@ -143,7 +143,6 @@ This section pins the durable business definitions behind the owner-scoped merch
 
 - The behavior of in-flight orders after an owner disables a reusable link remains to be specified before that transition is exposed.
 - V1 webhook reconciliation persists provider status/version but never invokes the V1 settle CAS, so V1 `payment_link_order` rows never transition through the settlement map V1 in production; 9.2.1 wired only the V2 path. Tracked in `pop/open_questions/2026-07-26-v1-settle-wiring-gap.md` for a separate modification.
-
 ## Related specs
 
 - [[specs/product-scope|Product scope]] - follow for the MVP product boundary.
