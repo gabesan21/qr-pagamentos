@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { CircleCheckIcon, TriangleAlertIcon } from "lucide-react";
 
 import { AccountMutationForm } from "@/app/admin/account-mutation-form";
@@ -23,11 +24,16 @@ type CurrencyPair = Readonly<{ id: string; label: string; currencyUuid: string; 
 type PaymentMethod = Readonly<{ id: string; label: string; paymentMethodUuid: string; active: boolean }>;
 type Notice = Readonly<{ tone: "success" | "error"; text: string }> | null;
 
+// The accounts workspace is the notice strip, the unchanged create-account
+// section, and the administrator-global user directory (10.3.2) composed by
+// the page as children; the legacy inline mutation forms retired from this
+// page (10.3.3 re-houses them in the profile editor) while their routes stay
+// byte-frozen, and AdminSurface above keeps its own legacy Accounts section.
 export function AdminAccountsSurface({
+  children,
   dictionary,
   notice,
-  users,
-}: Readonly<{ dictionary: Dictionary; notice: Notice; users: AdminUser[] }>) {
+}: Readonly<{ children: ReactNode; dictionary: Dictionary; notice: Notice }>) {
   return (
     <>
       <WorkspaceHeading
@@ -37,7 +43,7 @@ export function AdminAccountsSurface({
       />
       {notice ? <AdminNotice dictionary={dictionary} notice={notice} /> : null}
       <CreateAccount dictionary={dictionary} />
-      <Accounts dictionary={dictionary} users={users} />
+      {children}
     </>
   );
 }

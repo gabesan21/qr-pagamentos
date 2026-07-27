@@ -19,6 +19,7 @@ const merchantDashboardMode = process.argv.includes("--merchant-dashboard");
 const ordersMode = process.argv.includes("--orders");
 const adminOrdersMode = process.argv.includes("--admin-orders");
 const adminDashboardMode = process.argv.includes("--admin-dashboard");
+const adminUsersMode = process.argv.includes("--admin-users");
 const standalonePaymentMode = process.argv.includes("--standalone-payment");
 const checkoutMode = process.argv.includes("--checkout");
 const adminPaymentLinksMode = process.argv.includes("--admin-payment-links");
@@ -79,6 +80,8 @@ try {
   assert(port, "admin evidence loopback port could not be resolved");
   const evidenceTest = adminPaymentLinksMode
     ? "tests/admin-payment-links.evidence.spec.ts"
+    : adminUsersMode
+    ? "tests/admin-users.evidence.spec.ts"
     : checkoutMode
     ? "tests/checkout.evidence.spec.ts"
     : adminOrdersMode
@@ -135,6 +138,8 @@ try {
       CHECKOUT_EVIDENCE_ENCRYPTION_KEY: nauttEncryptionKey,
       ADMIN_PAYMENT_LINKS_EVIDENCE_MERCHANT_PASSWORD: `Merchant-${token}-Password`,
       ADMIN_PAYMENT_LINKS_EVIDENCE_COMPOSE_PROJECT: project,
+      ADMIN_USERS_EVIDENCE_MERCHANT_PASSWORD: `Merchant-${token}-Password`,
+      ADMIN_USERS_EVIDENCE_COMPOSE_PROJECT: project,
     },
     stdio: "inherit",
   });

@@ -15,12 +15,14 @@ import { appShellEn } from "./app-shell/en";
 import { profileEn } from "./profile/en";
 import { merchantDashboardEn } from "./merchant-dashboard/en";
 import { adminDashboardEn } from "./admin-dashboard/en";
+import { adminUsersDirectoryEn } from "./admin-users-directory/en";
 
 export const en = {
   ...appShellEn,
   ...profileEn,
   ...merchantDashboardEn,
   ...adminDashboardEn,
+  ...adminUsersDirectoryEn,
   ...sharedEn,
   ...nauttEn,
   ...designSystemEn,
