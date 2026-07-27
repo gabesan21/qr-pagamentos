@@ -114,6 +114,35 @@ function validateDefaultCurrencyCode(value: unknown): string | null {
 
 type StorefrontSettingsPatch = { -readonly [K in keyof StorefrontSettingsData]?: StorefrontSettingsData[K] };
 
+// 10.3.3 additive export: the administrator profile editor reuses this exact
+// validation grammar field-by-field. The owner-fenced logo media identifier
+// is never part of the administrator-editable set and is never read here.
+export type AdminStorefrontSettingsPatch = {
+  -readonly [K in Exclude<keyof StorefrontSettingsData, "storefrontLogoMediaIdentifier">]?: StorefrontSettingsData[K];
+};
+
+export function validateAdminStorefrontPatch(input: StorefrontSettingsInput): AdminStorefrontSettingsPatch {
+  const patch: AdminStorefrontSettingsPatch = {};
+  if (input.storefrontSlug !== undefined) patch.storefrontSlug = validateSlug(input.storefrontSlug);
+  if (input.storefrontDisplayNamePtBr !== undefined) {
+    patch.storefrontDisplayNamePtBr = validateDisplayName(input.storefrontDisplayNamePtBr, "Portuguese display name");
+  }
+  if (input.storefrontDisplayNameEn !== undefined) {
+    patch.storefrontDisplayNameEn = validateDisplayName(input.storefrontDisplayNameEn, "English display name");
+  }
+  if (input.storefrontAccentColor !== undefined) patch.storefrontAccentColor = validateAccentColor(input.storefrontAccentColor);
+  if (input.storefrontEnabled !== undefined) patch.storefrontEnabled = validateToggle(input.storefrontEnabled, "Storefront enabled state");
+  if (input.storefrontThemeId !== undefined) patch.storefrontThemeId = validateThemeId(input.storefrontThemeId);
+  if (input.storefrontLayout !== undefined) patch.storefrontLayout = validateLayout(input.storefrontLayout);
+  if (input.storefrontStandalonePaymentsEnabled !== undefined) {
+    patch.storefrontStandalonePaymentsEnabled = validateToggle(input.storefrontStandalonePaymentsEnabled, "Standalone payments enabled state");
+  }
+  if (input.storefrontDefaultCurrencyCode !== undefined) {
+    patch.storefrontDefaultCurrencyCode = validateDefaultCurrencyCode(input.storefrontDefaultCurrencyCode);
+  }
+  return patch;
+}
+
 function validatePatch(input: StorefrontSettingsInput): StorefrontSettingsPatch {
   const patch: StorefrontSettingsPatch = {};
   if (input.storefrontSlug !== undefined) patch.storefrontSlug = validateSlug(input.storefrontSlug);
