@@ -86,7 +86,7 @@
     "pop/kanban",
     "pop/worktrees/.gitkeep"
   ],
-  "content_sha": "76a13b8c32a7ac10dd5d34d148804a792ff30d2a5ef62c566dbd44094d47a7e0",
+  "content_sha": "0a27cfb0645ad52bd0b3630149756a18850527eca1608893712d2000e8ed10b8",
   "installed": [
     ".agents/skills/advance-task/SKILL.md",
     ".agents/skills/clean-code-change/SKILL.md",
