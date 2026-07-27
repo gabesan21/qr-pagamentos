@@ -14,11 +14,13 @@ import { dataDirectoryEn } from "./data-directory/en";
 import { appShellEn } from "./app-shell/en";
 import { profileEn } from "./profile/en";
 import { merchantDashboardEn } from "./merchant-dashboard/en";
+import { adminUsersDirectoryEn } from "./admin-users-directory/en";
 
 export const en = {
   ...appShellEn,
   ...profileEn,
   ...merchantDashboardEn,
+  ...adminUsersDirectoryEn,
   ...sharedEn,
   ...nauttEn,
   ...designSystemEn,

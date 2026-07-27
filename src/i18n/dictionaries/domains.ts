@@ -1,5 +1,7 @@
 import { administrationEn } from "./administration/en";
 import { administrationPtBR } from "./administration/pt-BR";
+import { adminUsersDirectoryEn } from "./admin-users-directory/en";
+import { adminUsersDirectoryPtBR } from "./admin-users-directory/pt-BR";
 import { appShellEn } from "./app-shell/en";
 import { appShellPtBR } from "./app-shell/pt-BR";
 import { checkoutEn } from "./checkout/en";
@@ -34,6 +36,7 @@ import { storefrontPtBR } from "./storefront/pt-BR";
 export const dictionaryDomains = {
   appShell: { en: appShellEn, "pt-BR": appShellPtBR },
   administration: { en: administrationEn, "pt-BR": administrationPtBR },
+  adminUsersDirectory: { en: adminUsersDirectoryEn, "pt-BR": adminUsersDirectoryPtBR },
   checkout: { en: checkoutEn, "pt-BR": checkoutPtBR },
   checkoutPolicy: { en: checkoutPolicyEn, "pt-BR": checkoutPolicyPtBR },
   designSystem: { en: designSystemEn, "pt-BR": designSystemPtBR },
