@@ -165,6 +165,7 @@ describe("loadSmtpConfig", () => {
 
   it("rejects when a file-backed value points to a missing file", () => {
     setValidSmtp();
+    delete process.env.SMTP_HOST;
     process.env.SMTP_HOST_FILE = "/tmp/does-not-exist-mail-config-test";
     expect(() => loadSmtpConfig()).toThrow(MailConfigError);
   });
@@ -288,6 +289,7 @@ describe("loadPublicOrigin", () => {
   });
 
   it("rejects when the file-backed origin points to a missing file", () => {
+    delete process.env.PUBLIC_ORIGIN;
     process.env.PUBLIC_ORIGIN_FILE = "/tmp/does-not-exist-public-origin-test";
     expect(() => loadPublicOrigin()).toThrow(MailConfigError);
   });

@@ -28,7 +28,7 @@ function readFileBackedValue(key: string): string | undefined {
   try {
     return readFileSync(filePath.trim(), "utf8").trim();
   } catch {
-    return undefined;
+    throw new MailConfigError(`${key} file-backed configuration is unreadable`);
   }
 }
 

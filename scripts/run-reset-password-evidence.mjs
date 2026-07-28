@@ -25,6 +25,23 @@ const recoveryFile = path.join(sources, "recovery");
 await writeFile(usernameFile, "admin.user\n", { mode: 0o600 });
 await writeFile(emailFile, "admin@example.com\n", { mode: 0o600 });
 await writeFile(recoveryFile, `Recovery-${token}-Password\n`, { mode: 0o600 });
+const smtpFiles = {
+  SMTP_HOST_FILE: path.join(sources, "smtp_host"),
+  SMTP_PORT_FILE: path.join(sources, "smtp_port"),
+  SMTP_USER_FILE: path.join(sources, "smtp_user"),
+  SMTP_PASSWORD_FILE: path.join(sources, "smtp_password"),
+  SMTP_FROM_FILE: path.join(sources, "smtp_from"),
+  SMTP_TLS_MODE_FILE: path.join(sources, "smtp_tls_mode"),
+  PUBLIC_ORIGIN_FILE: path.join(sources, "public_origin"),
+};
+await writeFile(smtpFiles.SMTP_HOST_FILE, "smtp.example.com\n", { mode: 0o600 });
+await writeFile(smtpFiles.SMTP_PORT_FILE, "587\n", { mode: 0o600 });
+await writeFile(smtpFiles.SMTP_USER_FILE, "noreply@example.com\n", { mode: 0o600 });
+await writeFile(smtpFiles.SMTP_PASSWORD_FILE, `SMTP-${token}-Password\n`, { mode: 0o600 });
+await writeFile(smtpFiles.SMTP_FROM_FILE, "noreply@example.com\n", { mode: 0o600 });
+await writeFile(smtpFiles.SMTP_TLS_MODE_FILE, "starttls\n", { mode: 0o600 });
+await writeFile(smtpFiles.PUBLIC_ORIGIN_FILE, "https://evidence.invalid\n", { mode: 0o600 });
+for (const file of Object.values(smtpFiles)) await chmod(file, 0o600);
 const env = {
   ...process.env,
   APP_PORT: "0",
@@ -37,6 +54,7 @@ const env = {
   INITIAL_ADMIN_RECOVERY_PASSWORD_FILE: path.join(staged, "initial_admin_recovery_password"),
   NAUTT_WEBHOOK_CALLBACK_URL: "https://evidence.invalid/api/nautt/webhooks",
   STAGED_SECRETS_DIR: staged,
+  ...smtpFiles,
 };
 const compose = (args) => execute("docker", ["compose", "-p", project, "-f", "compose.yaml", ...args], { env });
 
