@@ -21,6 +21,12 @@ function memoryStore(): AdminTotpRecoveryStore & { credentials: Map<string, Totp
     async confirm() { return false; },
     async updateReplayCounter() {},
     async consumeRecoveryCode() {},
+    async replaceRecoveryCodes(credentialId, codes) {
+      recoveryCodes.set(
+        credentialId,
+        codes.map((code) => ({ id: code.id, credentialId, codeDigest: code.codeDigest, consumedAt: null })),
+      );
+    },
     async disable(userId) {
       credentials.delete(userId);
       recoveryCodes.delete(userId);

@@ -27,4 +27,11 @@ export const adminUserProfileEn = {
   adminUserProfilePasswordResetSend: "Send reset email",
   adminUserProfilePasswordResetRequested: "Reset email sent.",
   adminUserProfilePasswordResetFailed: "The reset email could not be sent. Review the account email and try again.",
+  adminUserProfileTotpHeading: "Two-factor authentication",
+  adminUserProfileTotpDescription: "Remove two-factor authentication if the account lost access to the authenticator app or recovery codes. The account must set it up again.",
+  adminUserProfileTotpConfigured: "Two-factor authentication is configured.",
+  adminUserProfileTotpNotConfigured: "Two-factor authentication is not configured.",
+  adminUserProfileTotpDisable: "Remove two-factor authentication",
+  adminUserProfileTotpDisabled: "Two-factor authentication removed.",
+  adminUserProfileTotpDisableFailed: "Could not remove two-factor authentication. Try again.",
 } as const;

@@ -6,6 +6,7 @@ import { AdminSubmit } from "@/app/admin/admin-submit";
 import { WorkspaceHeading } from "@/app-shell/workspace-heading";
 import { getAdminUserDirectoryService, type AdminUserDetail } from "@/auth/admin-user-directory";
 import { getAdminUserProfileService } from "@/auth/admin-user-profile";
+import { getTotpService } from "@/auth/totp-store";
 import { CHECKOUT_DATA_POLICIES } from "@/auth/checkout-policy";
 import type { ExchangeCurrencyChoice } from "@/auth/supported-exchange-currency";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -39,6 +40,13 @@ function resolveResetNotice(dictionary: Dictionary, value: string | readonly str
   const notice = typeof value === "string" ? value : value?.[0];
   if (notice === "requested") return { tone: "success", text: dictionary.adminUserProfilePasswordResetRequested };
   if (notice === "failed") return { tone: "error", text: dictionary.adminUserProfilePasswordResetFailed };
+  return null;
+}
+
+function resolveTotpNotice(dictionary: Dictionary, value: string | readonly string[] | undefined): Notice | null {
+  const notice = typeof value === "string" ? value : value?.[0];
+  if (notice === "totp-disabled") return { tone: "success", text: dictionary.adminUserProfileTotpDisabled };
+  if (notice === "failed") return { tone: "error", text: dictionary.adminUserProfileTotpDisableFailed };
   return null;
 }
 
@@ -357,6 +365,40 @@ function PasswordResetCard({ detail, dictionary }: Readonly<{ detail: AdminUserD
   );
 }
 
+// TOTP recovery lets an administrator remove a configured second factor when
+// the account lost access to the authenticator or recovery codes.
+function TotpRecoveryCard({
+  configured,
+  detail,
+  dictionary,
+}: Readonly<{ configured: boolean; detail: AdminUserDetail; dictionary: Dictionary }>) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{dictionary.adminUserProfileTotpHeading}</CardTitle>
+        <CardDescription>{dictionary.adminUserProfileTotpDescription}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <p className="text-secondary">
+          {configured ? dictionary.adminUserProfileTotpConfigured : dictionary.adminUserProfileTotpNotConfigured}
+        </p>
+        {configured && (
+          <details className="mt-4">
+            <summary><Button asChild type="button" variant="outline"><span>{dictionary.adminUserProfileTotpDisable}</span></Button></summary>
+            <Alert className="mt-4" variant="warning">
+              <AlertTitle>{dictionary.adminUserProfileTotpHeading}</AlertTitle>
+              <AlertDescription>{dictionary.adminUserProfileTotpDescription}</AlertDescription>
+            </Alert>
+            <form action={`/admin/users/${detail.id}/totp-disable`} className="mt-4" method="post">
+              <Button data-ds-hit-target type="submit" variant="destructive">{dictionary.adminUserProfileTotpDisable}</Button>
+            </form>
+          </details>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 // The delivered byte-frozen soft-delete route stays the only destructive
 // action; it lands on the accounts workspace notices.
 function DeleteCard({ detail, dictionary }: Readonly<{ detail: AdminUserDetail; dictionary: Dictionary }>) {
@@ -401,12 +443,16 @@ export default async function AdminAccountDetailPage({
   const { dictionary, locale, principal } = await requireAdminShellContext();
   const detail = await getAdminUserDirectoryService().getAdminUserDetail(principal, (await params).id);
   const notice = resolveEditorNotice(dictionary, (await searchParams).editor)
-    ?? resolveResetNotice(dictionary, (await searchParams).reset);
+    ?? resolveResetNotice(dictionary, (await searchParams).reset)
+    ?? resolveTotpNotice(dictionary, (await searchParams).editor);
   // The currency select reads only the redacted active choices, and only when
   // the storefront form actually renders.
   const currencyChoices = detail !== null && detail.state !== "deleted"
     ? await getAdminUserProfileService().listActiveCurrencyChoices(principal)
     : [];
+  const totpConfigured = detail !== null && detail.state !== "deleted"
+    ? (await getTotpService().getStatus(detail.id)) !== "none"
+    : false;
 
   return (
     <>
@@ -420,6 +466,7 @@ export default async function AdminAccountDetailPage({
               <IdentityCard detail={detail} dictionary={dictionary} />
               <AccessCard detail={detail} dictionary={dictionary} />
               <PasswordResetCard detail={detail} dictionary={dictionary} />
+              <TotpRecoveryCard configured={totpConfigured} detail={detail} dictionary={dictionary} />
               <LocaleCard detail={detail} dictionary={dictionary} />
               <CheckoutPolicyCard detail={detail} dictionary={dictionary} />
               <StorefrontCard currencyChoices={currencyChoices} detail={detail} dictionary={dictionary} />

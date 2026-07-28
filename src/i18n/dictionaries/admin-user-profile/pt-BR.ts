@@ -27,4 +27,11 @@ export const adminUserProfilePtBR = {
   adminUserProfilePasswordResetSend: "Enviar e-mail de redefinição",
   adminUserProfilePasswordResetRequested: "E-mail de redefinição enviado.",
   adminUserProfilePasswordResetFailed: "Não foi possível enviar o e-mail de redefinição. Revise o e-mail da conta e tente novamente.",
+  adminUserProfileTotpHeading: "Autenticação em dois fatores",
+  adminUserProfileTotpDescription: "Remova a autenticação em dois fatores se a conta perdeu acesso ao aplicativo autenticador ou aos códigos de recuperação. A conta precisará configurá-la novamente.",
+  adminUserProfileTotpConfigured: "Autenticação em dois fatores configurada.",
+  adminUserProfileTotpNotConfigured: "Autenticação em dois fatores não configurada.",
+  adminUserProfileTotpDisable: "Remover autenticação em dois fatores",
+  adminUserProfileTotpDisabled: "Autenticação em dois fatores removida.",
+  adminUserProfileTotpDisableFailed: "Não foi possível remover a autenticação em dois fatores. Tente novamente.",
 } as const;

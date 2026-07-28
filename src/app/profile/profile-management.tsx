@@ -6,18 +6,24 @@ import type { MerchantProfile } from "@/auth/profile";
 import type { getDictionary } from "@/i18n/dictionaries";
 
 import { ProfileFormBody } from "./profile-form";
+import { TotpSection } from "./totp-section";
 
 type Dictionary = ReturnType<typeof getDictionary>;
 export type ProfileNotice = "identity-changed" | "identity-conflict" | "identity-failed" | "password-failed" | null;
+export type TotpNotice = "totp-enrolled" | "totp-confirmed" | "totp-disabled" | "totp-failed" | "totp-conflict" | null;
 
 export function ProfileManagement({
   dictionary,
   notice,
   profile,
+  totpNotice,
+  totpStatus,
 }: Readonly<{
   dictionary: Dictionary;
   notice: ProfileNotice;
   profile: MerchantProfile;
+  totpNotice?: TotpNotice;
+  totpStatus?: "none" | "pending" | "active";
 }>) {
   const noticeCopy = notice === "identity-changed"
     ? dictionary.profileIdentityChanged
@@ -83,6 +89,7 @@ export function ProfileManagement({
             </ProfileFormBody>
           </form>
         </Card>
+        {totpStatus !== undefined && <TotpSection dictionary={dictionary} notice={totpNotice ?? null} status={totpStatus} />}
       </div>
     </div>
   );
