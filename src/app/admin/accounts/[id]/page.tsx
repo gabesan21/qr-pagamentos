@@ -35,6 +35,13 @@ function resolveEditorNotice(dictionary: Dictionary, value: string | readonly st
   return null;
 }
 
+function resolveResetNotice(dictionary: Dictionary, value: string | readonly string[] | undefined): Notice | null {
+  const notice = typeof value === "string" ? value : value?.[0];
+  if (notice === "requested") return { tone: "success", text: dictionary.adminUserProfilePasswordResetRequested };
+  if (notice === "failed") return { tone: "error", text: dictionary.adminUserProfilePasswordResetFailed };
+  return null;
+}
+
 function EditorNotice({ dictionary, notice }: Readonly<{ dictionary: Dictionary; notice: Notice }>) {
   const success = notice.tone === "success";
   const Icon = success ? CircleCheckIcon : TriangleAlertIcon;
@@ -332,6 +339,24 @@ function StorefrontCard({
   );
 }
 
+// The password reset request sends a single-use link to the account's
+// contact email; every outcome collapses to one opaque redirect.
+function PasswordResetCard({ detail, dictionary }: Readonly<{ detail: AdminUserDetail; dictionary: Dictionary }>) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{dictionary.adminUserProfilePasswordResetHeading}</CardTitle>
+        <CardDescription>{dictionary.adminUserProfilePasswordResetDescription}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form action={`/admin/users/${detail.id}/reset-password`} method="post">
+          <AdminSubmit label={dictionary.adminUserProfilePasswordResetSend} tone="secondary" />
+        </form>
+      </CardContent>
+    </Card>
+  );
+}
+
 // The delivered byte-frozen soft-delete route stays the only destructive
 // action; it lands on the accounts workspace notices.
 function DeleteCard({ detail, dictionary }: Readonly<{ detail: AdminUserDetail; dictionary: Dictionary }>) {
@@ -375,7 +400,8 @@ export default async function AdminAccountDetailPage({
 }>) {
   const { dictionary, locale, principal } = await requireAdminShellContext();
   const detail = await getAdminUserDirectoryService().getAdminUserDetail(principal, (await params).id);
-  const notice = resolveEditorNotice(dictionary, (await searchParams).editor);
+  const notice = resolveEditorNotice(dictionary, (await searchParams).editor)
+    ?? resolveResetNotice(dictionary, (await searchParams).reset);
   // The currency select reads only the redacted active choices, and only when
   // the storefront form actually renders.
   const currencyChoices = detail !== null && detail.state !== "deleted"
@@ -393,6 +419,7 @@ export default async function AdminAccountDetailPage({
             <>
               <IdentityCard detail={detail} dictionary={dictionary} />
               <AccessCard detail={detail} dictionary={dictionary} />
+              <PasswordResetCard detail={detail} dictionary={dictionary} />
               <LocaleCard detail={detail} dictionary={dictionary} />
               <CheckoutPolicyCard detail={detail} dictionary={dictionary} />
               <StorefrontCard currencyChoices={currencyChoices} detail={detail} dictionary={dictionary} />

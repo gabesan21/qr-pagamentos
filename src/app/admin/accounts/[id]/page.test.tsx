@@ -103,6 +103,7 @@ describe("administrator account editor page", () => {
     expect(markup).toContain(`action="/admin/users/${targetId}/role"`);
     expect(markup).toContain(`action="/admin/users/${targetId}/status"`);
     expect(markup).toContain(`action="/admin/users/${targetId}/password"`);
+    expect(markup).toContain(`action="/admin/users/${targetId}/reset-password"`);
     // Locale, checkout policy, and storefront forms post the new routes.
     expect(markup).toContain(`action="/admin/users/${targetId}/locale"`);
     expect(markup).toContain(`action="/admin/users/${targetId}/checkout-policy"`);
@@ -142,6 +143,14 @@ describe("administrator account editor page", () => {
       : value === "conflict"
         ? "conflicts with a newer state"
         : "could not be completed";
+    expect(markup).toContain(expected);
+  });
+
+  it.each(["requested", "failed"])("renders the closed reset %s notice", async (value) => {
+    const markup = renderToStaticMarkup(await render(targetId, { reset: value }));
+    const expected = value === "requested"
+      ? "Reset email sent."
+      : "The reset email could not be sent";
     expect(markup).toContain(expected);
   });
 
