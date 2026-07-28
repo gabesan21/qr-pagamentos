@@ -5,7 +5,15 @@ vi.mock("server-only", () => ({}));
 const requireOwner = vi.hoisted(() => vi.fn());
 beforeEach(() => vi.resetAllMocks());
 const enroll = vi.hoisted(() => vi.fn());
-vi.mock("@/app/owner-guard", () => ({ requireOwnerFromCookie: requireOwner, ownerProtectedMutationResponse: (error: unknown) => (error instanceof Error && error.message === "unauthenticated") ? new Response(null, { status: 401 }) : null }));
+vi.mock("@/app/owner-guard", () => ({
+  requireOwnerFromCookie: requireOwner,
+  ownerProtectedMutationResponse: (error: unknown) => {
+    if (!(error instanceof Error)) return null;
+    if (error.message === "unauthenticated") return new Response(null, { status: 401 });
+    if (error.message === "forbidden") return new Response(null, { status: 403 });
+    return null;
+  },
+}));
 vi.mock("@/auth/totp-store", () => ({ getTotpService: () => ({ enroll }) }));
 
 import { POST } from "./route";
@@ -33,6 +41,13 @@ describe("profile TOTP enroll route", () => {
     requireOwner.mockRejectedValueOnce(new Error("unauthenticated"));
     const response = await POST(request());
     expect(response.status).toBe(401);
+  });
+
+  it("returns 403 for forbidden callers", async () => {
+    requireOwner.mockRejectedValueOnce(new Error("forbidden"));
+    const response = await POST(request());
+    expect(response.status).toBe(403);
+    expect(enroll).not.toHaveBeenCalled();
   });
 
   it("returns opaque unavailable on service error", async () => {

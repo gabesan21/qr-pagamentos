@@ -94,4 +94,26 @@ describe("public password reset consume route", () => {
     expect(response.status).toBe(303);
     expect(response.headers.get("location")).toBe("/reset-password?token=valid-token&error=failed");
   });
+
+  it("logs a redacted completion record that does not contain the token or password", async () => {
+    consumeResetChallenge.mockResolvedValueOnce(undefined);
+    const token = "secret-reset-token-42";
+    const password = "new strong password";
+    const write = vi.spyOn(console, "info").mockImplementation(() => undefined);
+
+    const response = await POST(request({ token, newPassword: password, confirmation: password }));
+
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toBe("/login?password=changed");
+    expect(write).toHaveBeenCalledOnce();
+    const record = JSON.parse(String(write.mock.calls[0][0]));
+    expect(Object.keys(record).sort()).toEqual([
+      "durationMs", "event", "level", "method", "outcome", "requestId", "route", "status", "timestamp",
+    ]);
+    const raw = JSON.stringify(record);
+    expect(raw).not.toContain(token);
+    expect(raw).not.toContain(password);
+    expect(raw).not.toContain(encodeURIComponent(password));
+    write.mockRestore();
+  });
 });

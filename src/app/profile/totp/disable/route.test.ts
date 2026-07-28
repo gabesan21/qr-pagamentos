@@ -8,7 +8,15 @@ const verifyPassword = vi.hoisted(() => vi.fn());
 const validate = vi.hoisted(() => vi.fn());
 const validateRecovery = vi.hoisted(() => vi.fn());
 const disable = vi.hoisted(() => vi.fn());
-vi.mock("@/app/owner-guard", () => ({ requireOwnerFromCookie: requireOwner, ownerProtectedMutationResponse: (error: unknown) => (error instanceof Error && error.message === "unauthenticated") ? new Response(null, { status: 401 }) : null }));
+vi.mock("@/app/owner-guard", () => ({
+  requireOwnerFromCookie: requireOwner,
+  ownerProtectedMutationResponse: (error: unknown) => {
+    if (!(error instanceof Error)) return null;
+    if (error.message === "unauthenticated") return new Response(null, { status: 401 });
+    if (error.message === "forbidden") return new Response(null, { status: 403 });
+    return null;
+  },
+}));
 vi.mock("@/auth/password-verification", () => ({ verifyCurrentPassword: verifyPassword }));
 vi.mock("@/auth/totp-store", () => ({ getTotpService: () => ({ validate, validateWithRecoveryCode: validateRecovery, disable }) }));
 
@@ -57,5 +65,29 @@ describe("profile TOTP disable route", () => {
     const response = await POST(request());
     expect(response.status).toBe(303);
     expect(response.headers.get("location")).toBe("/profile?totp=failed");
+  });
+
+  it("returns 401 for unauthenticated owners", async () => {
+    requireOwner.mockRejectedValueOnce(new Error("unauthenticated"));
+    const response = await POST(request());
+    expect(response.status).toBe(401);
+    expect(verifyPassword).not.toHaveBeenCalled();
+  });
+
+  it("returns 403 for forbidden callers", async () => {
+    requireOwner.mockRejectedValueOnce(new Error("forbidden"));
+    const response = await POST(request());
+    expect(response.status).toBe(403);
+    expect(verifyPassword).not.toHaveBeenCalled();
+  });
+
+  it("rejects cross-origin posts before any auth work", async () => {
+    const response = await POST(new Request("http://local/profile/totp/disable", {
+      method: "POST",
+      headers: { host: "local" },
+      body: new URLSearchParams({ currentPassword: "correct", code: "123456" }),
+    }));
+    expect(response.status).toBe(403);
+    expect(verifyPassword).not.toHaveBeenCalled();
   });
 });

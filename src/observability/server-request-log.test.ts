@@ -27,6 +27,15 @@ describe("server request completion logging", () => {
     expect(serverRequestRoutes.storefrontCartCheckout).toBe("/api/store/[slug]/cart/checkout");
   });
 
+  it("pins the password-reset and TOTP route templates", () => {
+    expect(serverRequestRoutes.resetPassword).toBe("/reset-password/submit");
+    expect(serverRequestRoutes.profileTotpEnroll).toBe("/profile/totp/enroll");
+    expect(serverRequestRoutes.profileTotpConfirm).toBe("/profile/totp/confirm");
+    expect(serverRequestRoutes.profileTotpDisable).toBe("/profile/totp/disable");
+    expect(serverRequestRoutes.profileTotpRegenerate).toBe("/profile/totp/regenerate");
+    expect(serverRequestRoutes.loginTotpChallenge).toBe("/login/totp-challenge");
+  });
+
   it("retains only whole header-safe request ids", () => {
     for (const value of ["a", "req-42", "ABC.def_9", "a".repeat(64)]) {
       expect(normalizeRequestId(value)).toBe(value);
@@ -91,5 +100,45 @@ describe("server request completion logging", () => {
     )).rejects.toBe(failure);
     expect(write).toHaveBeenCalledOnce();
     expect(JSON.parse(String(write.mock.calls[0][0]))).toMatchObject({ level: "error", status: 500, outcome: "failed" });
+  });
+
+  it("does not retain handler-provided secrets or response cookies in the completion record", async () => {
+    const secret = "super-secret-session-token";
+    const write = vi.spyOn(console, "info").mockImplementation(() => undefined);
+
+    const response = await withServerRequestLog(
+      "safe-request-id",
+      { method: "POST", route: serverRequestRoutes.logout },
+      () => new Response(JSON.stringify({ secret }), {
+        status: 200,
+        headers: { "Set-Cookie": `qr_session=${secret}; Path=/` },
+      }),
+    );
+
+    expect(response.headers.get("set-cookie")).toContain(secret);
+    expect(write).toHaveBeenCalledOnce();
+    const record = JSON.parse(String(write.mock.calls[0][0]));
+    expect(Object.keys(record).sort()).toEqual([
+      "durationMs", "event", "level", "method", "outcome", "requestId", "route", "status", "timestamp",
+    ]);
+    const raw = JSON.stringify(record);
+    expect(raw).not.toContain(secret);
+    expect(raw).not.toContain("qr_session");
+    write.mockRestore();
+  });
+
+  it("replaces an invalid inbound request id without retaining a secret-like value", async () => {
+    const write = vi.spyOn(console, "info").mockImplementation(() => undefined);
+
+    await withServerRequestLog(
+      "secret-token-xyz!",
+      { method: "GET", route: serverRequestRoutes.logout },
+      () => new Response(null, { status: 200 }),
+    );
+
+    const record = JSON.parse(String(write.mock.calls[0][0]));
+    expect(record.requestId).not.toBe("secret-token-xyz!");
+    expect(record.requestId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
+    write.mockRestore();
   });
 });

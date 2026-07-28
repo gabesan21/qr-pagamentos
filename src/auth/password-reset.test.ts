@@ -213,4 +213,34 @@ describe("password reset service", () => {
     const { token } = await service.requestReset("owner");
     await expect(service.consumeResetChallenge(token, "new strong password")).rejects.toBeInstanceOf(PasswordResetUnavailableError);
   });
+
+  it("issues a unique token and digest for each request", async () => {
+    const now = new Date("2026-07-27T12:00:00.000Z");
+    const clock = vi.fn(() => now);
+    const store = memoryStore({ users: [{ id: "owner", username: "owner" }], tokens: [], credential: "old-hash", sessions: 2 });
+    const service = createPasswordResetService(store, DEFAULT_LIMITS, hashPassword, clock);
+
+    const first = await service.requestReset("owner");
+    clock.mockReturnValue(new Date(now.getTime() + DEFAULT_LIMITS.minIntervalMs + 1));
+    const second = await service.requestReset("owner");
+
+    expect(first.token).not.toBe(second.token);
+    const [rowA, rowB] = store.tokens();
+    expect(rowA.tokenDigest).not.toBe(rowB.tokenDigest);
+    expect(rowA.tokenDigest).not.toBe(first.token);
+    expect(rowB.tokenDigest).not.toBe(second.token);
+  });
+
+  it("remains unavailable on repeated consumption attempts against the same consumed token", async () => {
+    const store = memoryStore({ users: [{ id: "owner", username: "owner" }], tokens: [], credential: "old-hash", sessions: 2 });
+    const service = createPasswordResetService(store, DEFAULT_LIMITS, async () => "new-hash", () => new Date());
+    const { token } = await service.requestReset("owner");
+    await service.consumeResetChallenge(token, "new strong password");
+
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      await expect(service.consumeResetChallenge(token, "another strong password")).rejects.toBeInstanceOf(PasswordResetUnavailableError);
+    }
+    expect(store.sessions()).toBe(0);
+    expect(store.tokens()[0].consumedAt).not.toBeNull();
+  });
 });

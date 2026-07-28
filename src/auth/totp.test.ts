@@ -228,4 +228,18 @@ describe("totp service", () => {
     const service = createTotpService(memoryStore(), crypto, () => new Date("2026-07-28T12:00:00Z"));
     await expect(service.regenerateRecoveryCodes("user-1")).rejects.toThrow("TOTP is unavailable");
   });
+
+  it("rejects repeated invalid validation attempts without advancing state", async () => {
+    const store = memoryStore();
+    const now = new Date("2026-07-28T12:00:00Z");
+    const service = createTotpService(store, crypto, () => now);
+    const enrollment = await service.enroll("user-1", "owner");
+    await service.confirm("user-1", totp(enrollment.secret, now.getTime() / 1000));
+
+    const credentialBefore = store.credentials.get("user-1");
+    for (let attempt = 0; attempt < 10; attempt += 1) {
+      expect(await service.validate("user-1", "000000")).toBe(false);
+    }
+    expect(store.credentials.get("user-1")).toEqual(credentialBefore);
+  });
 });
