@@ -13,6 +13,7 @@ import { ordersDirectoryPtBR } from "./orders-directory/pt-BR";
 import { dataDirectoryPtBR } from "./data-directory/pt-BR";
 import { appShellPtBR } from "./app-shell/pt-BR";
 import { profilePtBR } from "./profile/pt-BR";
+import { passwordResetPtBR } from "./password-reset/pt-BR";
 import { merchantDashboardPtBR } from "./merchant-dashboard/pt-BR";
 import { adminDashboardPtBR } from "./admin-dashboard/pt-BR";
 import { adminUsersDirectoryPtBR } from "./admin-users-directory/pt-BR";
@@ -21,6 +22,7 @@ import { adminUserProfilePtBR } from "./admin-user-profile/pt-BR";
 export const ptBR = {
   ...appShellPtBR,
   ...profilePtBR,
+  ...passwordResetPtBR,
   ...merchantDashboardPtBR,
   ...adminDashboardPtBR,
   ...adminUsersDirectoryPtBR,

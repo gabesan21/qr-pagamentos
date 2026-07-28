@@ -13,6 +13,7 @@ import { ordersDirectoryEn } from "./orders-directory/en";
 import { dataDirectoryEn } from "./data-directory/en";
 import { appShellEn } from "./app-shell/en";
 import { profileEn } from "./profile/en";
+import { passwordResetEn } from "./password-reset/en";
 import { merchantDashboardEn } from "./merchant-dashboard/en";
 import { adminDashboardEn } from "./admin-dashboard/en";
 import { adminUsersDirectoryEn } from "./admin-users-directory/en";
@@ -21,6 +22,7 @@ import { adminUserProfileEn } from "./admin-user-profile/en";
 export const en = {
   ...appShellEn,
   ...profileEn,
+  ...passwordResetEn,
   ...merchantDashboardEn,
   ...adminDashboardEn,
   ...adminUsersDirectoryEn,

@@ -20,6 +20,7 @@ export const serverRequestRoutes = {
   storefrontLogo: "/storefront/logo",
   profileIdentity: "/profile/identity",
   profilePassword: "/profile/password",
+  resetPassword: "/reset-password/submit",
   nauttCredentials: "/nautt-credentials",
   nauttCredentialsRegister: "/nautt-credentials/register",
   nauttCredentialsReset: "/nautt-credentials/reset",
