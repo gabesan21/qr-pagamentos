@@ -1,5 +1,6 @@
 import "server-only";
 
+import nodemailer from "nodemailer";
 import type { SmtpConfig } from "./mail-config.ts";
 
 export type MailMessage = Readonly<{
@@ -15,14 +16,36 @@ export type MailSender = Readonly<{
 
 export class MailSenderError extends Error {}
 
-// Thin abstraction over SMTP transport. The concrete transport implementation
-// will be wired once the password-reset flow is assembled in later fronts;
-// the config parameter is part of the public contract for that wiring.
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function createMailSender(_config: SmtpConfig): MailSender {
+function buildTransportOptions(config: SmtpConfig) {
   return {
-    async send() {
-      throw new MailSenderError("SMTP transport is not yet implemented");
+    host: config.host,
+    port: config.port,
+    secure: config.tlsMode === "tls",
+    requireTLS: config.tlsMode === "starttls",
+    ignoreTLS: config.tlsMode === "none",
+    auth: {
+      user: config.user,
+      pass: config.password,
+    },
+  };
+}
+
+export function createMailSender(config: SmtpConfig): MailSender {
+  const transport = nodemailer.createTransport(buildTransportOptions(config));
+
+  return {
+    async send(message: MailMessage) {
+      try {
+        await transport.sendMail({
+          from: config.from,
+          to: message.to,
+          subject: message.subject,
+          text: message.text,
+          html: message.html,
+        });
+      } catch (cause) {
+        throw new MailSenderError("Failed to send email", { cause });
+      }
     },
   };
 }
