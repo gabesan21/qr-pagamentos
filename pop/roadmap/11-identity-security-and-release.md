@@ -19,7 +19,6 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[11.1.1-build-self-hosted-password-reset]] | Add validated mail configuration and hashed single-use reset challenges with expiry, rate limits, and session revocation. · size: L | 001_initial_task |
 | [[11.1.2-add-admin-password-reset-action]] | Let administrators send a generic reset email from the user profile with safe no-email and delivery-failure behavior. · size: M | 001_initial_task |
 | [[11.1.3-implement-totp-security-lifecycle]] | Add encrypted TOTP enrollment, confirmation, disablement, replay protection, and one-time recovery codes. · size: L | 001_initial_task |
 | [[11.1.4-build-mfa-challenge-and-recovery-ui]] | Add bilingual login challenge, recovery, profile-security, and administrator-safe recovery experiences. · size: L | 001_initial_task |
