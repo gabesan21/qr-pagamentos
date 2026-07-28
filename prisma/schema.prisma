@@ -42,6 +42,7 @@ model User {
   updatedAt       DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
   credential          PasswordCredential?
   passwordResetTokens PasswordResetToken[]
+  passwordResetRequests PasswordResetRequest[]
   nauttCredential     NauttCredential?
   providerQuotes   ProviderQuote[]
   providerOrders   ProviderOrder[]
@@ -136,6 +137,18 @@ model PasswordResetToken {
 
   @@index([userId, createdAt], map: "password_reset_token_user_created_at_idx")
   @@map("password_reset_token")
+  @@schema("app")
+}
+
+model PasswordResetRequest {
+  id        String   @id @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  actorId   String   @map("actor_id") @db.Uuid
+  outcome   String   @db.VarChar(16)
+  createdAt DateTime @map("created_at") @db.Timestamptz(3)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@map("password_reset_request")
   @@schema("app")
 }
 

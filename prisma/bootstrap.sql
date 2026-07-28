@@ -130,6 +130,15 @@ BEGIN
 END
 $user_deletion_acl$;
 
+DO $password_reset_request_acl$
+BEGIN
+  IF to_regclass('app.password_reset_request') IS NOT NULL THEN
+    REVOKE ALL PRIVILEGES ON TABLE app.password_reset_request FROM qr_runtime;
+    GRANT SELECT, INSERT ON TABLE app.password_reset_request TO qr_runtime;
+  END IF;
+END
+$password_reset_request_acl$;
+
 DO $system_settings_acl$
 BEGIN
   IF to_regclass('app.system_settings') IS NOT NULL THEN

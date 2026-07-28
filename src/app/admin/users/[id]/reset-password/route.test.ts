@@ -55,7 +55,7 @@ describe("administrator password reset request route contract", () => {
 
     const response = await POST(request(), target);
 
-    expect(sendResetEmail).toHaveBeenCalledWith("target");
+    expect(sendResetEmail).toHaveBeenCalledWith("target", actor);
     expect(response.status).toBe(303);
     expect(response.headers.get("location")).toBe("/admin/accounts/target?reset=requested");
   });

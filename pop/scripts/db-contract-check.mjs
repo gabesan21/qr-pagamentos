@@ -24,7 +24,7 @@ assert(packageJson.scripts?.["db:contract-check"] === "pnpm db:migration-policy 
 
 const envExample = await readFile(".env.example", "utf8");
 assert(
-  envExample === "MIGRATION_DATABASE_URL=<postgresql-migrator-url>\nDATABASE_URL=<postgresql-runtime-url>\nNAUTT_ENCRYPTION_KEY=<32-byte-base64url-key>\nNAUTT_WEBHOOK_CALLBACK_URL=https://payments.example.com/api/nautt/webhooks\nNAUTT_API_BASE_URL=<optional-https-override-default-https://api.nauttfinance.com/api/v2>\n",
+  envExample === "MIGRATION_DATABASE_URL=<postgresql-migrator-url>\nDATABASE_URL=<postgresql-runtime-url>\nNAUTT_ENCRYPTION_KEY=<32-byte-base64url-key>\nNAUTT_WEBHOOK_CALLBACK_URL=https://payments.example.com/api/nautt/webhooks\nNAUTT_API_BASE_URL=<optional-https-override-default-https://api.nauttfinance.com/api/v2>\n\n# Required self-hosted SMTP configuration for password-reset email delivery.\nSMTP_HOST=smtp.example.com\nSMTP_PORT=587\nSMTP_USER=replace-with-smtp-username\nSMTP_PASSWORD=replace-with-smtp-password\nSMTP_FROM=noreply@example.com\nSMTP_TLS_MODE=starttls\n\n# Required canonical public origin of this deployment (absolute HTTPS, no credentials or fragment).\nPUBLIC_ORIGIN=https://payments.example.com\n",
   ".env.example must contain only the documented non-usable placeholders",
 );
 const prismaConfig = await readFile("prisma.config.ts", "utf8");
@@ -74,7 +74,7 @@ for (const contract of ["REVOKE ALL PRIVILEGES", "GRANT SELECT", 'GRANT UPDATE (
 assert(!/GRANT\s+(?:INSERT|DELETE)|GRANT\s+UPDATE\s+ON/i.test(settingsAclMigration), "Payment settings ACL migration grants excess table writes");
 
 const nauttCredentialMigration = await readFile("prisma/migrations/20260717190000_nautt_credentials/migration.sql", "utf8");
-assert(schema.includes("model NauttCredential") && schema.includes("nauttCredential  NauttCredential?"), "Schema is missing the user/nautt credential relation");
+assert(schema.includes("model NauttCredential") && /nauttCredential\s+NauttCredential\?/.test(schema), "Schema is missing the user/nautt credential relation");
 for (const contract of ["nautt_credential_pkey", "nautt_credential_user_fkey", "encrypted_api_key", "GRANT SELECT, INSERT, UPDATE, DELETE"]) {
   assert(nauttCredentialMigration.includes(contract), `Nautt credential migration lost ${contract}`);
 }

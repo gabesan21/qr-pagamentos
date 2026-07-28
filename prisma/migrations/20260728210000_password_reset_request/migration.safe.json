@@ -1,0 +1,104 @@
+{
+  "version": 1,
+  "id": "20260728210000_password_reset_request",
+  "operations": [
+    {
+      "op": "createTable",
+      "table": {
+        "schema": "app",
+        "name": "password_reset_request"
+      },
+      "columns": [
+        {
+          "name": "id",
+          "type": {
+            "name": "uuid"
+          },
+          "nullable": false
+        },
+        {
+          "name": "user_id",
+          "type": {
+            "name": "uuid"
+          },
+          "nullable": false
+        },
+        {
+          "name": "actor_id",
+          "type": {
+            "name": "uuid"
+          },
+          "nullable": false
+        },
+        {
+          "name": "outcome",
+          "type": {
+            "name": "varchar",
+            "length": 16
+          },
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "type": {
+            "name": "timestamptz"
+          },
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "password_reset_request"
+      },
+      "constraint": {
+        "kind": "primaryKey",
+        "name": "password_reset_request_pkey",
+        "columns": [
+          "id"
+        ]
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "password_reset_request"
+      },
+      "constraint": {
+        "kind": "foreignKey",
+        "name": "password_reset_request_user_fkey",
+        "columns": [
+          "user_id"
+        ],
+        "references": {
+          "table": {
+            "schema": "app",
+            "name": "user"
+          },
+          "columns": [
+            "id"
+          ]
+        },
+        "onDelete": "RESTRICT",
+        "onUpdate": "CASCADE",
+        "notValid": false
+      }
+    },
+    {
+      "op": "grant",
+      "object": {
+        "kind": "table",
+        "schema": "app",
+        "name": "password_reset_request"
+      },
+      "privileges": [
+        "SELECT",
+        "INSERT"
+      ],
+      "role": "qr_runtime"
+    }
+  ]
+}

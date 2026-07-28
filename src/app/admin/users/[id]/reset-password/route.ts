@@ -11,8 +11,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const id = (await params).id;
     const editorRedirect = (notice: string) => relativeRedirect(`/admin/accounts/${encodeURIComponent(id)}?reset=${notice}`);
     try {
-      await requireAdminFromCookie();
-      await getAdminPasswordResetService().sendResetEmail(id);
+      const admin = await requireAdminFromCookie();
+      await getAdminPasswordResetService().sendResetEmail(id, admin);
       return editorRedirect("requested");
     } catch (error) {
       const protectedResponse = protectedMutationResponse(error);
