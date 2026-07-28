@@ -19,7 +19,6 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[11.1.3-implement-totp-security-lifecycle]] | Add encrypted TOTP enrollment, confirmation, disablement, replay protection, and one-time recovery codes. · size: L | 001_initial_task |
 | [[11.1.4-build-mfa-challenge-and-recovery-ui]] | Add bilingual login challenge, recovery, profile-security, and administrator-safe recovery experiences. · size: L | 001_initial_task |
 
 ## Phase 11.2 - System verification and release evidence
