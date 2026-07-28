@@ -8,12 +8,18 @@ import { serverRequestRoutes, withServerRequestLog } from "@/observability/serve
 // Logo staging only: the upload becomes a STAGED STOREFRONT_LOGO object and the
 // redirect carries its public-safe opaque identifier; the storefront settings
 // save (POST /storefront) activates it and orphans the previous logo.
+const MAX_BODY_BYTES = MAX_MEDIA_BYTES + 64 * 1024;
+
 export async function POST(request: Request) {
   return withServerRequestLog(request.headers.get("x-request-id"), { method: "POST", route: serverRequestRoutes.storefrontLogo }, async () => {
     const crossOrigin = rejectCrossOrigin(request);
     if (crossOrigin) return crossOrigin;
     try {
       const actor = await requireOwnerFromCookie();
+      const contentLength = Number(request.headers.get("content-length"));
+      if (!Number.isInteger(contentLength) || contentLength <= 0 || contentLength > MAX_BODY_BYTES) {
+        return relativeRedirect("/settings?storefront-logo=failed");
+      }
       const form = await request.formData();
       const file = form.get("logo");
       if (!(file instanceof File) || file.size === 0 || file.size > MAX_MEDIA_BYTES) {

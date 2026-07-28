@@ -91,6 +91,19 @@ describe("owner product image staging route", () => {
     expect(response.headers.get("cache-control")).toBe("no-store");
   });
 
+  it("rejects a non-image file with the same opaque empty outcome", async () => {
+    requireOwnerFromCookie.mockResolvedValue(owner);
+    ownerProtectedMutationResponse.mockReturnValue(null);
+    create.mockRejectedValueOnce(new Error("media validation failed"));
+    const body = new FormData();
+    body.set("image", new File([Buffer.from("<svg/>")], "product.svg", { type: "image/svg+xml" }));
+    const response = await POST(await multipartRequest(body));
+    expect(response.status).toBe(422);
+    expect(await response.text()).toBe("");
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(create).toHaveBeenCalledWith(owner, "PRODUCT_IMAGE", expect.any(Uint8Array));
+  });
+
   it("stages the owner image and returns only the opaque identifier with no-store", async () => {
     requireOwnerFromCookie.mockResolvedValue(owner);
     ownerProtectedMutationResponse.mockReturnValue(null);

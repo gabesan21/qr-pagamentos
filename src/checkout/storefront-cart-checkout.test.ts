@@ -91,6 +91,12 @@ describe("storefront cart checkout service", () => {
     expect(issueLink).not.toHaveBeenCalled();
   });
 
+  it("keeps inactive, archived, or cross-owner product references one opaque invalid", async () => {
+    revalidate.mockResolvedValueOnce({ kind: "invalid" });
+    await expect(service.checkout(slug, { items: [{ reference: coffee, quantity: 1 }] })).resolves.toEqual({ kind: "invalid" });
+    expect(issueLink).not.toHaveBeenCalled();
+  });
+
   it("maps the store's unavailable revalidation to unavailable without issuance", async () => {
     revalidate.mockResolvedValueOnce({ kind: "unavailable" });
     await expect(service.checkout(slug, { items: [{ reference: coffee, quantity: 1 }] })).resolves.toEqual({ kind: "unavailable" });

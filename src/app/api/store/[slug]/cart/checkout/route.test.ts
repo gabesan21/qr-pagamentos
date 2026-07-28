@@ -37,6 +37,14 @@ describe("POST /api/store/[slug]/cart/checkout", () => {
     expect(response.headers.get("cache-control")).toContain("no-store");
     await expect(response.text()).resolves.toBe("");
   });
+
+  it("returns an empty no-store 400 for a custom-amount cart payload", async () => {
+    checkout.mockResolvedValueOnce({ kind: "invalid" });
+    const response = await POST(new Request("https://example.test", { method: "POST", body: JSON.stringify({ items: [{ kind: "custom-amount", amount: "5" }] }) }), context);
+    expect(response.status).toBe(400);
+    expect(response.headers.get("cache-control")).toContain("no-store");
+    await expect(response.text()).resolves.toBe("");
+  });
   it("rejects invalid JSON without calling the server service", async () => {
     const response = await POST(new Request("https://example.test", { method: "POST", body: "{" }), context);
     expect(response.status).toBe(400);
