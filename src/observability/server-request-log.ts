@@ -23,6 +23,7 @@ export const serverRequestRoutes = {
   profileTotpEnroll: "/profile/totp/enroll",
   profileTotpConfirm: "/profile/totp/confirm",
   profileTotpDisable: "/profile/totp/disable",
+  profileTotpRegenerate: "/profile/totp/regenerate",
   loginTotpChallenge: "/login/totp-challenge",
   resetPassword: "/reset-password/submit",
   nauttCredentials: "/nautt-credentials",

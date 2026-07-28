@@ -74,6 +74,20 @@ export function createPrismaTotpStore(db: ReturnType<typeof getDatabaseClient>):
         data: { consumedAt },
       });
     },
+    async replaceRecoveryCodes(credentialId, codes) {
+      await db.$transaction(async (transaction) => {
+        await transaction.totpRecoveryCode.deleteMany({ where: { credentialId } });
+        await transaction.totpRecoveryCode.createMany({
+          data: codes.map((code) => ({
+            id: code.id,
+            credentialId,
+            codeDigest: code.codeDigest,
+            consumedAt: null,
+            createdAt: code.createdAt,
+          })),
+        });
+      });
+    },
     async disable(userId) {
       await db.$transaction(async (transaction) => {
         await transaction.totpCredential.deleteMany({ where: { userId } });

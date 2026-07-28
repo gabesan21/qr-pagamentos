@@ -44,6 +44,10 @@ export interface TotpStore {
   confirm(userId: string, confirmedAt: Date): Promise<boolean>;
   updateReplayCounter(userId: string, counter: number, now: Date): Promise<void>;
   consumeRecoveryCode(id: string, consumedAt: Date): Promise<void>;
+  replaceRecoveryCodes(
+    credentialId: string,
+    codes: Readonly<{ id: string; codeDigest: string; createdAt: Date }>[],
+  ): Promise<void>;
   disable(userId: string): Promise<void>;
 }
 
@@ -179,6 +183,12 @@ export function createTotpService(
       return credential !== null && credential.confirmedAt === null;
     },
 
+    async getStatus(userId: string): Promise<"none" | "pending" | "active"> {
+      const credential = await store.getCredential(userId);
+      if (!credential) return "none";
+      return credential.confirmedAt === null ? "pending" : "active";
+    },
+
     async enroll(userId: string, username: string): Promise<TotpEnrollment> {
       const existing = await store.getCredential(userId);
       if (existing) throw new TotpConflictError("TOTP enrollment already exists");
@@ -231,7 +241,15 @@ export function createTotpService(
     },
 
     async regenerateRecoveryCodes(userId: string): Promise<string[]> {
-      throw new TotpUnavailableError("Recovery-code regeneration is not implemented");
+      const credential = await store.getCredential(userId);
+      if (!credential) throw new TotpUnavailableError("TOTP is unavailable");
+      const now = clock();
+      const recovery = generateRecoveryCodes();
+      await store.replaceRecoveryCodes(
+        userId,
+        recovery.map((item) => ({ id: item.id, codeDigest: item.codeDigest, createdAt: item.createdAt })),
+      );
+      return recovery.map((item) => item.plaintext);
     },
   };
 }

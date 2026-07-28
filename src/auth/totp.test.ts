@@ -46,6 +46,12 @@ function memoryStore(): TotpStore & { credentials: Map<string, TotpCredential>; 
         }
       }
     },
+    async replaceRecoveryCodes(credentialId, codes) {
+      recoveryCodes.set(
+        credentialId,
+        codes.map((code) => ({ id: code.id, credentialId, codeDigest: code.codeDigest, consumedAt: null })),
+      );
+    },
     async disable(userId) {
       credentials.delete(userId);
       recoveryCodes.delete(userId);
@@ -192,5 +198,34 @@ describe("totp service", () => {
     await service.confirm("user-1", totp(enrollment.secret, now.getTime() / 1000));
     expect(await service.hasPendingEnrollment("user-1")).toBe(false);
     expect(await service.isEnrolled("user-1")).toBe(true);
+  });
+
+  it("reports TOTP status", async () => {
+    const store = memoryStore();
+    const now = new Date("2026-07-28T12:00:00Z");
+    const service = createTotpService(store, crypto, () => now);
+    expect(await service.getStatus("user-1")).toBe("none");
+    const enrollment = await service.enroll("user-1", "owner");
+    expect(await service.getStatus("user-1")).toBe("pending");
+    await service.confirm("user-1", totp(enrollment.secret, now.getTime() / 1000));
+    expect(await service.getStatus("user-1")).toBe("active");
+  });
+
+  it("regenerates recovery codes and invalidates old ones", async () => {
+    const store = memoryStore();
+    const now = new Date("2026-07-28T12:00:00Z");
+    const service = createTotpService(store, crypto, () => now);
+    const enrollment = await service.enroll("user-1", "owner");
+    await service.confirm("user-1", totp(enrollment.secret, now.getTime() / 1000));
+    const newCodes = await service.regenerateRecoveryCodes("user-1");
+    expect(newCodes).toHaveLength(10);
+    expect(newCodes[0]).toMatch(/^[0-9a-f]{32}$/);
+    expect(await service.validateWithRecoveryCode("user-1", enrollment.recoveryCodes[0])).toBe(false);
+    expect(await service.validateWithRecoveryCode("user-1", newCodes[0])).toBe(true);
+  });
+
+  it("rejects recovery-code regeneration without credential", async () => {
+    const service = createTotpService(memoryStore(), crypto, () => new Date("2026-07-28T12:00:00Z"));
+    await expect(service.regenerateRecoveryCodes("user-1")).rejects.toThrow("TOTP is unavailable");
   });
 });
