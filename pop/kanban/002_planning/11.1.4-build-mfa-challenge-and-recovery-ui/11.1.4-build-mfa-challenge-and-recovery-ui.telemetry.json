@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "events": [
+    {
+      "at": "2026-07-28T19:03:48-03:00",
+      "event": "transition",
+      "from": "001_initial_task",
+      "to": "002_planning",
+      "contexts": [],
+      "test_seconds": 0,
+      "return_kind": null,
+      "result": "advanced"
+    }
+  ]
+}
