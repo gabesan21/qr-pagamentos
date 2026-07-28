@@ -9,40 +9,47 @@ import { getDictionary } from "@/i18n/dictionaries";
 import { localeFromPreferenceCookie, localePreferenceCookieName } from "@/i18n/locales";
 
 import { LoginSubmit } from "./login-submit";
+import { TotpChallengeForm } from "./totp-challenge-form";
 
-export default async function LoginPage({ searchParams }: Readonly<{ searchParams: Promise<{ error?: string; password?: string }> }>) {
+type LoginSearchParams = { error?: string; password?: string; mfa?: string };
+
+export default async function LoginPage({ searchParams }: Readonly<{ searchParams: Promise<LoginSearchParams> }>) {
   const locale = localeFromPreferenceCookie((await cookies()).get(localePreferenceCookieName)?.value);
   const dictionary = getDictionary(locale);
   const notices = await searchParams;
-  const error = notices.error === "invalid-credentials" && notices.password === undefined;
-  const passwordChanged = notices.password === "changed" && notices.error === undefined;
+  const error = notices.error === "invalid-credentials" && notices.password === undefined && notices.mfa === undefined;
+  const passwordChanged = notices.password === "changed" && notices.error === undefined && notices.mfa === undefined;
+  const mfaRequired = notices.mfa === "required";
+  const mfaFailed = notices.mfa === "failed";
 
   return <main className="login-page">
     <Card className="login-card">
       <CardHeader>
         <BrandIdentity className="login-brand" variant="product-lockup" />
-        <CardTitle>{dictionary.loginHeading}</CardTitle>
-        <CardDescription>{dictionary.loginIntroduction}</CardDescription>
+        <CardTitle>{mfaRequired ? dictionary.mfaHeading : dictionary.loginHeading}</CardTitle>
+        <CardDescription>{mfaRequired ? dictionary.mfaIntroduction : dictionary.loginIntroduction}</CardDescription>
       </CardHeader>
       <CardContent>
-        <form action="/login/submit" className="login-form" id="login-form" method="post">
-          {error && <Alert variant="destructive"><AlertDescription>{dictionary.invalidCredentials}</AlertDescription></Alert>}
-          {passwordChanged && <Alert role="status" variant="success"><AlertDescription>{dictionary.passwordChanged}</AlertDescription></Alert>}
-          <FieldGroup>
-            <Field>
-              <FieldLabel htmlFor="username">{dictionary.usernameLabel}</FieldLabel>
-              <Input autoComplete="username" id="username" name="username" required />
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="password">{dictionary.passwordLabel}</FieldLabel>
-              <Input autoComplete="current-password" id="password" name="password" required type="password" />
-            </Field>
-          </FieldGroup>
-        </form>
+        {mfaRequired
+          ? <TotpChallengeForm dictionary={dictionary} failed={mfaFailed} />
+          : <form action="/login/submit" className="login-form" id="login-form" method="post">
+              {error && <Alert variant="destructive"><AlertDescription>{dictionary.invalidCredentials}</AlertDescription></Alert>}
+              {passwordChanged && <Alert role="status" variant="success"><AlertDescription>{dictionary.passwordChanged}</AlertDescription></Alert>}
+              <FieldGroup>
+                <Field>
+                  <FieldLabel htmlFor="username">{dictionary.usernameLabel}</FieldLabel>
+                  <Input autoComplete="username" id="username" name="username" required />
+                </Field>
+                <Field>
+                  <FieldLabel htmlFor="password">{dictionary.passwordLabel}</FieldLabel>
+                  <Input autoComplete="current-password" id="password" name="password" required type="password" />
+                </Field>
+              </FieldGroup>
+            </form>}
       </CardContent>
-      <CardFooter>
+      {!mfaRequired && <CardFooter>
         <LoginSubmit form="login-form" label={dictionary.signIn} pendingLabel={dictionary.signingIn} />
-      </CardFooter>
+      </CardFooter>}
     </Card>
   </main>;
 }

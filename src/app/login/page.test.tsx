@@ -52,7 +52,7 @@ describe("login page contract", () => {
     const allowedSources = new Set(["alert", "button", "card", "field", "input", "spinner"]);
     const requiredExports = ["Alert", "Button", "Card", "Field", "Input", "Spinner"];
     const importPattern = /import\s+(?:type\s+)?([^;]+?)\s+from\s+"([^"]+)"/g;
-    const files = ["page.tsx", "login-submit.tsx"];
+    const files = ["page.tsx", "login-submit.tsx", "totp-challenge-form.tsx"];
     const importedNames = new Set<string>();
 
     for (const file of files) {
@@ -68,7 +68,7 @@ describe("login page contract", () => {
         } else if (specifier === "@/brand/brand-identity") {
           expect(file).toBe("page.tsx");
         } else if (specifier.startsWith(".")) {
-          expect(specifier).toBe("./login-submit");
+          expect(["./login-submit", "./totp-challenge-form"]).toContain(specifier);
           expect(file).toBe("page.tsx");
         }
       }
@@ -103,5 +103,16 @@ describe("login page contract", () => {
     const markup = renderToStaticMarkup(await LoginPage({ searchParams: Promise.resolve({ password: "changed" }) }));
 
     expect(markup).toContain(getDictionary("pt-BR").passwordChanged);
+  });
+
+  it.each(["pt-BR", "en"] as const)("renders the MFA challenge form when required in %s", async (locale) => {
+    readCookie.mockReturnValue({ value: locale });
+    const dictionary = getDictionary(locale);
+    const markup = renderToStaticMarkup(await LoginPage({ searchParams: Promise.resolve({ mfa: "required" }) }));
+
+    expect(markup).toContain(dictionary.mfaHeading);
+    expect(markup).toContain('action="/login/totp-challenge"');
+    expect(markup).toContain('id="mfa-code"');
+    expect(markup).toContain('autoComplete="one-time-code"');
   });
 });
