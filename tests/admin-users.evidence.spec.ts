@@ -189,6 +189,16 @@ test("creates the closed administrator users evidence run", async ({ page }) => 
     await screenshot(name);
   }
 
+  async function assertAxe(state: string) {
+    const axe = await new AxeBuilder({ page }).analyze();
+    const severeAxe = axe.violations.filter((violation) => ["serious", "critical"].includes(violation.impact ?? ""));
+    expect(severeAxe).toEqual([]);
+    expect(externalRequests).toEqual([]);
+    expect(consoleErrors).toEqual([]);
+    expect(pageErrors).toEqual([]);
+    assertions.push({ state, severeAxe });
+  }
+
   // ---- pt-BR pass: seed, facts, read-only detail, opaque miss ----
   await setLocale(page, "pt-BR");
 
@@ -240,6 +250,33 @@ test("creates the closed administrator users evidence run", async ({ page }) => 
   assertions.push({ state: "detail-editor", user: keptUsername, deleteForm: true, editorForms: true });
   await captureState("state-pt-BR-account-detail-1440");
 
+  // The password reset card renders a single button that posts the delivered
+  // route; we mock the route so the evidence runtime never needs live SMTP.
+  const resetAction = `/admin/users/${keptId}/reset-password`;
+  const resetButton = page.locator(`form[action="${resetAction}"] button[type="submit"]`);
+  await expect(resetButton).toBeVisible();
+  await expect(resetButton).toHaveText(/Enviar e-mail de redefinição/);
+  const resetTargetUrl = `${baseUrl}${resetAction}`;
+  await page.route(resetTargetUrl, (route) => route.fulfill({
+    status: 303,
+    headers: { location: `/admin/accounts/${keptId}?reset=requested` },
+    body: "",
+  }));
+  await Promise.all([
+    page.waitForURL(/\/admin\/accounts\/[^/]+\?reset=requested$/),
+    resetButton.click(),
+  ]);
+  await expect(page.getByText("E-mail de redefinição enviado.")).toBeVisible();
+  await expect(page.locator('[role="status"]')).toContainText("E-mail de redefinição enviado.");
+  await assertAxe("detail-reset-requested-pt-BR");
+  await page.unroute(resetTargetUrl);
+
+  // The error notice renders the same page layout with an assertive alert.
+  await page.goto(`${baseUrl}/admin/accounts/${keptId}?reset=failed`);
+  await expect(page.getByText("Não foi possível enviar o e-mail de redefinição")).toBeVisible();
+  await expect(page.locator('[role="alert"]')).toContainText("Não foi possível enviar o e-mail de redefinição");
+  await assertAxe("detail-reset-failed-pt-BR");
+
   await page.goto(`${baseUrl}/admin/accounts/${randomUUID()}`);
   await expect(page.getByText("Esta conta está indisponível")).toBeVisible();
   await expect(page.getByText(keptUsername)).toHaveCount(0);
@@ -285,6 +322,14 @@ test("creates the closed administrator users evidence run", async ({ page }) => 
 
   // ---- en pass: honest states, pagination, filters, deleted badge ----
   await setLocale(page, "en");
+
+  // The reset button copy follows the active locale and remains a reachable
+  // target on the English detail page.
+  await page.goto(`${baseUrl}/admin/accounts/${keptId}`);
+  const enResetButton = page.locator(`form[action="/admin/users/${keptId}/reset-password"] button[type="submit"]`);
+  await expect(enResetButton).toBeVisible();
+  await expect(enResetButton).toHaveText(/Send reset email/);
+  assertions.push({ state: "detail-reset-button-en", visible: true });
 
   await page.goto(`${baseUrl}/admin/accounts?q=no-such-user`);
   await expect(page.getByText("No matching records")).toBeVisible();
