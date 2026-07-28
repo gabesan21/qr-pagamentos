@@ -74,6 +74,8 @@ describe("product service", () => {
 
     await expect(service.listForOwner(secondUser)).resolves.toEqual([]);
     await expect(service.update(secondUser, product.id, 0, validValues())).rejects.toBeInstanceOf(ProductConflictError);
+    await expect(service.setActive(secondUser, product.id, 0, "false")).rejects.toBeInstanceOf(ProductConflictError);
+    await expect(service.archive(secondUser, product.id, 0)).rejects.toBeInstanceOf(ProductConflictError);
     await expect(service.delete(secondUser, product.id, 0)).rejects.toBeInstanceOf(ProductConflictError);
     expect(store.products).toHaveLength(1);
   });

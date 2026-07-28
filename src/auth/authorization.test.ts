@@ -21,4 +21,22 @@ describe("server authorization", () => {
     await expect(service.requireUser("live-admin")).rejects.toBeInstanceOf(ForbiddenError);
     await expect(service.requireUser("live-user")).resolves.toEqual(user);
   });
+
+  it("treats a disabled user as unauthenticated even when the session token is technically live", async () => {
+    const service = createAuthorizationService(
+      { validate: async (token) => token === "live-disabled" ? { userId: "disabled-user" } : null },
+      { findUser: async (id) => id === "disabled-user" ? { ...user, id, status: "DISABLED" } : null },
+    );
+    await expect(service.resolve("live-disabled")).resolves.toBeNull();
+    await expect(service.requireAuthenticated("live-disabled")).rejects.toBeInstanceOf(UnauthenticatedError);
+    await expect(service.requireUser("live-disabled")).rejects.toBeInstanceOf(UnauthenticatedError);
+  });
+
+  it("requires an ACTIVE status for merchant principal enforcement", async () => {
+    const service = createAuthorizationService(
+      { validate: async (token) => token === "live-disabled" ? { userId: "disabled-user" } : null },
+      { findUser: async (id) => id === "disabled-user" ? { ...user, id, status: "DISABLED" } : null },
+    );
+    await expect(service.requireUser("live-disabled")).rejects.toBeInstanceOf(UnauthenticatedError);
+  });
 });

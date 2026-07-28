@@ -74,6 +74,19 @@ describe("merchant profile service", () => {
     await expect(service.updateIdentity(actor, { username: "bad name", email: "", expectedVersion: "5" })).rejects.toBeInstanceOf(ProfileValidationError);
   });
 
+  it("updates only the actor's own profile and cannot target another owner", async () => {
+    const store = memoryStore({ username: "owner", email: null, version: 0 }, null);
+    const service = createProfileService(store);
+    const otherOwner = { ...actor, id: "other-owner" };
+
+    await service.updateIdentity(actor, { username: "new.owner", email: "", expectedVersion: "0" });
+    expect(store.profile()).toEqual({ username: "new.owner", email: null, version: 1 });
+
+    vi.spyOn(store, "updateIdentity").mockResolvedValueOnce("conflict");
+    await expect(service.updateIdentity(otherOwner, { username: "other.owner", email: "", expectedVersion: "1" })).rejects.toBeInstanceOf(ProfileConflictError);
+    expect(store.updateIdentity).toHaveBeenCalledWith(otherOwner.id, 1, { username: "other.owner", email: null });
+  });
+
   it("executes exactly one verification KDF for every failure class and never replaces", async () => {
     const validHash = await hashPassword("current password phrase");
     const cases = [

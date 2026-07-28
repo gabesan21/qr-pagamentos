@@ -275,6 +275,15 @@ describe("payment-link-v2 service", () => {
     await expect(service.setActive(owner, link.id, 1, true)).resolves.toMatchObject({ active: true, version: 2 });
   });
 
+  it("rejects cross-owner activation and deactivation with the same opaque conflict", async () => {
+    const store = testStore();
+    const service = createPaymentLinkV2Service(store, dependencies);
+    const link = await service.create(owner, linesCreateInput());
+    const otherOwner = { ...owner, id: "other-owner" };
+
+    await expect(service.setActive(otherOwner, link.id, 0, "false")).rejects.toBeInstanceOf(PaymentLinkV2ConflictError);
+  });
+
   it("validates identifiers and versions before any store read", async () => {
     const store = testStore();
     const findOwned = vi.spyOn(store, "findOwned");

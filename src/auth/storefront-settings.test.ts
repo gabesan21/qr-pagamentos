@@ -154,6 +154,21 @@ describe("storefront-settings service", () => {
     await expect(service.update(disabledOwner, validInput())).rejects.toBeInstanceOf(ForbiddenError);
   });
 
+  it("scopes every mutation to the actor's own row and cannot touch another owner", async () => {
+    const testStore = store();
+    const service = createStorefrontSettingsService(testStore, deps());
+
+    await service.update(owner, validInput({ storefrontSlug: "owner-store" }));
+    expect(testStore.values.get(owner.id)).toMatchObject({ storefrontSlug: "owner-store" });
+    expect(testStore.values.get(otherOwner.id)).toEqual({ ...defaults, storefrontSlug: "taken" });
+  });
+
+  it("treats a missing or inactive owner row as an access denial on update", async () => {
+    const missingOwner = { ...owner, id: "missing-owner" };
+    const service = createStorefrontSettingsService(store(), deps());
+    await expect(service.update(missingOwner, validInput())).rejects.toBeInstanceOf(ForbiddenError);
+  });
+
   it("preserves every extended field on a legacy-only save", async () => {
     const extended = {
       storefrontThemeId: "vault-blue",

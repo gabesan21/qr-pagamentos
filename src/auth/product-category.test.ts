@@ -138,6 +138,10 @@ describe("owner product category service", () => {
     await service.deactivate(owner, category.id, 0, null);
     await expect(service.update(owner, category.id, 1, values({ nameEn: "Inactive" })))
       .rejects.toBeInstanceOf(ProductCategoryConflictError);
+    expect((await service.listForOwner(other))).toHaveLength(1);
+    const ownerList = await service.listForOwner(owner);
+    expect(ownerList).toHaveLength(1);
+    expect(ownerList[0]).toMatchObject({ id: category.id, active: false });
   });
 
   it("requires a distinct active same-owner replacement and reassigns every current product atomically", async () => {

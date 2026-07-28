@@ -102,6 +102,17 @@ describe("order-comment-v2 service", () => {
     const service = createOrderCommentV2Service(store);
     await expect(service.append(actor, orderId, "text")).rejects.toBeInstanceOf(OrderEngagementV2ConflictError);
   });
+
+  it("scopes the append to the actor's owner identity and rejects a foreign order", async () => {
+    const otherOwner = { ...actor, id: "220e8400-e29b-41d4-a716-446655440022" };
+    const store: OrderCommentV2Store = {
+      append: vi.fn(async (ownerId, id) => (ownerId === actor.id && id === orderId ? comment : null)),
+      editByAuthor: vi.fn(async () => null),
+    };
+    const service = createOrderCommentV2Service(store);
+    await expect(service.append(actor, orderId, "text")).resolves.toBe(comment);
+    await expect(service.append(otherOwner, orderId, "text")).rejects.toBeInstanceOf(OrderEngagementV2ConflictError);
+  });
 });
 
 describe("order-local-outcome-v2 service", () => {
