@@ -17,6 +17,13 @@ POSTGRES_ADMIN_PASSWORD=reserved-!:/?#[]@-admin
 MIGRATOR_PASSWORD=reserved-!:/?#[]@-migrator
 RUNTIME_PASSWORD=reserved-!:/?#[]@-runtime
 NAUTT_WEBHOOK_CALLBACK_URL=https://payments.example.com/api/nautt/webhooks
+SMTP_HOST=smtp.example.com
+SMTP_PORT=587
+SMTP_USER=reserved-smtp-user
+SMTP_PASSWORD=reserved-smtp-password
+SMTP_FROM=noreply@example.com
+SMTP_TLS_MODE=starttls
+PUBLIC_ORIGIN=https://payments.example.com
 EOF
 chmod 0600 "$TMP/install.env"
 
@@ -59,6 +66,13 @@ MIGRATOR_PASSWORD=reserved-!:/?#[]@-migrator
 RUNTIME_PASSWORD=reserved-!:/?#[]@-runtime
 NAUTT_ENCRYPTION_KEY=$valid_nautt_key
 NAUTT_WEBHOOK_CALLBACK_URL=https://payments.example.com/api/nautt/webhooks
+SMTP_HOST=smtp.example.com
+SMTP_PORT=587
+SMTP_USER=reserved-smtp-user
+SMTP_PASSWORD=reserved-smtp-password
+SMTP_FROM=noreply@example.com
+SMTP_TLS_MODE=starttls
+PUBLIC_ORIGIN=https://payments.example.com
 EOF
 chmod 0600 "$TMP/nautt-valid.env"
 nautt_valid_out=$TMP/nautt-valid.out
@@ -78,6 +92,23 @@ sed '$a NAUTT_API_BASE_URL=https://api-stage.nauttfinance.com/api/v2' "$TMP/inst
 "$INSTALL_DIR/uninstall.sh" --dry-run --env-file "$TMP/base-url.env" >/dev/null || fail 'uninstall rejected the optional Nautt API base URL'
 sed '$a NAUTT_API_BASE_URL=http://api-stage.nauttfinance.com/api/v2' "$TMP/install.env" > "$TMP/invalid-base-url.env"
 if "$INSTALL_DIR/install.sh" --dry-run --env-file "$TMP/invalid-base-url.env" >/dev/null 2>&1; then fail 'invalid Nautt API base URL succeeded'; fi
+
+# Required self-hosted SMTP and public-origin configuration
+for expected in 'SMTP_HOST' 'SMTP_PORT' 'SMTP_USER' 'SMTP_PASSWORD' 'SMTP_FROM' 'SMTP_TLS_MODE' 'PUBLIC_ORIGIN'; do
+  expect_contains "$INSTALL_DIR/install.sh" "$expected"
+  expect_contains "$INSTALL_DIR/.env.example" "$expected"
+done
+for expected in 'smtp_host' 'smtp_port' 'smtp_user' 'smtp_password' 'smtp_from' 'smtp_tls_mode' 'public_origin'; do
+  expect_contains "$output" "$expected"
+done
+expect_absent "$output" 'reserved-smtp-password'
+expect_absent "$output" 'reserved-smtp-user'
+sed 's|^PUBLIC_ORIGIN=.*|PUBLIC_ORIGIN=http://payments.example.com|' "$TMP/install.env" > "$TMP/invalid-public-origin.env"
+if "$INSTALL_DIR/install.sh" --dry-run --env-file "$TMP/invalid-public-origin.env" >/dev/null 2>&1; then fail 'invalid public origin succeeded'; fi
+for missing in SMTP_HOST SMTP_PORT SMTP_USER SMTP_PASSWORD SMTP_FROM SMTP_TLS_MODE PUBLIC_ORIGIN; do
+  sed "/^$missing=/d" "$TMP/install.env" > "$TMP/missing-$missing.env"
+  if "$INSTALL_DIR/install.sh" --dry-run --env-file "$TMP/missing-$missing.env" >/dev/null 2>&1; then fail "missing $missing succeeded"; fi
+done
 
 git -C "$INSTALL_DIR/.." check-ignore -q install/.env || fail 'install/.env is not ignored by Git'
 git -C "$INSTALL_DIR/.." check-ignore -q .update-evidence/ || fail '.update-evidence is not ignored by Git'

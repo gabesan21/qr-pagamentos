@@ -58,6 +58,13 @@ if (process.argv.includes("--clean-clone") && !process.env.CONTAINER_TEST_CLEAN_
     runtime: `Run!t:/?#[]@-${token}`,
     initial: `Initial-Admin-${token}-Password`,
     nautt: Buffer.alloc(32, 23).toString("base64url"),
+    smtpHost: "smtp.container-test.invalid",
+    smtpPort: "587",
+    smtpUser: `smtp-user-${token}`,
+    smtpPassword: `Smtp-Pass-${token}`,
+    smtpFrom: "noreply@container-test.invalid",
+    smtpTlsMode: "starttls",
+    publicOrigin: "https://container-test.invalid",
   };
   const files = Object.fromEntries(Object.keys(values).map((name) => [name, path.join(sources, name)]));
   for (const name of Object.keys(values)) {
@@ -87,6 +94,13 @@ if (process.argv.includes("--clean-clone") && !process.env.CONTAINER_TEST_CLEAN_
     INITIAL_ADMIN_PASSWORD_FILE: files.initial,
     INITIAL_ADMIN_RECOVERY_PASSWORD_FILE: path.join(staged, "initial_admin_recovery_password"),
     NAUTT_WEBHOOK_CALLBACK_URL: "https://container-test.invalid/api/nautt/webhooks",
+    SMTP_HOST_FILE: files.smtpHost,
+    SMTP_PORT_FILE: files.smtpPort,
+    SMTP_USER_FILE: files.smtpUser,
+    SMTP_PASSWORD_FILE: files.smtpPassword,
+    SMTP_FROM_FILE: files.smtpFrom,
+    SMTP_TLS_MODE_FILE: files.smtpTlsMode,
+    PUBLIC_ORIGIN_FILE: files.publicOrigin,
     STAGED_SECRETS_DIR: staged,
   };
   const compose = (args, options = {}) => {
@@ -215,9 +229,24 @@ if (process.argv.includes("--clean-clone") && !process.env.CONTAINER_TEST_CLEAN_
       assert(model.services.migrate.depends_on.bootstrap.condition === "service_completed_successfully", "migration gate changed");
       assert(model.services["identity-seed"].depends_on.migrate.condition === "service_completed_successfully", "identity seed gate changed");
       assert(model.services.app.depends_on["identity-seed"].condition === "service_completed_successfully", "app gate changed");
-      assert(Object.keys(model.services.db.secrets).length === 1, "DB secret grant changed");
+      const secretNames = (service) => new Set((model.services[service].secrets ?? []).map((entry) => entry.source));
+      assert(secretNames("db").size === 1 && secretNames("db").has("postgres_admin_password"), "DB secret grant changed");
+      const appSecrets = secretNames("app");
+      for (const secret of ["runtime_password", "nautt_encryption_key", "smtp_host", "smtp_port", "smtp_user", "smtp_password", "smtp_from", "smtp_tls_mode", "public_origin"]) {
+        assert(appSecrets.has(secret), `app secret missing: ${secret}`);
+      }
+      const appEnv = model.services.app.environment;
+      for (const variable of ["SMTP_HOST_FILE", "SMTP_PORT_FILE", "SMTP_USER_FILE", "SMTP_PASSWORD_FILE", "SMTP_FROM_FILE", "SMTP_TLS_MODE_FILE", "PUBLIC_ORIGIN_FILE"]) {
+        assert(typeof appEnv[variable] === "string" && appEnv[variable].startsWith("/run/secrets/"), `app env missing or invalid: ${variable}`);
+      }
+      for (const target of ["smtp_host", "smtp_port", "smtp_user", "smtp_password", "smtp_from", "smtp_tls_mode", "public_origin"]) {
+        const stagedPath = path.join(staged, target);
+        const stagedInfo = await stat(stagedPath);
+        assert(stagedInfo.uid === 1000 && stagedInfo.gid === 1000 && (stagedInfo.mode & 0o777) === 0o400, `staged identity/mode invalid: ${target}`);
+      }
       console.log("PASS source-secret-permissions");
       console.log("PASS staged-secret-permissions");
+      console.log("PASS smtp-public-origin-staged-permissions");
       console.log("PASS compose-config");
     } else if (scenario === "build") {
       assert(process.env.CONTAINER_TEST_CLEAN_CLONE === "1", "build scenario requires --clean-clone");
@@ -330,6 +359,9 @@ if (process.argv.includes("--clean-clone") && !process.env.CONTAINER_TEST_CLEAN_
       const appMounts = inspectField(appId, "{{json .Mounts}}");
       assert(dbMounts.includes("postgres_admin_password") && !dbMounts.includes("runtime_password"), "DB secret grant changed");
       assert(appMounts.includes("runtime_password") && !appMounts.includes("admin_password"), "app secret grant changed");
+      for (const secret of ["smtp_host", "smtp_port", "smtp_user", "smtp_password", "smtp_from", "smtp_tls_mode", "public_origin"]) {
+        assert(appMounts.includes(secret), `app secret mount missing: ${secret}`);
+      }
       const config = compose(["config"]);
       assert(!/0\.0\.0\.0:.*3000/.test(config) && !/(?:5432|5433):(?:5432|5433)/.test(config), "public listener detected");
       assertRedacted(captured + config + compose(["logs", "--no-color"]));
@@ -429,6 +461,13 @@ MIGRATOR_PASSWORD=${values.migrator}
 RUNTIME_PASSWORD=${values.runtime}
 NAUTT_ENCRYPTION_KEY=${values.nautt}
 NAUTT_WEBHOOK_CALLBACK_URL=https://container-test.invalid/api/nautt/webhooks
+SMTP_HOST=${values.smtpHost}
+SMTP_PORT=${values.smtpPort}
+SMTP_USER=${values.smtpUser}
+SMTP_PASSWORD=${values.smtpPassword}
+SMTP_FROM=${values.smtpFrom}
+SMTP_TLS_MODE=${values.smtpTlsMode}
+PUBLIC_ORIGIN=${values.publicOrigin}
 `, { mode: 0o600 });
       await chmod(installerEnv, 0o600);
       const destination = path.join(temporary, "backups");
@@ -659,6 +698,13 @@ MIGRATOR_PASSWORD=${values.migrator}
 RUNTIME_PASSWORD=${runtimePassword}
 NAUTT_ENCRYPTION_KEY=${sourceKey}
 NAUTT_WEBHOOK_CALLBACK_URL=https://payments.example.com/api/nautt/webhooks
+SMTP_HOST=${values.smtpHost}
+SMTP_PORT=${values.smtpPort}
+SMTP_USER=${values.smtpUser}
+SMTP_PASSWORD=${values.smtpPassword}
+SMTP_FROM=${values.smtpFrom}
+SMTP_TLS_MODE=${values.smtpTlsMode}
+PUBLIC_ORIGIN=${values.publicOrigin}
 `, { mode: 0o600 });
         await chmod(installerEnv, 0o600);
       };
@@ -768,6 +814,13 @@ MIGRATOR_PASSWORD=${values.migrator}
 RUNTIME_PASSWORD=${values.runtime}
 NAUTT_ENCRYPTION_KEY=${sourceKey}
 NAUTT_WEBHOOK_CALLBACK_URL=https://payments.example.com/api/nautt/webhooks
+SMTP_HOST=${values.smtpHost}
+SMTP_PORT=${values.smtpPort}
+SMTP_USER=${values.smtpUser}
+SMTP_PASSWORD=${values.smtpPassword}
+SMTP_FROM=${values.smtpFrom}
+SMTP_TLS_MODE=${values.smtpTlsMode}
+PUBLIC_ORIGIN=${values.publicOrigin}
 `, { mode: 0o600 });
       await chmod(installerEnv, 0o600);
       const updateProcessEnv = { ...process.env, CONTAINER_TEST_PROJECT: project };
@@ -1018,6 +1071,14 @@ INITIAL_ADMIN_USERNAME=admin.user
 POSTGRES_ADMIN_PASSWORD=${values.admin}
 MIGRATOR_PASSWORD=${values.migrator}
 RUNTIME_PASSWORD=${values.runtime}
+NAUTT_WEBHOOK_CALLBACK_URL=https://container-test.invalid/api/nautt/webhooks
+SMTP_HOST=${values.smtpHost}
+SMTP_PORT=${values.smtpPort}
+SMTP_USER=${values.smtpUser}
+SMTP_PASSWORD=${values.smtpPassword}
+SMTP_FROM=${values.smtpFrom}
+SMTP_TLS_MODE=${values.smtpTlsMode}
+PUBLIC_ORIGIN=${values.publicOrigin}
 `, { mode: 0o600 });
       await chmod(installerEnv, 0o600);
       const installerProcessEnv = {
