@@ -55,6 +55,18 @@ encryption key is a separate protected secret: store an independently protected
 copy outside the host. A database copy without this key cannot recover
 encrypted Nautt credentials.
 
+Self-hosted password-reset email delivery requires seven additional file-backed
+secrets mounted under `/run/secrets/` in the `app` container: `smtp_host`,
+`smtp_port`, `smtp_user`, `smtp_password`, `smtp_from`, `smtp_tls_mode`, and
+`public_origin`. The application reads them from `*_FILE` environment variables
+that point to those mount paths; in development or test it falls back to plain
+environment variables. `SMTP_TLS_MODE` must be one of `none`, `starttls`, or
+`tls`; `PUBLIC_ORIGIN` must be the canonical absolute HTTPS origin users reach,
+with no credentials or fragment. Protect these source files with mode `0600` and
+let the installer stage them as read-only `0400` files owned by `1000:1000`,
+exactly like the database and Nautt secrets. Never place their values in command
+arguments, logs, Git, this runbook, or release evidence.
+
 The deployment seed requires an initial administrator username; its email is
 optional contact information and is never a login credential. The installer
 creates a protected initial password file once. Use

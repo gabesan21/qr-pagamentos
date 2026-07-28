@@ -56,9 +56,10 @@ function prismaStore(): AdminPasswordResetStore {
 }
 
 export function getAdminPasswordResetService(): AdminPasswordResetService {
+  const config = loadSmtpConfig();
   return createAdminPasswordResetService(prismaStore(), {
-    config: loadSmtpConfig(),
+    config,
     origin: loadPublicOrigin(),
-    sender: createMailSender(loadSmtpConfig()),
+    sender: createMailSender(config),
   });
 }

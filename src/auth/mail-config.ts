@@ -1,5 +1,7 @@
 import "server-only";
 
+import { readFileSync } from "node:fs";
+
 import { normalizeOptionalEmail } from "./identity.ts";
 
 export const SMTP_TLS_MODES = ["none", "starttls", "tls"] as const;
@@ -18,6 +20,16 @@ export class MailConfigError extends Error {}
 
 function isBlank(value: string | undefined): value is undefined | "" {
   return value === undefined || value.trim().length === 0;
+}
+
+function readFileBackedValue(key: string): string | undefined {
+  const filePath = process.env[`${key}_FILE`];
+  if (isBlank(filePath)) return process.env[key];
+  try {
+    return readFileSync(filePath.trim(), "utf8").trim();
+  } catch {
+    return undefined;
+  }
 }
 
 function requirePresent(value: string | undefined): string {
@@ -62,17 +74,17 @@ function parseFrom(value: string | undefined): string {
 
 export function loadSmtpConfig(): SmtpConfig {
   return {
-    host: requirePresent(process.env.SMTP_HOST),
-    port: parsePort(process.env.SMTP_PORT),
-    user: requirePresent(process.env.SMTP_USER),
-    password: requirePresent(process.env.SMTP_PASSWORD),
-    from: parseFrom(process.env.SMTP_FROM),
-    tlsMode: parseTlsMode(process.env.SMTP_TLS_MODE),
+    host: requirePresent(readFileBackedValue("SMTP_HOST")),
+    port: parsePort(readFileBackedValue("SMTP_PORT")),
+    user: requirePresent(readFileBackedValue("SMTP_USER")),
+    password: requirePresent(readFileBackedValue("SMTP_PASSWORD")),
+    from: parseFrom(readFileBackedValue("SMTP_FROM")),
+    tlsMode: parseTlsMode(readFileBackedValue("SMTP_TLS_MODE")),
   };
 }
 
 export function loadPublicOrigin(): string {
-  const raw = process.env.PUBLIC_ORIGIN;
+  const raw = readFileBackedValue("PUBLIC_ORIGIN");
   if (isBlank(raw)) throw new MailConfigError("Public origin configuration is invalid");
   let url: URL;
   try {
