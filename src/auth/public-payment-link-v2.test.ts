@@ -96,6 +96,27 @@ describe("public payment-link-v2 service", () => {
     const { service } = serviceWith(null);
     await expect(service.read(identifier, "en")).resolves.toBeNull();
   });
+
+  it("carries no owner identity, state, version, timestamp, identifier, verifier, capability, or provider data", async () => {
+    const { service } = serviceWith(linesRecord);
+    const outcome = await service.read(identifier, "pt-BR");
+    expect(outcome).not.toBeNull();
+
+    const serialized = JSON.stringify(outcome);
+    for (const forbidden of [
+      "owner", "ownerId", "identifier", "id", "active", "state", "version", "createdAt", "updatedAt", "expiresAt",
+      "linkType", "singleUse", "consumed", "settlement", "verifier", "capability", "retry", "provider", "credential",
+    ]) {
+      expect(serialized).not.toContain(`"${forbidden}"`);
+    }
+
+    expect(Object.keys(outcome ?? {}).sort()).toEqual(["composition", "currencyPair"]);
+    const composition = outcome?.composition;
+    if (composition?.kind === "PRODUCT_LINES") {
+      expect(Object.keys(composition.lines[0] ?? {}).sort()).toEqual(["product", "quantity"]);
+      expect(Object.keys(composition.lines[0]?.product ?? {}).sort()).toEqual(["description", "price", "title"]);
+    }
+  });
 });
 
 describe("public payment-link-v2 prisma store", () => {

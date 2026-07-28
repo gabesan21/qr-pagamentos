@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
@@ -5,7 +7,9 @@ vi.mock("server-only", () => ({}));
 import { ForbiddenError } from "../auth/authorization";
 import {
   createOrderV2ViewService,
+  toOrderV2Summary,
   toPolicySnapshotV2,
+  type OrderV2SummaryRow,
   type OrderV2ViewStore,
   type StoredOrderV2View,
 } from "./order-v2-view";
@@ -87,6 +91,70 @@ describe("order-v2 view service", () => {
     expect(list[0]).not.toHaveProperty("name");
     expect(list[0]?.payer).toEqual({ name: "Ana", email: "ana@example.com", cpf: null, address: null });
     expect(list[0]?.currentLocalOutcome?.outcome).toBe("LOCAL_FINALIZED");
+  });
+
+  it("never carries verifiers, key material, provider, credential, or retry-key fields out of the module", async () => {
+    const source = await readFile("src/orders/order-v2-view.ts", "utf8");
+    for (const forbidden of ["Verifier", "verifier", "nonce", "Nonce", "capability", "Capability", "providerOrder", "provider_order", "apiKey", "credential", "retryKey"]) {
+      expect(source.includes(forbidden), forbidden).toBe(false);
+    }
+
+    const service = createOrderV2ViewService(storeWith({ findForOwner: async () => stored() }));
+    const result = await service.getForOwner(owner, orderId);
+    expect(result.kind).toBe("found");
+    if (result.kind !== "found") return;
+
+    expect(Object.keys(result.order).sort()).toEqual([
+      "amount", "checkoutDataPolicy", "comments", "createdAt", "currencyUuid", "currentLocalOutcome", "customer",
+      "descriptionEn", "descriptionPtBr", "exchangeCurrencyUuid", "id", "lifecycleVersion", "lines", "payer",
+      "paymentLinkV2Identifier", "settledAt", "source", "state", "updatedAt",
+    ]);
+    expect(Object.keys(result.order.customer).sort()).toEqual(["address", "cpf", "email", "name"]);
+
+    const list = await service.listForOwner(owner);
+    expect(Object.keys(list[0] ?? {}).sort()).toEqual([
+      "amount", "checkoutDataPolicy", "createdAt", "currencyUuid", "currentLocalOutcome", "descriptionEn",
+      "descriptionPtBr", "exchangeCurrencyUuid", "id", "payer", "paymentLinkV2Identifier", "settledAt", "source",
+      "state", "updatedAt",
+    ]);
+  });
+
+  it("applies the policy guard through the exported summary mapping used by directories", () => {
+    const row = {
+      id: orderId,
+      source: "AD_HOC",
+      state: null,
+      amount: "10.25",
+      currencyUuid: "990e8400-e29b-41d4-a716-446655440099",
+      exchangeCurrencyUuid: "aa0e8400-e29b-41d4-a716-4466554400aa",
+      descriptionPtBr: "Doação",
+      descriptionEn: "Donation",
+      checkoutDataPolicy: "EMAIL",
+      createdAt: new Date("2026-07-25T12:00:00.000Z"),
+      updatedAt: new Date("2026-07-25T12:00:00.000Z"),
+      settledAt: null,
+      paymentLink: { identifier: "link-id" },
+      localOutcomes: [],
+      name: "Ana",
+      email: "ana@example.com",
+      cpf: "52998224725",
+      street: "Rua A",
+      number: "10",
+      district: "Centro",
+      city: "São Paulo",
+      stateUf: "SP",
+      postalCode: "01001000",
+      country: "BR",
+      complement: null,
+    } satisfies OrderV2SummaryRow;
+
+    const summary = toOrderV2Summary(row);
+    expect(summary.payer).toEqual({ name: null, email: "ana@example.com", cpf: null, address: null });
+    expect(summary).not.toHaveProperty("name");
+    expect(summary).not.toHaveProperty("email");
+    expect(summary).not.toHaveProperty("cpf");
+    expect(summary).not.toHaveProperty("customer");
+    expect(summary).not.toHaveProperty("lifecycleVersion");
   });
 
   it("shares one opaque unavailable outcome for cross-owner, malformed, and missing identities", async () => {
