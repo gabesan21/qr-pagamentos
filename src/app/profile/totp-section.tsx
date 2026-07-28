@@ -52,11 +52,42 @@ type TotpSectionProps = {
 
 type EnrollmentData = { provisioningUri: string; recoveryCodes: string[] };
 
+type RecoveryCodesProps = {
+  codes: string[];
+  copiedLabel: string;
+  copyLabel: string;
+  title: string;
+};
+
+function RecoveryCodes({ codes, copiedLabel, copyLabel, title }: Readonly<RecoveryCodesProps>) {
+  const [copied, setCopied] = useState(false);
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(codes.join("\n"));
+      setCopied(true);
+      setTimeout(() => setCopied(false), 3000);
+    } catch {
+      // ignore
+    }
+  }
+
+  return (
+    <div className="totp-recovery-codes">
+      <ul aria-label={title} className="font-mono text-sm">
+        {codes.map((code) => <li key={code}>{code}</li>)}
+      </ul>
+      <Button onClick={copy} type="button" variant="secondary">
+        {copied ? copiedLabel : copyLabel}
+      </Button>
+    </div>
+  );
+}
+
 export function TotpSection({ dictionary, status, notice }: Readonly<TotpSectionProps>) {
   const [enrollment, setEnrollment] = useState<EnrollmentData | null>(null);
   const [regeneratedCodes, setRegeneratedCodes] = useState<string[] | null>(null);
   const [pending, setPending] = useState(false);
-  const [copied, setCopied] = useState(false);
 
   const resolvedStatus: TotpStatus = enrollment ? "pending" : status;
   const noticeCopy = notice === "totp-enrolled"
@@ -109,29 +140,6 @@ export function TotpSection({ dictionary, status, notice }: Readonly<TotpSection
     }
   }
 
-  async function copyCodes(codes: string[]) {
-    try {
-      await navigator.clipboard.writeText(codes.join("\n"));
-      setCopied(true);
-      setTimeout(() => setCopied(false), 3000);
-    } catch {
-      // ignore
-    }
-  }
-
-  function RecoveryCodes({ codes }: Readonly<{ codes: string[] }>) {
-    return (
-      <div className="totp-recovery-codes">
-        <ul aria-label={dictionary.profileTotpRecoveryCodesTitle} className="font-mono text-sm">
-          {codes.map((code) => <li key={code}>{code}</li>)}
-        </ul>
-        <Button onClick={() => copyCodes(codes)} type="button" variant="secondary">
-          {copied ? dictionary.profileTotpCopied : dictionary.profileTotpCopy}
-        </Button>
-      </div>
-    );
-  }
-
   return (
     <Card>
       <CardHeader>
@@ -158,7 +166,12 @@ export function TotpSection({ dictionary, status, notice }: Readonly<TotpSection
             <div className="space-y-2">
               <h4 className="font-medium">{dictionary.profileTotpRecoveryCodesTitle}</h4>
               <p className="text-sm text-secondary">{dictionary.profileTotpRecoveryCodesDescription}</p>
-              <RecoveryCodes codes={enrollment.recoveryCodes} />
+              <RecoveryCodes
+                codes={enrollment.recoveryCodes}
+                copiedLabel={dictionary.profileTotpCopied}
+                copyLabel={dictionary.profileTotpCopy}
+                title={dictionary.profileTotpRecoveryCodesTitle}
+              />
             </div>
             <div className="space-y-2">
               <h4 className="font-medium">{dictionary.profileTotpConfirmTitle}</h4>
@@ -202,7 +215,12 @@ export function TotpSection({ dictionary, status, notice }: Readonly<TotpSection
             {regeneratedCodes && (
               <div className="space-y-2">
                 <h4 className="font-medium">{dictionary.profileTotpRecoveryCodesTitle}</h4>
-                <RecoveryCodes codes={regeneratedCodes} />
+                <RecoveryCodes
+                  codes={regeneratedCodes}
+                  copiedLabel={dictionary.profileTotpCopied}
+                  copyLabel={dictionary.profileTotpCopy}
+                  title={dictionary.profileTotpRecoveryCodesTitle}
+                />
               </div>
             )}
             <div className="flex flex-wrap gap-3">

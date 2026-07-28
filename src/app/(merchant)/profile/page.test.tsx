@@ -10,6 +10,7 @@ const { getProfile, requireContext } = vi.hoisted(() => ({
 vi.mock("server-only", () => ({}));
 vi.mock("../shell-context", () => ({ requireMerchantShellContext: requireContext }));
 vi.mock("@/auth/profile", () => ({ getProfileService: () => ({ get: getProfile }) }));
+vi.mock("@/auth/totp-store", () => ({ getTotpService: () => ({ getStatus: vi.fn(() => Promise.resolve("none" as const)) }) }));
 
 import ProfilePage from "./page";
 

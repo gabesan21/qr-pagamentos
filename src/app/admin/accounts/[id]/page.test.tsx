@@ -24,6 +24,7 @@ vi.mock("@/auth/admin-user-profile", async (importActual) => ({
   ...(await importActual<typeof import("@/auth/admin-user-profile")>()),
   getAdminUserProfileService: () => ({ listActiveCurrencyChoices }),
 }));
+vi.mock("@/auth/totp-store", () => ({ getTotpService: () => ({ getStatus: vi.fn(() => Promise.resolve("none" as const)) }) }));
 
 import AdminAccountDetailPage from "./page";
 

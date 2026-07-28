@@ -21,7 +21,7 @@ This spec defines the durable contracts for time-based one-time password (TOTP) 
 - A user starts with no TOTP credential. Enrollment creates a pending credential; the secret is encrypted and never leaves the server.
 - Confirmation requires the current password plus a valid first TOTP code from the enrolled secret.
 - Once active, username/password login alone is insufficient: password proof issues a short-lived `qr_mfa_challenge` cookie, and a second POST validates a TOTP code or recovery code before promoting the challenge to a real `qr_session`.
-- Disablement, whether by the owner or an administrator, deletes the credential and recovery codes, revokes every session of the target, and appends an audit row.
+- Disablement, whether by the owner or an administrator, deletes the credential and recovery codes and revokes every session of the target. Administrator-driven disablement appends exactly one `totp_recovery_action` audit row; owner-initiated disablement does not append an audit row.
 
 ## Invariants
 
@@ -39,8 +39,10 @@ This spec defines the durable contracts for time-based one-time password (TOTP) 
 - **Enrollment:** `POST /profile/totp/enroll` (owner-only, origin-guarded) returns `200` JSON with `{ provisioningUri, recoveryCodes }`; the plaintext secret is not exposed. This JSON response is required so the follow-up UI task [[11.1.4-build-mfa-challenge-and-recovery-ui]] can render the QR code and recovery codes.
 - **Confirmation:** `POST /profile/totp/confirm` (owner-only, origin-guarded) requires password and first TOTP code.
 - **Owner disablement:** `POST /profile/totp/disable` (owner-only, origin-guarded) requires password plus TOTP code or recovery code.
+- **Recovery-code regeneration:** `POST /profile/totp/regenerate` (owner-only, origin-guarded) replaces existing recovery codes and returns the new set once.
 - **Challenge:** `POST /login/submit` issues `qr_mfa_challenge` when TOTP is active; `POST /login/totp-challenge` validates the challenge and creates the real session.
 - **Administrator recovery:** `POST /admin/users/[id]/totp-disable` (admin-only, origin-guarded) disables TOTP for the target.
+- **UI surfaces:** `/login` renders the MFA challenge when `?mfa=required`; `/profile` renders the TOTP security section with enroll/confirm/disable/regenerate flows; `/admin/accounts/[id]` renders the TOTP recovery action when the target has a configured credential.
 
 ## Errors and limits
 
