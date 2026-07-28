@@ -87,6 +87,12 @@ const filterState = assertions.find((entry) => entry.state === "filter-state");
 assert(filterState?.filter === "DELETED", "Admin users evidence does not prove the derived-state filter.");
 const filterRole = assertions.find((entry) => entry.state === "filter-role");
 assert(filterRole?.filter === "ADMIN", "Admin users evidence does not prove the role filter.");
+const resetRequested = assertions.find((entry) => entry.state === "detail-reset-requested-pt-BR");
+assert(Array.isArray(resetRequested?.severeAxe) && resetRequested.severeAxe.length === 0, "Admin users evidence does not prove the reset-requested notice is accessible.");
+const resetFailed = assertions.find((entry) => entry.state === "detail-reset-failed-pt-BR");
+assert(Array.isArray(resetFailed?.severeAxe) && resetFailed.severeAxe.length === 0, "Admin users evidence does not prove the reset-failed notice is accessible.");
+const resetButtonEn = assertions.find((entry) => entry.state === "detail-reset-button-en");
+assert(resetButtonEn?.visible === true, "Admin users evidence does not prove the English reset button is visible.");
 
 for (const [sourcePath, expectedHash] of Object.entries(manifest.sourceHashes)) {
   assert(sha256(await readFile(path.join(root, sourcePath))) === expectedHash, `Admin users evidence source inventory is stale: ${sourcePath}`);

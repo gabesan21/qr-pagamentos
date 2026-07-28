@@ -65,6 +65,8 @@
     "checkout:evidence:verify": "node scripts/verify-checkout-evidence.mjs",
     "admin-payment-links:evidence": "node scripts/run-admin-payment-links-evidence.mjs",
     "admin-payment-links:evidence:verify": "node scripts/verify-admin-payment-links-evidence.mjs",
+    "reset-password:evidence": "node scripts/run-reset-password-evidence.mjs",
+    "reset-password:evidence:verify": "node scripts/verify-reset-password-evidence.mjs",
     "epoch1:source-check": "node scripts/check-epoch1-source.mjs",
     "media:decoder-preflight": "node scripts/media-decoder-preflight.mjs",
     "precheck": "pnpm db:generate",
