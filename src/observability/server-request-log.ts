@@ -31,6 +31,7 @@ export const serverRequestRoutes = {
   adminPaymentSettings: "/admin/payment-settings",
   adminUsers: "/admin/users",
   adminUserPassword: "/admin/users/[id]/password",
+  adminUserResetPassword: "/admin/users/[id]/reset-password",
   adminUserRole: "/admin/users/[id]/role",
   adminUserStatus: "/admin/users/[id]/status",
   adminUserDelete: "/admin/users/[id]/delete",

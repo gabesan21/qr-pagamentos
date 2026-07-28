@@ -22,4 +22,9 @@ export const adminUserProfilePtBR = {
   adminUserProfileStoreUnavailable: "A loja pública está indisponível: a vitrine está desativada ou sem endereço.",
   adminUserProfileDeleteHeading: "Exclusão da conta",
   adminUserProfileDeleteDescription: "A exclusão é definitiva: bloqueia o acesso, encerra todas as sessões, desativa a vitrine e desativa todos os links de pagamento. Os identificadores permanecem reservados.",
+  adminUserProfilePasswordResetHeading: "Redefinição de senha",
+  adminUserProfilePasswordResetDescription: "Envie um link de uso único para o e-mail de contato da conta.",
+  adminUserProfilePasswordResetSend: "Enviar e-mail de redefinição",
+  adminUserProfilePasswordResetRequested: "E-mail de redefinição enviado.",
+  adminUserProfilePasswordResetFailed: "Não foi possível enviar o e-mail de redefinição. Revise o e-mail da conta e tente novamente.",
 } as const;
