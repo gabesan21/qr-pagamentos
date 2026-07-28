@@ -10,7 +10,7 @@ export const SESSION_ABSOLUTE_MS = 12 * 60 * 60 * 1000;
 export const SESSION_LIMIT = 5;
 export const UNKNOWN_CREDENTIAL_RECORD = "scrypt$v=1$N=131072,r=8,p=1$AAECAwQFBgcICQoLDA0ODw$GylG2nH0EXnoO5ncM4QtFXQbh8QSHIx_N4HB34ZPtYs";
 
-type StoredSession = { id: string; userId: string; tokenDigest: string; createdAt: Date; lastSeenAt: Date; absoluteExpiresAt: Date };
+type StoredSession = { id: string; userId: string; tokenDigest: string; mfaVerifiedAt: Date | null; createdAt: Date; lastSeenAt: Date; absoluteExpiresAt: Date };
 type Credential = { id: string; status: string; passwordHash: string };
 
 export interface SessionStore {
@@ -43,7 +43,7 @@ export function createSessionService(
   clock: () => Date = () => new Date(),
   verifyCredential: (plaintext: string, record: string) => Promise<boolean> = verifyPassword,
 ) {
-  async function createLocked(lockedStore: SessionStore, userId: string) {
+  async function createLocked(lockedStore: SessionStore, userId: string, mfaVerifiedAt: Date | null = null) {
     const now = clock();
     const token = randomBytes(32).toString("base64url");
     await lockedStore.removeExpiredForUser(userId, now);
@@ -51,7 +51,7 @@ export function createSessionService(
     for (const session of active.sort((left, right) => left.createdAt.getTime() - right.createdAt.getTime() || left.id.localeCompare(right.id)).slice(0, Math.max(0, active.length - SESSION_LIMIT + 1))) {
       await lockedStore.deleteSession(session.id);
     }
-    await lockedStore.createSession({ userId, tokenDigest: digest(token), createdAt: now, lastSeenAt: now, absoluteExpiresAt: new Date(now.getTime() + SESSION_ABSOLUTE_MS) });
+    await lockedStore.createSession({ userId, tokenDigest: digest(token), mfaVerifiedAt, createdAt: now, lastSeenAt: now, absoluteExpiresAt: new Date(now.getTime() + SESSION_ABSOLUTE_MS) });
     return token;
   }
 
@@ -74,6 +74,10 @@ export function createSessionService(
 
     async create(userId: string) {
       return store.withUserLock(userId, (lockedStore) => createLocked(lockedStore, userId));
+    },
+
+    async createMfaVerified(userId: string) {
+      return store.withUserLock(userId, (lockedStore) => createLocked(lockedStore, userId, clock()));
     },
 
     async validate(token: string | undefined) {

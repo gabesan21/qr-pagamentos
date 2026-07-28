@@ -61,6 +61,9 @@ model User {
   mediaObjects       MediaObject[]
   sessions          Session[]
   userDeletions     UserDeletion[]
+  totpCredential    TotpCredential?
+  totpRecoveryActions TotpRecoveryAction[]
+  mfaChallenges     MfaChallenge[]
 
   @@map("user")
   @@schema("app")
@@ -102,13 +105,14 @@ model MediaObject {
 }
 
 model Session {
-  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId            String   @map("user_id") @db.Uuid
-  tokenDigest       String   @unique(map: "session_token_digest_key") @map("token_digest") @db.VarChar(64)
-  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
-  lastSeenAt        DateTime @default(now()) @map("last_seen_at") @db.Timestamptz(3)
-  absoluteExpiresAt DateTime @map("absolute_expires_at") @db.Timestamptz(3)
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId            String    @map("user_id") @db.Uuid
+  tokenDigest       String    @unique(map: "session_token_digest_key") @map("token_digest") @db.VarChar(64)
+  mfaVerifiedAt     DateTime? @map("mfa_verified_at") @db.Timestamptz(3)
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  lastSeenAt        DateTime  @default(now()) @map("last_seen_at") @db.Timestamptz(3)
+  absoluteExpiresAt DateTime  @map("absolute_expires_at") @db.Timestamptz(3)
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt, id], map: "session_user_created_at_id_idx")
   @@map("session")
@@ -709,5 +713,62 @@ model WebhookRecoveryLease {
   @@unique([providerOrderId, ownerId], map: "webhook_recovery_lease_order_owner_key")
   @@index([leaseExpiresAt], map: "webhook_recovery_lease_expiry_idx")
   @@map("webhook_recovery_lease")
+  @@schema("app")
+}
+
+model TotpCredential {
+  userId          String   @id @map("user_id") @db.Uuid
+  encryptedSecret String   @map("encrypted_secret") @db.Text
+  confirmedAt     DateTime? @map("confirmed_at") @db.Timestamptz(3)
+  replayCounter   BigInt   @default(0) @map("replay_counter") @db.BigInt
+  algorithm       String   @default("SHA1") @map("algorithm") @db.VarChar(10)
+  digits          Int      @default(6) @map("digits") @db.Integer
+  stepSeconds     Int      @default(30) @map("step_seconds") @db.Integer
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recoveryCodes   TotpRecoveryCode[]
+
+  @@map("totp_credential")
+  @@schema("app")
+}
+
+model TotpRecoveryCode {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  credentialId String  @map("credential_id") @db.Uuid
+  codeDigest  String    @map("code_digest") @db.VarChar(64)
+  consumedAt  DateTime? @map("consumed_at") @db.Timestamptz(3)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  credential  TotpCredential @relation(fields: [credentialId], references: [userId], onDelete: Cascade)
+
+  @@index([credentialId], map: "totp_recovery_code_credential_id_idx")
+  @@map("totp_recovery_code")
+  @@schema("app")
+}
+
+model TotpRecoveryAction {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  actorId   String   @map("actor_id") @db.Uuid
+  targetId  String   @map("target_id") @db.Uuid
+  action    String   @map("action") @db.VarChar(16)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  target    User     @relation(fields: [targetId], references: [id], onDelete: Restrict)
+
+  @@index([targetId], map: "totp_recovery_action_target_id_idx")
+  @@map("totp_recovery_action")
+  @@schema("app")
+}
+
+model MfaChallenge {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String    @map("user_id") @db.Uuid
+  tokenDigest String    @unique(map: "mfa_challenge_token_digest_key") @map("token_digest") @db.VarChar(64)
+  expiresAt   DateTime  @map("expires_at") @db.Timestamptz(3)
+  usedAt      DateTime? @map("used_at") @db.Timestamptz(3)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt], map: "mfa_challenge_user_created_at_idx")
+  @@map("mfa_challenge")
   @@schema("app")
 }

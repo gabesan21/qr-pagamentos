@@ -114,11 +114,14 @@ services:
       SMTP_FROM_FILE: /run/secrets/smtp_from
       SMTP_TLS_MODE_FILE: /run/secrets/smtp_tls_mode
       PUBLIC_ORIGIN_FILE: /run/secrets/public_origin
+      TOTP_ENCRYPTION_KEY_FILE: /run/secrets/totp_encryption_key
     secrets:
       - source: runtime_password
         target: runtime_password
       - source: nautt_encryption_key
         target: nautt_encryption_key
+      - source: totp_encryption_key
+        target: totp_encryption_key
       - source: smtp_host
         target: smtp_host
       - source: smtp_port
@@ -184,3 +187,5 @@ secrets:
     file: ${STAGED_SECRETS_DIR:-.container-secrets}/smtp_tls_mode
   public_origin:
     file: ${STAGED_SECRETS_DIR:-.container-secrets}/public_origin
+  totp_encryption_key:
+    file: ${STAGED_SECRETS_DIR:-.container-secrets}/totp_encryption_key

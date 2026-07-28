@@ -24,7 +24,7 @@ function deferred() {
 
 function sharedHarness(initialPasswordHash: string) {
   let credential = initialPasswordHash;
-  const rows: Array<{ id: string; userId: string; tokenDigest: string; createdAt: Date; lastSeenAt: Date; absoluteExpiresAt: Date }> = [];
+  const rows: Array<{ id: string; userId: string; tokenDigest: string; mfaVerifiedAt: Date | null; createdAt: Date; lastSeenAt: Date; absoluteExpiresAt: Date }> = [];
   let tail = Promise.resolve();
   let pauseAdministrationUpdate: ReturnType<typeof deferred> | null = null;
   let administrationUpdateReached: ReturnType<typeof deferred> | null = null;

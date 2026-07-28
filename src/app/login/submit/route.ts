@@ -2,11 +2,14 @@ import { getAuthorizationService } from "@/auth/authorization";
 import { getLocalePreferenceService } from "@/i18n/locale-preference";
 import { negotiateLocale } from "@/i18n/locales";
 import { getSessionService, SESSION_ABSOLUTE_MS } from "@/auth/session";
+import { getMfaChallengeService } from "@/auth/mfa-challenge";
+import { getTotpService } from "@/auth/totp-store";
 import { rejectCrossOrigin } from "@/app/origin-guard";
 import { relativeRedirect } from "@/app/relative-redirect";
 import { serverRequestRoutes, withServerRequestLog } from "@/observability/server-request-log";
 
 const cookieOptions = { httpOnly: true, sameSite: "lax" as const, secure: process.env.NODE_ENV === "production", path: "/", maxAge: SESSION_ABSOLUTE_MS / 1000 };
+const challengeCookieOptions = { httpOnly: true, sameSite: "lax" as const, secure: process.env.NODE_ENV === "production", path: "/", maxAge: 5 * 60 };
 
 export async function POST(request: Request) {
   return withServerRequestLog(request.headers.get("x-request-id"), { method: "POST", route: serverRequestRoutes.loginSubmit }, async () => {
@@ -20,6 +23,13 @@ export async function POST(request: Request) {
     const principal = await getAuthorizationService().resolve(token);
     if (!principal) return relativeRedirect("/login?error=invalid-credentials");
     await getLocalePreferenceService().resolve(principal.id, negotiateLocale(request.headers.get("accept-language")));
+    if (principal.role === "USER" && await getTotpService().isEnrolled(principal.id)) {
+      await session.logout(token);
+      const challengeToken = await getMfaChallengeService().create(principal.id);
+      const response = relativeRedirect("/login?mfa=required");
+      response.cookies.set("qr_mfa_challenge", challengeToken, challengeCookieOptions);
+      return response;
+    }
     const response = relativeRedirect("/");
     response.cookies.set("qr_session", token, cookieOptions);
     return response;

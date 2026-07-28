@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { hashPassword } from "./password";
 import { acquireUserSessionLock, createSessionService, SESSION_ABSOLUTE_MS, SESSION_IDLE_MS, type SessionStore } from "./session";
 
-type Row = { id: string; userId: string; tokenDigest: string; createdAt: Date; lastSeenAt: Date; absoluteExpiresAt: Date };
+type Row = { id: string; userId: string; tokenDigest: string; mfaVerifiedAt: Date | null; createdAt: Date; lastSeenAt: Date; absoluteExpiresAt: Date };
 
 function memoryStore(): SessionStore & { rows: Row[]; credentials: Map<string, { id: string; status: string; passwordHash: string }> } {
   const rows: Row[] = [];

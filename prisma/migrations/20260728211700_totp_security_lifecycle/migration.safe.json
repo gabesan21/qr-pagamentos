@@ -1,0 +1,506 @@
+{
+  "version": 1,
+  "id": "20260728211700_totp_security_lifecycle",
+  "operations": [
+    {
+      "op": "createTable",
+      "table": {
+        "schema": "app",
+        "name": "totp_credential"
+      },
+      "columns": [
+        {
+          "name": "user_id",
+          "type": {
+            "name": "uuid"
+          },
+          "nullable": false
+        },
+        {
+          "name": "encrypted_secret",
+          "type": {
+            "name": "text"
+          },
+          "nullable": false
+        },
+        {
+          "name": "confirmed_at",
+          "type": {
+            "name": "timestamptz"
+          },
+          "nullable": true
+        },
+        {
+          "name": "replay_counter",
+          "type": {
+            "name": "integer"
+          },
+          "nullable": false,
+          "default": {
+            "kind": "integer",
+            "value": 0
+          }
+        },
+        {
+          "name": "algorithm",
+          "type": {
+            "name": "varchar",
+            "length": 10
+          },
+          "nullable": false,
+          "default": {
+            "kind": "string",
+            "value": "SHA1"
+          }
+        },
+        {
+          "name": "digits",
+          "type": {
+            "name": "integer"
+          },
+          "nullable": false,
+          "default": {
+            "kind": "integer",
+            "value": 6
+          }
+        },
+        {
+          "name": "step_seconds",
+          "type": {
+            "name": "integer"
+          },
+          "nullable": false,
+          "default": {
+            "kind": "integer",
+            "value": 30
+          }
+        },
+        {
+          "name": "created_at",
+          "type": {
+            "name": "timestamptz"
+          },
+          "nullable": false
+        },
+        {
+          "name": "updated_at",
+          "type": {
+            "name": "timestamptz"
+          },
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "totp_credential"
+      },
+      "constraint": {
+        "kind": "primaryKey",
+        "name": "totp_credential_pkey",
+        "columns": [
+          "user_id"
+        ]
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "totp_credential"
+      },
+      "constraint": {
+        "kind": "foreignKey",
+        "name": "totp_credential_user_fkey",
+        "columns": [
+          "user_id"
+        ],
+        "references": {
+          "table": {
+            "schema": "app",
+            "name": "user"
+          },
+          "columns": [
+            "id"
+          ]
+        },
+        "onDelete": "CASCADE",
+        "onUpdate": "CASCADE",
+        "notValid": false
+      }
+    },
+    {
+      "op": "createTable",
+      "table": {
+        "schema": "app",
+        "name": "totp_recovery_code"
+      },
+      "columns": [
+        {
+          "name": "id",
+          "type": {
+            "name": "uuid"
+          },
+          "nullable": false
+        },
+        {
+          "name": "credential_id",
+          "type": {
+            "name": "uuid"
+          },
+          "nullable": false
+        },
+        {
+          "name": "code_digest",
+          "type": {
+            "name": "varchar",
+            "length": 64
+          },
+          "nullable": false
+        },
+        {
+          "name": "consumed_at",
+          "type": {
+            "name": "timestamptz"
+          },
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "type": {
+            "name": "timestamptz"
+          },
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "totp_recovery_code"
+      },
+      "constraint": {
+        "kind": "primaryKey",
+        "name": "totp_recovery_code_pkey",
+        "columns": [
+          "id"
+        ]
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "totp_recovery_code"
+      },
+      "constraint": {
+        "kind": "foreignKey",
+        "name": "totp_recovery_code_credential_fkey",
+        "columns": [
+          "credential_id"
+        ],
+        "references": {
+          "table": {
+            "schema": "app",
+            "name": "totp_credential"
+          },
+          "columns": [
+            "user_id"
+          ]
+        },
+        "onDelete": "CASCADE",
+        "onUpdate": "CASCADE",
+        "notValid": false
+      }
+    },
+    {
+      "op": "createIndex",
+      "name": "totp_recovery_code_credential_id_idx",
+      "table": {
+        "schema": "app",
+        "name": "totp_recovery_code"
+      },
+      "columns": [
+        "credential_id"
+      ],
+      "unique": false
+    },
+    {
+      "op": "createTable",
+      "table": {
+        "schema": "app",
+        "name": "totp_recovery_action"
+      },
+      "columns": [
+        {
+          "name": "id",
+          "type": {
+            "name": "uuid"
+          },
+          "nullable": false
+        },
+        {
+          "name": "actor_id",
+          "type": {
+            "name": "uuid"
+          },
+          "nullable": false
+        },
+        {
+          "name": "target_id",
+          "type": {
+            "name": "uuid"
+          },
+          "nullable": false
+        },
+        {
+          "name": "action",
+          "type": {
+            "name": "varchar",
+            "length": 16
+          },
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "type": {
+            "name": "timestamptz"
+          },
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "totp_recovery_action"
+      },
+      "constraint": {
+        "kind": "primaryKey",
+        "name": "totp_recovery_action_pkey",
+        "columns": [
+          "id"
+        ]
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "totp_recovery_action"
+      },
+      "constraint": {
+        "kind": "foreignKey",
+        "name": "totp_recovery_action_target_fkey",
+        "columns": [
+          "target_id"
+        ],
+        "references": {
+          "table": {
+            "schema": "app",
+            "name": "user"
+          },
+          "columns": [
+            "id"
+          ]
+        },
+        "onDelete": "RESTRICT",
+        "onUpdate": "CASCADE",
+        "notValid": false
+      }
+    },
+    {
+      "op": "createIndex",
+      "name": "totp_recovery_action_target_id_idx",
+      "table": {
+        "schema": "app",
+        "name": "totp_recovery_action"
+      },
+      "columns": [
+        "target_id"
+      ],
+      "unique": false
+    },
+    {
+      "op": "createTable",
+      "table": {
+        "schema": "app",
+        "name": "mfa_challenge"
+      },
+      "columns": [
+        {
+          "name": "id",
+          "type": {
+            "name": "uuid"
+          },
+          "nullable": false
+        },
+        {
+          "name": "user_id",
+          "type": {
+            "name": "uuid"
+          },
+          "nullable": false
+        },
+        {
+          "name": "token_digest",
+          "type": {
+            "name": "varchar",
+            "length": 64
+          },
+          "nullable": false
+        },
+        {
+          "name": "expires_at",
+          "type": {
+            "name": "timestamptz"
+          },
+          "nullable": false
+        },
+        {
+          "name": "used_at",
+          "type": {
+            "name": "timestamptz"
+          },
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "type": {
+            "name": "timestamptz"
+          },
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "mfa_challenge"
+      },
+      "constraint": {
+        "kind": "primaryKey",
+        "name": "mfa_challenge_pkey",
+        "columns": [
+          "id"
+        ]
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "mfa_challenge"
+      },
+      "constraint": {
+        "kind": "unique",
+        "name": "mfa_challenge_token_digest_key",
+        "columns": [
+          "token_digest"
+        ]
+      }
+    },
+    {
+      "op": "addConstraint",
+      "table": {
+        "schema": "app",
+        "name": "mfa_challenge"
+      },
+      "constraint": {
+        "kind": "foreignKey",
+        "name": "mfa_challenge_user_fkey",
+        "columns": [
+          "user_id"
+        ],
+        "references": {
+          "table": {
+            "schema": "app",
+            "name": "user"
+          },
+          "columns": [
+            "id"
+          ]
+        },
+        "onDelete": "CASCADE",
+        "onUpdate": "CASCADE",
+        "notValid": false
+      }
+    },
+    {
+      "op": "createIndex",
+      "name": "mfa_challenge_user_created_at_idx",
+      "table": {
+        "schema": "app",
+        "name": "mfa_challenge"
+      },
+      "columns": [
+        "user_id",
+        "created_at"
+      ],
+      "unique": false
+    },
+    {
+      "op": "grant",
+      "object": {
+        "kind": "table",
+        "schema": "app",
+        "name": "totp_credential"
+      },
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "role": "qr_runtime"
+    },
+    {
+      "op": "grant",
+      "object": {
+        "kind": "table",
+        "schema": "app",
+        "name": "totp_recovery_code"
+      },
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "role": "qr_runtime"
+    },
+    {
+      "op": "grant",
+      "object": {
+        "kind": "table",
+        "schema": "app",
+        "name": "totp_recovery_action"
+      },
+      "privileges": [
+        "SELECT",
+        "INSERT"
+      ],
+      "role": "qr_runtime"
+    },
+    {
+      "op": "grant",
+      "object": {
+        "kind": "table",
+        "schema": "app",
+        "name": "mfa_challenge"
+      },
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "role": "qr_runtime"
+    }
+  ]
+}

@@ -147,3 +147,12 @@ BEGIN
   END IF;
 END
 $system_settings_acl$;
+
+DO $totp_recovery_action_acl$
+BEGIN
+  IF to_regclass('app.totp_recovery_action') IS NOT NULL THEN
+    REVOKE ALL PRIVILEGES ON TABLE app.totp_recovery_action FROM qr_runtime;
+    GRANT SELECT, INSERT ON TABLE app.totp_recovery_action TO qr_runtime;
+  END IF;
+END
+$totp_recovery_action_acl$;

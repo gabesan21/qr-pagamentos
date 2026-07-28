@@ -1,12 +1,17 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 
-const { signIn, resolvePrincipal, resolveLocale } = vi.hoisted(() => ({ signIn: vi.fn(), resolvePrincipal: vi.fn(), resolveLocale: vi.fn() }));
-vi.mock("@/auth/session", () => ({ getSessionService: () => ({ signIn }), SESSION_ABSOLUTE_MS: 3_600_000 }));
+const { signIn, resolvePrincipal, resolveLocale, logout, createMfaVerified } = vi.hoisted(() => ({ signIn: vi.fn(), resolvePrincipal: vi.fn(), resolveLocale: vi.fn(), logout: vi.fn(), createMfaVerified: vi.fn() }));
+beforeEach(() => vi.resetAllMocks());
+const isEnrolled = vi.hoisted(() => vi.fn());
+const createChallenge = vi.hoisted(() => vi.fn());
+vi.mock("@/auth/session", () => ({ getSessionService: () => ({ signIn, logout, createMfaVerified }), SESSION_ABSOLUTE_MS: 3_600_000 }));
 vi.mock("@/auth/authorization", () => ({ getAuthorizationService: () => ({ resolve: resolvePrincipal }) }));
 vi.mock("@/i18n/locale-preference", () => ({ getLocalePreferenceService: () => ({ resolve: resolveLocale }) }));
 vi.mock("@/i18n/locales", () => ({ negotiateLocale: () => "en" }));
+vi.mock("@/auth/totp-store", () => ({ getTotpService: () => ({ isEnrolled }) }));
+vi.mock("@/auth/mfa-challenge", () => ({ getMfaChallengeService: () => ({ create: createChallenge }) }));
 
 import { POST } from "./route";
 
@@ -27,12 +32,27 @@ describe("owner login submit route", () => {
 
   it("signs in same-origin posts and sets the session cookie", async () => {
     signIn.mockResolvedValueOnce("opaque-token");
-    resolvePrincipal.mockResolvedValueOnce({ id: "owner" });
+    resolvePrincipal.mockResolvedValueOnce({ id: "owner", role: "USER" });
     resolveLocale.mockResolvedValueOnce(undefined);
+    isEnrolled.mockResolvedValueOnce(false);
     const response = await POST(request());
     expect(signIn).toHaveBeenCalledWith("owner", "correct horse battery staple");
     expect(response.status).toBe(303);
     expect(response.headers.get("location")).toBe("/");
     expect(response.headers.get("set-cookie")).toContain("qr_session=opaque-token");
+  });
+
+  it("issues an MFA challenge when TOTP is active", async () => {
+    signIn.mockResolvedValueOnce("opaque-token");
+    resolvePrincipal.mockResolvedValueOnce({ id: "owner", role: "USER" });
+    resolveLocale.mockResolvedValueOnce(undefined);
+    isEnrolled.mockResolvedValueOnce(true);
+    createChallenge.mockResolvedValueOnce("challenge-token");
+    const response = await POST(request());
+    expect(logout).toHaveBeenCalledWith("opaque-token");
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toBe("/login?mfa=required");
+    expect(response.headers.get("set-cookie")).toContain("qr_mfa_challenge=challenge-token");
+    expect(response.headers.get("set-cookie")).not.toContain("qr_session=");
   });
 });

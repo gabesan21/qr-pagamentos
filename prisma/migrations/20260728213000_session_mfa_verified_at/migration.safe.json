@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "id": "20260728213000_session_mfa_verified_at",
+  "operations": [
+    {
+      "op": "addColumn",
+      "table": {
+        "schema": "app",
+        "name": "session"
+      },
+      "column": {
+        "name": "mfa_verified_at",
+        "type": {
+          "name": "timestamptz"
+        },
+        "nullable": true
+      }
+    }
+  ]
+}

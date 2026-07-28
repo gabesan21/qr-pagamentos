@@ -424,6 +424,7 @@ try {
     { column_name: "created_at", data_type: "timestamp with time zone", udt_name: "timestamptz", is_nullable: "NO" },
     { column_name: "last_seen_at", data_type: "timestamp with time zone", udt_name: "timestamptz", is_nullable: "NO" },
     { column_name: "absolute_expires_at", data_type: "timestamp with time zone", udt_name: "timestamptz", is_nullable: "NO" },
+    { column_name: "mfa_verified_at", data_type: "timestamp with time zone", udt_name: "timestamptz", is_nullable: "YES" },
   ]), "Session columns differ from the contract");
   const sessionDigest = "a".repeat(64);
   await runtime.query(`INSERT INTO app.session (user_id, token_digest, absolute_expires_at) VALUES ($1, $2, CURRENT_TIMESTAMP + INTERVAL '12 hours')`, [thirdUserId, sessionDigest]);

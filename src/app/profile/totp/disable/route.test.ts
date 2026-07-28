@@ -1,0 +1,61 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+vi.mock("server-only", () => ({}));
+
+const requireOwner = vi.hoisted(() => vi.fn());
+beforeEach(() => vi.resetAllMocks());
+const verifyPassword = vi.hoisted(() => vi.fn());
+const validate = vi.hoisted(() => vi.fn());
+const validateRecovery = vi.hoisted(() => vi.fn());
+const disable = vi.hoisted(() => vi.fn());
+vi.mock("@/app/owner-guard", () => ({ requireOwnerFromCookie: requireOwner, ownerProtectedMutationResponse: (error: unknown) => (error instanceof Error && error.message === "unauthenticated") ? new Response(null, { status: 401 }) : null }));
+vi.mock("@/auth/password-verification", () => ({ verifyCurrentPassword: verifyPassword }));
+vi.mock("@/auth/totp-store", () => ({ getTotpService: () => ({ validate, validateWithRecoveryCode: validateRecovery, disable }) }));
+
+import { POST } from "./route";
+
+const sameOrigin = { origin: "http://local", host: "local" };
+const request = (currentPassword = "correct", code = "123456") =>
+  new Request("http://local/profile/totp/disable", { method: "POST", headers: sameOrigin, body: new URLSearchParams({ currentPassword, code }) });
+
+describe("profile TOTP disable route", () => {
+  it("disables with a valid TOTP code", async () => {
+    requireOwner.mockResolvedValueOnce({ id: "user-1" });
+    verifyPassword.mockResolvedValueOnce(true);
+    validate.mockResolvedValueOnce(true);
+    validateRecovery.mockResolvedValueOnce(false);
+    disable.mockResolvedValueOnce(undefined);
+    const response = await POST(request());
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toBe("/profile?totp=disabled");
+  });
+
+  it("disables with a valid recovery code", async () => {
+    requireOwner.mockResolvedValueOnce({ id: "user-1" });
+    verifyPassword.mockResolvedValueOnce(true);
+    validate.mockResolvedValueOnce(false);
+    validateRecovery.mockResolvedValueOnce(true);
+    disable.mockResolvedValueOnce(undefined);
+    const response = await POST(request());
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toBe("/profile?totp=disabled");
+  });
+
+  it("redirects to failed on bad password", async () => {
+    requireOwner.mockResolvedValueOnce({ id: "user-1" });
+    verifyPassword.mockResolvedValueOnce(false);
+    const response = await POST(request());
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toBe("/profile?totp=failed");
+  });
+
+  it("redirects to failed when neither code is valid", async () => {
+    requireOwner.mockResolvedValueOnce({ id: "user-1" });
+    verifyPassword.mockResolvedValueOnce(true);
+    validate.mockResolvedValueOnce(false);
+    validateRecovery.mockResolvedValueOnce(false);
+    const response = await POST(request());
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toBe("/profile?totp=failed");
+  });
+});

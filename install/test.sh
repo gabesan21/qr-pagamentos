@@ -24,6 +24,7 @@ SMTP_PASSWORD=reserved-smtp-password
 SMTP_FROM=noreply@example.com
 SMTP_TLS_MODE=starttls
 PUBLIC_ORIGIN=https://payments.example.com
+TOTP_ENCRYPTION_KEY=
 EOF
 chmod 0600 "$TMP/install.env"
 
@@ -49,9 +50,11 @@ expect_absent "$INSTALL_DIR/install.sh" 'curl '
 expect_absent "$INSTALL_DIR/install.sh" 'SUDO'
 expect_absent "$INSTALL_DIR/uninstall.sh" 'SUDO'
 
-# Nautt encryption key generation/validation path
+# Encryption key generation/validation paths
 expect_contains "$INSTALL_DIR/install.sh" 'NAUTT_ENCRYPTION_KEY'
 expect_contains "$output" 'nautt_encryption_key'
+expect_contains "$INSTALL_DIR/install.sh" 'TOTP_ENCRYPTION_KEY'
+expect_contains "$output" 'totp_encryption_key'
 valid_nautt_key=$(node -e 'process.stdout.write(Buffer.alloc(32, 248).toString("base64url"))')
 [[ ${#valid_nautt_key} -ge 32 ]] || fail 'generated Nautt key is unexpectedly short'
 [[ $valid_nautt_key == -* ]] || fail 'leading-hyphen Nautt key regression fixture changed'
@@ -73,6 +76,7 @@ SMTP_PASSWORD=reserved-smtp-password
 SMTP_FROM=noreply@example.com
 SMTP_TLS_MODE=starttls
 PUBLIC_ORIGIN=https://payments.example.com
+TOTP_ENCRYPTION_KEY=$valid_nautt_key
 EOF
 chmod 0600 "$TMP/nautt-valid.env"
 nautt_valid_out=$TMP/nautt-valid.out
@@ -326,15 +330,18 @@ prepare_update_runtime() {
     printf '%s' "source-$secret" > "$root/.install-secrets/$secret"; chmod 0600 "$root/.install-secrets/$secret"
   done
   printf '%s' "$update_key" > "$root/.install-secrets/nautt_encryption_key"; chmod 0600 "$root/.install-secrets/nautt_encryption_key"
+  printf '%s' "$update_key" > "$root/.install-secrets/totp_encryption_key"; chmod 0600 "$root/.install-secrets/totp_encryption_key"
   for secret in admin_password migrator_password runtime_password initial_admin_username initial_admin_email initial_admin_password; do
     source_name=$secret
     [[ $secret == admin_password ]] && source_name=postgres_admin_password
     printf '%s' "source-$source_name" > "$root/.container-secrets/$secret"; chmod 0400 "$root/.container-secrets/$secret"
   done
   printf '%s' "$update_key" > "$root/.container-secrets/nautt_encryption_key"; chmod 0400 "$root/.container-secrets/nautt_encryption_key"
+  printf '%s' "$update_key" > "$root/.container-secrets/totp_encryption_key"; chmod 0400 "$root/.container-secrets/totp_encryption_key"
   cat > "$root/install/.env" <<EOF
 APP_PORT=33013
 NAUTT_ENCRYPTION_KEY=$update_key
+TOTP_ENCRYPTION_KEY=$update_key
 NAUTT_WEBHOOK_CALLBACK_URL=https://payments.example.com/api/nautt/webhooks
 EOF
   chmod 0600 "$root/install/.env"

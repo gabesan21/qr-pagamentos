@@ -143,6 +143,7 @@ This section pins the durable business definitions behind the global administrat
 
 ## Related specs
 
+- [[specs/identity-security|Identity security]] - follow for TOTP MFA lifecycle, recovery codes, and administrator recovery policy deferred to Epoch 11.
 - [[specs/administrative-design-system|Administrative design system]] - follow when changing the shared shadcn sources, visual tokens, typography, component states, or browser evidence for Epoch 1 surfaces.
 - [[specs/product-scope|Product scope]] - follow when an administrative decision changes the MVP boundary.
 - [`AGENTS.md`](../AGENTS.md) - follow before changing the root application structure or DOX contracts.
