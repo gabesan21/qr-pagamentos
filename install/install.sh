@@ -52,12 +52,12 @@ load_install_env() {
     key=${line%%=*}
     value=$(strip_quotes "${line#*=}")
     case "$key" in
-      APP_PORT|POSTGRES_ADMIN_PASSWORD|MIGRATOR_PASSWORD|RUNTIME_PASSWORD|INITIAL_ADMIN_USERNAME|INITIAL_ADMIN_EMAIL|NAUTT_ENCRYPTION_KEY|NAUTT_WEBHOOK_CALLBACK_URL|NAUTT_API_BASE_URL)
+      APP_PORT|POSTGRES_ADMIN_PASSWORD|MIGRATOR_PASSWORD|RUNTIME_PASSWORD|INITIAL_ADMIN_USERNAME|INITIAL_ADMIN_EMAIL|NAUTT_ENCRYPTION_KEY|NAUTT_WEBHOOK_CALLBACK_URL|NAUTT_API_BASE_URL|SMTP_HOST|SMTP_PORT|SMTP_USER|SMTP_PASSWORD|SMTP_FROM|SMTP_TLS_MODE|PUBLIC_ORIGIN)
         printf -v "$key" '%s' "$value" ;;
       *) die "unsupported variable in $ENV_FILE: $key" ;;
     esac
   done < "$ENV_FILE"
-  for key in APP_PORT POSTGRES_ADMIN_PASSWORD MIGRATOR_PASSWORD RUNTIME_PASSWORD INITIAL_ADMIN_USERNAME NAUTT_WEBHOOK_CALLBACK_URL; do
+  for key in APP_PORT POSTGRES_ADMIN_PASSWORD MIGRATOR_PASSWORD RUNTIME_PASSWORD INITIAL_ADMIN_USERNAME NAUTT_WEBHOOK_CALLBACK_URL SMTP_HOST SMTP_PORT SMTP_USER SMTP_PASSWORD SMTP_FROM SMTP_TLS_MODE PUBLIC_ORIGIN; do
     [[ -n ${!key:-} ]] || die "required variable is missing: $key"
   done
   [[ $APP_PORT =~ ^[1-9][0-9]{0,4}$ ]] && ((10#$APP_PORT <= 65535)) || die 'APP_PORT must be between 1 and 65535'
@@ -110,7 +110,14 @@ write_secret_sources() {
   for entry in \
     "POSTGRES_ADMIN_PASSWORD:postgres_admin_password" \
     "MIGRATOR_PASSWORD:migrator_password" \
-    "RUNTIME_PASSWORD:runtime_password"; do
+    "RUNTIME_PASSWORD:runtime_password" \
+    "SMTP_HOST:smtp_host" \
+    "SMTP_PORT:smtp_port" \
+    "SMTP_USER:smtp_user" \
+    "SMTP_PASSWORD:smtp_password" \
+    "SMTP_FROM:smtp_from" \
+    "SMTP_TLS_MODE:smtp_tls_mode" \
+    "PUBLIC_ORIGIN:public_origin"; do
     variable=${entry%%:*}; target=${entry#*:}
     if "$DRY_RUN"; then
       printf 'DRY-RUN create protected secret %s/%s mode 0600\n' "$source_dir" "$target"
@@ -122,6 +129,13 @@ write_secret_sources() {
   POSTGRES_ADMIN_PASSWORD_FILE=$source_dir/postgres_admin_password
   MIGRATOR_PASSWORD_FILE=$source_dir/migrator_password
   RUNTIME_PASSWORD_FILE=$source_dir/runtime_password
+  SMTP_HOST_FILE=$source_dir/smtp_host
+  SMTP_PORT_FILE=$source_dir/smtp_port
+  SMTP_USER_FILE=$source_dir/smtp_user
+  SMTP_PASSWORD_FILE=$source_dir/smtp_password
+  SMTP_FROM_FILE=$source_dir/smtp_from
+  SMTP_TLS_MODE_FILE=$source_dir/smtp_tls_mode
+  PUBLIC_ORIGIN_FILE=$source_dir/public_origin
 }
 
 run_node_helper() {
@@ -169,7 +183,14 @@ stage_secrets() {
     "NAUTT_ENCRYPTION_KEY_FILE:nautt_encryption_key" \
     "INITIAL_ADMIN_USERNAME_FILE:initial_admin_username" \
     "INITIAL_ADMIN_EMAIL_FILE:initial_admin_email" \
-    "INITIAL_ADMIN_PASSWORD_FILE:initial_admin_password"; do
+    "INITIAL_ADMIN_PASSWORD_FILE:initial_admin_password" \
+    "SMTP_HOST_FILE:smtp_host" \
+    "SMTP_PORT_FILE:smtp_port" \
+    "SMTP_USER_FILE:smtp_user" \
+    "SMTP_PASSWORD_FILE:smtp_password" \
+    "SMTP_FROM_FILE:smtp_from" \
+    "SMTP_TLS_MODE_FILE:smtp_tls_mode" \
+    "PUBLIC_ORIGIN_FILE:public_origin"; do
     variable=${entry%%:*}
     source=${!variable}
     target=${entry#*:}
@@ -280,6 +301,9 @@ if [[ -n ${NAUTT_API_BASE_URL:-} ]]; then
     die 'NAUTT_API_BASE_URL must be an absolute HTTPS URL without credentials or a fragment'
   fi
 fi
+if ! run_node_helper -e 'const u = new URL(process.argv[1]); process.exit(u.protocol === "https:" && !u.username && !u.password && !u.hash ? 0 : 1)' "$PUBLIC_ORIGIN" >/dev/null 2>&1; then
+  die 'PUBLIC_ORIGIN must be an absolute HTTPS URL without credentials or a fragment'
+fi
 [[ $POSTGRES_ADMIN_PASSWORD != "$MIGRATOR_PASSWORD" && $POSTGRES_ADMIN_PASSWORD != "$RUNTIME_PASSWORD" && $MIGRATOR_PASSWORD != "$RUNTIME_PASSWORD" ]] || die 'passwords must be distinct'
 retained=false
 if ! "$DRY_RUN" && docker volume inspect "${PROJECT}_postgres-data" >/dev/null 2>&1; then
@@ -294,6 +318,24 @@ if ! "$DRY_RUN" && docker volume inspect "${PROJECT}_postgres-data" >/dev/null 2
   INITIAL_ADMIN_EMAIL_FILE=$ROOT_DIR/.install-secrets/initial_admin_email
   INITIAL_ADMIN_PASSWORD_FILE=$ROOT_DIR/.install-secrets/initial_admin_password
   STAGED_SECRETS_DIR=$ROOT_DIR/.container-secrets
+  # Ensure new SMTP/public-origin source files exist when upgrading a retained deployment.
+  for entry in \
+    "SMTP_HOST:smtp_host" \
+    "SMTP_PORT:smtp_port" \
+    "SMTP_USER:smtp_user" \
+    "SMTP_PASSWORD:smtp_password" \
+    "SMTP_FROM:smtp_from" \
+    "SMTP_TLS_MODE:smtp_tls_mode" \
+    "PUBLIC_ORIGIN:public_origin"; do
+    variable=${entry%%:*}; target=${entry#*:}
+    file_path="$ROOT_DIR/.install-secrets/$target"
+    if [[ ! -f $file_path ]]; then
+      (umask 077; printf '%s' "${!variable}" > "$file_path")
+      chmod 0600 "$file_path"
+    fi
+    printf -v "${variable}_FILE" '%s' "$file_path"
+  done
+  stage_secrets
   # Default uninstall removes the private network and database container. Recreate
   # only that retained-data boundary before no-output role authentication.
   compose up -d db

@@ -10,6 +10,13 @@ const names = {
   INITIAL_ADMIN_USERNAME_FILE: "initial_admin_username",
   INITIAL_ADMIN_EMAIL_FILE: "initial_admin_email",
   INITIAL_ADMIN_PASSWORD_FILE: "initial_admin_password",
+  SMTP_HOST_FILE: "smtp_host",
+  SMTP_PORT_FILE: "smtp_port",
+  SMTP_USER_FILE: "smtp_user",
+  SMTP_PASSWORD_FILE: "smtp_password",
+  SMTP_FROM_FILE: "smtp_from",
+  SMTP_TLS_MODE_FILE: "smtp_tls_mode",
+  PUBLIC_ORIGIN_FILE: "public_origin",
 };
 
 function fail(message) { throw new Error(message); }

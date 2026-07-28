@@ -107,11 +107,32 @@ services:
       POSTGRES_PORT: ${POSTGRES_PORT:-5433}
       NAUTT_WEBHOOK_CALLBACK_URL: ${NAUTT_WEBHOOK_CALLBACK_URL:?set NAUTT_WEBHOOK_CALLBACK_URL}
       NAUTT_API_BASE_URL: ${NAUTT_API_BASE_URL:-https://api.nauttfinance.com/api/v2}
+      SMTP_HOST_FILE: /run/secrets/smtp_host
+      SMTP_PORT_FILE: /run/secrets/smtp_port
+      SMTP_USER_FILE: /run/secrets/smtp_user
+      SMTP_PASSWORD_FILE: /run/secrets/smtp_password
+      SMTP_FROM_FILE: /run/secrets/smtp_from
+      SMTP_TLS_MODE_FILE: /run/secrets/smtp_tls_mode
+      PUBLIC_ORIGIN_FILE: /run/secrets/public_origin
     secrets:
       - source: runtime_password
         target: runtime_password
       - source: nautt_encryption_key
         target: nautt_encryption_key
+      - source: smtp_host
+        target: smtp_host
+      - source: smtp_port
+        target: smtp_port
+      - source: smtp_user
+        target: smtp_user
+      - source: smtp_password
+        target: smtp_password
+      - source: smtp_from
+        target: smtp_from
+      - source: smtp_tls_mode
+        target: smtp_tls_mode
+      - source: public_origin
+        target: public_origin
     networks:
       - database
       - edge
@@ -149,3 +170,17 @@ secrets:
     file: ${STAGED_SECRETS_DIR:-.container-secrets}/initial_admin_password
   nautt_encryption_key:
     file: ${STAGED_SECRETS_DIR:-.container-secrets}/nautt_encryption_key
+  smtp_host:
+    file: ${STAGED_SECRETS_DIR:-.container-secrets}/smtp_host
+  smtp_port:
+    file: ${STAGED_SECRETS_DIR:-.container-secrets}/smtp_port
+  smtp_user:
+    file: ${STAGED_SECRETS_DIR:-.container-secrets}/smtp_user
+  smtp_password:
+    file: ${STAGED_SECRETS_DIR:-.container-secrets}/smtp_password
+  smtp_from:
+    file: ${STAGED_SECRETS_DIR:-.container-secrets}/smtp_from
+  smtp_tls_mode:
+    file: ${STAGED_SECRETS_DIR:-.container-secrets}/smtp_tls_mode
+  public_origin:
+    file: ${STAGED_SECRETS_DIR:-.container-secrets}/public_origin
