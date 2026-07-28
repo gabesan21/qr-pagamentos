@@ -42,7 +42,7 @@ function mapCredential(row: {
   userId: string;
   encryptedSecret: string;
   confirmedAt: Date | null;
-  replayCounter: bigint;
+  replayCounter: number;
   algorithm: string;
   digits: number;
   stepSeconds: number;
@@ -51,7 +51,7 @@ function mapCredential(row: {
     userId: row.userId,
     encryptedSecret: row.encryptedSecret,
     confirmedAt: row.confirmedAt,
-    replayCounter: Number(row.replayCounter),
+    replayCounter: row.replayCounter,
     algorithm: row.algorithm,
     digits: row.digits,
     stepSeconds: row.stepSeconds,
@@ -101,7 +101,7 @@ export function createPrismaAdminTotpRecoveryStore(db: ReturnType<typeof getData
     async updateReplayCounter(userId, counter, now) {
       await db.totpCredential.updateMany({
         where: { userId },
-        data: { replayCounter: BigInt(counter), updatedAt: now },
+        data: { replayCounter: counter, updatedAt: now },
       });
     },
     async consumeRecoveryCode(id, consumedAt) {

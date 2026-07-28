@@ -28,7 +28,8 @@ async function main() {
   }
   console.log("PASS runtime-db-preflight");
   const nauttEncryptionKey = await readSecret("/run/secrets/nautt_encryption_key");
-  const env = { ...process.env, DATABASE_URL: applicationUrl, NAUTT_ENCRYPTION_KEY: nauttEncryptionKey, NAUTT_WEBHOOK_CALLBACK_URL: callbackUrl.toString() };
+  const totpEncryptionKey = await readSecret("/run/secrets/totp_encryption_key");
+  const env = { ...process.env, DATABASE_URL: applicationUrl, NAUTT_ENCRYPTION_KEY: nauttEncryptionKey, TOTP_ENCRYPTION_KEY: totpEncryptionKey, NAUTT_WEBHOOK_CALLBACK_URL: callbackUrl.toString() };
   delete env.MIGRATION_DATABASE_URL;
   const child = spawn(process.execPath, ["server.js"], { env, stdio: "inherit", shell: false });
   child.once("error", (error) => safeFailure("application", error));

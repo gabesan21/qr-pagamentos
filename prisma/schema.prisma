@@ -720,7 +720,7 @@ model TotpCredential {
   userId          String   @id @map("user_id") @db.Uuid
   encryptedSecret String   @map("encrypted_secret") @db.Text
   confirmedAt     DateTime? @map("confirmed_at") @db.Timestamptz(3)
-  replayCounter   BigInt   @default(0) @map("replay_counter") @db.BigInt
+  replayCounter   Int      @default(0) @map("replay_counter") @db.Integer
   algorithm       String   @default("SHA1") @map("algorithm") @db.VarChar(10)
   digits          Int      @default(6) @map("digits") @db.Integer
   stepSeconds     Int      @default(30) @map("step_seconds") @db.Integer

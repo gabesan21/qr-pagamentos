@@ -1,4 +1,4 @@
-import { createHmac, randomBytes } from "node:crypto";
+import { createHash, createHmac, randomBytes } from "node:crypto";
 
 export class TotpValidationError extends Error {}
 export class TotpConflictError extends Error {}
@@ -119,7 +119,7 @@ function provisioningUri(username: string, secret: string, issuer: string): stri
 }
 
 function digest(value: string): string {
-  return createHmac("sha256", Buffer.alloc(0)).update(value).digest("hex");
+  return createHash("sha256").update(value).digest("hex");
 }
 
 export function createTotpService(
@@ -136,7 +136,7 @@ export function createTotpService(
     const now = clock();
     return Array.from({ length: RECOVERY_CODE_COUNT }, () => {
       const plaintext = randomBytes(RECOVERY_CODE_BYTES).toString("hex");
-      return { plaintext, codeDigest: createHmac("sha256", Buffer.alloc(0)).update(plaintext).digest("hex"), id: cryptoRandomUuid(), createdAt: now };
+      return { plaintext, codeDigest: createHash("sha256").update(plaintext).digest("hex"), id: cryptoRandomUuid(), createdAt: now };
     });
   }
 
