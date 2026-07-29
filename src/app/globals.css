@@ -338,6 +338,7 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-text-secondary: var(--text-secondary);
 }
 
 :root[data-theme="cashier-daylight"] {
@@ -481,6 +482,7 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-text-secondary: var(--text-secondary);
 }
 
 :root[data-theme="settlement-sand"] {
@@ -624,6 +626,7 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-text-secondary: var(--text-secondary);
 }
 
 :root[data-theme="midnight-clearing"] {
@@ -767,6 +770,7 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-text-secondary: var(--text-secondary);
 }
 
 :root[data-theme="vault-blue"] {
@@ -910,6 +914,7 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-text-secondary: var(--text-secondary);
 }
 
 :root[data-theme="terminal-amber"] {
@@ -1053,6 +1058,7 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-text-secondary: var(--text-secondary);
 }
 
 @media (prefers-reduced-motion: reduce) {

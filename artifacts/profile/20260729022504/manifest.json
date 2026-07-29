@@ -1,0 +1,282 @@
+{
+  "version": 1,
+  "runId": "20260729022504",
+  "startedAt": "2026-07-29T02:25:04.677Z",
+  "gitHead": "261fdf3b5ed8c746883945e2b6e6ad962b5c78da",
+  "baseCaptureCount": 36,
+  "interactionCaptureCount": 14,
+  "totalPngCount": 50,
+  "assertions": "artifacts/profile/20260729022504/assertions.json",
+  "assertionsSha256": "27a9c1f7083bbbf3f6b55642dd474b9c27cbcf4d7ca03921f1f056abad778302",
+  "captures": [
+    {
+      "path": "artifacts/profile/20260729022504/default-pix-paper-pt-BR-375.png",
+      "bytes": 55493,
+      "sha256": "b1aa8e4db7c2d20574ec3cd3a3688d26fc7b310973b7d2b3831296f6fea448c2"
+    },
+    {
+      "path": "artifacts/profile/20260729022504/default-pix-paper-pt-BR-768.png",
+      "bytes": 61524,
+      "sha256": "5e9bff83584b29f1edf88ab779616bbad57c67b4a6c5b5389e0414d762111b2d"
+    },
+    {
+      "path": "artifacts/profile/20260729022504/default-pix-paper-pt-BR-1440.png",
+      "bytes": 73784,
+      "sha256": "f4323a80645ff91df755739f935b095dfd11a1f09d3df0dc99eb7364a44631b9"
+    },
+    {
+      "path": "artifacts/profile/20260729022504/default-cashier-daylight-pt-BR-375.png",
+      "bytes": 56657,
+      "sha256": "0b25f73d4d1ce97ae0c3ea762932db9afdc34ae7241606c13580ef23f7e20f19"
+    },
+    {
+      "path": "artifacts/profile/20260729022504/default-cashier-daylight-pt-BR-768.png",
+      "bytes": 62064,
+      "sha256": "d232f628d9bfc697bdbe0165a40e0f35344288b4c66415b0888fe818dff4851e"
+    },
+    {
+      "path": "artifacts/profile/20260729022504/default-cashier-daylight-pt-BR-1440.png",
+      "bytes": 74283,
+      "sha256": "86ce16c0a604e3256a83c91e71739ca55fbacb9a73ae916d96bf39e194da061b"
+    },
+    {
+      "path": "artifacts/profile/20260729022504/default-settlement-sand-pt-BR-375.png",
+      "bytes": 56997,
+      "sha256": "37cfd701468a7b6cfa42efd09003a36f4d11e32e51dc038c6680dcb78b13d1dd"
+    },
+    {
+      "path": "artifacts/profile/20260729022504/default-settlement-sand-pt-BR-768.png",
+      "bytes": 62360,
+      "sha256": "eb90dc11aee9005dc755a3ee9bc58a67246582e6f791d65c3aa55ed5ce668312"
+    },
+    {
+      "path": "artifacts/profile/20260729022504/default-settlement-sand-pt-BR-1440.png",
+      "bytes": 74450,
+      "sha256": "26147cb25f4f1a8abf410d096cbee1876fe5c363e34a6b339e97f97edfe0302d"
+    },
+    {
+      "path": "artifacts/profile/20260729022504/default-midnight-clearing-pt-BR-375.png",
+      "bytes": 58612,
+      "sha256": "f9058145c77ed6154e138593f5f6ae0ad0f16f45c14d8d7dac9238f16669113d"
+    },
+    {
+      "path": "artifacts/profile/20260729022504/default-midnight-clearing-pt-BR-768.png",
+      "bytes": 62894,
+      "sha256": "d882e72a4e91eeef176f08298d86379d2b51a25b3eb249b4fa084c5218987926"
+    },
+    {
+      "path": "artifacts/profile/20260729022504/default-midnight-clearing-pt-BR-1440.png",
+      "bytes": 74777,
+      "sha256": "35c6a09c7d1ce814c9be9730736b81df14ca935a2eaf6fb8c4259dd854a598ba"
+    },
+    {
+      "path": "artifacts/profile/20260729022504/default-vault-blue-pt-BR-375.png",
+      "bytes": 59244,
+      "sha256": "884e20e393e05ce0b7ef0f302b5ef279a201b50322e05e583be9fecea86a247a"
+    },
+    {
+      "path": "artifacts/profile/20260729022504/default-vault-blue-pt-BR-768.png",
+      "bytes": 63636,
+      "sha256": "53961d0a15374bc8869d5b4a29049af786e340aa3173b0547520094b7faecd8d"
+    },
+    {
+      "path": "artifacts/profile/20260729022504/default-vault-blue-pt-BR-1440.png",
+      "bytes": 75377,
+      "sha256": "dc922cb4a2e7dc879365eea5ab4501c96118ca340d9416927398657322e2424a"
+    },
+    {
+      "path": "artifacts/profile/20260729022504/default-terminal-amber-pt-BR-375.png",
+      "bytes": 58425,
+      "sha256": "c047cb224984e596c8e2a2d02767c6dd08763e8894f46e309397abdbe9d4b453"
+    },
+    {
+      "path": "artifacts/profile/20260729022504/default-terminal-amber-pt-BR-768.png",
+      "bytes": 63630,
+      "sha256": "4daa4ce4981a20fcb452055405e37ab824ad42888e82eaa6d8c7e06d0a46c314"
+    },
+    {
+      "path": "artifacts/profile/20260729022504/default-terminal-amber-pt-BR-1440.png",
+      "bytes": 75480,
+      "sha256": "56bf147951a03969631f5a371cce4cceb6dabc4c678504bc4c1f181e72cc41d0"
+    },
+    {
+      "path": "artifacts/profile/20260729022504/interaction-pt-BR-identity-changed.png",
+      "bytes": 58446,
+      "sha256": "2042a3246e106b48903786e7f95ce1c99b1cfcd2345cf53e90a13e7ff519068e"
+    },
+    {
+      "path": "artifacts/profile/20260729022504/interaction-pt-BR-identity-conflict.png",
+      "bytes": 59224,
+      "sha256": "586beb4dd1e817dacd4367361ebc9fcbd13eef5475647847f12bd211af19c8cc"
+    },
+    {
+      "path": "artifacts/profile/20260729022504/interaction-pt-BR-identity-failed.png",
+      "bytes": 59159,
+      "sha256": "2ab8d0b51a77adc65bfac42c0c6a5e3093658b7d13d4c510ed45f39d5b7c02e1"
+    },
+    {
+      "path": "artifacts/profile/20260729022504/interaction-pt-BR-identity-pending.png",
+      "bytes": 57929,
+      "sha256": "2d41fd92aad774108e83139e41e00334b84d835d73965891f96f2edf437d6022"
+    },
+    {
+      "path": "artifacts/profile/20260729022504/interaction-pt-BR-password-failed.png",
+      "bytes": 57366,
+      "sha256": "c5a6b4269f43c3a16573b692be35689ef3a1d872a916ee848ec05ce87b753495"
+    },
+    {
+      "path": "artifacts/profile/20260729022504/interaction-pt-BR-password-pending.png",
+      "bytes": 54350,
+      "sha256": "130ddc5891c0ce5e26cfbacfde6d2bf2a6eed217bde4fad192a2e423a62878dd"
+    },
+    {
+      "path": "artifacts/profile/20260729022504/interaction-pt-BR-password-changed-login.png",
+      "bytes": 17049,
+      "sha256": "e1038062395a21c3758a2d4c1c8aa78738401599275a8bb65800502820483f43"
+    },
+    {
+      "path": "artifacts/profile/20260729022504/default-pix-paper-en-375.png",
+      "bytes": 57248,
+      "sha256": "63975183407cb842db7b1a0daddfa5e3a61020a46b0e7beb53646b5452fbd589"
+    },
+    {
+      "path": "artifacts/profile/20260729022504/default-pix-paper-en-768.png",
+      "bytes": 62240,
+      "sha256": "3c45665db0c4e57129fca0bbb610e0e5cffafd1ab60787ab066e91a5ccf25539"
+    },
+    {
+      "path": "artifacts/profile/20260729022504/default-pix-paper-en-1440.png",
+      "bytes": 75351,
+      "sha256": "d98dda9ff6c0d4d75a0f62bdcbf76a1d884f45f078228732069f2011403b4bb6"
+    },
+    {
+      "path": "artifacts/profile/20260729022504/default-cashier-daylight-en-375.png",
+      "bytes": 57690,
+      "sha256": "413f4dc282cb548b514ea27ee3e354a203bda6278ace0cfc0d1e0ac05d6b5e05"
+    },
+    {
+      "path": "artifacts/profile/20260729022504/default-cashier-daylight-en-768.png",
+      "bytes": 62799,
+      "sha256": "ebb93d89f67177a4e5179aae2a9fa9aeb966cf2cd95edb6de7b3b28f49636131"
+    },
+    {
+      "path": "artifacts/profile/20260729022504/default-cashier-daylight-en-1440.png",
+      "bytes": 75881,
+      "sha256": "69823687deea9fcfb1b65a63c12498dbb70e36ce2ed0bd0f8c6af66deff039a0"
+    },
+    {
+      "path": "artifacts/profile/20260729022504/default-settlement-sand-en-375.png",
+      "bytes": 57946,
+      "sha256": "9f8ac70f3579bcf9bd33701c9b8eb66c1a2dac6480683c24f70858695c5a401d"
+    },
+    {
+      "path": "artifacts/profile/20260729022504/default-settlement-sand-en-768.png",
+      "bytes": 62941,
+      "sha256": "647f73f99533c1688b9cc49c22aa0df06f4f1410157c81ac67265b17ea1054c0"
+    },
+    {
+      "path": "artifacts/profile/20260729022504/default-settlement-sand-en-1440.png",
+      "bytes": 75858,
+      "sha256": "782810cf20a7e30c49953be214157bd877182a4648106b261c9b340e3574a5bf"
+    },
+    {
+      "path": "artifacts/profile/20260729022504/default-midnight-clearing-en-375.png",
+      "bytes": 58448,
+      "sha256": "c4662b81acae0808bee2dd0d48e97d2e3f420e9fc8caec370394c26b4421e370"
+    },
+    {
+      "path": "artifacts/profile/20260729022504/default-midnight-clearing-en-768.png",
+      "bytes": 63198,
+      "sha256": "b63061fea30e621bdbe9c0e6cfaa51284218c83c4bb81d6c9d053ad3f8223b08"
+    },
+    {
+      "path": "artifacts/profile/20260729022504/default-midnight-clearing-en-1440.png",
+      "bytes": 75776,
+      "sha256": "a2435333c14dd92468c4cb4dc2a2186e068b20cc52bd20d903e7c4f78b7aece2"
+    },
+    {
+      "path": "artifacts/profile/20260729022504/default-vault-blue-en-375.png",
+      "bytes": 59239,
+      "sha256": "354d1101529a966dced4bc33d1f14af2726fe741d41ceec0e86abd15790cae06"
+    },
+    {
+      "path": "artifacts/profile/20260729022504/default-vault-blue-en-768.png",
+      "bytes": 63768,
+      "sha256": "c15c2c08cab4bf8e4d9e67badb59385df2507d6a074dd66315b6419caded1406"
+    },
+    {
+      "path": "artifacts/profile/20260729022504/default-vault-blue-en-1440.png",
+      "bytes": 76180,
+      "sha256": "e1a800743d4eb53610fce6ba7f847bf5440210c2779cb771c3dc4e76063dcc59"
+    },
+    {
+      "path": "artifacts/profile/20260729022504/default-terminal-amber-en-375.png",
+      "bytes": 59093,
+      "sha256": "d1e0d712d77d65c0bbd48d6ca67dc7860dd9b3f86a7eb82e0e900e91298caffa"
+    },
+    {
+      "path": "artifacts/profile/20260729022504/default-terminal-amber-en-768.png",
+      "bytes": 63995,
+      "sha256": "f067d75a55f3b53d264891a6e8f5618fee7095f3e212ab126a3fd86882db4a82"
+    },
+    {
+      "path": "artifacts/profile/20260729022504/default-terminal-amber-en-1440.png",
+      "bytes": 76633,
+      "sha256": "31e89445ecef208b1d73350488492d89a4766ad69c29b9e67a4c13ac6472bcaf"
+    },
+    {
+      "path": "artifacts/profile/20260729022504/interaction-en-identity-changed.png",
+      "bytes": 60952,
+      "sha256": "7fc5585ef04cc618c71cb1624ef4ec1e9cab83417437dc304f1b8bdee46bd577"
+    },
+    {
+      "path": "artifacts/profile/20260729022504/interaction-en-identity-conflict.png",
+      "bytes": 61812,
+      "sha256": "edd259ebb69dace2b74341c77c28e04afc6ec9373f3d2e9c801798000aadcff6"
+    },
+    {
+      "path": "artifacts/profile/20260729022504/interaction-en-identity-failed.png",
+      "bytes": 61867,
+      "sha256": "b6b545b40375816526c25195b85dd6174a8809ee01f98fac44c0dc34be09817d"
+    },
+    {
+      "path": "artifacts/profile/20260729022504/interaction-en-identity-pending.png",
+      "bytes": 60485,
+      "sha256": "6a0dec2bdb1681a4acc2e779d18ffdc43f902aa399fdbf198e9b7093b724f0e0"
+    },
+    {
+      "path": "artifacts/profile/20260729022504/interaction-en-password-failed.png",
+      "bytes": 60030,
+      "sha256": "f71ccf5b4d8e9be116c2969a2165c41c0c208dda245ba025c800369c7e075d34"
+    },
+    {
+      "path": "artifacts/profile/20260729022504/interaction-en-password-pending.png",
+      "bytes": 64583,
+      "sha256": "bf11ddf27cf02f110fd1f5ae8542d2c02adc7fd875d4f78f9effbf8d8c32a6b4"
+    },
+    {
+      "path": "artifacts/profile/20260729022504/interaction-en-password-changed-login.png",
+      "bytes": 17673,
+      "sha256": "34153ade7965ee02eb02fc9b9a871d8fe9aa88774e73aa2a7fa273fc971760d5"
+    }
+  ],
+  "sourceHashes": {
+    "src/auth/profile.ts": "b464612acd1b2aba3c148b308ce4dd82f894a19c39b771515032739eb8fb6bf2",
+    "src/auth/session.ts": "492db407710ae2f1e4b0d8be7e9ef52e68eb2f9d2a21d8e83305700fc1875ca2",
+    "src/auth/administration.ts": "728580bc377871c3638028c4e660db7afc60ace4516cbecc0ba7719b49f12088",
+    "src/app/layout.tsx": "abfe61ced0d1972ac2b2bb404677a8534fb7e70db6b3bd838dc26edb5db57fc7",
+    "src/app/login/page.tsx": "3a20246f310b3ee086c23c4241e4e7b79e56908f82d9b1a7d196c52b51a1ab56",
+    "src/app/(merchant)/profile/page.tsx": "dcb9883d5c81b0495be7129a95fbd6e4178803b09c9898feb9a679cd0228655d",
+    "src/app/profile/profile-management.tsx": "9667b9909ee7d773ce389d01159d2404f9409349cf7fe19e6c1e156dd9f2dd89",
+    "src/app/profile/profile-form.tsx": "1c7c6e235593e58eae8bafc371b1e470808e5916cfe5065a7b3c5b25d5239e44",
+    "src/app/profile/identity/route.ts": "d7b14dce9c756779add940ea3bcc5dfdb16762fc987ded77377d572268b137c0",
+    "src/app/profile/password/route.ts": "e096828215fab4dd38da03d08accf6b601ff2893e0989d1ef58f86c93c7f3ead",
+    "src/i18n/locales.ts": "75fac72551a8d4878ee1798e47dc1f0dafe994c9876f15c1ac6b56e79a97f57c",
+    "tests/profile.evidence.spec.ts": "ddfd9ff2fc412befd1db4d3d9a03aaa2a8ed2fb8211bae06bfa3f4316e8de1ce",
+    "scripts/run-profile-evidence.mjs": "a0684dcd84856d759d78b3ce0fbfcdbd89fe32c88bd356e842a76f2163d30449",
+    "scripts/verify-profile-evidence.mjs": "25e2361d86a88acee2bf36805385343c5d88aa30ce0d317c42912b6b94c73287"
+  },
+  "externalRequests": [],
+  "consoleErrors": [],
+  "pageErrors": []
+}

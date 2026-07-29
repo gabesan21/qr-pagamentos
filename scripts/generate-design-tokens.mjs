@@ -93,6 +93,7 @@ export const SCOPED_PREVIEW_COLOR_ALIASES = [
   "--color-border: var(--border)",
   "--color-input: var(--input)",
   "--color-ring: var(--ring)",
+  "--color-text-secondary: var(--text-secondary)",
 ];
 
 export function buildGeneratedThemeTokens(source, resolver) {
