@@ -65,7 +65,7 @@ async function adminCurrencyMutation(adminPage: Page, fields: Record<string, str
     });
     return response.url;
   }, fields);
-  expect(finalUrl).toBe(`${baseUrl}/admin?success=exchange-currency`);
+  expect(finalUrl).toBe(`${baseUrl}/admin/settings?success=exchange-currency`);
 }
 
 async function registerCurrency(adminPage: Page, code: string, label: string) {
