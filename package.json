@@ -33,7 +33,7 @@
     "admin:source-check": "node scripts/check-admin-ui-inventory.mjs",
     "admin:contract-check": "node scripts/check-admin-contract-sync.mjs",
     "admin:evidence": "node scripts/run-admin-evidence.mjs",
-    "admin:evidence:verify": "node scripts/verify-admin-evidence.mjs",
+    "admin:evidence:verify": "node scripts/verify-admin-dashboard-evidence.mjs",
     "admin-settings:evidence": "node scripts/run-admin-settings-evidence.mjs",
     "admin-settings:evidence:verify": "node scripts/verify-admin-settings-evidence.mjs",
     "app-shell:evidence": "node scripts/run-admin-evidence.mjs --app-shell",

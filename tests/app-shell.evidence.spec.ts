@@ -131,12 +131,13 @@ test("creates current six-theme evidence for both role shells", async ({ page })
         expect(new URL(page.url()).hash).toBe("#app-shell-content");
 
         const navigation = page.getByRole("navigation", { name: role.navigation });
+        const mobileLinkCount = role.id === "merchant" ? 6 : 5;
         if (width <= 768) {
           await expect(navigation).toHaveCount(0);
           const disclosure = page.getByRole("button", { name: /Abrir navegação|Open navigation/ });
           await disclosure.click();
           await expect(navigation).toHaveCount(1);
-          await expect(navigation.getByRole("link")).toHaveCount(5);
+          await expect(navigation.getByRole("link")).toHaveCount(mobileLinkCount);
           await expect(navigation.locator('[aria-current="page"]')).toHaveCount(1);
           await page.getByRole("button", { name: /Fechar navegação|Close navigation/ }).click();
           await expect(navigation).toHaveCount(0);
