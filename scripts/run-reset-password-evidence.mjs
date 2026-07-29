@@ -88,6 +88,9 @@ try {
   const nauttEncryptionKeyFile = path.join(staged, "nautt_encryption_key");
   await writeFile(nauttEncryptionKeyFile, nauttEncryptionKey, { mode: 0o400 });
   await chmod(nauttEncryptionKeyFile, 0o400);
+  const totpEncryptionKeyFile = path.join(staged, "totp_encryption_key");
+  await writeFile(totpEncryptionKeyFile, nauttEncryptionKey, { mode: 0o400 });
+  await chmod(totpEncryptionKeyFile, 0o400);
   await copyFile(recoveryFile, env.INITIAL_ADMIN_RECOVERY_PASSWORD_FILE);
   await chmod(env.INITIAL_ADMIN_RECOVERY_PASSWORD_FILE, 0o400);
   const started = compose(["up", "-d", "--build"]);
