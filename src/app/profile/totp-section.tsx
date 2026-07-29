@@ -154,7 +154,7 @@ export function TotpSection({ dictionary, status, notice }: Readonly<TotpSection
         )}
         {resolvedStatus === "none" && (
           <div className="space-y-4">
-            <p className="text-secondary">{dictionary.profileTotpNoneDescription}</p>
+            <p className="text-muted-foreground">{dictionary.profileTotpNoneDescription}</p>
             <Button aria-busy={pending || undefined} disabled={pending} onClick={handleEnroll} type="button">
               {pending && <Spinner data-icon="inline-start" />}
               {pending ? dictionary.profileTotpEnrolling : dictionary.profileTotpEnroll}
@@ -165,7 +165,7 @@ export function TotpSection({ dictionary, status, notice }: Readonly<TotpSection
           <div className="space-y-6">
             <div className="space-y-2">
               <h4 className="font-medium">{dictionary.profileTotpRecoveryCodesTitle}</h4>
-              <p className="text-sm text-secondary">{dictionary.profileTotpRecoveryCodesDescription}</p>
+              <p className="text-sm text-muted-foreground">{dictionary.profileTotpRecoveryCodesDescription}</p>
               <RecoveryCodes
                 codes={enrollment.recoveryCodes}
                 copiedLabel={dictionary.profileTotpCopied}
@@ -175,7 +175,7 @@ export function TotpSection({ dictionary, status, notice }: Readonly<TotpSection
             </div>
             <div className="space-y-2">
               <h4 className="font-medium">{dictionary.profileTotpConfirmTitle}</h4>
-              <p className="text-sm text-secondary">{dictionary.profileTotpConfirmDescription}</p>
+              <p className="text-sm text-muted-foreground">{dictionary.profileTotpConfirmDescription}</p>
               <TotpQrCode label={dictionary.profileTotpQrLabel} provisioningUri={enrollment.provisioningUri} />
             </div>
             <form action="/profile/totp/confirm" className="space-y-4" method="post">
@@ -195,7 +195,7 @@ export function TotpSection({ dictionary, status, notice }: Readonly<TotpSection
         )}
         {resolvedStatus === "pending" && !enrollment && (
           <form action="/profile/totp/confirm" className="space-y-4" method="post">
-            <p className="text-secondary">{dictionary.profileTotpConfirmDescription}</p>
+            <p className="text-muted-foreground">{dictionary.profileTotpConfirmDescription}</p>
             <FieldGroup>
               <Field>
                 <FieldLabel htmlFor="totp-confirm-password">{dictionary.profileCurrentPasswordLabel}</FieldLabel>
@@ -211,7 +211,7 @@ export function TotpSection({ dictionary, status, notice }: Readonly<TotpSection
         )}
         {resolvedStatus === "active" && (
           <div className="space-y-6">
-            <p className="text-secondary">{dictionary.profileTotpActiveDescription}</p>
+            <p className="text-muted-foreground">{dictionary.profileTotpActiveDescription}</p>
             {regeneratedCodes && (
               <div className="space-y-2">
                 <h4 className="font-medium">{dictionary.profileTotpRecoveryCodesTitle}</h4>
@@ -230,7 +230,7 @@ export function TotpSection({ dictionary, status, notice }: Readonly<TotpSection
               </Button>
             </div>
             <form action="/profile/totp/disable" className="space-y-4" method="post">
-              <p className="text-secondary">{dictionary.profileTotpDisableDescription}</p>
+              <p className="text-muted-foreground">{dictionary.profileTotpDisableDescription}</p>
               <FieldGroup>
                 <Field>
                   <FieldLabel htmlFor="totp-disable-password">{dictionary.profileCurrentPasswordLabel}</FieldLabel>

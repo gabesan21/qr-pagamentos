@@ -379,7 +379,7 @@ function TotpRecoveryCard({
         <CardDescription>{dictionary.adminUserProfileTotpDescription}</CardDescription>
       </CardHeader>
       <CardContent>
-        <p className="text-secondary">
+        <p className="text-muted-foreground">
           {configured ? dictionary.adminUserProfileTotpConfigured : dictionary.adminUserProfileTotpNotConfigured}
         </p>
         {configured && (
