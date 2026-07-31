@@ -395,8 +395,13 @@ server.listen(1025, "0.0.0.0", () => { console.log("mock-smtp-listening"); });
     return match[1];
   }
   async function createFixtureImage(_appId, hostPath) {
-    const { default: sharp } = await import("sharp");
-    await sharp({ create: { width: 100, height: 100, channels: 3, background: "#ff0000" } }).webp().toFile(hostPath);
+    // 100x100 red WebP generated once with sharp; embedded so the clean clone
+    // needs neither host node_modules nor a writable container /tmp.
+    const fixtureBytes = Buffer.from(
+      "UklGRmYAAABXRUJQVlA4IFoAAAAQBgCdASpkAGQAPm02mUmkIyKhIKgAgA2JaW7hc+lwH4AAAY2upvcReWAa6m9xF5YBrqb3EXlgGngA/v5Rff//kFywuuRr//8gP+QH/ID/+PimRpUqdCAAAAA=",
+      "base64",
+    );
+    await writeFile(hostPath, fixtureBytes, { mode: 0o600 });
   }
 
   let scenarioFailed = false;
