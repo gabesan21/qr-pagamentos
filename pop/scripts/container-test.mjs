@@ -1371,7 +1371,7 @@ PUBLIC_ORIGIN=${values.publicOrigin}
         "x-forwarded-host": "container-test.invalid",
         cookie: adminCookie,
       });
-      assert(resetResponse.status === 303 && resetResponse.headers.location === `/admin/accounts/${merchantUserId}?reset=requested`, `reset request failed status=${resetResponse.status} location=${resetResponse.headers.location}`);
+      assert(resetResponse.status === 303 && resetResponse.headers.location === `/admin/accounts/${merchantUserId}?reset=requested`, `reset request failed status=${resetResponse.status} location=${resetResponse.headers.location} outcome=${sql(`SELECT outcome FROM app.password_reset_request ORDER BY created_at DESC LIMIT 1`)}`);
 
       // Capture the reset message, extract the token, and redeem it without leaking either.
       const emailText = await readSmtpCapture(smtpCaptureDir);
