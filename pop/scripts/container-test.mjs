@@ -1385,6 +1385,7 @@ PUBLIC_ORIGIN=${values.publicOrigin}
           `const fs=require("node:fs");for(const f of ["smtp_host","smtp_port","smtp_user","smtp_from","smtp_tls_mode"]){try{console.log(f,JSON.stringify(fs.readFileSync("/run/secrets/"+f,"utf8")))}catch{console.log(f,"MISSING")}};const host=fs.readFileSync("/run/secrets/smtp_host","utf8").trim();const s=require("node:net").connect(1025,host,()=>{console.log("TCP-OK");process.exit(0)});s.on("error",(e)=>{console.log("TCP-FAIL",e.code);process.exit(1)});setTimeout(()=>{console.log("TCP-TIMEOUT");process.exit(2)},3000);`]);
         const probeOutput = `${probe.stdout ?? ""}${probe.stderr ?? ""}`.replaceAll(values.smtpUser, "<smtp-user>");
         const appLogs = compose(["logs", "--no-color", "--tail", "30", "app"]);
+        assertRedacted(appLogs);
         assert(false, `reset request failed status=${resetResponse.status} location=${resetResponse.headers.location} audit=[${auditRow}] user=[${userRow}] lookup=[${lookupRow}] tokenTable=[${tokenTable}] mailProbe status=${probe.status}\n${probeOutput}\nAPPLOGS\n${appLogs}`);
       }
 

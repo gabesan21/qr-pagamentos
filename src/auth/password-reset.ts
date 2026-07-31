@@ -1,6 +1,6 @@
 import "server-only";
 
-import { createHash, randomBytes } from "node:crypto";
+import { createHash, randomBytes, randomUUID } from "node:crypto";
 
 import { getDatabaseClient } from "../db/client";
 
@@ -148,7 +148,10 @@ export function createDatabasePasswordResetStore(
         if (newest && now.getTime() - newest.createdAt.getTime() < limits.minIntervalMs) return "rate-limited";
 
         await transaction.passwordResetToken.create({
-          data: { userId, tokenDigest, expiresAt, createdAt: now },
+          // The migration-safe language cannot express a column default, so the
+          // table has no `DEFAULT gen_random_uuid()` — provide the id explicitly,
+          // exactly like the password_reset_request audit insert does.
+          data: { id: randomUUID(), userId, tokenDigest, expiresAt, createdAt: now },
         });
         return "created";
       });
