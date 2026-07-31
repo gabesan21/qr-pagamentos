@@ -872,12 +872,39 @@ def check_hash_pins(root, violations):
                         f"atualize para sha256={actual}")
 
 
-def check_project_agents(root, projects, violations):
+def _dox_block_lines(lines):
+    """Linhas do bloco DOX, do heading que carrega o marcador até o próximo
+    heading de nível igual ou superior (ou o fim do arquivo).
+
+    Aplicação embute o processo DOX no AGENTS.md e só por isso passa do teto
+    (regra 5). Delimitar o bloco é o que permite **descontá-lo** em vez de
+    desligar a régua: sem isso, "isento" virava "não medido", e o arquivo
+    crescia sem ninguém reclamar — foi assim que um AGENTS.md de aplicação
+    chegou a 162 linhas de texto que não era DOX.
+    """
+    start = next((n for n, line in enumerate(lines)
+                  if line.lstrip().startswith("#") and DOX_MARKER in line), None)
+    if start is None:
+        return 0
+    level = len(lines[start]) - len(lines[start].lstrip("#"))
+    for n in range(start + 1, len(lines)):
+        line = lines[n]
+        if not line.startswith("#"):
+            continue
+        if len(line) - len(line.lstrip("#")) <= level:
+            return n - start
+    return len(lines) - start
+
+
+def check_project_agents(root, projects, violations, warnings):
     """(j) AGENTS.md de projeto cabe em 60 linhas — é ponteiro, não cópia.
 
     O arquivo cresce sozinho quando narra o fluxo em vez de linkar o WORKFLOW,
-    e a narração apodrece na primeira mudança de estágio. Aplicação que embute
-    o processo DOX é a única isenta (regra 5). O AGENTS.md da raiz é o do
+    e a narração apodrece na primeira mudança de estágio. **A régua mede
+    sempre**: em aplicação, o bloco DOX é descontado (regra 5) e o excedente
+    do resto sai como **aviso**, não violação — a dívida é de quem hospeda o
+    arquivo e se paga no escopo dele, mas não pode ser invisível. Fora de
+    aplicação, o teto continua sendo violação. O AGENTS.md da raiz é o do
     vault, não de projeto: fora do alcance.
     """
     for project in projects:
@@ -886,14 +913,15 @@ def check_project_agents(root, projects, violations):
         path = project / "AGENTS.md"
         if not path.is_file():
             continue
-        text = path.read_text(encoding="utf-8")
-        if DOX_MARKER in text:
+        lines = path.read_text(encoding="utf-8").splitlines()
+        dox = _dox_block_lines(lines)
+        total = len(lines) - dox
+        if total <= MAX_PROJECT_AGENTS:
             continue
-        total = len(text.splitlines())
-        if total > MAX_PROJECT_AGENTS:
-            violations.append(
-                f"{path}:1: {total} linhas (máx. {MAX_PROJECT_AGENTS}) — "
-                f"aponte para o WORKFLOW em vez de narrar o fluxo")
+        message = (f"{path}:1: {total} linhas (máx. {MAX_PROJECT_AGENTS}"
+                   f"{f', já descontado o bloco DOX de {dox}' if dox else ''})"
+                   " — aponte para o WORKFLOW em vez de narrar o fluxo")
+        (warnings if dox else violations).append(message)
 
 
 def check_harness_freshness(root, projects, violations):
@@ -1002,7 +1030,7 @@ def main():
     check_spec_collections(root, projects, violations)
     check_wikilinks(root, warnings)
     check_hash_pins(root, violations)
-    check_project_agents(root, projects, violations)
+    check_project_agents(root, projects, violations, warnings)
     check_harness_freshness(root, projects, violations)
     if args.standalone:
         check_standalone(root, violations)

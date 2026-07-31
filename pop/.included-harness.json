@@ -92,7 +92,7 @@
     "pop/kanban",
     "pop/worktrees/.gitkeep"
   ],
-  "content_sha": "d98b28e3e9cb871eb8912263fa3acf6b796588b2319e1e3eb85980517acabdcf",
+  "content_sha": "c94bfca9586553d99f63fc046d389e1d9745b5f6dc76680e596fc7f3c8da3909",
   "installed": [
     ".agents/skills/advance-task/SKILL.md",
     ".agents/skills/adversarial-judge/SKILL.md",

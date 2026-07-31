@@ -1,11 +1,15 @@
 ---
 name: optimize-memory
-description: Converte memory legada para o layout granular (pasta de data + ledger + entradas com evidência) e enxuga arquivo que passe do teto, sem perder identidade, prova, cronologia ou decisões críticas. Use quando o humano pedir otimização/compactação de memory, quando um ledger passar de 1200 ou uma entrada de 800 caracteres, quando existir memory fora de pasta de data, ou na frente de saúde de memories da weekly-review.
+description: Converte memory legada para o layout granular (pasta de data + ledger + entradas com evidência) e enxuga arquivo que passe do teto, sem perder identidade, prova, cronologia ou decisões críticas. Roda fora do kanban e em ondas de subagentes paralelos. Use quando o humano pedir otimização/compactação de memory, quando um ledger passar de 1200 ou uma entrada de 800 caracteres, quando existir memory fora de pasta de data, ou na frente de saúde de memories da weekly-review.
 ---
 
 # optimize-memory
 
 Deixar `memory/` granular e verificável sem virar changelog nem apagar a prova da task. A unidade é sempre **um ledger por task**; nunca fundir, excluir ou renomear uma task.
+
+**Roda fora do kanban, sempre.** `memory/` é harness próprio do escopo, não conteúdo: não crie card, não use `new-task`, não abra branch, worktree ou PR de task e não mova task alguma ("Escopo corrente" › três classes, no [[WORKFLOW|WORKFLOW]]). Acionada pela [[.agents/skills/weekly-review/SKILL|weekly-review]], você é um worker da onda de correção dela, com o escopo já recortado.
+
+**Delegue em ondas paralelas.** O principal faz o preflight, distribui e valida; ele não converte arquivo a arquivo à mão. Um worker por **task** (o ledger e as entradas que nascem dele são um write set só), em ondas de 3-5, com write sets **disjuntos** — dois workers nunca recebem a mesma pasta de data. Cada worker devolve os caminhos que escreveu e as contagens de caracteres; nenhum worker dispara subagentes nem decide reclassificar o que recebeu. Um único arquivo pequeno se faz direto: onda para uma task é cerimônia sem ganho.
 
 ## O layout alvo
 
@@ -58,9 +62,10 @@ Entrada que não couber em 800 caracteres depois disso quase sempre são **duas 
 1. Produzir a versão candidata mantendo o frontmatter e a estrutura dos templates.
 2. Comparar original e candidato com o inventário do preflight; qualquer perda irredutível reprova o candidato.
    - **A comparação é determinística, não impressão de leitura.** Extraia do original o conjunto de hashes de commit (inclusive os citados no corpo, não só o do frontmatter) e os valores literais de `pr` e `authorization`; confira que todos aparecem no candidato. Token presente no original e ausente depois é perda, mesmo que o texto pareça equivalente — foi assim que uma conversão perdeu 8 hashes em 2026-07-27.
-3. Confirmar tetos (`≤1200` no ledger, `≤800` por entrada), datas em `AAAA-MM-DD` e pasta igual a `finished`.
-4. Validar wikilinks — inclusive a evidência de cada entrada — e executar `python3 pop/scripts/pop_validate.py` no escopo corrente.
+3. **Medir o candidato antes de gravar**, com `wc -c` — não depois, e não a olho. Teto é `≤1200` no ledger e `≤800` por entrada; **1201 é violação**, e gravar para depois descobrir isso deixa o escopo pior do que estava. Confirmar também datas em `AAAA-MM-DD` e pasta igual a `finished`.
+4. Validar wikilinks — inclusive a evidência de cada entrada — e executar `python3 pop/scripts/pop_validate.py` no escopo corrente. A validação é do **principal**, depois de todas as ondas: worker que valida sozinho aprova o próprio pedaço sem ver a colisão.
 5. Revisar o diff arquivo a arquivo. Se a prova de preservação falhar, restaurar o original e reportar **BLOCKED**.
+6. Backup, se você fizer um, mora **fora** de `memory/` — dentro dela, uma pasta que não seja data é violação de layout, e você teria trocado uma dívida por outra. Apague-o ao fechar; a prova durável é o Git.
 
 ## Saída
 
@@ -71,4 +76,5 @@ Relatar arquivos convertidos e enxugados, contagem de caracteres antes/depois, e
 - Não editar specs, decisões, roadmaps, cards, código ou Git durante esta operação.
 - Não consolidar memories por epoch/phase, não eliminar eventos e não alterar commits/PRs.
 - Não converter memory de escopo alheio: memory plana com `finished` anterior a 2026-07-27 é legado tolerado e, fora do escopo corrente, não é trabalho seu.
-- Na `weekly-review`, a frente apenas aponta candidatas e riscos; edição exige escopo autorizado pelo humano.
+- Não criar dentro de `memory/` nenhuma pasta que não seja uma data de conclusão — backup, arquivo morto e rascunho ficam fora dela.
+- Na `weekly-review`, a frente de coleta apenas mede e lista; converter é sempre esta skill, com o escopo recortado.
