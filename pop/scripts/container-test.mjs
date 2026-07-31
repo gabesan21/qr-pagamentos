@@ -360,6 +360,7 @@ server.listen(1025, "0.0.0.0", () => { console.log("mock-smtp-listening"); });
     const smtpContainer = `${project}-smtp-sink`;
     run("docker", [
       "run", "-d", "--name", smtpContainer, "--network", networkName,
+      "--user", "1000:1000",
       "-v", `${captureDir}:/mail`, "--restart", "no",
       "node:26.4.0-bookworm-slim@sha256:ec82d089a8ae2cf02628da7b34ea57dc357b24db724d557fe2d240e6beb659c1",
       "node", "/mail/smtp-sink.mjs",
