@@ -1402,7 +1402,11 @@ PUBLIC_ORIGIN=${values.publicOrigin}
         newPassword: newMerchantPassword,
         confirmation: newMerchantPassword,
       }, { origin: values.publicOrigin, "x-forwarded-host": "container-test.invalid" });
-      assert(redeem.status === 303 && redeem.headers.location === "/login?password=changed", `reset redemption failed status=${redeem.status} location=${redeem.headers.location}`);
+      if (!(redeem.status === 303 && redeem.headers.location === "/login?password=changed")) {
+        const extractedDigest = createHash("sha256").update(resetToken).digest("hex");
+        const storedDigests = sql(`SELECT token_digest, consumed_at, expires_at > now() FROM app.password_reset_token WHERE user_id='${merchantUserId}'`);
+        assert(false, `reset redemption failed status=${redeem.status} location=${redeem.headers.location} tokenLength=${resetToken.length} extractedDigestPrefix=${extractedDigest.slice(0, 12)} stored=[${storedDigests.slice(0, 80)}]`);
+      }
 
       // Assert the password rotated by authenticating with the new password.
       const merchantCookie = await loginCookie(merchantUsername, newMerchantPassword);
