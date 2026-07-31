@@ -359,15 +359,18 @@ test("creates the closed administrator dashboard evidence run", async ({ page })
     });
 
     // ---- Period switching: plain GET links move the non-color current marker. ----
+    // The switcher is a Next.js <Link> (soft navigation): waitForURL('load') races
+    // the client transition and can hang forever, so poll the URL as a web-first
+    // assertion and let the current-marker expects below confirm the commit.
     await page.getByRole("link", { name: dictionary.adminDashboardPeriodToday }).click();
-    await page.waitForURL(`${baseUrl}/admin?period=today`);
+    await expect(page).toHaveURL(`${baseUrl}/admin?period=today`);
     await expect(page.locator(".admin-dashboard__period--current")).toHaveText(dictionary.adminDashboardPeriodToday);
     await expect(page.locator(".admin-dashboard__period--current")).toHaveAttribute("aria-current", "page");
     assertions.push({ state: `${locale}-period-today`, current: dictionary.adminDashboardPeriodToday });
     await screenshot(`interaction-${locale}-period-today`);
 
     await page.getByRole("link", { name: dictionary.adminDashboardPeriod30d }).click();
-    await page.waitForURL(`${baseUrl}/admin?period=30d`);
+    await expect(page).toHaveURL(`${baseUrl}/admin?period=30d`);
     await expect(page.locator(".admin-dashboard__period--current")).toHaveText(dictionary.adminDashboardPeriod30d);
     assertions.push({ state: `${locale}-period-30d`, current: dictionary.adminDashboardPeriod30d });
     await screenshot(`interaction-${locale}-period-30d`);

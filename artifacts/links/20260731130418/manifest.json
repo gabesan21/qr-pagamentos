@@ -1,0 +1,329 @@
+{
+  "version": 1,
+  "runId": "20260731130418",
+  "startedAt": "2026-07-31T13:04:18.814Z",
+  "gitHead": "b0f1117a7310784b7c5a3b3ee792fe6e38bdc810",
+  "baseCaptureCount": 36,
+  "stateCaptureCount": 20,
+  "totalPngCount": 56,
+  "assertions": "artifacts/links/20260731130418/assertions.json",
+  "assertionsSha256": "9482d70c3f04e0f14b4aab68c0b61e808058787235a6f69c1186db7c035bac95",
+  "captures": [
+    {
+      "path": "artifacts/links/20260731130418/state-pt-BR-links-empty-375.png",
+      "bytes": 67928,
+      "sha256": "aaf942d2c28ffe1b7d5ddbf0ad1232c0b83df71646b1829a628e44e40f714eb9"
+    },
+    {
+      "path": "artifacts/links/20260731130418/state-pt-BR-links-ready-320.png",
+      "bytes": 473247,
+      "sha256": "58c5f23bcefdde8b3b6a57c24a9e673c1006acfd3eba104e2024c57609609dbd"
+    },
+    {
+      "path": "artifacts/links/20260731130418/state-pt-BR-link-detail-1440.png",
+      "bytes": 69772,
+      "sha256": "5b0ea452d2e75f302113a494bf707cf2dfb3a9f9f01b76f3bd4b9cf502477545"
+    },
+    {
+      "path": "artifacts/links/20260731130418/state-pt-BR-link-detail-unavailable-1440.png",
+      "bytes": 37171,
+      "sha256": "41e7ad62af89c871d6c3a3947dfba2aec69c5f6d31203e2c40acc2b2833fadb1"
+    },
+    {
+      "path": "artifacts/links/20260731130418/state-pt-BR-link-orders-1440.png",
+      "bytes": 56378,
+      "sha256": "20002689360e7eb05ae1433d311b9f0cc138bdca10d497f6ba41853298f33f97"
+    },
+    {
+      "path": "artifacts/links/20260731130418/state-pt-BR-link-order-detail-1440.png",
+      "bytes": 52064,
+      "sha256": "93ce718996a8a7fb1d0cdeab966aa3ef44a00b64da4977860f5225c6e5a14e71"
+    },
+    {
+      "path": "artifacts/links/20260731130418/state-pt-BR-link-order-unavailable-1440.png",
+      "bytes": 37261,
+      "sha256": "b4f56de5dc1b32fc1b3f6b22ce6f577bcf36a55f6b9814ae28610781aabf6670"
+    },
+    {
+      "path": "artifacts/links/20260731130418/state-pt-BR-link-new-1440.png",
+      "bytes": 71095,
+      "sha256": "e3f9889b920c8c07849efed305822bf29f474a2d00514c9487b78f5a1c845938"
+    },
+    {
+      "path": "artifacts/links/20260731130418/state-pt-BR-link-new-375.png",
+      "bytes": 55359,
+      "sha256": "ec4647acec8ada52d6002b52690f44d124c18b6c9c85aff31b4de40461debe3c"
+    },
+    {
+      "path": "artifacts/links/20260731130418/state-pt-BR-link-edit-1440.png",
+      "bytes": 78157,
+      "sha256": "db44bad664ac177d96cd85318a68d1ff74fd2d1e3f7043e78b8da91cbe66d7d7"
+    },
+    {
+      "path": "artifacts/links/20260731130418/state-pt-BR-link-created-notice-1440.png",
+      "bytes": 295299,
+      "sha256": "5ce580f97cb81b5b44ff3efeb3a5e067c01433d27445d05dd7d69ab6e9b884a8"
+    },
+    {
+      "path": "artifacts/links/20260731130418/state-en-links-filtered-empty-1440.png",
+      "bytes": 93417,
+      "sha256": "041d9f015f153a027334383fd8991deb35ab049a42cfbbf85222ad15067252ba"
+    },
+    {
+      "path": "artifacts/links/20260731130418/state-en-links-invalid-query-1440.png",
+      "bytes": 88117,
+      "sha256": "fdf6f17ca2f71caacb363bbbe399a6ec8cc76f22f22421ac037b042d828ee35a"
+    },
+    {
+      "path": "artifacts/links/20260731130418/state-en-links-page-2-1440.png",
+      "bytes": 171407,
+      "sha256": "4caa91a3350a669a3a2a86b6e1b54ceff2482a88a70f888b94695086298c4457"
+    },
+    {
+      "path": "artifacts/links/20260731130418/state-en-link-detail-fixed-1440.png",
+      "bytes": 62227,
+      "sha256": "de217dc550d42850465517e6845584f93745bd1bac7480fb97c39b5acdc0b715"
+    },
+    {
+      "path": "artifacts/links/20260731130418/state-en-link-created-notice-1440.png",
+      "bytes": 289092,
+      "sha256": "8230777430ffb51d8db295f958c915deae0c9efa974c47d905f66abbc6c09bdd"
+    },
+    {
+      "path": "artifacts/links/20260731130418/state-en-link-fixed-created-1440.png",
+      "bytes": 289012,
+      "sha256": "03a96ec8c12ed61cb1e436217e616c82e37f634f5f25b431074e56fdb9919181"
+    },
+    {
+      "path": "artifacts/links/20260731130418/state-en-link-edited-notice-1440.png",
+      "bytes": 290047,
+      "sha256": "bfb5111d9b2e4c1144421142bb64cc0d4e2dcdb1dbc6db4ce062b18b0d527c45"
+    },
+    {
+      "path": "artifacts/links/20260731130418/state-en-link-failed-notice-1440.png",
+      "bytes": 290808,
+      "sha256": "de9fc769cf5922a3245da7c9485fcbdfd89f7cf44bd846340de3faed8c632157"
+    },
+    {
+      "path": "artifacts/links/20260731130418/state-en-link-deactivated-notice-1440.png",
+      "bytes": 289264,
+      "sha256": "14751fa22eb30390797cad50d0d5c54be2c980b5ae074b5a4bd7fb4eb006605e"
+    },
+    {
+      "path": "artifacts/links/20260731130418/directory-pix-paper-pt-BR-375.png",
+      "bytes": 480598,
+      "sha256": "7626995ef2a26f3175793e05627436089377ff38d579f5250729d797f27526be"
+    },
+    {
+      "path": "artifacts/links/20260731130418/directory-pix-paper-pt-BR-768.png",
+      "bytes": 306530,
+      "sha256": "5ca0121637aabb2596fd367833d95de1467b9487ee8337c609da6071483a2c7b"
+    },
+    {
+      "path": "artifacts/links/20260731130418/directory-pix-paper-pt-BR-1440.png",
+      "bytes": 290158,
+      "sha256": "c1c637e0da390cbd97df542c5395eb3d8c011b19d59cf4d6291f9641d8142363"
+    },
+    {
+      "path": "artifacts/links/20260731130418/directory-cashier-daylight-pt-BR-375.png",
+      "bytes": 483309,
+      "sha256": "36748fda15faa709b431b97f0a4efea63fe42081166183f34cbb9c8b3d4bacff"
+    },
+    {
+      "path": "artifacts/links/20260731130418/directory-cashier-daylight-pt-BR-768.png",
+      "bytes": 307965,
+      "sha256": "10ebc936df4d2ab6c08d51d923f88cb8ace6078cc7ae1ee21f67003b4bb4f697"
+    },
+    {
+      "path": "artifacts/links/20260731130418/directory-cashier-daylight-pt-BR-1440.png",
+      "bytes": 291335,
+      "sha256": "feecc52c97f936cf7981e83af7ef014617f6099d92fe32f60de23e404f714b5b"
+    },
+    {
+      "path": "artifacts/links/20260731130418/directory-settlement-sand-pt-BR-375.png",
+      "bytes": 488038,
+      "sha256": "b397a2056f45b9f15766a0c77f9202e69f244e6db83fe62dd33d54c0a550e543"
+    },
+    {
+      "path": "artifacts/links/20260731130418/directory-settlement-sand-pt-BR-768.png",
+      "bytes": 308352,
+      "sha256": "fe3e39db1f48fe1c7200ef65f6d26a33cd9e19c9d8569b2a5654ca0977bf98bd"
+    },
+    {
+      "path": "artifacts/links/20260731130418/directory-settlement-sand-pt-BR-1440.png",
+      "bytes": 291688,
+      "sha256": "a33b8da1521019fa8ce48136c1c247008e77999be78ce5eb543e72e65efc3db8"
+    },
+    {
+      "path": "artifacts/links/20260731130418/directory-midnight-clearing-pt-BR-375.png",
+      "bytes": 490671,
+      "sha256": "c558846593348212cbb4bcd84d9291cddf594d1acb70b99892d0a2115ebd6cb9"
+    },
+    {
+      "path": "artifacts/links/20260731130418/directory-midnight-clearing-pt-BR-768.png",
+      "bytes": 307755,
+      "sha256": "1580d1408ad648f2aabf9249f24aec41fd284a06923ef05e22186be7dee1d62d"
+    },
+    {
+      "path": "artifacts/links/20260731130418/directory-midnight-clearing-pt-BR-1440.png",
+      "bytes": 291579,
+      "sha256": "dfeb267c41d6151c1853d64fe86031d7915d7046c2efe26ebc27ef2c3da82e28"
+    },
+    {
+      "path": "artifacts/links/20260731130418/directory-vault-blue-pt-BR-375.png",
+      "bytes": 495463,
+      "sha256": "1dc5b5674f81e9897579b6e5d87d1cda94575921619936841e04c4e3383382c5"
+    },
+    {
+      "path": "artifacts/links/20260731130418/directory-vault-blue-pt-BR-768.png",
+      "bytes": 311240,
+      "sha256": "0d102eff3fbc29dbdcb2926b13c6f173a09c68e484392e96d183187f1897aefc"
+    },
+    {
+      "path": "artifacts/links/20260731130418/directory-vault-blue-pt-BR-1440.png",
+      "bytes": 294184,
+      "sha256": "e97839c3066a4250f6e779c0b7ae9d7394baaad378511a14597572ef65779b95"
+    },
+    {
+      "path": "artifacts/links/20260731130418/directory-terminal-amber-pt-BR-375.png",
+      "bytes": 491114,
+      "sha256": "0a9d38036ed5dda0a01312cf94e54898a3d2546cf3396f16a197585939ec516d"
+    },
+    {
+      "path": "artifacts/links/20260731130418/directory-terminal-amber-pt-BR-768.png",
+      "bytes": 310793,
+      "sha256": "804a4b57f91d8255eb032b1af8c28e5fc9ee3084f2a867442804bae81bf9d38f"
+    },
+    {
+      "path": "artifacts/links/20260731130418/directory-terminal-amber-pt-BR-1440.png",
+      "bytes": 294587,
+      "sha256": "fdde613e845a02468e363edd79b736c7a7b34585ce68b2a08af229a99a38f769"
+    },
+    {
+      "path": "artifacts/links/20260731130418/directory-pix-paper-en-375.png",
+      "bytes": 454318,
+      "sha256": "b885ab2e60647e64a1d64b995f378db09a5c830863202c6f9591a40b1e2c132f"
+    },
+    {
+      "path": "artifacts/links/20260731130418/directory-pix-paper-en-768.png",
+      "bytes": 283928,
+      "sha256": "5c721de84fc2eb14c3ade178ef0329dcf77f0b24cf2c31d64a93f91da82ec374"
+    },
+    {
+      "path": "artifacts/links/20260731130418/directory-pix-paper-en-1440.png",
+      "bytes": 283687,
+      "sha256": "24ada4b2de1b16eaf514ae9e82faee0678e5d6d9462735ae7e529875cbf53749"
+    },
+    {
+      "path": "artifacts/links/20260731130418/directory-cashier-daylight-en-375.png",
+      "bytes": 454049,
+      "sha256": "7a47a926e458bc86159ca54a634d107fdd964813e6d60754d26186a81cde0a96"
+    },
+    {
+      "path": "artifacts/links/20260731130418/directory-cashier-daylight-en-768.png",
+      "bytes": 285691,
+      "sha256": "0c6501019b6b6f2f07d0ff8ddcf93107ceff3b17ea1670702b411798aa6e327c"
+    },
+    {
+      "path": "artifacts/links/20260731130418/directory-cashier-daylight-en-1440.png",
+      "bytes": 285091,
+      "sha256": "712917ccf3ef2e008db7589159f6ac98578c1980ca966b3b1ca8376d01e649e9"
+    },
+    {
+      "path": "artifacts/links/20260731130418/directory-settlement-sand-en-375.png",
+      "bytes": 458046,
+      "sha256": "776592a710d94525a31af53bb90b5ed3e4a137c2bfb654df7cdbbb354633230b"
+    },
+    {
+      "path": "artifacts/links/20260731130418/directory-settlement-sand-en-768.png",
+      "bytes": 286316,
+      "sha256": "38eb941cdab218d581a7a7c42aa8dd5bf88ee6334d1056029a5186ab100d7c10"
+    },
+    {
+      "path": "artifacts/links/20260731130418/directory-settlement-sand-en-1440.png",
+      "bytes": 286418,
+      "sha256": "1d627421d5164d853d7f0bf47c51e76c5e2894ed7d87c39f0bc7fadc4bec2a6a"
+    },
+    {
+      "path": "artifacts/links/20260731130418/directory-midnight-clearing-en-375.png",
+      "bytes": 458744,
+      "sha256": "8dc812ac920510bea5bc11194f3a5b90f6c5e445398b01b4609f9a671365b6c7"
+    },
+    {
+      "path": "artifacts/links/20260731130418/directory-midnight-clearing-en-768.png",
+      "bytes": 285473,
+      "sha256": "846aa8ea7771bc5e7181193c51297ceba649fb25a3c8737c41e01d4b72ce5c96"
+    },
+    {
+      "path": "artifacts/links/20260731130418/directory-midnight-clearing-en-1440.png",
+      "bytes": 284037,
+      "sha256": "7bc51cf7beb7207c11f3f0d603b5e0f5f9282ab7a437d8201133aa874c3f86ab"
+    },
+    {
+      "path": "artifacts/links/20260731130418/directory-vault-blue-en-375.png",
+      "bytes": 461598,
+      "sha256": "e87fb01b36a440470f2552714fb89ee730d9d98f6c45b9377236371e8081a468"
+    },
+    {
+      "path": "artifacts/links/20260731130418/directory-vault-blue-en-768.png",
+      "bytes": 288752,
+      "sha256": "c0fad350bfa8db554972a53d1dd78b082a2ad4cf39cf9d775c042b652d63b827"
+    },
+    {
+      "path": "artifacts/links/20260731130418/directory-vault-blue-en-1440.png",
+      "bytes": 286993,
+      "sha256": "0690043cce6cd7353181a0763d34279e711467a7218f4b1f9a5feb486f3dcb36"
+    },
+    {
+      "path": "artifacts/links/20260731130418/directory-terminal-amber-en-375.png",
+      "bytes": 459068,
+      "sha256": "049397da7b40ad568de07e4b6b146e0b5b2eccd276d2e86ea09e373a64a87867"
+    },
+    {
+      "path": "artifacts/links/20260731130418/directory-terminal-amber-en-768.png",
+      "bytes": 287672,
+      "sha256": "1c39de21d89554e3176c79fd6a0e7d7e3b5ff4c74c32c4653f8474d32aa239d5"
+    },
+    {
+      "path": "artifacts/links/20260731130418/directory-terminal-amber-en-1440.png",
+      "bytes": 288911,
+      "sha256": "79bd9529a9b507a26186e97bb2cfe81db21fbf92699353a72d57156a05c285ab"
+    }
+  ],
+  "sourceHashes": {
+    "src/auth/payment-link-v2-view.ts": "43fc3265ad1f7eb1abdba70ea290ed9ce6ac315cce07c9947cc60925084a5669",
+    "src/auth/payment-link-v2-prefill.ts": "bcb085e301ccc7669e7d631d4f29c147b065ba27b42454f1aa17eb88937e00ce",
+    "src/app/payment-links-v2/route.ts": "d9965aec77610d0d121da488ac811f70847b94a36938033b41085352ac64e827",
+    "src/app/payment-links-v2/[id]/route.ts": "17f200d1b9611d5962e933a877dc88eb93190e5119c6a5da634040c1556b40e6",
+    "src/app/(merchant)/links/page.tsx": "9f7ffed46e74087402d340f15f6e9a1d39e55ea53701957f5b85b34d36cb33ba",
+    "src/app/(merchant)/links/directory-query.ts": "18bc95ff216d7811631aa29ffe2c43ca53d7e610f9d4cd94a7d23a66842699cb",
+    "src/app/(merchant)/links/directory-copy.ts": "0d316900e300ae1e619b5118238faa52a233ec7e01b0795e5e2fec0c2a579586",
+    "src/app/(merchant)/links/link-v2-views.tsx": "6236c9bada8cf11770116e16dccbb961e6b87b2c654b145c01bb863bc5e69611",
+    "src/app/(merchant)/links/share-copy.tsx": "43c1dd8eeb36fae4f0be78575f35a4f6a5a9b9cf54066a47c36eaf62fe7db90c",
+    "src/app/(merchant)/links/loading.tsx": "78d033feca391a2c3ebcb21dd9fa59d49284028da40d808d0f5b12bfd8a04e14",
+    "src/app/(merchant)/links/links-notices.tsx": "0f5391e9bdc80611cea23eb2f9999c84d47606f8626b645304a174cdfd2ccbf3",
+    "src/app/(merchant)/links/dirty-input.tsx": "4b7a208d70cf0a55e68a761de21fb1a637c72586d3eeab869380685a305950b4",
+    "src/app/(merchant)/links/link-lines-editor.tsx": "0ba874306b46f30708ca055d1078a142e783e5e8e2fc69f9202ef5e3ccb03397",
+    "src/app/(merchant)/links/link-v2-form.tsx": "7d8353ffc3de9ef34a9bf3da28d95012148923893a80ab779ab16193d2fe1343",
+    "src/app/(merchant)/links/link-v2-form-copy.ts": "942a064212a72235d51c1ad67930a0705e90b1378c4a0779d8a7ac10c6f7a8b9",
+    "src/app/(merchant)/links/link-v2-actions.tsx": "1270ad63111134ea8ebf4ff951e2cfe233796c555f83dbec546fc61e4f8cabdf",
+    "src/app/(merchant)/links/new/page.tsx": "8ca8b3332359163805d239d6c24f046cb896ced1de2e20899d521af6b2b97134",
+    "src/app/(merchant)/links/v2/[id]/page.tsx": "579c3e17c2184b603a557b260cdc9b3bddd9e2cc2c2434fd3ca0f5e40d892192",
+    "src/app/(merchant)/links/v2/[id]/edit/page.tsx": "b851961e99b2e008d57e707d8a970fd8982dc6aee9cf8690d8d7c39c7dcd3ec5",
+    "src/app/(merchant)/links/v2/[id]/orders/page.tsx": "2d7ddc8faa6da4a439af08703313fecf4537e09b544e1520d1ca8fb76fa1a382",
+    "src/app/(merchant)/links/v2/[id]/orders/directory-copy.ts": "bb94a2419dfe2ba0ce6f579856fb25bd80e8558716e1df7f9c5cdcc544931080",
+    "src/app/(merchant)/links/v2/[id]/orders/order-v2-views.tsx": "537a361c53b11e20103a6c07ce00049649be45a2f41d5a37c787b7528776f9d0",
+    "src/app/(merchant)/links/v2/[id]/orders/[orderId]/page.tsx": "95865a774166340a999eb421dc6844fdd86ae10d16986b44c76fac65eae742e3",
+    "src/i18n/dictionaries/payment-links-directory/en.ts": "9c664e8cfb6a2b7ab082cefb3daf34aa62aee4007f3c7f1f04d3224cf751e7da",
+    "src/i18n/dictionaries/payment-links-directory/pt-BR.ts": "089f0d86a561734b1aa5728e929933edc68b074a8db2fbfcc398c772d0adca8d",
+    "src/observability/server-request-log.ts": "12a7092ec18567ee279af588f846ddd3b04c7384e94997f51ca6ec701af9d84e",
+    "src/security/public-rate-limit.ts": "a117fefc6886e4bf8f621f70687d646a461cb537320b597164325c5a109b1f13",
+    "tests/payment-links.evidence.spec.ts": "5acfa32e3e3bb7e7c353bb15ecc548f06222e7bfe92d6dd10cae2c7fb31db7ef",
+    "scripts/run-admin-evidence.mjs": "10bda618c6c425411040c1be8ae6cb37e427e9eb26e53a2259a565425a50f132",
+    "scripts/run-payment-links-evidence.mjs": "ccef45d40d182522cad087eae94e79a74bf301c4c173876937706d743fa85133",
+    "scripts/verify-payment-links-evidence.mjs": "13170573073b2a8bee453032305a3b386e99f6c6a4ebed5d2eec0c564bfdec6e"
+  },
+  "externalRequests": [],
+  "consoleErrors": [],
+  "pageErrors": []
+}

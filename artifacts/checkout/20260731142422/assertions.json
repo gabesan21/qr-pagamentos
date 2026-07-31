@@ -1,0 +1,1949 @@
+[
+  {
+    "state": "fixed-unbranded",
+    "composition": "FIXED_AMOUNT",
+    "currency": "unlabeled",
+    "logo": false,
+    "themePreview": "pix-paper"
+  },
+  {
+    "state": "state-pt-BR-fixed-none-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 1,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 311
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(39.8727 -30.6801 1.13491) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "unavailable-unknown",
+    "opaque": true
+  },
+  {
+    "state": "state-pt-BR-unavailable-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "paid-consumed-single-use",
+    "composition": "FIXED_AMOUNT",
+    "total": "25",
+    "currency": "BRL",
+    "logo": false,
+    "form": false,
+    "refundedOrder": true
+  },
+  {
+    "state": "state-pt-BR-paid-fixed-unbranded-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "paid-consumed-expired-link",
+    "claimKeyed": true,
+    "expiredLink": true,
+    "refundedOrder": true
+  },
+  {
+    "state": "state-pt-BR-paid-expired-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "unavailable-inactive",
+    "opaque": true
+  },
+  {
+    "state": "state-pt-BR-inactive-link-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "branding-persisted",
+    "storefrontEnabled": false,
+    "accent": "#125448",
+    "logo": true
+  },
+  {
+    "state": "product-lines-branded",
+    "composition": "PRODUCT_LINES",
+    "lines": 2,
+    "total": "34.9",
+    "currency": "BRL",
+    "logo": true
+  },
+  {
+    "state": "state-pt-BR-checkout-320",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 3,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 256
+        },
+        {
+          "height": 44,
+          "width": 256
+        },
+        {
+          "height": 44,
+          "width": 256
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(39.8727 -30.6801 1.13491) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "inline-validation",
+    "native": true,
+    "invalidFields": 2,
+    "posts": 0
+  },
+  {
+    "state": "state-pt-BR-inline-validation-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 3,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 512
+        },
+        {
+          "height": 44,
+          "width": 512
+        },
+        {
+          "height": 44,
+          "width": 512
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(39.8727 -30.6801 1.13491) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "submit-pending",
+    "busy": true,
+    "disabled": true
+  },
+  {
+    "state": "state-pt-BR-submit-pending-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 3,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 512
+        },
+        {
+          "height": 44,
+          "width": 512
+        },
+        {
+          "height": 44,
+          "width": 512
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(39.8727 -30.6801 1.13491) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "checkout-error",
+    "opaque": true
+  },
+  {
+    "state": "state-pt-BR-checkout-error-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 3,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 512
+        },
+        {
+          "height": 44,
+          "width": 512
+        },
+        {
+          "height": 44,
+          "width": 512
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(39.8727 -30.6801 1.13491) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "state-en-policy-email-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 2,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 512
+        },
+        {
+          "height": 44,
+          "width": 512
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(39.8727 -30.6801 1.13491) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "state-en-policy-cpf-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 4,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 512
+        },
+        {
+          "height": 44,
+          "width": 512
+        },
+        {
+          "height": 44,
+          "width": 512
+        },
+        {
+          "height": 44,
+          "width": 512
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(39.8727 -30.6801 1.13491) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "state-en-policy-cpf-address-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 11,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 512
+        },
+        {
+          "height": 44,
+          "width": 512
+        },
+        {
+          "height": 44,
+          "width": 512
+        },
+        {
+          "height": 44,
+          "width": 512
+        },
+        {
+          "height": 44,
+          "width": 512
+        },
+        {
+          "height": 44,
+          "width": 512
+        },
+        {
+          "height": 44,
+          "width": 512
+        },
+        {
+          "height": 44,
+          "width": 512
+        },
+        {
+          "height": 44,
+          "width": 512
+        },
+        {
+          "height": 44,
+          "width": 512
+        },
+        {
+          "height": 44,
+          "width": 512
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(39.8727 -30.6801 1.13491) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "policies",
+    "seen": [
+      "NONE",
+      "EMAIL",
+      "NAME_EMAIL",
+      "NAME_EMAIL_CPF",
+      "NAME_EMAIL_CPF_ADDRESS"
+    ]
+  },
+  {
+    "state": "qr-copy",
+    "qrVisible": true,
+    "copy": "success",
+    "capabilityReal": true
+  },
+  {
+    "state": "state-en-qr-copy-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 3,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 512
+        },
+        {
+          "height": 44,
+          "width": 512
+        },
+        {
+          "height": 44,
+          "width": 126
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(39.8727 -30.6801 1.13491) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "state-en-status-error-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 4,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 512
+        },
+        {
+          "height": 44,
+          "width": 512
+        },
+        {
+          "height": 44,
+          "width": 126
+        },
+        {
+          "height": 44,
+          "width": 512
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(39.8727 -30.6801 1.13491) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "status-error-retry",
+    "recovered": true
+  },
+  {
+    "state": "terminal-confirmed",
+    "badge": "CONFIRMED"
+  },
+  {
+    "state": "state-en-confirmed-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 1,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 512
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "waiting-payment-data",
+    "shown": true
+  },
+  {
+    "state": "state-en-waiting-payment-data-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 1,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 512
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "terminal-rejected",
+    "destructive": true
+  },
+  {
+    "state": "state-en-rejected-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 1,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 512
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "expired-capability",
+    "opaque": true
+  },
+  {
+    "state": "state-en-capability-unavailable-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 1,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 512
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "unavailable-expired",
+    "opaque": true
+  },
+  {
+    "state": "state-en-expired-link-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "checkout-pix-paper-pt-BR-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 1,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 311
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(39.8727 -30.6801 1.13491) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "paid-lines-pix-paper-pt-BR-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "paid-fixed-pix-paper-pt-BR-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "checkout-pix-paper-pt-BR-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "paid-lines-pix-paper-pt-BR-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "paid-fixed-pix-paper-pt-BR-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "checkout-pix-paper-pt-BR-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 1,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 512
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(39.8727 -30.6801 1.13491) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "paid-lines-pix-paper-pt-BR-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "paid-fixed-pix-paper-pt-BR-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "checkout-cashier-daylight-pt-BR-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 1,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 311
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(36.2465 -8.27897 -34.0907) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "paid-lines-cashier-daylight-pt-BR-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "paid-fixed-cashier-daylight-pt-BR-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "checkout-cashier-daylight-pt-BR-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "paid-lines-cashier-daylight-pt-BR-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "paid-fixed-cashier-daylight-pt-BR-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "checkout-cashier-daylight-pt-BR-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 1,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 512
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(36.2465 -8.27897 -34.0907) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "paid-lines-cashier-daylight-pt-BR-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "paid-fixed-cashier-daylight-pt-BR-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "checkout-settlement-sand-pt-BR-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 1,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 311
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(40.4079 -27.4943 8.6053) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "paid-lines-settlement-sand-pt-BR-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "paid-fixed-settlement-sand-pt-BR-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "checkout-settlement-sand-pt-BR-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 1,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 320
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(40.4079 -27.4943 8.6053) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "paid-lines-settlement-sand-pt-BR-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "paid-fixed-settlement-sand-pt-BR-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "checkout-settlement-sand-pt-BR-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 1,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 512
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(40.4079 -27.4943 8.6053) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "paid-lines-settlement-sand-pt-BR-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "paid-fixed-settlement-sand-pt-BR-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "checkout-midnight-clearing-pt-BR-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 1,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 311
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(79.3882 -40.2089 5.85816) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "paid-lines-midnight-clearing-pt-BR-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "paid-fixed-midnight-clearing-pt-BR-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "checkout-midnight-clearing-pt-BR-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 1,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 320
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(79.3882 -40.2089 5.85816) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "paid-lines-midnight-clearing-pt-BR-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "paid-fixed-midnight-clearing-pt-BR-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "checkout-midnight-clearing-pt-BR-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 1,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 512
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(79.3882 -40.2089 5.85816) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "paid-lines-midnight-clearing-pt-BR-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "paid-fixed-midnight-clearing-pt-BR-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "checkout-vault-blue-pt-BR-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 1,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 311
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(76.3495 -25.5148 -22.5364) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "paid-lines-vault-blue-pt-BR-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "paid-fixed-vault-blue-pt-BR-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "checkout-vault-blue-pt-BR-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 1,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 320
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(76.3495 -25.5148 -22.5364) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "paid-lines-vault-blue-pt-BR-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "paid-fixed-vault-blue-pt-BR-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "checkout-vault-blue-pt-BR-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "paid-lines-vault-blue-pt-BR-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "paid-fixed-vault-blue-pt-BR-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "checkout-terminal-amber-pt-BR-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 1,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 311
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(73.4068 9.05746 50.4544) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "paid-lines-terminal-amber-pt-BR-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "paid-fixed-terminal-amber-pt-BR-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "checkout-terminal-amber-pt-BR-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "paid-lines-terminal-amber-pt-BR-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "paid-fixed-terminal-amber-pt-BR-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "checkout-terminal-amber-pt-BR-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "paid-lines-terminal-amber-pt-BR-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "paid-fixed-terminal-amber-pt-BR-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "checkout-pix-paper-en-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 1,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 311
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(39.8727 -30.6801 1.13491) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "paid-lines-pix-paper-en-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "paid-fixed-pix-paper-en-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "checkout-pix-paper-en-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "paid-lines-pix-paper-en-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "paid-fixed-pix-paper-en-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "checkout-pix-paper-en-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "paid-lines-pix-paper-en-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "paid-fixed-pix-paper-en-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "checkout-cashier-daylight-en-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "paid-lines-cashier-daylight-en-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "paid-fixed-cashier-daylight-en-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "checkout-cashier-daylight-en-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 1,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 320
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(36.2465 -8.27897 -34.0907) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "paid-lines-cashier-daylight-en-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "paid-fixed-cashier-daylight-en-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "checkout-cashier-daylight-en-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "paid-lines-cashier-daylight-en-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "paid-fixed-cashier-daylight-en-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "checkout-settlement-sand-en-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 1,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 311
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(40.4079 -27.4943 8.6053) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "paid-lines-settlement-sand-en-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "paid-fixed-settlement-sand-en-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "checkout-settlement-sand-en-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 1,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 320
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(40.4079 -27.4943 8.6053) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "paid-lines-settlement-sand-en-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "paid-fixed-settlement-sand-en-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "checkout-settlement-sand-en-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 1,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 512
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(40.4079 -27.4943 8.6053) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "paid-lines-settlement-sand-en-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "paid-fixed-settlement-sand-en-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "checkout-midnight-clearing-en-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 1,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 311
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(79.3882 -40.2089 5.85816) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "paid-lines-midnight-clearing-en-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "paid-fixed-midnight-clearing-en-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "checkout-midnight-clearing-en-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 1,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 320
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(79.3882 -40.2089 5.85816) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "paid-lines-midnight-clearing-en-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "paid-fixed-midnight-clearing-en-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "checkout-midnight-clearing-en-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "paid-lines-midnight-clearing-en-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "paid-fixed-midnight-clearing-en-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "checkout-vault-blue-en-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 1,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 311
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(76.3495 -25.5148 -22.5364) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "paid-lines-vault-blue-en-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "paid-fixed-vault-blue-en-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "checkout-vault-blue-en-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "paid-lines-vault-blue-en-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "paid-fixed-vault-blue-en-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "checkout-vault-blue-en-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "paid-lines-vault-blue-en-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "paid-fixed-vault-blue-en-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "checkout-terminal-amber-en-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 1,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 44,
+          "width": 311
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(73.4068 9.05746 50.4544) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "paid-lines-terminal-amber-en-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "paid-fixed-terminal-amber-en-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "checkout-terminal-amber-en-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "paid-lines-terminal-amber-en-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "paid-fixed-terminal-amber-en-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "checkout-terminal-amber-en-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "paid-lines-terminal-amber-en-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "paid-fixed-terminal-amber-en-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 0,
+      "overflow": false,
+      "targets": []
+    },
+    "focus": null,
+    "severeAxe": []
+  },
+  {
+    "state": "branding-grid",
+    "themes": 6,
+    "locales": 2,
+    "widths": 3
+  },
+  {
+    "state": "paid-grid",
+    "kinds": 2,
+    "themes": 6,
+    "locales": 2,
+    "widths": 3
+  }
+]

@@ -1,0 +1,5504 @@
+[
+  {
+    "state": "hub-structure",
+    "sections": 6,
+    "anchors": 6,
+    "emptyStates": 3,
+    "fallbackTheme": "pix-paper"
+  },
+  {
+    "state": "state-pt-BR-hub-empty-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 25,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 262
+        },
+        {
+          "height": 44,
+          "width": 139
+        },
+        {
+          "height": 44,
+          "width": 202
+        },
+        {
+          "height": 44,
+          "width": 242
+        },
+        {
+          "height": 44,
+          "width": 271
+        },
+        {
+          "height": 44,
+          "width": 99
+        },
+        {
+          "height": 44,
+          "width": 175
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(39.8727 -30.6801 1.13491) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "theme-default-save",
+    "outcome": "saved",
+    "persisted": "vault-blue"
+  },
+  {
+    "state": "state-pt-BR-theme-default-saved-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 7,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 262
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "creation-stamping",
+    "merchantTheme": "vault-blue",
+    "adminTheme": null
+  },
+  {
+    "state": "state-pt-BR-hub-ready-320",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 25,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 262
+        },
+        {
+          "height": 44,
+          "width": 139
+        },
+        {
+          "height": 44,
+          "width": 202
+        },
+        {
+          "height": 44,
+          "width": 242
+        },
+        {
+          "height": 44,
+          "width": 271
+        },
+        {
+          "height": 44,
+          "width": 99
+        },
+        {
+          "height": 44,
+          "width": 175
+        },
+        {
+          "height": 44,
+          "width": 256
+        },
+        {
+          "height": 44,
+          "width": 256
+        },
+        {
+          "height": 44,
+          "width": 256
+        },
+        {
+          "height": 44,
+          "width": 256
+        },
+        {
+          "height": 44,
+          "width": 256
+        },
+        {
+          "height": 44,
+          "width": 256
+        },
+        {
+          "height": 44,
+          "width": 256
+        },
+        {
+          "height": 44,
+          "width": 256
+        },
+        {
+          "height": 44,
+          "width": 256
+        },
+        {
+          "height": 44,
+          "width": 256
+        },
+        {
+          "height": 44,
+          "width": 256
+        },
+        {
+          "height": 44,
+          "width": 256
+        },
+        {
+          "height": 44,
+          "width": 256
+        },
+        {
+          "height": 44,
+          "width": 256
+        },
+        {
+          "height": 44,
+          "width": 256
+        },
+        {
+          "height": 44,
+          "width": 256
+        },
+        {
+          "height": 44,
+          "width": 256
+        },
+        {
+          "height": 44,
+          "width": 256
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(39.8727 -30.6801 1.13491) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "exchange-currency-register",
+    "outcome": "registered",
+    "code": "USD"
+  },
+  {
+    "state": "state-en-exchange-currency-registered-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 35,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 166
+        },
+        {
+          "height": 44,
+          "width": 163
+        },
+        {
+          "height": 44,
+          "width": 188
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 111
+        },
+        {
+          "height": 44,
+          "width": 170
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 101
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 101
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(39.8727 -30.6801 1.13491) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "hub-pix-paper-pt-BR-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 29,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 262
+        },
+        {
+          "height": 44,
+          "width": 139
+        },
+        {
+          "height": 44,
+          "width": 202
+        },
+        {
+          "height": 44,
+          "width": 242
+        },
+        {
+          "height": 44,
+          "width": 271
+        },
+        {
+          "height": 44,
+          "width": 99
+        },
+        {
+          "height": 44,
+          "width": 175
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 93
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 93
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(39.8727 -30.6801 1.13491) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "hub-pix-paper-pt-BR-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 30,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 262
+        },
+        {
+          "height": 44,
+          "width": 175
+        },
+        {
+          "height": 44,
+          "width": 139
+        },
+        {
+          "height": 44,
+          "width": 202
+        },
+        {
+          "height": 44,
+          "width": 242
+        },
+        {
+          "height": 44,
+          "width": 271
+        },
+        {
+          "height": 44,
+          "width": 99
+        },
+        {
+          "height": 44,
+          "width": 175
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 93
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 93
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(39.8727 -30.6801 1.13491) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "hub-pix-paper-pt-BR-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 35,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 262
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 139
+        },
+        {
+          "height": 44,
+          "width": 202
+        },
+        {
+          "height": 44,
+          "width": 242
+        },
+        {
+          "height": 44,
+          "width": 271
+        },
+        {
+          "height": 44,
+          "width": 99
+        },
+        {
+          "height": 44,
+          "width": 175
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 93
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 93
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(39.8727 -30.6801 1.13491) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "hub-cashier-daylight-pt-BR-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 29,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 262
+        },
+        {
+          "height": 44,
+          "width": 139
+        },
+        {
+          "height": 44,
+          "width": 202
+        },
+        {
+          "height": 44,
+          "width": 242
+        },
+        {
+          "height": 44,
+          "width": 271
+        },
+        {
+          "height": 44,
+          "width": 99
+        },
+        {
+          "height": 44,
+          "width": 175
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 93
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 93
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(36.2465 -8.27897 -34.0907) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "hub-cashier-daylight-pt-BR-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 30,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 262
+        },
+        {
+          "height": 44,
+          "width": 175
+        },
+        {
+          "height": 44,
+          "width": 139
+        },
+        {
+          "height": 44,
+          "width": 202
+        },
+        {
+          "height": 44,
+          "width": 242
+        },
+        {
+          "height": 44,
+          "width": 271
+        },
+        {
+          "height": 44,
+          "width": 99
+        },
+        {
+          "height": 44,
+          "width": 175
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 93
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 93
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(36.2465 -8.27897 -34.0907) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "hub-cashier-daylight-pt-BR-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 35,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 262
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 139
+        },
+        {
+          "height": 44,
+          "width": 202
+        },
+        {
+          "height": 44,
+          "width": 242
+        },
+        {
+          "height": 44,
+          "width": 271
+        },
+        {
+          "height": 44,
+          "width": 99
+        },
+        {
+          "height": 44,
+          "width": 175
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 93
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 93
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(36.2465 -8.27897 -34.0907) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "hub-settlement-sand-pt-BR-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 29,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 262
+        },
+        {
+          "height": 44,
+          "width": 139
+        },
+        {
+          "height": 44,
+          "width": 202
+        },
+        {
+          "height": 44,
+          "width": 242
+        },
+        {
+          "height": 44,
+          "width": 271
+        },
+        {
+          "height": 44,
+          "width": 99
+        },
+        {
+          "height": 44,
+          "width": 175
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 93
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 93
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(40.4079 -27.4943 8.6053) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "hub-settlement-sand-pt-BR-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 30,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 262
+        },
+        {
+          "height": 44,
+          "width": 175
+        },
+        {
+          "height": 44,
+          "width": 139
+        },
+        {
+          "height": 44,
+          "width": 202
+        },
+        {
+          "height": 44,
+          "width": 242
+        },
+        {
+          "height": 44,
+          "width": 271
+        },
+        {
+          "height": 44,
+          "width": 99
+        },
+        {
+          "height": 44,
+          "width": 175
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 93
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 93
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(40.4079 -27.4943 8.6053) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "hub-settlement-sand-pt-BR-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 35,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 262
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 139
+        },
+        {
+          "height": 44,
+          "width": 202
+        },
+        {
+          "height": 44,
+          "width": 242
+        },
+        {
+          "height": 44,
+          "width": 271
+        },
+        {
+          "height": 44,
+          "width": 99
+        },
+        {
+          "height": 44,
+          "width": 175
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 93
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 93
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(40.4079 -27.4943 8.6053) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "hub-midnight-clearing-pt-BR-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 29,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 262
+        },
+        {
+          "height": 44,
+          "width": 139
+        },
+        {
+          "height": 44,
+          "width": 202
+        },
+        {
+          "height": 44,
+          "width": 242
+        },
+        {
+          "height": 44,
+          "width": 271
+        },
+        {
+          "height": 44,
+          "width": 99
+        },
+        {
+          "height": 44,
+          "width": 175
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 93
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 93
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(79.3882 -40.2089 5.85816) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "hub-midnight-clearing-pt-BR-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 30,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 262
+        },
+        {
+          "height": 44,
+          "width": 175
+        },
+        {
+          "height": 44,
+          "width": 139
+        },
+        {
+          "height": 44,
+          "width": 202
+        },
+        {
+          "height": 44,
+          "width": 242
+        },
+        {
+          "height": 44,
+          "width": 271
+        },
+        {
+          "height": 44,
+          "width": 99
+        },
+        {
+          "height": 44,
+          "width": 175
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 93
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 93
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(79.3882 -40.2089 5.85816) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "hub-midnight-clearing-pt-BR-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 35,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 262
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 139
+        },
+        {
+          "height": 44,
+          "width": 202
+        },
+        {
+          "height": 44,
+          "width": 242
+        },
+        {
+          "height": 44,
+          "width": 271
+        },
+        {
+          "height": 44,
+          "width": 99
+        },
+        {
+          "height": 44,
+          "width": 175
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 93
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 93
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(79.3882 -40.2089 5.85816) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "hub-vault-blue-pt-BR-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 29,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 262
+        },
+        {
+          "height": 44,
+          "width": 139
+        },
+        {
+          "height": 44,
+          "width": 202
+        },
+        {
+          "height": 44,
+          "width": 242
+        },
+        {
+          "height": 44,
+          "width": 271
+        },
+        {
+          "height": 44,
+          "width": 99
+        },
+        {
+          "height": 44,
+          "width": 175
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 93
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 93
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(76.3495 -25.5148 -22.5364) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "hub-vault-blue-pt-BR-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 30,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 262
+        },
+        {
+          "height": 44,
+          "width": 175
+        },
+        {
+          "height": 44,
+          "width": 139
+        },
+        {
+          "height": 44,
+          "width": 202
+        },
+        {
+          "height": 44,
+          "width": 242
+        },
+        {
+          "height": 44,
+          "width": 271
+        },
+        {
+          "height": 44,
+          "width": 99
+        },
+        {
+          "height": 44,
+          "width": 175
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 93
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 93
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(76.3495 -25.5148 -22.5364) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "hub-vault-blue-pt-BR-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 35,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 262
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 139
+        },
+        {
+          "height": 44,
+          "width": 202
+        },
+        {
+          "height": 44,
+          "width": 242
+        },
+        {
+          "height": 44,
+          "width": 271
+        },
+        {
+          "height": 44,
+          "width": 99
+        },
+        {
+          "height": 44,
+          "width": 175
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 93
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 93
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(76.3495 -25.5148 -22.5364) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "hub-terminal-amber-pt-BR-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 29,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 262
+        },
+        {
+          "height": 44,
+          "width": 139
+        },
+        {
+          "height": 44,
+          "width": 202
+        },
+        {
+          "height": 44,
+          "width": 242
+        },
+        {
+          "height": 44,
+          "width": 271
+        },
+        {
+          "height": 44,
+          "width": 99
+        },
+        {
+          "height": 44,
+          "width": 175
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 93
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 93
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(73.4068 9.05746 50.4544) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "hub-terminal-amber-pt-BR-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 30,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 262
+        },
+        {
+          "height": 44,
+          "width": 175
+        },
+        {
+          "height": 44,
+          "width": 139
+        },
+        {
+          "height": 44,
+          "width": 202
+        },
+        {
+          "height": 44,
+          "width": 242
+        },
+        {
+          "height": 44,
+          "width": 271
+        },
+        {
+          "height": 44,
+          "width": 99
+        },
+        {
+          "height": 44,
+          "width": 175
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 93
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 93
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(73.4068 9.05746 50.4544) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "hub-terminal-amber-pt-BR-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 35,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 262
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 139
+        },
+        {
+          "height": 44,
+          "width": 202
+        },
+        {
+          "height": 44,
+          "width": 242
+        },
+        {
+          "height": 44,
+          "width": 271
+        },
+        {
+          "height": 44,
+          "width": 99
+        },
+        {
+          "height": 44,
+          "width": 175
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 93
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 93
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(73.4068 9.05746 50.4544) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "hub-pix-paper-en-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 29,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 166
+        },
+        {
+          "height": 44,
+          "width": 163
+        },
+        {
+          "height": 44,
+          "width": 188
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 111
+        },
+        {
+          "height": 44,
+          "width": 170
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 101
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 101
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(39.8727 -30.6801 1.13491) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "hub-pix-paper-en-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 30,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 175
+        },
+        {
+          "height": 44,
+          "width": 166
+        },
+        {
+          "height": 44,
+          "width": 163
+        },
+        {
+          "height": 44,
+          "width": 188
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 111
+        },
+        {
+          "height": 44,
+          "width": 170
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 101
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 101
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(39.8727 -30.6801 1.13491) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "hub-pix-paper-en-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 35,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 166
+        },
+        {
+          "height": 44,
+          "width": 163
+        },
+        {
+          "height": 44,
+          "width": 188
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 111
+        },
+        {
+          "height": 44,
+          "width": 170
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 101
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 101
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(39.8727 -30.6801 1.13491) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "hub-cashier-daylight-en-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 29,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 166
+        },
+        {
+          "height": 44,
+          "width": 163
+        },
+        {
+          "height": 44,
+          "width": 188
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 111
+        },
+        {
+          "height": 44,
+          "width": 170
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 101
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 101
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(36.2465 -8.27897 -34.0907) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "hub-cashier-daylight-en-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 30,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 175
+        },
+        {
+          "height": 44,
+          "width": 166
+        },
+        {
+          "height": 44,
+          "width": 163
+        },
+        {
+          "height": 44,
+          "width": 188
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 111
+        },
+        {
+          "height": 44,
+          "width": 170
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 101
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 101
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(36.2465 -8.27897 -34.0907) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "hub-cashier-daylight-en-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 35,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 166
+        },
+        {
+          "height": 44,
+          "width": 163
+        },
+        {
+          "height": 44,
+          "width": 188
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 111
+        },
+        {
+          "height": 44,
+          "width": 170
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 101
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 101
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(36.2465 -8.27897 -34.0907) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "hub-settlement-sand-en-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 29,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 166
+        },
+        {
+          "height": 44,
+          "width": 163
+        },
+        {
+          "height": 44,
+          "width": 188
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 111
+        },
+        {
+          "height": 44,
+          "width": 170
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 101
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 101
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(40.4079 -27.4943 8.6053) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "hub-settlement-sand-en-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 30,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 175
+        },
+        {
+          "height": 44,
+          "width": 166
+        },
+        {
+          "height": 44,
+          "width": 163
+        },
+        {
+          "height": 44,
+          "width": 188
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 111
+        },
+        {
+          "height": 44,
+          "width": 170
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 101
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 101
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(40.4079 -27.4943 8.6053) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "hub-settlement-sand-en-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 35,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 166
+        },
+        {
+          "height": 44,
+          "width": 163
+        },
+        {
+          "height": 44,
+          "width": 188
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 111
+        },
+        {
+          "height": 44,
+          "width": 170
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 101
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 101
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(40.4079 -27.4943 8.6053) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "hub-midnight-clearing-en-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 29,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 166
+        },
+        {
+          "height": 44,
+          "width": 163
+        },
+        {
+          "height": 44,
+          "width": 188
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 111
+        },
+        {
+          "height": 44,
+          "width": 170
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 101
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 101
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(79.3882 -40.2089 5.85816) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "hub-midnight-clearing-en-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 30,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 175
+        },
+        {
+          "height": 44,
+          "width": 166
+        },
+        {
+          "height": 44,
+          "width": 163
+        },
+        {
+          "height": 44,
+          "width": 188
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 111
+        },
+        {
+          "height": 44,
+          "width": 170
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 101
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 101
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(79.3882 -40.2089 5.85816) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "hub-midnight-clearing-en-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 35,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 166
+        },
+        {
+          "height": 44,
+          "width": 163
+        },
+        {
+          "height": 44,
+          "width": 188
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 111
+        },
+        {
+          "height": 44,
+          "width": 170
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 101
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 101
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(79.3882 -40.2089 5.85816) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "hub-vault-blue-en-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 29,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 166
+        },
+        {
+          "height": 44,
+          "width": 163
+        },
+        {
+          "height": 44,
+          "width": 188
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 111
+        },
+        {
+          "height": 44,
+          "width": 170
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 101
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 101
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(76.3495 -25.5148 -22.5364) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "hub-vault-blue-en-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 30,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 175
+        },
+        {
+          "height": 44,
+          "width": 166
+        },
+        {
+          "height": 44,
+          "width": 163
+        },
+        {
+          "height": 44,
+          "width": 188
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 111
+        },
+        {
+          "height": 44,
+          "width": 170
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 101
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 101
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(76.3495 -25.5148 -22.5364) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "hub-vault-blue-en-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 35,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 166
+        },
+        {
+          "height": 44,
+          "width": 163
+        },
+        {
+          "height": 44,
+          "width": 188
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 111
+        },
+        {
+          "height": 44,
+          "width": 170
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 101
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 101
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(76.3495 -25.5148 -22.5364) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "hub-terminal-amber-en-375",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 29,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 166
+        },
+        {
+          "height": 44,
+          "width": 163
+        },
+        {
+          "height": 44,
+          "width": 188
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 111
+        },
+        {
+          "height": 44,
+          "width": 170
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 101
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 101
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(73.4068 9.05746 50.4544) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "hub-terminal-amber-en-768",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 30,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 175
+        },
+        {
+          "height": 44,
+          "width": 166
+        },
+        {
+          "height": 44,
+          "width": 163
+        },
+        {
+          "height": 44,
+          "width": 188
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 111
+        },
+        {
+          "height": 44,
+          "width": 170
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 101
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 101
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        },
+        {
+          "height": 44,
+          "width": 696
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(73.4068 9.05746 50.4544) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "hub-terminal-amber-en-1440",
+    "measured": {
+      "bodyFont": "\"IBM Plex Sans Variable\", \"IBM Plex Sans\", sans-serif",
+      "focusableCount": 35,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 52.796875,
+          "width": 185
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 166
+        },
+        {
+          "height": 44,
+          "width": 163
+        },
+        {
+          "height": 44,
+          "width": 188
+        },
+        {
+          "height": 44,
+          "width": 190
+        },
+        {
+          "height": 44,
+          "width": 111
+        },
+        {
+          "height": 44,
+          "width": 170
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 101
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 101
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        },
+        {
+          "height": 44,
+          "width": 1128
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, lab(73.4068 9.05746 50.4544) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outlineWidth": 2
+    },
+    "severeAxe": []
+  }
+]

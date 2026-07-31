@@ -298,15 +298,18 @@ test("creates the closed merchant-dashboard evidence run", async ({ page }) => {
     });
 
     // ---- Period switching: plain GET links move the non-color current marker. ----
+    // The switcher is a Next.js <Link> (soft navigation): waitForURL('load') races
+    // the client transition and can hang forever, so poll the URL as a web-first
+    // assertion and let the current-marker expects below confirm the commit.
     await page.getByRole("link", { name: dictionary.merchantDashboardPeriodToday }).click();
-    await page.waitForURL(`${baseUrl}/?period=today`);
+    await expect(page).toHaveURL(`${baseUrl}/?period=today`);
     await expect(page.locator(".merchant-dashboard__period--current")).toHaveText(dictionary.merchantDashboardPeriodToday);
     await expect(page.locator(".merchant-dashboard__period--current")).toHaveAttribute("aria-current", "page");
     assertions.push({ state: `${locale}-period-today`, current: dictionary.merchantDashboardPeriodToday });
     await screenshot(`interaction-${locale}-period-today`);
 
     await page.getByRole("link", { name: dictionary.merchantDashboardPeriod30d }).click();
-    await page.waitForURL(`${baseUrl}/?period=30d`);
+    await expect(page).toHaveURL(`${baseUrl}/?period=30d`);
     await expect(page.locator(".merchant-dashboard__period--current")).toHaveText(dictionary.merchantDashboardPeriod30d);
     assertions.push({ state: `${locale}-period-30d`, current: dictionary.merchantDashboardPeriod30d });
     await screenshot(`interaction-${locale}-period-30d`);

@@ -1,0 +1,265 @@
+{
+  "version": 1,
+  "runId": "20260731151703",
+  "startedAt": "2026-07-31T15:17:03.676Z",
+  "gitHead": "b0f1117a7310784b7c5a3b3ee792fe6e38bdc810",
+  "baseCaptureCount": 36,
+  "interactionCaptureCount": 11,
+  "totalPngCount": 47,
+  "assertions": "artifacts/merchant-dashboard/20260731151703/assertions.json",
+  "assertionsSha256": "45ae2d81ce4403f758633acfa1f01e2ce9a855fc6b619e30cf9d165d834a73d9",
+  "captures": [
+    {
+      "path": "artifacts/merchant-dashboard/20260731151703/interaction-pt-BR-empty.png",
+      "bytes": 63751,
+      "sha256": "f06aba478e3ad6b09cd62b8a27c479c92196840fe07c4b2d9eb83ee9660ae600"
+    },
+    {
+      "path": "artifacts/merchant-dashboard/20260731151703/interaction-pt-BR-view-store-off.png",
+      "bytes": 63751,
+      "sha256": "f06aba478e3ad6b09cd62b8a27c479c92196840fe07c4b2d9eb83ee9660ae600"
+    },
+    {
+      "path": "artifacts/merchant-dashboard/20260731151703/interaction-en-empty.png",
+      "bytes": 60688,
+      "sha256": "02853486f8796930c2f3ded7c64fdc3687f1e3c2d9db92fc70ad67b59db974fa"
+    },
+    {
+      "path": "artifacts/merchant-dashboard/20260731151703/interaction-en-view-store-off.png",
+      "bytes": 60688,
+      "sha256": "02853486f8796930c2f3ded7c64fdc3687f1e3c2d9db92fc70ad67b59db974fa"
+    },
+    {
+      "path": "artifacts/merchant-dashboard/20260731151703/populated-pix-paper-pt-BR-375.png",
+      "bytes": 110277,
+      "sha256": "5ccdb8971da5098d24a3b2ee68dc4c20389bc9133cad4250bf68b6f9ce7bede9"
+    },
+    {
+      "path": "artifacts/merchant-dashboard/20260731151703/populated-pix-paper-pt-BR-768.png",
+      "bytes": 126376,
+      "sha256": "74949b1b866100c2059b5d33a27378e4d644ab1f7fc7552766465d3dfaf7cec6"
+    },
+    {
+      "path": "artifacts/merchant-dashboard/20260731151703/populated-pix-paper-pt-BR-1440.png",
+      "bytes": 148298,
+      "sha256": "50df6f68ed5ba7c41b8744de58537b65c964c3dc89c55d6cc04cd04f1d05f309"
+    },
+    {
+      "path": "artifacts/merchant-dashboard/20260731151703/populated-cashier-daylight-pt-BR-375.png",
+      "bytes": 111886,
+      "sha256": "262b87182245ecc7b8e3fde9144475c7664b51ce37dfb294091827d7d52a756a"
+    },
+    {
+      "path": "artifacts/merchant-dashboard/20260731151703/populated-cashier-daylight-pt-BR-768.png",
+      "bytes": 127118,
+      "sha256": "58714fee1511a33094c0790c36d2fc6406220bbd0023346302c02a19cfbbf510"
+    },
+    {
+      "path": "artifacts/merchant-dashboard/20260731151703/populated-cashier-daylight-pt-BR-1440.png",
+      "bytes": 148928,
+      "sha256": "847fddcddf59f9f93e789ee3c7f9068d252ec2c6ce1fe08d7de502108ac8ff48"
+    },
+    {
+      "path": "artifacts/merchant-dashboard/20260731151703/populated-settlement-sand-pt-BR-375.png",
+      "bytes": 112933,
+      "sha256": "55b1419b40d330401dc1355a124b593e16a4ea5ecbfa0019d06c04bbc0117d41"
+    },
+    {
+      "path": "artifacts/merchant-dashboard/20260731151703/populated-settlement-sand-pt-BR-768.png",
+      "bytes": 128295,
+      "sha256": "05555ca851125206ce6c63f2090b034ac435fed1671eed7ac89c5ac001ea1dce"
+    },
+    {
+      "path": "artifacts/merchant-dashboard/20260731151703/populated-settlement-sand-pt-BR-1440.png",
+      "bytes": 149871,
+      "sha256": "bf9e3ef8c81094abfc9719ea99117d37e8922f61cd4d85db7eba617e567436d3"
+    },
+    {
+      "path": "artifacts/merchant-dashboard/20260731151703/populated-midnight-clearing-pt-BR-375.png",
+      "bytes": 113087,
+      "sha256": "fd887ba3ef9515eaa388457efec3e2b7377fd2b0dfb5c29cb343d3903bf8104e"
+    },
+    {
+      "path": "artifacts/merchant-dashboard/20260731151703/populated-midnight-clearing-pt-BR-768.png",
+      "bytes": 128473,
+      "sha256": "8f4a60ee1a428bc722a5881a0631eac7a6f7ba2257d62cdfe462aceecaec7a4e"
+    },
+    {
+      "path": "artifacts/merchant-dashboard/20260731151703/populated-midnight-clearing-pt-BR-1440.png",
+      "bytes": 149796,
+      "sha256": "34a7ee0bf3d6df63e56178dbfe67f3321064cbc0e0aba2aed52ddd1388e8c7c6"
+    },
+    {
+      "path": "artifacts/merchant-dashboard/20260731151703/populated-vault-blue-pt-BR-375.png",
+      "bytes": 114232,
+      "sha256": "d2e61db3863e0dea668e07d17cec0ff1b5ac18e9f6c94f34d4a23adcedb63c80"
+    },
+    {
+      "path": "artifacts/merchant-dashboard/20260731151703/populated-vault-blue-pt-BR-768.png",
+      "bytes": 129850,
+      "sha256": "378d5c1529ed6c1c2ed01b2793976f1029632725b14de27cb6b604de623f4f2c"
+    },
+    {
+      "path": "artifacts/merchant-dashboard/20260731151703/populated-vault-blue-pt-BR-1440.png",
+      "bytes": 151084,
+      "sha256": "f04a611aa61d2f6f983dcc6dcc1df19836775196b0fb86cf652be8e0af5aa2d2"
+    },
+    {
+      "path": "artifacts/merchant-dashboard/20260731151703/populated-terminal-amber-pt-BR-375.png",
+      "bytes": 113723,
+      "sha256": "78fd6be55f86a98112dffbf972b4fc5fe96bd5d9ec4bf88f174785fa09ef485d"
+    },
+    {
+      "path": "artifacts/merchant-dashboard/20260731151703/populated-terminal-amber-pt-BR-768.png",
+      "bytes": 129375,
+      "sha256": "a2db2becd8e2e73e14f2b6e2b3cfaade04e13290b6ed11c37ff2210da3a1bbdd"
+    },
+    {
+      "path": "artifacts/merchant-dashboard/20260731151703/populated-terminal-amber-pt-BR-1440.png",
+      "bytes": 150505,
+      "sha256": "cc53c806ee9c623a5ac83164a0bf3e6e9a3155c49369fb85e9db97a7a375f785"
+    },
+    {
+      "path": "artifacts/merchant-dashboard/20260731151703/interaction-pt-BR-period-today.png",
+      "bytes": 109042,
+      "sha256": "b650d415f31a1999663cbe014541ec170c76ac685ad8e75e026645452628c6e4"
+    },
+    {
+      "path": "artifacts/merchant-dashboard/20260731151703/interaction-pt-BR-period-30d.png",
+      "bytes": 108591,
+      "sha256": "4a4954166f03443a53aa2a54838c4f2ed90ae8c62a5f2bc3ff65fc0cf6f32fbf"
+    },
+    {
+      "path": "artifacts/merchant-dashboard/20260731151703/interaction-pt-BR-view-store-on.png",
+      "bytes": 109161,
+      "sha256": "01974de598fc13b9906850540b1ae19aa7681687bae2c0adb7ada6b5b07b77a5"
+    },
+    {
+      "path": "artifacts/merchant-dashboard/20260731151703/populated-pix-paper-en-375.png",
+      "bytes": 107004,
+      "sha256": "e493791b02ad11489a80a6e537882d9a7c61bfba6b94de2a18f567f872dd1cd8"
+    },
+    {
+      "path": "artifacts/merchant-dashboard/20260731151703/populated-pix-paper-en-768.png",
+      "bytes": 124709,
+      "sha256": "0994a7b5f5b4d10e76977cdf00e6a8a039d6579a0bd43fad9428980e3e62028a"
+    },
+    {
+      "path": "artifacts/merchant-dashboard/20260731151703/populated-pix-paper-en-1440.png",
+      "bytes": 143980,
+      "sha256": "39c3ef61d679deb95fdffe193c426a25259998f8c8d2eca09aeb7f7c8030c9f3"
+    },
+    {
+      "path": "artifacts/merchant-dashboard/20260731151703/populated-cashier-daylight-en-375.png",
+      "bytes": 108240,
+      "sha256": "8c7f74fe3b1e63d674c0b1fb9d43243dff91f4cd9e9fd31edef89738a218d1b9"
+    },
+    {
+      "path": "artifacts/merchant-dashboard/20260731151703/populated-cashier-daylight-en-768.png",
+      "bytes": 125660,
+      "sha256": "01c7fc17a604f80c67092d0543e6e74d128940d1af005fc522df6101dd39ebc0"
+    },
+    {
+      "path": "artifacts/merchant-dashboard/20260731151703/populated-cashier-daylight-en-1440.png",
+      "bytes": 144778,
+      "sha256": "5a3236e08e5f59b5835940391cdc108fcec4f307bdbb17f8963799c978e1f272"
+    },
+    {
+      "path": "artifacts/merchant-dashboard/20260731151703/populated-settlement-sand-en-375.png",
+      "bytes": 109381,
+      "sha256": "5e714b6a298bebbc513d7e66923433e1547a0b95d353fbb3146ec4a4e372fa91"
+    },
+    {
+      "path": "artifacts/merchant-dashboard/20260731151703/populated-settlement-sand-en-768.png",
+      "bytes": 126588,
+      "sha256": "41bd1ab9a64ec4494309b1f22289a06b311d698cef7c9096f5cfc676d8e4f57a"
+    },
+    {
+      "path": "artifacts/merchant-dashboard/20260731151703/populated-settlement-sand-en-1440.png",
+      "bytes": 145353,
+      "sha256": "5eb6c7cde5937faf97548d8fbe0d74a8f61960a8673cbd0e8a1883be909345e2"
+    },
+    {
+      "path": "artifacts/merchant-dashboard/20260731151703/populated-midnight-clearing-en-375.png",
+      "bytes": 109748,
+      "sha256": "3540e03ef77b5ac7fbbd7ed1e6b3f1536de1a26b8371c0b04b9a979dc2ac80eb"
+    },
+    {
+      "path": "artifacts/merchant-dashboard/20260731151703/populated-midnight-clearing-en-768.png",
+      "bytes": 126574,
+      "sha256": "263410049f72407c9da88242f39b605bd880c0471bf41ff78746c91858936f89"
+    },
+    {
+      "path": "artifacts/merchant-dashboard/20260731151703/populated-midnight-clearing-en-1440.png",
+      "bytes": 145229,
+      "sha256": "c49923f46730d8e7d46339eeb92354a24448ff80fe50d8eb614372d483b18601"
+    },
+    {
+      "path": "artifacts/merchant-dashboard/20260731151703/populated-vault-blue-en-375.png",
+      "bytes": 110809,
+      "sha256": "de22f053ce05ee84e3d68516fee902b2c9869c2d468adb7f41701cc3816935ad"
+    },
+    {
+      "path": "artifacts/merchant-dashboard/20260731151703/populated-vault-blue-en-768.png",
+      "bytes": 128037,
+      "sha256": "865111842a9141dc43b5164ce579e43874a1b0fa2cb434c6c6e0763229986686"
+    },
+    {
+      "path": "artifacts/merchant-dashboard/20260731151703/populated-vault-blue-en-1440.png",
+      "bytes": 146457,
+      "sha256": "a41ff3a20b042716e4ce18a4f3261a45a7f9dadbb68fb5dc1ed91fe46628b715"
+    },
+    {
+      "path": "artifacts/merchant-dashboard/20260731151703/populated-terminal-amber-en-375.png",
+      "bytes": 111189,
+      "sha256": "0f0ad40062ee56deab335a61d2c29e233adfcf88d653f88c322eda77b2f891bb"
+    },
+    {
+      "path": "artifacts/merchant-dashboard/20260731151703/populated-terminal-amber-en-768.png",
+      "bytes": 127985,
+      "sha256": "11a9421a70f7d22b0e405b1d5bc298216f0cd0edc6b3420e4fa218391de3f54d"
+    },
+    {
+      "path": "artifacts/merchant-dashboard/20260731151703/populated-terminal-amber-en-1440.png",
+      "bytes": 146822,
+      "sha256": "4dd20745836631a756cb605ae83a64ca8c5f12d199d5e453b4af673d1a042ac9"
+    },
+    {
+      "path": "artifacts/merchant-dashboard/20260731151703/interaction-en-period-today.png",
+      "bytes": 105778,
+      "sha256": "8cec3dd2c7f835cc1814256869bbe03199853b0fe0885d54dbd00c9fa820d795"
+    },
+    {
+      "path": "artifacts/merchant-dashboard/20260731151703/interaction-en-period-30d.png",
+      "bytes": 105080,
+      "sha256": "e976682e4152d1f05c4f41e2198671e64576d597935efacfb7a21d6755c47e10"
+    },
+    {
+      "path": "artifacts/merchant-dashboard/20260731151703/interaction-en-view-store-on.png",
+      "bytes": 105893,
+      "sha256": "4f281424efbbd655c9af377a829fcf16a5e39cc3e9a4f6b94e1899067027abf6"
+    },
+    {
+      "path": "artifacts/merchant-dashboard/20260731151703/interaction-reflow-320.png",
+      "bytes": 102607,
+      "sha256": "3a5e1214cf7f0772d0f0768bc7cdd955a958e9b22416ce89c0b0d03fae4be3e7"
+    }
+  ],
+  "sourceHashes": {
+    "src/app/(merchant)/page.tsx": "79b91746b4ad18dee79d86db9b05b47bd900cbe25f4fd9262723687352b15498",
+    "src/app/(merchant)/loading.tsx": "943dbba9f5c87a820ae474b5ca1d84498d76677ab66de448303c308efa4be580",
+    "src/app/(merchant)/dashboard.tsx": "5567994121a52b8331acd7f2df11f170fcd6a5150880a1dfeb60abc803d205ad",
+    "src/i18n/dictionaries/merchant-dashboard/en.ts": "f711d03bc2b5ad9cf4d0895465a5bbf704195db0503e0fe0e527797b50ff1271",
+    "src/i18n/dictionaries/merchant-dashboard/pt-BR.ts": "e3c71406f7a7adb8d10cdba963c6ff5fbf578d8d045f9e69e5204b5123d80bdb",
+    "src/orders/merchant-analytics.ts": "aa6adc9e532e7d4cc7f88fbdef5489cbcd0e123ab19c5f24531ed472ad2150af",
+    "src/auth/storefront-settings.ts": "955f35521cbdca50e3d24c383b6cdab52b77c52f66ffd60339bbb411ed289231",
+    "src/app/globals.css": "1f81934813f9ac9d6a29c1c8dd0247ec607bfbf5f822bb354a7d6d052f0546e4",
+    "scripts/run-admin-evidence.mjs": "10bda618c6c425411040c1be8ae6cb37e427e9eb26e53a2259a565425a50f132",
+    "tests/merchant-dashboard.evidence.spec.ts": "652c1420a4dd8423769740ab9d822297c6b8e8f270db8542dc7e6d635519d2fa",
+    "scripts/run-merchant-dashboard-evidence.mjs": "db9a4693bcf535c0df47bc7bb14d066df27d420a32ef82e5b0e4855ccfd9c735",
+    "scripts/verify-merchant-dashboard-evidence.mjs": "c3016b82bbe835869fa27d8424fb1b6516659e3efbd6ece52e0de027e04f88f6"
+  },
+  "externalRequests": [],
+  "consoleErrors": [],
+  "pageErrors": []
+}
