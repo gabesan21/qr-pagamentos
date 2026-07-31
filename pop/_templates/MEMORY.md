@@ -10,20 +10,25 @@ authorization: <somente para D-AAAAMMDD-<slug>: comando humano que dispensou o k
 
 # <id>-<slug> — <título curto>
 
-> Ledger durável, escrito e validado antes de retirar a task do roadmap e apagar `kanban/005_closing/<id>/`. Limite total: **2000 caracteres**. Registre fatos e ponteiros, não refaça a narrativa do plano ou da execução; use [[.agents/skills/optimize-memory/SKILL|optimize-memory]] se crescer sem perder cronologia ou decisões críticas. Desvio humano que dispense literalmente o kanban usa `task: D-AAAAMMDD-<slug>`, preenche `authorization` e não possui card/linha de roadmap.
+> **Ledger** da task: o arquivo que prova que ela terminou. Mora em `memory/<AAAA-MM-DD>/<id>-<slug>.md`, e a **pasta é a data de conclusão — igual a `finished`**. Limite: **1200 caracteres**.
+> O ledger não conta o que foi feito; ele identifica, atesta e **indexa**. O que foi feito mora nas **entradas** ao lado, `memory/<AAAA-MM-DD>/<id>-<slug>.<nn>-<slug-da-entrada>.md` ([[_templates/MEMORY-ENTRY|MEMORY-ENTRY]]) — uma coisa feita por arquivo, ≤800 caracteres, cada uma com wikilink de evidência. É essa granularidade que permite otimizar depois com [[.agents/skills/optimize-memory/SKILL|optimize-memory]] sem reler a memory inteira.
+> Áreas alteradas, telemetria, decisões duráveis e desvios **não** são bullets daqui: são entradas.
+> Desvio humano que dispense literalmente o kanban usa `task: D-AAAAMMDD-<slug>`, preenche `authorization` e não possui card nem linha de roadmap — mas tem ledger e entradas como qualquer outra.
 
-- **Entrega:** <o que passou a existir ou mudou>.
-- **Áreas alteradas:** `<subtree/arquivo>` — <uma linha>.
+- **Entrega:** <uma frase: o que passou a existir ou mudou>.
 - **Verificação:** <gate agregado e resultado>.
-- **Telemetria final:** <contextos por estágio; devoluções 003/005; differential|full; testes finais — sem reasoning>.
-- **Decisões duráveis:** nenhuma | <decisão e justificativa curta>.
-- **Desvios relevantes:** nenhum | <diferença autorizada em relação ao brief>.
 - **Impacto em contratos:** specs: <avaliadas; atualizadas quando afetadas> · DOX: <avaliado; atualizado quando afetado>.
+
+## Entradas
+
+> Uma linha por entrada, em ordem cronológica, cada uma dizendo o que aquele arquivo conta. Entrada não linkada aqui é órfã e reprova a validação.
+
+- [[<id>-<slug>.01-<slug-da-entrada>]] — <o que foi feito, uma linha>.
+- [[<id>-<slug>.02-<slug-da-entrada>]] — <o que foi feito, uma linha>.
 
 ## Links
 
-> Cada link leva um gatilho: quando vale segui-lo.
+> Cada link leva um gatilho: quando vale segui-lo. Evidência de mudança pertence às entradas; aqui ficam os ponteiros da task inteira.
 
-- **Spec afetada:** [[pop/specs/<spec>|<spec>]] — *siga para conhecer <contrato alterado>*.
-- **Learning:** [[pop/notes/learnings/<nota>|<nota>]] — *siga se <situação reutilizável>*.
+- **Origem:** [[pop/roadmap/<n>-<slug>|Phase <n>.<m>]] — *siga para o contexto que pediu a task*.
 - **PR/commit:** <link ou hash> — *siga para inspecionar o diff final*.

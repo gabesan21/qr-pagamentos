@@ -56,4 +56,4 @@
 - **Frentes intactas:** `<Fxx>` — aprovadas, permanecem integradas; **não** reexecutar.
 - **Ação esperada:** <uma linha: o que 002 emenda ou o que 004 corrige>.
 
-> Aprovando, escreva `memory/<id>.md` na mesma sessão — você acabou de ler o diff. Integração, PR e merge continuam sendo do orquestrador e do humano.
+> Aprovando, escreva a memory na mesma sessão — você acabou de ler o diff: o ledger `memory/<AAAA-MM-DD>/<id>.md` mais uma entrada `<id>.<nn>-<slug>.md` por coisa feita, com evidência linkada ([[_templates/MEMORY|MEMORY]] · [[_templates/MEMORY-ENTRY|MEMORY-ENTRY]]). Integração, PR e merge continuam do orquestrador e do humano.

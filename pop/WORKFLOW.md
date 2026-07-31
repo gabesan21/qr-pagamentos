@@ -21,7 +21,7 @@ Toda task é uma pasta com id `<epoch>.<phase>.<task>-<slug>` (roadmap) ou `M-<n
 | 002_planning | agent | planejador separado | Produz um brief: objetivo, estratégia, frentes, contratos, riscos e critérios. |
 | 003_human_approval | **user** | orquestrador prepara | Humano aprova o brief; em yolo, o gate só existe para `critical` (crítico strong). |
 | 004_processing | agent | orquestrador de execução | Escolhe executor único ou especialistas em sequência/ondas e integra os resultados. |
-| 005_closing | **yolo:** agent · **não-yolo:** user | yolo: revisor independente · não-yolo: orquestrador | Gate de qualidade, integração/PR e encerramento (memory, specs, limpeza) num estágio só. |
+| 005_closing | **yolo:** agent · **não-yolo:** user | yolo: configuração A (advogado → juiz) ou B (revisor único) · não-yolo: orquestrador | Gate de qualidade, integração/PR e encerramento (memory, specs, limpeza) num estágio só. |
 
 Cada artefato declara seu responsável. Agentes nunca executam item `(user)` nem marcam `- [ ] Feito` no lugar do humano. O INBOX deriva do frontmatter; mantenha `stage`, `critical`, `blocked` e `awaiting_merge` fiéis.
 
@@ -33,7 +33,7 @@ Contrato durável: [[specs/orquestracao-multiagente|orquestração multiagente]]
 
 - **002 — planejador sempre separado:** recebe card + links pertinentes e devolve o `.plan.md` mais os arquivos de frente. Recon delegado só existe para pergunta específica acima do piso da regra 18; zero workers é normal.
 - **004 — execução adaptativa:** frente coesa (uma skill/write set, sem DAG) vai direto a um executor; só topologia complexa recebe suborquestrador para especialistas sequenciais/ondas. Planejador nunca executa.
-- **005_closing — um gate, um contexto:** em yolo, um revisor independente em contexto fresco julga **e** escreve a memory na mesma sessão — ele acabou de ler o diff, não há por que pagar outra leitura. `critical` aumenta profundidade/modelo, não cria um segundo revisor. Fora de yolo não existe revisor agêntico: o gate é o PR humano e o estágio inteiro é do orquestrador principal.
+- **005_closing — um gate:** em yolo ele roda em **configuração B** (um revisor independente em contexto fresco) ou em **configuração A** (advogado do diabo e, depois dele, o juiz, em contextos frescos separados entre si e de planejador/executor). Quem julga por último escreve a memory na mesma sessão — acabou de ler o diff, não há por que pagar outra leitura. `critical` aumenta profundidade/modelo, não acrescenta juiz nem revisor. Fora de yolo não existe revisor agêntico: o gate é o PR humano e o estágio inteiro é do orquestrador principal.
 - **Fatiamento de leitura:** cada papel recebe só a sua fatia. Executor de frente lê o "O quê / Por quê" do card, o objetivo e a estratégia do plano, o **seu** arquivo de frente e a skill dela — nunca o plano inteiro nem frentes alheias.
 - **001:** fica com o orquestrador principal; em yolo externo, integração em `develop` e abertura do PR final também são mecânicas dele. Escopo local opera direto em `main`.
 
@@ -45,11 +45,11 @@ Modelos são escolhidos pelo papel e pelo risco, via `pop/scripts/models.json`:
 | worker de recon | — | cheap | cheap |
 | orquestrador de execução 004 | medium | medium | strong |
 | especialista de execução | cheap/medium | medium | medium |
-| revisor independente (só yolo) | medium | medium | strong |
+| revisor independente, advogado ou juiz (só yolo) | medium | medium | strong |
 
 `size` estima esforço, não autoriza cerimônia automática. Incerteza, risco, quantidade de skills e independência das frentes decidem a topologia. O Log registra apenas os contextos realmente lançados.
 
-Em yolo, o revisor de `005_closing` usa sempre tier **strong**, independentemente de `size`. Executor sobe de `cheap` para `medium` na rodada seguinte **somente após retorno `execucao`** — segunda execução custa mais que a diferença de tier. Retorno `lacuna`/`premissa` não é falha dele e não muda seu tier.
+Em yolo, quem julga o `005_closing` — revisor único, advogado ou juiz — usa sempre tier **strong**, independentemente de `size`. Executor sobe de `cheap` para `medium` na rodada seguinte **somente após retorno `execucao`** — segunda execução custa mais que a diferença de tier. Retorno `lacuna`/`premissa` não é falha dele e não muda seu tier.
 
 ## Conteúdo da pasta da task
 
@@ -58,14 +58,17 @@ Em yolo, o revisor de `005_closing` usa sempre tier **strong**, independentement
 ├── <id>.md                 ← card
 ├── <id>.plan.md            ← raiz do brief de 002 (≤80 linhas, sempre)
 ├── <id>.approval.md        ← rodadas de 003
-├── <id>.verify.md          ← julgamento do revisor independente (só yolo)
+├── <id>.defense.md         ← decisões contestáveis do plano (002, só quando o gate adversarial liga)
+├── <id>.verify.md          ← julgamento do revisor independente (só yolo, configuração B)
+├── <id>.r<n>.accusation.md ← acusação do advogado do diabo (só configuração A, uma por rodada)
+├── <id>.r<n>.judgment.md   ← veredito do juiz (só configuração A, uma por rodada)
 └── subtasks/               ← uma frente por arquivo (≤50 linhas): a fatia de leitura de um executor
     └── <id>.g01-<slug>.md
 ```
 
-Obrigatório sempre que a frente for para um contexto separado; task de frente única não tem `subtasks/`. Os tetos são validados por `pop/scripts/pop_validate.py`.
+Obrigatório sempre que a frente for para um contexto separado; task de frente única não tem `subtasks/`. Os tetos são validados por `pop/scripts/pop_validate.py`. Os três últimos são **exclusivos entre si por configuração**: em A não existe `.verify.md`, em B não existem `.accusation.md` nem `.judgment.md`.
 
-Templates: [[_templates/TASK|TASK]] · [[_templates/TASK-PLAN|TASK-PLAN]] · [[_templates/TASK-APPROVAL|TASK-APPROVAL]] · [[_templates/TASK-VERIFY|TASK-VERIFY]] · [[_templates/SUBTASKS|SUBTASKS]] · [[_templates/MEMORY|MEMORY]].
+Templates: [[_templates/TASK|TASK]] · [[_templates/TASK-PLAN|TASK-PLAN]] · [[_templates/TASK-APPROVAL|TASK-APPROVAL]] · [[_templates/TASK-DEFENSE|TASK-DEFENSE]] · [[_templates/TASK-VERIFY|TASK-VERIFY]] · [[_templates/TASK-ACCUSATION|TASK-ACCUSATION]] · [[_templates/TASK-JUDGMENT|TASK-JUDGMENT]] · [[_templates/SUBTASKS|SUBTASKS]] · [[_templates/MEMORY|MEMORY]] · [[_templates/MEMORY-ENTRY|MEMORY-ENTRY]].
 
 ## Estágios
 
@@ -89,17 +92,18 @@ O planejador não implementa. Ele decide e resume; não persiste chain-of-though
 - **Tamanho é modularidade, não compressão.** A raiz do plano fica ≤80 linhas **em qualquer `size`** — é a fatia que todos leem. Plano que não couber **se fatia** em `subtasks/`, um arquivo ≤50 linhas por frente que vá para contexto separado; o que cresce com o `size` é o número de arquivos, não o tamanho de cada um. Dividir a task por `depends_on` é exceção, para quando as frentes não compartilham objetivo.
 - **Os critérios são o contrato.** Eles valem para o executor e para o gate de `005_closing`, e precisam cobrir o "O quê / Por quê" do card — não só a estratégia escolhida. Critério que não cobre o pedido é defeito de plano, e o gate devolve a 002 por isso.
 - **Retorno `lacuna` é emenda, não replanejamento.** Devolução classificada como `lacuna` (o entregue está correto, só incompleto) acrescenta o critério que faltou e, se necessário, **um** arquivo de frente novo — nada de reescrever o plano. Critérios e frentes são **append-only** entre rodadas: renumerar quebra as referências do `.verify.md` e da telemetria. Só `premissa` (a estratégia estava errada) justifica replanejar de verdade.
+- **Defesa quando o gate adversarial liga.** Task com `yolo: true` **e** (`size: L` **ou** `critical: true`) entrega, além do plano, o `<id>.defense.md` ([[_templates/TASK-DEFENSE|TASK-DEFENSE]]): lista curta das decisões contestáveis — escolha adotada, alternativa rejeitada, por quê e o que a falsificaria —, nunca chain-of-thought. É o que o advogado ataca no ato 1; sem ela a configuração A não roda.
 - Cada frente persistida descreve **entrega e fronteira**, nunca implementação: `owns`, `may_read`, `must_not_edit`, `depends_on`, entrada esperada, skill e critérios. Detalhe operacional pertence ao prompt efêmero do executor.
 - Specs são criadas/alteradas apenas quando a task muda contrato durável; correção que restaura uma spec existente só a referencia.
 - Red-team pode acontecer no raciocínio do planejador ou por worker quando risco justificar, mas sua transcrição não é artefato obrigatório.
-- Gate 002→003: objetivo verificável; estratégia e frentes coerentes; dependências explícitas; contratos suficientes; riscos materiais cobertos; **critérios executáveis e cobrindo o pedido do card**; raiz do plano dentro do teto, com as frentes de contexto separado já fatiadas; nenhuma decisão indispensável escondida no reasoning.
+- Gate 002→003: objetivo verificável; estratégia e frentes coerentes; dependências explícitas; contratos suficientes; riscos materiais cobertos; **critérios executáveis e cobrindo o pedido do card**; raiz do plano dentro do teto, com as frentes de contexto separado já fatiadas; **defesa presente quando o gatilho liga**; nenhuma decisão indispensável escondida no reasoning.
 
 ### 003_human_approval — gate humano (user)
 
 - Crie uma rodada enxuta no `.approval.md`: resumo, riscos materiais, critérios principais, resposta e `- [ ] Feito`.
 - Só prossiga com `- [x] Feito`: mudanças pedidas → 002; aprovado/vazio → 004.
 - **Em yolo, este gate só existe para `critical: true`:** o crítico strong independente julga; até duas devoluções retornam automaticamente a 002 e a 3ª falha ativa `circuit_breaker`. Task yolo não crítica transita **002 → 004 direto, sem rodada** — o yolo confia no plano do agente e concentra o julgamento no `005_closing`.
-- Só entre em 004 quando toda `depends_on` tiver `memory/<id>*.md`. Não há janela transitória por estágio: task em `005_closing` pode estar aguardando o gate, e a memory só nasce depois dele.
+- Só entre em 004 quando toda `depends_on` tiver seu ledger em `memory/<AAAA-MM-DD>/<id>.md`. Não há janela transitória por estágio: task em `005_closing` pode estar aguardando o gate, e a memory só nasce depois dele.
 - WIP máximo de três tasks em 004; no yolo o orquestrador prioriza por dependências.
 
 ### 004_processing — execução orquestrada (agent)
@@ -124,9 +128,13 @@ O planejador não implementa. Ele decide e resume; não persiste chain-of-though
 
 Um estágio, três atos na ordem. **Nenhum efeito do ato 3 acontece antes da aprovação** quando o gate existe: memory, sync de specs, `close` e exclusão da pasta só rodam depois.
 
-**Ato 1 — gate de qualidade.** Quem julga depende do modo, e só um dos dois roda:
+**Ato 1 — gate de qualidade.** O orquestrador lê `yolo`, `size` e `critical` no frontmatter do card e escolhe entre três casos mutuamente exclusivos — nenhuma marca nova liga o gate. Contrato: [[specs/gate-adversarial|gate adversarial]] — *siga sempre: invariantes, poderes de cada papel e tetos dos artefatos vivem lá, não aqui*.
 
-- **Yolo — revisor independente em contexto fresco.** Leia nesta ordem: objetivo, specs/contratos, testes e diff; o relato de execução é apoio, não fonte de verdade. Comece respondendo se o **pedido original** — o “O quê / Por quê” do card — foi atendido, antes dos critérios do plano. Escolha `differential` ou `full` e registre motivo/superfície/testes: **retorno anterior não implica revisão cheia** — só `premissa` invalida o que já foi verificado, e `full` fica para ela e para `critical: true`; depois de `lacuna` ou de falha de execução, o diferencial cobre o **delta** (critérios e frentes que reentraram) e audita o resto por evidência. Revise comportamento, bordas, testes, complexidade, acoplamento, nomes, erros, segurança, documentação, specs e DOX tocados; em código, siga `clean-code-review`. Cada achado traz trecho/evidência, impacto e severidade (**bloqueante**, **sugestão** ou **nit**), e há exatamente um revisor por rodada.
+- **Configuração A — par adversarial**, quando `yolo: true` e (`size: L` ou `critical: true`). Em contextos frescos e nesta ordem: o **advogado do diabo** (skill `devils-advocate`) acusa execução e decisões da defesa em `<id>.r<n>.accusation.md`; depois o **juiz** (skill `adversarial-judge`), em contexto separado, julga cada acusação, responde primeiro se o pedido original do card foi atendido e emite veredito e rota em `<id>.r<n>.judgment.md`. Nessa rodada não roda revisor independente, e é o juiz quem escreve a memory ao aprovar. Defesa ausente: o ato 1 não roda e a task volta a 002 para produzi-la.
+- **Transição — card anterior ao gate.** O gate vigora desde **2026-07-27**: card com `created:` anterior a essa data passou por 002 quando a defesa ainda não existia, então defesa ausente **não** o devolve a 002 — ele roda em **configuração B** e o orquestrador registra a aplicação desta cláusula no Log do card. Vale só `created:` (imutável); nenhum campo novo.
+- **Acusação inválida não é veredito.** Item sem severidade, evidência ou remédio — ou artefato acima do teto — não é julgado: o juiz reporta ao orquestrador e **não** escreve `<id>.r<n>.judgment.md`, e o **orquestrador** relança o advogado na mesma rodada. **Reemissão não é rodada nova:** ela reescreve o `<id>.r<n>.accusation.md` daquela mesma rodada — `n` não avança e nenhum artefato já julgado é tocado. Não é rota e não consome contador; registre no Log do card. Segunda acusação inválida seguida → `blocked: true`.
+- **Uma rodada, um par de arquivos.** Cada rodada do ato 1 escreve os seus: `<id>.r<n>.accusation.md` e `<id>.r<n>.judgment.md`, desde `r1`. Rodada nova **nunca** sobrescreve nem apaga a anterior — a rodada 1 da 8.2.2 se perdeu assim —, a de maior `n` é a que decide e os tetos valem por rodada. Forma: [[specs/gate-adversarial|gate adversarial]] › Interfaces.
+- **Configuração B — revisor único** nas demais tasks `yolo: true`, em contexto fresco. Leia nesta ordem: objetivo, specs/contratos, testes e diff; o relato de execução é apoio, não fonte de verdade. Comece respondendo se o **pedido original** — o “O quê / Por quê” do card — foi atendido, antes dos critérios do plano. Escolha `differential` ou `full` e registre motivo/superfície/testes: **retorno anterior não implica revisão cheia** — só `premissa` invalida o que já foi verificado, e `full` fica para ela e para `critical: true`; depois de `lacuna` ou de falha de execução, o diferencial cobre o **delta** (critérios e frentes que reentraram) e audita o resto por evidência. Revise comportamento, bordas, testes, complexidade, acoplamento, nomes, erros, segurança, documentação, specs e DOX tocados; em código, siga `clean-code-review`. Cada achado traz trecho/evidência, impacto e severidade (**bloqueante**, **sugestão** ou **nit**), e há exatamente um revisor por rodada.
 - **Três saídas possíveis:** aprovado → ato 2; **bloqueante de execução** → 004 (o executor não cumpriu o contrato); **defeito de plano** → 002 (o contrato não cobria o pedido, e o executor cumpriu o que recebeu). Cada rota tem contador próprio: execução conta em `yolo_005_returns`, defeito de plano em `yolo_003_returns`. Duas devoluções por contador reentram automaticamente; a 3ª ativa `circuit_breaker`.
 - **Toda devolução carrega um delta nomeado**, sem exceção: tipo (`lacuna` | `premissa` | `execucao`), critérios afetados, frentes afetadas e frentes que permanecem intactas. É o delta que faz a devolução custar o tamanho do defeito em vez de um ciclo inteiro — sem ele, 002 não sabe se emenda ou replaneja e 004 não sabe o que reexecutar. O tipo é gravado em `return_kind:` por `python3 pop/scripts/pop_move.py … --return-kind <tipo>`; agente nunca edita esse campo à mão. Fora de yolo, o humano registra o mesmo delta na rodada de merge do `.approval.md` ao pedir correção no PR.
 - **O gate não conserta o que reprovou.** Nomear o delta é o limite do seu poder: revisor que despacha correção passa a avaliar trabalho que encomendou, e a independência — a única razão pela qual o gate vale algo — desaparece.
@@ -136,10 +144,11 @@ Um estágio, três atos na ordem. **Nenhum efeito do ato 3 acontece antes da apr
 
 **Ato 3 — encerramento.** Idempotente: valide o estado antes de cada efeito, pule o que já está feito e aborte preservando card/roadmap diante de falha técnica.
 
-1. Escreva `memory/<id>.md` como ledger curto e canônico: ID, projeto, datas, commit, PR, resultado, specs, decisões/desvios e ponteiros. Memory inválida aborta o fechamento. Em yolo, quem escreve é o próprio revisor, na mesma sessão em que aprovou — ele já leu o diff.
+1. Escreva a memory da task em `memory/<AAAA-MM-DD>/`, onde a pasta é a data de conclusão (igual a `finished`): o **ledger** `<id>.md` ([[_templates/MEMORY|MEMORY]], ≤1200 chars) com ID, projeto, datas, commit, PR, entrega, verificação, impacto em contratos e o índice das entradas; e uma **entrada** `<id>.<nn>-<slug>.md` ([[_templates/MEMORY-ENTRY|MEMORY-ENTRY]], ≤800 chars) por coisa feita — áreas alteradas, telemetria, cada decisão durável, cada desvio —, numeradas na ordem cronológica e cada uma com **ao menos um wikilink de evidência** (a spec alterada, o arquivo tocado). Entrada não indexada pelo ledger é órfã; memory inválida aborta o fechamento. Em yolo, quem escreve é quem aprovou (revisor único em B, juiz em A), na mesma sessão — ele já leu o diff.
 2. Sincronize apenas specs/DOX realmente afetados; atualize status da task/phase/epoch/modification e índices se necessário.
 3. Remova a linha da task com `python3 pop/scripts/pop_roadmap.py close <id>`; a operação exige card em `005_closing` e memory válida. Preserve epoch, phase, modification e tasks abertas.
 4. Extraia learning somente quando houver conhecimento reutilizável; nos escopos externos, remova as worktrees/branches efêmeras da task.
+   - **Colheita do julgamento.** Decisão **contestada e sustentada** no `.judgment.md` vira registro durável só quando os **três** testes passam: julgada com fundamento · **reincidência** (o fundamento decidiria uma task futura que não conhece esta; se cai junto com este diff, é circunstância) · **inédita** em spec ou nota vigente (se já existe e diverge, corrija a existente em vez de criar outra). Destino: contrato, invariante ou interface durável → linha em spec; razão de uma escolha → nota em `notes/decisions/`. **Default é não registrar:** falhou um teste, a decisão morre na memory da task, cujas entradas já carregam decisões/desvios — e julgamento sem colheita **não** gera registro de "sem colheita".
 5. Se esta foi a última task de escopo yolo externo, abra automaticamente PR `develop` → `main`. Falha, conflito ou branch ausente → `blocked`; o merge é sempre humano. Sem Git, crie a rodada de aprovação final.
 6. Apague `kanban/005_closing/<id>/` somente após os passos anteriores; memory + Git preservam a prova durável.
 
@@ -158,17 +167,17 @@ Um estágio, três atos na ordem. **Nenhum efeito do ato 3 acontece antes da apr
 
 Somente ordem humana literal como “não use o kanban” ou “faça fora do PoP” dispensa os estágios. O waiver é específico: nenhuma outra regra ou proteção fica dispensada por inferência.
 
-1. Antes de escrever, registre o comando autorizador e o alcance em `memory/D-AAAAMMDD-<slug>.md`, usando [[_templates/MEMORY|MEMORY]]; o ID `D-` identifica desvio sem card.
+1. Antes de escrever, registre o comando autorizador e o alcance no ledger `memory/<AAAA-MM-DD>/D-AAAAMMDD-<slug>.md`, usando [[_templates/MEMORY|MEMORY]]; o ID `D-` identifica desvio sem card e preenche `authorization`.
 2. Preserve as regras de repositório, segurança, ownership e merge que não foram explicitamente sobrescritas.
-3. Antes de encerrar, complete a memory com commit/PR, resultado, verificação e desvios; registre a avaliação de impacto em specs e DOX e atualize somente os contratos realmente afetados.
+3. Antes de encerrar, complete o ledger com commit/PR, resultado e verificação, e abra uma entrada por coisa feita e por desvio; registre a avaliação de impacto em specs e DOX e atualize somente os contratos realmente afetados.
 4. Sem autorização inequívoca ou sem rota para essa prova durável, não edite: materialize uma task normal.
 
 ## Yolo mode
 
-`yolo: true` delega o julgamento ao revisor independente e mantém a mesma máquina de estados, com **gate único de qualidade no `005_closing`**. Fora de yolo o revisor agêntico não existe — o gate é o PR humano —, então o revisor independente é uma figura exclusiva do yolo.
+`yolo: true` delega o julgamento a um gate agêntico e mantém a mesma máquina de estados, com **gate único de qualidade no `005_closing`** (configuração A ou B). Fora de yolo esse gate não existe — o gate é o PR humano —, então revisor independente, advogado e juiz são figuras exclusivas do yolo.
 
 - A marca vem do roadmap/modifications, pode ser herdada ou ser definida pelo humano ao pedir “iniciar o fluxo em yolo”. Nesse pedido sem card, `new-task` materializa, registra a origem conversacional e libera a task; yolo nunca é waiver. O escopo auto-materializa waves de até três tasks independentes: dependências satisfeitas e escrita/repos isolados; colisão serializa.
-- **Gate único:** task yolo não crítica vai de 002 direto a 004, sem rodada de aprovação — o yolo confia no plano do agente. No `005_closing` nasce sessão limpa **strong**: o crítico verifica primeiro se o pedido original (objetivo do card) foi atendido, depois plano, specs, diff e qualidade; decide `differential|full` (`full` em critical ou retorno por `premissa`; depois de `lacuna`/execução o diferencial cobre o delta). Aprovando, ele mesmo escreve a memory antes de devolver o turno ao orquestrador.
+- **Gate único:** task yolo não crítica vai de 002 direto a 004, sem rodada de aprovação — o yolo confia no plano do agente. No `005_closing` o gate roda em **configuração A** ou **B** conforme `size`/`critical`, sem mudar rotas, contadores nem circuit breaker. Em qualquer delas nasce sessão limpa **strong**: quem julga verifica primeiro se o pedido original (objetivo do card) foi atendido, depois plano, specs, diff e qualidade; decide `differential|full` (`full` em critical ou retorno por `premissa`; depois de `lacuna`/execução o diferencial cobre o delta). Aprovando, ele mesmo escreve a memory antes de devolver o turno ao orquestrador.
 - **Duas devoluções por rota, sempre com delta:** bloqueante de execução volta a 004 (`yolo_005_returns`, tipo `execucao`); defeito de plano volta a 002 (`yolo_003_returns`, tipo `lacuna` ou `premissa`). A 3ª falha da mesma rota ativa o circuit breaker. Só as frentes do delta reentram.
 - **`critical: true` é a exceção:** mantém o 003 com crítico strong antes da execução (duas devoluções a 002; 3ª = circuit breaker) e o gate do `005_closing` sempre `full`.
 - Só bloqueio técnico, item `(user)` ou circuit breaker interrompem; devolução normal reentra automaticamente no fluxo.

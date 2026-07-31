@@ -8,7 +8,11 @@ positiva — só as pastas de harness, nunca o código do produto); anatomia
 `pop/` obrigatória nos projetos de `categories/` (harness na raiz da pasta —
 `kanban/` ou `.included-harness.json` fora de `pop/` — é violação, a
 fronteira da regra 13); frontmatter
-obrigatório dos cards de task e coerência do `stage:` com a pasta; worktrees
+obrigatório dos cards de task e coerência do `stage:` com a pasta; tetos dos
+artefatos do gate adversarial (defesa 30, acusação 50, julgamento 40) e a
+exclusividade entre as duas configurações do ato 1; layout de `memory/`
+(pasta por data de conclusão, ledger <=1200 chars, entrada <=800 chars com
+wikilink de evidência e indexada pelo ledger); worktrees
 órfãs (aviso); wikilinks quebrados (aviso — link para nota futura é
 legítimo); e anotações `<!-- pop-hash: <caminho> sha256=<hash> -->` de
 citação de código (fail-closed: arquivo citado inexistente ou hash
@@ -37,6 +41,43 @@ MAX_NOTE_LINES = 150
 MAX_PLAN_LINES = 80      # raiz do plano (`<id>.plan.md`), independente de size
 MAX_FRONT_LINES = 50     # arquivo de frente em `subtasks/`: fatia de 1 executor
 MAX_PROJECT_AGENTS = 60  # AGENTS.md de projeto: ponteiro, não cópia do fluxo
+# Tetos dos três artefatos do gate adversarial (ver [[specs/gate-adversarial]],
+# tabela "Interfaces"). A chave é o sufixo do artefato **de task**, nunca o nome
+# de um template: `_templates/TASK-DEFENSE.md` segue sendo nota comum de 150.
+# O teto vale **por rodada**: o infixo `.r<n>` fica antes do sufixo, então o
+# casamento por `endswith` já alcança `<id>.r2.accusation.md`.
+GATE_ARTIFACT_LIMITS = {
+    ".defense.md": 30,      # decisões contestáveis do plano
+    ".accusation.md": 50,   # objeções do advogado do diabo
+    ".judgment.md": 40,     # julgamento e rota do juiz
+}
+# Tetos de memory, em **caracteres**: memory é ledger e entrada, não nota, e o
+# que a torna otimizável por agente é o tamanho do arquivo, não o nº de linhas.
+# O ledger é a prova (frontmatter, entrega, verificação, índice); a entrada é
+# uma coisa feita, com evidência linkada (ver [[_templates/MEMORY]] e
+# [[_templates/MEMORY-ENTRY]]). Quem mede memory é `check_memory` — `note_limit`
+# não alcança `memory/`.
+MAX_MEMORY_LEDGER = 1200
+MAX_MEMORY_ENTRY = 800
+# Data em que o layout `memory/<AAAA-MM-DD>/` passou a ser obrigatório. Memory
+# plana anterior a ela é legado tolerado — é o que mantém válidos os clones
+# `included`, cujas memories este vault não reescreve.
+MEMORY_LAYOUT_SINCE = "2026-07-27"
+MEMORY_DATE_DIR = pop_roadmap.MEMORY_DATE_DIR
+# Entrada: `<id>.<nn>-<slug>.md` na mesma pasta do ledger `<id>.md`. O `.`
+# reaproveita a convenção dos artefatos de kanban (`<id>.plan.md`).
+MEMORY_ENTRY_SUFFIX = re.compile(r"^\.(\d{2}-[a-z0-9][a-z0-9-]*)$")
+VERIFY_ARTIFACT = ".verify.md"
+GATE_PAIR_ARTIFACTS = (".accusation.md", ".judgment.md")
+# Infixo de rodada dos artefatos do ato 1 (`<id>.r<n>.<artefato>.md`, desde
+# `r1`): o que decide a configuração é a **família** do artefato, nunca a
+# rodada, então toda checagem casa o nome com e sem o infixo.
+ROUND_INFIX = re.compile(r"\.r\d+$")
+# Data em que o gate adversarial passou a vigorar (ver [[WORKFLOW]], ato 1 do
+# `005_closing`, "Transição — card anterior ao gate"). Card com `created:`
+# anterior a ela passou por 002 quando a defesa ainda não existia: mesmo sob o
+# gatilho, ele roda em configuração B e seu `.verify.md` é o esperado.
+GATE_ADVERSARIAL_SINCE = "2026-07-27"
 # Aplicação embute o processo DOX e só por isso excede o teto (regra 5).
 DOX_MARKER = "Processo DOX"
 EXEMPT_NAMES = {"AGENTS.md", "WORKFLOW.md", "README.md"}
@@ -66,7 +107,10 @@ LINK_SKIP_PARTS = {"external-repository", ".obsidian", ".git", "worktrees",
 # Sufixos dos artefatos de estágio da própria task (criados só ao avançar no
 # kanban): um card recém-criado linka `.plan/.approval/.verify` que ainda não
 # nasceram — link de navegação esperado, não quebra real (ver [[WORKFLOW]]).
-STAGE_ARTIFACT_SUFFIXES = (".plan", ".approval", ".verify")
+# Os artefatos do ato 1 levam infixo de rodada (`<id>.r<n>.accusation`), que
+# `_stage_artifact_base` remove dos dois lados da comparação.
+STAGE_ARTIFACT_SUFFIXES = (".plan", ".approval", ".verify",
+                           ".defense", ".accusation", ".judgment")
 EXTERNAL_PROJECT_LINK = re.compile(r"\[\[categories/[^/]+/[^/]+/")
 
 
@@ -340,12 +384,17 @@ def note_limit(path):
     Artefatos de planejamento têm régua própria e mais curta: a raiz do plano
     é a fatia lida por todo mundo e o arquivo de frente é a fatia lida por um
     executor. Plano que não couber **modulariza** em `subtasks/`; comprimir ou
-    dividir a task é exceção (ver seção 002 do WORKFLOW).
+    dividir a task é exceção (ver seção 002 do WORKFLOW). Defesa, acusação e
+    julgamento seguem a mesma lógica, com os tetos que a spec do gate
+    adversarial fixa.
     """
     if path.name in EXEMPT_NAMES:
         return None
     if path.name.endswith(".excalidraw.md"):
         return None  # diagrama Excalidraw: JSON embutido, não é nota
+    for suffix, limit in GATE_ARTIFACT_LIMITS.items():
+        if path.name.endswith(suffix):
+            return limit
     if path.name.endswith(".plan.md"):
         return MAX_PLAN_LINES
     if path.parent.name == "subtasks":
@@ -437,6 +486,96 @@ def check_cards(root, projects, violations):
                     violations.append(f"{telemetry}: telemetria inválida")
 
 
+def gate_adversarial_applies(meta):
+    """Gatilho do par advogado + juiz, derivável só do frontmatter do card.
+
+    `yolo: true` **e** (`size: L` **ou** `critical: true`) — nenhuma marca nova
+    liga o gate (ver [[specs/gate-adversarial]]).
+    """
+    return meta.get("yolo") is True and (str(meta.get("size")) == "L"
+                                         or meta.get("critical") is True)
+
+
+def gate_adversarial_predates(meta):
+    """Card planejado antes de o gate vigorar — cláusula de transição.
+
+    `created:` anterior a `GATE_ADVERSARIAL_SINCE` significa 002 concluído
+    quando a defesa ainda não existia: o ato 1 roda em configuração B e o
+    `.verify.md` é o artefato correto, mesmo com o gatilho ligado. Usa só campo
+    existente e imutável; `created:` ausente ou inválido não isenta (e já é
+    violação por conta própria).
+    """
+    created = _valid_iso_date(meta.get("created"))
+    return created is not None and created.isoformat() < GATE_ADVERSARIAL_SINCE
+
+
+def gate_artifacts_of(task_dir):
+    """Artefatos do ato 1 desta task, como pares (caminho, família).
+
+    Varre a pasta em vez de casar o nome literal `<id><família>`, porque o
+    artefato do par nasce por rodada (`<id>.r<n>.accusation.md`, desde `r1`) e
+    o `.verify.md` pode aparecer com o mesmo infixo. O que decide a
+    configuração é a família; a rodada só distingue as tentativas.
+    """
+    found = []
+    for path in sorted(task_dir.iterdir()):
+        if not path.is_file():
+            continue
+        for family in (VERIFY_ARTIFACT, *GATE_PAIR_ARTIFACTS):
+            if not path.name.endswith(family):
+                continue
+            stem = path.name[: -len(family)]
+            if ROUND_INFIX.sub("", stem) == task_dir.name:
+                found.append((path, family))
+            break
+    return found
+
+
+def check_gate_artifacts(root, projects, violations):
+    """(k) exclusividade entre as duas configurações do ato 1 do 005_closing.
+
+    Onde o gatilho liga, o ato 1 é julgado pelo par advogado + juiz e não
+    existe `.verify.md`; onde não liga, vale o revisor único e não nascem
+    `.accusation.md` nem `.judgment.md`. Nunca os três — daí a coexistência
+    `.verify` + artefato do par ser violação em qualquer direção: seja qual for
+    o gatilho, um dos dois está fora da configuração vigente. A regra é por
+    família, então vale igual para cada rodada (`<id>.r<n>.<artefato>.md`).
+
+    **Ausência nunca é violação:** quase nenhuma task tem qualquer um dos três,
+    e task fora do yolo nunca terá. A regra é de coexistência e de coerência
+    com o gatilho, jamais de presença.
+
+    **Transição:** card com `created:` anterior a `GATE_ADVERSARIAL_SINCE` roda
+    em configuração B mesmo sob o gatilho — a mesma cláusula que o ato 1 do
+    `005_closing` enuncia. A isenção é **estreita**: ela só tira o `.verify.md`
+    da lista de proibidos, e o artefato do par continua proibido nesse card.
+    Pular a checagem inteira deixaria a coexistência passar justamente na
+    classe de maior risco.
+    """
+    for project in projects:
+        for _, task_dir, card in poplib.iter_cards(project):
+            meta = poplib.read_card(card)
+            if not gate_adversarial_applies(meta):
+                forbidden = GATE_PAIR_ARTIFACTS
+                reason = ("gate adversarial desligado: o ato 1 é o revisor "
+                          "independente único, que produz `.verify.md`")
+            elif gate_adversarial_predates(meta):
+                forbidden = GATE_PAIR_ARTIFACTS
+                reason = ("card anterior a " + GATE_ADVERSARIAL_SINCE + ": a "
+                          "cláusula de transição isenta só o `.verify.md`, e o "
+                          "ato 1 roda em configuração B")
+            else:
+                forbidden = (VERIFY_ARTIFACT,)
+                reason = ("gate adversarial ligado (`yolo: true` e (`size: L` "
+                          "ou `critical: true`)): o ato 1 é o par advogado + "
+                          "juiz, sem revisor independente")
+            for path, family in gate_artifacts_of(task_dir):
+                if family in forbidden:
+                    violations.append(
+                        f"{path}:1: `{family}` fora da configuração do ato 1 "
+                        f"desta task — {reason}")
+
+
 def check_release(root, projects, warnings):
     """(g) card além de 001 sem a liberação marcada (aviso)."""
     for project in projects:
@@ -461,6 +600,127 @@ def check_worktrees(root, projects, warnings):
             if not (harness / "kanban" / "004_processing" / wt.name).is_dir():
                 warnings.append(f"{wt}: worktree sem task correspondente em "
                                 f"004_processing")
+
+
+MEMORY_TASK_ID = re.compile(
+    r"^(?:\d+\.\d+\.\d+-[a-z0-9][a-z0-9-]*"
+    r"|M-\d+\.\d+-[a-z0-9][a-z0-9-]*"
+    r"|D-\d{8}-[a-z0-9][a-z0-9-]*)$")
+
+
+def _memory_entry_of(stem, ledger_stems):
+    """(task, entry) se `stem` é entrada de algum ledger presente, senão None.
+
+    Casar contra os ledgers que existem — em vez de fatiar o nome por regex —
+    é o que resolve `8.1.10-foo`: o id inteiro casa como ledger antes de
+    qualquer tentativa de ler `.10-foo` como número de entrada.
+    """
+    for task in ledger_stems:
+        if not stem.startswith(f"{task}."):
+            continue
+        match = MEMORY_ENTRY_SUFFIX.match(stem[len(task):])
+        if match:
+            return task, match.group(1)
+    return None
+
+
+def _check_memory_folder(folder, violations):
+    """Uma pasta de data: um ledger por task e suas entradas subordinadas."""
+    files = [p for p in sorted(folder.iterdir()) if p.suffix == ".md"]
+    for path in sorted(folder.iterdir()):
+        if path.is_dir():
+            violations.append(
+                f"{path}: pasta de data de memory não tem subpasta; ledger e "
+                "entradas ficam lado a lado")
+    ledgers = {p.stem: p for p in files if MEMORY_TASK_ID.match(p.stem)}
+    ledger_text = {}
+    for task, path in sorted(ledgers.items()):
+        text = path.read_text(encoding="utf-8")
+        ledger_text[task] = text
+        meta, _ = poplib.parse_frontmatter(text)
+        if meta.get("task") != task:
+            violations.append(
+                f"{path}:1: `task` `{meta.get('task')}` difere do nome do "
+                f"arquivo `{task}`")
+        for field in pop_roadmap.REQUIRED_MEMORY:
+            if meta.get(field) in (None, ""):
+                violations.append(f"{path}:1: ledger sem `{field}`")
+        if str(meta.get("finished") or "") != folder.name:
+            violations.append(
+                f"{path}:1: `finished` `{meta.get('finished')}` difere da "
+                f"pasta `{folder.name}`; a pasta é a data de conclusão")
+        if len(text) > MAX_MEMORY_LEDGER:
+            violations.append(
+                f"{path}:1: ledger com {len(text)} caracteres "
+                f"(máx. {MAX_MEMORY_LEDGER}) — mova conteúdo para entradas")
+
+    for path in files:
+        if path.stem in ledgers:
+            continue
+        parsed = _memory_entry_of(path.stem, ledgers)
+        if parsed is None:
+            violations.append(
+                f"{path}:1: nome fora do layout de memory; use `<id>.md` "
+                "(ledger) ou `<id>.<nn>-<slug>.md` (entrada) com ledger na "
+                "mesma pasta")
+            continue
+        task, entry = parsed
+        text = path.read_text(encoding="utf-8")
+        meta, _ = poplib.parse_frontmatter(text)
+        if meta.get("task") != task:
+            violations.append(
+                f"{path}:1: `task` `{meta.get('task')}` difere do ledger "
+                f"`{task}`")
+        if meta.get("entry") != entry:
+            violations.append(
+                f"{path}:1: `entry` `{meta.get('entry')}` difere do nome do "
+                f"arquivo `{entry}`")
+        if len(text) > MAX_MEMORY_ENTRY:
+            violations.append(
+                f"{path}:1: entrada com {len(text)} caracteres "
+                f"(máx. {MAX_MEMORY_ENTRY}) — quase sempre são duas entradas")
+        if not WIKILINK.search(text):
+            violations.append(
+                f"{path}:1: entrada sem wikilink de evidência; aponte a spec "
+                "ou o arquivo que atesta a mudança")
+        if f"[[{path.stem}" not in ledger_text.get(task, ""):
+            violations.append(
+                f"{path}:1: entrada órfã — não indexada em `## Entradas` do "
+                f"ledger `{task}.md`")
+
+
+def check_memory(root, projects, violations):
+    """(m) `memory/` no layout granular: pasta de data, ledger e entradas.
+
+    Memory plana em `memory/<id>.md` é legado tolerado enquanto `finished` for
+    anterior a `MEMORY_LAYOUT_SINCE`, e a exigência do layout só alcança o
+    **escopo corrente** (`scope == root`). Escopo aninhado valida a própria
+    memory quando roda o seu `pop_validate`: cobrar aqui o layout de um clone
+    `included` seria mandar este vault reescrever memory que não é dele — e a
+    régua nasceria reprovando trabalho em voo lá dentro. O conteúdo das pastas
+    de data, quando existem, é validado em qualquer escopo: aí o layout já foi
+    adotado e o que se checa é coerência, não migração.
+    """
+    for scope in projects:
+        base = poplib.harness_root(scope) / "memory"
+        if not base.is_dir():
+            continue
+        for child in sorted(base.iterdir()):
+            if child.is_dir():
+                if _valid_iso_date(child.name) is None:
+                    violations.append(
+                        f"{child}: pasta de `memory/` deve ser uma data "
+                        "`AAAA-MM-DD` (a data de conclusão da task)")
+                    continue
+                _check_memory_folder(child, violations)
+            elif child.suffix == ".md" and scope == root:
+                meta, _ = poplib.parse_frontmatter(
+                    child.read_text(encoding="utf-8"))
+                if str(meta.get("finished") or "") >= MEMORY_LAYOUT_SINCE:
+                    violations.append(
+                        f"{child}:1: memory solta em `memory/`; desde "
+                        f"{MEMORY_LAYOUT_SINCE} o ledger mora em "
+                        "`memory/<AAAA-MM-DD>/<id>.md`")
 
 
 def check_roadmap_residuals(root, violations):
@@ -521,6 +781,25 @@ def check_strict_anatomy(root, violations):
                 _scan_legacy_markers(sub, root, violations)
 
 
+def _stage_artifact_base(stem):
+    """Id da task por trás de um stem de artefato de estágio.
+
+    Remove o sufixo de artefato e, atrás dele, o infixo de rodada — `<id>`,
+    `<id>.verify` e `<id>.r2.accusation` reduzem todos ao mesmo `<id>`.
+    """
+    for suffix in STAGE_ARTIFACT_SUFFIXES:
+        if stem.endswith(suffix):
+            stem = stem[: -len(suffix)]
+            break
+    return ROUND_INFIX.sub("", stem)
+
+
+def _is_stage_artifact_of(name, base):
+    """`name` é artefato de estágio da task `base`, com ou sem rodada."""
+    return (any(name.endswith(suffix) for suffix in STAGE_ARTIFACT_SUFFIXES)
+            and _stage_artifact_base(name) == base)
+
+
 def check_wikilinks(root, warnings):
     """(f) wikilinks quebrados: alvo sem arquivo correspondente (aviso)."""
     targets = set()
@@ -554,12 +833,8 @@ def check_wikilinks(root, warnings):
                     continue
                 # Link da task para um artefato de estágio irmão ainda não
                 # criado (`<id>.plan|approval|verify`): navegação esperada.
-                src_stem = path.stem.lower()
-                for suf in STAGE_ARTIFACT_SUFFIXES:
-                    if src_stem.endswith(suf):
-                        src_stem = src_stem[: -len(suf)]
-                        break
-                if name in {f"{src_stem}{suf}" for suf in STAGE_ARTIFACT_SUFFIXES}:
+                src_task = _stage_artifact_base(path.stem.lower())
+                if _is_stage_artifact_of(name, src_task):
                     continue
                 warnings.append(f"{path}:{n}: wikilink quebrado [[{target}]]")
 
@@ -718,8 +993,10 @@ def main():
     check_category_indexes(root, categories, violations)
     check_note_sizes(root, projects, violations)
     check_cards(root, projects, violations)
+    check_gate_artifacts(root, projects, violations)
     check_release(root, projects, warnings)
     check_worktrees(root, projects, warnings)
+    check_memory(root, projects, violations)
     check_roadmap_residuals(root, violations)
     check_strict_anatomy(root, violations)
     check_spec_collections(root, projects, violations)
