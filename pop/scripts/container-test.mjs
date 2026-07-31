@@ -1365,12 +1365,13 @@ PUBLIC_ORIGIN=${values.publicOrigin}
 
       // Administrator triggers the SMTP-bound self-hosted reset for the merchant.
       const merchantUserId = sql(`SELECT id FROM app."user" WHERE username='${merchantUsername}'`);
+      assert(/^[0-9a-f-]{36}$/.test(merchantUserId), `merchant user id missing: "${merchantUserId}"`);
       const resetResponse = await postForm(`/admin/users/${merchantUserId}/reset-password`, {}, {
         origin: values.publicOrigin,
         "x-forwarded-host": "container-test.invalid",
         cookie: adminCookie,
       });
-      assert(resetResponse.status === 303 && resetResponse.headers.location === `/admin/accounts/${merchantUserId}?reset=requested`, "reset request failed");
+      assert(resetResponse.status === 303 && resetResponse.headers.location === `/admin/accounts/${merchantUserId}?reset=requested`, `reset request failed status=${resetResponse.status} location=${resetResponse.headers.location}`);
 
       // Capture the reset message, extract the token, and redeem it without leaking either.
       const emailText = await readSmtpCapture(smtpCaptureDir);
