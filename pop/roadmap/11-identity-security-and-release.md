@@ -2,7 +2,7 @@
 
 - **Project:** [[PROJECT|QR Pagamentos]]
 - **Roadmap:** [[ROADMAP|Roadmap]]
-- **Status:** pendente
+- **Status:** concluída (2026-07-31)
 - **Yolo:** yes
 - **Description:** Add password recovery and 2FA, then prove role isolation, visual quality, and production upgrade/recovery readiness.
 - **Pause if:** reset/MFA secrets, persistent media, or upgrade recovery cannot be exercised without exposing credentials or risking non-disposable production data.
@@ -14,7 +14,7 @@
 
 ## Phase 11.1 - Password recovery and MFA
 
-- **Status:** pendente
+- **Status:** concluída (2026-07-28)
 - **Description:** Add self-hosted email reset and TOTP security without making email a login credential.
 
 | Task | Description | Status |
@@ -22,12 +22,11 @@
 
 ## Phase 11.2 - System verification and release evidence
 
-- **Status:** pendente
+- **Status:** concluída (2026-07-31)
 - **Description:** Close the rebuild with independent security, UI, accessibility, and production continuity proof.
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[11.2.3-rehearse-production-upgrade-and-recovery]] | Exercise clean install, seed, media persistence, mail validation, update, backup, restore, and exact-revision release evidence. · size: L | 004_processing |
 
 ## Dependency and parallel-wave map
 
