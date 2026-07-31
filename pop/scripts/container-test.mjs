@@ -1347,8 +1347,11 @@ PUBLIC_ORIGIN=${values.publicOrigin}
       // Mock SMTP sink on the application database network; it stores mail but never logs bodies.
       await deployMockSmtp(`${project}_database`, smtpCaptureDir);
 
-      // Identity seed created admin.user; log in as administrator.
-      const adminCookie = await loginCookie("admin.user", values.initial);
+      // Identity seed created admin.user; the installer generates the initial
+      // password into .install-secrets (never operator-supplied), so read it back.
+      const initialAdminPassword = (await readFile(path.join(sourceDirectory, "initial_admin_password"), "utf8")).trim();
+      assert(initialAdminPassword.length > 0, "installer did not persist the initial admin password");
+      const adminCookie = await loginCookie("admin.user", initialAdminPassword);
 
       // Administrator creates a merchant user with an email address.
       const createMerchant = await postForm("/admin/users", {
