@@ -133,12 +133,12 @@ if (process.argv.includes("--clean-clone") && !process.env.CONTAINER_TEST_CLEAN_
     }
     throw new Error("app health timeout");
   }
-  async function get(pathname) {
+  async function get(pathname, headers = {}) {
     const mapping = compose(["port", "app", "3000"]).trim();
     const port = Number(mapping.match(/:(\d+)$/)?.[1]);
     assert(port, "could not resolve app loopback port");
     return new Promise((resolve, reject) => {
-      const request = http.get({ hostname: "127.0.0.1", port, path: pathname, timeout: 3000 }, (response) => {
+      const request = http.get({ hostname: "127.0.0.1", port, path: pathname, timeout: 3000, headers }, (response) => {
         let body = "";
         response.setEncoding("utf8");
         response.on("data", (chunk) => { body += chunk; });
@@ -1463,9 +1463,35 @@ PUBLIC_ORIGIN=${values.publicOrigin}
       const productBeforeBackup = sql(`SELECT id FROM app.product WHERE owner_id='${merchantUserId}' ORDER BY id`);
       const orderBeforeBackup = sql(`SELECT id FROM app.order_v2 WHERE owner_id='${merchantUserId}' ORDER BY id`);
 
-      // 11.2.2 integration gate: locale/theme assertions deferred until 11.2.2 closes.
-      // TODO(11.2.2): assert resolved six-theme and bilingual display-name rendering
-      // on the public /store/[slug] page once 11.2.2-verify-six-theme-bilingual-experience closes.
+      // 11.2.2 integration: bilingual display names and six-theme resolution on the
+      // public /store/[slug] page. The page resolves locale only from the session
+      // principal's persisted preference; sessionless requests render pt-BR.
+      const storefrontPagePtBr = await get(`/store/${storeSlug}`);
+      assert(storefrontPagePtBr.status === 200, "public storefront page did not render");
+      assert(storefrontPagePtBr.body.includes("Vitrine de Ensaio"), "pt-BR storefront display name missing");
+      assert(storefrontPagePtBr.body.includes('data-theme-preview="pix-paper"'), "default theme was not scoped on the storefront page");
+
+      const merchantLocaleEn = await postForm("/language-preference", { locale: "en" }, {
+        origin: values.publicOrigin,
+        "x-forwarded-host": "container-test.invalid",
+        cookie: merchantCookie,
+      });
+      assert(merchantLocaleEn.status === 303 && merchantLocaleEn.headers.location === "/?language=saved", "merchant locale switch failed");
+      const storefrontPageEn = await get(`/store/${storeSlug}`, { cookie: merchantCookie });
+      assert(storefrontPageEn.status === 200 && storefrontPageEn.body.includes("Rehearsal Storefront"), "en storefront display name missing");
+
+      const themeChange = await postForm("/storefront", {
+        storefrontSlug: storeSlug,
+        storefrontDisplayNamePtBr: "Vitrine de Ensaio",
+        storefrontDisplayNameEn: "Rehearsal Storefront",
+        storefrontAccentColor: "#FF0000",
+        storefrontEnabled: "true",
+        storefrontThemeId: "vault-blue",
+      }, { origin: values.publicOrigin, "x-forwarded-host": "container-test.invalid", cookie: merchantCookie });
+      assert(themeChange.status === 303 && themeChange.headers.location === "/?storefront=changed", "storefront theme change failed");
+      const storefrontPageThemed = await get(`/store/${storeSlug}`);
+      assert(storefrontPageThemed.status === 200 && storefrontPageThemed.body.includes('data-theme-preview="vault-blue"'), "updated theme was not scoped on the storefront page");
+      console.log("PASS production-rehearsal-locale-theme-rendering");
 
       // Update: no-op fast-forward against the same revision.
       const update = execute("install/update.sh", ["--env-file", installerEnv], { env: processEnv });
