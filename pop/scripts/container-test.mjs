@@ -1468,12 +1468,13 @@ PUBLIC_ORIGIN=${values.publicOrigin}
       const productImageStorageKey = "C".repeat(43);
       const productImageBytes = Buffer.from("rehearsal-product-image");
       const productImageDigest = createHash("sha256").update(productImageBytes).digest("hex");
-      run("docker", [
+      const productImageWrite = execute("docker", [
         "run", "--rm", "--network", "none", "--read-only", "--tmpfs", "/tmp",
         "--user", "1000:1000", "--volume", `${project}_media-data:/app/media`,
         "--entrypoint", "node", env.APP_IMAGE, "-e",
         `require("node:fs").writeFileSync("/app/media/objects/${productImageStorageKey}.webp",Buffer.from("${productImageBytes.toString("base64")}","base64"),{mode:0o600,flag:"wx"})`,
       ]);
+      assert(productImageWrite.status === 0, `product image fixture write failed\n${productImageWrite.stdout ?? ""}${productImageWrite.stderr ?? ""}`);
       sql(`INSERT INTO app.media_object (id,identifier,storage_key,owner_id,purpose,state,lifecycle_revision,mime_type,byte_size,width,height,sha256,purge_after,created_at,updated_at) SELECT gen_random_uuid(),'${productImageIdentifier}','${productImageStorageKey}','${merchantUserId}','PRODUCT_IMAGE','ACTIVE',0,'image/webp',${productImageBytes.length},1,1,'${productImageDigest}',NULL,now(),now()`);
       sql(`INSERT INTO app.product (id,owner_id,internal_name,title_pt_br,title_en,description_pt_br,description_en,price,active,currency_code,image_media_id,category_id,archived_at,version,created_at,updated_at) VALUES (gen_random_uuid(),'${merchantUserId}','Rehearsal Product','Produto de Ensaio','Rehearsal Product','Descrição','Description','100',true,'BRL','${productImageIdentifier}',NULL,NULL,0,now(),now())`);
 
