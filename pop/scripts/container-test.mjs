@@ -394,9 +394,9 @@ server.listen(1025, "0.0.0.0", () => { console.log("mock-smtp-listening"); });
     assert(match && match[1], "reset token not found in captured email");
     return match[1];
   }
-  async function createFixtureImage(appId, hostPath) {
-    run("docker", ["exec", appId, "node", "-e", 'const sharp=require("sharp"); sharp({create:{width:100,height:100,channels:3,background:"#ff0000"}}).webp().toBuffer().then(b=>require("node:fs").writeFileSync("/tmp/fixture-logo.webp", b))']);
-    run("docker", ["cp", `${appId}:/tmp/fixture-logo.webp`, hostPath]);
+  async function createFixtureImage(_appId, hostPath) {
+    const { default: sharp } = await import("sharp");
+    await sharp({ create: { width: 100, height: 100, channels: 3, background: "#ff0000" } }).webp().toFile(hostPath);
   }
 
   let scenarioFailed = false;
