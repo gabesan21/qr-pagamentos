@@ -179,9 +179,10 @@ if (process.argv.includes("--clean-clone") && !process.env.CONTAINER_TEST_CLEAN_
   function containerId(service) { return compose(["ps", "-a", "-q", service]).trim(); }
   function inspectField(id, field) { return run("docker", ["inspect", "--format", field, id]).trim(); }
   function assertRedacted(text) {
-    for (const value of [...Object.values(values), `Recovery-${token}-Password`]) {
-      assert(!text.includes(value), "raw secret sentinel leaked");
-      assert(!text.includes(encodeURIComponent(value)), "encoded secret sentinel leaked");
+    const sentinels = [...Object.entries(values), ["initialRecovery", `Recovery-${token}-Password`]];
+    for (const [name, value] of sentinels) {
+      assert(!text.includes(value), `raw secret sentinel leaked: ${name}`);
+      assert(!text.includes(encodeURIComponent(value)), `encoded secret sentinel leaked: ${name}`);
     }
     assert(!/postgresql:\/\/[^\s]+@/i.test(text), "database URL leaked");
   }
