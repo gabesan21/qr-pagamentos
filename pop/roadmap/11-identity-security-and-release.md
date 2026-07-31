@@ -27,8 +27,7 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[11.2.2-verify-six-theme-bilingual-experience]] | Produce browser evidence for both locales, six themes, responsive routes, tables, charts, checkout, keyboard, and WCAG 2.2 AA. · size: L | 001_initial_task |
-| [[11.2.3-rehearse-production-upgrade-and-recovery]] | Exercise clean install, seed, media persistence, mail validation, update, backup, restore, and exact-revision release evidence. · size: L | 001_initial_task |
+| [[11.2.3-rehearse-production-upgrade-and-recovery]] | Exercise clean install, seed, media persistence, mail validation, update, backup, restore, and exact-revision release evidence. · size: L | 004_processing |
 
 ## Dependency and parallel-wave map
 
