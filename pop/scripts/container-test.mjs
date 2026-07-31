@@ -386,7 +386,10 @@ server.listen(1025, "0.0.0.0", () => { console.log("mock-smtp-listening"); });
     throw new Error("mock SMTP capture timed out");
   }
   function extractResetToken(emailText) {
-    const match = emailText.match(/\/reset-password\?token=([A-Za-z0-9_-]+)/);
+    // The capture is raw MIME: quoted-printable soft line breaks ("=\n") split
+    // the reset URL, so unfold them before matching.
+    const unfolded = emailText.replace(/=\r?\n/g, "");
+    const match = unfolded.match(/\/reset-password\?token=([A-Za-z0-9_-]+)/);
     assert(match && match[1], "reset token not found in captured email");
     return match[1];
   }
@@ -1399,7 +1402,7 @@ PUBLIC_ORIGIN=${values.publicOrigin}
         newPassword: newMerchantPassword,
         confirmation: newMerchantPassword,
       }, { origin: values.publicOrigin, "x-forwarded-host": "container-test.invalid" });
-      assert(redeem.status === 303 && redeem.headers.location === "/login?password=changed", "reset redemption failed");
+      assert(redeem.status === 303 && redeem.headers.location === "/login?password=changed", `reset redemption failed status=${redeem.status} location=${redeem.headers.location}`);
 
       // Assert the password rotated by authenticating with the new password.
       const merchantCookie = await loginCookie(merchantUsername, newMerchantPassword);
