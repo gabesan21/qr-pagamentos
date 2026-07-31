@@ -16,7 +16,8 @@ const staged = path.join(temporary, "staged");
 await mkdir(sources, { mode: 0o700 });
 const values = { admin: `Adm!n-${token}`, migrator: `Migrator-${token}`, runtime: `Runtime-${token}`, initial: `Initial-Admin-${token}-Password` };
 const nauttEncryptionKey = randomBytes(32).toString("base64url");
-const sensitiveValues = [...Object.values(values), nauttEncryptionKey];
+const totpEncryptionKey = randomBytes(32).toString("base64url");
+const sensitiveValues = [...Object.values(values), nauttEncryptionKey, totpEncryptionKey];
 const files = Object.fromEntries(Object.keys(values).map((name) => [name, path.join(sources, name)]));
 for (const name of Object.keys(values)) { await writeFile(files[name], `${values[name]}\n`, { mode: 0o600 }); await chmod(files[name], 0o600); }
 const usernameFile = path.join(sources, "initial-username");
@@ -89,7 +90,7 @@ try {
   await writeFile(nauttEncryptionKeyFile, nauttEncryptionKey, { mode: 0o400 });
   await chmod(nauttEncryptionKeyFile, 0o400);
   const totpEncryptionKeyFile = path.join(staged, "totp_encryption_key");
-  await writeFile(totpEncryptionKeyFile, nauttEncryptionKey, { mode: 0o400 });
+  await writeFile(totpEncryptionKeyFile, totpEncryptionKey, { mode: 0o400 });
   await chmod(totpEncryptionKeyFile, 0o400);
   await copyFile(recoveryFile, env.INITIAL_ADMIN_RECOVERY_PASSWORD_FILE);
   await chmod(env.INITIAL_ADMIN_RECOVERY_PASSWORD_FILE, 0o400);
