@@ -386,10 +386,11 @@ server.listen(1025, "0.0.0.0", () => { console.log("mock-smtp-listening"); });
     throw new Error("mock SMTP capture timed out");
   }
   function extractResetToken(emailText) {
-    // The capture is raw MIME: quoted-printable soft line breaks ("=\n") split
-    // the reset URL, so unfold them before matching.
+    // The capture is raw MIME quoted-printable: unfold soft breaks ("=\n") and
+    // decode hex escapes ("=3D") before matching, or the token picks up escape bytes.
     const unfolded = emailText.replace(/=\r?\n/g, "");
-    const match = unfolded.match(/\/reset-password\?token=([A-Za-z0-9_-]+)/);
+    const decoded = unfolded.replace(/=([0-9A-Fa-f]{2})/g, (_, hex) => String.fromCharCode(Number.parseInt(hex, 16)));
+    const match = decoded.match(/\/reset-password\?token=([A-Za-z0-9_-]+)/);
     assert(match && match[1], "reset token not found in captured email");
     return match[1];
   }
