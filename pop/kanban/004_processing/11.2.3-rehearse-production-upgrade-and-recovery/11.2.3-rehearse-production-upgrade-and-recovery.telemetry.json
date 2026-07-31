@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "events": [
+    {
+      "at": "2026-07-31T08:43:28-03:00",
+      "event": "transition",
+      "from": "001_initial_task",
+      "to": "002_planning",
+      "contexts": [],
+      "test_seconds": 0,
+      "return_kind": null,
+      "result": "advanced"
+    },
+    {
+      "at": "2026-07-31T08:46:32-03:00",
+      "event": "transition",
+      "from": "002_planning",
+      "to": "003_human_approval",
+      "contexts": [],
+      "test_seconds": 0,
+      "return_kind": null,
+      "result": "advanced"
+    },
+    {
+      "at": "2026-07-31T08:47:56-03:00",
+      "event": "transition",
+      "from": "003_human_approval",
+      "to": "004_processing",
+      "contexts": [],
+      "test_seconds": 0,
+      "return_kind": null,
+      "result": "advanced"
+    }
+  ]
+}

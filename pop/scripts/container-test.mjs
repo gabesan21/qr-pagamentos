@@ -20,7 +20,7 @@ const delay = (milliseconds) => new Promise((resolve) => setTimeout(resolve, mil
 
 const scenarioIndex = process.argv.indexOf("--scenario");
 const scenario = scenarioIndex >= 0 ? process.argv[scenarioIndex + 1] : "happy";
-const allowed = new Set(["build", "config", "happy", "login", "roles", "failures", "lifecycle", "isolation", "identity-seed", "identity-recovery", "install-lifecycle", "media", "media-backup", "media-restore", "update"]);
+const allowed = new Set(["build", "config", "happy", "login", "roles", "failures", "lifecycle", "isolation", "identity-seed", "identity-recovery", "install-lifecycle", "media", "media-backup", "media-restore", "update", "production-rehearsal"]);
 assert(allowed.has(scenario), `unknown scenario ${scenario}`);
 
 if (process.argv.includes("--clean-clone") && !process.env.CONTAINER_TEST_CLEAN_CLONE) {
@@ -29,7 +29,7 @@ if (process.argv.includes("--clean-clone") && !process.env.CONTAINER_TEST_CLEAN_
   const archive = path.join(temporary, "source.tar");
   const clone = path.join(temporary, "source");
   try {
-    if (["install-lifecycle", "update", "media-backup", "media-restore"].includes(scenario)) {
+    if (["install-lifecycle", "update", "media-backup", "media-restore", "production-rehearsal"].includes(scenario)) {
       run("git", ["clone", "--quiet", "--no-local", "--branch", run("git", ["branch", "--show-current"]).trim(), process.cwd(), clone]);
     } else {
       await mkdir(clone);
@@ -216,6 +216,177 @@ if (process.argv.includes("--clean-clone") && !process.env.CONTAINER_TEST_CLEAN_
     console.log("PASS app-liveness");
     console.log("PASS static-assets");
     return { appId, bootstrapId, migrateId, identitySeedId, dbId };
+  }
+
+  async function loginCookie(username, password) {
+    const response = await postForm("/login/submit", { username, password }, {
+      origin: values.publicOrigin,
+      "x-forwarded-host": "container-test.invalid",
+    });
+    if (response.status !== 303) {
+      const logs = compose(["logs", "--no-color", "app"]);
+      assertRedacted(logs);
+    }
+    assert(response.status === 303, `login failed for ${username} status=${response.status}`);
+    const cookies = response.headers["set-cookie"];
+    assert(cookies && cookies.length > 0, "login did not set cookie");
+    const session = cookies.find((cookie) => cookie.startsWith("qr_session="));
+    assert(session, "session cookie missing");
+    return session.split(";")[0];
+  }
+  async function postJson(pathname, body, cookie, headers = {}) {
+    const mapping = compose(["port", "app", "3000"]).trim();
+    const port = Number(mapping.match(/:(\d+)$/)?.[1]);
+    assert(port, "could not resolve app loopback port");
+    const json = JSON.stringify(body);
+    return new Promise((resolve, reject) => {
+      const request = http.request({
+        hostname: "127.0.0.1",
+        port,
+        path: pathname,
+        method: "POST",
+        timeout: 5000,
+        headers: {
+          "content-type": "application/json",
+          "content-length": Buffer.byteLength(json),
+          ...(cookie ? { cookie } : {}),
+          ...headers,
+        },
+      }, (response) => {
+        let responseBody = "";
+        response.setEncoding("utf8");
+        response.on("data", (chunk) => { responseBody += chunk; });
+        response.on("end", () => resolve({ status: response.statusCode, headers: response.headers, body: responseBody }));
+      });
+      request.on("error", reject);
+      request.on("timeout", () => request.destroy(new Error("HTTP timeout")));
+      request.end(json);
+    });
+  }
+  function buildMultipartBody(fields) {
+    const boundary = `----formdata-${randomUUID()}`;
+    const chunks = [];
+    for (const field of fields) {
+      chunks.push(Buffer.from(`--${boundary}\r\n`));
+      if (field.filename) {
+        chunks.push(Buffer.from(`Content-Disposition: form-data; name="${field.name}"; filename="${field.filename}"\r\n`));
+        chunks.push(Buffer.from(`Content-Type: ${field.contentType}\r\n\r\n`));
+      } else {
+        chunks.push(Buffer.from(`Content-Disposition: form-data; name="${field.name}"\r\n\r\n`));
+      }
+      chunks.push(Buffer.isBuffer(field.value) ? field.value : Buffer.from(String(field.value)));
+      chunks.push(Buffer.from("\r\n"));
+    }
+    chunks.push(Buffer.from(`--${boundary}--\r\n`));
+    return { boundary, body: Buffer.concat(chunks) };
+  }
+  async function postMultipart(pathname, fields, cookie, headers = {}) {
+    const { boundary, body } = buildMultipartBody(fields);
+    const mapping = compose(["port", "app", "3000"]).trim();
+    const port = Number(mapping.match(/:(\d+)$/)?.[1]);
+    assert(port, "could not resolve app loopback port");
+    return new Promise((resolve, reject) => {
+      const request = http.request({
+        hostname: "127.0.0.1",
+        port,
+        path: pathname,
+        method: "POST",
+        timeout: 5000,
+        headers: {
+          "content-type": `multipart/form-data; boundary=${boundary}`,
+          "content-length": body.length,
+          cookie,
+          ...headers,
+        },
+      }, (response) => {
+        let responseBody = "";
+        response.setEncoding("utf8");
+        response.on("data", (chunk) => { responseBody += chunk; });
+        response.on("end", () => resolve({ status: response.statusCode, headers: response.headers, body: responseBody }));
+      });
+      request.on("error", reject);
+      request.on("timeout", () => request.destroy(new Error("HTTP timeout")));
+      request.end(body);
+    });
+  }
+  async function deployMockSmtp(networkName, captureDir) {
+    const smtpScript = `
+import { createServer } from "node:net";
+import { writeFileSync } from "node:fs";
+const capturePath = "/mail/captured.eml";
+const server = createServer((socket) => {
+  let buffer = "";
+  let inData = false;
+  let message = "";
+  const write = (code, text) => { socket.write(\`\${code} \${text}\\r\\n\`); };
+  write("220", "mock-smtp-ready");
+  socket.on("data", (chunk) => {
+    buffer += chunk.toString("utf8");
+    while (true) {
+      const idx = buffer.indexOf("\\r\\n");
+      if (idx === -1) break;
+      const line = buffer.slice(0, idx);
+      buffer = buffer.slice(idx + 2);
+      if (inData) {
+        if (line === ".") {
+          inData = false;
+          writeFileSync(capturePath, message, { mode: 0o600 });
+          write("250", "OK");
+        } else {
+          message += (line.startsWith(".") ? line.slice(1) : line) + "\\n";
+        }
+        continue;
+      }
+      const upper = line.toUpperCase();
+      if (upper.startsWith("EHLO") || upper.startsWith("HELO")) write("250", "mock-smtp");
+      else if (upper.startsWith("MAIL FROM")) write("250", "OK");
+      else if (upper.startsWith("RCPT TO")) write("250", "OK");
+      else if (upper.startsWith("DATA")) { inData = true; message = ""; write("354", "Start mail input"); }
+      else if (upper.startsWith("QUIT")) { write("221", "Bye"); socket.end(); }
+      else if (upper.startsWith("AUTH")) write("235", "2.7.0 Authentication successful");
+      else write("250", "OK");
+    }
+  });
+});
+server.listen(1025, "0.0.0.0", () => { console.log("mock-smtp-listening"); });
+`;
+    const scriptPath = path.join(captureDir, "smtp-sink.mjs");
+    await writeFile(scriptPath, smtpScript, { mode: 0o600 });
+    const smtpContainer = `${project}-smtp-sink`;
+    run("docker", [
+      "run", "-d", "--name", smtpContainer, "--network", networkName,
+      "-v", `${captureDir}:/mail`, "--restart", "no",
+      "node:26.4.0-bookworm-slim@sha256:ec82d089a8ae2cf02628da7b34ea57dc357b24db724d557fe2d240e6beb659c1",
+      "node", "/mail/smtp-sink.mjs",
+    ]);
+    for (let attempt = 0; attempt < 30; attempt += 1) {
+      const logs = run("docker", ["logs", smtpContainer]).trim();
+      if (logs.includes("mock-smtp-listening")) return smtpContainer;
+      await delay(500);
+    }
+    throw new Error("mock SMTP sink did not start");
+  }
+  async function readSmtpCapture(captureDir) {
+    const captureFile = path.join(captureDir, "captured.eml");
+    for (let attempt = 0; attempt < 40; attempt += 1) {
+      try {
+        const text = await readFile(captureFile, "utf8");
+        if (text.length > 0) return text;
+      } catch {
+        // not yet written
+      }
+      await delay(500);
+    }
+    throw new Error("mock SMTP capture timed out");
+  }
+  function extractResetToken(emailText) {
+    const match = emailText.match(/\/reset-password\?token=([A-Za-z0-9_-]+)/);
+    assert(match && match[1], "reset token not found in captured email");
+    return match[1];
+  }
+  async function createFixtureImage(appId, hostPath) {
+    run("docker", ["exec", appId, "node", "-e", 'const sharp=require("sharp"); sharp({create:{width:100,height:100,channels:3,background:"#ff0000"}}).webp().toBuffer().then(b=>require("node:fs").writeFileSync("/tmp/fixture-logo.webp", b))']);
+    run("docker", ["cp", `${appId}:/tmp/fixture-logo.webp`, hostPath]);
   }
 
   let scenarioFailed = false;
@@ -1123,11 +1294,249 @@ PUBLIC_ORIGIN=${values.publicOrigin}
       console.log("PASS installer-recovery-failure-retention");
       console.log("PASS identity-recovery-uuid-target");
       console.log("PASS identity-recovery-deleted-target-abort");
+    } else if (scenario === "production-rehearsal") {
+      assert(process.env.CONTAINER_TEST_CLEAN_CLONE === "1", "production rehearsal requires --clean-clone");
+      const revision = run("git", ["rev-parse", "HEAD"]).trim();
+      const sourceDirectory = path.resolve(".install-secrets");
+      const stagedDirectory = path.resolve(".container-secrets");
+      const installerEnv = path.join(temporary, "rehearsal.env");
+      const smtpCaptureDir = path.join(temporary, "smtp-capture");
+      const backupDestination = path.join(temporary, "backups");
+      const merchantUsername = "merchant.rehearsal";
+      const merchantEmail = "merchant@example.com";
+      const merchantInitialPassword = `Merchant-Initial-${token}`;
+      const storeSlug = `rehearsal-${token.slice(0, 8)}`;
+      const appPort = 37000 + (process.pid % 1000);
+      await mkdir(smtpCaptureDir, { mode: 0o700 });
+      await mkdir(backupDestination, { mode: 0o700 });
+
+      await writeFile(installerEnv, `APP_PORT=${appPort}\nINITIAL_ADMIN_USERNAME=admin.user\nINITIAL_ADMIN_EMAIL=admin@example.com\nPOSTGRES_ADMIN_PASSWORD=${values.admin}\nMIGRATOR_PASSWORD=${values.migrator}\nRUNTIME_PASSWORD=${values.runtime}\nNAUTT_ENCRYPTION_KEY=${values.nautt}\nNAUTT_WEBHOOK_CALLBACK_URL=https://container-test.invalid/api/nautt/webhooks\nSMTP_HOST=${project}-smtp-sink\nSMTP_PORT=1025\nSMTP_USER=${values.smtpUser}\nSMTP_PASSWORD=${values.smtpPassword}\nSMTP_FROM=${values.smtpFrom}\nSMTP_TLS_MODE=none\nPUBLIC_ORIGIN=${values.publicOrigin}\n`, { mode: 0o600 });
+      await chmod(installerEnv, 0o600);
+      const processEnv = { ...process.env, CONTAINER_TEST_PROJECT: project };
+
+      // Clean install on a disposable project.
+      const installed = execute("install/install.sh", ["--env-file", installerEnv], { env: processEnv });
+      const installedOutput = `${installed.stdout ?? ""}${installed.stderr ?? ""}`;
+      assert(installed.status === 0, `production-rehearsal install failed\n${installedOutput}`);
+      assert(installedOutput.includes("PASS install-complete"), "install completion evidence missing");
+      assertRedacted(installedOutput);
+
+      const installedApp = await waitForApp();
+      const dbId = compose(["ps", "-q", "db"]).trim();
+      const sql = (statement) => run("docker", ["exec", dbId, "psql", "-p", "5433", "-U", "postgres", "-d", "qr_pagamentos", "-Atc", statement]).trim();
+
+      assert(
+        inspectField(installedApp, '{{index .Config.Labels "org.opencontainers.image.revision"}}') === revision,
+        "normal install did not bind the exact revision",
+      );
+      env.APP_IMAGE = inspectField(installedApp, "{{.Config.Image}}");
+      env.DB_OPS_IMAGE = `${project}-db-ops:${revision}`;
+      env.RELEASE_REVISION = revision;
+      env.APP_PORT = String(appPort);
+      env.POSTGRES_ADMIN_PASSWORD_FILE = path.join(sourceDirectory, "postgres_admin_password");
+      env.MIGRATOR_PASSWORD_FILE = path.join(sourceDirectory, "migrator_password");
+      env.RUNTIME_PASSWORD_FILE = path.join(sourceDirectory, "runtime_password");
+      env.INITIAL_ADMIN_USERNAME_FILE = path.join(stagedDirectory, "initial_admin_username");
+      env.INITIAL_ADMIN_EMAIL_FILE = path.join(stagedDirectory, "initial_admin_email");
+      env.INITIAL_ADMIN_PASSWORD_FILE = path.join(stagedDirectory, "initial_admin_password");
+      env.STAGED_SECRETS_DIR = stagedDirectory;
+
+      let health = await get("/api/health");
+      assert(health.status === 200 && health.body === '{"status":"ok"}', "post-install health failed");
+
+      // Mock SMTP sink on the application database network; it stores mail but never logs bodies.
+      await deployMockSmtp(`${project}_database`, smtpCaptureDir);
+
+      // Identity seed created admin.user; log in as administrator.
+      const adminCookie = await loginCookie("admin.user", values.initial);
+
+      // Administrator creates a merchant user with an email address.
+      const createMerchant = await postForm("/admin/users", {
+        username: merchantUsername,
+        email: merchantEmail,
+        password: merchantInitialPassword,
+        role: "USER",
+      }, { origin: values.publicOrigin, "x-forwarded-host": "container-test.invalid", cookie: adminCookie });
+      assert(createMerchant.status === 303 && createMerchant.headers.location === "/admin?success=created", "merchant user creation failed");
+
+      // Administrator triggers the SMTP-bound self-hosted reset for the merchant.
+      const merchantUserId = sql(`SELECT id FROM app."user" WHERE username='${merchantUsername}'`);
+      const resetResponse = await postForm(`/admin/users/${merchantUserId}/reset-password`, {}, {
+        origin: values.publicOrigin,
+        "x-forwarded-host": "container-test.invalid",
+        cookie: adminCookie,
+      });
+      assert(resetResponse.status === 303 && resetResponse.headers.location === `/admin/accounts/${merchantUserId}?reset=requested`, "reset request failed");
+
+      // Capture the reset message, extract the token, and redeem it without leaking either.
+      const emailText = await readSmtpCapture(smtpCaptureDir);
+      const resetToken = extractResetToken(emailText);
+      const newMerchantPassword = `Merchant-Rotated-${token.slice(0, 8)}`;
+      const redeem = await postForm("/reset-password/submit", {
+        token: resetToken,
+        newPassword: newMerchantPassword,
+        confirmation: newMerchantPassword,
+      }, { origin: values.publicOrigin, "x-forwarded-host": "container-test.invalid" });
+      assert(redeem.status === 303 && redeem.headers.location === "/login?password=changed", "reset redemption failed");
+
+      // Assert the password rotated by authenticating with the new password.
+      const merchantCookie = await loginCookie(merchantUsername, newMerchantPassword);
+      assert(merchantCookie, "merchant login with rotated password failed");
+      assert(!installedOutput.includes(resetToken), "reset token leaked in install output");
+      assert(!emailText.includes(newMerchantPassword), "new password leaked in captured email");
+      assertRedacted(installedOutput + emailText);
+
+      // Active currency mappings for representative Commerce V2 journeys.
+      const brlPairId = randomUUID();
+      const brlCurrencyUuid = randomUUID();
+      const brlExchangeUuid = randomUUID();
+      const usdPairId = randomUUID();
+      const usdCurrencyUuid = randomUUID();
+      const usdExchangeUuid = randomUUID();
+      sql(`INSERT INTO app.catalog_currency_pair (id, label, currency_uuid, exchange_currency_uuid, active, created_at, updated_at) VALUES ('${brlPairId}', 'Real brasileiro', '${brlCurrencyUuid}', '${brlExchangeUuid}', true, now(), now())`);
+      sql(`INSERT INTO app.supported_exchange_currency (code, pair_id) VALUES ('BRL', '${brlPairId}')`);
+      sql(`INSERT INTO app.catalog_currency_pair (id, label, currency_uuid, exchange_currency_uuid, active, created_at, updated_at) VALUES ('${usdPairId}', 'US Dollar', '${usdCurrencyUuid}', '${usdExchangeUuid}', true, now(), now())`);
+      sql(`INSERT INTO app.supported_exchange_currency (code, pair_id) VALUES ('USD', '${usdPairId}')`);
+
+      // Media persistence through the application: upload a storefront logo as the merchant owner.
+      const fixtureLogoPath = path.join(temporary, "fixture-logo.webp");
+      await createFixtureImage(installedApp, fixtureLogoPath);
+      const logoUpload = await postMultipart("/storefront/logo", [
+        { name: "logo", filename: "logo.webp", contentType: "image/webp", value: await readFile(fixtureLogoPath) },
+      ], merchantCookie, { origin: values.publicOrigin, "x-forwarded-host": "container-test.invalid" });
+      assert(logoUpload.status === 303 && logoUpload.headers.location?.includes("storefront-logo=staged&logo="), "logo upload failed");
+      const logoIdentifier = new URLSearchParams(new URL(logoUpload.headers.location, values.publicOrigin).search).get("logo");
+      assert(logoIdentifier && logoIdentifier.length === 43, "logo identifier missing or invalid");
+
+      // Save storefront settings (slug, logo, default currency, enabled) through the application.
+      const storefrontSave = await postForm("/storefront", {
+        storefrontSlug: storeSlug,
+        storefrontDisplayNamePtBr: "Vitrine de Ensaio",
+        storefrontDisplayNameEn: "Rehearsal Storefront",
+        storefrontAccentColor: "#FF0000",
+        storefrontEnabled: "true",
+        storefrontThemeId: "",
+        storefrontLayout: "boxed",
+        storefrontLogoMediaIdentifier: logoIdentifier,
+        storefrontStandalonePaymentsEnabled: "true",
+        storefrontDefaultCurrencyCode: "BRL",
+      }, { origin: values.publicOrigin, "x-forwarded-host": "container-test.invalid", cookie: merchantCookie });
+      assert(storefrontSave.status === 303 && storefrontSave.headers.location === "/?storefront=changed", "storefront settings save failed");
+
+      // Seed a product with a directly-created product image media object and file.
+      const productImageIdentifier = "B".repeat(43);
+      const productImageStorageKey = "C".repeat(43);
+      const productImageBytes = Buffer.from("rehearsal-product-image");
+      const productImageDigest = createHash("sha256").update(productImageBytes).digest("hex");
+      run("docker", [
+        "run", "--rm", "--network", "none", "--read-only", "--tmpfs", "/tmp",
+        "--user", "1000:1000", "--volume", `${project}_media-data:/app/media`,
+        "--entrypoint", "node", env.APP_IMAGE, "-e",
+        `require("node:fs").writeFileSync("/app/media/objects/${productImageStorageKey}.webp",Buffer.from("${productImageBytes.toString("base64")}","base64"),{mode:0o600,flag:"wx"})`,
+      ]);
+      sql(`INSERT INTO app.media_object (id,identifier,storage_key,owner_id,purpose,state,lifecycle_revision,mime_type,byte_size,width,height,sha256,purge_after,created_at,updated_at) SELECT gen_random_uuid(),'${productImageIdentifier}','${productImageStorageKey}','${merchantUserId}','PRODUCT_IMAGE','ACTIVE',0,'image/webp',${productImageBytes.length},1,1,'${productImageDigest}',NULL,now(),now()`);
+      sql(`INSERT INTO app.product (id,owner_id,internal_name,title_pt_br,title_en,description_pt_br,description_en,price,active,currency_code,image_media_id,category_id,archived_at,version,created_at,updated_at) VALUES (gen_random_uuid(),'${merchantUserId}','Rehearsal Product','Produto de Ensaio','Rehearsal Product','Descrição','Description','100',true,'BRL','${productImageIdentifier}',NULL,NULL,0,now(),now())`);
+
+      // Representative Commerce V2 payment link (FIXED_AMOUNT) seeded directly.
+      const paymentLinkIdentifier = randomBytes(18).toString("base64url");
+      sql(`INSERT INTO app.payment_link_v2 (id,identifier,owner_id,composition_kind,description_pt_br,description_en,amount,currency_pair_id,link_type,active,created_at,updated_at,version) VALUES (gen_random_uuid(),'${paymentLinkIdentifier}','${merchantUserId}','FIXED_AMOUNT','Pagamento fixo','Fixed payment','50','${brlPairId}','MULTI_USE',true,now(),now(),0)`);
+
+      // Representative V2 order row (AD_HOC, stateless) seeded directly.
+      const orderId = randomUUID();
+      sql(`INSERT INTO app.order_v2 (id,owner_id,source,payment_link_v2_id,state,lifecycle_version,amount,currency_uuid,exchange_currency_uuid,description_pt_br,description_en,checkout_data_policy,created_at,updated_at) VALUES ('${orderId}','${merchantUserId}','AD_HOC',NULL,NULL,0,'75','${brlCurrencyUuid}','${brlExchangeUuid}','Pedido de ensaio','Rehearsal order','NONE',now(),now())`);
+
+      // Storefront cart checkout through the application issues a SINGLE_USE PRODUCT_LINES link.
+      const productReference = sql(`SELECT id FROM app.product WHERE owner_id='${merchantUserId}' ORDER BY created_at DESC LIMIT 1`);
+      const cartCheckout = await postJson(`/api/store/${storeSlug}/cart/checkout`, {
+        items: [{ reference: productReference, quantity: 2 }],
+      }, undefined, { "x-forwarded-for": "203.0.113.1" });
+      assert(cartCheckout.status === 201, `cart checkout failed status=${cartCheckout.status} body=${cartCheckout.body}`);
+      const checkoutResponse = JSON.parse(cartCheckout.body);
+      assert(checkoutResponse.paymentLinkIdentifier && checkoutResponse.paymentLinkIdentifier.length === 24, "cart checkout did not issue a payment link identifier");
+
+      // Verify representative rows exist.
+      assert(sql(`SELECT count(*) FROM app.payment_link_v2 WHERE owner_id='${merchantUserId}'`) === "2", "expected two V2 payment links");
+      assert(sql(`SELECT count(*) FROM app.order_v2 WHERE owner_id='${merchantUserId}'`) === "1", "expected one V2 order");
+
+      // Pre-backup inventory snapshot for later comparison.
+      const mediaBeforeBackup = sql(`SELECT identifier FROM app.media_object WHERE owner_id='${merchantUserId}' ORDER BY identifier`);
+      const productBeforeBackup = sql(`SELECT id FROM app.product WHERE owner_id='${merchantUserId}' ORDER BY id`);
+      const orderBeforeBackup = sql(`SELECT id FROM app.order_v2 WHERE owner_id='${merchantUserId}' ORDER BY id`);
+
+      // 11.2.2 integration gate: locale/theme assertions deferred until 11.2.2 closes.
+      // TODO(11.2.2): assert resolved six-theme and bilingual display-name rendering
+      // on the public /store/[slug] page once 11.2.2-verify-six-theme-bilingual-experience closes.
+
+      // Update: no-op fast-forward against the same revision.
+      const update = execute("install/update.sh", ["--env-file", installerEnv], { env: processEnv });
+      const updateOutput = `${update.stdout ?? ""}${update.stderr ?? ""}`;
+      assert(update.status === 0, `update failed\n${updateOutput}`);
+      assert(updateOutput.includes("PASS update-complete"), "update completion evidence missing");
+      assert(updateOutput.includes(`revision=${revision}`), "update evidence did not bind the exact revision");
+      assertRedacted(updateOutput);
+
+      await waitForApp();
+      health = await get("/api/health");
+      assert(health.status === 200 && health.body === '{"status":"ok"}', "post-update health failed");
+
+      // Backup to a disposable destination.
+      const backup = execute("install/backup.sh", ["--env-file", installerEnv, "--destination", backupDestination], { env: processEnv });
+      const backupOutput = `${backup.stdout ?? ""}${backup.stderr ?? ""}`;
+      assert(backup.status === 0, `backup failed\n${backupOutput}`);
+      const backupSet = backupOutput.match(/PASS media-backup set=(.+)/)?.[1]?.trim();
+      assert(backupSet, "backup set evidence missing");
+      const manifest = JSON.parse(await readFile(path.join(backupSet, "manifest.json"), "utf8"));
+      assert(manifest.application_revision === revision, "backup manifest revision mismatch");
+      assert(manifest.application_image === `${project}-app:${revision}`, "backup manifest app image mismatch");
+      assert(manifest.database_operations_image === `${project}-db-ops:${revision}`, "backup manifest db-ops image mismatch");
+      assert(manifest.compose_project === project, "backup manifest project mismatch");
+      for (const secret of Object.values(values)) {
+        assert(!JSON.stringify(manifest).includes(secret), "backup manifest leaked a protected value");
+      }
+      assertRedacted(backupOutput);
+
+      // Restore with correct confirmation and verify post-restate health/inventory.
+      const restored = execute("install/restore.sh", ["--env-file", installerEnv, "--backup", backupSet, "--confirm", `RESTORE:${project}`], { env: processEnv });
+      const restoredOutput = `${restored.stdout ?? ""}${restored.stderr ?? ""}`;
+      assert(restored.status === 0, `restore failed\n${restoredOutput}`);
+      assert(restoredOutput.includes("PASS media-restore"), "restore evidence missing");
+      assertRedacted(restoredOutput);
+
+      await waitForApp();
+      health = await get("/api/health");
+      assert(health.status === 200 && health.body === '{"status":"ok"}', "post-restore health failed");
+
+      const dbIdAfterRestore = compose(["ps", "-q", "db"]).trim();
+      const sqlAfterRestore = (statement) => run("docker", ["exec", dbIdAfterRestore, "psql", "-p", "5433", "-U", "postgres", "-d", "qr_pagamentos", "-Atc", statement]).trim();
+      assert(sqlAfterRestore(`SELECT identifier FROM app.media_object WHERE owner_id='${merchantUserId}' ORDER BY identifier`) === mediaBeforeBackup, "post-restore media inventory changed");
+      assert(sqlAfterRestore(`SELECT id FROM app.product WHERE owner_id='${merchantUserId}' ORDER BY id`) === productBeforeBackup, "post-restore product inventory changed");
+      assert(sqlAfterRestore(`SELECT id FROM app.order_v2 WHERE owner_id='${merchantUserId}' ORDER BY id`) === orderBeforeBackup, "post-restore order inventory changed");
+
+      const logoReadAfterRestore = await get(`/media/${logoIdentifier}`);
+      assert(logoReadAfterRestore.status === 200, "post-restore logo media read failed");
+
+      const appIdAfterRestore = compose(["ps", "-q", "app"]).trim();
+      assert(inspectField(appIdAfterRestore, '{{index .Config.Labels "org.opencontainers.image.revision"}}') === revision, "post-restore app image revision mismatch");
+      assert(/^[0-9a-f]{40}$/.test(manifest.application_revision), "backup manifest revision is not a 40-character SHA");
+
+      console.log("PASS production-rehearsal-install");
+      console.log("PASS production-rehearsal-identity-seed");
+      console.log("PASS production-rehearsal-health-after-install");
+      console.log("PASS production-rehearsal-smtp-sink");
+      console.log("PASS production-rehearsal-admin-password-reset");
+      console.log("PASS production-rehearsal-commerce-fixtures");
+      console.log("PASS production-rehearsal-media-persistence");
+      console.log("PASS production-rehearsal-update-noop");
+      console.log("PASS production-rehearsal-backup-manifest");
+      console.log("PASS production-rehearsal-restore");
+      console.log("PASS production-rehearsal-post-restore-health");
+      console.log("PASS production-rehearsal-exact-revision-ledger");
     }
   } catch (error) {
     scenarioFailed = true;
     throw error;
   } finally {
+    execute("docker", ["rm", "-f", "-v", `${project}-smtp-sink`]);
     const cleanup = composeResult(["down", "--volumes", "--remove-orphans", "--rmi", "local"]);
     await rm(temporary, { recursive: true, force: true });
     if (!scenarioFailed) assert(cleanup.status === 0, "container cleanup failed");
