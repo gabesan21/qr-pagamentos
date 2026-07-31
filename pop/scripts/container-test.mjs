@@ -1414,7 +1414,12 @@ PUBLIC_ORIGIN=${values.publicOrigin}
       assert(merchantCookie, "merchant login with rotated password failed");
       assert(!installedOutput.includes(resetToken), "reset token leaked in install output");
       assert(!emailText.includes(newMerchantPassword), "new password leaked in captured email");
-      assertRedacted(installedOutput + emailText);
+      assertRedacted(installedOutput);
+      // The captured email legitimately contains From/To and the public reset URL;
+      // it must never contain credentials or key material.
+      for (const leaked of [values.admin, values.migrator, values.runtime, values.initial, values.nautt, values.smtpPassword, merchantInitialPassword]) {
+        assert(!emailText.includes(leaked), "captured email leaked a protected value");
+      }
 
       // Active currency mappings for representative Commerce V2 journeys.
       const brlPairId = randomUUID();
