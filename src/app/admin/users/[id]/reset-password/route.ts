@@ -15,6 +15,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       await getAdminPasswordResetService().sendResetEmail(id, admin);
       return editorRedirect("requested");
     } catch (error) {
+      console.error("ADMIN_RESET_DIAG", error instanceof Error ? `${error.name}: ${error.message}` : String(error));
       const protectedResponse = protectedMutationResponse(error);
       if (protectedResponse) return protectedResponse;
       if (error instanceof AdminPasswordResetUnavailableError) return editorRedirect("failed");
