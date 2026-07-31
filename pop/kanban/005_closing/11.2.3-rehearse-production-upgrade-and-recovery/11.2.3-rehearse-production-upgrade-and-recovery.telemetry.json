@@ -30,6 +30,26 @@
       "test_seconds": 0,
       "return_kind": null,
       "result": "advanced"
+    },
+    {
+      "at": "2026-07-31T15:01:27-03:00",
+      "event": "transition",
+      "from": "004_processing",
+      "to": "005_closing",
+      "contexts": [],
+      "test_seconds": 0,
+      "return_kind": null,
+      "result": "advanced"
+    },
+    {
+      "at": "2026-07-31T15:15:01-03:00",
+      "event": "stage",
+      "stage": "005_closing",
+      "contexts": [
+        "strong"
+      ],
+      "test_seconds": 1.0,
+      "result": "approved-full-waiver"
     }
   ]
 }
