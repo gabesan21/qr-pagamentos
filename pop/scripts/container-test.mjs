@@ -181,6 +181,10 @@ if (process.argv.includes("--clean-clone") && !process.env.CONTAINER_TEST_CLEAN_
   function assertRedacted(text) {
     const sentinels = [...Object.entries(values), ["initialRecovery", `Recovery-${token}-Password`]];
     for (const [name, value] of sentinels) {
+      // Short sentinels (e.g. the SMTP port "587") are substrings of random ports,
+      // SHAs and timestamps in normal output — checking them false-positives.
+      // Every actual credential in this harness is a long random string.
+      if (value.length < 8) continue;
       assert(!text.includes(value), `raw secret sentinel leaked: ${name}`);
       assert(!text.includes(encodeURIComponent(value)), `encoded secret sentinel leaked: ${name}`);
     }
