@@ -1372,13 +1372,15 @@ PUBLIC_ORIGIN=${values.publicOrigin}
         cookie: adminCookie,
       });
       if (!(resetResponse.status === 303 && resetResponse.headers.location === `/admin/accounts/${merchantUserId}?reset=requested`)) {
-        const userRow = sql(`SELECT email, status, deleted_at FROM app."user" WHERE id='${merchantUserId}'`);
+        const userRow = sql(`SELECT email, status, role, deleted_at FROM app."user" WHERE id='${merchantUserId}'`);
         const auditRow = sql(`SELECT outcome FROM app.password_reset_request ORDER BY created_at DESC LIMIT 1`);
+        const tokenTable = sql(`SELECT count(*) FROM app.password_reset_token`);
+        const lookupRow = sql(`SELECT id FROM app."user" WHERE email='${merchantEmail}' AND status='ACTIVE' AND role='USER' AND deleted_at IS NULL`);
         const appId = compose(["ps", "-q", "app"]).trim();
         const probe = execute("docker", ["exec", appId, "node", "-e",
           `const fs=require("node:fs");for(const f of ["smtp_host","smtp_port","smtp_user","smtp_from","smtp_tls_mode"]){try{console.log(f,JSON.stringify(fs.readFileSync("/run/secrets/"+f,"utf8")))}catch{console.log(f,"MISSING")}};const host=fs.readFileSync("/run/secrets/smtp_host","utf8").trim();const s=require("node:net").connect(1025,host,()=>{console.log("TCP-OK");process.exit(0)});s.on("error",(e)=>{console.log("TCP-FAIL",e.code);process.exit(1)});setTimeout(()=>{console.log("TCP-TIMEOUT");process.exit(2)},3000);`]);
         const probeOutput = `${probe.stdout ?? ""}${probe.stderr ?? ""}`.replaceAll(values.smtpUser, "<smtp-user>");
-        assert(false, `reset request failed status=${resetResponse.status} location=${resetResponse.headers.location} audit=[${auditRow}] user=[${userRow}] mailProbe status=${probe.status}\n${probeOutput}`);
+        assert(false, `reset request failed status=${resetResponse.status} location=${resetResponse.headers.location} audit=[${auditRow}] user=[${userRow}] lookup=[${lookupRow}] tokenTable=[${tokenTable}] mailProbe status=${probe.status}\n${probeOutput}`);
       }
 
       // Capture the reset message, extract the token, and redeem it without leaking either.
