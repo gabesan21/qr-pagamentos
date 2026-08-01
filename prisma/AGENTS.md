@@ -2,7 +2,7 @@
 
 - Scope: `schema.prisma`, admin bootstrap SQL, and versioned migration history.
 - Read the repository-root [`AGENTS.md`](../AGENTS.md) before editing this subtree.
-- [`../specs/administrative-foundation.md`](../specs/administrative-foundation.md) — follow when a database or health-boundary decision changes.
+- [`../pop/specs/administrative-foundation.md`](../pop/specs/administrative-foundation.md) — follow when a database or health-boundary decision changes.
 
 ## Boundaries
 

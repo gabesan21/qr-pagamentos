@@ -1,7 +1,7 @@
 # Owned shadcn UI contract
 
 - This subtree owns the customized Radix/nova shadcn source used by current
-  Epoch 1 login, administration, and `/design-system` surfaces.
+  login, administration, catalog, checkout, storefront, merchant, and `/design-system` surfaces.
 - Run the pinned shadcn CLI `info`, component `docs`, and `add --dry-run` before
   adding or updating registry source; never fetch raw registry files manually.
 - Consume semantic Tailwind names projected from
@@ -20,3 +20,13 @@
   sizing. Loading buttons compose `Spinner` and remain disabled.
 - Update [`../../../DESIGN.md`](../../../DESIGN.md) and the specimen when the
   inventory, state matrix, or visual contract changes.
+
+## Related contracts
+
+- [`../../../DESIGN.md`](../../../DESIGN.md) — update when the inventory, state matrix, or visual contract changes.
+- [`../../app-shell/AGENTS.md`](../../app-shell/AGENTS.md) — follow when shell/layout components consume these primitives.
+
+## Verification
+
+- Run `pnpm check` after component or token changes.
+- Run `pnpm test` and the design-system/catalog evidence specs (`tests/design-system.evidence.spec.ts`, `tests/catalog.evidence.spec.ts`) for UI regression coverage.

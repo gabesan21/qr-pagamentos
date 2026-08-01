@@ -6,7 +6,7 @@
 - **Yolo:** yes
 - **Description:** Deliver the branded storefront cart, standalone payment, and composable public QR checkout journeys.
 - **Pause if:** any sessionless flow must trust browser-supplied owner, price, currency, total, status, or provider data.
-- **Release gate (2026-07-27):** every phase task is delivered and integrated in `develop`, each with its memory in `pop/memory/`; the human merge of PR #9 (`develop` → `main`) is the remaining release step. This roadmap has no "delivered, awaiting merge" status, so the phases below read `concluída` while that merge stays pending.
+- **Release gate (2026-07-31):** every phase task is delivered and integrated in `develop`, each with its memory in `pop/memory/`; PR #9 (`develop` → `main`) was merged on 2026-07-31.
 
 ## Recon and forks
 

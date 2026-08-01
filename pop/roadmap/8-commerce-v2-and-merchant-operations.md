@@ -6,7 +6,7 @@
 - **Yolo:** yes
 - **Description:** Add compatible multi-item/fixed-value links, generalized orders, and complete merchant link/order management.
 - **Pause if:** an additive design cannot preserve V1 public identifiers, order history, exact-decimal values, and provider reconciliation fences.
-- **Release gate (2026-07-27):** every phase task is delivered and integrated in `develop`, each with its memory in `pop/memory/`; the human merge of PR #9 (`develop` → `main`) is the remaining release step. This roadmap has no "delivered, awaiting merge" status, so the phases below read `concluída` while that merge stays pending.
+- **Release gate (2026-07-31):** every phase task is delivered and integrated in `develop`, each with its memory in `pop/memory/`; PR #9 (`develop` → `main`) was merged on 2026-07-31.
 
 ## Recon and forks
 
