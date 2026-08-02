@@ -9,15 +9,15 @@
 ## Recon and forks
 
 - [[researches/frontend-template-remodel/frontend-template-remodel|Frontend template remodel recon]] - maps the template, current route tree, visual contracts, stack differences, public-route gaps, and migration boundaries.
-- [ ] RECON NEEDED: establish the exact screenshot-diff browser, viewport, and tolerance contract - check: define the evidence matrix in task `12.1.1-establish-template-parity-contract` before visual implementation starts.
-- [ ] RECON NEEDED: confirm production provenance and self-hosting sources for Sora, Inter, IBM Plex Mono, the template logo, and its illustrations - check: inventory licenses and approved source files in task `12.1.2-specify-application-frontend-system`.
+- [x] RECON RESOLVED: task `12.1.1-establish-template-parity-contract` fixed the screenshot-diff browser, viewport, tolerance, and independent assertion matrix.
+- [ ] RECON NEEDED: confirm production provenance and self-hosting sources for Sora, Inter, IBM Plex Mono, the template logo, and its illustrations - check: inventory licenses and approved source files in task `12.2.2-reconcile-template-identity-and-assets` before runtime installation.
 - Fork: if a template interaction conflicts with an existing business, ownership, security, or exact-decimal contract, preserve the current contract and plan the narrowest separately approved API change only when presentation-layer adaptation is proven insufficient.
 - Fork: because the template omits `/store/[slug]` and `/store/[slug]/pay`, extrapolate those pages from the approved template tokens, components, responsive rules, and public-checkout language without copying the template's incorrect slug-to-payment-link shortcut.
 - Fork: if the template identity assets are not approved to replace the canonical brand family, retain the current generated identity geometry inside the new layout and migrate only the surrounding visual system.
 
 ## Phase 12.1 - Template parity and application frontend contract
 
-- **Status:** pendente
+- **Status:** concluída
 - **Yolo:** yes
 - **Description:** Freeze the route, state, responsive, asset, and interaction reference that every later phase must reproduce in `pt-BR` and `en`.
 - **Specs:** [[specs/administrative-design-system|Administrative design system]], [[specs/administrative-foundation|Administrative foundation]], [[specs/storefront-and-customization|Storefront and customization]]
