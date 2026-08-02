@@ -41,7 +41,10 @@ All visual values enter production through DTCG 2025.10 tokens. Paths use
 lowercase hyphenated segments and resolve in this order:
 
 1. `primitive`: raw colors, dimensions, durations, easing, font families,
-   weights, and shadow members.
+   weights, and shadow members. Snapshot colors live under
+   `color.primitive.audit.template.<theme>.*` byte-equivalent to the supplied
+   source; audit primitives are evidence and are never consumed directly by a
+   component.
 2. `semantic`: stable intent aliases for page, surface, text, action, feedback,
    focus, spacing, type, radius, shadow, layer, and motion.
 3. `component`: aliases only where a shared component needs a value more
@@ -67,7 +70,7 @@ The stable semantic color paths are:
 | Feedback | `color.feedback.success`, `warning`, `danger`, `info` and each `.soft` companion |
 | Focus/depth | `color.focus.ring`; `shadow.elevation.card`; `shadow.elevation.modal` |
 
-The exact palette is the projection of
+The exact audit palette is the projection of
 `docs/template/app/src/index.css` at SHA-256
 `762edf36239e6472ccfc8eb8faa79d73081633dec69ae4fa0fa5a530ccdcead4`:
 
@@ -79,6 +82,33 @@ The exact palette is the projection of
 | `midnight-clearing` | `#0c111b / #141b29 / #1c2536 / #28334a` | `#eaeff7 / #a9b6c9 / #647189` | `#5eead4 / #08251f / #1e3a38` | `#34d399 / #173a2e` | `#fbbf24 / #3e3312` | `#f87171 / #402022` | `#60a5fa / #1b2e4c` |
 | `vault-blue` | `#0b1220 / #111a2e / #182444 / #263659` | `#e7edf9 / #a5b4d2 / #5f7195` | `#4f8dfd / #ffffff / #1b2e5c` | `#3ecf8e / #14352a` | `#f5b93f / #3b2f10` | `#ef6a6a / #3e1e22` | `#7aa8ff / #1c2b50` |
 | `terminal-amber` | `#100d08 / #1a1510 / #241d13 / #3a2f1e` | `#f5e8ce / #cbb68f / #8a7550` | `#ffb224 / #241700 / #33270d` | `#8fcb5c / #24300f` | `#ffd166 / #3a3010` | `#ff7a5c / #3d1d14` | `#e8b04b / #33270d` |
+
+WCAG 2.2 AA overrides byte-identical rendering when an audit color fails the
+required contrast. Template occurrences authored as normal `text-3` consume
+`color.text.tertiary`; they never consume the audit primitive directly. Derive
+that semantic value independently per theme from audit tertiary `O` toward
+audit primary text `P`: for integer `k = 0..255`, compute each gamma-encoded
+sRGB byte as `floor(O + (P - O) * k / 255 + 0.5)`, and select the first `k`
+whose WCAG contrast is at least `4.5:1` against all three applicable base
+surfaces: page, raised, and secondary. These are the fixed outputs:
+
+| Theme | `k` | Rendered `color.text.tertiary` | Page / raised / secondary contrast |
+| --- | ---: | --- | --- |
+| `pix-paper` | 92 | `#636e68` | `4.830 / 5.302 / 4.538` |
+| `cashier-daylight` | 81 | `#636f7c` | `4.733 / 5.128 / 4.515` |
+| `settlement-sand` | 91 | `#706653` | `4.886 / 5.327 / 4.503` |
+| `midnight-clearing` | 54 | `#808ca0` | `5.556 / 5.069 / 4.518` |
+| `vault-blue` | 55 | `#7c8cab` | `5.524 / 5.117 / 4.508` |
+| `terminal-amber` | 30 | `#97835f` | `5.288 / 4.943 / 4.545` |
+
+The verifier linearizes normalized sRGB with
+`c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ^ 2.4`, calculates
+`L = 0.2126R + 0.7152G + 0.0722B`, and calculates contrast as
+`(Llighter + 0.05) / (Ldarker + 0.05)`. A `text-3` occurrence on an accent,
+feedback-soft, image, or other background must consume a separately validated
+semantic on-color; this three-surface proof cannot be reused there. Thus the
+immutable primitive remains exact for parity audit while the semantic token
+rendered to users is contrast-safe and implementation-ready.
 
 Focus and card depth resolve exactly as follows:
 
@@ -287,8 +317,10 @@ them. Mark a state non-applicable instead of simulating it.
 
 ## Accessibility and feedback
 
-- WCAG 2.2 AA is the minimum: normal text contrast at least `4.5:1`; large text
-  and essential non-text boundaries at least `3:1`.
+- WCAG 2.2 AA is the minimum and wins over byte-identical visual rendering:
+  normal text contrast is at least `4.5:1`; large text and essential non-text
+  boundaries are at least `3:1`. Exact snapshot bytes remain audit primitives;
+  users receive the validated semantic projection defined above.
 - Every actionable target is at least `44×44` CSS pixels unless the template
   fixes a larger size. Focus is an unobscured semantic ring visibly equivalent
   to `3px`; never remove it without an equal replacement.
