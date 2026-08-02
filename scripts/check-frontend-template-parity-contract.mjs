@@ -23,7 +23,6 @@ const profiles = {
 };
 const stable = (value) => JSON.stringify(value);
 const obligationId = (kind, source, suffix = "") => `${kind}:${sha256(`${source}${suffix}`).slice(0, 16)}`;
-const relative = (absolute) => path.relative(root, absolute).split(path.sep).join("/");
 const absolute = (file) => path.join(root, file);
 const fail = (failures, code, detail) => failures.push(`PARITY_${code} ${detail}`);
 
