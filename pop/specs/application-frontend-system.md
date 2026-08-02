@@ -3,8 +3,8 @@ id: application-frontend-system
 project: applications/qr-pagamentos
 domain: frontend
 kind: contract
-status: draft
-implementation: planned
+status: active
+implementation: partial
 origin: "roadmap/12-frontend-template-remodel"
 created: 2026-08-02
 updated: 2026-08-02
