@@ -24,7 +24,6 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[12.1.1-establish-template-parity-contract]] | Map every `docs/template/app` route, component, class, state, interaction, locale, theme, asset, and viewport to the current `src/app` surface and an objective evidence target. · size: L | 001_initial_task |
 | [[12.1.2-specify-application-frontend-system]] | Create the application-wide frontend spec and rewrite `DESIGN.md` with the template tone, numeric composition laws, required states, and evidence contract. · size: L | 001_initial_task |
 
 ## Phase 12.2 - Design system, identity, and shared components
