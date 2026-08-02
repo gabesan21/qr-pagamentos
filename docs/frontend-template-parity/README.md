@@ -13,11 +13,14 @@ template source:
 
 - each `authored-class-occurrence` stores the exact readable `className`
   initializer, its literal value when applicable, and its expression form;
-- each `state` stores the binding/setter names, exact initial value, every local
-  setter transition, and the exact JSX, derived, or indirect read sites that
-  define its expected view. An intentionally omitted state binding is named from
-  its setter and marked `render-invalidation-only`; a state with no render read
-  is explicitly marked `write-only` rather than receiving an invented view;
+- each `state` stores its exact lexical React component/hook owner, the
+  binding/setter names, exact initial value, every owner-local setter transition,
+  and the exact owner-local JSX, derived, or indirect read sites that define its
+  expected view. Nested handlers and callbacks inside that owner are included;
+  sibling component/hook functions are excluded even when they reuse the same
+  state/setter names. An intentionally omitted state binding is named from its
+  setter and marked `render-invalidation-only`; a state with no render read is
+  explicitly marked `write-only` rather than receiving an invented view;
 - each `interaction` stores the DOM event, exact handler expression, resolved
   local implementation (or caller-provided callback boundary), and classified
   exact effect calls that define feedback;
@@ -37,7 +40,8 @@ dimension-specific `PARITY_*_EXPRESSION_INVALID`, `*_VALUE_INVALID`,
 `STATE_NAME_INVALID`, `STATE_INITIAL_INVALID`, `STATE_TRIGGER_INVALID`,
 `STATE_EXPECTED_VIEW_INVALID`, `INTERACTION_EVENT_INVALID`,
 `INTERACTION_ACTION_INVALID`, `INTERACTION_FEEDBACK_INVALID`, `*_TARGET_INVALID`,
-`*_FIXTURE_INVALID`, or `DYNAMIC_TARGET_MISSING` diagnostic.
+`*_FIXTURE_INVALID`, `DYNAMIC_TARGET_MISSING`,
+`STATE_LEXICAL_TRANSITION_LEAK`, or `STATE_LEXICAL_VIEW_LEAK` diagnostic.
 
 ## Authority and dispositions
 

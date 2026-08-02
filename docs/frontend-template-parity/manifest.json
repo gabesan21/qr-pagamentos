@@ -2784,12 +2784,12 @@
   "obligations": {
     "path": "docs/frontend-template-parity/obligations.ndjson",
     "count": 2230,
-    "sha256": "9dde39c3dfee08dda2e5dc7c912ce52b5df686cff4ec72cfbceded5fbd11431b"
+    "sha256": "276bba6466ce7c316c3b8bc27db48e1a75ad20268c1e8c0e78e97c4859e922dd"
   },
   "semanticContract": {
     "parser": "TypeScript 5 AST",
     "classes": "exact className initializer expression/value",
-    "states": "binding name, setter, initial value, transitions, and JSX/derived view bindings",
+    "states": "lexical component/hook owner, binding name, setter, initial value, owner-local transitions, and owner-local JSX/derived view bindings",
     "interactions": "event, resolved handler implementation, and classified effect calls",
     "targets": "App route-import transitive closure mapped to exact current route/component paths; template :params normalize to current [params] for matching",
     "fixtures": "record-specific source/hash/line identity with exact routes, current paths, fixture imports, and fixed clock"

@@ -108,8 +108,27 @@ function stateSetters(sourceFile) {
   visit(sourceFile);
   return setters;
 }
+function lexicalFunctionOwner(node) {
+  let owner = node.parent;
+  while (owner && !ts.isFunctionLike(owner)) owner = owner.parent;
+  return owner;
+}
+function lexicalOwnerName(sourceFile, owner) {
+  if (owner.name) return exactText(sourceFile, owner.name);
+  if ((ts.isArrowFunction(owner) || ts.isFunctionExpression(owner)) && ts.isVariableDeclaration(owner.parent) && ts.isIdentifier(owner.parent.name)) return owner.parent.name.text;
+  return `<anonymous@${lineFor(sourceFile, owner)}>`;
+}
+function lexicalOwnerDescriptor(sourceFile, owner) {
+  const startLine = lineFor(sourceFile, owner);
+  const endLine = sourceFile.getLineAndCharacterOfPosition(owner.end).line + 1;
+  const name = lexicalOwnerName(sourceFile, owner);
+  return { id: `scope:${sha256(`${sourceFile.fileName}:${name}:${owner.pos}:${owner.end}`).slice(0, 20)}`, name, startLine, endLine };
+}
 function stateSemantics(sourceFile, call) {
   const declaration = call.parent;
+  const owner = lexicalFunctionOwner(declaration);
+  if (!owner) throw new Error(`PARITY_STATE_OWNER_SCOPE_MISSING ${sourceFile.fileName} line=${lineFor(sourceFile, call)}`);
+  const ownerScope = lexicalOwnerDescriptor(sourceFile, owner);
   const binding = ts.isVariableDeclaration(declaration) && ts.isArrayBindingPattern(declaration.name) ? declaration.name.elements : [];
   const setterName = binding[1] && ts.isBindingElement(binding[1]) && ts.isIdentifier(binding[1].name) ? binding[1].name.text : null;
   const stateName = binding[0] && ts.isBindingElement(binding[0]) && ts.isIdentifier(binding[0].name) ? binding[0].name.text : setterName ? `omitted-state-via-${setterName}` : "unbound-useState";
@@ -129,16 +148,17 @@ function stateSemantics(sourceFile, call) {
     }
     if (ts.isIdentifier(node) && node.text === stateName) {
       let context = node.parent;
-      while (context && context !== sourceFile && !ts.isCallExpression(context) && !ts.isJsxExpression(context) && !ts.isVariableDeclaration(context) && !ts.isReturnStatement(context) && !ts.isExpressionStatement(context)) context = context.parent;
-      if (context && context !== declaration && context !== sourceFile) readSites.push({ line: lineFor(sourceFile, context), expression: exactText(sourceFile, context) });
+      while (context && context !== owner && !ts.isCallExpression(context) && !ts.isJsxExpression(context) && !ts.isVariableDeclaration(context) && !ts.isReturnStatement(context) && !ts.isExpressionStatement(context)) context = context.parent;
+      if (context && context !== declaration && context !== owner) readSites.push({ line: lineFor(sourceFile, context), expression: exactText(sourceFile, context) });
     }
     ts.forEachChild(node, visit);
   };
-  visit(sourceFile);
+  visit(owner);
   const unique = (items) => [...new Map(items.map((item) => [stable(item), item])).values()].sort((a, b) => stable(a).localeCompare(stable(b)));
   return {
     name: stateName,
     setter: setterName,
+    ownerScope,
     initialValue: call.arguments.length ? call.arguments.map((argument) => exactText(sourceFile, argument)).join(", ") : "undefined",
     trigger: { transitions: unique(transitions), initializationOnly: transitions.length === 0 },
     expectedView: {
@@ -385,10 +405,12 @@ function validateSemanticObligations(failures, expectedByKind, records) {
         if (typeof record.semantics?.classExpression !== "string" || !record.semantics.classExpression.trim()) fail(failures, "AUTHORED_CLASS_EXPRESSION_INVALID", id);
       } else if (kind === "state") {
         compareSemanticField(failures, "STATE_NAME_INVALID", record, expected, (item) => ({ name: item.semantics?.name, setter: item.semantics?.setter }));
+        compareSemanticField(failures, "STATE_OWNER_SCOPE_INVALID", record, expected, (item) => item.semantics?.ownerScope);
         compareSemanticField(failures, "STATE_INITIAL_INVALID", record, expected, (item) => item.semantics?.initialValue);
         compareSemanticField(failures, "STATE_TRIGGER_INVALID", record, expected, (item) => item.semantics?.trigger);
         compareSemanticField(failures, "STATE_EXPECTED_VIEW_INVALID", record, expected, (item) => item.semantics?.expectedView);
         if (typeof record.semantics?.name !== "string" || !record.semantics.name.trim() || record.semantics.name === "unbound-useState" || typeof record.semantics?.initialValue !== "string" || !record.semantics.initialValue.trim()) fail(failures, "STATE_NAME_INVALID", id);
+        if (!record.semantics?.ownerScope?.id || !record.semantics?.ownerScope?.name || !Number.isInteger(record.semantics?.ownerScope?.startLine) || !Number.isInteger(record.semantics?.ownerScope?.endLine)) fail(failures, "STATE_OWNER_SCOPE_INVALID", id);
         if (!Array.isArray(record.semantics?.trigger?.transitions) || typeof record.semantics?.trigger?.initializationOnly !== "boolean") fail(failures, "STATE_TRIGGER_INVALID", id);
         if (!/^(?:direct-jsx|derived-read|render-invalidation-only|indirect-read|write-only)$/.test(record.semantics?.expectedView?.mode ?? "") || !Array.isArray(record.semantics?.expectedView?.jsxBindings) || !Array.isArray(record.semantics?.expectedView?.derivedReads) || !Array.isArray(record.semantics?.expectedView?.readSites)) fail(failures, "STATE_EXPECTED_VIEW_INVALID", id);
       } else {
@@ -415,6 +437,28 @@ function validateDynamicTargetCoverage(failures, records, currentRoutes) {
     }
   }
 }
+function validateStateLexicalIsolation(failures, records) {
+  const states = records.filter((record) => record.kind === "state");
+  for (const record of states) {
+    const scope = record.semantics?.ownerScope;
+    if (!scope) continue;
+    const outside = (line) => !Number.isInteger(line) || line < scope.startLine || line > scope.endLine;
+    for (const transition of record.semantics?.trigger?.transitions ?? []) {
+      if (outside(transition.line)) fail(failures, "STATE_LEXICAL_TRANSITION_LEAK", `${record.id} owner=${scope.name} line=${transition.line}`);
+    }
+    for (const field of ["jsxBindings", "derivedReads", "readSites"]) {
+      for (const view of record.semantics?.expectedView?.[field] ?? []) {
+        if (outside(view.line)) fail(failures, "STATE_LEXICAL_VIEW_LEAK", `${record.id} owner=${scope.name} field=${field} line=${view.line}`);
+      }
+    }
+  }
+  const accountSaving = states.filter((record) => record.source?.path === "docs/template/app/src/pages/admin/AdminAccountDetail.tsx" && record.semantics?.name === "saving");
+  const expectedOwners = ["AccessTab", "IdentityTab", "PreferencesTab", "StorefrontTab"];
+  const actualOwners = accountSaving.map((record) => record.semantics?.ownerScope?.name).sort();
+  if (accountSaving.length !== 4 || !sameObjects(actualOwners, expectedOwners)) fail(failures, "STATE_DUPLICATE_OWNER_SCOPE_INVALID", `AdminAccountDetail.saving owners=${stable(actualOwners)}`);
+  const scopeIds = new Set(accountSaving.map((record) => record.semantics?.ownerScope?.id));
+  if (scopeIds.size !== accountSaving.length) fail(failures, "STATE_DUPLICATE_OWNER_SCOPE_INVALID", "AdminAccountDetail.saving scope IDs are not distinct");
+}
 
 async function refreshSemanticContract() {
   const manifestPath = "docs/frontend-template-parity/manifest.json";
@@ -440,7 +484,7 @@ async function refreshSemanticContract() {
   manifest.semanticContract = {
     parser: "TypeScript 5 AST",
     classes: "exact className initializer expression/value",
-    states: "binding name, setter, initial value, transitions, and JSX/derived view bindings",
+    states: "lexical component/hook owner, binding name, setter, initial value, owner-local transitions, and owner-local JSX/derived view bindings",
     interactions: "event, resolved handler implementation, and classified effect calls",
     targets: "App route-import transitive closure mapped to exact current route/component paths; template :params normalize to current [params] for matching",
     fixtures: "record-specific source/hash/line identity with exact routes, current paths, fixture imports, and fixed clock",
@@ -462,12 +506,15 @@ async function runSemanticMutationProbes() {
   const expectedByKind = await semanticObligations(graph, currentRoutes);
   const literalClass = originalRecords.find((record) => record.kind === "authored-class-occurrence" && record.semantics?.classValue !== null);
   const mixedCatalogClass = originalRecords.find((record) => record.kind === "authored-class-occurrence" && record.source?.path === "docs/template/app/src/pages/catalog/fields.tsx");
+  const accountSaving = originalRecords.filter((record) => record.kind === "state" && record.source?.path === "docs/template/app/src/pages/admin/AdminAccountDetail.tsx" && record.semantics?.name === "saving");
+  const savingByOwner = new Map(accountSaving.map((record) => [record.semantics?.ownerScope?.name, record]));
   const first = (kind) => originalRecords.find((record) => record.kind === kind);
   const cases = [
     ["class-expression", "AUTHORED_CLASS_EXPRESSION_INVALID", (records) => { firstIn(records, first("authored-class-occurrence").id).semantics.classExpression = "removed"; }],
     ["class-value", "AUTHORED_CLASS_VALUE_INVALID", (records) => { firstIn(records, literalClass.id).semantics.classValue = "removed"; }],
     ["class-record", "AUTHORED_CLASS_MISSING", (records) => removeFrom(records, first("authored-class-occurrence").id)],
     ["state-name", "STATE_NAME_INVALID", (records) => { delete firstIn(records, first("state").id).semantics.name; }],
+    ["state-owner-scope", "STATE_OWNER_SCOPE_INVALID", (records) => { delete firstIn(records, first("state").id).semantics.ownerScope; }],
     ["state-initial", "STATE_INITIAL_INVALID", (records) => { delete firstIn(records, first("state").id).semantics.initialValue; }],
     ["state-trigger", "STATE_TRIGGER_INVALID", (records) => { delete firstIn(records, first("state").id).semantics.trigger; }],
     ["state-view", "STATE_EXPECTED_VIEW_INVALID", (records) => { delete firstIn(records, first("state").id).semantics.expectedView; }],
@@ -479,6 +526,8 @@ async function runSemanticMutationProbes() {
     ["exact-target", "AUTHORED_CLASS_TARGET_INVALID", (records) => { firstIn(records, first("authored-class-occurrence").id).target.currentRoutes = []; firstIn(records, first("authored-class-occurrence").id).target.currentComponents = []; }],
     ["fixture-identity", "AUTHORED_CLASS_FIXTURE_INVALID", (records) => { delete firstIn(records, first("authored-class-occurrence").id).fixture.id; }],
     ["mixed-dynamic-target", "DYNAMIC_TARGET_MISSING", (records) => { const record = firstIn(records, mixedCatalogClass.id); record.target.currentRoutes = record.target.currentRoutes.filter((item) => item.path !== "src/app/(merchant)/catalog/products/[id]/page.tsx"); }],
+    ["sibling-state-transition", "STATE_LEXICAL_TRANSITION_LEAK", (records) => { const target = firstIn(records, savingByOwner.get("IdentityTab").id); target.semantics.trigger.transitions.push(structuredClone(savingByOwner.get("AccessTab").semantics.trigger.transitions[0])); }],
+    ["sibling-state-view", "STATE_LEXICAL_VIEW_LEAK", (records) => { const target = firstIn(records, savingByOwner.get("IdentityTab").id); target.semantics.expectedView.jsxBindings.push(structuredClone(savingByOwner.get("AccessTab").semantics.expectedView.jsxBindings[0])); }],
   ];
   function firstIn(records, id) { return records.find((record) => record.id === id); }
   function removeFrom(records, id) { records.splice(records.findIndex((record) => record.id === id), 1); }
@@ -488,6 +537,7 @@ async function runSemanticMutationProbes() {
     const failures = [];
     validateSemanticObligations(failures, expectedByKind, records);
     validateDynamicTargetCoverage(failures, records, currentRoutes);
+    validateStateLexicalIsolation(failures, records);
     if (!failures.some((failure) => failure.startsWith(`PARITY_${expectedCode} `))) throw new Error(`PARITY_MUTATION_PROBE_WRONG_DIAGNOSTIC ${name} expected=PARITY_${expectedCode}\n${failures.join("\n")}`);
     console.log(`FRONTEND_PARITY_MUTATION_OK ${name}=PARITY_${expectedCode}`);
   }
@@ -527,6 +577,7 @@ export async function checkFrontendTemplateParity() {
   const currentRoutes = await currentRouteInventory();
   validateSemanticObligations(failures, await semanticObligations(graph, currentRoutes), records);
   validateDynamicTargetCoverage(failures, records, currentRoutes);
+  validateStateLexicalIsolation(failures, records);
   const extracted = await extractedObligations(graph);
   for (const kind of Object.keys(extracted)) {
     const mapped = records.filter((record) => record.kind === kind).map((record) => ({ id: record.id, source: record.source, ...(record.value ? { value: record.value } : {}) }));
