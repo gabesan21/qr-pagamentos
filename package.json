@@ -69,6 +69,7 @@
     "reset-password:evidence:verify": "node scripts/verify-reset-password-evidence.mjs",
     "epoch1:source-check": "node scripts/check-epoch1-source.mjs",
     "media:decoder-preflight": "node scripts/media-decoder-preflight.mjs",
+    "frontend-parity:check": "node scripts/check-frontend-template-parity-contract.mjs",
     "precheck": "pnpm db:generate",
     "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm build"
   },

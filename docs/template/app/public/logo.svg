@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 32" width="160" height="32" fill="none">
+
+<g fill="currentColor">
+  <path fill-rule="evenodd" d="M0 0h12v12H0zM3 3v6h6V3z"/>
+  <path fill-rule="evenodd" d="M20 0h12v12H20zM23 3v6h6V3z"/>
+  <path fill-rule="evenodd" d="M0 20h12v12H0zM3 23v6h6v-6z"/>
+  <rect x="16" y="4" width="3" height="3"/><rect x="4" y="16" width="3" height="3"/>
+  <rect x="10" y="16" width="3" height="3"/><rect x="16" y="16" width="3" height="3"/>
+  <rect x="22" y="16" width="3" height="3"/><rect x="16" y="22" width="3" height="3"/>
+  <rect x="16" y="28" width="3" height="3"/><rect x="28" y="22" width="3" height="3"/><rect x="28" y="28" width="3" height="3"/>
+</g>
+<text x="40" y="22" font-family="Sora, sans-serif" font-weight="700" font-size="15" letter-spacing="-0.3" fill="currentColor">QR Pagamentos</text>
+</svg>
