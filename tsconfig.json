@@ -31,5 +31,5 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules", "pop/worktrees"]
+  "exclude": ["node_modules", "pop/worktrees", "docs/template/**"]
 }
