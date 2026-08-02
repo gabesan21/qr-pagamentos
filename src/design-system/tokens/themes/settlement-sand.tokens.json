@@ -1,0 +1,98 @@
+{
+  "$extensions": {
+    "com.qr-pagamentos.theme": {
+      "id": "settlement-sand",
+      "mode": "light"
+    }
+  },
+  "theme": {
+    "color": {
+      "page": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.settlement-sand.bg}"
+      },
+      "raised": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.settlement-sand.surface}"
+      },
+      "secondary": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.settlement-sand.surface-2}"
+      },
+      "border": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.settlement-sand.border}"
+      },
+      "text-primary": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.settlement-sand.text}"
+      },
+      "text-secondary": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.settlement-sand.text-2}"
+      },
+      "accent": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.settlement-sand.accent}"
+      },
+      "accent-audit-foreground": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.settlement-sand.accent-fg}"
+      },
+      "accent-soft": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.settlement-sand.accent-soft}"
+      },
+      "success": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.settlement-sand.success}"
+      },
+      "success-soft": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.settlement-sand.success-soft}"
+      },
+      "warning": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.settlement-sand.warning}"
+      },
+      "warning-soft": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.settlement-sand.warning-soft}"
+      },
+      "danger": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.settlement-sand.danger}"
+      },
+      "danger-soft": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.settlement-sand.danger-soft}"
+      },
+      "info": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.settlement-sand.info}"
+      },
+      "info-soft": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.settlement-sand.info-soft}"
+      },
+      "focus-ring": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.settlement-sand.ring-color}"
+      },
+      "text-tertiary": {
+        "$type": "color",
+        "$value": "{color.primitive.accessibility.settlement-sand.text-tertiary}"
+      },
+      "action-foreground": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.settlement-sand.accent-fg}"
+      }
+    },
+    "shadow": {
+      "card": {
+        "$type": "shadow",
+        "$value": "{color.primitive.audit.template.settlement-sand.elevation}"
+      }
+    }
+  }
+}

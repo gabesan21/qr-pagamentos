@@ -1,145 +1,180 @@
-import { readFile, writeFile } from "node:fs/promises";
+import { readFile, readdir, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
-import { join } from "node:path";
-import { hexFromOklch, resolveDesignTokens } from "./design-token-graph.mjs";
+import { join, relative, sep } from "node:path";
+import { resolveDesignTokens } from "./design-token-graph.mjs";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
-const tokenPath = join(root, "src/design-system/tokens/themes.tokens.json");
-const resolverPath = join(root, "src/design-system/tokens/resolver.json");
+const tokenDir = join(root, "src/design-system/tokens");
+const resolverPath = join(tokenDir, "resolver.json");
 const cssPath = join(root, "src/app/globals.css");
 
-function format(value, token) {
-  if (typeof value === "number")
-    return `${value}${token.$extensions?.["com.qr-pagamentos.css"]?.unit ?? ""}`;
-  if (Array.isArray(value))
-    return token.$type === "fontFamily"
-      ? value.map((item) => item.includes(" ") ? `"${item}"` : item).join(", ")
-      : `cubic-bezier(${value.join(", ")})`;
-  if (value && "unit" in value) return `${value.value}${value.unit}`;
-  throw new Error(`Unsupported reference token type: ${token.$type}`);
+async function tokenFiles(directory) {
+  const entries = await readdir(directory, { withFileTypes: true });
+  return (await Promise.all(entries.map(async (entry) => {
+    const path = join(directory, entry.name);
+    if (entry.isDirectory()) return tokenFiles(path);
+    return entry.name.endsWith(".tokens.json") ? [path] : [];
+  }))).flat();
 }
 
-function flattenReferences(group, prefix = []) {
-  return Object.entries(group).flatMap(([name, node]) => {
-    if (name.startsWith("$")) return [];
-    if ("$value" in node) {
-      const token = { ...node, $type: node.$type ?? group.$type };
-      return [[`reference-${[...prefix, name].join("-")}`, format(node.$value, token)]];
-    }
-    return flattenReferences(node, [...prefix, name]);
-  });
+export async function loadTokenDocuments(directory = tokenDir) {
+  const documents = {};
+  for (const path of (await tokenFiles(directory)).sort()) {
+    const key = relative(directory, path).split(sep).join("/");
+    documents[key] = JSON.parse(await readFile(path, "utf8"));
+  }
+  return documents;
 }
 
-function colorVariables(tokens, projection) {
-  return Object.entries(projection).flatMap(([cssName, tokenName]) => {
-    const value = tokens.color[tokenName].$value;
-    const derived = hexFromOklch(value.components);
-    if (derived.toLowerCase() !== value.hex.toLowerCase())
-      throw new Error(`Fallback mismatch for ${cssName}: ${value.hex} != ${derived}`);
-    return [`  --${cssName}: ${derived};`, `  --${cssName}: oklch(${value.components.join(" ")});`];
-  }).join("\n");
+function tokenAt(tokens, path) {
+  let token = tokens;
+  let inheritedType;
+  for (const segment of path.split(".")) {
+    inheritedType = token?.$type ?? inheritedType;
+    token = token?.[segment];
+  }
+  inheritedType = token?.$type ?? inheritedType;
+  if (token && !("$value" in token) && token.$root) token = token.$root;
+  if (!token || !("$value" in token)) throw new Error(`Missing projected token: ${path}`);
+  return { ...token, $type: token.$type ?? inheritedType };
 }
 
-function motionVariables(tokens) {
+function formatNumber(value) {
+  return Number.isInteger(value) ? String(value) : String(Number(value.toFixed(4)));
+}
+
+function formatColor(value) {
+  if (value.alpha === undefined || value.alpha === 1) return value.hex;
+  const channels = value.components.map((component) => Math.round(component * 255));
+  return `rgba(${channels.join(", ")}, ${formatNumber(value.alpha)})`;
+}
+
+function formatShadow(value) {
+  const shadows = Array.isArray(value) ? value : [value];
+  return shadows.map((shadow) => [
+    shadow.inset ? "inset " : "",
+    `${formatDimension(shadow.offsetX)} ${formatDimension(shadow.offsetY)} ${formatDimension(shadow.blur)} ${formatDimension(shadow.spread)} `,
+    formatColor(shadow.color),
+  ].join("")).join(", ");
+}
+
+function formatDimension(value, token) {
+  const override = token?.$extensions?.["com.qr-pagamentos.css"]?.unitOverride;
+  return `${formatNumber(value.value)}${override ?? value.unit}`;
+}
+
+function formatToken(token) {
+  const value = token.$value;
+  switch (token.$type) {
+    case "color": return formatColor(value);
+    case "dimension": return formatDimension(value, token);
+    case "duration": return formatDimension(value);
+    case "fontFamily": return value.map((family) => family.includes(" ") ? `"${family}"` : family).join(", ");
+    case "fontWeight":
+    case "number": return `${formatNumber(value)}${token.$extensions?.["com.qr-pagamentos.css"]?.unit ?? ""}`;
+    case "cubicBezier": return `cubic-bezier(${value.map(formatNumber).join(", ")})`;
+    case "shadow": return formatShadow(value);
+    default: throw new Error(`Unsupported CSS token type: ${token.$type}`);
+  }
+}
+
+const COMMON_PROJECTION = {
+  "space-1": "space.semantic.1", "space-2": "space.semantic.2", "space-3": "space.semantic.3",
+  "space-4": "space.semantic.4", "space-5": "space.semantic.5", "space-6": "space.semantic.6",
+  "space-8": "space.semantic.8", "space-10": "space.semantic.10", "space-12": "space.semantic.12",
+  "radius-tight": "radius.semantic.sm", "radius-control": "radius.semantic.md", "radius-panel": "radius.semantic.lg", "radius-pill": "radius.semantic.pill",
+  "focus-width": "focus.semantic.width", "focus-offset": "focus.semantic.offset",
+  "target-min-size": "size.semantic.target-min", "control-min-height": "size.semantic.target-min", "control-compact-height": "size.semantic.control-compact",
+  "auth-action-height": "size.semantic.auth-action", "table-row-height": "size.semantic.table-row", "top-bar-height": "size.semantic.top-bar",
+  "rail-width": "size.semantic.rail", "auth-panel-width": "size.semantic.auth-panel",
+  "breakpoint-grid": "breakpoint.semantic.grid", "breakpoint-auth": "breakpoint.semantic.auth", "breakpoint-lg": "breakpoint.semantic.lg",
+  "shell-max": "layout.semantic.app", "checkout-max": "layout.semantic.checkout", "auth-form-max": "layout.semantic.auth-form", "auth-card-max": "layout.semantic.auth-card", "layout-max": "layout.semantic.prose",
+  "font-interface": "font.semantic.body", "font-display": "font.semantic.display", "font-numeric": "font.semantic.numeric",
+  "type-body": "type.primitive.size.body", "type-small": "type.primitive.size.caption", "type-title": "type.primitive.size.section-heading", "type-display": "type.primitive.size.page-heading",
+  "line-height-body": "type.primitive.line.body", "line-height-tight": "type.primitive.line.page-heading", "tracking-display": "type.primitive.tracking.display",
+  "font-weight-medium": "font.primitive.weight.500", "font-weight-strong": "font.primitive.weight.600",
+  "shadow-modal": "shadow.elevation.modal", "disabled-opacity": "opacity.semantic.disabled", "layer-chrome": "layer.semantic.chrome", "layer-bypass": "layer.semantic.bypass",
+};
+
+const THEME_PROJECTION = {
+  "color-surface-page": "color.surface.page", "color-surface-raised": "color.surface.raised", "color-surface-secondary": "color.surface.secondary",
+  "color-border-default": "color.border.default", "color-text-primary": "color.text.primary", "color-text-secondary": "color.text.secondary", "color-text-tertiary": "color.text.tertiary",
+  "color-action-accent": "color.action.accent", "color-action-foreground": "color.action.foreground", "color-action-soft": "color.action.soft",
+  "color-feedback-success": "color.feedback.success", "color-feedback-success-soft": "color.feedback.success.soft", "color-feedback-success-foreground": "color.feedback.success.foreground",
+  "color-feedback-warning": "color.feedback.warning", "color-feedback-warning-soft": "color.feedback.warning.soft", "color-feedback-warning-foreground": "color.feedback.warning.foreground",
+  "color-feedback-danger": "color.feedback.danger", "color-feedback-danger-soft": "color.feedback.danger.soft", "color-feedback-danger-foreground": "color.feedback.danger.foreground",
+  "color-feedback-info": "color.feedback.info", "color-feedback-info-soft": "color.feedback.info.soft", "color-feedback-info-foreground": "color.feedback.info.foreground",
+  "color-focus-ring": "color.focus.ring", "shadow-elevation-card": "shadow.elevation.card",
+};
+
+export const COMPATIBILITY_ALIASES = {
+  background: "color-surface-page", foreground: "color-text-primary", card: "color-surface-raised", "card-foreground": "color-text-primary",
+  popover: "color-surface-raised", "popover-foreground": "color-text-primary", primary: "color-action-accent", "primary-foreground": "color-action-foreground",
+  secondary: "color-surface-secondary", "secondary-foreground": "color-text-primary", muted: "color-surface-secondary", "muted-foreground": "color-text-secondary",
+  accent: "color-action-soft", "accent-foreground": "color-text-primary", destructive: "color-feedback-danger-soft", "destructive-foreground": "color-feedback-danger-foreground",
+  warning: "color-feedback-warning-soft", "warning-foreground": "color-feedback-warning-foreground", success: "color-feedback-success-soft", "success-foreground": "color-feedback-success-foreground",
+  border: "color-border-default", input: "color-border-default", ring: "color-focus-ring", "action-primary-hover": "color-action-accent",
+  "surface-page": "color-surface-page", "surface-raised": "color-surface-raised", "surface-subtle": "color-surface-secondary",
+  "text-primary": "color-text-primary", "text-secondary": "color-text-secondary", "text-tertiary": "color-text-tertiary", "text-on-action": "color-action-foreground",
+  "border-subtle": "color-border-default", "action-primary": "color-action-accent", "action-secondary": "color-action-soft",
+  "feedback-success": "color-feedback-success", "feedback-warning": "color-feedback-warning", "feedback-danger": "color-feedback-danger", "feedback-info": "color-feedback-info",
+  "text-on-success": "color-feedback-success-foreground", "text-on-warning": "color-feedback-warning-foreground", "text-on-danger": "color-feedback-danger-foreground", "text-on-info": "color-feedback-info-foreground",
+  "focus-color": "color-focus-ring", "shadow-raised": "shadow-elevation-card",
+};
+
+function declarations(tokens, projection) {
+  return Object.entries(projection).map(([name, path]) => `  --${name}: ${formatToken(tokenAt(tokens, path))};`);
+}
+
+function aliases() {
+  return Object.entries(COMPATIBILITY_ALIASES).map(([name, target]) => `  --${name}: var(--${target});`);
+}
+
+function motionDeclarations(tokens) {
   return [
-    `  --motion-duration: ${format(tokens.duration.$value, tokens.duration)};`,
-    `  --motion-ease: ${format(tokens.easing.$value, tokens.easing)};`,
-  ].join("\n");
-}
-
-// Custom-property aliases resolve where they are declared, so the semantic
-// alias layers (`:root` and the Tailwind `@theme inline` color map in
-// globals.css) stay frozen to the page theme. A scoped preview container must
-// re-declare the color aliases inside its own block to recolor owned
-// primitives and authored rules that consume them; keep this list
-// byte-identical to those two layers' color entries.
-export const SCOPED_PREVIEW_COLOR_ALIASES = [
-  "--surface-page: var(--background)",
-  "--surface-raised: var(--card)",
-  "--surface-subtle: var(--muted)",
-  "--text-primary: var(--foreground)",
-  "--text-secondary: var(--muted-foreground)",
-  "--text-on-action: var(--primary-foreground)",
-  "--border-subtle: var(--border)",
-  "--action-primary: var(--primary)",
-  "--action-secondary: var(--secondary)",
-  "--feedback-success: var(--success)",
-  "--feedback-warning: var(--warning)",
-  "--feedback-danger: var(--destructive)",
-  "--text-on-success: var(--success-foreground)",
-  "--text-on-warning: var(--warning-foreground)",
-  "--text-on-danger: var(--destructive-foreground)",
-  "--focus-color: var(--ring)",
-  "--color-background: var(--background)",
-  "--color-foreground: var(--foreground)",
-  "--color-card: var(--card)",
-  "--color-card-foreground: var(--card-foreground)",
-  "--color-popover: var(--popover)",
-  "--color-popover-foreground: var(--popover-foreground)",
-  "--color-primary: var(--primary)",
-  "--color-primary-foreground: var(--primary-foreground)",
-  "--color-secondary: var(--secondary)",
-  "--color-secondary-foreground: var(--secondary-foreground)",
-  "--color-muted: var(--muted)",
-  "--color-muted-foreground: var(--muted-foreground)",
-  "--color-accent: var(--accent)",
-  "--color-accent-foreground: var(--accent-foreground)",
-  "--color-destructive: var(--destructive)",
-  "--color-destructive-foreground: var(--destructive-foreground)",
-  "--color-warning: var(--warning)",
-  "--color-warning-foreground: var(--warning-foreground)",
-  "--color-success: var(--success)",
-  "--color-success-foreground: var(--success-foreground)",
-  "--color-border: var(--border)",
-  "--color-input: var(--input)",
-  "--color-ring: var(--ring)",
-  "--color-text-secondary: var(--text-secondary)",
-];
-
-export function buildGeneratedThemeTokens(source, resolver) {
-  const projection = resolver.$extensions?.["com.qr-pagamentos.css"]?.color;
-  if (!projection) throw new Error("Resolver CSS color projection extension is missing.");
-
-  const defaultResolution = resolveDesignTokens(resolver, source);
-  const defaultTokens = defaultResolution.tokens;
-  const defaultTheme = defaultResolution.contexts.theme;
-  const defaultDark = source.$extensions["com.qr-pagamentos.theme"].defaultDark;
-  const darkTokens = resolveDesignTokens(resolver, source, { theme: defaultDark }).tokens;
-  const reducedTokens = resolveDesignTokens(resolver, source, { motion: "reduced" }).tokens;
-  const references = flattenReferences(defaultTokens.reference)
-    .map(([name, value]) => `  --${name}: ${value};`)
-    .join("\n");
-
-  const themeNames = Object.keys(resolver.modifiers.theme.contexts);
-  const blocks = [
-    `:root {\n${references}\n  color-scheme: light dark;\n${colorVariables(defaultTokens, projection)}\n${motionVariables(defaultTokens)}\n}`,
-    `:root.dark {\n  color-scheme: dark;\n${colorVariables(darkTokens, projection)}\n}`,
-    `@media (prefers-color-scheme: dark) {\n  :root:not([data-theme]):not(.light) {\n    color-scheme: dark;\n${colorVariables(darkTokens, projection).split("\n").map((line) => `  ${line}`).join("\n")}\n  }\n}`,
-    ...themeNames.flatMap((name) => {
-      const tokens = resolveDesignTokens(resolver, source, { theme: name }).tokens;
-      const mode = tokens.$extensions["com.qr-pagamentos.theme"].mode;
-      const colors = colorVariables(tokens, projection);
-      // The scoped preview block recolors one container (the storefront
-      // settings preview) without changing the page theme; its color
-      // declarations are byte-identical to the page-level block from the same
-      // resolution, plus the re-declared alias layer those colors feed.
-      return [
-        `:root[data-theme="${name}"] {\n  color-scheme: ${mode};\n${colors}\n}`,
-        `[data-theme-preview="${name}"] {\n  color-scheme: ${mode};\n${colors}\n${SCOPED_PREVIEW_COLOR_ALIASES.map((line) => `  ${line};`).join("\n")}\n}`,
-      ];
-    }),
-    `@media (prefers-reduced-motion: reduce) {\n  :root { ${motionVariables(reducedTokens).trim().replace("\n", " ")} }\n}`,
+    `  --motion-duration: ${formatToken(tokenAt(tokens, "motion.semantic.duration.enter-180"))};`,
+    `  --motion-ease: ${formatToken(tokenAt(tokens, "motion.semantic.easing.standard"))};`,
+    `  --motion-iteration: ${formatToken(tokenAt(tokens, "motion.semantic.iteration"))};`,
   ];
-
-  if (defaultTheme !== resolver.modifiers.theme.default)
-    throw new Error(`Resolver default theme mismatch: ${defaultTheme}`);
-  return blocks.join("\n\n");
 }
 
-export function projectGeneratedThemeTokens(css, source, resolver) {
+function themeBlock(selector, mode, tokens, includeCommon = false) {
+  const lines = [
+    ...(includeCommon ? declarations(tokens, COMMON_PROJECTION) : []),
+    `  color-scheme: ${mode};`,
+    ...declarations(tokens, THEME_PROJECTION),
+    ...aliases(),
+    ...(includeCommon ? motionDeclarations(tokens) : []),
+  ];
+  return `${selector} {\n${lines.join("\n")}\n}`;
+}
+
+export function buildGeneratedThemeTokens(documents, resolver) {
+  const themes = Object.keys(resolver.modifiers.theme.contexts);
+  const defaultTheme = resolver.modifiers.theme.default;
+  const defaultDark = resolver.$extensions["com.qr-pagamentos.theme"].defaultDark;
+  const resolved = Object.fromEntries(themes.map((theme) => [theme, resolveDesignTokens(resolver, documents, { theme })]));
+  const defaultResolution = resolved[defaultTheme];
+  const darkResolution = resolved[defaultDark];
+  const reduced = resolveDesignTokens(resolver, documents, { theme: defaultTheme, motion: "reduced" });
+  const mode = (result) => result.tokens.$extensions["com.qr-pagamentos.theme"].mode;
+
+  return [
+    themeBlock(":root", mode(defaultResolution), defaultResolution.tokens, true),
+    themeBlock(":root.dark", mode(darkResolution), darkResolution.tokens),
+    `@media (prefers-color-scheme: dark) {\n${themeBlock("  :root:not([data-theme]):not(.light)", mode(darkResolution), darkResolution.tokens).split("\n").map((line, index) => index === 0 ? line : `  ${line}`).join("\n")}\n}`,
+    ...themes.flatMap((theme) => [
+      themeBlock(`:root[data-theme="${theme}"]`, mode(resolved[theme]), resolved[theme].tokens),
+      themeBlock(`[data-theme-preview="${theme}"]`, mode(resolved[theme]), resolved[theme].tokens),
+    ]),
+    `@media (prefers-reduced-motion: reduce) {\n  :root {\n${motionDeclarations(reduced.tokens).map((line) => `  ${line}`).join("\n")}\n  }\n  *, *::before, *::after {\n    animation-duration: var(--motion-duration) !important;\n    animation-iteration-count: var(--motion-iteration) !important;\n    transition-duration: var(--motion-duration) !important;\n  }\n}`,
+  ].join("\n\n");
+}
+
+export function projectGeneratedThemeTokens(css, documents, resolver) {
   const start = "/* generated-theme-tokens:start */";
   const end = "/* generated-theme-tokens:end */";
-  const projection = `${start}\n${buildGeneratedThemeTokens(source, resolver)}\n${end}`;
+  const projection = `${start}\n${buildGeneratedThemeTokens(documents, resolver)}\n${end}`;
   const startIndex = css.indexOf(start);
   const endIndex = css.indexOf(end);
   if (startIndex < 0 || endIndex < startIndex) throw new Error("Generated theme marker is missing.");
@@ -147,17 +182,16 @@ export function projectGeneratedThemeTokens(css, source, resolver) {
 }
 
 async function main() {
-  const [source, resolver, css] = await Promise.all([
-    readFile(tokenPath, "utf8").then(JSON.parse),
-    readFile(resolverPath, "utf8").then(JSON.parse),
-    readFile(cssPath, "utf8"),
+  const [documents, resolver, css] = await Promise.all([
+    loadTokenDocuments(), readFile(resolverPath, "utf8").then(JSON.parse), readFile(cssPath, "utf8"),
   ]);
-  const next = projectGeneratedThemeTokens(css, source, resolver);
+  const next = projectGeneratedThemeTokens(css, documents, resolver);
   if (process.argv.includes("--check")) {
     if (next !== css) throw new Error("globals.css token projection is stale; run pnpm tokens:generate.");
-  } else {
-    await writeFile(cssPath, next);
-  }
+    const { findDesignTokenViolations } = await import("./check-design-tokens.mjs");
+    const violations = findDesignTokenViolations();
+    if (violations.length > 0) throw new Error(`Raw visual values escaped the token boundary:\n${violations.join("\n")}`);
+  } else await writeFile(cssPath, next);
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) await main();

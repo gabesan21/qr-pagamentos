@@ -1,0 +1,98 @@
+{
+  "$extensions": {
+    "com.qr-pagamentos.theme": {
+      "id": "pix-paper",
+      "mode": "light"
+    }
+  },
+  "theme": {
+    "color": {
+      "page": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.pix-paper.bg}"
+      },
+      "raised": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.pix-paper.surface}"
+      },
+      "secondary": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.pix-paper.surface-2}"
+      },
+      "border": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.pix-paper.border}"
+      },
+      "text-primary": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.pix-paper.text}"
+      },
+      "text-secondary": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.pix-paper.text-2}"
+      },
+      "accent": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.pix-paper.accent}"
+      },
+      "accent-audit-foreground": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.pix-paper.accent-fg}"
+      },
+      "accent-soft": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.pix-paper.accent-soft}"
+      },
+      "success": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.pix-paper.success}"
+      },
+      "success-soft": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.pix-paper.success-soft}"
+      },
+      "warning": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.pix-paper.warning}"
+      },
+      "warning-soft": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.pix-paper.warning-soft}"
+      },
+      "danger": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.pix-paper.danger}"
+      },
+      "danger-soft": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.pix-paper.danger-soft}"
+      },
+      "info": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.pix-paper.info}"
+      },
+      "info-soft": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.pix-paper.info-soft}"
+      },
+      "focus-ring": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.pix-paper.ring-color}"
+      },
+      "text-tertiary": {
+        "$type": "color",
+        "$value": "{color.primitive.accessibility.pix-paper.text-tertiary}"
+      },
+      "action-foreground": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.pix-paper.text}"
+      }
+    },
+    "shadow": {
+      "card": {
+        "$type": "shadow",
+        "$value": "{color.primitive.audit.template.pix-paper.elevation}"
+      }
+    }
+  }
+}
