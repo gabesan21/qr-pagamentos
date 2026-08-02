@@ -1,650 +1,347 @@
-# QR Pagamentos design system
+# QR Pagamentos frontend memory
+
+This document is the implementation-facing memory for
+[[pop/specs/application-frontend-system|Application frontend system]]. It defines
+the target presentation for Epoch 12; it does not claim that current production
+UI conforms. Until an owning task ships and passes its evidence, the existing
+runtime remains authoritative.
+
+## Authority
+
+- Presentation and interaction feedback come from the immutable supplied
+  template through `docs/frontend-template-parity/manifest.json` and
+  `obligations.ndjson`. The readable contract is
+  [`docs/frontend-template-parity/README.md`](docs/frontend-template-parity/README.md).
+- Business behavior, routes, authorization, owner scope, exact decimals,
+  redaction, security, and provider behavior come from `pop/specs/` and the DOX
+  tree. Those contracts always win a conflict.
+- Template fixtures, local storage, mock sessions, mock totals, Vite, React
+  Router, Tailwind 3, and browser-side service behavior are reference-only.
+- Production stays Next.js App Router, React 19, Tailwind CSS 4, server-first
+  rendering, and narrow interaction-specific client boundaries.
 
 ## Tone
 
-**PIX settlement desk** is a precise, role-neutral operational workspace for a
-Brazilian payment product. Its references are a PIX receipt (*comprovante*), QR
-alignment grid, cashier terminal, and clearing ledger: strong status hierarchy,
-compact labelled facts, ruled separation, and one trustworthy action at a time.
-The receipt rail aligned to a subtle QR-module rhythm is the signature element.
+The single direction is **professional settlement console**: calm neutral work
+surfaces, compact financial facts, crisp bordered cards, restrained elevation,
+direct status feedback, and accent reserved for action, selection, focus, and
+measured emphasis. The immutable template is the visual reference; extract its
+working-console hierarchy and rhythm, never its mock behavior.
 
-Do not use gradients, purple or neon-acid accents, generic three-card
-dashboards, decorative charts, rounded-everything surfaces, remote fonts, or
-color-only status communication.
+Avoid generic purple SaaS gradients, glass panels, oversized marketing type,
+pill-shaped containers used as decoration, gratuitous charts, and alternate
+page-local brands. Sora, Inter, and IBM Plex Mono are the only target families;
+unapproved substitutes are not target typography.
 
 ## Token contract
 
-`src/design-system/tokens/themes.tokens.json` is the canonical DTCG-shaped
-reference and semantic color graph. `src/design-system/tokens/resolver.json`
-fixes resolution order, while `scripts/generate-design-tokens.mjs` projects the
-graph deterministically into the generated block in `src/app/globals.css`.
-Components consume semantic custom properties exclusively; `pnpm tokens:check`
-and token lint reject projection drift and raw authored visual values. Each
-theme block is projected twice from the same resolution: the page-level
-`:root[data-theme="…"]` selector and the scoped `[data-theme-preview="…"]`
-selector, which recolors one container (the storefront settings preview and
-the public sessionless storefront) without changing the page theme. Custom-property aliases resolve where they
-are declared, so each scoped block also re-declares the color alias layers
-(semantic and Tailwind `@theme` color maps) to recolor owned primitives inside
-the preview; a contract test pins that alias layer to the `globals.css`
-originals.
+### DTCG layers and resolution
 
-| Identifier | Mode | Personality |
-| --- | --- | --- |
-| `pix-paper` | light, default light | crisp receipt paper, graphite facts, PIX teal |
-| `cashier-daylight` | light | cool terminal white, deep blue controls, cyan-green confirmation |
-| `settlement-sand` | light | warm reconciliation paper, umber facts, restrained green action |
-| `midnight-clearing` | dark, default dark | graphite clearing desk, pale facts, mint action |
-| `vault-blue` | dark | deep navy custody surface, ice-blue facts, cyan action |
-| `terminal-amber` | dark | near-black terminal, warm amber facts, muted green confirmation |
+All visual values enter production through DTCG 2025.10 tokens. Paths use
+lowercase hyphenated segments and resolve in this order:
 
-An explicit valid `data-theme` wins. Without one, light resolves to `pix-paper`
-and dark system preference to `midnight-clearing`; `.light` and `.dark` retain
-those legacy defaults. An unknown identifier inherits the safe `pix-paper`
-root. Selection persistence and role-specific themes are outside this contract.
+1. `primitive`: raw colors, dimensions, durations, easing, font families,
+   weights, and shadow members.
+2. `semantic`: stable intent aliases for page, surface, text, action, feedback,
+   focus, spacing, type, radius, shadow, layer, and motion.
+3. `component`: aliases only where a shared component needs a value more
+   specific than a semantic role.
+4. `theme`: one resolver modifier selects exactly one of the six theme contexts;
+   it replaces semantic color and elevation values without changing paths.
 
-| Group | Semantic tokens |
+Color `$value` objects use `colorSpace: "srgb"`, normalized components
+(`R/255`, `G/255`, `B/255`), and the exact six-digit `hex` fallback below.
+Dimensions are `{ value, unit: "px" | "rem" }`; durations use `ms`; typography,
+transition, and shadow use their DTCG composite types. References use
+`{path.to.token}`. Every reference resolves, token types are explicit or
+inherited, and circular aliases fail validation. Raw visual values outside the
+token source remain lint failures.
+
+The stable semantic color paths are:
+
+| Area | Paths |
 | --- | --- |
-| Surface | `--surface-page`, `--surface-raised`, `--surface-subtle`, `--border-subtle` |
-| Text | `--text-primary`, `--text-secondary`, `--text-on-action` |
-| Action | `--action-primary`, `--action-primary-hover`, `--action-secondary` |
-| Feedback | `--feedback-success`, `--feedback-warning`, `--feedback-danger` and matching `--text-on-*` tokens |
-| Layout | `--space-*`, `--radius-*`, `--shadow-raised`, `--type-*`, `--focus-*` |
+| Surfaces | `color.surface.page`, `raised`, `secondary`; `color.border.default` |
+| Text | `color.text.primary`, `secondary`, `tertiary` |
+| Action | `color.action.accent`, `foreground`, `soft` |
+| Feedback | `color.feedback.success`, `warning`, `danger`, `info` and each `.soft` companion |
+| Focus/depth | `color.focus.ring`; `shadow.elevation.card`; `shadow.elevation.modal` |
 
-The locally bundled type stack is `IBM Plex Sans Variable`, `IBM Plex Sans`,
-then `sans-serif`; factual values use `font-variant-numeric: tabular-nums`. Spacing follows the token scale from
-compact labelled facts to section separation. Text prose is at most `65ch`;
-there is at most one primary action per section, and labels sit above inputs.
+The exact palette is the projection of
+`docs/template/app/src/index.css` at SHA-256
+`762edf36239e6472ccfc8eb8faa79d73081633dec69ae4fa0fa5a530ccdcead4`:
 
-## Accessibility evidence
+| Theme | Page / raised / secondary / border | Primary / secondary / tertiary text | Accent / foreground / soft | Success / soft | Warning / soft | Danger / soft | Info / soft |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `pix-paper` | `#f7f4ee / #ffffff / #f1ede4 / #e4ded1` | `#1e2a26 / #4a5a54 / #8a958e` | `#00b8a0 / #ffffff / #d9f4f0` | `#1e9e5a / #dcf3e6` | `#b7791f / #faebd3` | `#c63b3b / #fadfda` | `#2b6cb0 / #dce9f8` |
+| `cashier-daylight` | `#f4f6f8 / #ffffff / #edf1f4 / #dde3e9` | `#16202b / #45525f / #8794a1` | `#2456e6 / #ffffff / #e2eafd` | `#15803d / #ddf3e4` | `#a16207 / #f8edd4` | `#b91c1c / #fadede` | `#0369a1 / #daeef9` |
+| `settlement-sand` | `#f3eee3 / #fbf8f0 / #ece5d4 / #dcd2bc` | `#2b2417 / #5c5240 / #978b74` | `#a85b1e / #ffffff / #f3e1cd` | `#4d7c0f / #e6f0d4` | `#92400e / #f6e4c8` | `#a63535 / #f5dbd5` | `#315c8c / #dce6f2` |
+| `midnight-clearing` | `#0c111b / #141b29 / #1c2536 / #28334a` | `#eaeff7 / #a9b6c9 / #647189` | `#5eead4 / #08251f / #1e3a38` | `#34d399 / #173a2e` | `#fbbf24 / #3e3312` | `#f87171 / #402022` | `#60a5fa / #1b2e4c` |
+| `vault-blue` | `#0b1220 / #111a2e / #182444 / #263659` | `#e7edf9 / #a5b4d2 / #5f7195` | `#4f8dfd / #ffffff / #1b2e5c` | `#3ecf8e / #14352a` | `#f5b93f / #3b2f10` | `#ef6a6a / #3e1e22` | `#7aa8ff / #1c2b50` |
+| `terminal-amber` | `#100d08 / #1a1510 / #241d13 / #3a2f1e` | `#f5e8ce / #cbb68f / #8a7550` | `#ffb224 / #241700 / #33270d` | `#8fcb5c / #24300f` | `#ffd166 / #3a3010` | `#ff7a5c / #3d1d14` | `#e8b04b / #33270d` |
 
-The deterministic token test derives WCAG sRGB relative luminance from every
-theme's required fallback. Primary, action, success, warning, and danger text
-must reach **4.5:1**; focus against the page must reach **3:1**. Every OKLCH
-token must carry a six-digit in-gamut sRGB fallback. Full motion resolves to
-180ms with the shared easing curve; reduced motion resolves the duration to
-zero and removes non-essential transitions and animation.
+Focus and card depth resolve exactly as follows:
 
-## Official identity
-
-The original **settlement mark** turns the receipt rail and QR alignment rhythm
-into ten open, non-scannable modules. `src/brand/geometry.ts` is its only
-canonical geometry. The closed family is mark-only, product lockup, compact
-role-shell lockup, and merchant fallback; every lockup uses the exact visible
-name `QR Pagamentos` in the licensed IBM Plex Sans family. Static lockups embed
-the reviewed `src/brand/wordmark.outlines.svg` paths and never depend on a live
-host, local, or remote font.
-
-Inline identities use `currentColor` from `--text-primary`, so identical
-geometry serves all six themes. The fixed positive and reversed SVG exports are
-only for static contexts that cannot inherit semantic color. Keep clear space
-equal to one-sixth of the mark width. Minimum rendered sizes are 16 CSS pixels
-for the mark, 120 for the product lockup, and 112 for compact/fallback lockups.
-The favicon uses its fixed high-contrast field at 16, 32, and 48 pixels.
-
-When visible identity text accompanies the mark, the mark is decorative. A
-standalone meaningful mark receives exactly one caller-supplied localized
-accessible name and no SVG title. The merchant fallback identifies the product
-only while no merchant image capability is available; it never claims that the
-product mark belongs to the merchant. `pnpm brand:check` protects provenance,
-safe SVG structure, hashes, inventory, dimensions, and generated derivatives.
-
-## Primitive inventory and state matrix
-
-Owned Radix/nova shadcn source lives in `src/components/ui/`. The following
-deliberately small inventory is the only foundation introduced:
-
-| Primitive | Purpose | States |
+| Theme | Focus ring | Card elevation |
 | --- | --- | --- |
-| `Button`, `Field`/`Input`, `Textarea`, `NativeSelect`, `Checkbox` | current action and native form controls, including multiline descriptions | default, populated, loading where applicable, disabled, invalid, hover/focus; empty is not applicable to a control |
-| `Card`, `Alert`, `Badge`, `Separator`, `Skeleton`, `Table`, `Spinner` | grouped content, feedback, loading, and facts | documented default, empty/error/recovery, or loading state as applicable |
+| `pix-paper` | `rgba(0,184,160,.35)` | `0 1px 2px rgba(16,24,40,.06), 0 1px 3px rgba(16,24,40,.08)` |
+| `cashier-daylight` | `rgba(36,86,230,.35)` | same light elevation |
+| `settlement-sand` | `rgba(168,91,30,.35)` | same light elevation |
+| `midnight-clearing` | `rgba(94,234,212,.40)` | `inset 0 1px 0 rgba(255,255,255,.04), 0 8px 24px rgba(0,0,0,.35)` |
+| `vault-blue` | `rgba(79,141,253,.45)` | same dark elevation |
+| `terminal-amber` | `rgba(255,178,36,.45)` | same dark elevation |
 
-The reusable data-directory composition deliberately adds no owned primitive:
-official `Empty` and `Pagination` registry preflight was attempted with the
-pinned shadcn `4.13.0` CLI, but registry DNS was unavailable. Existing `Card`,
-`Alert`, `Button` links, `FieldGroup`/`Field`, inputs, selects, skeletons,
-separators, and `Table` satisfy the contract without source duplication.
+`shadow.elevation.modal` is exactly `0 16px 48px rgba(0,0,0,.28)`. Do not
+approximate these values in a component; the hash-bound source remains the exact
+remainder for every authored occurrence.
 
-Data directories have six closed states: ready, loading, empty, filtered-empty,
-invalid-query, and error. One definition produces a captioned native table from
-768 CSS pixels and ruled `dl` facts below it; CSS leaves one renderer and action
-set in the accessibility tree. GET toolbars have labels above controls, one
-primary submit, cursor-free native submissions, canonical reset/pagination
-links, visible focus, and targets of at least 44 by 44 CSS pixels. Numeric facts
-use tabular figures, and invalid/error states echo no submitted or internal
-detail.
+Stored theme IDs remain exactly `pix-paper`, `cashier-daylight`,
+`settlement-sand`, `midnight-clearing`, `vault-blue`, and `terminal-amber`.
+`pix-paper` is the safe light fallback and `midnight-clearing` is the dark-system
+fallback unless a valid stored choice wins. Components never branch by theme ID.
 
-The merchant catalog workspace under `/catalog` composes that directory as a
-**single-page** listing: owner catalogs are bounded, so no cursor URLs exist
-and any cursor parameter is invalid input. Strict decoding reuses the
-foundation's query contract with deterministic canonical `307` resets; the
-selected page size caps the rendered rows and an explicit truncation note asks
-for a narrower search instead of inventing pagination. The products directory
-shows 48-pixel owner image thumbnails (`GET /media/[identifier]`) or the
-official `mark-only` placeholder, a never-color-only active/inactive/archived
-badge vocabulary, and edit/view row actions; `/catalog/products/new` and
-`/catalog/products/[id]` carry one primary native submission per card, category
-and currency `NativeSelect`s with dirty-field omission (an untouched optional
-field posts nothing, so a stored currency never re-gates), and a disabled
-currency select with a bilingual explanation whenever no mapping is available.
-A stored but unmapped currency renders as a disabled factual row. Product
-images stage through `POST /products/images` (bounded multipart, opaque
-identifier, `no-store`) into a focused observation-only client boundary with a
-STAGED preview via the owner-fenced media read; client hints mirror — never
-replace — the server byte/type limits, and the no-image placeholder is the
-official merchant fallback lockup in `currentColor`, never a page-local asset.
-Archived products render a read-only factual view with the terminal
-irreversibility explanation and no mutation control. `/catalog/categories`
-adds the inline bilingual create card and per-row edit plus a
-destructive-confirmation deactivation block whose replacement select mirrors
-the service's atomic reassignment; a referenced category with no active
-replacement explains the blocked deactivation instead of offering a submit,
-and inactive rows stay listed, badge-marked, and edit-locked.
+### Typography
 
-The merchant `/links` workspace composes the full data-directory contract —
-canonical `307` resets, signed keyset cursor URLs, and page sizes 25/50/100 —
-as the Commerce V2 payment-link directory above the untouched V1 management
-section. Rows carry summary, composition-kind and type facts, the derived
-never-color-only active/inactive/expired/paid `Badge` vocabulary, a tabular
-expiry, the `/pay/[identifier]` share page link, and a read-only view action;
-`/links/v2/[id]` renders the same ruled fact composition as the order detail,
-including ordered product lines or the fixed amount, the share URL with an
-observation-only copy button, and one opaque destructive-`Alert` unavailable
-view for cross-owner, malformed, or missing identities. The management flows
-delivered by 8.2.2 complete the workspace: a primary `/links/new` create
-affordance whose form switches between the ordered product-lines editor (1–20
-lines, 1–9,999 quantity, per-link uniqueness hinted by disabling chosen
-products) and the fixed-amount members, posting the hidden `lines` JSON the
-route parses; `/links/v2/[id]/edit` with the immutable kind/type/pair as
-read-only facts, the bilingual attempt-lock explanation, the `/links/new?from=`
-new-version affordance, and dirty-field omission so expiry and financial
-members stay unnamed until a real change (an explicit blank posts the clearing
-empty value); detail-page activate/deactivate behind native `details`
-confirmation posting the prefilled version CAS; and the closed
-created/edited/activated/deactivated/failed outcome banners extracted before
-directory canonicalization, success as a status `Alert` and the opaque failure
-as a destructive one.
+| Role | Family | Size / line height | Weights | Extra rule |
+| --- | --- | --- | --- | --- |
+| Body and controls | Inter | `14px / 20px` default | 400, 500, 600 | Normal tracking |
+| Display and headings | Sora | template/parity occurrence | 400, 500, 600, 700 | `-0.02em` tracking |
+| Money, IDs, codes, dates | IBM Plex Mono | template/parity occurrence | 400, 500, 600 | Tabular numerals |
 
-The merchant `/` dashboard is the server-rendered owner home above the 8.4.1
-analytics projection: a heading area holding at most one primary View Store
-action — rendered only when the storefront is enabled with a slug and linking
-the sessionless `/store/[slug]` — and a plain GET period switcher
-(`today`/`7d`/`30d`, pinned default `7d`; absent, unknown, or service-rejected
-values render the default). The current period is a non-link entry marked by
-`aria-current`, stronger type, and an underline, never color alone. Ruled
-ledger cards compose sales, the checkout funnel, best sellers, payment-link
-metrics, and recent activity; provider-confirmed and locally finalized sales
-render as separate ruled groups with one tabular per-currency line each and
-are never summed or merged anywhere in the composition. There are no charts:
-quantitative composition is ruled facts and captioned native tables, rates
-render as exact-decimal localized percents with an explicit n/a on a zero
-denominator, and an unlabeled currency pair renders an explicit localized
-unlabeled treatment. Every section owns an explicit empty state (zero data is
-not an error), and loading uses owned skeletons.
+The common type compositions are page heading `24px/32px` semibold, section
+heading `18px/26px` semibold, compact heading `15px/22px` semibold, body
+`14px/20px`, field label `13px/18px` medium, caption `12px/16px`, micro label
+`11px/16px`, and large money/stat `22px/28px` semibold. Any additional authored
+size or line-height is consumed by exact parity occurrence, never guessed.
 
-The administrator `/admin` dashboard is the server-rendered global operator
-home above the 10.1.1 administrator analytics projection: the same plain GET
-period switcher (`today`/`7d`/`30d`, pinned default `7d`; absent, unknown, or
-service-rejected values render the default) with the current period a non-link
-entry marked by `aria-current`, stronger type, and an underline, never color
-alone. Ruled ledger cards compose users, orders by source and by provider
-state (the stateless group gets an explicit localized no-provider-state
-label), sales, the checkout funnel, links and products, and the bounded
-top-owner and top-product leaderboards; provider-confirmed and locally
-finalized sales render as separate ruled groups with one tabular per-currency
-line each and are never summed or merged anywhere in the composition. The
-users, links, and products counts are period-independent and carry an explicit
-localized caption saying so. Leaderboard rows of soft-deleted owners render a
-localized non-color badge while every aggregate stays unchanged. There are no
-charts: quantitative composition is ruled facts and captioned native tables,
-rates render as exact-decimal localized percents with an explicit n/a on a
-zero denominator, and an unlabeled currency pair renders an explicit localized
-unlabeled treatment. Every section owns an explicit empty state (zero data is
-not an error), and loading uses owned skeletons. The composition never imports
-merchant modules: the period navigation and the exact-decimal rate and price
-shifters are administrator-owned local copies.
+All three families must come from pinned, licensed, committed, self-hosted
+production bytes with dependency and license provenance. No Google Fonts or
+other runtime host is a fallback. System fallbacks preserve legibility only and
+never satisfy visual evidence. Static identity assets contain no live font.
 
-The deterministic `/design-system` exercise surface resolves its dictionary from
-the same server preference contract as the authenticated shell and presents all
-applicable states, including labelled default, populated, disabled, and invalid
-`Textarea` controls. Its keyboard order follows the rendered controls from the
-primary action through fields and recovery actions. Enabled controls use a visible
-semantic focus outline or ring at least two pixels wide; disabled controls are not
-focusable.
+### Geometry, spacing, and motion
 
-The specimen also exercises a bilingual, synthetic data directory without
-importing either role's business service. It renders all six states and both
-responsive semantics in every theme; its rows and URLs are fixtures only and
-introduce no production business directory.
+- Radius tokens are exactly `6px`, `8px`, `10px`, and `999px` for pills.
+- Application width cap is `1280px`; default public checkout cap is `560px`;
+  authentication form cap is `420px`.
+- Authenticated rail is `248px`, top bar and rail header are `56px`, directory
+  rows are `52px`, compact controls are `40px`, and primary auth actions are
+  `48px`. The accessible target minimum still wins: `44×44px`.
+- Common card padding is `20px`; inter-card gap is `16px`. Related items remain
+  at most `16px` apart; distinct sections are at least `32px` apart.
+- Labels sit above controls. Prose is at most `65ch`. A section has at most one
+  primary action. More than seven navigation/actions require grouping or search.
+- Page grids may move from one column to two at `640px`, then to the exact
+  template composition at `1024px`. No page has horizontal document overflow at
+  `320px`; dense directories use a deliberate narrow facts composition.
+- Full motion follows the parity interaction record. Reduced motion collapses
+  non-essential animation and transition durations to `0.01ms` with one
+  iteration while preserving final state, focus, and feedback.
 
-The `/admin` shell and authenticated home consume this inventory directly for
-account creation, account mutations, global BRL/PIX payment settings, language
-preference, notices, navigation, and logout. Ruled account sections replace the
-wide action table at narrow widths. Empty, loading, recovery,
-pending/disabled, success, error, and inline destructive-confirmation states are
-explicit without page-local variants or compatibility sources.
+## Locale and content
 
-The administrator settings hub at `/admin/settings` composes one bilingual page
-of six anchored `Card` sections in a fixed order — exchange currencies, Nautt
-currency pairs, Nautt payment methods, global payment settings, appearance, and
-language — with an in-page anchor navigation row (outline `Button` links) before
-the sections. Each section owns exactly one primary submit (secondary outline
-actions such as replace/deactivate/toggle never compete with it), its own
-explicit empty state, and safe-dependency copy that states delivered semantics
-(pointer-only deactivation, atomic re-pointing, inactive-record preservation).
-The appearance section holds the default-theme-for-new-users `NativeSelect`
-whose labels reuse the design-system theme-id export and the shared localized
-theme names, never duplicated literals. Every composed mutation redirects back
-to `/admin/settings?…` and the hub renders the closed bilingual notice set
-through the same success/destructive `Alert` pattern.
+The only locales are `pt-BR` and `en`, resolved by the existing persisted,
+unprefixed-route contract. Labels, validation, notices, metadata, accessible
+names, empty/error/retry copy, and public copy are equivalent in both. Never
+introduce `/{locale}` routes, literal-only translations in a component, or a
+translation that changes capability or disclosure.
 
-The merchant Settings workspace owns the bilingual Nautt onboarding ledger and
-every opaque mutation notice or manual balance retry returns there. Its password
-input never echoes a submitted key; validation, pending/disabled,
-setup-changed, provider-unavailable, `UNREGISTERED` completion, non-retryable
-recovery, configured balance, and manual balance-retry states compose the same
-`Card`, `Alert`, `Field`/`Input`, `Button`, and `Spinner` inventory. Wallet facts
-use labelled, tabular rows, and ambiguous webhook states expose no action.
-Native onboarding submissions are observed without intercepting navigation: the
-active action immediately exposes localized spinner/`aria-busy` feedback, and a
-shared scope disables the password input plus competing setup actions after the
-first payload is formed so a second provider mutation cannot be dispatched.
+Money stays an exact canonical decimal string and uses server-resolved currency
+labels. Never use JavaScript floating-point money math. Provider-confirmed and
+locally finalized facts remain separate. Opaque errors never echo an identifier,
+submitted query, identity, authorization cause, provider body, or secret.
 
-The authenticated home also owns each account's product, payment-link,
-checkout-data-policy, and storefront-settings ledger. These owner-only forms
-reuse the same cards, fields, selects, checkboxes, alerts, buttons, separators,
-badges, and spinners: they show
-empty prerequisites, success/recovery notices, native pending/disabled actions,
-and visible keyboard focus without creating a home-specific visual variant.
-The merchant Settings workspace owns the bilingual storefront settings
-composition: four sectioned cards (Identity, Appearance, Payments, Default
-currency) posting one native workspace save to `/storefront`. The Appearance
-section holds the six-theme `NativeSelect` (labels sourced from the
-design-system theme-id export, never duplicated literals), the `boxed`/`table`
-layout select, the accent `Input`, the logo block, and a live preview. The
-preview is a miniature storefront mock scoped by `data-theme-preview` with a
-header rail (staged/stored logo through `/media/[identifier]`, or the official
-merchant-fallback lockup — never a page-local mark), one fixture product in the
-boxed `Card` or `Table` arrangement, and one inert owned-`Button` sample action
-that adds no tab stop. The upload posts multipart to `POST /storefront/logo`
-and returns to a staged status line; remove is client-only and the explicit
-empty hidden field clears on save. A focused client boundary only observes the
-native `input`/`change`/`submit`/`formdata` events: it mirrors control values
-into the preview, omits unchanged extended fields from the payload (the server
-treats absent as unchanged), announces busy, and disables both forms after the
-payload is formed. The default-currency select lists only the registry's
-active redacted choices plus a clear option, and renders disabled with a
-bilingual explanation when no mapping is active — a normal empty state, never
-an error. Its states are populated/prefilled, loading skeletons, empty (no
-logo, no currency mapping), opaque error alerts, staged success status, and
-hover/focus/disabled from the owned primitives.
-The storefront card composes labelled `Input` text controls and one horizontal
-`Checkbox` enablement toggle; its save posts to `/storefront` and reports only
-the shared opaque success/conflict alert.
+## Identity and asset boundary
 
-The unauthenticated `/login` page consumes the same inventory as a single
-restrained credential `Card`: `Field`/`Input` with labels above the native
-controls, a destructive `Alert` for the generic invalid-credential recovery,
-and a page-local submit control that renders the owned `Button` plus `Spinner`
-by observing the associated native form's `submit` event. It never intercepts
-or replaces the `/login/submit` POST. Its default, pending/disabled,
-error/recovery, and hover/focus states all come from the owned primitives; it
-introduces no page-specific variant, token, or adapter.
+The supplied logo, texture, illustrations, fallbacks, and theme swatches are
+approved presentation targets. Task `12.2.2` alone may install their production
+family through deterministic safe-SVG, derivative generation, hash, inventory,
+license/provenance, accessible-name, and media-owner controls. Until that task
+lands, current generated assets remain runtime truth.
 
-The sessionless `/pay/[identifier]` checkout uses the same receipt rail and
-existing `Card`, `Field`/`Input`, `NativeSelect`, `Alert`, `Badge`, `Separator`,
-`Button`, and `Spinner` inventory. The policy decides the only visible customer
-fields; initial, local-validation, submitting/disabled, QR/copy, waiting,
-status-recovery, terminal, and unavailable states remain explicit and use no
-page-specific visual primitive or token. QR images carry alternative text and
-copy/status feedback is announced politely.
+No page copies logo geometry, embeds remote bytes, builds a text lockup from a
+live font, or invents an alternate merchant fallback. A mark beside visible
+identity text is decorative; a meaningful standalone mark has exactly one
+localized accessible name. Merchant fallback identifies QR Pagamentos only
+while no merchant image exists and never implies merchant ownership. Product
+and storefront media continue through [[pop/specs/media-storage|Secure media
+storage]]; template assets do not bypass that lifecycle.
 
-The Commerce V2 branch of `/pay/[identifier]` (9.3.1; V1 render first and
-byte-stable, one shared opaque unavailable view) is the branded two-column
-composition: the page root carries the scoped `data-theme-preview` from the
-link owner's persisted theme (design-system default when unset) and the
-validated `--storefront-accent` declaration — branding resolves from the owner
-record independent of storefront enablement, and
-`scripts/check-design-tokens.mjs` accepts that exact declaration in
-`public-checkout-v2-page.tsx` as its third whitelist entry. The V2 container
-widens from the prose cap to the shell cap (`max-width: var(--shell-max)`)
-so the two auto-fit tracks (minimum `calc(var(--space-12) * 7)` each) render
-side by side at desktop widths and stack on narrow ones; the V1 branch keeps
-the prose-capped shell unchanged. The summary column
-renders the merchant logo through `/media/[identifier]` or the official
-`BrandIdentity` merchant-fallback, the localized display name, the localized
-composition lines (title, description, quantity × unit price) or the fixed
-bilingual description, and the exact-decimal total with tabular figures plus
-the resolved display currency code or the explicit localized unlabeled
-treatment; the customer/payment column reuses the V1 form composition with
-the pinned V2 state union and identical polling cadence. Columns stack below
-the auto-fit track minimum; unavailable, waiting, status-recovery, terminal
-(success vs destructive badge), and the route `loading.tsx` skeleton and
-`error.tsx` retry states all compose the same inventory.
+## Responsive shells
 
-The 9.3.2 paid terminal view for a consumed single-use link renders inside
-the same branded shell — the whitelisted page root keeps exactly one
-`--storefront-accent` declaration, shared by the checkout and paid views
-through one shell composition. The paid column carries a non-color paid
-marker (`Badge` secondary with the check icon plus localized text), the
-already-paid heading, the one-time-use explanation, and the same composition
-summary (localized lines or fixed description, ruled separators, the tabular
-exact total with the display code or the explicit unlabeled treatment) — no
-form, polling client, or mutation affordance. It introduces no new token,
-primitive, class, or whitelist entry, and the claim-keyed view never renders
-order state, timestamps, or refund state.
+### Authentication
 
-The sessionless `/store/[slug]` storefront follows the same PIX-ledger rail and
-uses the existing `Card`, `Alert`, `Button`, `Input`, `Table`, and `Skeleton`
-primitives. The page scopes the resolved owner theme with
-`data-theme-preview` on `<main>` and declares only the validated
-`--storefront-accent` custom property at its root; scoped CSS uses
-`--action-primary` as the fallback, and `scripts/check-design-tokens.mjs`
-accepts that exact declaration only in this route and the `/store/[slug]/pay`
-route, and the matching declaration
-only in the settings `storefront-preview.tsx` preview container; no other
-inline style or raw visual value is allowed. The header rail renders the
-merchant logo through `/media/[identifier]` with a localized alt, or the
-official merchant-fallback lockup while no logo exists. The grouped redacted
-catalog is the single browsing surface: the standalone custom-amount item
-comes first when standalone payments are on (labelled by the store-default
-currency code when one is stored, with inline local validation), followed by
-the localized category groups with one uncategorized group last. The `boxed`
-layout composes product `Card`s with optional media images; the `table`
-layout composes ruled `Table` rows. Each product owns a quantity stepper
-(decrease/increase `Button`s plus a numeric `Input`, all at least 44 pixels,
-keyboard reachable, disabled at the 0 and 9,999 bounds). One focused client
-boundary owns the slug-scoped versioned browser-local cart: the ruled cart
-section renders an explicit empty state, populated lines with exact-decimal
-line totals and per-currency grouped totals that are never summed across
-currencies (a null-code group renders without a code label), and exactly one
-status `Alert` when hydration-time reconciliation dropped or clamped stale
-entries. The 9.1.3 checkout control is the cart section's only primary action:
-it renders only for a populated product-only cart (a custom-amount member keeps
-9.2.1's separate command), posts only product identity and quantity to
-`POST /api/store/[slug]/cart/checkout`, disables with `aria-busy` while
-pending, clears only this store's cart key and redirects to `/pay/[identifier]`
-on issuance, and keeps the cart intact behind one opaque destructive `Alert` on
-any failure. Its applicable states
-are loading skeletons (catalog plus cart cards), enabled-but-empty (no groups
-and standalone off — the standalone item alone is a non-empty store), opaque
-unavailable, one opaque error with a retry action, cart
-empty/populated/recovered, and visible hover/focus from the owned
-primitives; names wrap anywhere and amounts use tabular figures at 320 CSS
-pixels.
+- Center one bordered card up to `720px`. At `900px` and above, show the exact
+  `300px` brand panel beside the form; below it, omit the panel rather than
+  compressing it. The form remains at most `420px` with `24px`/`32px` responsive
+  padding and an accessible language control.
+- Preserve credential, MFA, recovery, and unavailable semantics from
+  [[pop/specs/identity-security|Identity security]] and the administrative
+  foundation. Username and password are the only login credentials; email is
+  never a login or reset-delivery mechanism.
+- The template supplies composition and feedback only. It cannot create a mock
+  role switcher, local session, reset delivery, route, or authorization state.
 
-The sessionless `/store/[slug]/pay` standalone payment page (9.2.2) reuses the
-storefront's exact theme and branding treatment — `data-theme-preview` on
-`<main>`, the validated `--storefront-accent` declaration (the token-check
-whitelist extends by exactly this route), the logo rail or official
-merchant-fallback lockup — and composes the V1 checkout inventory (`Card`,
-`Field`/`Input`, `NativeSelect`, `Alert`, `Badge`, `Separator`, `Button`,
-`Spinner`, `Skeleton`) with no page-specific primitive or token. The amount
-field leads the policy-exact customer form, labelled by the store-default
-currency code when one is stored; amounts render as canonical decimal strings
-with tabular figures, never money math. The custom-amount storefront item owns
-one pay action linking here with the draft amount as prefill only. Its states
-are the loading skeleton, the one opaque unavailable view (unknown/disabled
-slug, standalone off, submit or poll `404`, expired capability — unscoped,
-with the return-to-store link as the only affordance), one opaque error with a
-render retry, amount empty/invalid with an inline `FieldError`, the five
-policy variants from `NONE` to `NAME_EMAIL_CPF_ADDRESS`, submitting
-(`Spinner`, `aria-busy`, disabled), the waiting treatment for
-`RESERVED`/`CREATING`/`CREATED` and data-less non-terminal polls, QR plus
-copy with polite success/error feedback, the polling status error with manual
-retry, and the terminal views — `CONFIRMED` as a secondary badge, the failure
-vocabulary as a destructive badge — each keeping the return link.
+### Authenticated application
 
-The authenticated `/orders` workspace composes the keyset-paginated Commerce V2
-order directory above the byte-frozen V1 ledger section, reusing the
-data-directory composition, the receipt rail, ruled `admin-account` fact
-sections, the `Badge` state vocabulary, and `Card`/`Alert` empty, unavailable,
-and notice states. Payer facts are the policy-exact snapshot; the payment
-state and the local outcome are separate badges; amounts are exact-decimal
-tabular; currency-pair UUIDs and line product UUIDs never render. The
-`/orders/v2/[id]` detail adds the comment thread and the local-outcome forms:
-native POSTs to `/orders-v2/[id]` behind `details` confirmations, with
-observation-only pending submits that never intercept the document POST. A
-single observation-only client boundary stores the toolbar page-size choice
-and, only when the URL carries no explicit `pageSize`, navigates once to the
-canonical URL with the stored registered size. Cross-owner or missing order
-identities render one opaque destructive-`Alert` unavailable view with a
-single back action. The read-only V1 ledger, `/orders/[id]`, and the
-`/admin/orders` administrator ledger keep their exact behavior: order states
-reuse the checkout state labels and the policy-exact customer snapshot renders
-as labelled facts.
+- Below Tailwind `lg` (`1024px`), one disclosure opens a `248px` modal drawer;
+  at or above `lg`, one persistent rail occupies that width. Only one navigation
+  copy is present in the accessibility tree.
+- The sticky `56px` top bar contains page identity, locale, and the role-safe
+  account menu. Main content is centered to `1280px` with `16px` padding below
+  `lg` and `24px` from `lg`.
+- Administrator and merchant inventories remain separate fixed five-entry
+  lists. Active state uses `aria-current="page"` plus a non-color marker.
+  Shells receive inert labels, links, identity, username, locale, and children;
+  no business DTO or service crosses into `src/app-shell/`.
+- A skip link precedes sticky chrome. Drawer disclosure, close, account menu,
+  locale, and logout meet the target minimum and preserve keyboard focus.
 
-## Role shell composition
+### Public payment and storefront surfaces
 
-Administrator and merchant workspaces use separate server adapters and one
-role-neutral visual frame. Each adapter resolves the exact active role and
-persisted locale before rendering its children. The frame receives only inert
-labels, links, identity, username, locale, and content; its focused client
-boundary owns pathname matching and mobile disclosure only.
+- `/pay/[identifier]` follows the parity checkout composition and existing V1 /
+  V2 precedence. The existing branded V2 two-column contract may widen to the
+  application cap and stack on narrow screens; the visual target must never
+  collapse or reshape its business DTO.
+- `/store/[slug]` is an authorized extrapolation: use the same tokens,
+  typography, identity, feedback, card/table components, and responsive laws to
+  render the existing grouped catalog and browser-local cart in the persisted
+  `boxed` or `table` layout. Keep the public redaction and exact-money contracts.
+- `/store/[slug]/pay` is an authorized extrapolation: use the same branded
+  public shell and checkout-width composition, preserve the return-to-store
+  affordance and the standalone state machine, and keep the current server trust
+  boundary.
+- The two extrapolations never copy the template's incorrect shortcut from a
+  storefront slug to `/pay/[identifier]`; current routes and commands win.
 
-Each role has exactly five numbered navigation entries. Dashboard roots match
-exactly, while a non-root item remains active only for its slash-delimited
-descendants. The active entry combines `aria-current="page"`, stronger type,
-surface change, and an inline rule so color is never the only cue.
+## Shared component ownership and anti-drift
 
-Above 768 CSS pixels, a persistent ruled sidebar carries navigation, role facts,
-and logout. At 768 and below, the sidebar leaves the accessibility tree and a
-44-pixel-or-larger disclosure exposes the same five links plus logout. The two
-copies are never simultaneously exposed. The content starts with a skip target,
-remains ordered after navigation, and fits without horizontal overflow at 320
-CSS pixels.
+Production primitives live only in `src/components/ui/` and are imported from
+that path. The current owned foundation is `Alert`, `Badge`, `Button`, `Card`,
+`Checkbox`, `Field`/`FieldGroup`, `Input`, `Label`, `NativeSelect`, `Separator`,
+`Skeleton`, `Spinner`, `Table`, and `Textarea`. Later tasks evolve these sources;
+pages do not fork their styling.
 
-The administrator composition uses the official compact role-shell lockup; the
-merchant composition uses the official fallback without implying merchant
-ownership. The administrator future-area scaffolds remain explicit empty
-states with no invented metrics, tables, controls, or unapproved projection
-calls; the delivered merchant and administrator dashboard compositions are the
-only exceptions.
-Existing controls remain in their owned route areas and keep their POST URLs.
+The reachable template inventory adds these candidate compositions for task
+`12.2.3`: `CopyField`, `DataTable`, `EmptyState`, `FilterBar`, `ImageUploader`,
+`LocalizedFieldGroup`, `Modal`/confirmation, `MoneyText`, `Monogram`/avatar,
+`QRDisplay`, `SimpleTabs`, `Skeletons`, `StatCard`, `StatusBadge`, `Timeline`,
+and `Toast`, plus only the reachable shadcn primitives recorded in the parity
+graph. Names describe target responsibilities, not permission to transplant
+template code or mock behavior.
 
-The merchant principal block has one secondary `/profile` affordance outside
-the numbered five-entry business map. The profile workspace uses two
-independent `Card` compositions: identity and password security. Each has one
-primary native submission, labels above inputs, suitable autocomplete,
-opaque localized feedback, and a payload-preserving client pending scope that
-only observes native submit/formdata events, announces progress, and disables
-its form after the browser forms the payload.
-Loading uses owned skeletons; an empty state is inapplicable because the page
-requires a resolved active merchant.
+Before adding a component:
 
-## Evidence and composition
+1. Search the production inventory and the reachable parity graph.
+2. Reuse or extend the single owner when its responsibility matches.
+3. If genuinely new, record one owner/import path, public props, complete
+   applicable states, and a one-line insufficiency finding for the inventory.
+4. Update this inventory and the `/design-system` specimen in the same task.
 
-`pnpm design-system:evidence` builds production output and creates a fresh
-run-bound manifest with all six themes at 320, 375, 768, and 1440 CSS pixels
-(24 captures). It rejects external requests, serious/critical axe findings, overflow,
-font drift, target/action/status/prose violations, and console failures.
-The specimen includes every Nautt onboarding, balance, conflict, and recovery
-state without runtime provider calls or a test-only production backdoor.
-`pnpm design-system:evidence:verify` requires the exact review and hashes.
+Every `excluded-unreachable-generated-ui` obligation remains excluded. An
+unreachable generated template file, including a registry component, is not an
+implementation candidate and is never added merely because it exists.
 
-`pnpm login:evidence` and `pnpm login:evidence:verify` provide the same
-run-bound contract for production `/login`: eight light/dark captures at the
-same widths, keyboard traversal username → password → submit, 44px field and
-action targets, native label/autofill semantics, the generic recovery alert,
-and no serious/critical axe finding on default or recovery states. The same run
-delays the native POST and proves the pending label, spinner, `aria-busy`, and
-disabled state for both click and Enter submission.
+## State contract
 
-`pnpm app-shell:evidence` and `pnpm app-shell:evidence:verify` bind 48 base
-captures (two roles, six themes, and widths 320, 375, 768, and 1440), plus one
-mobile-open capture per role. The run proves the exact five-item inventories,
-official identities, one accessibility-tree navigation copy, segment-safe
-active state including nested orders, an unobscured first-tab skip link that
-focuses main content, 44-pixel targets, IBM Plex Sans, no
-overflow, no external request or console failure, and no serious or critical
-axe finding. Its visual review is manifest-hash-bound and accepts no unresolved
-severity 2 or greater finding.
+Every component documents the baseline states **default**, **loading** when
+applicable, **empty** when applicable, **error with recovery**, **hover and
+visible focus**, and **disabled**. Add populated, invalid, active, selected,
+success, confirmation, pending, or terminal states only when its behavior needs
+them. Mark a state non-applicable instead of simulating it.
 
-`pnpm profile:evidence` and `pnpm profile:evidence:verify` bind 36 profile
-captures across six themes, both locales, and widths 375/768/1440 plus 14
-localized identity/password interaction captures. The exact 50 PNGs and three
-metadata files prove finite notices, click/Enter single native document POSTs
-with complete URL-encoded fields and CAS, immediate busy/disabled state, 320px
-reflow, focus, targets, axe, cookie expiry, persisted-locale signed-out copy,
-all-session rejection, old-password denial, and new-password admission. The
-review is bound to the current manifest and accepts no
-unresolved severity 2 or greater finding.
+| Owner | Required applicable states and feedback |
+| --- | --- |
+| Actions and controls | default, populated where value-bearing, invalid with associated message, hover, visible focus, pending/loading, disabled; label remains associated and above the control |
+| Data directories | ready, loading with geometry-preserving skeleton, empty, filtered-empty with reset, invalid-query reset, request error with retry, pagination/filter selection; desktop table and narrow facts expose one action set |
+| Empty/unavailable | localized illustration, title, optional body and one recovery/CTA; empty is never destructive and unavailable discloses no cause |
+| Filters and tabs | default, active/selected with non-color marker, clear/reset, hover/focus, disabled; URL and native GET behavior remain server-authoritative |
+| Upload/identity | empty fallback, drag/focus, staged preview, invalid, upload pending, error, remove/clear, stored success; bytes and lifecycle remain media-authoritative |
+| Modal/confirmation | closed/open, initial focus, keyboard loop, escape/overlay dismissal when allowed, destructive confirmation, pending/disabled, failure without accidental close, focus restoration |
+| Copy and QR | ready, copy pending, copied success announced politely, copy failure/retry; QR preparing, available, waiting/recovery, and terminal states preserve alternative text and exact payload boundaries |
+| Status, money, timeline, stats | ready, empty where data-driven, loading skeleton, unavailable/error; text/icon/shape accompanies color and numeric facts use mono tabular type |
+| Toast/alert | info, success, warning, destructive error, dismiss, retry, auto-dismiss only where safe; use polite/assertive live semantics appropriate to urgency |
 
-`pnpm store-settings:evidence` and `pnpm store-settings:evidence:verify` bind
-36 storefront-workspace captures across six themes, both locales, and widths
-375/768/1440 plus 15 interaction captures. The exact 51 PNGs and three
-metadata files prove the disabled-when-unmapped and registry-enabled currency
-states, the multipart logo staging route with an owner-readable staged
-preview, the opaque upload failure, remove-to-official-fallback, click/Enter
-single native save POSTs with dirty-field omission of unchanged extended
-fields, immediate busy/disabled feedback, keyboard traversal in control order,
-and a successful unchanged save after the stored currency's mapping is
-deactivated. The review is bound to the current manifest and accepts no
-unresolved severity 2 or greater finding.
+### Page and journey states
 
-`pnpm storefront:evidence` and `pnpm storefront:evidence:verify` bind 59
-public storefront captures: the populated boxed storefront across six themes,
-both locales, and widths 375/768/1440 (36), plus twenty-three localized state
-captures covering the table layout, cart add/quantity/reload-persistence/
-stale-recovery, the product-only cart checkout control, the custom-amount
-hidden control, the opaque mixed-currency checkout failure with the cart
-intact, standalone payments off, the logo and the official fallback,
-the empty store, the opaque unavailable store, and 320-pixel reflow. The run
-seeds the catalog fixture (registry pair, categories, products, storefront
-settings) directly in the disposable database, publishes a real logo through
-the existing staging route and one native settings save, drives the real
-browser cart with exact-decimal totals, issues one real one-time link through
-the sessionless cart command to prove the cleared cart key and the
-`/pay/[identifier]` redirect, and proves the scoped theme
-attribute, 44-pixel stepper targets, the single recovered-cart notice, and
-the same axe, overflow, target, and focus gates as the other evidence
-surfaces; the review is manifest-hash-bound and accepts no unresolved
-severity 2 or greater finding.
+- Every data-driven page covers ready, loading, empty, filtered-empty where it
+  filters, unavailable, validation error, request error, success notice, retry,
+  pending/disabled, and destructive confirmation where applicable.
+- Authentication covers empty credentials, local validation, submit pending,
+  generic invalid credentials, MFA challenge, TOTP/recovery-code modes, wrong
+  proof, lock/recovery, success, cancellation, and opaque unavailable states as
+  allowed by the identity contract.
+- Password recovery covers token loading, valid form, validation, request error,
+  invalid/expired/used token, pending, and success. Presentation does not invent
+  email delivery or expose token validity beyond the existing route contract.
+- Checkout and standalone payment cover initial form, policy-exact validation,
+  submitting/disabled, reserved/creating/preparing, QR and copy, pending and
+  indeterminate waiting, visibility-aware polling, status error with manual
+  retry, retryable submit error, expired capability, opaque unavailable, and the
+  exact confirmed/rejected/cancelled/expired/refunded or paid terminal states
+  owned by the checkout spec.
+- Catalog, links, orders, dashboards, profiles, and settings also preserve their
+  spec-owned archived/deleted, immutable-version, exact-period, empty-prerequisite,
+  conflict, staged-media, credential, and provider-recovery states. Parity never
+  authorizes a new projection or mutation to fill a visual gap.
 
-`pnpm standalone-payment:evidence` and `pnpm standalone-payment:evidence:verify`
-bind 67 standalone payment captures: the payment form across six themes, both
-locales, and widths 375/768/1440 (36), plus thirty-one localized state
-captures covering the prefill-only amount, inline amount validation, the four
-policy variants, the waiting treatment, the QR and copy-paste code, copy
-feedback, the polling status error with manual retry, the CONFIRMED and
-destructive terminal views, the expired-capability opaque unavailable, the
-opaque submit failure, the unknown-slug and standalone-off unavailable pages,
-and 320-pixel reflow. The run seeds the storefront fixture and the standalone
-attempt/order/provider rows directly in the disposable database, computes the
-capability HMAC from its own known disposable `NAUTT_ENCRYPTION_KEY` so
-polling exercises the real capability verification path with zero provider
-calls (live submit → dispatch stays covered by 9.2.1's route tests), and
-proves the scoped theme attribute, the policy-exact fields, the return link
-on waiting/failure/terminal views, and the same axe, overflow, target, and
-focus gates as the other evidence surfaces; the review is manifest-hash-bound
-and accepts no unresolved severity 2 or greater finding.
+## Accessibility and feedback
 
-`pnpm catalog:evidence` and `pnpm catalog:evidence:verify` bind 49 merchant
-catalog captures: the products directory across six themes, both locales, and
-widths 375/768/1440 (36), plus thirteen localized state captures covering the
-empty directories, the disabled currency-unmapped select, the staged upload
-preview, the create notice, the deactivation-with-reassignment block, the
-blocked no-replacement explanation, new/edit forms, filtered-empty and
-invalid-query states, and the terminal archived read-only view. The run proves
-one 200 staging upload with an owner-fenced preview, single native document
-POSTs binding category, currency, staged image, and a distinct replacement, no
-mutation control on archived products, and the same axe, overflow, target, and
-focus gates as the other evidence surfaces; the review is manifest-hash-bound
-and accepts no unresolved severity 2 or greater finding.
+- WCAG 2.2 AA is the minimum: normal text contrast at least `4.5:1`; large text
+  and essential non-text boundaries at least `3:1`.
+- Every actionable target is at least `44×44` CSS pixels unless the template
+  fixes a larger size. Focus is an unobscured semantic ring visibly equivalent
+  to `3px`; never remove it without an equal replacement.
+- Use semantic labels/descriptions, logical headings, keyboard operation,
+  skip navigation, correct table/dialog/tab semantics, and no color-only state.
+- Success, copy, pending, and error feedback uses appropriate live semantics.
+  Disabled controls are visually distinct; unavailable actions are absent or
+  explained rather than deceptively enabled.
+- Loading preserves final geometry. Motion conveys no essential information,
+  and focused elements do not move unexpectedly.
 
-`pnpm links:evidence` and `pnpm links:evidence:verify` bind 53 merchant
-payment-link directory captures: the keyset-paginated `/links` V2 directory
-across six themes, both locales, and widths 375/768/1440 (36), plus seventeen
-localized state captures covering the empty directory, 320-pixel reflow, the
-product-lines and fixed-amount read-only details, the opaque unavailable
-detail, filtered-empty, invalid-query, the second keyset page, the create and
-edit forms, and the created/edited/failed/deactivated outcome notices. The run
-seeds lifecycle fixture links, orders, a single-use settlement, and one
-checkout attempt (the financial-edit lock) directly in the disposable database
-(seeded before the 9.3.1 public V2 checkout), drives the real 8.2.2 management UI for both
-creates, the dirty-omission expiry edit under the attempt, the opaque locked
-financial edit, the blank-clear expiry edit, and activate/deactivate, and
-proves the four derived lifecycle badges, the share URL, bounded 25/10
-pagination with distinct pages, and the same axe, overflow, target, and focus
-gates as the other evidence surfaces; the error directory state is covered by
-page tests because stopping the disposable database would break session
-resolution before the directory read. The review is manifest-hash-bound and
-accepts no unresolved severity 2 or greater finding.
+## Business and security precedence
 
-`pnpm merchant-dashboard:evidence` and `pnpm merchant-dashboard:evidence:verify`
-bind 47 merchant dashboard captures: the populated dashboard across six
-themes, both locales, and widths 375/768/1440 (36), plus eleven localized
-state captures covering the empty dashboard, View Store off and on, both
-period switches, and 320-pixel reflow. The run seeds the analytics fixture
-(labeled and unlabeled currency pairs, products, links, CONFIRMED and AD_HOC
-orders, local outcomes, and attempts) directly in the disposable database
-(seeded before the 9.3.1 public V2 checkout), proves confirmed and locally finalized sales
-render separately and never summed, the unlabeled-currency treatment,
-exact-percent rates, non-color period switching through plain GET links, and
-the same axe, overflow, target, and focus gates as the other evidence
-surfaces; the review is manifest-hash-bound and accepts no unresolved
-severity 2 or greater finding.
-`pnpm admin-dashboard:evidence` and `pnpm admin-dashboard:evidence:verify`
-bind 45 administrator dashboard captures: the populated dashboard across six
-themes, both locales, and widths 375/768/1440 (36), plus nine localized state
-captures covering the empty dashboard, both period switches, the deleted-owner
-badge, and 320-pixel reflow. The run creates both merchants through the
-delivered account surface, seeds the global analytics fixture (labeled and
-unlabeled currency pairs, products, links, CONFIRMED LINK/STANDALONE and
-AD_HOC orders, local outcomes, and attempts across both attempt tables)
-directly in the disposable database (seeded before the 9.3.1 public V2
-checkout), soft-deletes one owner through the delivered deletion route, proves
-confirmed and locally finalized sales render separately and never summed, the
-unlabeled-currency treatment, exact-percent rates, non-color period switching
-through plain GET links, the deleted-owner leaderboard badge, and the same
-axe, overflow, target, and focus gates as the other evidence surfaces; the
-review is manifest-hash-bound and accepts no unresolved severity 2 or greater
-finding.
-`pnpm orders:evidence` and `pnpm orders:evidence:verify` bind 48 merchant
-orders captures: the keyset-paginated `/orders` V2 directory across six
-themes, both locales, and widths 375/768/1440 (36), plus twelve localized
-state captures covering the empty directory, 320-pixel reflow, the
-comment-thread detail, the opaque unavailable detail, filtered-empty,
-invalid-query, the second keyset page, the commented/comment-edited/
-outcome-set/failed outcome notices, and the page-size preference. The run
-seeds lifecycle fixture links, orders, comments, and a local outcome directly
-in the disposable database (seeded before the 9.3.1 public V2 checkout), drives the real
-8.3.3 UI for the comment append, the author comment edit under CAS, the
-guarded local-outcome set, and a stale lifecycle CAS that fails opaquely, and
-proves the policy-exact payer facts, the separate state/outcome badges,
-bounded 20/5 pagination, the stored page size reapplied once on the bare URL,
-and the same axe, overflow, target, and focus gates as the other evidence
-surfaces; the error directory state is covered by page tests because stopping
-the disposable database would break session resolution before the directory
-read. The review is manifest-hash-bound and accepts no unresolved severity 2
-or greater finding.
+Follow these durable authorities instead of restating their implementation:
 
-`pnpm checkout:evidence` and `pnpm checkout:evidence:verify` bind 127 public
-checkout captures: the branded Commerce V2 `/pay/[identifier]` composition
-across six persisted merchant themes, both locales, and widths 375/768/1440
-(36), the 9.3.2 paid terminal grid mirroring the same themes, locales, and
-widths for both composition kinds (72), plus nineteen localized state
-captures covering the unbranded fixed-amount composition with the
-unlabeled-currency treatment, the branded product-lines composition at 320
-pixels, the opaque unavailable views (unknown, inactive, and expired
-identifiers), the unbranded paid view with the non-color paid marker, the
-claim-keyed paid view outliving link expiry, all five policy variants,
-inline validation, submit-pending, the opaque checkout error, QR with copy
-feedback, waiting-for-payment-data, status-error with manual retry recovery,
-the confirmed and destructive terminal badges, and the expired-capability
-opaque unavailable. Claim-keying is proven at runtime: every consumed order
-is flipped to `REFUNDED` before any paid capture, and one consumed link
-carries a past expiry — the paid views persist unchanged. The run drives
-the real storefront
-settings workspace for branding (logo upload, display names, accent — with
-the storefront disabled), seeds links, attempts, orders, and provider rows
-directly in the disposable database with the capability HMAC computed from
-the harness's own disposable `NAUTT_ENCRYPTION_KEY`, performs no provider
-call, and proves the same axe, overflow, target, and focus gates as the other
-evidence surfaces; the review is manifest-hash-bound and accepts no
-unresolved severity 2 or greater finding.
+- [[pop/specs/administrative-foundation|Administrative foundation]] for roles,
+  locale, shells, directories, redaction, and administrator capabilities.
+- [[pop/specs/catalog-and-payment-links|Catalog and payment links]] for V1/V2
+  compatibility, owner scope, lifecycle, and exact link composition.
+- [[pop/specs/checkout-and-order-lifecycle|Checkout and order lifecycle]] for
+  customer policy, exact money, capabilities, polling, and terminal states.
+- [[pop/specs/storefront-and-customization|Storefront and customization]] for
+  public projection, cart, stored customization, and standalone payments.
+- [[pop/specs/identity-security|Identity security]] for MFA and recovery.
+- [[pop/specs/media-storage|Secure media storage]] for owned image bytes.
+- [[pop/specs/nautt-finance-integration|Nautt Finance integration]] for
+  credentials, provider states, webhook/payment boundaries, and redaction.
 
-The status rail and panels use ruled separation and restrained corners. Never
-make a page-specific button variant: use owned `Button` variants. Motion is
-reduced when the operating system requests it; no
-essential information depends on animation.
+Stop the visual lane if parity would weaken role/owner/origin/rate-limit,
+redaction, exact-decimal, V1 compatibility, secret, media, or provider rules.
+Never solve a presentation gap with a backend/API/database change.
+
+## Objective evidence
+
+The parity manifest binds 2,230 obligations in
+`docs/frontend-template-parity/obligations.ndjson` at SHA-256
+`276bba6466ce7c316c3b8bc27db48e1a75ad20268c1e8c0e78e97c4859e922dd`.
+Each route/component owner consumes its exact obligation IDs, dispositions,
+source hashes, target paths, state fixture, locale/theme applicability, and
+later-owner assignment. Missing, stale, duplicate, generic, hand-authored, or
+source-divergent evidence fails closed.
+
+| Dimension | Fixed requirement |
+| --- | --- |
+| Browser | repository Playwright `chromium` project, Chromium engine, device scale factor 1 |
+| Environment | fixed fixture clock, locally settled fonts, animations disabled, caret hidden, external requests blocked |
+| Viewports | full-page `320×1000`, `375×1000`, `768×1000`, `1440×1000` |
+| Matrix | both locales, all six themes when applicable, and every obligation-owned state |
+| Raster | threshold `0.1`, maximum differing-pixel ratio `0.001` |
+| Independent assertions | geometry, typography, content, keyboard/focus, overflow, accessibility, console, requests, and contract behavior |
+
+Raster tolerance never waives an independent assertion. Later task evidence is
+run-bound and fresh; it cannot reuse a prior manifest or claim another route's
+capture. `pnpm frontend-parity:check` validates the immutable inventory and
+`pnpm check` protects application behavior. Passing those gates alone does not
+claim that an unimplemented Epoch 12 surface visually conforms.
