@@ -3,8 +3,8 @@ id: application-frontend-system
 project: applications/qr-pagamentos
 domain: frontend
 kind: contract
-status: draft
-implementation: planned
+status: active
+implementation: partial
 origin: "roadmap/12-frontend-template-remodel"
 created: 2026-08-02
 updated: 2026-08-02
@@ -28,9 +28,9 @@ This spec defines the application-wide presentation, composition, interaction-fe
 ## Visual language and numeric composition
 
 - The single tone is **professional settlement console**: calm neutral work surfaces, compact financial facts, crisp bordered cards, restrained elevation, direct status feedback, and accent color reserved for action, selection, focus, and measured emphasis.
-- The exact authored visual values and responsive occurrences are the parity records, not approximations. Their production form is semantic DTCG primitives → aliases → component tokens with stable paths and no raw page-local visual values.
+- The exact authored visual values and responsive occurrences are the parity records, not approximations. Their production form is DTCG audit primitives → semantic aliases → component tokens with stable paths and no raw page-local visual values. Every snapshot value remains byte-equivalent at `color.primitive.audit.template.<theme>.*`; accessibility may change a rendered semantic alias but never those audit primitives.
 - The fixed semantic palette roles are page, surface, secondary surface, border, three text levels, accent/foreground/soft, success/warning/danger/info with soft companions, focus ring, and elevation. All six themes implement the same paths.
-- The exact palette source is the immutable `docs/template/app/src/index.css` snapshot SHA-256 `762edf36239e6472ccfc8eb8faa79d73081633dec69ae4fa0fa5a530ccdcead4`; its complete theme blocks must project byte-equivalent semantic values. These anchors make theme identity reviewable without reopening every component:
+- The exact palette source is the immutable `docs/template/app/src/index.css` snapshot SHA-256 `762edf36239e6472ccfc8eb8faa79d73081633dec69ae4fa0fa5a530ccdcead4`; its complete theme blocks must remain byte-equivalent audit primitives. These anchors make theme identity reviewable without reopening every component:
 
 | Theme | `bg / surface / surface-2 / border` | `text / text-2 / text-3` | `accent / accent-fg / accent-soft` |
 |---|---|---|---|
@@ -40,6 +40,17 @@ This spec defines the application-wide presentation, composition, interaction-fe
 | `midnight-clearing` | `#0c111b / #141b29 / #1c2536 / #28334a` | `#eaeff7 / #a9b6c9 / #647189` | `#5eead4 / #08251f / #1e3a38` |
 | `vault-blue` | `#0b1220 / #111a2e / #182444 / #263659` | `#e7edf9 / #a5b4d2 / #5f7195` | `#4f8dfd / #ffffff / #1b2e5c` |
 | `terminal-amber` | `#100d08 / #1a1510 / #241d13 / #3a2f1e` | `#f5e8ce / #cbb68f / #8a7550` | `#ffb224 / #241700 / #33270d` |
+- WCAG 2.2 AA takes precedence at the rendered semantic layer. Normal text authored as template `text-3` consumes `color.text.tertiary`, not the audit primitive. For each theme, derive it by testing integer steps `k = 0..255` from audit `text-3` `O` toward audit primary text `P`: each sRGB byte is `floor(O + (P - O) * k / 255 + 0.5)`; choose the first `k` whose WCAG relative-luminance contrast is at least `4.5:1` against page, raised, and secondary surfaces. The resulting fixed projections and ratios in that surface order are:
+
+| Theme | `k` | Rendered `color.text.tertiary` | Page / raised / secondary |
+|---|---:|---|---|
+| `pix-paper` | 92 | `#636e68` | `4.830 / 5.302 / 4.538` |
+| `cashier-daylight` | 81 | `#636f7c` | `4.733 / 5.128 / 4.515` |
+| `settlement-sand` | 91 | `#706653` | `4.886 / 5.327 / 4.503` |
+| `midnight-clearing` | 54 | `#808ca0` | `5.556 / 5.069 / 4.518` |
+| `vault-blue` | 55 | `#7c8cab` | `5.524 / 5.117 / 4.508` |
+| `terminal-amber` | 30 | `#97835f` | `5.288 / 4.943 / 4.545` |
+- The calculation uses WCAG sRGB linearization (`c <= 0.04045 ? c/12.92 : ((c + 0.055)/1.055)^2.4`), luminance `0.2126R + 0.7152G + 0.0722B`, and `(Llighter + 0.05) / (Ldarker + 0.05)`. A `text-3` occurrence on any other background must use a separately validated semantic on-color; it may not fall back to the audit primitive or assume this three-surface proof applies.
 - Body copy is Inter at 14px/20px; display copy is Sora with `-0.02em` tracking; money, identifiers, codes, and numeric facts are IBM Plex Mono with tabular numerals. Only template-used weights are admitted: Sora 400/500/600/700, Inter 400/500/600, and IBM Plex Mono 400/500/600.
 - Fonts are pinned, licensed, self-hosted production assets with committed dependency/license provenance and no runtime request to Google Fonts or another host. Fallbacks may preserve usability but do not satisfy parity evidence.
 - The shared radii are 6px, 8px, 10px, and 999px pill; the application cap is 1280px, checkout cap 560px, authentication form cap 420px, desktop rail 248px, top bar 56px, table row 52px, and compact controls 40px unless the interactive-target rule requires 44px or 48px.
@@ -64,7 +75,7 @@ This spec defines the application-wide presentation, composition, interaction-fe
 
 ## Accessibility and motion
 
-- WCAG 2.2 AA is required: normal text contrast at least 4.5:1, large text and essential non-text boundaries at least 3:1, semantic labels/descriptions, logical headings, keyboard operation, skip navigation, and no color-only meaning.
+- WCAG 2.2 AA is required and overrides byte-identical rendering when the two conflict: normal text contrast at least 4.5:1, large text and essential non-text boundaries at least 3:1, semantic labels/descriptions, logical headings, keyboard operation, skip navigation, and no color-only meaning. The audit primitive remains exact evidence while the validated semantic projection is what users see.
 - Every actionable target is at least 44×44 CSS pixels unless a larger template size is fixed. Focus uses the semantic template ring, visibly equivalent to a 3px ring, unobscured by sticky chrome and never removed without replacement.
 - Dynamic success, copy, pending, and error feedback uses appropriate polite/assertive live semantics; disabled controls are distinct and unavailable actions are absent or explained rather than deceptively enabled.
 - Full motion follows each hash-bound parity interaction and conveys no essential information. Under `prefers-reduced-motion: reduce`, non-essential animation and transition durations collapse to 0.01ms with one iteration; the resulting state remains complete and focused elements do not move unexpectedly.
