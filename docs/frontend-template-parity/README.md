@@ -8,6 +8,37 @@ hash-bound mapping for every reachable route/component, authored class
 occurrence, state, interaction, asset, locale, theme, current page/loading/error
 surface, and explicitly excluded generated UI module.
 
+Schema version 2 makes the occurrence records consumable without reopening the
+template source:
+
+- each `authored-class-occurrence` stores the exact readable `className`
+  initializer, its literal value when applicable, and its expression form;
+- each `state` stores the binding/setter names, exact initial value, every local
+  setter transition, and the exact JSX, derived, or indirect read sites that
+  define its expected view. An intentionally omitted state binding is named from
+  its setter and marked `render-invalidation-only`; a state with no render read
+  is explicitly marked `write-only` rather than receiving an invented view;
+- each `interaction` stores the DOM event, exact handler expression, resolved
+  local implementation (or caller-provided callback boundary), and classified
+  exact effect calls that define feedback;
+- `target` contains only exact current route/page/loading/error paths and exact
+  current component paths. It is derived from the route-component imports in
+  `App.tsx`, their transitive import closure, and exact current path inventory.
+  Readable template `:param` segments are normalized to current `[param]`
+  segments only for matching; a mixed static/dynamic shared source must include
+  every applicable exact dynamic current path;
+- `fixture` has a record-specific stable ID bound to source path, SHA-256, line,
+  expression SHA-256, applicable template routes, exact current surface paths,
+  imported mock fixture names, and the fixed fixture clock.
+
+The checker independently rebuilds those fields with the TypeScript AST. Missing
+records retain the `PARITY_*_MISSING` failures; semantic tampering produces a
+dimension-specific `PARITY_*_EXPRESSION_INVALID`, `*_VALUE_INVALID`,
+`STATE_NAME_INVALID`, `STATE_INITIAL_INVALID`, `STATE_TRIGGER_INVALID`,
+`STATE_EXPECTED_VIEW_INVALID`, `INTERACTION_EVENT_INVALID`,
+`INTERACTION_ACTION_INVALID`, `INTERACTION_FEEDBACK_INVALID`, `*_TARGET_INVALID`,
+`*_FIXTURE_INVALID`, or `DYNAMIC_TARGET_MISSING` diagnostic.
+
 ## Authority and dispositions
 
 The supplied template is authoritative for presentation and interaction feedback.
@@ -44,7 +75,13 @@ independent failures and cannot be waived by the raster ratio.
 ## Regeneration and validation
 
 The F02 checker consumes this schema and must fail closed on missing, stale,
-duplicate, or invalid records. The reproducible local inventory generator used
-to author this snapshot is `/tmp/generate-parity-manifest.mjs`; it is not a
-repository artifact. Do not hand-edit the manifest: regenerate from the pinned
-reference, then validate with `pnpm frontend-parity:check` once F02 lands.
+duplicate, invalid, generic, or source-divergent records. Refresh only the three
+source-derived semantic record families with
+`node scripts/check-frontend-template-parity-contract.mjs --refresh-semantic-contract`;
+this preserves all other contract records and recomputes the NDJSON binding.
+Then validate the canonical contract with `pnpm frontend-parity:check`. Do not
+hand-edit the manifest or obligation records. The disposable negative suite is
+`node scripts/check-frontend-template-parity-contract.mjs --semantic-mutation-probes`;
+it makes an isolated in-memory clone for each field removal/tamper, runs the same
+independent source-derived semantic validator used by the canonical gate, and
+asserts the dimension-specific diagnostic without changing repository files.

@@ -1,6 +1,6 @@
 {
-  "schemaVersion": 1,
-  "generatedBy": "deterministic local parser /tmp/generate-parity-manifest.mjs",
+  "schemaVersion": 2,
+  "generatedBy": "deterministic source parser in scripts/check-frontend-template-parity-contract.mjs",
   "authority": {
     "template": "presentation and interaction feedback",
     "current": "business, security, runtime, precision, stored locale and theme identifiers",
@@ -2783,7 +2783,15 @@
   },
   "obligations": {
     "path": "docs/frontend-template-parity/obligations.ndjson",
-    "count": 2233,
-    "sha256": "790c679b0e8eb1316155893577a2d4d5a9bfb1e313f3e8f22073f883f3576f8b"
+    "count": 2230,
+    "sha256": "9dde39c3dfee08dda2e5dc7c912ce52b5df686cff4ec72cfbceded5fbd11431b"
+  },
+  "semanticContract": {
+    "parser": "TypeScript 5 AST",
+    "classes": "exact className initializer expression/value",
+    "states": "binding name, setter, initial value, transitions, and JSX/derived view bindings",
+    "interactions": "event, resolved handler implementation, and classified effect calls",
+    "targets": "App route-import transitive closure mapped to exact current route/component paths; template :params normalize to current [params] for matching",
+    "fixtures": "record-specific source/hash/line identity with exact routes, current paths, fixture imports, and fixed clock"
   }
 }
