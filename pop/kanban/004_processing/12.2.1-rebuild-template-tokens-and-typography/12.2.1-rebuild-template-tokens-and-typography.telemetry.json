@@ -24,6 +24,30 @@
       "test_seconds": 0,
       "return_kind": null,
       "result": "advanced"
+    },
+    {
+      "at": "2026-08-02T20:48:36-03:00",
+      "event": "transition",
+      "from": "004_processing",
+      "to": "002_planning",
+      "contexts": [
+        "exec_12_2_1_f03"
+      ],
+      "test_seconds": 0,
+      "return_kind": null,
+      "result": "advanced"
+    },
+    {
+      "at": "2026-08-02T20:53:39-03:00",
+      "event": "transition",
+      "from": "002_planning",
+      "to": "004_processing",
+      "contexts": [
+        "plan_12_2_1_r1"
+      ],
+      "test_seconds": 0,
+      "return_kind": null,
+      "result": "advanced"
     }
   ]
 }
