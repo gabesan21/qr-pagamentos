@@ -1,0 +1,141 @@
+{
+  "version": 1,
+  "source": "Fontsource npm packages",
+  "locales": ["pt-BR", "en"],
+  "subset": "latin",
+  "format": "woff2",
+  "license": "OFL-1.1",
+  "families": [
+    {
+      "family": "Inter",
+      "role": "body",
+      "package": "@fontsource/inter",
+      "version": "5.3.0",
+      "packageIntegrity": "sha512-RofMylZmjlJEfELXeNHFWBRcSs75rGU/6bV2S2jfnvv/3rPXPGe0LgUJTklcHZ9lM4OZmAVFhcJPnACfb91A3g==",
+      "publishHash": "466f9f5a16a81724",
+      "licensePath": "src/design-system/fonts/LICENSES/Inter-OFL-1.1.txt",
+      "licenseSha256": "3b0a5fca3d17942cde889069889dedbbbd075e9b599968c82a95f4d944e9b345",
+      "weights": [
+        {
+          "weight": 400,
+          "import": "@fontsource/inter/latin-400.css",
+          "cssPath": "node_modules/@fontsource/inter/latin-400.css",
+          "cssSha256": "eb41eb009167dd65cd4df39a1d7393a2dc6ad47902d0e7937308fefc220696a1",
+          "woff2Path": "node_modules/@fontsource/inter/files/inter-latin-400-normal.woff2",
+          "woff2Bytes": 23664,
+          "woff2Sha256": "8909904ab6c872eb994093482a88a28eca2cd95912d7b6fecd72103b0dc07edc"
+        },
+        {
+          "weight": 500,
+          "import": "@fontsource/inter/latin-500.css",
+          "cssPath": "node_modules/@fontsource/inter/latin-500.css",
+          "cssSha256": "7479efd8b62c928da8479ddbfc16d91f03dc642bcf4efa352b33dd999c4a9dd2",
+          "woff2Path": "node_modules/@fontsource/inter/files/inter-latin-500-normal.woff2",
+          "woff2Bytes": 24272,
+          "woff2Sha256": "f3779f1efccc4bdcdf9c0a02ab95bf6bd092ed09c48c08cedc725889edd1d19f"
+        },
+        {
+          "weight": 600,
+          "import": "@fontsource/inter/latin-600.css",
+          "cssPath": "node_modules/@fontsource/inter/latin-600.css",
+          "cssSha256": "c92c8c91f287e48c0d93b237e3d27f216b6cf8e643b54bc522f99751d7238fce",
+          "woff2Path": "node_modules/@fontsource/inter/files/inter-latin-600-normal.woff2",
+          "woff2Bytes": 24452,
+          "woff2Sha256": "f9a06e79cd3a2a20951c0f0e28f66dd0e6d3fda73911d640a2125c8fcb78f21a"
+        }
+      ]
+    },
+    {
+      "family": "Sora",
+      "role": "display",
+      "package": "@fontsource/sora",
+      "version": "5.3.0",
+      "packageIntegrity": "sha512-SqW3OpKxxfKvxDLPlbdrWf2KooPfbd+W3jaYn483o+Y/JrmU87vjFPNptDqwP428c3vY+gnranLhjcbRaXB0Jw==",
+      "publishHash": "e9ab389729af5b34",
+      "licensePath": "src/design-system/fonts/LICENSES/Sora-OFL-1.1.txt",
+      "licenseSha256": "1ec9623d38c445eb4dfe5fcc783e0f0ee728cc97ca157ce1f8cb2b3bf9d9b0d9",
+      "weights": [
+        {
+          "weight": 400,
+          "import": "@fontsource/sora/latin-400.css",
+          "cssPath": "node_modules/@fontsource/sora/latin-400.css",
+          "cssSha256": "4a5a7eac67a8ec4cc84be09fe04f8d3e68301a705642313b47f78259016b6548",
+          "woff2Path": "node_modules/@fontsource/sora/files/sora-latin-400-normal.woff2",
+          "woff2Bytes": 14724,
+          "woff2Sha256": "98141d7eaa6e9ee35e0827d279018cd33c3e59c6650541ec7de1c692efd93942"
+        },
+        {
+          "weight": 500,
+          "import": "@fontsource/sora/latin-500.css",
+          "cssPath": "node_modules/@fontsource/sora/latin-500.css",
+          "cssSha256": "902be8cff3ffdb97785dd67a55007f6955bb9ca1447e28c165e9961e9c30034b",
+          "woff2Path": "node_modules/@fontsource/sora/files/sora-latin-500-normal.woff2",
+          "woff2Bytes": 15056,
+          "woff2Sha256": "edd010ebf2f4940b52d8b98296a499c0a783d838e427fa301c67f80959c1f441"
+        },
+        {
+          "weight": 600,
+          "import": "@fontsource/sora/latin-600.css",
+          "cssPath": "node_modules/@fontsource/sora/latin-600.css",
+          "cssSha256": "752842efb24cabc15fbe4dffccb867416ff7877b822295cbedf9e1406320ca4b",
+          "woff2Path": "node_modules/@fontsource/sora/files/sora-latin-600-normal.woff2",
+          "woff2Bytes": 15000,
+          "woff2Sha256": "fa9ab76f30510ad92153c6d6d72d0508884b85e9f0148abdfa963231b2a4845a"
+        },
+        {
+          "weight": 700,
+          "import": "@fontsource/sora/latin-700.css",
+          "cssPath": "node_modules/@fontsource/sora/latin-700.css",
+          "cssSha256": "ecd70c904c4786ec155e3fde990b32787723053e355e50f8bf5a2c0f66a73dbf",
+          "woff2Path": "node_modules/@fontsource/sora/files/sora-latin-700-normal.woff2",
+          "woff2Bytes": 15128,
+          "woff2Sha256": "c3337a673c9bbbfe433091d3831714dd9a257951f16f41eb3fc650ec593cfac2"
+        }
+      ]
+    },
+    {
+      "family": "IBM Plex Mono",
+      "role": "numeric",
+      "package": "@fontsource/ibm-plex-mono",
+      "version": "5.3.0",
+      "packageIntegrity": "sha512-eTgnZjZEGk1QtD3ZstF+Vclo2HLAni8YMy34/DxllwZvyz1lR/1RF/xTiAquOBO7MvqBx8D2Ig2WCPMVfdZu7Q==",
+      "publishHash": "183f0f10af73c54a",
+      "licensePath": "src/design-system/fonts/LICENSES/IBM-Plex-Mono-OFL-1.1.txt",
+      "licenseSha256": "23b0a9d0c6d3f140a0b77e483c5cfa6bba574325ef5cb189ed9f2fec4884533f",
+      "weights": [
+        {
+          "weight": 400,
+          "import": "@fontsource/ibm-plex-mono/latin-400.css",
+          "cssPath": "node_modules/@fontsource/ibm-plex-mono/latin-400.css",
+          "cssSha256": "57893c593213e96ff6ba7b3b60d3731c1ec5754ae055607c848ef611d8879614",
+          "woff2Path": "node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-400-normal.woff2",
+          "woff2Bytes": 14708,
+          "woff2Sha256": "08949f728dc52d528e69b1667d15c89a5686a4ee9a296ff90983985f99c380f7"
+        },
+        {
+          "weight": 500,
+          "import": "@fontsource/ibm-plex-mono/latin-500.css",
+          "cssPath": "node_modules/@fontsource/ibm-plex-mono/latin-500.css",
+          "cssSha256": "91d821a261dd4ffe65a7622b1d61efca5a3d71863f09278fa92f9f8e09830e6e",
+          "woff2Path": "node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-500-normal.woff2",
+          "woff2Bytes": 14888,
+          "woff2Sha256": "01d285447409c8a588692162439a038b8cbd7871309ee20267b0d2d91c6e8e22"
+        },
+        {
+          "weight": 600,
+          "import": "@fontsource/ibm-plex-mono/latin-600.css",
+          "cssPath": "node_modules/@fontsource/ibm-plex-mono/latin-600.css",
+          "cssSha256": "4ee57a1be040202a982f1e32b66900784d85969c668eac50311a9e32d82d4c0a",
+          "woff2Path": "node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-600-normal.woff2",
+          "woff2Bytes": 15620,
+          "woff2Sha256": "0d1f0b8d0722224e32e9f28261bdc86c79115be73444ae5eceb73976a1bcdf83"
+        }
+      ]
+    }
+  ],
+  "transitionalDependency": {
+    "package": "@fontsource-variable/ibm-plex-sans",
+    "version": "5.2.8",
+    "purpose": "Static brand wordmark provenance only; task 12.2.2 owns its removal."
+  }
+}
