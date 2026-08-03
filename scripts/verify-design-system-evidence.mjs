@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { execFileSync } from "node:child_process";
 import { readFile, readdir, stat } from "node:fs/promises";
 import { join } from "node:path";
 
@@ -11,6 +12,17 @@ const themes = ["pix-paper", "cashier-daylight", "settlement-sand", "midnight-cl
 const viewports = [320, 375, 768, 1440];
 const sha256 = (value) => createHash("sha256").update(value).digest("hex");
 const assert = (condition, message) => { if (!condition) throw new Error(`DESIGN_SYSTEM_EVIDENCE ${message}`); };
+const git = (...args) => execFileSync("git", args, { cwd: root, encoding: "utf8", stdio: "pipe" }).trim();
+
+function isAncestor(ancestor, descendant) {
+  try {
+    execFileSync("git", ["merge-base", "--is-ancestor", ancestor, descendant], { cwd: root, stdio: "pipe" });
+    return true;
+  } catch (error) {
+    if (error?.status === 1) return false;
+    throw error;
+  }
+}
 
 const coverage = await checkDesignSystemCoverage();
 const current = JSON.parse(await readFile(join(artifactRoot, "current.json"), "utf8"));
@@ -21,7 +33,9 @@ assert(sha256(manifestBytes) === current.manifestSha256, "current manifest hash 
 const manifest = JSON.parse(manifestBytes);
 assert(manifest.schemaVersion === 3, "manifest schema is not v3");
 assert(manifest.runId === current.runId && manifest.startedAt === current.startedAt, "current pointer identity mismatch");
-assert(manifest.gitHead === (await import("node:child_process")).execFileSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" }).trim(), "evidence is not at the current HEAD");
+assert(/^[a-f0-9]{40,64}$/.test(manifest.gitHead), "captured git HEAD is invalid");
+const currentGitHead = git("rev-parse", "HEAD");
+assert(isAncestor(manifest.gitHead, currentGitHead), "captured git HEAD is not an ancestor of the current HEAD");
 assert(JSON.stringify(manifest.matrix?.locales) === JSON.stringify(locales), "locale matrix is incomplete or reordered");
 assert(JSON.stringify(manifest.matrix?.themes) === JSON.stringify(themes), "theme matrix is incomplete or reordered");
 assert(JSON.stringify(manifest.matrix?.viewports) === JSON.stringify(viewports), "viewport matrix is incomplete or reordered");

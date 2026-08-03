@@ -61,7 +61,46 @@ function verify(root: string) {
   return () => execFileSync(process.execPath, ["scripts/verify-design-system-evidence.mjs"], { cwd: root, encoding: "utf8", stdio: "pipe" });
 }
 
+function commit(root: string, message: string) {
+  execFileSync("git", ["add", "."], { cwd: root });
+  execFileSync("git", ["commit", "-qm", message], { cwd: root });
+  return execFileSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" }).trim();
+}
+
 describe("design-system evidence fail-closed boundaries", () => {
+  it("accepts an evidence-only descendant commit while source hashes remain exact", () => {
+    const state = fixture();
+    const capturedHead = state.manifest.gitHead;
+    const descendantHead = commit(state.root, "evidence artifacts");
+
+    expect(descendantHead).not.toBe(capturedHead);
+    expect(verify(state.root)).not.toThrow();
+  });
+
+  it("rejects a captured HEAD from a divergent history", () => {
+    const state = fixture();
+    const capturedHead = state.manifest.gitHead;
+    commit(state.root, "evidence artifacts");
+    const divergentHead = execFileSync(
+      "git",
+      ["commit-tree", `${capturedHead}^{tree}`, "-p", capturedHead, "-m", "divergent evidence source"],
+      { cwd: state.root, encoding: "utf8" },
+    ).trim();
+    state.manifest.gitHead = divergentHead;
+    state.persistManifest();
+
+    expect(verify(state.root)).toThrow(/captured git HEAD is not an ancestor/);
+  });
+
+  it("rejects bound-source drift on a valid descendant", () => {
+    const state = fixture();
+    commit(state.root, "evidence artifacts");
+    const target = path.join(state.root, "src/components/ui/button.tsx");
+    writeFileSync(target, `${readFileSync(target, "utf8")}\n// source drift\n`);
+
+    expect(verify(state.root)).toThrow(/source hash mismatch/);
+  });
+
   it("rejects owner, fixture/state, matrix, artifact, authority, assertion and source drift", () => {
     const state = fixture();
     expect(verify(state.root)).not.toThrow();

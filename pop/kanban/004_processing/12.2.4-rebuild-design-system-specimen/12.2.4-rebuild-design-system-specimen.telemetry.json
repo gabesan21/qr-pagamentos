@@ -92,6 +92,17 @@
       "test_seconds": 690,
       "return_kind": null,
       "result": "evidence_48_captures_2160_focus_measurements_20_coverage_entries_2230_parity_records_187_shared_obligations"
+    },
+    {
+      "at": "2026-08-03T14:09:33-03:00",
+      "event": "front_repair",
+      "front": "F02",
+      "contexts": [
+        "exec_12_2_4_f02"
+      ],
+      "test_seconds": 768,
+      "return_kind": null,
+      "result": "descendant_evidence_verification_48_fresh_captures_9_mutation_and_coverage_tests"
     }
   ]
 }
