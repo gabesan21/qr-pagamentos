@@ -1,0 +1,317 @@
+{
+  "schemaVersion": 2,
+  "runId": "20260803015559",
+  "startedAt": "2026-08-03T01:55:59.578Z",
+  "gitHead": "cd598569bc2fa08fd38748b0d1549c660cb1562f",
+  "matrix": {
+    "themes": [
+      "pix-paper",
+      "cashier-daylight",
+      "settlement-sand",
+      "midnight-clearing",
+      "vault-blue",
+      "terminal-amber"
+    ],
+    "viewports": [
+      320,
+      375,
+      768,
+      1440
+    ],
+    "captures": 24
+  },
+  "fallback": {
+    "expected": "#f7f4ee",
+    "actual": "#f7f4ee"
+  },
+  "assertions": {
+    "path": "artifacts/design-system/20260803015559/assertions.json",
+    "sha256": "4e00723c872fd9411f134d10e5a234ff11d24a05cb8b2241a1e36ffbd89a1564"
+  },
+  "fontProvenance": {
+    "path": "src/design-system/fonts/provenance.json",
+    "sha256": "501cf7aff1da7ab8e2b51f9c2f3e4518ef500324097d3372f329ab5cb5010520"
+  },
+  "brandManifest": {
+    "path": "src/brand/assets.manifest.json",
+    "sha256": "69e13a8d3ac4cdddca1a6a2ac59c8fac7d25e462b57457a70a10708b076db51d"
+  },
+  "tokenFiles": [
+    {
+      "path": "src/design-system/tokens/components.tokens.json",
+      "sha256": "6adee1ab693deead3b11a850026f769c29a178bb529b85b58293798653585264"
+    },
+    {
+      "path": "src/design-system/tokens/motion/full.tokens.json",
+      "sha256": "6a5ebf60f9d94c843e44a563489f30852760ba3d0a982da74e4c2cc41d5efeee"
+    },
+    {
+      "path": "src/design-system/tokens/motion/reduced.tokens.json",
+      "sha256": "cb37c3bad85ac9de53977e5e404d96e586ed39f0550c4e4e4f791da953ce944d"
+    },
+    {
+      "path": "src/design-system/tokens/resolver.json",
+      "sha256": "3981fbfe1933458ebebdac6e12bd8125fa452463512de9db9ae2e54b3033af87"
+    },
+    {
+      "path": "src/design-system/tokens/semantic.tokens.json",
+      "sha256": "60b8da759a434b9d7f2c5e975917283d145c0212aaff000ef37af60e60de223f"
+    },
+    {
+      "path": "src/design-system/tokens/themes.tokens.json",
+      "sha256": "fbb14fb4c646e1722ea91205fdc5abb60e0b63d0b94219d6ce99180ed7fd776f"
+    },
+    {
+      "path": "src/design-system/tokens/themes/cashier-daylight.tokens.json",
+      "sha256": "663be77b3bc02bd3478a6eaf1dd0f23928f4c1a666e0b711c0f297bc95e5de53"
+    },
+    {
+      "path": "src/design-system/tokens/themes/midnight-clearing.tokens.json",
+      "sha256": "81824aec96a8520181329e62d144c3fe8f3d871ffebf5a3391dcb98545ebaf8d"
+    },
+    {
+      "path": "src/design-system/tokens/themes/pix-paper.tokens.json",
+      "sha256": "d8baf3cb2310b3f9c73a65d83174313a6c1ccfff589a837b428c492745cab3aa"
+    },
+    {
+      "path": "src/design-system/tokens/themes/settlement-sand.tokens.json",
+      "sha256": "04069e619e9735040b31a932dda910a6a4f188116fc80d213049565e202de4fb"
+    },
+    {
+      "path": "src/design-system/tokens/themes/terminal-amber.tokens.json",
+      "sha256": "ffd7928138303f2496e3c307b825e7d8b32bfe3e9e3de443b376f9cef5b77f56"
+    },
+    {
+      "path": "src/design-system/tokens/themes/vault-blue.tokens.json",
+      "sha256": "402c151e13b4620df0868e2b13d4eebd302b89495929b5a93e3e34d2fdcb658f"
+    }
+  ],
+  "sources": [
+    {
+      "path": "package.json",
+      "sha256": "3d1409a5c39014f63a8e0bfb6c9d1f3a7780f6e4c7d084fc52edd674cc4c0776"
+    },
+    {
+      "path": "pnpm-lock.yaml",
+      "sha256": "afa7ed4b7614bf63fbf02942467a67306fd99db18bfa7f54fbd47f7971bd2235"
+    },
+    {
+      "path": "scripts/verify-design-system-evidence.mjs",
+      "sha256": "a8e3ce9df90326ffcfee8087fb6a3236fd48cb8f72ff7c56b35ee3ddc00655ee"
+    },
+    {
+      "path": "src/app/design-system/page.tsx",
+      "sha256": "7000c286ea9bf2fdeb6f2cc3b095616d6fe69987df74cf0ef8b91ce3311a7cee"
+    },
+    {
+      "path": "src/app/globals.css",
+      "sha256": "cfcf5b637caa7d84e221bd4a3b2c1d211743971db4c6e9d7fddfbc3d5f47ec96"
+    },
+    {
+      "path": "src/brand/assets.manifest.json",
+      "sha256": "69e13a8d3ac4cdddca1a6a2ac59c8fac7d25e462b57457a70a10708b076db51d"
+    },
+    {
+      "path": "src/design-system/fonts/provenance.json",
+      "sha256": "501cf7aff1da7ab8e2b51f9c2f3e4518ef500324097d3372f329ab5cb5010520"
+    },
+    {
+      "path": "src/design-system/tokens/components.tokens.json",
+      "sha256": "6adee1ab693deead3b11a850026f769c29a178bb529b85b58293798653585264"
+    },
+    {
+      "path": "src/design-system/tokens/motion/full.tokens.json",
+      "sha256": "6a5ebf60f9d94c843e44a563489f30852760ba3d0a982da74e4c2cc41d5efeee"
+    },
+    {
+      "path": "src/design-system/tokens/motion/reduced.tokens.json",
+      "sha256": "cb37c3bad85ac9de53977e5e404d96e586ed39f0550c4e4e4f791da953ce944d"
+    },
+    {
+      "path": "src/design-system/tokens/resolver.json",
+      "sha256": "3981fbfe1933458ebebdac6e12bd8125fa452463512de9db9ae2e54b3033af87"
+    },
+    {
+      "path": "src/design-system/tokens/semantic.tokens.json",
+      "sha256": "60b8da759a434b9d7f2c5e975917283d145c0212aaff000ef37af60e60de223f"
+    },
+    {
+      "path": "src/design-system/tokens/themes.tokens.json",
+      "sha256": "fbb14fb4c646e1722ea91205fdc5abb60e0b63d0b94219d6ce99180ed7fd776f"
+    },
+    {
+      "path": "src/design-system/tokens/themes/cashier-daylight.tokens.json",
+      "sha256": "663be77b3bc02bd3478a6eaf1dd0f23928f4c1a666e0b711c0f297bc95e5de53"
+    },
+    {
+      "path": "src/design-system/tokens/themes/midnight-clearing.tokens.json",
+      "sha256": "81824aec96a8520181329e62d144c3fe8f3d871ffebf5a3391dcb98545ebaf8d"
+    },
+    {
+      "path": "src/design-system/tokens/themes/pix-paper.tokens.json",
+      "sha256": "d8baf3cb2310b3f9c73a65d83174313a6c1ccfff589a837b428c492745cab3aa"
+    },
+    {
+      "path": "src/design-system/tokens/themes/settlement-sand.tokens.json",
+      "sha256": "04069e619e9735040b31a932dda910a6a4f188116fc80d213049565e202de4fb"
+    },
+    {
+      "path": "src/design-system/tokens/themes/terminal-amber.tokens.json",
+      "sha256": "ffd7928138303f2496e3c307b825e7d8b32bfe3e9e3de443b376f9cef5b77f56"
+    },
+    {
+      "path": "src/design-system/tokens/themes/vault-blue.tokens.json",
+      "sha256": "402c151e13b4620df0868e2b13d4eebd302b89495929b5a93e3e34d2fdcb658f"
+    },
+    {
+      "path": "tests/design-system.evidence.spec.ts",
+      "sha256": "6a289c4a012936098df2d455d75e69e59cbb32ef7b59fd034d85fb10867db989"
+    }
+  ],
+  "pngs": [
+    {
+      "path": "artifacts/design-system/20260803015559/design-system-pix-paper-320.png",
+      "bytes": 477526,
+      "sha256": "cc1ff825f8dde19a54ca20268db6cb5111b4928c2d60363dfd38c1e4d8e6bea4",
+      "mtimeMs": 1785722164353.4949
+    },
+    {
+      "path": "artifacts/design-system/20260803015559/design-system-pix-paper-375.png",
+      "bytes": 473769,
+      "sha256": "8a6064ff0617f969665fe7899d7e53bd7a23df7f847847f01d0979aba433221c",
+      "mtimeMs": 1785722168810.2056
+    },
+    {
+      "path": "artifacts/design-system/20260803015559/design-system-pix-paper-768.png",
+      "bytes": 468572,
+      "sha256": "b0ec8ead38fa82dc89af6f815845f606abb82c157849876aa02e8484d7c58700",
+      "mtimeMs": 1785722173562.209
+    },
+    {
+      "path": "artifacts/design-system/20260803015559/design-system-pix-paper-1440.png",
+      "bytes": 490533,
+      "sha256": "225aeefe67f052ad305b2df0b52482631e5dfa072a363c37f449ae2bfb2696cb",
+      "mtimeMs": 1785722178646.9697
+    },
+    {
+      "path": "artifacts/design-system/20260803015559/design-system-cashier-daylight-320.png",
+      "bytes": 475654,
+      "sha256": "3e7212085b64fc35168c3d8c79857a191ecd00d9649d9fa00bcc7d1b3580c0e3",
+      "mtimeMs": 1785722183573.685
+    },
+    {
+      "path": "artifacts/design-system/20260803015559/design-system-cashier-daylight-375.png",
+      "bytes": 472565,
+      "sha256": "7df865ca486bd6959752db6d542e314d509def55ac6828d02cf22e1e562ff3aa",
+      "mtimeMs": 1785722188463.7336
+    },
+    {
+      "path": "artifacts/design-system/20260803015559/design-system-cashier-daylight-768.png",
+      "bytes": 467784,
+      "sha256": "2268e15d2e612471ffbb49eeb8431f85110e6d9b6672880c0c1546fc907f2651",
+      "mtimeMs": 1785722193423.7827
+    },
+    {
+      "path": "artifacts/design-system/20260803015559/design-system-cashier-daylight-1440.png",
+      "bytes": 489810,
+      "sha256": "8eae8ec5909ea36177e23a5288779b12927015d7f1e607b17ab41ead88db652c",
+      "mtimeMs": 1785722198630.5007
+    },
+    {
+      "path": "artifacts/design-system/20260803015559/design-system-settlement-sand-320.png",
+      "bytes": 481333,
+      "sha256": "6362619a47607cbab4a4bc8a794e1e280306d1a8440068c56f70652c69eaf5e3",
+      "mtimeMs": 1785722203783.885
+    },
+    {
+      "path": "artifacts/design-system/20260803015559/design-system-settlement-sand-375.png",
+      "bytes": 476018,
+      "sha256": "d6536139bbe721b8684cb4b4a4dd8a7f90b64629703deee83990f4a3b923ce55",
+      "mtimeMs": 1785722208543.9321
+    },
+    {
+      "path": "artifacts/design-system/20260803015559/design-system-settlement-sand-768.png",
+      "bytes": 470062,
+      "sha256": "899cf10de724c429dabaebf4140024a1e40f171ef3b220fd8c4ada879bf72be2",
+      "mtimeMs": 1785722213370.6465
+    },
+    {
+      "path": "artifacts/design-system/20260803015559/design-system-settlement-sand-1440.png",
+      "bytes": 492034,
+      "sha256": "1d658a0fb702139267cb8f7d793722df314e019243190a57afe5b04fec0aab1c",
+      "mtimeMs": 1785722218447.3635
+    },
+    {
+      "path": "artifacts/design-system/20260803015559/design-system-midnight-clearing-320.png",
+      "bytes": 483480,
+      "sha256": "9e50fba7beadb265030fc74d7108b879e66484b3d22664aba0652505570e277c",
+      "mtimeMs": 1785722223617.4146
+    },
+    {
+      "path": "artifacts/design-system/20260803015559/design-system-midnight-clearing-375.png",
+      "bytes": 479361,
+      "sha256": "f76ba7af0d1763946a171903984267fae737a7bef8e4f7dc702939e973b8fd2c",
+      "mtimeMs": 1785722228527.4631
+    },
+    {
+      "path": "artifacts/design-system/20260803015559/design-system-midnight-clearing-768.png",
+      "bytes": 472826,
+      "sha256": "f627b873e573ff8b6d81f908699ae2a4a73375d16a6c8e4a4a215d37140c6aba",
+      "mtimeMs": 1785722233384.1777
+    },
+    {
+      "path": "artifacts/design-system/20260803015559/design-system-midnight-clearing-1440.png",
+      "bytes": 494686,
+      "sha256": "7d106d6c308046bfbd24a2eff3dca7ef47797b707b57e4f0be7050910c8d2e42",
+      "mtimeMs": 1785722238550.8953
+    },
+    {
+      "path": "artifacts/design-system/20260803015559/design-system-vault-blue-320.png",
+      "bytes": 482866,
+      "sha256": "173823a12f8eab0a5a6da5e7715dbb9280ab9cf511ef91d6db74cbcd1bf139fe",
+      "mtimeMs": 1785722243674.2793
+    },
+    {
+      "path": "artifacts/design-system/20260803015559/design-system-vault-blue-375.png",
+      "bytes": 478762,
+      "sha256": "69904033e422bc2f7d038ebe164049c209d36b2663b849f1c6b17ee9400a44ff",
+      "mtimeMs": 1785722248547.6606
+    },
+    {
+      "path": "artifacts/design-system/20260803015559/design-system-vault-blue-768.png",
+      "bytes": 472422,
+      "sha256": "17cd9bbf5e9dc99356eb4f0d9d81f7108d79e263a3f19856900ae533b6f614c6",
+      "mtimeMs": 1785722253897.7136
+    },
+    {
+      "path": "artifacts/design-system/20260803015559/design-system-vault-blue-1440.png",
+      "bytes": 494182,
+      "sha256": "d73f6fe312fd7f2537ca49726d441bbaabe359efdbdc9c662f042ca569566e2f",
+      "mtimeMs": 1785722259391.101
+    },
+    {
+      "path": "artifacts/design-system/20260803015559/design-system-terminal-amber-320.png",
+      "bytes": 484416,
+      "sha256": "2f7ab490065f37585789bfb31d57e8f5e1f25a3a1bd43d5816fd893fd9c88133",
+      "mtimeMs": 1785722264417.8174
+    },
+    {
+      "path": "artifacts/design-system/20260803015559/design-system-terminal-amber-375.png",
+      "bytes": 479394,
+      "sha256": "16f07ed6a749c032ff76942050ead05db7b313099efcc4be304ebf6c8ed2fbc1",
+      "mtimeMs": 1785722269444.5334
+    },
+    {
+      "path": "artifacts/design-system/20260803015559/design-system-terminal-amber-768.png",
+      "bytes": 473744,
+      "sha256": "4a03b16fc67e366cace301daffab72b1c4ad00047b586f88c5e72e4bcfbe63a8",
+      "mtimeMs": 1785722274791.253
+    },
+    {
+      "path": "artifacts/design-system/20260803015559/design-system-terminal-amber-1440.png",
+      "bytes": 495240,
+      "sha256": "4d3151939c7db795e1400e16efdbd1a7f805da95ef18d54abec6ba0e57564ac5",
+      "mtimeMs": 1785722280331.3076
+    }
+  ]
+}

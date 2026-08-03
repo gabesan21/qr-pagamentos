@@ -263,7 +263,9 @@ test("creates current token and typography evidence", async ({ page }) => {
           return {
             index: targetIndex,
             outlineWidth: Number.parseFloat(styles.outlineWidth),
+            outlineColor: styles.outlineColor,
             ringVisible: styles.boxShadow !== "none",
+            ringColor: styles.getPropertyValue("--tw-ring-color").trim(),
             visible: rectangle.width > 0 && rectangle.height > 0 && rectangle.bottom > 0 && rectangle.top < window.innerHeight,
             focusVisible: element.matches(":focus-visible"),
           };
@@ -309,6 +311,20 @@ test("creates current token and typography evidence", async ({ page }) => {
           const [lighter, darker] = [luminance(foreground), luminance(background)].sort((a, b) => b - a);
           return (lighter + 0.05) / (darker + 0.05);
         };
+        const composite = (foreground: string, background: string) => {
+          const canvas = document.createElement("canvas");
+          const context = canvas.getContext("2d");
+          if (!context) throw new Error("Canvas context is required for focus compositing.");
+          context.fillStyle = foreground;
+          context.fillRect(0, 0, 1, 1);
+          const [red, green, blue, alpha] = context.getImageData(0, 0, 1, 1).data;
+          context.clearRect(0, 0, 1, 1);
+          context.fillStyle = background;
+          context.fillRect(0, 0, 1, 1);
+          const [backgroundRed, backgroundGreen, backgroundBlue] = context.getImageData(0, 0, 1, 1).data;
+          const opacity = alpha / 255;
+          return `rgb(${Math.round(red * opacity + backgroundRed * (1 - opacity))}, ${Math.round(green * opacity + backgroundGreen * (1 - opacity))}, ${Math.round(blue * opacity + backgroundBlue * (1 - opacity))})`;
+        };
         const hits = selectors("[data-ds-hit-target]");
         const statuses = selectors("[data-ds-status]");
         const prose = selectors("[data-ds-prose]");
@@ -328,6 +344,7 @@ test("creates current token and typography evidence", async ({ page }) => {
         const wideRenderer = readyDirectory?.querySelector<HTMLElement>(".md\\:block");
         const narrowRenderer = readyDirectory?.querySelector<HTMLElement>(".md\\:hidden");
         const bodyBackground = bodyStyles.backgroundColor;
+        const focusRing = normalizeThemeToken("color-focus-ring", rootStyles.getPropertyValue("--ring").trim());
         return {
           themeTokens: Object.fromEntries(variables.map((variable) => [variable, normalizeThemeToken(variable, rootStyles.getPropertyValue(`--${variable}`).trim())])),
           expectedThemeTokens: Object.fromEntries(Object.entries(expectedThemeTokens).map(([variable, value]) => [variable, normalizeThemeToken(variable, value)])),
@@ -346,6 +363,11 @@ test("creates current token and typography evidence", async ({ page }) => {
             tertiaryText: contrast(rootStyles.getPropertyValue("--color-text-tertiary"), bodyBackground),
             action: contrast(rootStyles.getPropertyValue("--color-action-foreground"), rootStyles.getPropertyValue("--color-action-accent")),
           },
+          focusContrast: Object.fromEntries(["page", "raised", "secondary"].map((surface) => {
+            const background = rootStyles.getPropertyValue(`--color-surface-${surface}`).trim();
+            return [surface, contrast(composite(focusRing, background), background)];
+          })),
+          focusRing,
           overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
           hitTargets: hits.map((element) => ({ width: element.getBoundingClientRect().width, height: element.getBoundingClientRect().height })),
           primaryActions: selectors("[data-ds-section]").map((section) => section.querySelectorAll('[data-slot=button][data-variant="default"]').length),
@@ -397,6 +419,11 @@ test("creates current token and typography evidence", async ({ page }) => {
       expect(measured.semanticContrast.primaryText).toBeGreaterThanOrEqual(4.5);
       expect(measured.semanticContrast.tertiaryText).toBeGreaterThanOrEqual(4.5);
       expect(measured.semanticContrast.action).toBeGreaterThanOrEqual(4.5);
+      expect(measured.focusRing).toBe(measured.themeTokens["color-focus-ring"]);
+      expect(Object.values(measured.focusContrast).every((ratio) => ratio >= 3)).toBe(true);
+      expect(focusTraversal.every(({ outlineWidth, outlineColor, ringColor }) => (
+        outlineWidth >= 2 ? outlineColor === measured.focusRing : ringColor === measured.focusRing
+      ))).toBe(true);
       expect(measured.overflow).toBe(false);
       expect(measured.hitTargets.length).toBeGreaterThan(0);
       expect(measured.hitTargets.every(({ width: targetWidth, height }) => targetWidth >= 44 && height >= 44)).toBe(true);

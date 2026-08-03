@@ -103,8 +103,10 @@ for (const result of assertions) {
   assert(JSON.stringify(result.reducedMotion) === JSON.stringify({ duration: ".01ms", iteration: "1", animationDuration: "1e-05s", animationIterationCount: "1" }), `Reduced-motion contract failed at ${context}.`);
   assert(result.measured?.overflow === false, `Horizontal overflow found at ${context}.`);
   assert(result.measured?.semanticContrast?.primaryText >= 4.5 && result.measured?.semanticContrast?.tertiaryText >= 4.5 && result.measured?.semanticContrast?.action >= 4.5, `Semantic contrast failed at ${context}.`);
+  assert(result.measured?.focusRing === result.measured?.themeTokens?.["color-focus-ring"], `Focus semantic token mismatch at ${context}.`);
+  assert(Object.values(result.measured?.focusContrast ?? {}).length === 3 && Object.values(result.measured.focusContrast).every((ratio) => ratio >= 3), `Composited focus contrast failed at ${context}.`);
   assert(result.severeAxe?.length === 0, `Serious/critical axe finding at ${context}.`);
-  assert(result.focusTraversal?.length > 0 && result.focusTraversal.every(({ focusVisible, visible, outlineWidth, ringVisible }) => focusVisible && visible && (outlineWidth >= 2 || ringVisible)), `Keyboard focus evidence failed at ${context}.`);
+  assert(result.focusTraversal?.length > 0 && result.focusTraversal.every(({ focusVisible, visible, outlineWidth, outlineColor, ringVisible, ringColor }) => focusVisible && visible && (outlineWidth >= 2 || ringVisible) && (outlineWidth >= 2 ? outlineColor === result.measured.focusRing : ringColor === result.measured.focusRing)), `Keyboard focus evidence failed at ${context}.`);
 }
 
 const expectedTokenPaths = await tokenPaths();
