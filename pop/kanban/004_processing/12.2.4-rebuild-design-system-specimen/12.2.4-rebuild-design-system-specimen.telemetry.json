@@ -35,6 +35,17 @@
       "test_seconds": 0,
       "return_kind": null,
       "result": "advanced"
+    },
+    {
+      "at": "2026-08-03T14:15:00-03:00",
+      "event": "front_result",
+      "front": "F01",
+      "contexts": [
+        "exec_12_2_4_f01"
+      ],
+      "test_seconds": 0,
+      "return_kind": null,
+      "result": "closed_specimen_20_owners_23_primitives_101_applicable_states_72_explicit_na"
     }
   ]
 }
