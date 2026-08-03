@@ -55,4 +55,12 @@ describe("design-system closed coverage map", () => {
     expect(source).toContain('className="flex flex-wrap items-center gap-4"');
     expect(source).toContain("dictionary.designSystemDanger");
   });
+
+  it("keeps long specimen-only controls contained without clipping the page", () => {
+    const source = readFileSync(new URL("./interactive-specimens.tsx", import.meta.url), "utf8");
+    expect(source).toContain('className="min-w-0 max-w-full p-0 [&_button]:max-w-full"');
+    expect(source).toContain("[&_[role=tablist]]:flex-wrap");
+    expect(source).toContain("[&_button]:whitespace-normal");
+    expect(source).not.toContain("overflow-hidden");
+  });
 });
