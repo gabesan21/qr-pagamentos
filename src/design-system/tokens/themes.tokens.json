@@ -1837,6 +1837,16 @@
             "$type": "color",
             "$value": { "colorSpace": "srgb", "components": [0.16862745098, 0.423529411765, 0.690196078431], "hex": "#2b6cb0" },
             "$extensions": { "com.qr-pagamentos.contrast": { "interpolationStep": 0 } }
+          },
+          "action-hover": {
+            "$type": "color",
+            "$value": { "colorSpace": "srgb", "components": [0.141176470588, 0.764705882353, 0.670588235294], "hex": "#24c3ab" },
+            "$extensions": { "com.qr-pagamentos.action-progression": { "space": "oklch", "from": "color.primitive.audit.template.pix-paper.accent", "direction": "lighter", "state": "hover" } }
+          },
+          "action-active": {
+            "$type": "color",
+            "$value": { "colorSpace": "srgb", "components": [0.219607843137, 0.811764705882, 0.713725490196], "hex": "#38cfb6" },
+            "$extensions": { "com.qr-pagamentos.action-progression": { "space": "oklch", "from": "color.primitive.audit.template.pix-paper.accent", "direction": "lighter", "state": "active" } }
           }
         },
         "cashier-daylight": {
@@ -1881,6 +1891,16 @@
             "$type": "color",
             "$value": { "colorSpace": "srgb", "components": [0.011764705882, 0.411764705882, 0.63137254902], "hex": "#0369a1" },
             "$extensions": { "com.qr-pagamentos.contrast": { "interpolationStep": 0 } }
+          },
+          "action-hover": {
+            "$type": "color",
+            "$value": { "colorSpace": "srgb", "components": [0.101960784314, 0.282352941176, 0.847058823529], "hex": "#1a48d8" },
+            "$extensions": { "com.qr-pagamentos.action-progression": { "space": "oklch", "from": "color.primitive.audit.template.cashier-daylight.accent", "direction": "darker", "state": "hover" } }
+          },
+          "action-active": {
+            "$type": "color",
+            "$value": { "colorSpace": "srgb", "components": [0.062745098039, 0.227450980392, 0.792156862745], "hex": "#103aca" },
+            "$extensions": { "com.qr-pagamentos.action-progression": { "space": "oklch", "from": "color.primitive.audit.template.cashier-daylight.accent", "direction": "darker", "state": "active" } }
           }
         },
         "settlement-sand": {
@@ -1925,6 +1945,16 @@
             "$type": "color",
             "$value": { "colorSpace": "srgb", "components": [0.192156862745, 0.360784313725, 0.549019607843], "hex": "#315c8c" },
             "$extensions": { "com.qr-pagamentos.contrast": { "interpolationStep": 0 } }
+          },
+          "action-hover": {
+            "$type": "color",
+            "$value": { "colorSpace": "srgb", "components": [0.61568627451, 0.317647058824, 0.058823529412], "hex": "#9d510f" },
+            "$extensions": { "com.qr-pagamentos.action-progression": { "space": "oklch", "from": "color.primitive.audit.template.settlement-sand.accent", "direction": "darker", "state": "hover" } }
+          },
+          "action-active": {
+            "$type": "color",
+            "$value": { "colorSpace": "srgb", "components": [0.564705882353, 0.278431372549, 0], "hex": "#904700" },
+            "$extensions": { "com.qr-pagamentos.action-progression": { "space": "oklch", "from": "color.primitive.audit.template.settlement-sand.accent", "direction": "darker", "state": "active" } }
           }
         },
         "midnight-clearing": {
@@ -1969,6 +1999,16 @@
             "$type": "color",
             "$value": { "colorSpace": "srgb", "components": [0.376470588235, 0.647058823529, 0.980392156863], "hex": "#60a5fa" },
             "$extensions": { "com.qr-pagamentos.contrast": { "interpolationStep": 0 } }
+          },
+          "action-hover": {
+            "$type": "color",
+            "$value": { "colorSpace": "srgb", "components": [0.427450980392, 0.96862745098, 0.882352941176], "hex": "#6df7e1" },
+            "$extensions": { "com.qr-pagamentos.action-progression": { "space": "oklch", "from": "color.primitive.audit.template.midnight-clearing.accent", "direction": "lighter", "state": "hover" } }
+          },
+          "action-active": {
+            "$type": "color",
+            "$value": { "colorSpace": "srgb", "components": [0.619607843137, 1, 0.929411764706], "hex": "#9effed" },
+            "$extensions": { "com.qr-pagamentos.action-progression": { "space": "oklch", "from": "color.primitive.audit.template.midnight-clearing.accent", "direction": "lighter", "state": "active" } }
           }
         },
         "vault-blue": {
@@ -2013,6 +2053,16 @@
             "$type": "color",
             "$value": { "colorSpace": "srgb", "components": [0.478431372549, 0.658823529412, 1], "hex": "#7aa8ff" },
             "$extensions": { "com.qr-pagamentos.contrast": { "interpolationStep": 0 } }
+          },
+          "action-hover": {
+            "$type": "color",
+            "$value": { "colorSpace": "srgb", "components": [0.392156862745, 0.607843137255, 1], "hex": "#649bff" },
+            "$extensions": { "com.qr-pagamentos.action-progression": { "space": "oklch", "from": "color.primitive.audit.template.vault-blue.accent", "direction": "lighter", "state": "hover" } }
+          },
+          "action-active": {
+            "$type": "color",
+            "$value": { "colorSpace": "srgb", "components": [0.474509803922, 0.662745098039, 1], "hex": "#79a9ff" },
+            "$extensions": { "com.qr-pagamentos.action-progression": { "space": "oklch", "from": "color.primitive.audit.template.vault-blue.accent", "direction": "lighter", "state": "active" } }
           }
         },
         "terminal-amber": {
@@ -2057,6 +2107,16 @@
             "$type": "color",
             "$value": { "colorSpace": "srgb", "components": [0.909803921569, 0.690196078431, 0.294117647059], "hex": "#e8b04b" },
             "$extensions": { "com.qr-pagamentos.contrast": { "interpolationStep": 0 } }
+          },
+          "action-hover": {
+            "$type": "color",
+            "$value": { "colorSpace": "srgb", "components": [1, 0.76862745098, 0.427450980392], "hex": "#ffc46d" },
+            "$extensions": { "com.qr-pagamentos.action-progression": { "space": "oklch", "from": "color.primitive.audit.template.terminal-amber.accent", "direction": "lighter", "state": "hover" } }
+          },
+          "action-active": {
+            "$type": "color",
+            "$value": { "colorSpace": "srgb", "components": [1, 0.839215686275, 0.607843137255], "hex": "#ffd69b" },
+            "$extensions": { "com.qr-pagamentos.action-progression": { "space": "oklch", "from": "color.primitive.audit.template.terminal-amber.accent", "direction": "lighter", "state": "active" } }
           }
         }
       }

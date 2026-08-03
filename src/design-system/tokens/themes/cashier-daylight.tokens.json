@@ -35,6 +35,18 @@
         "$type": "color",
         "$value": "{color.primitive.audit.template.cashier-daylight.accent}"
       },
+      "action-default": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.cashier-daylight.accent}"
+      },
+      "action-hover": {
+        "$type": "color",
+        "$value": "{color.primitive.accessibility.cashier-daylight.action-hover}"
+      },
+      "action-active": {
+        "$type": "color",
+        "$value": "{color.primitive.accessibility.cashier-daylight.action-active}"
+      },
       "accent-audit-foreground": {
         "$type": "color",
         "$value": "{color.primitive.audit.template.cashier-daylight.accent-fg}"

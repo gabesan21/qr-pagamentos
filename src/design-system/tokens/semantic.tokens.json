@@ -32,8 +32,17 @@
     },
     "action": {
       "$type": "color",
+      "default": {
+        "$value": "{theme.color.action-default}"
+      },
+      "hover": {
+        "$value": "{theme.color.action-hover}"
+      },
+      "active": {
+        "$value": "{theme.color.action-active}"
+      },
       "accent": {
-        "$value": "{theme.color.accent}"
+        "$value": "{color.action.default}"
       },
       "foreground": {
         "$value": "{theme.color.action-foreground}"
