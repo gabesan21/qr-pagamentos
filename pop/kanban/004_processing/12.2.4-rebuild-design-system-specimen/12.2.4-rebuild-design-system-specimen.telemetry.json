@@ -118,6 +118,18 @@
       "test_seconds": 0,
       "return_kind": null,
       "result": "advanced"
+    },
+    {
+      "at": "2026-08-03T14:30:02-03:00",
+      "event": "transition",
+      "from": "005_closing",
+      "to": "004_processing",
+      "contexts": [
+        "critic_12_2_4_r1"
+      ],
+      "test_seconds": 0,
+      "return_kind": "execucao",
+      "result": "returned"
     }
   ]
 }
