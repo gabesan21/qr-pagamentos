@@ -79,10 +79,16 @@ independent failures and cannot be waived by the raster ratio.
 ## Regeneration and validation
 
 The F02 checker consumes this schema and must fail closed on missing, stale,
-duplicate, invalid, generic, or source-divergent records. Refresh only the three
-source-derived semantic record families with
+duplicate, invalid, generic, or source-divergent records. The canonical refresh
+regenerates only the three source-derived semantic record families and refreshes
+only `source.path` and `source.sha256` for the current-route inventory with
 `node scripts/check-frontend-template-parity-contract.mjs --refresh-semantic-contract`;
-this preserves all other contract records and recomputes the NDJSON binding.
+current routes prefer exact `path` + `route` + `routeKind` identity and may fall
+back only to one unambiguous `route` + `routeKind` match. Missing, duplicate,
+ambiguous, reused, or unmatched mappings abort before writing. The refresh also
+asserts stable record count, IDs, targets, owners, dispositions, reasons, and
+evidence; all other record families remain byte-equivalent, and only the
+manifest obligation binding changes.
 Then validate the canonical contract with `pnpm frontend-parity:check`. Do not
 hand-edit the manifest or obligation records. The disposable negative suite is
 `node scripts/check-frontend-template-parity-contract.mjs --semantic-mutation-probes`;
