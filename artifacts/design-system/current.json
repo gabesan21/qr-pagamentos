@@ -1,5 +1,6 @@
 {
-  "runId": "20260729012804",
-  "startedAt": "2026-07-29T01:28:04.746Z",
-  "manifest": "artifacts/design-system/20260729012804/manifest.json"
+  "runId": "20260803010240",
+  "startedAt": "2026-08-03T01:02:40.460Z",
+  "manifest": "artifacts/design-system/20260803010240/manifest.json",
+  "manifestSha256": "beaed702d5891a707c4a63246bc3672f0b5154c8a6d6aa28db1b17c06a0d4c99"
 }
