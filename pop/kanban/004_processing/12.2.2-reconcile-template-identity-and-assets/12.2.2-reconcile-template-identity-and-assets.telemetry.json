@@ -94,6 +94,16 @@
       "test_seconds": 0,
       "return_kind": "execucao",
       "result": "returned"
+    },
+    {
+      "at": "2026-08-03T01:01:21-03:00",
+      "event": "stage",
+      "stage": "004_processing",
+      "contexts": [
+        "/root/exec_12_2_2_f03"
+      ],
+      "test_seconds": 43.0,
+      "result": "r1 delta fixed: full Sora wordmark proof, 14/14 probes, run 20260803035710, pnpm check green"
     }
   ]
 }
