@@ -46,6 +46,18 @@
       "test_seconds": 0,
       "return_kind": null,
       "result": "closed_specimen_20_owners_23_primitives_101_applicable_states_72_explicit_na"
+    },
+    {
+      "at": "2026-08-03T12:31:51-03:00",
+      "event": "transition",
+      "from": "004_processing",
+      "to": "002_planning",
+      "contexts": [
+        "exec_12_2_4_f02"
+      ],
+      "test_seconds": 0,
+      "return_kind": null,
+      "result": "advanced"
     }
   ]
 }
