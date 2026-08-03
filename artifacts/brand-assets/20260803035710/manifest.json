@@ -1,8 +1,8 @@
 {
-  "schemaVersion": 1,
-  "runId": "20260803032854",
-  "startedAt": "2026-08-03T03:28:54.524Z",
-  "finishedAt": "2026-08-03T03:29:02.086Z",
+  "schemaVersion": 2,
+  "runId": "20260803035710",
+  "startedAt": "2026-08-03T03:57:10.527Z",
+  "finishedAt": "2026-08-03T03:57:18.302Z",
   "matrix": {
     "widths": [
       320,
@@ -26,8 +26,25 @@
   "rasterPolicy": {
     "threshold": 0.1,
     "maxDifferingPixelRatio": 0.001,
-    "logoMask": "left 32x32 canonical QR geometry; wordmark outline checked structurally",
+    "logoComparison": "full 160x32 pinned Sora target: exact QR threshold plus complete x=40..159 wordmark geometry",
+    "wordmarkDerivationTolerance": {
+      "radius": 2,
+      "maxUnmatchedRatio": 0.12,
+      "inkRatio": [
+        0.75,
+        1.3
+      ],
+      "maxBoundingBoxDelta": 2
+    },
     "faviconMask": "canonical QR raster checked by exact frame hash/dimensions and displayed at native/128px sizes"
+  },
+  "fontSource": {
+    "path": "node_modules/@fontsource/sora/files/sora-latin-700-normal.woff2",
+    "package": "@fontsource/sora",
+    "version": "5.3.0",
+    "file": "files/sora-latin-700-normal.woff2",
+    "sha256": "c3337a673c9bbbfe433091d3831714dd9a257951f16f41eb3fc650ec593cfac2",
+    "loaded": true
   },
   "browser": {
     "name": "chromium",
@@ -46,32 +63,32 @@
   },
   "screenshots": [
     {
-      "path": "artifacts/brand-assets/20260803032854/brand-assets-320.png",
+      "path": "artifacts/brand-assets/20260803035710/brand-assets-320.png",
       "width": 320,
-      "height": 9198,
-      "bytes": 344298,
-      "sha256": "41701da62a76cfa0d765f3ab3513c5682c37dc17eef81b5d3a17586e84edc873"
+      "height": 9182,
+      "bytes": 345061,
+      "sha256": "5eeead133b6330252db2bee92038bf9292bebaa00cdb26de81259de62e786f04"
     },
     {
-      "path": "artifacts/brand-assets/20260803032854/brand-assets-375.png",
+      "path": "artifacts/brand-assets/20260803035710/brand-assets-375.png",
       "width": 375,
-      "height": 6710,
-      "bytes": 323210,
-      "sha256": "652d7242f849749fa5b5b8c4589d5de5fb2de50599f9ba9b34627abe6c8c82da"
+      "height": 6694,
+      "bytes": 324128,
+      "sha256": "af3b1735ade56595930b88c95e41366e95e1bade2855ae199fdf37307bba24ae"
     },
     {
-      "path": "artifacts/brand-assets/20260803032854/brand-assets-768.png",
+      "path": "artifacts/brand-assets/20260803035710/brand-assets-768.png",
       "width": 768,
-      "height": 3312,
-      "bytes": 266230,
-      "sha256": "e94feb5cbf075e8a8720ec2199822e1c29d83ccceff3f5ec4b4d0fcc2dc81b9a"
+      "height": 3296,
+      "bytes": 267232,
+      "sha256": "54f34afea1161112b32b1bf8371c6984bdf7d6851bf3c9785e53f6034d8435f3"
     },
     {
-      "path": "artifacts/brand-assets/20260803032854/brand-assets-1440.png",
+      "path": "artifacts/brand-assets/20260803035710/brand-assets-1440.png",
       "width": 1440,
-      "height": 2210,
-      "bytes": 261401,
-      "sha256": "a6b13c2033a5e94a5e1b3424e0c6faa2b88935163aed0782669d4d43f8e9b710"
+      "height": 2194,
+      "bytes": 262183,
+      "sha256": "9ece2f3535142abc6fc9ed0ce4718142e0ae982e2a5cfa76f473c64b5763531e"
     }
   ],
   "comparisons": [
@@ -237,24 +254,67 @@
     },
     {
       "parityId": "asset:3510a147f97bf807",
-      "mode": "approved-left-32x32-qr-mask",
-      "structuralWordmark": "outlined/no-live-text-or-font",
-      "comparedWidth": 32,
-      "height": 32,
-      "differingPixels": 0,
-      "differingPixelRatio": 0,
-      "maximumChannelDelta": 0,
-      "passed": true
+      "mode": "full-pinned-sora-target-vs-outlined-derivative",
+      "fontLoaded": true,
+      "fontSha256": "c3337a673c9bbbfe433091d3831714dd9a257951f16f41eb3fc650ec593cfac2",
+      "qr": {
+        "comparedWidth": 32,
+        "height": 32,
+        "differingPixels": 0,
+        "differingPixelRatio": 0,
+        "maximumChannelDelta": 0,
+        "passed": true
+      },
+      "wordmark": {
+        "crop": {
+          "left": 40,
+          "top": 0,
+          "width": 120,
+          "height": 32
+        },
+        "policy": {
+          "radius": 2,
+          "maxUnmatchedRatio": 0.12,
+          "minInkRatio": 0.75,
+          "maxInkRatio": 1.3,
+          "maxBoundingBoxDelta": 2
+        },
+        "sourceInk": 856,
+        "outputInk": 870,
+        "inkRatio": 1.016355140186916,
+        "sourceBox": {
+          "left": 0,
+          "right": 119,
+          "top": 10,
+          "bottom": 25
+        },
+        "outputBox": {
+          "left": 0,
+          "right": 119,
+          "top": 9,
+          "bottom": 24
+        },
+        "boundingBoxDelta": {
+          "left": 0,
+          "right": 0,
+          "top": 1,
+          "bottom": 1
+        },
+        "sourceUnmatchedRatio": 0,
+        "outputUnmatchedRatio": 0,
+        "passed": true
+      },
+      "structuralWordmark": "outlined/no-live-text-or-font"
     }
   ],
   "assertions": {
-    "path": "artifacts/brand-assets/20260803032854/assertions.json",
-    "sha256": "08aa5afc1da7215eee58efce290417824801b73c1aaee8081073eee83801a033"
+    "path": "artifacts/brand-assets/20260803035710/assertions.json",
+    "sha256": "debf5fccc20054426cdc3b2b1f8bd33b291f60e93fd705c03c4fda998c22de0d"
   },
   "mutationProbes": {
-    "path": "artifacts/brand-assets/20260803032854/mutation-probes.json",
-    "sha256": "49c61779c4bf9e4dd949c17c7ebb409991bfcf12f62969afbc28e20dd379b3f7",
-    "count": 13
+    "path": "artifacts/brand-assets/20260803035710/mutation-probes.json",
+    "sha256": "93e43a7aea9fc2d559c1384cc52247d9ba827a5a3f60998e533a9430111b2a37",
+    "count": 14
   },
   "sources": [
     {
@@ -439,7 +499,7 @@
     },
     {
       "path": "scripts/verify-brand-assets-evidence.mjs",
-      "sha256": "61e491d7c44b94e872ffb88ff932cd9a19f72e037a76e88dc5bb0434022b5029"
+      "sha256": "2e563abb19829d932654b0faa6caf61fb000e7d9aa1893d2467b79573cf51f12"
     },
     {
       "path": "src/app/favicon.ico",
@@ -455,7 +515,7 @@
     },
     {
       "path": "tests/brand-assets.evidence.spec.ts",
-      "sha256": "f9dc9819919209eb15b5027beadfcd57971fc00853e930361ad78cd35dd6d8da"
+      "sha256": "947150e8e9df5800d825b9b26e1490955ed4d44d229c8ef651fe3cd7a4fb9af2"
     }
   ]
 }

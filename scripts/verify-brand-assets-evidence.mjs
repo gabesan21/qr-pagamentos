@@ -102,7 +102,7 @@ async function main() {
   const manifestBytes = await readFile(join(root, current.manifest));
   assert(hash(manifestBytes) === current.manifestSha256, "Current brand-assets manifest hash mismatch.");
   const manifest = JSON.parse(manifestBytes);
-  assert(manifest.schemaVersion === 1 && manifest.runId === current.runId &&
+  assert(manifest.schemaVersion === 2 && manifest.runId === current.runId &&
     manifest.startedAt === current.startedAt, "Brand-assets manifest identity is incoherent.");
   assert(JSON.stringify(manifest.matrix?.widths) === JSON.stringify(expectedWidths) &&
     manifest.matrix?.captures === 4, "Brand-assets viewport matrix is incomplete.");
@@ -112,11 +112,23 @@ async function main() {
   "Brand-assets coverage counts are incomplete.");
   assert(manifest.rasterPolicy?.threshold === 0.1 && manifest.rasterPolicy?.maxDifferingPixelRatio === 0.001,
     "Brand-assets raster policy drifted.");
-  assert(manifest.rasterPolicy?.logoMask === "left 32x32 canonical QR geometry; wordmark outline checked structurally",
-    "Logo derivation mask is not explicit.");
+  assert(manifest.rasterPolicy?.logoComparison ===
+    "full 160x32 pinned Sora target: exact QR threshold plus complete x=40..159 wordmark geometry",
+  "Complete logo derivation comparison is not explicit.");
+  assert(JSON.stringify(manifest.rasterPolicy?.wordmarkDerivationTolerance) === JSON.stringify({
+    radius: 2, maxUnmatchedRatio: 0.12, inkRatio: [0.75, 1.3], maxBoundingBoxDelta: 2,
+  }), "Wordmark derivation tolerance drifted.");
 
   const brandManifest = await parse(join(root, "src/brand/assets.manifest.json"));
   await verifyIntegratedInventory(brandManifest);
+  const pinnedFont = brandManifest.provenance.wordmark.packageSource;
+  const expectedFontPath = `node_modules/${pinnedFont.package}/${pinnedFont.file}`;
+  assert(JSON.stringify(manifest.fontSource) === JSON.stringify({
+    path: expectedFontPath, package: pinnedFont.package, version: pinnedFont.version,
+    file: pinnedFont.file, sha256: pinnedFont.sha256, loaded: true,
+  }), "Pinned Sora evidence source binding drifted.");
+  assert(hash(await readFile(join(root, expectedFontPath))) === pinnedFont.sha256,
+    "Pinned Sora evidence bytes drifted.");
 
   const expectedScreenshots = expectedWidths.map((width) =>
     `artifacts/brand-assets/${current.runId}/brand-assets-${width}.png`).sort();
@@ -144,11 +156,20 @@ async function main() {
     assert(result.overflow === false && result.externalRequests.length === 0 &&
       result.consoleErrors.length === 0 && result.pageErrors.length === 0,
     `Browser isolation/overflow failed at ${result.width}px.`);
-    assert(result.seriousAxe.length === 0 && result.imagesReady === true,
+    assert(result.seriousAxe.length === 0 && result.imagesReady === true && result.sora700Loaded === true,
       `Accessibility/image readiness failed at ${result.width}px.`);
   }
-  assert(manifest.comparisons.length === 17 && manifest.comparisons.every(({ differingPixelRatio, passed }) =>
-    passed === true && differingPixelRatio <= 0.001), "Source/output raster comparison failed.");
+  const directComparisons = manifest.comparisons.filter(({ mode }) => mode === "full-raster");
+  assert(directComparisons.length === 16 && directComparisons.every(({ differingPixelRatio, passed }) =>
+    passed === true && differingPixelRatio <= 0.001), "Direct source/output raster comparison failed.");
+  const logoComparison = manifest.comparisons.find(({ mode }) =>
+    mode === "full-pinned-sora-target-vs-outlined-derivative");
+  assert(manifest.comparisons.length === 17 && logoComparison?.fontLoaded === true &&
+    logoComparison.fontSha256 === pinnedFont.sha256 && logoComparison.qr?.passed === true &&
+    logoComparison.qr?.differingPixelRatio <= 0.001 && logoComparison.wordmark?.passed === true &&
+    JSON.stringify(logoComparison.wordmark?.crop) === JSON.stringify({ left: 40, top: 0, width: 120, height: 32 }) &&
+    logoComparison.structuralWordmark === "outlined/no-live-text-or-font",
+  "Complete pinned-Sora target/outline comparison failed.");
 
   const probesBytes = await readFile(join(root, manifest.mutationProbes.path));
   assert(hash(probesBytes) === manifest.mutationProbes.sha256, "Mutation-probe hash mismatch.");
@@ -157,6 +178,7 @@ async function main() {
     "missing-asset", "stale-asset", "unknown-asset", "altered-source-hash",
     "altered-output-hash", "wrong-viewbox", "wrong-favicon-frame", "wrong-theme-id",
     "duplicate-bytes", "unsafe-svg", "live-text-font", "absent-grant", "merchant-media-classification",
+    "altered-wordmark-geometry",
   ];
   assert(JSON.stringify(probes.map(({ id }) => id).sort()) === JSON.stringify(requiredProbes.sort()) &&
     probes.every(({ failedClosed }) => failedClosed === true), "Mutation probes are incomplete or did not fail closed.");

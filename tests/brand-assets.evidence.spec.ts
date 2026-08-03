@@ -45,7 +45,14 @@ type DerivativeRecord = {
 };
 
 type BrandManifest = {
-  provenance: { projectUseAuthorized: boolean };
+  provenance: {
+    projectUseAuthorized: boolean;
+    wordmark: {
+      family: string;
+      weight: number;
+      packageSource: { package: string; version: string; file: string; sha256: string };
+    };
+  };
   usage: { mediaBoundary: string };
   sources: SourceRecord[];
   derivatives: DerivativeRecord[];
@@ -152,6 +159,63 @@ async function compareRaster(source: Buffer, output: Buffer, maskWidth?: number)
     passed: differingPixelRatio <= maxDifferingPixelRatio };
 }
 
+async function compareWordmarkGeometry(source: Buffer, output: Buffer) {
+  const crop = { left: 40, top: 0, width: 120, height: 32 };
+  const [sourceRaw, outputRaw] = await Promise.all([
+    sharp(source).extract(crop).ensureAlpha().raw().toBuffer(),
+    sharp(output).extract(crop).ensureAlpha().raw().toBuffer(),
+  ]);
+  const inkMask = (raw: Buffer) => Array.from({ length: crop.width * crop.height }, (_, index) => {
+    const offset = index * 4;
+    return raw[offset + 3] > 0 && Math.min(raw[offset], raw[offset + 1], raw[offset + 2]) < 240;
+  });
+  const sourceMask = inkMask(sourceRaw);
+  const outputMask = inkMask(outputRaw);
+  const inkCount = (mask: boolean[]) => mask.reduce((count, ink) => count + Number(ink), 0);
+  const boundingBox = (mask: boolean[]) => {
+    const points = mask.flatMap((ink, index) => ink ? [{ x: index % crop.width, y: Math.floor(index / crop.width) }] : []);
+    if (points.length === 0) throw new Error("Wordmark raster contains no ink.");
+    return {
+      left: Math.min(...points.map(({ x }) => x)), right: Math.max(...points.map(({ x }) => x)),
+      top: Math.min(...points.map(({ y }) => y)), bottom: Math.max(...points.map(({ y }) => y)),
+    };
+  };
+  const hasNeighbor = (mask: boolean[], x: number, y: number, radius: number) => {
+    for (let candidateY = Math.max(0, y - radius); candidateY <= Math.min(crop.height - 1, y + radius); candidateY += 1) {
+      for (let candidateX = Math.max(0, x - radius); candidateX <= Math.min(crop.width - 1, x + radius); candidateX += 1) {
+        if (mask[candidateY * crop.width + candidateX]) return true;
+      }
+    }
+    return false;
+  };
+  const unmatchedRatio = (subject: boolean[], reference: boolean[], radius: number) => {
+    let ink = 0;
+    let unmatched = 0;
+    subject.forEach((active, index) => {
+      if (!active) return;
+      ink += 1;
+      if (!hasNeighbor(reference, index % crop.width, Math.floor(index / crop.width), radius)) unmatched += 1;
+    });
+    return unmatched / ink;
+  };
+  const sourceInk = inkCount(sourceMask);
+  const outputInk = inkCount(outputMask);
+  const sourceBox = boundingBox(sourceMask);
+  const outputBox = boundingBox(outputMask);
+  const radius = 2;
+  const sourceUnmatchedRatio = unmatchedRatio(sourceMask, outputMask, radius);
+  const outputUnmatchedRatio = unmatchedRatio(outputMask, sourceMask, radius);
+  const inkRatio = outputInk / sourceInk;
+  const boundingBoxDelta = Object.fromEntries(Object.keys(sourceBox).map((edge) => [edge,
+    Math.abs(sourceBox[edge as keyof typeof sourceBox] - outputBox[edge as keyof typeof outputBox])])) as Record<string, number>;
+  const policy = { radius, maxUnmatchedRatio: 0.12, minInkRatio: 0.75, maxInkRatio: 1.3, maxBoundingBoxDelta: 2 };
+  const passed = sourceUnmatchedRatio <= policy.maxUnmatchedRatio && outputUnmatchedRatio <= policy.maxUnmatchedRatio &&
+    inkRatio >= policy.minInkRatio && inkRatio <= policy.maxInkRatio &&
+    Object.values(boundingBoxDelta).every((delta) => delta <= policy.maxBoundingBoxDelta);
+  return { crop, policy, sourceInk, outputInk, inkRatio, sourceBox, outputBox, boundingBoxDelta,
+    sourceUnmatchedRatio, outputUnmatchedRatio, passed };
+}
+
 function applicationCard(sourceRecord: SourceRecord, derivative: DerivativeRecord, sourceData: Buffer, output: Buffer) {
   const informative = derivative.accessibilityMode !== "decorative";
   const alt = informative ? `Application-owned ${derivative.role} preview` : "";
@@ -165,8 +229,9 @@ function applicationCard(sourceRecord: SourceRecord, derivative: DerivativeRecor
     </figure></div></article>`;
 }
 
-function contactSheet(manifest: BrandManifest, sources: Map<string, Buffer>, outputs: Map<string, Buffer>) {
+function contactSheet(manifest: BrandManifest, sources: Map<string, Buffer>, outputs: Map<string, Buffer>, fontBytes: Buffer) {
   const logoSource = manifest.sources.find((source) => source.sourcePath.endsWith("/logo.svg"))!;
+  const logoSvg = sources.get(logoSource.sourcePath)!.toString("utf8").replace("<svg ", '<svg aria-hidden="true" focusable="false" ');
   const applicationSources = manifest.sources.filter((source) => source !== logoSource);
   const applicationCards = applicationSources.map((source) => {
     const output = manifest.derivatives.find((asset) => asset.sourceParityIds.includes(source.parityId))!;
@@ -185,10 +250,10 @@ function contactSheet(manifest: BrandManifest, sources: Map<string, Buffer>, out
       <span><img src="${dataUrl(outputs.get(asset.outputPath)!, "image/png")}" alt="" style="width:${asset.intrinsic.width}px;height:${asset.intrinsic.height}px">
       <img class="magnified" src="${dataUrl(outputs.get(asset.outputPath)!, "image/png")}" alt="" style="width:128px;height:128px"></span></figure>`).join("");
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>QR Pagamentos brand asset evidence</title>
-  <style>*{box-sizing:border-box}html{background:#f7f4ee;color:#1e2a26;font:14px/20px system-ui,sans-serif;caret-color:transparent}body{margin:0;padding:16px;overflow-x:hidden}main{max-width:1280px;margin:auto}h1{font-size:24px;line-height:32px;margin:0 0 8px}h2{font-size:16px;line-height:24px;margin:0}.intro,.meta,figcaption{color:#4a5a54}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:16px}.asset-card,.section{border:1px solid #e4ded1;border-radius:10px;background:#fff;padding:16px}.asset-card{min-width:0}.pair{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}figure{margin:0;min-width:0}figure img{display:block;max-width:100%;object-fit:contain;margin:8px auto}.identity-grid,.favicon-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:12px}.identity{padding:12px;border:1px solid #e4ded1;border-radius:8px}.identity img{width:160px;height:32px}.identity.reversed{background:#1e2a26}.identity.reversed figcaption{color:#f7f4ee}.favicon span{display:flex;min-height:144px;align-items:center;gap:16px}.favicon img{image-rendering:pixelated;margin:0}.section{margin-top:24px}.logo-target{width:160px;height:32px}@media(max-width:374px){.pair{grid-template-columns:1fr}.identity-grid{grid-template-columns:1fr}}</style></head><body><main>
+  <style>@font-face{font-family:Sora;src:url("${dataUrl(fontBytes, "font/woff2")}") format("woff2");font-style:normal;font-weight:700;font-display:block}*{box-sizing:border-box}html{background:#f7f4ee;color:#1e2a26;font:14px/20px system-ui,sans-serif;caret-color:transparent}body{margin:0;padding:16px;overflow-x:hidden}main{max-width:1280px;margin:auto}h1{font-size:24px;line-height:32px;margin:0 0 8px}h2{font-size:16px;line-height:24px;margin:0}.intro,.meta,figcaption{color:#4a5a54}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:16px}.asset-card,.section{border:1px solid #e4ded1;border-radius:10px;background:#fff;padding:16px}.asset-card{min-width:0}.pair{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}figure{margin:0;min-width:0}figure img{display:block;max-width:100%;object-fit:contain;margin:8px auto}.identity-grid,.favicon-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:12px}.identity{padding:12px;border:1px solid #e4ded1;border-radius:8px}.identity img{width:160px;height:32px}.identity.reversed{background:#1e2a26}.identity.reversed figcaption{color:#f7f4ee}.favicon span{display:flex;min-height:144px;align-items:center;gap:16px}.favicon img{image-rendering:pixelated;margin:0}.section{margin-top:24px}.logo-target,.logo-target svg{display:block;width:160px;height:32px}@media(max-width:374px){.pair{grid-template-columns:1fr}.identity-grid{grid-template-columns:1fr}}</style></head><body><main>
     <h1>QR Pagamentos brand asset evidence</h1><p class="intro">Fresh Chromium source-to-production contact sheet.</p>
     <section class="section" data-source-role="${logoSource.parityId}"><h2>${escapeHtml(logoSource.role)}</h2>
-      <figure><figcaption>Immutable live-text target (visual reference only)</figcaption><img class="logo-target" src="${dataUrl(sources.get(logoSource.sourcePath)!, "image/svg+xml")}" alt="QR Pagamentos source identity"></figure>
+      <figure><figcaption>Immutable target rendered with pinned local Sora 700</figcaption><div class="logo-target" role="img" aria-label="QR Pagamentos source identity">${logoSvg}</div></figure>
     </section><section class="section"><h2>Positive and reversed static identities</h2><div class="identity-grid">${identities}</div></section>
     <section class="section"><h2>Application artwork and six theme swatches</h2><div class="grid">${applicationCards}</div></section>
     <section class="section"><h2>Favicon frames at native and magnified sizes</h2><div class="favicon-grid">${faviconFrames}</div></section>
@@ -207,6 +272,10 @@ test("creates fresh independent browser evidence for the closed brand asset fami
   const manifestPath = join(process.cwd(), "src", "brand", "assets.manifest.json");
   const manifest = JSON.parse(await readFile(manifestPath, "utf8")) as BrandManifest;
   const [sources, outputs] = await Promise.all([sourceBytes(manifest), derivativeBytes(manifest)]);
+  const pinnedFont = manifest.provenance.wordmark.packageSource;
+  const pinnedFontPath = join("node_modules", pinnedFont.package, pinnedFont.file);
+  const pinnedFontBytes = await readFile(join(process.cwd(), pinnedFontPath));
+  expect(sha256(pinnedFontBytes)).toBe(pinnedFont.sha256);
   const completeFiles = new Map([...sources, ...outputs]);
   expect(() => validateSnapshot(manifest, completeFiles)).not.toThrow();
 
@@ -244,7 +313,6 @@ test("creates fresh independent browser evidence for the closed brand asset fami
   runProbe("absent-grant", (copy) => { copy.provenance.projectUseAuthorized = false; });
   runProbe("merchant-media-classification", (copy) => { copy.derivatives.find((asset) => asset.id === firstApplication.id)!.applicationOwnership = "merchant-media"; });
   const probesPath = join(runDirectory, "mutation-probes.json");
-  await writeFile(probesPath, `${JSON.stringify(probes, null, 2)}\n`);
 
   const identitySource = await readFile(join(process.cwd(), "src", "brand", "brand-identity.tsx"), "utf8");
   const inlineIdentitySemantics = {
@@ -269,13 +337,17 @@ test("creates fresh independent browser evidence for the closed brand asset fami
   });
   page.on("console", (message) => { if (message.type() === "error") consoleErrors.push(message.text()); });
   page.on("pageerror", (error) => pageErrors.push(error.message));
-  const html = contactSheet(manifest, sources, outputs);
+  const html = contactSheet(manifest, sources, outputs, pinnedFontBytes);
   const assertions: Array<Record<string, unknown>> = [];
   const screenshotRecords = [];
   for (const width of widths) {
     await page.setViewportSize({ width, height: 1000 });
     await page.setContent(html, { waitUntil: "load" });
-    await page.evaluate(async () => { await document.fonts.ready; });
+    const sora700Loaded = await page.evaluate(async () => {
+      const loaded = await document.fonts.load('700 15px Sora', "QR Pagamentos");
+      await document.fonts.ready;
+      return loaded.length > 0 && document.fonts.check('700 15px Sora', "QR Pagamentos");
+    });
     const measured = await page.evaluate(() => ({
       overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
       sourceRoles: document.querySelectorAll("[data-source-role]").length,
@@ -290,6 +362,7 @@ test("creates fresh independent browser evidence for the closed brand asset fami
     expect(measured.sourceRoles).toBe(17);
     expect(measured.identityVariants).toBe(8);
     expect(measured.imagesReady).toBe(true);
+    expect(sora700Loaded).toBe(true);
     expect(seriousAxe).toEqual([]);
     const screenshotPath = join(runDirectory, `brand-assets-${width}.png`);
     await page.screenshot({ path: screenshotPath, fullPage: true, animations: "disabled", caret: "hide" });
@@ -299,7 +372,7 @@ test("creates fresh independent browser evidence for the closed brand asset fami
       bytes: bytes.length, sha256: sha256(bytes) });
     assertions.push({ width, sourceRoles: measured.sourceRoles, identityVariants: measured.identityVariants,
       swatches: manifest.derivatives.filter((asset) => asset.role === "theme-swatch").length,
-      imagesReady: measured.imagesReady, overflow: measured.overflow, seriousAxe,
+      imagesReady: measured.imagesReady, sora700Loaded, overflow: measured.overflow, seriousAxe,
       externalRequests: [...externalRequests], consoleErrors: [...consoleErrors], pageErrors: [...pageErrors] });
   }
 
@@ -323,12 +396,37 @@ test("creates fresh independent browser evidence for the closed brand asset fami
   const logo = manifest.sources.find((entry) => entry.sourcePath.endsWith("/logo.svg"))!;
   const product = manifest.derivatives.find((asset) => asset.id === "product-lockup-positive")!;
   const [logoSvg, productSvg] = [sources.get(logo.sourcePath)!.toString("utf8"), outputs.get(product.outputPath)!.toString("utf8")];
-  await page.setContent(`<style>body{margin:0}.sample{color:#1E2A26;width:160px;height:32px}.sample svg{display:block;width:160px;height:32px}</style><div id="source" class="sample">${logoSvg}</div><div id="output" class="sample">${productSvg}</div>`);
-  const logoComparison = await compareRaster(await page.locator("#source").screenshot(), await page.locator("#output").screenshot(), 32);
-  expect(logoComparison.passed).toBe(true);
+  const fontFace = `@font-face{font-family:Sora;src:url("${dataUrl(pinnedFontBytes, "font/woff2")}") format("woff2");font-style:normal;font-weight:700;font-display:block}`;
+  const comparisonStyle = `${fontFace}body{margin:0}.sample{color:#1E2A26;width:160px;height:32px}.sample svg{display:block;width:160px;height:32px}`;
+  await page.setContent(`<style>${comparisonStyle}</style><div id="source" class="sample">${logoSvg}</div><div id="output" class="sample">${productSvg}</div>`);
+  const comparisonFontLoaded = await page.evaluate(async () => {
+    const loaded = await document.fonts.load('700 15px Sora', "QR Pagamentos");
+    await document.fonts.ready;
+    return loaded.length > 0 && document.fonts.check('700 15px Sora', "QR Pagamentos");
+  });
+  expect(comparisonFontLoaded).toBe(true);
+  const sourceLogoRaster = await page.locator("#source").screenshot();
+  const outputLogoRaster = await page.locator("#output").screenshot();
+  const qrComparison = await compareRaster(sourceLogoRaster, outputLogoRaster, 32);
+  const wordmarkComparison = await compareWordmarkGeometry(sourceLogoRaster, outputLogoRaster);
+  expect(qrComparison.passed).toBe(true);
+  expect(wordmarkComparison.passed).toBe(true);
   expect(productSvg).not.toMatch(/<text|font-family/i);
   expect(productSvg).toContain('viewBox="0 0 160 32"');
-  comparisons.push({ parityId: logo.parityId, mode: "approved-left-32x32-qr-mask", structuralWordmark: "outlined/no-live-text-or-font", ...logoComparison });
+  comparisons.push({ parityId: logo.parityId, mode: "full-pinned-sora-target-vs-outlined-derivative",
+    fontLoaded: comparisonFontLoaded, fontSha256: pinnedFont.sha256, qr: qrComparison,
+    wordmark: wordmarkComparison, structuralWordmark: "outlined/no-live-text-or-font" });
+
+  const mutatedProductSvg = productSvg.replace('transform="translate(40 6.5)"', 'transform="translate(40 6.5) scale(0.8 1)"');
+  expect(mutatedProductSvg).not.toBe(productSvg);
+  await page.setContent(`<style>${comparisonStyle}</style><div id="source" class="sample">${logoSvg}</div><div id="mutated" class="sample">${mutatedProductSvg}</div>`);
+  await page.evaluate(async () => { await document.fonts.load('700 15px Sora', "QR Pagamentos"); await document.fonts.ready; });
+  const mutatedComparison = await compareWordmarkGeometry(
+    await page.locator("#source").screenshot(), await page.locator("#mutated").screenshot());
+  probes.push({ id: "altered-wordmark-geometry", failedClosed: !mutatedComparison.passed,
+    error: mutatedComparison.passed ? "" : "Full wordmark geometry comparison rejected horizontally compressed outlines." });
+  expect(mutatedComparison.passed, "altered wordmark geometry did not fail closed").toBe(false);
+  await writeFile(probesPath, `${JSON.stringify(probes, null, 2)}\n`);
 
   const assertionsPath = join(runDirectory, "assertions.json");
   await writeFile(assertionsPath, `${JSON.stringify(assertions, null, 2)}\n`);
@@ -340,12 +438,15 @@ test("creates fresh independent browser evidence for the closed brand asset fami
   ].sort();
   const boundSources = await Promise.all(filesToBind.map(async (path) => ({ path, sha256: sha256(await readFile(join(process.cwd(), path))) })));
   const evidenceManifest = {
-    schemaVersion: 1, runId, startedAt, finishedAt: new Date().toISOString(),
+    schemaVersion: 2, runId, startedAt, finishedAt: new Date().toISOString(),
     matrix: { widths, captures: widths.length },
     coverage: { sourceRoles: 17, directPairs: 16, identityVariants: 8, swatches: 6, faviconFrames: [16, 32, 48] },
     rasterPolicy: { threshold, maxDifferingPixelRatio,
-      logoMask: "left 32x32 canonical QR geometry; wordmark outline checked structurally",
+      logoComparison: "full 160x32 pinned Sora target: exact QR threshold plus complete x=40..159 wordmark geometry",
+      wordmarkDerivationTolerance: { radius: 2, maxUnmatchedRatio: 0.12, inkRatio: [0.75, 1.3], maxBoundingBoxDelta: 2 },
       faviconMask: "canonical QR raster checked by exact frame hash/dimensions and displayed at native/128px sizes" },
+    fontSource: { path: pinnedFontPath.split(sep).join("/"), package: pinnedFont.package,
+      version: pinnedFont.version, file: pinnedFont.file, sha256: pinnedFont.sha256, loaded: comparisonFontLoaded },
     browser: { name: "chromium", deviceScaleFactor: 1, externalRequestsBlocked: true, animationsDisabled: true, caretHidden: true },
     inlineIdentitySemantics,
     screenshots: screenshotRecords,
@@ -358,7 +459,7 @@ test("creates fresh independent browser evidence for the closed brand asset fami
   await writeFile(evidenceManifestPath, `${JSON.stringify(evidenceManifest, null, 2)}\n`);
   const evidenceManifestBytes = await readFile(evidenceManifestPath);
   const manifestSha256 = sha256(evidenceManifestBytes);
-  await writeFile(join(runDirectory, "review.md"), `# Brand asset evidence review\n\n- Run: ${runId}\n- Manifest SHA-256: ${manifestSha256}\n- Coverage: 17 source roles, 16 direct full-raster pairs, outlined logo QR mask, 8 static identity variants, 6 swatches, and 16/32/48 favicons at native and magnified sizes.\n- Raster policy: threshold 0.1; maximum differing-pixel ratio 0.001. The outlined wordmark is a documented derivation, so its QR region uses the left 32×32 target mask while no-live-text/font and viewBox assertions remain independent. Favicon derivation uses exact frame hashes/dimensions and native/magnified visual inspection.\n- Browser isolation: external requests blocked; console and page errors empty; no viewport overflow; serious/critical axe findings empty.\n- Unresolved severity 2–4: none.\n`);
+  await writeFile(join(runDirectory, "review.md"), `# Brand asset evidence review\n\n- Run: ${runId}\n- Manifest SHA-256: ${manifestSha256}\n- Coverage: 17 source roles, 16 direct full-raster pairs, complete pinned-Sora-to-outline logo comparison, 8 static identity variants, 6 swatches, and 16/32/48 favicons at native and magnified sizes.\n- Raster policy: direct-copy threshold 0.1 / maximum differing-pixel ratio 0.001; exact QR mask plus complete 120×32 wordmark region with a 2px cross-renderer neighborhood, bidirectional unmatched ratio at most 0.12, ink ratio 0.75–1.30, and per-edge bounding-box delta at most 2px. Pinned local Sora 700 SHA-256: ${pinnedFont.sha256}. Horizontally compressed outline mutation: rejected. Favicon derivation uses exact frame hashes/dimensions and native/magnified visual inspection.\n- Browser isolation: external requests blocked; console and page errors empty; no viewport overflow; serious/critical axe findings empty.\n- Unresolved severity 2–4: none.\n`);
   const currentPointer = { runId, startedAt, manifest: relativePath(evidenceManifestPath), manifestSha256 };
   const pendingPointer = join(artifactRoot, `.current-${runId}.json.tmp`);
   await writeFile(pendingPointer, `${JSON.stringify(currentPointer, null, 2)}\n`);
