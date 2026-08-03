@@ -26,6 +26,14 @@ function BrandMark({
       viewBox={brandGeometry.viewBox}
       {...props}
     >
+      {brandGeometry.finderPatterns.map(({ x, y }) => (
+        <path
+          d={`M${x} ${y}h12v12H${x}zM${x + 3} ${y + 3}v6h6v-6z`}
+          fill="currentColor"
+          fillRule="evenodd"
+          key={`finder-${x}-${y}`}
+        />
+      ))}
       {brandGeometry.rectangles.map((rectangle) => (
         <rect fill="currentColor" key={`${rectangle.x}-${rectangle.y}`} {...rectangle} />
       ))}
@@ -47,7 +55,12 @@ export function BrandIdentity({ accessibleName, className, variant }: BrandIdent
   return (
     <span className={identityClassName} data-brand-identity={variant}>
       <BrandMark className="brand-identity__mark" />
-      <span className="brand-identity__name">QR Pagamentos</span>
+      <span
+        className="brand-identity__name"
+        style={{ fontFamily: "var(--font-display)", letterSpacing: "var(--tracking-display)" }}
+      >
+        QR Pagamentos
+      </span>
     </span>
   );
 }
