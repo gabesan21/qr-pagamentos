@@ -23,6 +23,18 @@
       "test_seconds": 0,
       "return_kind": null,
       "result": "plan_created_5_fronts_recon_parity_inventory_shadcn_dns_blocked"
+    },
+    {
+      "at": "2026-08-03T01:32:57-03:00",
+      "event": "transition",
+      "from": "002_planning",
+      "to": "004_processing",
+      "contexts": [
+        "/root/plan_12_2_3"
+      ],
+      "test_seconds": 0,
+      "return_kind": null,
+      "result": "advanced"
     }
   ]
 }
