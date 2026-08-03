@@ -16,8 +16,12 @@
     "wordmark": {
       "family": "Sora",
       "weight": 700,
-      "sourcePath": "node_modules/@fontsource/sora/files/sora-latin-700-normal.woff2",
-      "sourceSha256": "c3337a673c9bbbfe433091d3831714dd9a257951f16f41eb3fc650ec593cfac2",
+      "packageSource": {
+        "package": "@fontsource/sora",
+        "version": "5.3.0",
+        "file": "files/sora-latin-700-normal.woff2",
+        "sha256": "c3337a673c9bbbfe433091d3831714dd9a257951f16f41eb3fc650ec593cfac2"
+      },
       "licensePath": "src/design-system/fonts/LICENSES/Sora-OFL-1.1.txt",
       "licenseSha256": "1ec9623d38c445eb4dfe5fcc783e0f0ee728cc97ca157ce1f8cb2b3bf9d9b0d9",
       "outlinePath": "src/brand/wordmark.outlines.svg",
