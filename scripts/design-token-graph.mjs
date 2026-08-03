@@ -26,6 +26,46 @@ export function contrastRatio(foreground, background) {
   return (values[0] + 0.05) / (values[1] + 0.05);
 }
 
+export function interpolateSrgbBytes(origin, target, step, totalSteps = 255) {
+  if (!Number.isInteger(step) || step < 0 || step > totalSteps || !Number.isInteger(totalSteps) || totalSteps < 1)
+    throw new Error(`Invalid sRGB interpolation step: ${step}/${totalSteps}`);
+  const originBytes = hexToSrgb(origin).map((channel) => Math.round(channel * 255));
+  const targetBytes = hexToSrgb(target).map((channel) => Math.round(channel * 255));
+  return `#${originBytes.map((value, index) =>
+    Math.floor(value + (targetBytes[index] - value) * step / totalSteps + 0.5).toString(16).padStart(2, "0")
+  ).join("")}`;
+}
+
+export function compositeSrgb(foreground, background, opacity) {
+  if (typeof opacity !== "number" || opacity < 0 || opacity > 1) throw new Error(`Invalid sRGB opacity: ${opacity}`);
+  const foregroundChannels = hexToSrgb(foreground);
+  const backgroundChannels = hexToSrgb(background);
+  return hexFromSrgb(foregroundChannels.map((channel, index) => channel * opacity + backgroundChannels[index] * (1 - opacity)));
+}
+
+export function deriveAccessibleProjection(origin, target, backgrounds, options = {}) {
+  if (!Array.isArray(backgrounds) || backgrounds.length === 0) throw new Error("Accessible projection requires backgrounds.");
+  const { minimumRatio = 4.5, foregroundCandidates = ["#000000", "#ffffff"], foregroundCompositeOpacities = [] } = options;
+  for (let step = 0; step <= 255; step += 1) {
+    const hex = interpolateSrgbBytes(origin, target, step);
+    const ratios = backgrounds.map((background) => contrastRatio(hex, background));
+    const foreground = highestContrastForeground(hex, foregroundCandidates);
+    const foregroundRatios = [foreground.ratio, ...foregroundCompositeOpacities.flatMap((opacity) =>
+      backgrounds.map((background) => contrastRatio(foreground.hex, compositeSrgb(hex, background, opacity)))
+    )];
+    if (ratios.every((ratio) => ratio >= minimumRatio) && foregroundRatios.every((ratio) => ratio >= minimumRatio))
+      return { hex, step, ratios, foreground, foregroundRatios };
+  }
+  throw new Error(`No accessible projection from ${origin} toward ${target}.`);
+}
+
+export function highestContrastForeground(background, candidates = ["#000000", "#ffffff"]) {
+  if (!Array.isArray(candidates) || candidates.length === 0) throw new Error("Foreground selection requires candidates.");
+  return [...candidates]
+    .map((hex) => ({ hex, ratio: contrastRatio(hex, background) }))
+    .sort((left, right) => right.ratio - left.ratio || left.hex.localeCompare(right.hex))[0];
+}
+
 function tokenNodeAt(root, path) {
   let node = path.split(".").reduce((value, segment) => value?.[segment], root);
   if (node && !("$value" in node) && node.$root) node = node.$root;

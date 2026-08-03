@@ -1777,6 +1777,24 @@
         }
       },
       "accessibility": {
+        "neutral": {
+          "black": {
+            "$type": "color",
+            "$value": {
+              "colorSpace": "srgb",
+              "components": [0, 0, 0],
+              "hex": "#000000"
+            }
+          },
+          "white": {
+            "$type": "color",
+            "$value": {
+              "colorSpace": "srgb",
+              "components": [1, 1, 1],
+              "hex": "#ffffff"
+            }
+          }
+        },
         "pix-paper": {
           "text-tertiary": {
             "$type": "color",
@@ -1794,6 +1812,26 @@
                 "interpolationStep": 92
               }
             }
+          },
+          "feedback-success": {
+            "$type": "color",
+            "$value": { "colorSpace": "srgb", "components": [0.117647058824, 0.482352941176, 0.294117647059], "hex": "#1e7b4b" },
+            "$extensions": { "com.qr-pagamentos.contrast": { "interpolationStep": 76 } }
+          },
+          "feedback-warning": {
+            "$type": "color",
+            "$value": { "colorSpace": "srgb", "components": [0.552941176471, 0.388235294118, 0.129411764706], "hex": "#8d6321" },
+            "$extensions": { "com.qr-pagamentos.contrast": { "interpolationStep": 70 } }
+          },
+          "feedback-danger": {
+            "$type": "color",
+            "$value": { "colorSpace": "srgb", "components": [0.756862745098, 0.23137254902, 0.227450980392], "hex": "#c13b3a" },
+            "$extensions": { "com.qr-pagamentos.contrast": { "interpolationStep": 7, "foregroundCompositeOpacities": [0.9] } }
+          },
+          "feedback-info": {
+            "$type": "color",
+            "$value": { "colorSpace": "srgb", "components": [0.16862745098, 0.423529411765, 0.690196078431], "hex": "#2b6cb0" },
+            "$extensions": { "com.qr-pagamentos.contrast": { "interpolationStep": 0 } }
           }
         },
         "cashier-daylight": {
@@ -1813,6 +1851,26 @@
                 "interpolationStep": 81
               }
             }
+          },
+          "feedback-success": {
+            "$type": "color",
+            "$value": { "colorSpace": "srgb", "components": [0.082352941176, 0.494117647059, 0.239215686275], "hex": "#157e3d" },
+            "$extensions": { "com.qr-pagamentos.contrast": { "interpolationStep": 4 } }
+          },
+          "feedback-warning": {
+            "$type": "color",
+            "$value": { "colorSpace": "srgb", "components": [0.611764705882, 0.376470588235, 0.03137254902], "hex": "#9c6008" },
+            "$extensions": { "com.qr-pagamentos.contrast": { "interpolationStep": 9 } }
+          },
+          "feedback-danger": {
+            "$type": "color",
+            "$value": { "colorSpace": "srgb", "components": [0.725490196078, 0.109803921569, 0.109803921569], "hex": "#b91c1c" },
+            "$extensions": { "com.qr-pagamentos.contrast": { "interpolationStep": 0 } }
+          },
+          "feedback-info": {
+            "$type": "color",
+            "$value": { "colorSpace": "srgb", "components": [0.011764705882, 0.411764705882, 0.63137254902], "hex": "#0369a1" },
+            "$extensions": { "com.qr-pagamentos.contrast": { "interpolationStep": 0 } }
           }
         },
         "settlement-sand": {
@@ -1832,6 +1890,26 @@
                 "interpolationStep": 91
               }
             }
+          },
+          "feedback-success": {
+            "$type": "color",
+            "$value": { "colorSpace": "srgb", "components": [0.286274509804, 0.447058823529, 0.062745098039], "hex": "#497210" },
+            "$extensions": { "com.qr-pagamentos.contrast": { "interpolationStep": 28 } }
+          },
+          "feedback-warning": {
+            "$type": "color",
+            "$value": { "colorSpace": "srgb", "components": [0.572549019608, 0.250980392157, 0.054901960784], "hex": "#92400e" },
+            "$extensions": { "com.qr-pagamentos.contrast": { "interpolationStep": 0 } }
+          },
+          "feedback-danger": {
+            "$type": "color",
+            "$value": { "colorSpace": "srgb", "components": [0.650980392157, 0.207843137255, 0.207843137255], "hex": "#a63535" },
+            "$extensions": { "com.qr-pagamentos.contrast": { "interpolationStep": 0 } }
+          },
+          "feedback-info": {
+            "$type": "color",
+            "$value": { "colorSpace": "srgb", "components": [0.192156862745, 0.360784313725, 0.549019607843], "hex": "#315c8c" },
+            "$extensions": { "com.qr-pagamentos.contrast": { "interpolationStep": 0 } }
           }
         },
         "midnight-clearing": {
@@ -1851,6 +1929,26 @@
                 "interpolationStep": 54
               }
             }
+          },
+          "feedback-success": {
+            "$type": "color",
+            "$value": { "colorSpace": "srgb", "components": [0.203921568627, 0.827450980392, 0.6], "hex": "#34d399" },
+            "$extensions": { "com.qr-pagamentos.contrast": { "interpolationStep": 0 } }
+          },
+          "feedback-warning": {
+            "$type": "color",
+            "$value": { "colorSpace": "srgb", "components": [0.98431372549, 0.749019607843, 0.141176470588], "hex": "#fbbf24" },
+            "$extensions": { "com.qr-pagamentos.contrast": { "interpolationStep": 0 } }
+          },
+          "feedback-danger": {
+            "$type": "color",
+            "$value": { "colorSpace": "srgb", "components": [0.972549019608, 0.443137254902, 0.443137254902], "hex": "#f87171" },
+            "$extensions": { "com.qr-pagamentos.contrast": { "interpolationStep": 0 } }
+          },
+          "feedback-info": {
+            "$type": "color",
+            "$value": { "colorSpace": "srgb", "components": [0.376470588235, 0.647058823529, 0.980392156863], "hex": "#60a5fa" },
+            "$extensions": { "com.qr-pagamentos.contrast": { "interpolationStep": 0 } }
           }
         },
         "vault-blue": {
@@ -1870,6 +1968,26 @@
                 "interpolationStep": 55
               }
             }
+          },
+          "feedback-success": {
+            "$type": "color",
+            "$value": { "colorSpace": "srgb", "components": [0.243137254902, 0.811764705882, 0.556862745098], "hex": "#3ecf8e" },
+            "$extensions": { "com.qr-pagamentos.contrast": { "interpolationStep": 0 } }
+          },
+          "feedback-warning": {
+            "$type": "color",
+            "$value": { "colorSpace": "srgb", "components": [0.960784313725, 0.725490196078, 0.247058823529], "hex": "#f5b93f" },
+            "$extensions": { "com.qr-pagamentos.contrast": { "interpolationStep": 0 } }
+          },
+          "feedback-danger": {
+            "$type": "color",
+            "$value": { "colorSpace": "srgb", "components": [0.937254901961, 0.41568627451, 0.41568627451], "hex": "#ef6a6a" },
+            "$extensions": { "com.qr-pagamentos.contrast": { "interpolationStep": 0 } }
+          },
+          "feedback-info": {
+            "$type": "color",
+            "$value": { "colorSpace": "srgb", "components": [0.478431372549, 0.658823529412, 1], "hex": "#7aa8ff" },
+            "$extensions": { "com.qr-pagamentos.contrast": { "interpolationStep": 0 } }
           }
         },
         "terminal-amber": {
@@ -1889,6 +2007,26 @@
                 "interpolationStep": 30
               }
             }
+          },
+          "feedback-success": {
+            "$type": "color",
+            "$value": { "colorSpace": "srgb", "components": [0.560784313725, 0.796078431373, 0.360784313725], "hex": "#8fcb5c" },
+            "$extensions": { "com.qr-pagamentos.contrast": { "interpolationStep": 0 } }
+          },
+          "feedback-warning": {
+            "$type": "color",
+            "$value": { "colorSpace": "srgb", "components": [1, 0.819607843137, 0.4], "hex": "#ffd166" },
+            "$extensions": { "com.qr-pagamentos.contrast": { "interpolationStep": 0 } }
+          },
+          "feedback-danger": {
+            "$type": "color",
+            "$value": { "colorSpace": "srgb", "components": [1, 0.478431372549, 0.360784313725], "hex": "#ff7a5c" },
+            "$extensions": { "com.qr-pagamentos.contrast": { "interpolationStep": 0 } }
+          },
+          "feedback-info": {
+            "$type": "color",
+            "$value": { "colorSpace": "srgb", "components": [0.909803921569, 0.690196078431, 0.294117647059], "hex": "#e8b04b" },
+            "$extensions": { "com.qr-pagamentos.contrast": { "interpolationStep": 0 } }
           }
         }
       }

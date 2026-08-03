@@ -45,7 +45,11 @@
       },
       "success": {
         "$type": "color",
-        "$value": "{color.primitive.audit.template.terminal-amber.success}"
+        "$value": "{color.primitive.accessibility.terminal-amber.feedback-success}"
+      },
+      "success-foreground": {
+        "$type": "color",
+        "$value": "{color.primitive.accessibility.neutral.black}"
       },
       "success-soft": {
         "$type": "color",
@@ -53,7 +57,11 @@
       },
       "warning": {
         "$type": "color",
-        "$value": "{color.primitive.audit.template.terminal-amber.warning}"
+        "$value": "{color.primitive.accessibility.terminal-amber.feedback-warning}"
+      },
+      "warning-foreground": {
+        "$type": "color",
+        "$value": "{color.primitive.accessibility.neutral.black}"
       },
       "warning-soft": {
         "$type": "color",
@@ -61,7 +69,11 @@
       },
       "danger": {
         "$type": "color",
-        "$value": "{color.primitive.audit.template.terminal-amber.danger}"
+        "$value": "{color.primitive.accessibility.terminal-amber.feedback-danger}"
+      },
+      "danger-foreground": {
+        "$type": "color",
+        "$value": "{color.primitive.accessibility.neutral.black}"
       },
       "danger-soft": {
         "$type": "color",
@@ -69,7 +81,11 @@
       },
       "info": {
         "$type": "color",
-        "$value": "{color.primitive.audit.template.terminal-amber.info}"
+        "$value": "{color.primitive.accessibility.terminal-amber.feedback-info}"
+      },
+      "info-foreground": {
+        "$type": "color",
+        "$value": "{color.primitive.accessibility.neutral.black}"
       },
       "info-soft": {
         "$type": "color",

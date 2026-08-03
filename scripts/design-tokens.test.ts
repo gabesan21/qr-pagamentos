@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 
 import { findDesignTokenViolations } from "./check-design-tokens.mjs";
 import { buildGeneratedThemeTokens, COMPATIBILITY_ALIASES, loadTokenDocuments } from "./generate-design-tokens.mjs";
-import { contrastRatio, hexFromSrgb, resolveDesignTokens, resolveToken } from "./design-token-graph.mjs";
+import { contrastRatio, deriveAccessibleProjection, hexFromSrgb, highestContrastForeground, resolveDesignTokens, resolveToken } from "./design-token-graph.mjs";
 
 const root = process.cwd();
 const resolver = JSON.parse(readFileSync(join(root, "src/design-system/tokens/resolver.json"), "utf8"));
@@ -22,6 +22,14 @@ const tertiary = {
   "midnight-clearing": ["#808ca0", 54, [5.556, 5.069, 4.518]],
   "vault-blue": ["#7c8cab", 55, [5.524, 5.117, 4.508]],
   "terminal-amber": ["#97835f", 30, [5.288, 4.943, 4.545]],
+} as const;
+const feedbackProjection = {
+  "pix-paper": { success: ["#1e7b4b", 76, "#ffffff"], warning: ["#8d6321", 70, "#ffffff"], danger: ["#c13b3a", 7, "#ffffff"], info: ["#2b6cb0", 0, "#ffffff"] },
+  "cashier-daylight": { success: ["#157e3d", 4, "#ffffff"], warning: ["#9c6008", 9, "#ffffff"], danger: ["#b91c1c", 0, "#ffffff"], info: ["#0369a1", 0, "#ffffff"] },
+  "settlement-sand": { success: ["#497210", 28, "#ffffff"], warning: ["#92400e", 0, "#ffffff"], danger: ["#a63535", 0, "#ffffff"], info: ["#315c8c", 0, "#ffffff"] },
+  "midnight-clearing": { success: ["#34d399", 0, "#000000"], warning: ["#fbbf24", 0, "#000000"], danger: ["#f87171", 0, "#000000"], info: ["#60a5fa", 0, "#000000"] },
+  "vault-blue": { success: ["#3ecf8e", 0, "#000000"], warning: ["#f5b93f", 0, "#000000"], danger: ["#ef6a6a", 0, "#000000"], info: ["#7aa8ff", 0, "#000000"] },
+  "terminal-amber": { success: ["#8fcb5c", 0, "#000000"], warning: ["#ffd166", 0, "#000000"], danger: ["#ff7a5c", 0, "#000000"], info: ["#e8b04b", 0, "#000000"] },
 } as const;
 
 function resolved(theme: ThemeName = "pix-paper", motion = "full") {
@@ -110,11 +118,29 @@ describe("DTCG 2025.10 application token graph", () => {
     });
   });
 
-  it.each(themeNames)("keeps %s rendered action and feedback pairs at normal-text AA", (theme: ThemeName) => {
+  it.each(themeNames)("keeps %s rendered action and every strong/soft feedback role at normal-text AA", (theme: ThemeName) => {
     const tokens = resolved(theme);
     expect(contrastRatio(tokenAt(tokens, "color.action.foreground").$value.hex, tokenAt(tokens, "color.action.accent").$value.hex)).toBeGreaterThanOrEqual(4.5);
-    for (const name of ["success", "warning", "danger", "info"]) {
-      expect(contrastRatio(tokenAt(tokens, `color.feedback.${name}.foreground`).$value.hex, tokenAt(tokens, `color.feedback.${name}.soft`).$value.hex), name).toBeGreaterThanOrEqual(4.5);
+    const surfaces = ["page", "raised", "secondary"].map((name) => tokenAt(tokens, `color.surface.${name}`).$value.hex);
+    const primary = tokenAt(tokens, "color.text.primary").$value.hex;
+    const audit = documents["themes.tokens.json"].color.primitive.audit.template[theme];
+    const accessibility = documents["themes.tokens.json"].color.primitive.accessibility[theme];
+    for (const name of ["success", "warning", "danger", "info"] as const) {
+      const strong = tokenAt(tokens, `color.feedback.${name}`).$value.hex;
+      const foreground = tokenAt(tokens, `color.feedback.${name}.foreground`).$value.hex;
+      const soft = tokenAt(tokens, `color.feedback.${name}.soft`).$value.hex;
+      const softForeground = tokenAt(tokens, `color.feedback.${name}.soft-foreground`).$value.hex;
+      const foregroundCompositeOpacities = name === "danger" ? [0.9] : [];
+      const derived = deriveAccessibleProjection(audit[name].$value.hex, primary, surfaces, { foregroundCompositeOpacities });
+      expect([strong, derived.step, foreground]).toEqual(feedbackProjection[theme][name]);
+      expect(accessibility[`feedback-${name}`].$extensions["com.qr-pagamentos.contrast"].interpolationStep).toBe(derived.step);
+      expect(derived.hex).toBe(strong);
+      expect(derived.ratios.every((ratio) => ratio >= 4.5), `${name} against surfaces`).toBe(true);
+      expect(derived.foreground).toEqual({ hex: foreground, ratio: contrastRatio(foreground, strong) });
+      expect(highestContrastForeground(strong)).toEqual(derived.foreground);
+      expect(derived.foregroundRatios.every((ratio) => ratio >= 4.5), `${name} foreground in solid/hover backgrounds`).toBe(true);
+      expect(contrastRatio(foreground, strong), `${name} foreground`).toBeGreaterThanOrEqual(4.5);
+      expect(contrastRatio(softForeground, soft), `${name} soft foreground`).toBeGreaterThanOrEqual(4.5);
     }
   });
 
@@ -167,6 +193,11 @@ describe("DTCG 2025.10 application token graph", () => {
     expect(generated).toContain("animation-iteration-count: var(--motion-iteration) !important;");
     for (const [name, target] of Object.entries(COMPATIBILITY_ALIASES))
       expect(generated).toContain(`--${name}: var(--${target});`);
+    expect(COMPATIBILITY_ALIASES).toMatchObject({
+      destructive: "color-feedback-danger", "destructive-foreground": "color-feedback-danger-foreground",
+      warning: "color-feedback-warning", "warning-foreground": "color-feedback-warning-foreground",
+      success: "color-feedback-success", "success-foreground": "color-feedback-success-foreground",
+    });
     const aliases = [...generated.matchAll(/^\s+--(?:background|foreground|card|primary|surface-page|text-primary|action-primary|feedback-success|focus-color):\s*([^;]+);$/gm)].map((match) => match[1]);
     expect(aliases.every((value) => /^var\(--[a-z-]+\)$/.test(value))).toBe(true);
   });

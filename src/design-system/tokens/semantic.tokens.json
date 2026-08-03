@@ -52,6 +52,9 @@
           "$value": "{theme.color.success-soft}"
         },
         "foreground": {
+          "$value": "{theme.color.success-foreground}"
+        },
+        "soft-foreground": {
           "$value": "{theme.color.text-primary}"
         }
       },
@@ -64,6 +67,9 @@
           "$value": "{theme.color.warning-soft}"
         },
         "foreground": {
+          "$value": "{theme.color.warning-foreground}"
+        },
+        "soft-foreground": {
           "$value": "{theme.color.text-primary}"
         }
       },
@@ -76,6 +82,9 @@
           "$value": "{theme.color.danger-soft}"
         },
         "foreground": {
+          "$value": "{theme.color.danger-foreground}"
+        },
+        "soft-foreground": {
           "$value": "{theme.color.text-primary}"
         }
       },
@@ -88,6 +97,9 @@
           "$value": "{theme.color.info-soft}"
         },
         "foreground": {
+          "$value": "{theme.color.info-foreground}"
+        },
+        "soft-foreground": {
           "$value": "{theme.color.text-primary}"
         }
       }

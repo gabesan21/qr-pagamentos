@@ -45,7 +45,11 @@
       },
       "success": {
         "$type": "color",
-        "$value": "{color.primitive.audit.template.settlement-sand.success}"
+        "$value": "{color.primitive.accessibility.settlement-sand.feedback-success}"
+      },
+      "success-foreground": {
+        "$type": "color",
+        "$value": "{color.primitive.accessibility.neutral.white}"
       },
       "success-soft": {
         "$type": "color",
@@ -53,7 +57,11 @@
       },
       "warning": {
         "$type": "color",
-        "$value": "{color.primitive.audit.template.settlement-sand.warning}"
+        "$value": "{color.primitive.accessibility.settlement-sand.feedback-warning}"
+      },
+      "warning-foreground": {
+        "$type": "color",
+        "$value": "{color.primitive.accessibility.neutral.white}"
       },
       "warning-soft": {
         "$type": "color",
@@ -61,7 +69,11 @@
       },
       "danger": {
         "$type": "color",
-        "$value": "{color.primitive.audit.template.settlement-sand.danger}"
+        "$value": "{color.primitive.accessibility.settlement-sand.feedback-danger}"
+      },
+      "danger-foreground": {
+        "$type": "color",
+        "$value": "{color.primitive.accessibility.neutral.white}"
       },
       "danger-soft": {
         "$type": "color",
@@ -69,7 +81,11 @@
       },
       "info": {
         "$type": "color",
-        "$value": "{color.primitive.audit.template.settlement-sand.info}"
+        "$value": "{color.primitive.accessibility.settlement-sand.feedback-info}"
+      },
+      "info-foreground": {
+        "$type": "color",
+        "$value": "{color.primitive.accessibility.neutral.white}"
       },
       "info-soft": {
         "$type": "color",

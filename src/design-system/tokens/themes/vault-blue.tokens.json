@@ -45,7 +45,11 @@
       },
       "success": {
         "$type": "color",
-        "$value": "{color.primitive.audit.template.vault-blue.success}"
+        "$value": "{color.primitive.accessibility.vault-blue.feedback-success}"
+      },
+      "success-foreground": {
+        "$type": "color",
+        "$value": "{color.primitive.accessibility.neutral.black}"
       },
       "success-soft": {
         "$type": "color",
@@ -53,7 +57,11 @@
       },
       "warning": {
         "$type": "color",
-        "$value": "{color.primitive.audit.template.vault-blue.warning}"
+        "$value": "{color.primitive.accessibility.vault-blue.feedback-warning}"
+      },
+      "warning-foreground": {
+        "$type": "color",
+        "$value": "{color.primitive.accessibility.neutral.black}"
       },
       "warning-soft": {
         "$type": "color",
@@ -61,7 +69,11 @@
       },
       "danger": {
         "$type": "color",
-        "$value": "{color.primitive.audit.template.vault-blue.danger}"
+        "$value": "{color.primitive.accessibility.vault-blue.feedback-danger}"
+      },
+      "danger-foreground": {
+        "$type": "color",
+        "$value": "{color.primitive.accessibility.neutral.black}"
       },
       "danger-soft": {
         "$type": "color",
@@ -69,7 +81,11 @@
       },
       "info": {
         "$type": "color",
-        "$value": "{color.primitive.audit.template.vault-blue.info}"
+        "$value": "{color.primitive.accessibility.vault-blue.feedback-info}"
+      },
+      "info-foreground": {
+        "$type": "color",
+        "$value": "{color.primitive.accessibility.neutral.black}"
       },
       "info-soft": {
         "$type": "color",
