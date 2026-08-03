@@ -1,59 +1,110 @@
-export function hexToOklch(hex) {
-  const rgb = hex.slice(1).match(/.{2}/g).map((value) => Number.parseInt(value, 16) / 255);
-  const linear = rgb.map((value) => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
-  const l = 0.4122214708 * linear[0] + 0.5363325363 * linear[1] + 0.0514459929 * linear[2];
-  const m = 0.2119034982 * linear[0] + 0.6806995451 * linear[1] + 0.1073969566 * linear[2];
-  const s = 0.0883024619 * linear[0] + 0.2817188376 * linear[1] + 0.6299787005 * linear[2];
-  const l3 = Math.cbrt(l), m3 = Math.cbrt(m), s3 = Math.cbrt(s);
-  const L = 0.2104542553 * l3 + 0.793617785 * m3 - 0.0040720468 * s3;
-  const a = 1.9779984951 * l3 - 2.428592205 * m3 + 0.4505937099 * s3;
-  const b = 0.0259040371 * l3 + 0.7827717662 * m3 - 0.808675766 * s3;
-  const hue = (Math.atan2(b, a) * 180 / Math.PI + 360) % 360;
-  return [Number(L.toFixed(6)), Number(Math.hypot(a, b).toFixed(6)), Number(hue.toFixed(4))];
+const TOKEN_TYPES = new Set([
+  "color", "dimension", "fontFamily", "fontWeight", "duration", "cubicBezier", "number",
+  "strokeStyle", "border", "shadow", "gradient", "typography", "transition",
+]);
+
+export function hexToSrgb(hex) {
+  if (!/^#[0-9a-f]{6}$/i.test(hex)) throw new Error(`Invalid six-digit hex: ${hex}`);
+  return hex.slice(1).match(/.{2}/g).map((value) => Number.parseInt(value, 16) / 255);
 }
 
-export function oklchToSrgb([L, C, hue]) {
-  const radians = hue * Math.PI / 180;
-  const a = C * Math.cos(radians), b = C * Math.sin(radians);
-  const l = (L + 0.3963377774 * a + 0.2158037573 * b) ** 3;
-  const m = (L - 0.1055613458 * a - 0.0638541728 * b) ** 3;
-  const s = (L - 0.0894841775 * a - 1.291485548 * b) ** 3;
-  const linear = [
-    4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
-    -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
-    -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s,
-  ];
-  return linear.map((value) => value <= 0.0031308 ? 12.92 * value : 1.055 * value ** (1 / 2.4) - 0.055);
+export function hexFromSrgb(components) {
+  if (!Array.isArray(components) || components.length !== 3 || components.some((value) => typeof value !== "number" || value < 0 || value > 1))
+    throw new Error(`Out-of-sRGB components: ${JSON.stringify(components)}`);
+  return `#${components.map((value) => Math.round(value * 255).toString(16).padStart(2, "0")).join("")}`;
 }
 
-export function hexFromOklch(components) {
-  const rgb = oklchToSrgb(components);
-  if (rgb.some((value) => value < -0.00001 || value > 1.00001)) throw new Error(`Out-of-sRGB OKLCH: ${components.join(" ")}`);
-  return `#${rgb.map((value) => Math.round(Math.min(1, Math.max(0, value)) * 255).toString(16).padStart(2, "0")).join("")}`;
+export function relativeLuminance(hex) {
+  const linear = hexToSrgb(hex).map((channel) => channel <= 0.04045
+    ? channel / 12.92
+    : ((channel + 0.055) / 1.055) ** 2.4);
+  return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2];
+}
+
+export function contrastRatio(foreground, background) {
+  const values = [relativeLuminance(foreground), relativeLuminance(background)].sort((a, b) => b - a);
+  return (values[0] + 0.05) / (values[1] + 0.05);
+}
+
+export function interpolateSrgbBytes(origin, target, step, totalSteps = 255) {
+  if (!Number.isInteger(step) || step < 0 || step > totalSteps || !Number.isInteger(totalSteps) || totalSteps < 1)
+    throw new Error(`Invalid sRGB interpolation step: ${step}/${totalSteps}`);
+  const originBytes = hexToSrgb(origin).map((channel) => Math.round(channel * 255));
+  const targetBytes = hexToSrgb(target).map((channel) => Math.round(channel * 255));
+  return `#${originBytes.map((value, index) =>
+    Math.floor(value + (targetBytes[index] - value) * step / totalSteps + 0.5).toString(16).padStart(2, "0")
+  ).join("")}`;
+}
+
+export function compositeSrgb(foreground, background, opacity) {
+  if (typeof opacity !== "number" || opacity < 0 || opacity > 1) throw new Error(`Invalid sRGB opacity: ${opacity}`);
+  const foregroundChannels = hexToSrgb(foreground);
+  const backgroundChannels = hexToSrgb(background);
+  return hexFromSrgb(foregroundChannels.map((channel, index) => channel * opacity + backgroundChannels[index] * (1 - opacity)));
+}
+
+export function deriveAccessibleProjection(origin, target, backgrounds, options = {}) {
+  if (!Array.isArray(backgrounds) || backgrounds.length === 0) throw new Error("Accessible projection requires backgrounds.");
+  const { minimumRatio = 4.5, foregroundCandidates = ["#000000", "#ffffff"], foregroundCompositeOpacities = [] } = options;
+  for (let step = 0; step <= 255; step += 1) {
+    const hex = interpolateSrgbBytes(origin, target, step);
+    const ratios = backgrounds.map((background) => contrastRatio(hex, background));
+    const foreground = highestContrastForeground(hex, foregroundCandidates);
+    const foregroundRatios = [foreground.ratio, ...foregroundCompositeOpacities.flatMap((opacity) =>
+      backgrounds.map((background) => contrastRatio(foreground.hex, compositeSrgb(hex, background, opacity)))
+    )];
+    if (ratios.every((ratio) => ratio >= minimumRatio) && foregroundRatios.every((ratio) => ratio >= minimumRatio))
+      return { hex, step, ratios, foreground, foregroundRatios };
+  }
+  throw new Error(`No accessible projection from ${origin} toward ${target}.`);
+}
+
+export function highestContrastForeground(background, candidates = ["#000000", "#ffffff"]) {
+  if (!Array.isArray(candidates) || candidates.length === 0) throw new Error("Foreground selection requires candidates.");
+  return [...candidates]
+    .map((hex) => ({ hex, ratio: contrastRatio(hex, background) }))
+    .sort((left, right) => right.ratio - left.ratio || left.hex.localeCompare(right.hex))[0];
+}
+
+function tokenNodeAt(root, path) {
+  let node = path.split(".").reduce((value, segment) => value?.[segment], root);
+  if (node && !("$value" in node) && node.$root) node = node.$root;
+  return node;
+}
+
+function resolveValue(root, value, stack) {
+  const alias = typeof value === "string" ? value.match(/^\{([^{}]+)\}$/) : null;
+  if (alias) return resolveToken(root, alias[1], stack);
+  if (Array.isArray(value)) return value.map((entry) => resolveValue(root, entry, stack));
+  if (value && typeof value === "object")
+    return Object.fromEntries(Object.entries(value).map(([name, entry]) => [name, resolveValue(root, entry, stack)]));
+  return value;
 }
 
 export function resolveToken(root, path, stack = []) {
   if (stack.includes(path)) throw new Error(`Token reference cycle: ${[...stack, path].join(" -> ")}`);
-  const node = path.split(".").reduce((value, segment) => value?.[segment], root);
+  const node = tokenNodeAt(root, path);
   if (!node || !("$value" in node)) throw new Error(`Unresolved token reference: ${path}`);
-  const value = node.$value;
-  const match = typeof value === "string" ? value.match(/^\{([^}]+)\}$/) : null;
-  return match ? resolveToken(root, match[1], [...stack, path]) : value;
+  return resolveValue(root, node.$value, [...stack, path]);
 }
 
-export function resolveExternalRef(root, reference) {
-  const [, pointer = ""] = reference.split("#");
-  const path = pointer.replace(/^\//, "").split("/").filter(Boolean);
-  const value = path.reduce((node, segment) => node?.[segment], root);
-  if (!value) throw new Error(`Unresolved resolver reference: ${reference}`);
+function decodePointer(pointer) {
+  return pointer.replace(/^\//, "").split("/").filter(Boolean)
+    .map((segment) => segment.replaceAll("~1", "/").replaceAll("~0", "~"));
+}
+
+export function resolveExternalRef(documents, reference) {
+  const [file, pointer = ""] = reference.split("#");
+  const document = documents[file || "$root"];
+  if (!document) throw new Error(`Unresolved token document: ${file || "$root"}`);
+  const value = decodePointer(pointer).reduce((node, segment) => node?.[segment], document);
+  if (value === undefined) throw new Error(`Unresolved resolver reference: ${reference}`);
   return value;
 }
 
 function mergeTokenSources(target, source) {
   if (Array.isArray(source) || source === null || typeof source !== "object") return structuredClone(source);
-  const merged = target && !Array.isArray(target) && typeof target === "object"
-    ? structuredClone(target)
-    : {};
+  const merged = target && !Array.isArray(target) && typeof target === "object" ? structuredClone(target) : {};
   for (const [key, value] of Object.entries(source)) {
     merged[key] = value && !Array.isArray(value) && typeof value === "object"
       ? mergeTokenSources(merged[key], value)
@@ -72,74 +123,154 @@ function resolverTarget(resolver, reference) {
 }
 
 function selectedContexts(resolver, inputs) {
-  const normalizedInputs = new Map(
-    Object.entries(inputs).map(([name, value]) => [name.toLowerCase(), value]),
-  );
+  const normalizedInputs = new Map(Object.entries(inputs).map(([name, value]) => [name.toLowerCase(), value]));
   for (const name of normalizedInputs.keys()) {
     if (!Object.keys(resolver.modifiers ?? {}).some((modifier) => modifier.toLowerCase() === name))
       throw new Error(`Unknown resolver modifier input: ${name}`);
   }
-
   return Object.fromEntries(Object.entries(resolver.modifiers ?? {}).map(([name, modifier]) => {
-    if (!modifier.contexts || typeof modifier.contexts !== "object")
-      throw new Error(`Modifier ${name} has no contexts.`);
+    if (!modifier.contexts || typeof modifier.contexts !== "object") throw new Error(`Modifier ${name} has no contexts.`);
     const requested = normalizedInputs.get(name.toLowerCase());
-    if (requested !== undefined && typeof requested !== "string")
-      throw new Error(`Modifier input ${name} must be a string.`);
+    if (requested !== undefined && typeof requested !== "string") throw new Error(`Modifier input ${name} must be a string.`);
     const contextName = requested ?? modifier.default;
     if (contextName === undefined) throw new Error(`Modifier ${name} requires an input.`);
-    const canonicalName = Object.keys(modifier.contexts)
-      .find((candidate) => candidate.toLowerCase() === contextName.toLowerCase());
+    const canonicalName = Object.keys(modifier.contexts).find((candidate) => candidate.toLowerCase() === contextName.toLowerCase());
     if (!canonicalName) throw new Error(`Unknown ${name} context: ${contextName}`);
     return [name, canonicalName];
   }));
 }
 
-function resolveAliases(root) {
+function resolvedTokenTree(root) {
   const resolved = structuredClone(root);
-
   function visit(node, path = []) {
     if (!node || typeof node !== "object") return;
     if ("$value" in node) {
-      const value = node.$value;
-      const alias = typeof value === "string" ? value.match(/^\{([^}]+)\}$/) : null;
-      if (alias) node.$value = structuredClone(resolveToken(resolved, alias[1], [path.join(".")]));
+      node.$value = resolveToken(root, path.join("."));
       return;
     }
     for (const [name, child] of Object.entries(node)) {
-      if (!name.startsWith("$")) visit(child, [...path, name]);
+      if (!name.startsWith("$") || name === "$root") visit(child, [...path, name]);
     }
   }
-
   visit(resolved);
   return resolved;
 }
 
-export function resolveDesignTokens(resolver, tokenSource, inputs = {}) {
-  if (resolver.version !== "2025.10") throw new Error("Resolver version must be 2025.10.");
-  if (!Array.isArray(resolver.resolutionOrder))
-    throw new Error("Resolver resolutionOrder must be an array.");
+function assertDimension(value, path, units) {
+  if (!value || typeof value !== "object" || typeof value.value !== "number" || !units.has(value.unit))
+    throw new Error(`${path}: invalid ${[...units].join("/")} value.`);
+}
 
-  const allowedProperties = new Set([
-    "name", "version", "description", "sets", "modifiers", "resolutionOrder", "$extensions",
-  ]);
-  const unsupported = Object.keys(resolver).find((name) => !allowedProperties.has(name));
+function validateValue(type, value, path) {
+  switch (type) {
+    case "color": {
+      if (!value || value.colorSpace !== "srgb" || !Array.isArray(value.components) || value.components.length !== 3)
+        throw new Error(`${path}: color must be normalized sRGB.`);
+      if (value.components.some((component) => typeof component !== "number" || component < 0 || component > 1))
+        throw new Error(`${path}: color is outside sRGB gamut.`);
+      if (!/^#[0-9a-f]{6}$/.test(value.hex) || hexFromSrgb(value.components) !== value.hex)
+        throw new Error(`${path}: sRGB components and hex fallback differ.`);
+      if (value.alpha !== undefined && (typeof value.alpha !== "number" || value.alpha < 0 || value.alpha > 1))
+        throw new Error(`${path}: invalid alpha.`);
+      break;
+    }
+    case "dimension": assertDimension(value, path, new Set(["px", "rem"])); break;
+    case "duration": assertDimension(value, path, new Set(["ms", "s"])); break;
+    case "fontFamily":
+      if (!(typeof value === "string" || (Array.isArray(value) && value.length > 0 && value.every((part) => typeof part === "string"))))
+        throw new Error(`${path}: invalid font family.`);
+      break;
+    case "fontWeight":
+      if (!(typeof value === "number" && value >= 1 && value <= 1000)) throw new Error(`${path}: invalid font weight.`);
+      break;
+    case "number": if (typeof value !== "number" || !Number.isFinite(value)) throw new Error(`${path}: invalid number.`); break;
+    case "cubicBezier":
+      if (!Array.isArray(value) || value.length !== 4 || value.some((part) => typeof part !== "number") || value[0] < 0 || value[0] > 1 || value[2] < 0 || value[2] > 1)
+        throw new Error(`${path}: invalid cubicBezier.`);
+      break;
+    case "shadow": {
+      const shadows = Array.isArray(value) ? value : [value];
+      if (shadows.length === 0) throw new Error(`${path}: empty shadow.`);
+      for (const shadow of shadows) {
+        validateValue("color", shadow.color, `${path}.color`);
+        for (const member of ["offsetX", "offsetY", "blur", "spread"]) assertDimension(shadow[member], `${path}.${member}`, new Set(["px", "rem"]));
+        if (typeof shadow.inset !== "boolean") throw new Error(`${path}: shadow inset must be boolean.`);
+      }
+      break;
+    }
+    case "typography": {
+      if (!value || typeof value !== "object") throw new Error(`${path}: invalid typography.`);
+      validateValue("fontFamily", value.fontFamily, `${path}.fontFamily`);
+      assertDimension(value.fontSize, `${path}.fontSize`, new Set(["px", "rem"]));
+      validateValue("fontWeight", value.fontWeight, `${path}.fontWeight`);
+      assertDimension(value.letterSpacing, `${path}.letterSpacing`, new Set(["px", "rem"]));
+      assertDimension(value.lineHeight, `${path}.lineHeight`, new Set(["px", "rem"]));
+      break;
+    }
+    default: throw new Error(`${path}: unsupported token type ${type}.`);
+  }
+}
+
+export function validateTokenTree(root) {
+  const paths = [];
+  function visit(node, path = [], inheritedType) {
+    if (!node || typeof node !== "object" || Array.isArray(node)) throw new Error(`${path.join(".")}: token/group must be an object.`);
+    const ownType = node.$type ?? inheritedType;
+    if (node.$type !== undefined && !TOKEN_TYPES.has(node.$type)) throw new Error(`${path.join(".")}: invalid token type ${node.$type}.`);
+    if ("$value" in node) {
+      if (!ownType) throw new Error(`${path.join(".")}: token has no resolvable type.`);
+      validateValue(ownType, node.$value, path.join("."));
+      paths.push(path.join("."));
+      return;
+    }
+    for (const [name, child] of Object.entries(node)) {
+      if (name.startsWith("$")) continue;
+      if (name.includes(".") || /[{}]/.test(name)) throw new Error(`${[...path, name].join(".")}: invalid token/group name.`);
+      visit(child, [...path, name], ownType);
+    }
+    if (node.$root) visit(node.$root, [...path, "$root"], ownType);
+  }
+  visit(root);
+  return paths;
+}
+
+function validateTokenStructure(root) {
+  function visit(node, path = [], inheritedType) {
+    if (!node || typeof node !== "object" || Array.isArray(node)) throw new Error(`${path.join(".")}: token/group must be an object.`);
+    const ownType = node.$type ?? inheritedType;
+    if (node.$type !== undefined && !TOKEN_TYPES.has(node.$type)) throw new Error(`${path.join(".")}: invalid token type ${node.$type}.`);
+    if ("$value" in node && !ownType) throw new Error(`${path.join(".")}: token has no resolvable type.`);
+    for (const [name, child] of Object.entries(node)) {
+      if (name.startsWith("$") && name !== "$root") continue;
+      if (!name.startsWith("$") && (name.includes(".") || /[{}]/.test(name)))
+        throw new Error(`${[...path, name].join(".")}: invalid token/group name.`);
+      if (name === "$root" || !("$value" in node)) visit(child, [...path, name], ownType);
+    }
+  }
+  visit(root);
+}
+
+export function resolveDesignTokens(resolver, documents, inputs = {}) {
+  if (resolver.version !== "2025.10") throw new Error("Resolver version must be 2025.10.");
+  if (!Array.isArray(resolver.resolutionOrder)) throw new Error("Resolver resolutionOrder must be an array.");
+  const allowed = new Set(["name", "version", "description", "sets", "modifiers", "resolutionOrder", "$extensions"]);
+  const unsupported = Object.keys(resolver).find((name) => !allowed.has(name));
   if (unsupported) throw new Error(`Unsupported resolver property: ${unsupported}`);
 
   const contexts = selectedContexts(resolver, inputs);
   let merged = {};
   for (const entry of resolver.resolutionOrder) {
-    if (!entry || typeof entry.$ref !== "string")
-      throw new Error("Every resolution-order entry must contain a $ref.");
+    if (!entry || typeof entry.$ref !== "string") throw new Error("Every resolution-order entry must contain a $ref.");
     const { collection, name, target } = resolverTarget(resolver, entry.$ref);
     const sources = collection === "sets" ? target.sources : target.contexts[contexts[name]];
     if (!Array.isArray(sources)) throw new Error(`Resolver target ${name} has no sources.`);
     for (const source of sources) {
-      if (!source || typeof source.$ref !== "string")
-        throw new Error(`Resolver target ${name} contains an invalid source.`);
-      merged = mergeTokenSources(merged, resolveExternalRef(tokenSource, source.$ref));
+      if (!source || typeof source.$ref !== "string") throw new Error(`Resolver target ${name} contains an invalid source.`);
+      merged = mergeTokenSources(merged, resolveExternalRef(documents, source.$ref));
     }
   }
-
-  return { contexts, tokens: resolveAliases(merged) };
+  validateTokenStructure(merged);
+  const tokens = resolvedTokenTree(merged);
+  validateTokenTree(tokens);
+  return { contexts, tokens };
 }

@@ -1,42 +1,49 @@
 {
-  "name": "qr-pagamentos",
+  "name": "qr-pagamentos-application-frontend",
   "version": "2025.10",
+  "description": "Primitive audit, theme, semantic, component and motion resolution for the professional settlement console.",
   "sets": {
-    "foundation": { "sources": [{ "$ref": "themes.tokens.json" }] }
+    "primitive": {
+      "sources": [{ "$ref": "themes.tokens.json" }]
+    },
+    "semantic": {
+      "sources": [{ "$ref": "semantic.tokens.json" }]
+    },
+    "component": {
+      "sources": [{ "$ref": "components.tokens.json" }]
+    }
   },
   "modifiers": {
     "theme": {
       "default": "pix-paper",
       "contexts": {
-        "pix-paper": [{ "$ref": "themes.tokens.json#/themes/pix-paper" }],
-        "cashier-daylight": [{ "$ref": "themes.tokens.json#/themes/cashier-daylight" }],
-        "settlement-sand": [{ "$ref": "themes.tokens.json#/themes/settlement-sand" }],
-        "midnight-clearing": [{ "$ref": "themes.tokens.json#/themes/midnight-clearing" }],
-        "vault-blue": [{ "$ref": "themes.tokens.json#/themes/vault-blue" }],
-        "terminal-amber": [{ "$ref": "themes.tokens.json#/themes/terminal-amber" }]
+        "pix-paper": [{ "$ref": "themes/pix-paper.tokens.json" }],
+        "cashier-daylight": [{ "$ref": "themes/cashier-daylight.tokens.json" }],
+        "settlement-sand": [{ "$ref": "themes/settlement-sand.tokens.json" }],
+        "midnight-clearing": [{ "$ref": "themes/midnight-clearing.tokens.json" }],
+        "vault-blue": [{ "$ref": "themes/vault-blue.tokens.json" }],
+        "terminal-amber": [{ "$ref": "themes/terminal-amber.tokens.json" }]
       }
     },
     "motion": {
       "default": "full",
       "contexts": {
-        "full": [{ "$ref": "themes.tokens.json#/motion/full" }],
-        "reduced": [{ "$ref": "themes.tokens.json#/motion/reduced" }]
+        "full": [{ "$ref": "motion/full.tokens.json" }],
+        "reduced": [{ "$ref": "motion/reduced.tokens.json" }]
       }
     }
   },
-  "resolutionOrder": [{ "$ref": "#/sets/foundation" }, { "$ref": "#/modifiers/theme" }, { "$ref": "#/modifiers/motion" }],
+  "resolutionOrder": [
+    { "$ref": "#/sets/primitive" },
+    { "$ref": "#/modifiers/theme" },
+    { "$ref": "#/sets/semantic" },
+    { "$ref": "#/sets/component" },
+    { "$ref": "#/modifiers/motion" }
+  ],
   "$extensions": {
-    "com.qr-pagamentos.css": {
-      "color": {
-        "background": "background", "foreground": "foreground", "card": "card", "card-foreground": "foreground",
-        "popover": "card", "popover-foreground": "foreground", "primary": "primary",
-        "primary-foreground": "primary-foreground", "secondary": "muted", "secondary-foreground": "foreground",
-        "muted": "muted", "muted-foreground": "muted-foreground", "accent": "muted",
-        "accent-foreground": "foreground", "destructive": "danger", "destructive-foreground": "danger-foreground",
-        "warning": "warning", "warning-foreground": "warning-foreground", "success": "success",
-        "success-foreground": "success-foreground", "border": "border", "input": "border", "ring": "primary",
-        "action-primary-hover": "primary-hover"
-      }
+    "com.qr-pagamentos.theme": {
+      "defaultLight": "pix-paper",
+      "defaultDark": "midnight-clearing"
     }
   }
 }

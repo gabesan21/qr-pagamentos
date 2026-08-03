@@ -41,7 +41,7 @@ export default async function DesignSystemPage() {
     <header className="receipt-rail">
       <span className="receipt-rail__label">QR Pagamentos / radix-nova</span>
       <h1>{dictionary.designSystemHeading}</h1>
-      <div className="receipt-rail__facts ds-facts"><span>PIX settlement desk</span><span>IBM Plex Sans</span><span>{dictionary.designSystemRole}</span></div>
+      <div className="receipt-rail__facts ds-facts"><span>application-frontend-system</span><span>Inter · Sora · IBM Plex Mono</span><span>{dictionary.designSystemRole}</span></div>
     </header>
     <p className="admin-shell__intro" data-ds-prose>{dictionary.designSystemIntroduction}</p>
 
@@ -104,7 +104,7 @@ export default async function DesignSystemPage() {
       </Card>
       <div aria-label={dictionary.designSystemLoadingAction} className="ds-skeletons" role="status"><Skeleton className="h-4 w-2/3" /><Skeleton className="h-4 w-full" /><Skeleton className="h-11 w-1/3" /></div>
       <Separator />
-      <Table className="ds-facts"><TableCaption>{dictionary.designSystemStatuses}</TableCaption><TableHeader><TableRow><TableHead>PIX</TableHead><TableHead>{dictionary.designSystemState}</TableHead><TableHead>BRL</TableHead></TableRow></TableHeader><TableBody><TableRow><TableCell>PIX-0716</TableCell><TableCell>{dictionary.designSystemSuccess}</TableCell><TableCell>128,40</TableCell></TableRow><TableRow><TableCell>PIX-0715</TableCell><TableCell>{dictionary.designSystemWarning}</TableCell><TableCell>72,00</TableCell></TableRow></TableBody></Table>
+      <Table className="ds-facts"><TableCaption>{dictionary.designSystemStatuses}</TableCaption><TableHeader><TableRow><TableHead>PIX</TableHead><TableHead>{dictionary.designSystemState}</TableHead><TableHead>BRL</TableHead></TableRow></TableHeader><TableBody><TableRow><TableCell className="font-mono">PIX-0716</TableCell><TableCell>{dictionary.designSystemSuccess}</TableCell><TableCell className="font-mono">128,40</TableCell></TableRow><TableRow><TableCell className="font-mono">PIX-0715</TableCell><TableCell>{dictionary.designSystemWarning}</TableCell><TableCell className="font-mono">72,00</TableCell></TableRow></TableBody></Table>
       <span className="sr-only"><LoaderCircleIcon />{dictionary.designSystemLoadingAction}</span>
     </section>
     <section aria-labelledby="ds-directory-title" className="ds-section" data-directory-section>

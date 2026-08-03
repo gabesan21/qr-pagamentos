@@ -380,6 +380,73 @@ async function currentRouteInventory() {
   const currentFiles = (await filesUnder(currentRoot)).filter((file) => /\/(?:page|loading|error)\.tsx$/.test(file));
   return Promise.all(currentFiles.map(async (file) => ({ ...routeFor(file), sha256: await hashFile(file) })));
 }
+const semanticKinds = new Set(["authored-class-occurrence", "state", "interaction"]);
+function currentRouteKey(route) { return stable({ route: route.route, routeKind: route.routeKind }); }
+function exactCurrentRouteKey(route) { return stable({ path: route.source?.path ?? route.path, route: route.route, routeKind: route.routeKind }); }
+function refreshCurrentRouteSources(records, currentRoutes) {
+  const routeRecords = records.filter((record) => record.kind === "current-route");
+  const duplicateIds = routeRecords.filter((record, index) => routeRecords.findIndex((candidate) => candidate.id === record.id) !== index);
+  if (duplicateIds.length) throw new Error(`PARITY_CURRENT_ROUTE_REFRESH_DUPLICATE id=${duplicateIds[0].id}`);
+
+  const usedRecordIds = new Set();
+  const refreshedById = new Map();
+  for (const current of currentRoutes) {
+    const exactMatches = routeRecords.filter((record) => exactCurrentRouteKey(record) === exactCurrentRouteKey(current));
+    if (exactMatches.length > 1) throw new Error(`PARITY_CURRENT_ROUTE_REFRESH_DUPLICATE identity=${exactCurrentRouteKey(current)}`);
+    const routeMatches = routeRecords.filter((record) => currentRouteKey(record) === currentRouteKey(current));
+    const match = exactMatches[0] ?? (routeMatches.length === 1 ? routeMatches[0] : null);
+    if (!match) {
+      const code = routeMatches.length > 1 ? "AMBIGUOUS" : "MISSING";
+      throw new Error(`PARITY_CURRENT_ROUTE_REFRESH_${code} identity=${exactCurrentRouteKey(current)} candidates=${routeMatches.length}`);
+    }
+    if (usedRecordIds.has(match.id)) throw new Error(`PARITY_CURRENT_ROUTE_REFRESH_DUPLICATE record=${match.id}`);
+    usedRecordIds.add(match.id);
+    refreshedById.set(match.id, {
+      ...match,
+      source: { ...match.source, path: current.path, sha256: current.sha256 },
+    });
+  }
+  const unmatched = routeRecords.filter((record) => !usedRecordIds.has(record.id));
+  if (unmatched.length) throw new Error(`PARITY_CURRENT_ROUTE_REFRESH_MISSING_INVENTORY record=${unmatched[0].id} identity=${exactCurrentRouteKey(unmatched[0])}`);
+  return records.map((record) => refreshedById.get(record.id) ?? record);
+}
+function protectedRefreshFields(record) {
+  return {
+    id: record.id,
+    kind: record.kind,
+    target: record.target,
+    laterOwner: record.laterOwner,
+    disposition: record.disposition,
+    reason: record.reason,
+    evidence: record.evidence,
+    evidenceTarget: record.evidenceTarget,
+  };
+}
+function currentRouteWithoutRefreshableSource(record) {
+  const copy = structuredClone(record);
+  if (copy.source) {
+    delete copy.source.path;
+    delete copy.source.sha256;
+  }
+  return copy;
+}
+function assertRefreshInvariants(before, after) {
+  if (before.length !== after.length) throw new Error(`PARITY_REFRESH_INVARIANT_RECORD_COUNT before=${before.length} after=${after.length}`);
+  const beforeById = new Map(before.map((record) => [record.id, record]));
+  const afterById = new Map(after.map((record) => [record.id, record]));
+  if (beforeById.size !== before.length || afterById.size !== after.length) throw new Error("PARITY_REFRESH_INVARIANT_DUPLICATE_ID obligations");
+  for (const [id, original] of beforeById) {
+    const refreshed = afterById.get(id);
+    if (!refreshed) throw new Error(`PARITY_REFRESH_INVARIANT_ID_MISSING ${id}`);
+    if (!sameObjects(protectedRefreshFields(original), protectedRefreshFields(refreshed))) throw new Error(`PARITY_REFRESH_INVARIANT_PROTECTED ${id}`);
+    if (original.kind === "current-route") {
+      if (!sameObjects(currentRouteWithoutRefreshableSource(original), currentRouteWithoutRefreshableSource(refreshed))) throw new Error(`PARITY_REFRESH_INVARIANT_CURRENT_ROUTE ${id}`);
+    } else if (!semanticKinds.has(original.kind) && !sameObjects(original, refreshed)) {
+      throw new Error(`PARITY_REFRESH_INVARIANT_FAMILY ${id}`);
+    }
+  }
+  for (const id of afterById.keys()) if (!beforeById.has(id)) throw new Error(`PARITY_REFRESH_INVARIANT_ID_ADDED ${id}`);
+}
 function compareSemanticField(failures, code, record, expected, select) {
   if (!sameObjects(select(record), select(expected))) fail(failures, code, record.id);
 }
@@ -464,12 +531,16 @@ async function refreshSemanticContract() {
   const manifestPath = "docs/frontend-template-parity/manifest.json";
   const obligationsPath = "docs/frontend-template-parity/obligations.ndjson";
   const manifest = JSON.parse(await readFile(absolute(manifestPath), "utf8"));
-  const records = (await readFile(absolute(obligationsPath), "utf8")).trim().split("\n").map((line) => JSON.parse(line));
+  const originalRaw = await readFile(absolute(obligationsPath), "utf8");
+  const records = originalRaw.trim().split("\n").map((line) => JSON.parse(line));
+  if (manifest.obligations?.path !== obligationsPath || manifest.obligations?.count !== records.length || manifest.obligations?.sha256 !== sha256(originalRaw)) {
+    throw new Error("PARITY_REFRESH_MANIFEST_BINDING_INVALID manifest obligations");
+  }
   const failures = [];
   const graph = await templateGraph(failures);
   if (failures.length) throw new Error(failures.join("\n"));
-  const semantic = await semanticObligations(graph, await currentRouteInventory());
-  const semanticKinds = new Set(Object.keys(semantic));
+  const currentRoutes = await currentRouteInventory();
+  const semantic = await semanticObligations(graph, currentRoutes);
   const regenerated = Object.entries(semantic).flatMap(([kind, expectedRecords]) => expectedRecords.map((derived) => ({
     ...derived,
     kind,
@@ -477,22 +548,15 @@ async function refreshSemanticContract() {
     laterOwner: ownerForSource(derived.source.path),
     evidenceTarget: kind === "authored-class-occurrence" ? "interactive" : "all-states",
   })));
-  const nextRecords = [...records.filter((record) => !semanticKinds.has(record.kind)), ...regenerated].sort((a, b) => a.id.localeCompare(b.id));
+  const routeRefreshedRecords = refreshCurrentRouteSources(records, currentRoutes);
+  const nextRecords = [...routeRefreshedRecords.filter((record) => !semanticKinds.has(record.kind)), ...regenerated].sort((a, b) => a.id.localeCompare(b.id));
+  assertRefreshInvariants(records, nextRecords);
   const raw = `${nextRecords.map((record) => JSON.stringify(record)).join("\n")}\n`;
-  manifest.schemaVersion = 2;
-  manifest.generatedBy = "deterministic source parser in scripts/check-frontend-template-parity-contract.mjs";
-  manifest.semanticContract = {
-    parser: "TypeScript 5 AST",
-    classes: "exact className initializer expression/value",
-    states: "lexical component/hook owner, binding name, setter, initial value, owner-local transitions, and owner-local JSX/derived view bindings",
-    interactions: "event, resolved handler implementation, and classified effect calls",
-    targets: "App route-import transitive closure mapped to exact current route/component paths; template :params normalize to current [params] for matching",
-    fixtures: "record-specific source/hash/line identity with exact routes, current paths, fixture imports, and fixed clock",
-  };
-  manifest.obligations = { path: obligationsPath, count: nextRecords.length, sha256: sha256(raw) };
+  const nextManifest = structuredClone(manifest);
+  nextManifest.obligations = { path: obligationsPath, count: nextRecords.length, sha256: sha256(raw) };
   await writeFile(absolute(obligationsPath), raw);
-  await writeFile(absolute(manifestPath), `${JSON.stringify(manifest, null, 2)}\n`);
-  return { records: nextRecords.length, semanticRecords: regenerated.length };
+  await writeFile(absolute(manifestPath), `${JSON.stringify(nextManifest, null, 2)}\n`);
+  return { records: nextRecords.length, semanticRecords: regenerated.length, currentRoutes: currentRoutes.length };
 }
 
 async function runSemanticMutationProbes() {
@@ -541,7 +605,39 @@ async function runSemanticMutationProbes() {
     if (!failures.some((failure) => failure.startsWith(`PARITY_${expectedCode} `))) throw new Error(`PARITY_MUTATION_PROBE_WRONG_DIAGNOSTIC ${name} expected=PARITY_${expectedCode}\n${failures.join("\n")}`);
     console.log(`FRONTEND_PARITY_MUTATION_OK ${name}=PARITY_${expectedCode}`);
   }
-  return { probes: cases.length };
+  const expectRefreshFailure = (name, expectedCode, run) => {
+    try { run(); } catch (error) {
+      if (!error.message.startsWith(`PARITY_${expectedCode} `)) throw new Error(`PARITY_MUTATION_PROBE_WRONG_DIAGNOSTIC ${name} expected=PARITY_${expectedCode}\n${error.message}`);
+      console.log(`FRONTEND_PARITY_MUTATION_OK ${name}=PARITY_${expectedCode}`);
+      return;
+    }
+    throw new Error(`PARITY_MUTATION_PROBE_NOT_REJECTED ${name} expected=PARITY_${expectedCode}`);
+  };
+  const route = currentRoutes[0];
+  const routeRecord = originalRecords.find((record) => record.kind === "current-route" && exactCurrentRouteKey(record) === exactCurrentRouteKey(route));
+  if (!routeRecord) throw new Error(`PARITY_MUTATION_PROBE_FIXTURE_MISSING route=${exactCurrentRouteKey(route)}`);
+  const staleRouteRecords = originalRecords.map((record) => structuredClone(record));
+  staleRouteRecords.find((record) => record.id === routeRecord.id).source.sha256 = "0".repeat(64);
+  const refreshedRouteRecords = refreshCurrentRouteSources(staleRouteRecords, currentRoutes);
+  const refreshedRoute = refreshedRouteRecords.find((record) => record.id === routeRecord.id);
+  if (refreshedRoute.source.sha256 !== route.sha256) throw new Error("PARITY_MUTATION_PROBE_NOT_REFRESHED current-route-source");
+  assertRefreshInvariants(staleRouteRecords, refreshedRouteRecords);
+  console.log("FRONTEND_PARITY_MUTATION_OK current-route-stale-source=REFRESHED");
+
+  const missingRouteRecords = originalRecords.filter((record) => record.id !== routeRecord.id);
+  expectRefreshFailure("current-route-missing", "CURRENT_ROUTE_REFRESH_MISSING", () => refreshCurrentRouteSources(missingRouteRecords, currentRoutes));
+  const duplicateRouteRecords = [...originalRecords, { ...structuredClone(routeRecord), id: `${routeRecord.id}:duplicate` }];
+  expectRefreshFailure("current-route-duplicate", "CURRENT_ROUTE_REFRESH_DUPLICATE", () => refreshCurrentRouteSources(duplicateRouteRecords, currentRoutes));
+  const ambiguousRecords = [
+    { id: "current-route:probe-a", kind: "current-route", source: { path: "src/app/probe-a/page.tsx", sha256: "a" }, route: "/probe", routeKind: "page" },
+    { id: "current-route:probe-b", kind: "current-route", source: { path: "src/app/probe-b/page.tsx", sha256: "b" }, route: "/probe", routeKind: "page" },
+  ];
+  const ambiguousInventory = [{ path: "src/app/probe/page.tsx", sha256: "c", route: "/probe", routeKind: "page" }];
+  expectRefreshFailure("current-route-ambiguous", "CURRENT_ROUTE_REFRESH_AMBIGUOUS", () => refreshCurrentRouteSources(ambiguousRecords, ambiguousInventory));
+  const tamperedRefresh = refreshedRouteRecords.map((record) => structuredClone(record));
+  tamperedRefresh.find((record) => record.id === routeRecord.id).target = { route: "/tampered", surface: "src/app/tampered/page.tsx" };
+  expectRefreshFailure("refresh-invariant-tamper", "REFRESH_INVARIANT_PROTECTED", () => assertRefreshInvariants(staleRouteRecords, tamperedRefresh));
+  return { probes: cases.length + 5 };
 }
 
 export async function checkFrontendTemplateParity() {
@@ -602,7 +698,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   try {
     if (process.argv.includes("--refresh-semantic-contract")) {
       const result = await refreshSemanticContract();
-      console.log(`FRONTEND_PARITY_REFRESH_OK records=${result.records} semantic_records=${result.semanticRecords}`);
+      console.log(`FRONTEND_PARITY_REFRESH_OK records=${result.records} semantic_records=${result.semanticRecords} current_routes=${result.currentRoutes}`);
     } else if (process.argv.includes("--semantic-mutation-probes")) {
       const result = await runSemanticMutationProbes();
       console.log(`FRONTEND_PARITY_MUTATIONS_OK probes=${result.probes}`);

@@ -1,0 +1,60 @@
+{
+  "component": {
+    "button": {
+      "primary": {
+        "background": {
+          "$type": "color",
+          "$value": "{color.action.accent}"
+        },
+        "foreground": {
+          "$type": "color",
+          "$value": "{color.action.foreground}"
+        },
+        "radius": {
+          "$type": "dimension",
+          "$value": "{radius.semantic.md}"
+        },
+        "min-height": {
+          "$type": "dimension",
+          "$value": "{size.semantic.target-min}"
+        }
+      }
+    },
+    "card": {
+      "background": {
+        "$type": "color",
+        "$value": "{color.surface.raised}"
+      },
+      "border": {
+        "$type": "color",
+        "$value": "{color.border.default}"
+      },
+      "radius": {
+        "$type": "dimension",
+        "$value": "{radius.semantic.lg}"
+      },
+      "elevation": {
+        "$type": "shadow",
+        "$value": "{shadow.elevation.card}"
+      },
+      "padding": {
+        "$type": "dimension",
+        "$value": "{space.semantic.5}"
+      }
+    },
+    "input": {
+      "height": {
+        "$type": "dimension",
+        "$value": "{size.semantic.target-min}"
+      },
+      "radius": {
+        "$type": "dimension",
+        "$value": "{radius.semantic.md}"
+      },
+      "border": {
+        "$type": "color",
+        "$value": "{color.border.default}"
+      }
+    }
+  }
+}
