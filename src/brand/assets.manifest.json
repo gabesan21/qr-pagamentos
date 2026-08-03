@@ -1,6 +1,6 @@
 {
-  "version": 1,
-  "family": "QR Pagamentos settlement mark",
+  "version": 2,
+  "family": "QR Pagamentos template identity",
   "identities": [
     "mark-only",
     "product-lockup",
@@ -8,228 +8,920 @@
     "merchant-fallback"
   ],
   "provenance": {
-    "author": "QR Pagamentos project",
-    "license": "Project-owned original artwork",
-    "source": "src/brand/geometry.ts",
-    "wordmarkSource": "src/brand/wordmark.outlines.svg",
-    "wordmarkSourceSha256": "4f87c1fe0e200c55720896454529cfbe34eab5b647bf08f6067e8c6e642190f2",
-    "wordmarkDerivation": {
-      "source": "node_modules/@fontsource-variable/ibm-plex-sans/files/ibm-plex-sans-latin-wght-normal.woff2",
-      "sourceSha256": "e2291e842cf5af167122a22881a740c7f2dda7716f1e8cd76680264f4a859470",
-      "license": "node_modules/@fontsource-variable/ibm-plex-sans/LICENSE",
-      "licenseSha256": "d0283623ef57e722fd0eb688a8041589670c608ab780cd3612d06ba6f153d3fd",
+    "sourceCommit": "813f0cd7",
+    "projectOrigin": "Os assets foram todos construídos para nosso projeto",
+    "projectUseAuthorized": true,
+    "originRecordedAt": "2026-08-02",
+    "originReference": "src/brand/template-asset-sources.ts#templateAssetAuthorization",
+    "wordmark": {
+      "family": "Sora",
+      "weight": 700,
+      "packageSource": {
+        "package": "@fontsource/sora",
+        "version": "5.3.0",
+        "file": "files/sora-latin-700-normal.woff2",
+        "sha256": "c3337a673c9bbbfe433091d3831714dd9a257951f16f41eb3fc650ec593cfac2"
+      },
+      "licensePath": "src/design-system/fonts/LICENSES/Sora-OFL-1.1.txt",
+      "licenseSha256": "1ec9623d38c445eb4dfe5fcc783e0f0ee728cc97ca157ce1f8cb2b3bf9d9b0d9",
+      "outlinePath": "src/brand/wordmark.outlines.svg",
+      "outlineSha256": "0a10c25c86bf7ba6edc9d176c7f18a6940e355f19c8d1b02188809d0b5a3de9b",
       "tool": "woff2_decompress + Pango/Cairo 1.58.0",
-      "settings": "IBM Plex Sans Semibold, 26px, text converted to SVG outlines"
+      "settings": "Sora 700 at 15px with -0.3px tracking; QR Pagamentos converted to SVG outlines"
     },
-    "statement": "Original repository-native mark geometry plus reviewed IBM Plex Sans wordmark outlines. Static exports require no host, local, or remote font and include no stock, trademark-derived, remote, or generative artwork."
+    "statement": "The supplied project artwork is installed as application-owned presentation. Static lockups use reviewed Sora outlines and no live font. This manifest records source facts without expanding them into authorship, exclusivity, or broader rights claims."
   },
   "usage": {
-    "clearSpace": "one-sixth of the rendered mark width",
-    "minimumSizes": {
-      "mark": 16,
-      "productLockup": 120,
-      "compactRoleLockup": 112,
-      "merchantFallback": 112
-    },
     "inlineColor": "currentColor from a semantic foreground token",
-    "accessibleNaming": "Hide a mark beside visible identity text; give a standalone meaningful mark one caller-supplied localized accessible name."
+    "staticModes": [
+      "positive",
+      "reversed"
+    ],
+    "accessibleNaming": "A mark beside visible identity text is decorative; a meaningful standalone mark receives one caller-supplied localized name.",
+    "mediaBoundary": "Application fallbacks and illustrations create no upload, merchant ownership, media identifier, quota, or lifecycle state."
   },
-  "assets": [
+  "sources": [
     {
-      "identityId": "mark-only",
-      "role": "mark-only",
-      "staticVariant": "positive",
+      "parityId": "asset:824c7f9692a86081",
+      "sourcePath": "docs/template/app/public/auth-texture.svg",
+      "bytes": 23349,
+      "sha256": "747a89c02c2a8b4c2715d80ffcf43f722f0dcf4c90005cb17365fb034029c321",
+      "intrinsic": {
+        "width": 480,
+        "height": 480
+      },
+      "role": "decorative auth texture",
+      "mime": "image/svg+xml",
+      "sourceCommit": "813f0cd7",
+      "projectOrigin": "Os assets foram todos construídos para nosso projeto",
+      "projectUseAuthorized": true,
+      "viewBox": "0 0 480 480",
+      "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetSources:asset:824c7f9692a86081"
+    },
+    {
+      "parityId": "asset:b184c76c76b9f75f",
+      "sourcePath": "docs/template/app/public/avatar-default.svg",
+      "bytes": 284,
+      "sha256": "4e99294b7a3e73cd929d23213fba68419fbb57c10485435539e0e826b5783651",
+      "intrinsic": {
+        "width": 96,
+        "height": 96
+      },
+      "role": "application avatar fallback",
+      "mime": "image/svg+xml",
+      "sourceCommit": "813f0cd7",
+      "projectOrigin": "Os assets foram todos construídos para nosso projeto",
+      "projectUseAuthorized": true,
+      "viewBox": "0 0 96 96",
+      "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetSources:asset:b184c76c76b9f75f"
+    },
+    {
+      "parityId": "asset:3fc36185f375758e",
+      "sourcePath": "docs/template/app/public/checkout-success.svg",
+      "bytes": 687,
+      "sha256": "251486b5fec604a7535d34eeb5261d82741677ea5fad77436cca206f172e8a10",
+      "intrinsic": {
+        "width": 200,
+        "height": 200
+      },
+      "role": "decorative success illustration",
+      "mime": "image/svg+xml",
+      "sourceCommit": "813f0cd7",
+      "projectOrigin": "Os assets foram todos construídos para nosso projeto",
+      "projectUseAuthorized": true,
+      "viewBox": "0 0 200 200",
+      "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetSources:asset:3fc36185f375758e"
+    },
+    {
+      "parityId": "asset:852a445b58a8d7b6",
+      "sourcePath": "docs/template/app/public/empty-links.svg",
+      "bytes": 887,
+      "sha256": "1368d26d05d0f0300bcb6d0e5f53754bfd915dfa44ad7e9000825929c890cbb5",
+      "intrinsic": {
+        "width": 192,
+        "height": 192
+      },
+      "role": "decorative empty illustration",
+      "mime": "image/svg+xml",
+      "sourceCommit": "813f0cd7",
+      "projectOrigin": "Os assets foram todos construídos para nosso projeto",
+      "projectUseAuthorized": true,
+      "viewBox": "0 0 192 192",
+      "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetSources:asset:852a445b58a8d7b6"
+    },
+    {
+      "parityId": "asset:bc3c65e381577527",
+      "sourcePath": "docs/template/app/public/empty-orders.svg",
+      "bytes": 774,
+      "sha256": "2c2b846844e30ed9a9f4f1e9cbab82e8c7b74f88b6aa4ee7950daf3412cc3552",
+      "intrinsic": {
+        "width": 192,
+        "height": 192
+      },
+      "role": "decorative empty illustration",
+      "mime": "image/svg+xml",
+      "sourceCommit": "813f0cd7",
+      "projectOrigin": "Os assets foram todos construídos para nosso projeto",
+      "projectUseAuthorized": true,
+      "viewBox": "0 0 192 192",
+      "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetSources:asset:bc3c65e381577527"
+    },
+    {
+      "parityId": "asset:1b445e01c0e9515b",
+      "sourcePath": "docs/template/app/public/empty-products.svg",
+      "bytes": 690,
+      "sha256": "231d383453c9efa287a111f80107a870d2f9f8c7145ab46b28003b184cf38e2e",
+      "intrinsic": {
+        "width": 192,
+        "height": 192
+      },
+      "role": "decorative empty illustration",
+      "mime": "image/svg+xml",
+      "sourceCommit": "813f0cd7",
+      "projectOrigin": "Os assets foram todos construídos para nosso projeto",
+      "projectUseAuthorized": true,
+      "viewBox": "0 0 192 192",
+      "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetSources:asset:1b445e01c0e9515b"
+    },
+    {
+      "parityId": "asset:81edd9e9e786cfa8",
+      "sourcePath": "docs/template/app/public/empty-users.svg",
+      "bytes": 599,
+      "sha256": "b9ceacceac20e65f865d03210bccaae08eb074134778148e39a464fdccf23c9e",
+      "intrinsic": {
+        "width": 192,
+        "height": 192
+      },
+      "role": "decorative empty illustration",
+      "mime": "image/svg+xml",
+      "sourceCommit": "813f0cd7",
+      "projectOrigin": "Os assets foram todos construídos para nosso projeto",
+      "projectUseAuthorized": true,
+      "viewBox": "0 0 192 192",
+      "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetSources:asset:81edd9e9e786cfa8"
+    },
+    {
+      "parityId": "asset:3510a147f97bf807",
+      "sourcePath": "docs/template/app/public/logo.svg",
+      "bytes": 853,
+      "sha256": "09ad66faf15620e224a15913b77e8ac4df04f7a2defe2628aff31e2592db6e35",
+      "intrinsic": {
+        "width": 160,
+        "height": 32
+      },
+      "role": "canonical mark and lockup target",
+      "mime": "image/svg+xml",
+      "sourceCommit": "813f0cd7",
+      "projectOrigin": "Os assets foram todos construídos para nosso projeto",
+      "projectUseAuthorized": true,
+      "viewBox": "0 0 160 32",
+      "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetSources:asset:3510a147f97bf807"
+    },
+    {
+      "parityId": "asset:6d5afe0fe3f49398",
+      "sourcePath": "docs/template/app/public/product-fallback.svg",
+      "bytes": 444,
+      "sha256": "47650b0cc5b93ff81941fb43a1859320991f345bace416386fd25818a52b965b",
+      "intrinsic": {
+        "width": 400,
+        "height": 400
+      },
+      "role": "application product fallback",
+      "mime": "image/svg+xml",
+      "sourceCommit": "813f0cd7",
+      "projectOrigin": "Os assets foram todos construídos para nosso projeto",
+      "projectUseAuthorized": true,
+      "viewBox": "0 0 400 400",
+      "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetSources:asset:6d5afe0fe3f49398"
+    },
+    {
+      "parityId": "asset:9347e7da43396922",
+      "sourcePath": "docs/template/app/public/store-logo-fallback.svg",
+      "bytes": 462,
+      "sha256": "e489298cbad3128539111f3f446abf489bbb2230902165d8fd991df7c5a900e2",
+      "intrinsic": {
+        "width": 128,
+        "height": 128
+      },
+      "role": "application-owned merchant-logo fallback",
+      "mime": "image/svg+xml",
+      "sourceCommit": "813f0cd7",
+      "projectOrigin": "Os assets foram todos construídos para nosso projeto",
+      "projectUseAuthorized": true,
+      "viewBox": "0 0 128 128",
+      "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetSources:asset:9347e7da43396922"
+    },
+    {
+      "parityId": "asset:fbd688b3e7a7dd01",
+      "sourcePath": "docs/template/app/public/theme-swatch-cashier-daylight.svg",
+      "bytes": 507,
+      "sha256": "1f37c52d78b8557fb781fc168dca61a813463a032896ef6031577afb87749e37",
+      "intrinsic": {
+        "width": 96,
+        "height": 64
+      },
+      "role": "cashier-daylight swatch",
+      "mime": "image/svg+xml",
+      "sourceCommit": "813f0cd7",
+      "projectOrigin": "Os assets foram todos construídos para nosso projeto",
+      "projectUseAuthorized": true,
+      "viewBox": "0 0 96 64",
+      "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetSources:asset:fbd688b3e7a7dd01"
+    },
+    {
+      "parityId": "asset:621055b6f06e5c69",
+      "sourcePath": "docs/template/app/public/theme-swatch-midnight-clearing.svg",
+      "bytes": 507,
+      "sha256": "e5036efaad4a7574baa6baa6df662f8398e3de82524f202b9ac9a4ecf880b85c",
+      "intrinsic": {
+        "width": 96,
+        "height": 64
+      },
+      "role": "midnight-clearing swatch",
+      "mime": "image/svg+xml",
+      "sourceCommit": "813f0cd7",
+      "projectOrigin": "Os assets foram todos construídos para nosso projeto",
+      "projectUseAuthorized": true,
+      "viewBox": "0 0 96 64",
+      "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetSources:asset:621055b6f06e5c69"
+    },
+    {
+      "parityId": "asset:b81953495d3b9cce",
+      "sourcePath": "docs/template/app/public/theme-swatch-pix-paper.svg",
+      "bytes": 507,
+      "sha256": "90bb72fdcd1adc1c4a3307641914a8097bd2e90fe0e667e6d805a7f36c9cfb88",
+      "intrinsic": {
+        "width": 96,
+        "height": 64
+      },
+      "role": "pix-paper swatch",
+      "mime": "image/svg+xml",
+      "sourceCommit": "813f0cd7",
+      "projectOrigin": "Os assets foram todos construídos para nosso projeto",
+      "projectUseAuthorized": true,
+      "viewBox": "0 0 96 64",
+      "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetSources:asset:b81953495d3b9cce"
+    },
+    {
+      "parityId": "asset:378a764eddcd0b72",
+      "sourcePath": "docs/template/app/public/theme-swatch-settlement-sand.svg",
+      "bytes": 507,
+      "sha256": "a6cdd2447fc1dfce2ad951ab391f932611284e8e8ca638cb32b3305d4c3c9630",
+      "intrinsic": {
+        "width": 96,
+        "height": 64
+      },
+      "role": "settlement-sand swatch",
+      "mime": "image/svg+xml",
+      "sourceCommit": "813f0cd7",
+      "projectOrigin": "Os assets foram todos construídos para nosso projeto",
+      "projectUseAuthorized": true,
+      "viewBox": "0 0 96 64",
+      "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetSources:asset:378a764eddcd0b72"
+    },
+    {
+      "parityId": "asset:b6bcb6e7c1cf6a19",
+      "sourcePath": "docs/template/app/public/theme-swatch-terminal-amber.svg",
+      "bytes": 507,
+      "sha256": "e72c58c15d3b2f036dfd90ca7ae41fdf97fa05cc517009daede3447ee33acff7",
+      "intrinsic": {
+        "width": 96,
+        "height": 64
+      },
+      "role": "terminal-amber swatch",
+      "mime": "image/svg+xml",
+      "sourceCommit": "813f0cd7",
+      "projectOrigin": "Os assets foram todos construídos para nosso projeto",
+      "projectUseAuthorized": true,
+      "viewBox": "0 0 96 64",
+      "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetSources:asset:b6bcb6e7c1cf6a19"
+    },
+    {
+      "parityId": "asset:d8a3f91e375a1691",
+      "sourcePath": "docs/template/app/public/theme-swatch-vault-blue.svg",
+      "bytes": 507,
+      "sha256": "f7e481a3772064950e3566b7244d2c05db2c0c5e60857e6d7e3bcf0f1e458720",
+      "intrinsic": {
+        "width": 96,
+        "height": 64
+      },
+      "role": "vault-blue swatch",
+      "mime": "image/svg+xml",
+      "sourceCommit": "813f0cd7",
+      "projectOrigin": "Os assets foram todos construídos para nosso projeto",
+      "projectUseAuthorized": true,
+      "viewBox": "0 0 96 64",
+      "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetSources:asset:d8a3f91e375a1691"
+    },
+    {
+      "parityId": "asset:098d6809ca3c1a7e",
+      "sourcePath": "docs/template/app/public/unavailable.svg",
+      "bytes": 472,
+      "sha256": "2031a1adbb192d76b9e8237734611cf018353080df7bd0946022ef953f86e961",
+      "intrinsic": {
+        "width": 192,
+        "height": 192
+      },
+      "role": "decorative unavailable illustration",
+      "mime": "image/svg+xml",
+      "sourceCommit": "813f0cd7",
+      "projectOrigin": "Os assets foram todos construídos para nosso projeto",
+      "projectUseAuthorized": true,
+      "viewBox": "0 0 192 192",
+      "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetSources:asset:098d6809ca3c1a7e"
+    }
+  ],
+  "derivatives": [
+    {
       "id": "mark-positive",
-      "canonicalSource": "src/brand/geometry.ts",
+      "role": "mark-only",
+      "derivation": "canonical-geometry",
       "outputPath": "public/brand/mark-positive.svg",
       "mime": "image/svg+xml",
       "intrinsic": {
-        "viewBox": "0 0 48 48"
+        "viewBox": "0 0 32 32"
       },
       "colorMode": "positive-static",
       "accessibilityMode": "consumer-supplied",
       "generated": true,
-      "sha256": "7f112ba642922191abfb86038b2c73388520df187ed2117c6c198b255f4d3130"
+      "bytes": 721,
+      "sha256": "3afda87d26a29467f10fc1873f277efc7b7832f2f209c1890ac13e9d773899eb",
+      "sourceParityIds": [
+        "asset:3510a147f97bf807"
+      ],
+      "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetAuthorization",
+      "identityId": "mark-only",
+      "staticVariant": "positive"
     },
     {
-      "identityId": "mark-only",
-      "role": "mark-only",
-      "staticVariant": "reversed",
       "id": "mark-reversed",
-      "canonicalSource": "src/brand/geometry.ts",
+      "role": "mark-only",
+      "derivation": "canonical-geometry",
       "outputPath": "public/brand/mark-reversed.svg",
       "mime": "image/svg+xml",
       "intrinsic": {
-        "viewBox": "0 0 48 48"
+        "viewBox": "0 0 32 32"
       },
       "colorMode": "reversed-static",
       "accessibilityMode": "consumer-supplied",
       "generated": true,
-      "sha256": "dc3f68db848114c3c19215b117f5356c549b9828cda3377575a5cb765b55ccc3"
+      "bytes": 721,
+      "sha256": "dfa45c0f35483947d6add3243319b2e3cc6aaa10e1f85c225b0c9ac93e2aea30",
+      "sourceParityIds": [
+        "asset:3510a147f97bf807"
+      ],
+      "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetAuthorization",
+      "identityId": "mark-only",
+      "staticVariant": "reversed"
     },
     {
-      "identityId": "product-lockup",
-      "role": "product-lockup",
-      "staticVariant": "positive",
       "id": "product-lockup-positive",
-      "canonicalSource": [
-        "src/brand/geometry.ts",
-        "src/brand/wordmark.outlines.svg"
-      ],
+      "role": "product-lockup",
+      "derivation": "canonical-geometry+sora-outlines",
       "outputPath": "public/brand/product-lockup-positive.svg",
       "mime": "image/svg+xml",
       "intrinsic": {
-        "viewBox": "0 0 260 48"
+        "viewBox": "0 0 160 32"
       },
       "colorMode": "positive-static",
       "accessibilityMode": "consumer-supplied",
       "generated": true,
-      "sha256": "2a86130fd2e222e65dcbacdac086000f55965b66fd78f7e2121784cc8971becd"
+      "bytes": 17374,
+      "sha256": "f068091897f86d44fc857d1cb535dd84da5bc779bbca57e7bf2fb479cc26bd5d",
+      "sourceParityIds": [
+        "asset:3510a147f97bf807"
+      ],
+      "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetAuthorization",
+      "identityId": "product-lockup",
+      "staticVariant": "positive"
     },
     {
-      "identityId": "product-lockup",
-      "role": "product-lockup",
-      "staticVariant": "reversed",
       "id": "product-lockup-reversed",
-      "canonicalSource": [
-        "src/brand/geometry.ts",
-        "src/brand/wordmark.outlines.svg"
-      ],
+      "role": "product-lockup",
+      "derivation": "canonical-geometry+sora-outlines",
       "outputPath": "public/brand/product-lockup-reversed.svg",
       "mime": "image/svg+xml",
       "intrinsic": {
-        "viewBox": "0 0 260 48"
+        "viewBox": "0 0 160 32"
       },
       "colorMode": "reversed-static",
       "accessibilityMode": "consumer-supplied",
       "generated": true,
-      "sha256": "df1c566f9cb903cd4eb42dbf10d5620a88cd0a740f91cf73d87342e491078ae4"
+      "bytes": 17374,
+      "sha256": "6b64c75638b4b3c2bc12b6d3792fd4dfae3c11aeb95d03ffb7fd7e01511bcb86",
+      "sourceParityIds": [
+        "asset:3510a147f97bf807"
+      ],
+      "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetAuthorization",
+      "identityId": "product-lockup",
+      "staticVariant": "reversed"
     },
     {
-      "identityId": "compact-role-lockup",
-      "role": "compact-role-lockup",
-      "staticVariant": "positive",
       "id": "compact-role-lockup-positive",
-      "canonicalSource": [
-        "src/brand/geometry.ts",
-        "src/brand/wordmark.outlines.svg"
-      ],
+      "role": "compact-role-lockup",
+      "derivation": "canonical-geometry+sora-outlines",
       "outputPath": "public/brand/compact-role-lockup-positive.svg",
       "mime": "image/svg+xml",
       "intrinsic": {
-        "viewBox": "0 0 216 48"
+        "viewBox": "0 0 160 32"
       },
       "colorMode": "positive-static",
       "accessibilityMode": "consumer-supplied",
       "generated": true,
-      "sha256": "c08c725b7116653a147624fa92b7d194148738d4b4198ec745b3bbba8746eb1a"
+      "bytes": 17379,
+      "sha256": "c561a7ab0a3aa443b19f7426354ac786ba0d99a1526cb9c0ee8b9ee9e7cd7577",
+      "sourceParityIds": [
+        "asset:3510a147f97bf807"
+      ],
+      "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetAuthorization",
+      "identityId": "compact-role-lockup",
+      "staticVariant": "positive"
     },
     {
-      "identityId": "compact-role-lockup",
-      "role": "compact-role-lockup",
-      "staticVariant": "reversed",
       "id": "compact-role-lockup-reversed",
-      "canonicalSource": [
-        "src/brand/geometry.ts",
-        "src/brand/wordmark.outlines.svg"
-      ],
+      "role": "compact-role-lockup",
+      "derivation": "canonical-geometry+sora-outlines",
       "outputPath": "public/brand/compact-role-lockup-reversed.svg",
       "mime": "image/svg+xml",
       "intrinsic": {
-        "viewBox": "0 0 216 48"
+        "viewBox": "0 0 160 32"
       },
       "colorMode": "reversed-static",
       "accessibilityMode": "consumer-supplied",
       "generated": true,
-      "sha256": "cb9e45fe870317bd945e408b080c104f6a3abbcdf8665d857b19e66644b584e4"
+      "bytes": 17379,
+      "sha256": "42207b9cde3ed3a75f2262de7e5d0e1fe1c16213d96520b47a3211c06b878aa1",
+      "sourceParityIds": [
+        "asset:3510a147f97bf807"
+      ],
+      "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetAuthorization",
+      "identityId": "compact-role-lockup",
+      "staticVariant": "reversed"
     },
     {
-      "identityId": "merchant-fallback",
-      "role": "merchant-fallback",
-      "staticVariant": "positive",
       "id": "merchant-fallback-positive",
-      "canonicalSource": [
-        "src/brand/geometry.ts",
-        "src/brand/wordmark.outlines.svg"
-      ],
+      "role": "merchant-fallback",
+      "derivation": "canonical-geometry+sora-outlines",
       "outputPath": "public/brand/merchant-fallback-positive.svg",
       "mime": "image/svg+xml",
       "intrinsic": {
-        "viewBox": "0 0 216 48"
+        "viewBox": "0 0 160 32"
       },
       "colorMode": "positive-static",
       "accessibilityMode": "consumer-supplied",
       "generated": true,
-      "sha256": "83db8908beac32f2964b4ec4117369d587f4beb9f1f91d1df5aa9c26a5184315"
+      "bytes": 17377,
+      "sha256": "a7caa47516ac07803b887cdf1454e8cf4ea36874b04463c9490d08ee1c410eb3",
+      "sourceParityIds": [
+        "asset:3510a147f97bf807"
+      ],
+      "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetAuthorization",
+      "identityId": "merchant-fallback",
+      "staticVariant": "positive"
     },
     {
-      "identityId": "merchant-fallback",
-      "role": "merchant-fallback",
-      "staticVariant": "reversed",
       "id": "merchant-fallback-reversed",
-      "canonicalSource": [
-        "src/brand/geometry.ts",
-        "src/brand/wordmark.outlines.svg"
-      ],
+      "role": "merchant-fallback",
+      "derivation": "canonical-geometry+sora-outlines",
       "outputPath": "public/brand/merchant-fallback-reversed.svg",
       "mime": "image/svg+xml",
       "intrinsic": {
-        "viewBox": "0 0 216 48"
+        "viewBox": "0 0 160 32"
       },
       "colorMode": "reversed-static",
       "accessibilityMode": "consumer-supplied",
       "generated": true,
-      "sha256": "64615422c2e57a3c414e25705e6d1c75dbc7a365129ba7d79b7dc981974439dd"
+      "bytes": 17377,
+      "sha256": "a117872635b5d393505b1bb670ec679c7b2d4f6e010aac07facd1dd51040468c",
+      "sourceParityIds": [
+        "asset:3510a147f97bf807"
+      ],
+      "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetAuthorization",
+      "identityId": "merchant-fallback",
+      "staticVariant": "reversed"
+    },
+    {
+      "id": "auth-texture",
+      "role": "auth-texture",
+      "derivation": "validated-static-copy",
+      "outputPath": "public/application-assets/auth-texture.svg",
+      "mime": "image/svg+xml",
+      "intrinsic": {
+        "width": 480,
+        "height": 480,
+        "viewBox": "0 0 480 480"
+      },
+      "colorMode": "fixed-template-palette",
+      "accessibilityMode": "decorative",
+      "generated": true,
+      "bytes": 23404,
+      "sha256": "855031847351f0d4e2ea7100e896af34729d93bd2c940d1aa8bc6359a12206fb",
+      "sourceParityIds": [
+        "asset:824c7f9692a86081"
+      ],
+      "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetSources",
+      "applicationOwnership": "decorative"
+    },
+    {
+      "id": "avatar-default",
+      "role": "avatar-fallback",
+      "derivation": "validated-static-copy",
+      "outputPath": "public/application-assets/avatar-default.svg",
+      "mime": "image/svg+xml",
+      "intrinsic": {
+        "width": 96,
+        "height": 96,
+        "viewBox": "0 0 96 96"
+      },
+      "colorMode": "fixed-template-palette",
+      "accessibilityMode": "consumer-supplied-adjacent-context",
+      "generated": true,
+      "bytes": 339,
+      "sha256": "a8e869bbc0b674c1a1da82859ef928a89c42057f7ad92b09b6d7839328dc4c1e",
+      "sourceParityIds": [
+        "asset:b184c76c76b9f75f"
+      ],
+      "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetSources",
+      "applicationOwnership": "application-fallback"
+    },
+    {
+      "id": "checkout-success",
+      "role": "checkout-success",
+      "derivation": "validated-static-copy",
+      "outputPath": "public/application-assets/checkout-success.svg",
+      "mime": "image/svg+xml",
+      "intrinsic": {
+        "width": 200,
+        "height": 200,
+        "viewBox": "0 0 200 200"
+      },
+      "colorMode": "fixed-template-palette",
+      "accessibilityMode": "decorative",
+      "generated": true,
+      "bytes": 742,
+      "sha256": "7cfd59bd24ae3c3ef2560a94d0038396c05b86c887e6b046024aece568cb8b3a",
+      "sourceParityIds": [
+        "asset:3fc36185f375758e"
+      ],
+      "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetSources",
+      "applicationOwnership": "decorative"
+    },
+    {
+      "id": "empty-links",
+      "role": "empty-links",
+      "derivation": "validated-static-copy",
+      "outputPath": "public/application-assets/empty-links.svg",
+      "mime": "image/svg+xml",
+      "intrinsic": {
+        "width": 192,
+        "height": 192,
+        "viewBox": "0 0 192 192"
+      },
+      "colorMode": "fixed-template-palette",
+      "accessibilityMode": "decorative",
+      "generated": true,
+      "bytes": 942,
+      "sha256": "76a59be5ba340cc264a133f987b311702e2742ebd09fb7f2ddb4dcfd2ad1154c",
+      "sourceParityIds": [
+        "asset:852a445b58a8d7b6"
+      ],
+      "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetSources",
+      "applicationOwnership": "decorative"
+    },
+    {
+      "id": "empty-orders",
+      "role": "empty-orders",
+      "derivation": "validated-static-copy",
+      "outputPath": "public/application-assets/empty-orders.svg",
+      "mime": "image/svg+xml",
+      "intrinsic": {
+        "width": 192,
+        "height": 192,
+        "viewBox": "0 0 192 192"
+      },
+      "colorMode": "fixed-template-palette",
+      "accessibilityMode": "decorative",
+      "generated": true,
+      "bytes": 829,
+      "sha256": "657bc36f789f298dfef1ed20557d957a74c67af46b7c14257e38aa914cb287d2",
+      "sourceParityIds": [
+        "asset:bc3c65e381577527"
+      ],
+      "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetSources",
+      "applicationOwnership": "decorative"
+    },
+    {
+      "id": "empty-products",
+      "role": "empty-products",
+      "derivation": "validated-static-copy",
+      "outputPath": "public/application-assets/empty-products.svg",
+      "mime": "image/svg+xml",
+      "intrinsic": {
+        "width": 192,
+        "height": 192,
+        "viewBox": "0 0 192 192"
+      },
+      "colorMode": "fixed-template-palette",
+      "accessibilityMode": "decorative",
+      "generated": true,
+      "bytes": 745,
+      "sha256": "beff3eaa5595e786a0204274c85fc67812e83f11e9b89e88714b14afa4029489",
+      "sourceParityIds": [
+        "asset:1b445e01c0e9515b"
+      ],
+      "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetSources",
+      "applicationOwnership": "decorative"
+    },
+    {
+      "id": "empty-users",
+      "role": "empty-users",
+      "derivation": "validated-static-copy",
+      "outputPath": "public/application-assets/empty-users.svg",
+      "mime": "image/svg+xml",
+      "intrinsic": {
+        "width": 192,
+        "height": 192,
+        "viewBox": "0 0 192 192"
+      },
+      "colorMode": "fixed-template-palette",
+      "accessibilityMode": "decorative",
+      "generated": true,
+      "bytes": 654,
+      "sha256": "8806db5b520aca55656768b64e39e231245b0658336320992db6177f233534d2",
+      "sourceParityIds": [
+        "asset:81edd9e9e786cfa8"
+      ],
+      "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetSources",
+      "applicationOwnership": "decorative"
+    },
+    {
+      "id": "product-fallback",
+      "role": "product-fallback",
+      "derivation": "validated-static-copy",
+      "outputPath": "public/application-assets/product-fallback.svg",
+      "mime": "image/svg+xml",
+      "intrinsic": {
+        "width": 400,
+        "height": 400,
+        "viewBox": "0 0 400 400"
+      },
+      "colorMode": "fixed-template-palette",
+      "accessibilityMode": "consumer-supplied-adjacent-context",
+      "generated": true,
+      "bytes": 499,
+      "sha256": "e9dcc2f00449b58889a3b45fd2385731aa7c59e7e1fdb55d8ace0c09546f41cf",
+      "sourceParityIds": [
+        "asset:6d5afe0fe3f49398"
+      ],
+      "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetSources",
+      "applicationOwnership": "application-fallback"
+    },
+    {
+      "id": "store-logo-fallback",
+      "role": "store-logo-fallback",
+      "derivation": "validated-static-copy",
+      "outputPath": "public/application-assets/store-logo-fallback.svg",
+      "mime": "image/svg+xml",
+      "intrinsic": {
+        "width": 128,
+        "height": 128,
+        "viewBox": "0 0 128 128"
+      },
+      "colorMode": "fixed-template-palette",
+      "accessibilityMode": "consumer-supplied-adjacent-context",
+      "generated": true,
+      "bytes": 517,
+      "sha256": "fb3d64128ff8db904da023788b3d1263147c3be2e1565a93f6061667aa799592",
+      "sourceParityIds": [
+        "asset:9347e7da43396922"
+      ],
+      "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetSources",
+      "applicationOwnership": "application-owned-merchant-fallback"
+    },
+    {
+      "id": "theme-swatch-cashier-daylight",
+      "role": "theme-swatch",
+      "derivation": "validated-static-copy",
+      "outputPath": "public/application-assets/theme-swatch-cashier-daylight.svg",
+      "mime": "image/svg+xml",
+      "intrinsic": {
+        "width": 96,
+        "height": 64,
+        "viewBox": "0 0 96 64"
+      },
+      "colorMode": "fixed-theme-preview",
+      "accessibilityMode": "consumer-supplied-adjacent-context",
+      "generated": true,
+      "bytes": 562,
+      "sha256": "8abbfc29e2b9db6ef61c79ebc6ac9ab5207ff522c39c4ef21279a35b515fd184",
+      "sourceParityIds": [
+        "asset:fbd688b3e7a7dd01"
+      ],
+      "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetSources",
+      "themeId": "cashier-daylight",
+      "applicationOwnership": "application-theme-preview"
+    },
+    {
+      "id": "theme-swatch-midnight-clearing",
+      "role": "theme-swatch",
+      "derivation": "validated-static-copy",
+      "outputPath": "public/application-assets/theme-swatch-midnight-clearing.svg",
+      "mime": "image/svg+xml",
+      "intrinsic": {
+        "width": 96,
+        "height": 64,
+        "viewBox": "0 0 96 64"
+      },
+      "colorMode": "fixed-theme-preview",
+      "accessibilityMode": "consumer-supplied-adjacent-context",
+      "generated": true,
+      "bytes": 562,
+      "sha256": "5688f3335f52cd51d98e0ac724e8c91c11b92c532f061bb60a765c00ea7a7242",
+      "sourceParityIds": [
+        "asset:621055b6f06e5c69"
+      ],
+      "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetSources",
+      "themeId": "midnight-clearing",
+      "applicationOwnership": "application-theme-preview"
+    },
+    {
+      "id": "theme-swatch-pix-paper",
+      "role": "theme-swatch",
+      "derivation": "validated-static-copy",
+      "outputPath": "public/application-assets/theme-swatch-pix-paper.svg",
+      "mime": "image/svg+xml",
+      "intrinsic": {
+        "width": 96,
+        "height": 64,
+        "viewBox": "0 0 96 64"
+      },
+      "colorMode": "fixed-theme-preview",
+      "accessibilityMode": "consumer-supplied-adjacent-context",
+      "generated": true,
+      "bytes": 562,
+      "sha256": "21acc8cca88699c3c74f9ba902b23d393bdeb1776e2d01127dc3c70a07efccde",
+      "sourceParityIds": [
+        "asset:b81953495d3b9cce"
+      ],
+      "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetSources",
+      "themeId": "pix-paper",
+      "applicationOwnership": "application-theme-preview"
+    },
+    {
+      "id": "theme-swatch-settlement-sand",
+      "role": "theme-swatch",
+      "derivation": "validated-static-copy",
+      "outputPath": "public/application-assets/theme-swatch-settlement-sand.svg",
+      "mime": "image/svg+xml",
+      "intrinsic": {
+        "width": 96,
+        "height": 64,
+        "viewBox": "0 0 96 64"
+      },
+      "colorMode": "fixed-theme-preview",
+      "accessibilityMode": "consumer-supplied-adjacent-context",
+      "generated": true,
+      "bytes": 562,
+      "sha256": "b54e5b7c5103a006a9dc0a66f7eb18e46673c5eca1380322dfc92056ef9d181f",
+      "sourceParityIds": [
+        "asset:378a764eddcd0b72"
+      ],
+      "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetSources",
+      "themeId": "settlement-sand",
+      "applicationOwnership": "application-theme-preview"
+    },
+    {
+      "id": "theme-swatch-terminal-amber",
+      "role": "theme-swatch",
+      "derivation": "validated-static-copy",
+      "outputPath": "public/application-assets/theme-swatch-terminal-amber.svg",
+      "mime": "image/svg+xml",
+      "intrinsic": {
+        "width": 96,
+        "height": 64,
+        "viewBox": "0 0 96 64"
+      },
+      "colorMode": "fixed-theme-preview",
+      "accessibilityMode": "consumer-supplied-adjacent-context",
+      "generated": true,
+      "bytes": 562,
+      "sha256": "0c3ddee9611e0b25d2f90adc9c9685195db459b5282f50eb516dbc1b4b6e74dd",
+      "sourceParityIds": [
+        "asset:b6bcb6e7c1cf6a19"
+      ],
+      "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetSources",
+      "themeId": "terminal-amber",
+      "applicationOwnership": "application-theme-preview"
+    },
+    {
+      "id": "theme-swatch-vault-blue",
+      "role": "theme-swatch",
+      "derivation": "validated-static-copy",
+      "outputPath": "public/application-assets/theme-swatch-vault-blue.svg",
+      "mime": "image/svg+xml",
+      "intrinsic": {
+        "width": 96,
+        "height": 64,
+        "viewBox": "0 0 96 64"
+      },
+      "colorMode": "fixed-theme-preview",
+      "accessibilityMode": "consumer-supplied-adjacent-context",
+      "generated": true,
+      "bytes": 562,
+      "sha256": "da091c6b75456a94675effa02beab23bcccbb6c546fef727af74b86aab182063",
+      "sourceParityIds": [
+        "asset:d8a3f91e375a1691"
+      ],
+      "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetSources",
+      "themeId": "vault-blue",
+      "applicationOwnership": "application-theme-preview"
+    },
+    {
+      "id": "unavailable",
+      "role": "unavailable",
+      "derivation": "validated-static-copy",
+      "outputPath": "public/application-assets/unavailable.svg",
+      "mime": "image/svg+xml",
+      "intrinsic": {
+        "width": 192,
+        "height": 192,
+        "viewBox": "0 0 192 192"
+      },
+      "colorMode": "fixed-template-palette",
+      "accessibilityMode": "decorative",
+      "generated": true,
+      "bytes": 527,
+      "sha256": "c61bec97baa23b4c04464830632e55dfed3e8341f620ba1ab04eb7ac6be4b064",
+      "sourceParityIds": [
+        "asset:098d6809ca3c1a7e"
+      ],
+      "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetSources",
+      "applicationOwnership": "decorative"
     },
     {
       "id": "favicon-16",
-      "role": "browser-icon",
-      "canonicalSource": "src/brand/geometry.ts",
+      "role": "browser-icon-frame",
+      "derivation": "canonical-qr-raster",
       "outputPath": "public/brand/favicon-16.png",
       "mime": "image/png",
       "intrinsic": {
         "width": 16,
         "height": 16
       },
-      "colorMode": "favicon-fixed",
+      "colorMode": "pix-accent-fixed",
       "accessibilityMode": "decorative-browser-chrome",
       "generated": true,
-      "sha256": "615c7f32083ae9bbb7fe735ab717aa5a43c37274654a7aa78ba60d2957a70c89"
+      "bytes": 157,
+      "sha256": "fb4b1363f43c48e38e4cc216dba278cc7b07961dfdae0061c0635400247ae4b8",
+      "sourceParityIds": [
+        "asset:3510a147f97bf807"
+      ],
+      "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetAuthorization"
     },
     {
       "id": "favicon-32",
-      "role": "browser-icon",
-      "canonicalSource": "src/brand/geometry.ts",
+      "role": "browser-icon-frame",
+      "derivation": "canonical-qr-raster",
       "outputPath": "public/brand/favicon-32.png",
       "mime": "image/png",
       "intrinsic": {
         "width": 32,
         "height": 32
       },
-      "colorMode": "favicon-fixed",
+      "colorMode": "pix-accent-fixed",
       "accessibilityMode": "decorative-browser-chrome",
       "generated": true,
-      "sha256": "5d4ea9336b5fd8967c70445ce1d0ec381fd2c3d2886f056afc1e98a905db14e8"
+      "bytes": 201,
+      "sha256": "18458e2befad07990eacb5b6f9889003745472186b9eecb64ea4accb84605cb6",
+      "sourceParityIds": [
+        "asset:3510a147f97bf807"
+      ],
+      "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetAuthorization"
     },
     {
       "id": "favicon-48",
-      "role": "browser-icon",
-      "canonicalSource": "src/brand/geometry.ts",
+      "role": "browser-icon-frame",
+      "derivation": "canonical-qr-raster",
       "outputPath": "public/brand/favicon-48.png",
       "mime": "image/png",
       "intrinsic": {
         "width": 48,
         "height": 48
       },
-      "colorMode": "favicon-fixed",
+      "colorMode": "pix-accent-fixed",
       "accessibilityMode": "decorative-browser-chrome",
       "generated": true,
-      "sha256": "14b2491613f9c9e83ac9ddbd9fe17b69b9a7a61911b5e4376fab34484605df85"
+      "bytes": 244,
+      "sha256": "de0eae779f2fea685fdd51d2987556780c9b7f2b4e34639f5a6cd7ec0bf41837",
+      "sourceParityIds": [
+        "asset:3510a147f97bf807"
+      ],
+      "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetAuthorization"
     },
     {
       "id": "favicon",
       "role": "browser-icon",
-      "canonicalSource": "src/brand/geometry.ts",
+      "derivation": "ico-from-declared-png-frames",
       "outputPath": "src/app/favicon.ico",
       "mime": "image/x-icon",
       "intrinsic": {
@@ -239,10 +931,20 @@
           48
         ]
       },
-      "colorMode": "favicon-fixed",
+      "colorMode": "pix-accent-fixed",
       "accessibilityMode": "decorative-browser-chrome",
       "generated": true,
-      "sha256": "9e8451f8eb819a4b54dab8f9ea4926372cae62b074f17c765ead531fe4481bf8"
+      "bytes": 656,
+      "sha256": "2f119962135dfd12be0e5334e3bcdf7a52ecccaf94ba3e6d465ec08f7e7d5d78",
+      "sourceParityIds": [
+        "asset:3510a147f97bf807"
+      ],
+      "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetAuthorization",
+      "frameSha256": {
+        "16": "fb4b1363f43c48e38e4cc216dba278cc7b07961dfdae0061c0635400247ae4b8",
+        "32": "18458e2befad07990eacb5b6f9889003745472186b9eecb64ea4accb84605cb6",
+        "48": "de0eae779f2fea685fdd51d2987556780c9b7f2b4e34639f5a6cd7ec0bf41837"
+      }
     }
   ]
 }

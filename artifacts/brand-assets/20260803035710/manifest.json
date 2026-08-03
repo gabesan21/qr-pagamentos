@@ -1,0 +1,521 @@
+{
+  "schemaVersion": 2,
+  "runId": "20260803035710",
+  "startedAt": "2026-08-03T03:57:10.527Z",
+  "finishedAt": "2026-08-03T03:57:18.302Z",
+  "matrix": {
+    "widths": [
+      320,
+      375,
+      768,
+      1440
+    ],
+    "captures": 4
+  },
+  "coverage": {
+    "sourceRoles": 17,
+    "directPairs": 16,
+    "identityVariants": 8,
+    "swatches": 6,
+    "faviconFrames": [
+      16,
+      32,
+      48
+    ]
+  },
+  "rasterPolicy": {
+    "threshold": 0.1,
+    "maxDifferingPixelRatio": 0.001,
+    "logoComparison": "full 160x32 pinned Sora target: exact QR threshold plus complete x=40..159 wordmark geometry",
+    "wordmarkDerivationTolerance": {
+      "radius": 2,
+      "maxUnmatchedRatio": 0.12,
+      "inkRatio": [
+        0.75,
+        1.3
+      ],
+      "maxBoundingBoxDelta": 2
+    },
+    "faviconMask": "canonical QR raster checked by exact frame hash/dimensions and displayed at native/128px sizes"
+  },
+  "fontSource": {
+    "path": "node_modules/@fontsource/sora/files/sora-latin-700-normal.woff2",
+    "package": "@fontsource/sora",
+    "version": "5.3.0",
+    "file": "files/sora-latin-700-normal.woff2",
+    "sha256": "c3337a673c9bbbfe433091d3831714dd9a257951f16f41eb3fc650ec593cfac2",
+    "loaded": true
+  },
+  "browser": {
+    "name": "chromium",
+    "deviceScaleFactor": 1,
+    "externalRequestsBlocked": true,
+    "animationsDisabled": true,
+    "caretHidden": true
+  },
+  "inlineIdentitySemantics": {
+    "sourcePath": "src/brand/brand-identity.tsx",
+    "sourceSha256": "5642f6be74a043e8bf2dbaa7567c3614b68cb6a011554c03342c806938ad25df",
+    "standaloneName": true,
+    "adjacentMarkDecorative": true,
+    "noSvgTitle": true,
+    "visibleLockupName": true
+  },
+  "screenshots": [
+    {
+      "path": "artifacts/brand-assets/20260803035710/brand-assets-320.png",
+      "width": 320,
+      "height": 9182,
+      "bytes": 345061,
+      "sha256": "5eeead133b6330252db2bee92038bf9292bebaa00cdb26de81259de62e786f04"
+    },
+    {
+      "path": "artifacts/brand-assets/20260803035710/brand-assets-375.png",
+      "width": 375,
+      "height": 6694,
+      "bytes": 324128,
+      "sha256": "af3b1735ade56595930b88c95e41366e95e1bade2855ae199fdf37307bba24ae"
+    },
+    {
+      "path": "artifacts/brand-assets/20260803035710/brand-assets-768.png",
+      "width": 768,
+      "height": 3296,
+      "bytes": 267232,
+      "sha256": "54f34afea1161112b32b1bf8371c6984bdf7d6851bf3c9785e53f6034d8435f3"
+    },
+    {
+      "path": "artifacts/brand-assets/20260803035710/brand-assets-1440.png",
+      "width": 1440,
+      "height": 2194,
+      "bytes": 262183,
+      "sha256": "9ece2f3535142abc6fc9ed0ce4718142e0ae982e2a5cfa76f473c64b5763531e"
+    }
+  ],
+  "comparisons": [
+    {
+      "parityId": "asset:824c7f9692a86081",
+      "mode": "full-raster",
+      "comparedWidth": 160,
+      "height": 160,
+      "differingPixels": 0,
+      "differingPixelRatio": 0,
+      "maximumChannelDelta": 0,
+      "passed": true
+    },
+    {
+      "parityId": "asset:b184c76c76b9f75f",
+      "mode": "full-raster",
+      "comparedWidth": 96,
+      "height": 96,
+      "differingPixels": 0,
+      "differingPixelRatio": 0,
+      "maximumChannelDelta": 0,
+      "passed": true
+    },
+    {
+      "parityId": "asset:3fc36185f375758e",
+      "mode": "full-raster",
+      "comparedWidth": 160,
+      "height": 160,
+      "differingPixels": 0,
+      "differingPixelRatio": 0,
+      "maximumChannelDelta": 0,
+      "passed": true
+    },
+    {
+      "parityId": "asset:852a445b58a8d7b6",
+      "mode": "full-raster",
+      "comparedWidth": 160,
+      "height": 160,
+      "differingPixels": 0,
+      "differingPixelRatio": 0,
+      "maximumChannelDelta": 0,
+      "passed": true
+    },
+    {
+      "parityId": "asset:bc3c65e381577527",
+      "mode": "full-raster",
+      "comparedWidth": 160,
+      "height": 160,
+      "differingPixels": 0,
+      "differingPixelRatio": 0,
+      "maximumChannelDelta": 0,
+      "passed": true
+    },
+    {
+      "parityId": "asset:1b445e01c0e9515b",
+      "mode": "full-raster",
+      "comparedWidth": 160,
+      "height": 160,
+      "differingPixels": 0,
+      "differingPixelRatio": 0,
+      "maximumChannelDelta": 0,
+      "passed": true
+    },
+    {
+      "parityId": "asset:81edd9e9e786cfa8",
+      "mode": "full-raster",
+      "comparedWidth": 160,
+      "height": 160,
+      "differingPixels": 0,
+      "differingPixelRatio": 0,
+      "maximumChannelDelta": 0,
+      "passed": true
+    },
+    {
+      "parityId": "asset:6d5afe0fe3f49398",
+      "mode": "full-raster",
+      "comparedWidth": 160,
+      "height": 160,
+      "differingPixels": 0,
+      "differingPixelRatio": 0,
+      "maximumChannelDelta": 0,
+      "passed": true
+    },
+    {
+      "parityId": "asset:9347e7da43396922",
+      "mode": "full-raster",
+      "comparedWidth": 128,
+      "height": 128,
+      "differingPixels": 0,
+      "differingPixelRatio": 0,
+      "maximumChannelDelta": 0,
+      "passed": true
+    },
+    {
+      "parityId": "asset:fbd688b3e7a7dd01",
+      "mode": "full-raster",
+      "comparedWidth": 64,
+      "height": 64,
+      "differingPixels": 0,
+      "differingPixelRatio": 0,
+      "maximumChannelDelta": 0,
+      "passed": true
+    },
+    {
+      "parityId": "asset:621055b6f06e5c69",
+      "mode": "full-raster",
+      "comparedWidth": 64,
+      "height": 64,
+      "differingPixels": 0,
+      "differingPixelRatio": 0,
+      "maximumChannelDelta": 0,
+      "passed": true
+    },
+    {
+      "parityId": "asset:b81953495d3b9cce",
+      "mode": "full-raster",
+      "comparedWidth": 64,
+      "height": 64,
+      "differingPixels": 0,
+      "differingPixelRatio": 0,
+      "maximumChannelDelta": 0,
+      "passed": true
+    },
+    {
+      "parityId": "asset:378a764eddcd0b72",
+      "mode": "full-raster",
+      "comparedWidth": 64,
+      "height": 64,
+      "differingPixels": 0,
+      "differingPixelRatio": 0,
+      "maximumChannelDelta": 0,
+      "passed": true
+    },
+    {
+      "parityId": "asset:b6bcb6e7c1cf6a19",
+      "mode": "full-raster",
+      "comparedWidth": 64,
+      "height": 64,
+      "differingPixels": 0,
+      "differingPixelRatio": 0,
+      "maximumChannelDelta": 0,
+      "passed": true
+    },
+    {
+      "parityId": "asset:d8a3f91e375a1691",
+      "mode": "full-raster",
+      "comparedWidth": 64,
+      "height": 64,
+      "differingPixels": 0,
+      "differingPixelRatio": 0,
+      "maximumChannelDelta": 0,
+      "passed": true
+    },
+    {
+      "parityId": "asset:098d6809ca3c1a7e",
+      "mode": "full-raster",
+      "comparedWidth": 160,
+      "height": 160,
+      "differingPixels": 0,
+      "differingPixelRatio": 0,
+      "maximumChannelDelta": 0,
+      "passed": true
+    },
+    {
+      "parityId": "asset:3510a147f97bf807",
+      "mode": "full-pinned-sora-target-vs-outlined-derivative",
+      "fontLoaded": true,
+      "fontSha256": "c3337a673c9bbbfe433091d3831714dd9a257951f16f41eb3fc650ec593cfac2",
+      "qr": {
+        "comparedWidth": 32,
+        "height": 32,
+        "differingPixels": 0,
+        "differingPixelRatio": 0,
+        "maximumChannelDelta": 0,
+        "passed": true
+      },
+      "wordmark": {
+        "crop": {
+          "left": 40,
+          "top": 0,
+          "width": 120,
+          "height": 32
+        },
+        "policy": {
+          "radius": 2,
+          "maxUnmatchedRatio": 0.12,
+          "minInkRatio": 0.75,
+          "maxInkRatio": 1.3,
+          "maxBoundingBoxDelta": 2
+        },
+        "sourceInk": 856,
+        "outputInk": 870,
+        "inkRatio": 1.016355140186916,
+        "sourceBox": {
+          "left": 0,
+          "right": 119,
+          "top": 10,
+          "bottom": 25
+        },
+        "outputBox": {
+          "left": 0,
+          "right": 119,
+          "top": 9,
+          "bottom": 24
+        },
+        "boundingBoxDelta": {
+          "left": 0,
+          "right": 0,
+          "top": 1,
+          "bottom": 1
+        },
+        "sourceUnmatchedRatio": 0,
+        "outputUnmatchedRatio": 0,
+        "passed": true
+      },
+      "structuralWordmark": "outlined/no-live-text-or-font"
+    }
+  ],
+  "assertions": {
+    "path": "artifacts/brand-assets/20260803035710/assertions.json",
+    "sha256": "debf5fccc20054426cdc3b2b1f8bd33b291f60e93fd705c03c4fda998c22de0d"
+  },
+  "mutationProbes": {
+    "path": "artifacts/brand-assets/20260803035710/mutation-probes.json",
+    "sha256": "93e43a7aea9fc2d559c1384cc52247d9ba827a5a3f60998e533a9430111b2a37",
+    "count": 14
+  },
+  "sources": [
+    {
+      "path": "docs/template/app/public/auth-texture.svg",
+      "sha256": "747a89c02c2a8b4c2715d80ffcf43f722f0dcf4c90005cb17365fb034029c321"
+    },
+    {
+      "path": "docs/template/app/public/avatar-default.svg",
+      "sha256": "4e99294b7a3e73cd929d23213fba68419fbb57c10485435539e0e826b5783651"
+    },
+    {
+      "path": "docs/template/app/public/checkout-success.svg",
+      "sha256": "251486b5fec604a7535d34eeb5261d82741677ea5fad77436cca206f172e8a10"
+    },
+    {
+      "path": "docs/template/app/public/empty-links.svg",
+      "sha256": "1368d26d05d0f0300bcb6d0e5f53754bfd915dfa44ad7e9000825929c890cbb5"
+    },
+    {
+      "path": "docs/template/app/public/empty-orders.svg",
+      "sha256": "2c2b846844e30ed9a9f4f1e9cbab82e8c7b74f88b6aa4ee7950daf3412cc3552"
+    },
+    {
+      "path": "docs/template/app/public/empty-products.svg",
+      "sha256": "231d383453c9efa287a111f80107a870d2f9f8c7145ab46b28003b184cf38e2e"
+    },
+    {
+      "path": "docs/template/app/public/empty-users.svg",
+      "sha256": "b9ceacceac20e65f865d03210bccaae08eb074134778148e39a464fdccf23c9e"
+    },
+    {
+      "path": "docs/template/app/public/logo.svg",
+      "sha256": "09ad66faf15620e224a15913b77e8ac4df04f7a2defe2628aff31e2592db6e35"
+    },
+    {
+      "path": "docs/template/app/public/product-fallback.svg",
+      "sha256": "47650b0cc5b93ff81941fb43a1859320991f345bace416386fd25818a52b965b"
+    },
+    {
+      "path": "docs/template/app/public/store-logo-fallback.svg",
+      "sha256": "e489298cbad3128539111f3f446abf489bbb2230902165d8fd991df7c5a900e2"
+    },
+    {
+      "path": "docs/template/app/public/theme-swatch-cashier-daylight.svg",
+      "sha256": "1f37c52d78b8557fb781fc168dca61a813463a032896ef6031577afb87749e37"
+    },
+    {
+      "path": "docs/template/app/public/theme-swatch-midnight-clearing.svg",
+      "sha256": "e5036efaad4a7574baa6baa6df662f8398e3de82524f202b9ac9a4ecf880b85c"
+    },
+    {
+      "path": "docs/template/app/public/theme-swatch-pix-paper.svg",
+      "sha256": "90bb72fdcd1adc1c4a3307641914a8097bd2e90fe0e667e6d805a7f36c9cfb88"
+    },
+    {
+      "path": "docs/template/app/public/theme-swatch-settlement-sand.svg",
+      "sha256": "a6cdd2447fc1dfce2ad951ab391f932611284e8e8ca638cb32b3305d4c3c9630"
+    },
+    {
+      "path": "docs/template/app/public/theme-swatch-terminal-amber.svg",
+      "sha256": "e72c58c15d3b2f036dfd90ca7ae41fdf97fa05cc517009daede3447ee33acff7"
+    },
+    {
+      "path": "docs/template/app/public/theme-swatch-vault-blue.svg",
+      "sha256": "f7e481a3772064950e3566b7244d2c05db2c0c5e60857e6d7e3bcf0f1e458720"
+    },
+    {
+      "path": "docs/template/app/public/unavailable.svg",
+      "sha256": "2031a1adbb192d76b9e8237734611cf018353080df7bd0946022ef953f86e961"
+    },
+    {
+      "path": "public/application-assets/auth-texture.svg",
+      "sha256": "855031847351f0d4e2ea7100e896af34729d93bd2c940d1aa8bc6359a12206fb"
+    },
+    {
+      "path": "public/application-assets/avatar-default.svg",
+      "sha256": "a8e869bbc0b674c1a1da82859ef928a89c42057f7ad92b09b6d7839328dc4c1e"
+    },
+    {
+      "path": "public/application-assets/checkout-success.svg",
+      "sha256": "7cfd59bd24ae3c3ef2560a94d0038396c05b86c887e6b046024aece568cb8b3a"
+    },
+    {
+      "path": "public/application-assets/empty-links.svg",
+      "sha256": "76a59be5ba340cc264a133f987b311702e2742ebd09fb7f2ddb4dcfd2ad1154c"
+    },
+    {
+      "path": "public/application-assets/empty-orders.svg",
+      "sha256": "657bc36f789f298dfef1ed20557d957a74c67af46b7c14257e38aa914cb287d2"
+    },
+    {
+      "path": "public/application-assets/empty-products.svg",
+      "sha256": "beff3eaa5595e786a0204274c85fc67812e83f11e9b89e88714b14afa4029489"
+    },
+    {
+      "path": "public/application-assets/empty-users.svg",
+      "sha256": "8806db5b520aca55656768b64e39e231245b0658336320992db6177f233534d2"
+    },
+    {
+      "path": "public/application-assets/product-fallback.svg",
+      "sha256": "e9dcc2f00449b58889a3b45fd2385731aa7c59e7e1fdb55d8ace0c09546f41cf"
+    },
+    {
+      "path": "public/application-assets/store-logo-fallback.svg",
+      "sha256": "fb3d64128ff8db904da023788b3d1263147c3be2e1565a93f6061667aa799592"
+    },
+    {
+      "path": "public/application-assets/theme-swatch-cashier-daylight.svg",
+      "sha256": "8abbfc29e2b9db6ef61c79ebc6ac9ab5207ff522c39c4ef21279a35b515fd184"
+    },
+    {
+      "path": "public/application-assets/theme-swatch-midnight-clearing.svg",
+      "sha256": "5688f3335f52cd51d98e0ac724e8c91c11b92c532f061bb60a765c00ea7a7242"
+    },
+    {
+      "path": "public/application-assets/theme-swatch-pix-paper.svg",
+      "sha256": "21acc8cca88699c3c74f9ba902b23d393bdeb1776e2d01127dc3c70a07efccde"
+    },
+    {
+      "path": "public/application-assets/theme-swatch-settlement-sand.svg",
+      "sha256": "b54e5b7c5103a006a9dc0a66f7eb18e46673c5eca1380322dfc92056ef9d181f"
+    },
+    {
+      "path": "public/application-assets/theme-swatch-terminal-amber.svg",
+      "sha256": "0c3ddee9611e0b25d2f90adc9c9685195db459b5282f50eb516dbc1b4b6e74dd"
+    },
+    {
+      "path": "public/application-assets/theme-swatch-vault-blue.svg",
+      "sha256": "da091c6b75456a94675effa02beab23bcccbb6c546fef727af74b86aab182063"
+    },
+    {
+      "path": "public/application-assets/unavailable.svg",
+      "sha256": "c61bec97baa23b4c04464830632e55dfed3e8341f620ba1ab04eb7ac6be4b064"
+    },
+    {
+      "path": "public/brand/compact-role-lockup-positive.svg",
+      "sha256": "c561a7ab0a3aa443b19f7426354ac786ba0d99a1526cb9c0ee8b9ee9e7cd7577"
+    },
+    {
+      "path": "public/brand/compact-role-lockup-reversed.svg",
+      "sha256": "42207b9cde3ed3a75f2262de7e5d0e1fe1c16213d96520b47a3211c06b878aa1"
+    },
+    {
+      "path": "public/brand/favicon-16.png",
+      "sha256": "fb4b1363f43c48e38e4cc216dba278cc7b07961dfdae0061c0635400247ae4b8"
+    },
+    {
+      "path": "public/brand/favicon-32.png",
+      "sha256": "18458e2befad07990eacb5b6f9889003745472186b9eecb64ea4accb84605cb6"
+    },
+    {
+      "path": "public/brand/favicon-48.png",
+      "sha256": "de0eae779f2fea685fdd51d2987556780c9b7f2b4e34639f5a6cd7ec0bf41837"
+    },
+    {
+      "path": "public/brand/mark-positive.svg",
+      "sha256": "3afda87d26a29467f10fc1873f277efc7b7832f2f209c1890ac13e9d773899eb"
+    },
+    {
+      "path": "public/brand/mark-reversed.svg",
+      "sha256": "dfa45c0f35483947d6add3243319b2e3cc6aaa10e1f85c225b0c9ac93e2aea30"
+    },
+    {
+      "path": "public/brand/merchant-fallback-positive.svg",
+      "sha256": "a7caa47516ac07803b887cdf1454e8cf4ea36874b04463c9490d08ee1c410eb3"
+    },
+    {
+      "path": "public/brand/merchant-fallback-reversed.svg",
+      "sha256": "a117872635b5d393505b1bb670ec679c7b2d4f6e010aac07facd1dd51040468c"
+    },
+    {
+      "path": "public/brand/product-lockup-positive.svg",
+      "sha256": "f068091897f86d44fc857d1cb535dd84da5bc779bbca57e7bf2fb479cc26bd5d"
+    },
+    {
+      "path": "public/brand/product-lockup-reversed.svg",
+      "sha256": "6b64c75638b4b3c2bc12b6d3792fd4dfae3c11aeb95d03ffb7fd7e01511bcb86"
+    },
+    {
+      "path": "scripts/run-brand-assets-evidence.mjs",
+      "sha256": "423490457e7de06d696b7c5e3824b8780512a98506799a382ac7921c8df5d8b7"
+    },
+    {
+      "path": "scripts/verify-brand-assets-evidence.mjs",
+      "sha256": "2e563abb19829d932654b0faa6caf61fb000e7d9aa1893d2467b79573cf51f12"
+    },
+    {
+      "path": "src/app/favicon.ico",
+      "sha256": "2f119962135dfd12be0e5334e3bcdf7a52ecccaf94ba3e6d465ec08f7e7d5d78"
+    },
+    {
+      "path": "src/brand/assets.manifest.json",
+      "sha256": "9d6479c9eb53c5fefc8b2a615b1234d82bd1ff217f74b1a7b2fef1650e47a108"
+    },
+    {
+      "path": "src/brand/brand-identity.tsx",
+      "sha256": "5642f6be74a043e8bf2dbaa7567c3614b68cb6a011554c03342c806938ad25df"
+    },
+    {
+      "path": "tests/brand-assets.evidence.spec.ts",
+      "sha256": "947150e8e9df5800d825b9b26e1490955ed4d44d229c8ef651fe3cd7a4fb9af2"
+    }
+  ]
+}

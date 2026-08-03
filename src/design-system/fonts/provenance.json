@@ -132,10 +132,5 @@
         }
       ]
     }
-  ],
-  "transitionalDependency": {
-    "package": "@fontsource-variable/ibm-plex-sans",
-    "version": "5.2.8",
-    "purpose": "Static brand wordmark provenance only; task 12.2.2 owns its removal."
-  }
+  ]
 }

@@ -1,0 +1,72 @@
+[
+  {
+    "id": "missing-asset",
+    "failedClosed": true,
+    "error": "Missing derivative asset: public/brand/mark-positive.svg"
+  },
+  {
+    "id": "stale-asset",
+    "failedClosed": true,
+    "error": "Stale derivative asset: public/brand/mark-positive.svg"
+  },
+  {
+    "id": "unknown-asset",
+    "failedClosed": true,
+    "error": "Unknown asset: public/application-assets/unknown.svg"
+  },
+  {
+    "id": "altered-source-hash",
+    "failedClosed": true,
+    "error": "Stale source asset: docs/template/app/public/auth-texture.svg"
+  },
+  {
+    "id": "altered-output-hash",
+    "failedClosed": true,
+    "error": "Stale derivative asset: public/brand/mark-positive.svg"
+  },
+  {
+    "id": "wrong-viewbox",
+    "failedClosed": true,
+    "error": "Incomplete source provenance: docs/template/app/public/auth-texture.svg."
+  },
+  {
+    "id": "wrong-favicon-frame",
+    "failedClosed": true,
+    "error": "Favicon manifest must bind exact 16/32/48 frame hashes."
+  },
+  {
+    "id": "wrong-theme-id",
+    "failedClosed": true,
+    "error": "Theme swatches must use the exact six stored IDs."
+  },
+  {
+    "id": "duplicate-bytes",
+    "failedClosed": true,
+    "error": "Derivative inventory must be closed, path-unique, and byte-unique."
+  },
+  {
+    "id": "unsafe-svg",
+    "failedClosed": true,
+    "error": "SVG contains active content, live text, or an external/data reference."
+  },
+  {
+    "id": "live-text-font",
+    "failedClosed": true,
+    "error": "SVG contains active content, live text, or an external/data reference."
+  },
+  {
+    "id": "absent-grant",
+    "failedClosed": true,
+    "error": "Project-use grant is absent."
+  },
+  {
+    "id": "merchant-media-classification",
+    "failedClosed": true,
+    "error": "Merchant-media classification: public/application-assets/auth-texture.svg"
+  },
+  {
+    "id": "altered-wordmark-geometry",
+    "failedClosed": true,
+    "error": "Full wordmark geometry comparison rejected horizontally compressed outlines."
+  }
+]

@@ -184,10 +184,9 @@ submitted query, identity, authorization cause, provider body, or secret.
 ## Identity and asset boundary
 
 The supplied logo, texture, illustrations, fallbacks, and theme swatches are
-approved presentation targets. Task `12.2.2` alone may install their production
-family through deterministic safe-SVG, derivative generation, hash, inventory,
-license/provenance, accessible-name, and media-owner controls. Until that task
-lands, current generated assets remain runtime truth.
+installed as the production family by task `12.2.2`. Their canonical sources,
+deterministic safe-SVG derivatives, hashes, closed inventory, provenance,
+accessible-name rules, and media-owner controls are runtime truth.
 
 No page copies logo geometry, embeds remote bytes, builds a text lockup from a
 live font, or invents an alternate merchant fallback. A mark beside visible
