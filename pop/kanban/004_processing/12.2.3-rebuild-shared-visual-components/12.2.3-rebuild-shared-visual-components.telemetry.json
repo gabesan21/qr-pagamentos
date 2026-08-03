@@ -35,6 +35,41 @@
       "test_seconds": 0,
       "return_kind": null,
       "result": "advanced"
+    },
+    {
+      "at": "2026-08-03T10:25:39-03:00",
+      "event": "transition",
+      "from": "004_processing",
+      "to": "002_planning",
+      "contexts": [
+        "replan_12_2_3_inventory_test"
+      ],
+      "test_seconds": 0,
+      "return_kind": null,
+      "result": "advanced"
+    },
+    {
+      "at": "2026-08-03T10:25:50-03:00",
+      "event": "stage_result",
+      "stage": "002_planning",
+      "contexts": [
+        "replan_12_2_3_inventory_test"
+      ],
+      "test_seconds": 0,
+      "return_kind": "lacuna",
+      "result": "f05_owns_integrated_primitive_composition_inventory_test"
+    },
+    {
+      "at": "2026-08-03T10:26:24-03:00",
+      "event": "transition",
+      "from": "002_planning",
+      "to": "004_processing",
+      "contexts": [
+        "replan_12_2_3_inventory_test"
+      ],
+      "test_seconds": 0,
+      "return_kind": null,
+      "result": "advanced"
     }
   ]
 }
