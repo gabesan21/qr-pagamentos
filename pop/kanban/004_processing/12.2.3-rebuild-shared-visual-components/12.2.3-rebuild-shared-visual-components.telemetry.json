@@ -105,6 +105,41 @@
       "test_seconds": 0,
       "return_kind": null,
       "result": "advanced"
+    },
+    {
+      "at": "2026-08-03T10:34:48-03:00",
+      "event": "transition",
+      "from": "004_processing",
+      "to": "002_planning",
+      "contexts": [
+        "replan_12_2_3_pagination_focus"
+      ],
+      "test_seconds": 0,
+      "return_kind": null,
+      "result": "advanced"
+    },
+    {
+      "at": "2026-08-03T10:34:56-03:00",
+      "event": "stage_result",
+      "stage": "002_planning",
+      "contexts": [
+        "replan_12_2_3_pagination_focus"
+      ],
+      "test_seconds": 0,
+      "return_kind": "lacuna",
+      "result": "f01_pagination_focus_ring_delta_then_f05_full_evidence_rerun"
+    },
+    {
+      "at": "2026-08-03T10:35:38-03:00",
+      "event": "transition",
+      "from": "002_planning",
+      "to": "004_processing",
+      "contexts": [
+        "replan_12_2_3_pagination_focus"
+      ],
+      "test_seconds": 0,
+      "return_kind": null,
+      "result": "advanced"
     }
   ]
 }
