@@ -4,8 +4,17 @@ export type SpecimenCoverageEntry = Readonly<{
   publicApi: string;
   fixture: string;
   states: readonly string[];
+  bindings: readonly SpecimenStateBinding[];
   notApplicable: readonly string[];
 }>;
+
+export type SpecimenStateBinding = Readonly<{
+  id: string;
+  selector: string;
+  state: string;
+}>;
+
+export const specimenBindingId = (owner: string, state: string) => `ds-${owner}-${state}`;
 
 // This is executable F01 input. F02 derives assertions from it and rejects a
 // missing, duplicate, stale, or otherwise unrepresented inventory owner.
@@ -44,9 +53,12 @@ export const designSystemCoverage: readonly SpecimenCoverageEntry[] = coverageSe
   publicApi,
   fixture,
   states,
+  bindings: states.map((state) => ({ id: specimenBindingId(id, state), selector: `#${specimenBindingId(id, state)}`, state })),
   notApplicable,
 }));
 
 export const primitiveCoverage = [
   "Alert", "AlertDialog", "Avatar", "Badge", "Button", "Card", "Checkbox", "Dialog", "Empty", "Field", "Input", "InputOTP", "Label", "NativeSelect", "Pagination", "Separator", "Skeleton", "Sonner", "Spinner", "Switch", "Table", "Tabs", "Textarea",
 ] as const;
+
+export const primitiveBindingId = (primitive: typeof primitiveCoverage[number]) => `ds-primitive-${primitive.toLowerCase()}`;

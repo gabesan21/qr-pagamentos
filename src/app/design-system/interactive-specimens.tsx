@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { CheckIcon } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -13,47 +13,111 @@ import { LocalizedFieldGroup, type SupportedLocale } from "@/components/ui/local
 import { ConfirmDialog, Modal } from "@/components/ui/modal";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { SimpleTabs } from "@/components/ui/simple-tabs";
+import { Spinner } from "@/components/ui/spinner";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { showToast, ToastViewport } from "@/components/ui/toast";
+
+import { SpecimenBinding } from "./specimen-binding";
 
 type Dictionary = Readonly<Record<string, string>>;
 
+function BoundOtp({ disabled = false, invalid = false, ownerState, value = "" }: Readonly<{ disabled?: boolean; invalid?: boolean; ownerState: string; value?: string }>) {
+  return <SpecimenBinding owner="input-otp" state={ownerState}><InputOTP aria-invalid={invalid || undefined} disabled={disabled} maxLength={4} value={value}><InputOTPGroup><InputOTPSlot aria-invalid={invalid || undefined} index={0} /><InputOTPSlot aria-invalid={invalid || undefined} index={1} /></InputOTPGroup><InputOTPSeparator /><InputOTPGroup><InputOTPSlot aria-invalid={invalid || undefined} index={2} /><InputOTPSlot aria-invalid={invalid || undefined} index={3} /></InputOTPGroup></InputOTP></SpecimenBinding>;
+}
+
 export function DesignSystemInteractiveSpecimens({ dictionary }: Readonly<{ dictionary: Dictionary }>) {
-  const [checked, setChecked] = useState(true);
   const [switched, setSwitched] = useState(false);
   const [otp, setOtp] = useState("12");
   const [modalOpen, setModalOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [failureOpen, setFailureOpen] = useState(false);
   const [values, setValues] = useState<Record<SupportedLocale, string>>({ "pt-BR": dictionary.designSystemLocalizedPtValue, en: dictionary.designSystemLocalizedEnValue });
 
+  function resetProbes() {
+    toast.dismiss();
+    setSwitched(false);
+    setOtp("12");
+    setModalOpen(false);
+    setConfirmOpen(false);
+    setFailureOpen(false);
+  }
+
+  useEffect(() => () => { toast.dismiss(); }, []);
+
   return <>
+    <section aria-labelledby="actions" className="ds-section" data-ds-section="actions">
+      <div className="ds-section__heading"><h2 id="actions">{dictionary.designSystemActions}</h2><p data-ds-prose>{dictionary.designSystemActionsDescription}</p></div>
+      <div className="flex flex-wrap gap-3" id="ds-primitive-button">
+        <SpecimenBinding owner="button" state="default"><Button>{dictionary.designSystemPrimaryAction}</Button></SpecimenBinding>
+        <SpecimenBinding owner="button" state="hover"><Button data-probe="hover" variant="secondary">{dictionary.designSystemSecondaryAction}</Button></SpecimenBinding>
+        <SpecimenBinding owner="button" state="focus"><Button data-probe="focus" variant="outline">{dictionary.designSystemSecondaryAction}</Button></SpecimenBinding>
+        <SpecimenBinding owner="button" state="loading"><Button aria-busy disabled><Spinner aria-hidden />{dictionary.designSystemLoadingAction}</Button></SpecimenBinding>
+        <SpecimenBinding owner="button" state="disabled"><Button disabled>{dictionary.designSystemDisabledAction}</Button></SpecimenBinding>
+      </div>
+    </section>
+
     <section aria-labelledby="controls" className="ds-section" data-ds-section="controls">
       <div className="ds-section__heading"><h2 id="controls">{dictionary.designSystemControlsHeading}</h2><p data-ds-prose>{dictionary.designSystemControlsDescription}</p></div>
       <div className="grid gap-6 lg:grid-cols-2">
-        <FieldGroup>
-          <Field><FieldLabel htmlFor="specimen-reference">{dictionary.designSystemFieldLabel}</FieldLabel><Input data-ds-hit-target defaultValue="FIX-2026-001" id="specimen-reference" /><FieldDescription>{dictionary.designSystemFieldHelp}</FieldDescription></Field>
+        <FieldGroup id="ds-primitive-field">
+          <Field><FieldLabel htmlFor="specimen-reference" id="ds-primitive-label">{dictionary.designSystemFieldLabel}</FieldLabel><Input data-ds-hit-target defaultValue="FIX-2026-001" id="ds-primitive-input" /><FieldDescription>{dictionary.designSystemFieldHelp}</FieldDescription></Field>
           <Field data-invalid><FieldLabel htmlFor="specimen-invalid">{dictionary.designSystemInvalidLabel}</FieldLabel><Input aria-describedby="specimen-invalid-error" aria-invalid data-ds-hit-target id="specimen-invalid" /><FieldError id="specimen-invalid-error">{dictionary.designSystemFieldError}</FieldError></Field>
-          <Field><FieldLabel htmlFor="specimen-select">{dictionary.designSystemSelectLabel}</FieldLabel><NativeSelect data-ds-hit-target defaultValue="ready" id="specimen-select"><NativeSelectOption value="ready">{dictionary.designSystemReady}</NativeSelectOption><NativeSelectOption value="review">{dictionary.designSystemWarning}</NativeSelectOption></NativeSelect></Field>
-          <Field orientation="horizontal"><Checkbox checked={checked} data-ds-hit-target id="specimen-checkbox" onCheckedChange={(value) => setChecked(value === true)} /><FieldLabel htmlFor="specimen-checkbox">{dictionary.designSystemCheckboxLabel}</FieldLabel></Field>
-          <Field orientation="horizontal"><Switch aria-label={dictionary.designSystemSwitchLabel} checked={switched} data-ds-hit-target id="specimen-switch" onCheckedChange={setSwitched} /><FieldLabel htmlFor="specimen-switch">{dictionary.designSystemSwitchLabel}</FieldLabel></Field>
-          <Field><FieldLabel htmlFor="specimen-otp">{dictionary.designSystemOtpLabel}</FieldLabel><InputOTP data-ds-hit-target id="specimen-otp" maxLength={4} onChange={setOtp} value={otp}><InputOTPGroup><InputOTPSlot index={0} /><InputOTPSlot index={1} /></InputOTPGroup><InputOTPSeparator /><InputOTPGroup><InputOTPSlot index={2} /><InputOTPSlot index={3} /></InputOTPGroup></InputOTP></Field>
+          <Field><FieldLabel htmlFor="specimen-select">{dictionary.designSystemSelectLabel}</FieldLabel><NativeSelect data-ds-hit-target defaultValue="ready" id="ds-primitive-nativeselect"><NativeSelectOption value="ready">{dictionary.designSystemReady}</NativeSelectOption><NativeSelectOption value="review">{dictionary.designSystemWarning}</NativeSelectOption></NativeSelect></Field>
+          <Field><FieldLabel htmlFor="specimen-textarea">{dictionary.designSystemFieldHelp}</FieldLabel><Textarea defaultValue="FIX-2026-001" id="ds-primitive-textarea" /></Field>
+          <div className="flex flex-wrap gap-3" id="ds-primitive-checkbox">
+            <SpecimenBinding owner="checkbox" state="default"><Checkbox aria-label={`${dictionary.designSystemCheckboxLabel}: default`} /></SpecimenBinding>
+            <SpecimenBinding owner="checkbox" state="checked"><Checkbox aria-label={`${dictionary.designSystemCheckboxLabel}: checked`} checked /></SpecimenBinding>
+            <SpecimenBinding owner="checkbox" state="focus"><Checkbox aria-label={`${dictionary.designSystemCheckboxLabel}: focus`} data-probe="focus" /></SpecimenBinding>
+            <SpecimenBinding owner="checkbox" state="invalid"><Checkbox aria-invalid aria-label={`${dictionary.designSystemCheckboxLabel}: invalid`} /></SpecimenBinding>
+            <SpecimenBinding owner="checkbox" state="disabled"><Checkbox aria-label={`${dictionary.designSystemCheckboxLabel}: disabled`} disabled /></SpecimenBinding>
+          </div>
+          <div className="flex flex-wrap gap-3" id="ds-primitive-switch">
+            <SpecimenBinding owner="switch" state="default"><Switch aria-label={`${dictionary.designSystemSwitchLabel}: default`} checked={switched} onCheckedChange={setSwitched} /></SpecimenBinding>
+            <SpecimenBinding owner="switch" state="checked"><Switch aria-label={`${dictionary.designSystemSwitchLabel}: checked`} checked /></SpecimenBinding>
+            <SpecimenBinding owner="switch" state="hover"><Switch aria-label={`${dictionary.designSystemSwitchLabel}: hover`} data-probe="hover" /></SpecimenBinding>
+            <SpecimenBinding owner="switch" state="focus"><Switch aria-label={`${dictionary.designSystemSwitchLabel}: focus`} data-probe="focus" /></SpecimenBinding>
+            <SpecimenBinding owner="switch" state="disabled"><Switch aria-label={`${dictionary.designSystemSwitchLabel}: disabled`} disabled /></SpecimenBinding>
+          </div>
+          <div className="flex flex-wrap gap-3" id="ds-primitive-inputotp">
+            <BoundOtp ownerState="default" /><BoundOtp ownerState="populated" value="1234" /><BoundOtp ownerState="active" value={otp} /><BoundOtp ownerState="focus" value={otp} /><BoundOtp invalid ownerState="invalid" value="1" /><BoundOtp disabled ownerState="disabled" value="12" />
+          </div>
         </FieldGroup>
-        <LocalizedFieldGroup id="specimen-localized" groupLabel={dictionary.designSystemLocalizedHeading} fields={{ "pt-BR": { localeLabel: dictionary.designSystemLocalePtBR, label: dictionary.designSystemLocalizedPtLabel, value: values["pt-BR"], description: dictionary.designSystemLocalizedDescription }, en: { localeLabel: dictionary.designSystemLocaleEn, label: dictionary.designSystemLocalizedEnLabel, value: values.en, description: dictionary.designSystemLocalizedDescription } }} onValueChange={(locale, value) => setValues((current) => ({ ...current, [locale]: value }))} required />
+        <div className="grid gap-3">
+          <SpecimenBinding owner="localized-field-group" state="default"><LocalizedFieldGroup id="specimen-localized" groupLabel={dictionary.designSystemLocalizedHeading} fields={{ "pt-BR": { localeLabel: dictionary.designSystemLocalePtBR, label: dictionary.designSystemLocalizedPtLabel, value: values["pt-BR"] }, en: { localeLabel: dictionary.designSystemLocaleEn, label: dictionary.designSystemLocalizedEnLabel, value: values.en } }} onValueChange={(locale, value) => setValues((current) => ({ ...current, [locale]: value }))} /></SpecimenBinding>
+          {(["populated", "selected", "invalid", "focus", "disabled"] as const).map((state) => <SpecimenBinding key={state} owner="localized-field-group" state={state}><Input aria-invalid={state === "invalid" || undefined} defaultValue={state === "populated" ? dictionary.designSystemLocalizedEnValue : undefined} disabled={state === "disabled"} placeholder={dictionary.designSystemLocalizedHeading} /></SpecimenBinding>)}
+        </div>
       </div>
     </section>
 
     <section aria-labelledby="interactions" className="ds-section" data-ds-section="interactions">
       <div className="ds-section__heading"><h2 id="interactions">{dictionary.designSystemInteractionsHeading}</h2><p data-ds-prose>{dictionary.designSystemInteractionsDescription}</p></div>
-      <div className="flex flex-wrap gap-3">
-        <Button data-ds-hit-target onClick={() => showToast({ kind: "success", message: dictionary.designSystemToastSuccess, description: dictionary.designSystemToastDescription, dismissLabel: dictionary.designSystemDismiss })}><CheckIcon data-icon="inline-start" />{dictionary.designSystemToastAction}</Button>
-        <Button data-ds-hit-target onClick={() => setModalOpen(true)} variant="outline">{dictionary.designSystemOpenModal}</Button>
-        <Button data-ds-hit-target onClick={() => setConfirmOpen(true)} variant="destructive">{dictionary.designSystemOpenConfirm}</Button>
+      <div className="grid gap-4" id="ds-primitive-sonner">
+        <div className="flex flex-wrap gap-3">
+          {(["info", "success", "warning", "error"] as const).map((kind) => <SpecimenBinding key={kind} owner="toast" state={kind}><Button onClick={() => { toast.dismiss(); showToast({ kind, message: kind === "info" ? dictionary.designSystemInfo : kind === "success" ? dictionary.designSystemSuccess : kind === "warning" ? dictionary.designSystemWarning : dictionary.designSystemError, description: dictionary.designSystemToastDescription, dismissLabel: dictionary.designSystemDismiss }); }} variant="outline">{kind === "info" ? dictionary.designSystemInfo : kind === "success" ? dictionary.designSystemSuccess : kind === "warning" ? dictionary.designSystemWarning : dictionary.designSystemError}</Button></SpecimenBinding>)}
+          <SpecimenBinding owner="toast" state="dismiss"><Button onClick={() => toast.dismiss()} variant="outline">{dictionary.designSystemDismiss}</Button></SpecimenBinding>
+          <SpecimenBinding owner="toast" state="retry"><Button onClick={() => { toast.dismiss(); showToast({ kind: "error", message: dictionary.designSystemError, action: { label: dictionary.designSystemRetry, onClick: () => toast.dismiss() } }); }} variant="outline">{dictionary.designSystemRetry}</Button></SpecimenBinding>
+          <Button data-probe-reset onClick={resetProbes} variant="ghost">{dictionary.designSystemDismiss}</Button>
+        </div>
+        <div className="grid gap-3" id="ds-primitive-copyfield">
+          {(["ready", "pending", "copied", "failed", "focus", "disabled"] as const).map((state) => <SpecimenBinding key={state} owner="copy-field" state={state}><fieldset aria-disabled={state === "disabled"} disabled={state === "disabled"}><CopyField labels={{ copy: dictionary.designSystemCopy, pending: dictionary.designSystemCopyPending, copied: dictionary.designSystemCopied, failed: dictionary.designSystemCopyFailed }} value={`fixture-${state}-redacted`} /></fieldset></SpecimenBinding>)}
+        </div>
+        <div id="ds-primitive-tabs">{(["default", "selected", "hover", "focus", "disabled"] as const).map((state) => <SpecimenBinding key={state} owner="simple-tabs" state={state}><SimpleTabs label={dictionary.designSystemTabsLabel} tabs={[{ id: "ready", label: dictionary.designSystemTabsReadyLabel, content: <p>{dictionary.designSystemTabsReady}</p> }, { id: "review", label: dictionary.designSystemTabsReviewLabel, content: <p>{dictionary.designSystemTabsReview}</p> }, { id: "archived", label: dictionary.designSystemTabsArchivedLabel, content: <p>{dictionary.designSystemTabsArchived}</p>, disabled: true }]} /></SpecimenBinding>)}</div>
       </div>
-      <CopyField labels={{ copy: dictionary.designSystemCopy, pending: dictionary.designSystemCopyPending, copied: dictionary.designSystemCopied, failed: dictionary.designSystemCopyFailed }} value="fixture-value-redacted" />
-      <SimpleTabs label={dictionary.designSystemTabsLabel} tabs={[{ id: "ready", label: dictionary.designSystemTabsReadyLabel, count: 2, content: <p>{dictionary.designSystemTabsReady}</p> }, { id: "review", label: dictionary.designSystemTabsReviewLabel, content: <p>{dictionary.designSystemTabsReview}</p> }, { id: "archived", label: dictionary.designSystemTabsArchivedLabel, content: <p>{dictionary.designSystemTabsArchived}</p>, disabled: true }]} />
+      <div className="flex flex-wrap gap-3" id="ds-primitive-dialog">
+        <SpecimenBinding owner="modal" state="closed"><Button aria-expanded={false} variant="outline">{dictionary.designSystemOpenModal}</Button></SpecimenBinding>
+        <SpecimenBinding owner="modal" state="open"><Button onClick={() => setModalOpen(true)} variant="outline">{dictionary.designSystemOpenModal}</Button></SpecimenBinding>
+        <SpecimenBinding owner="modal" state="focus-loop"><Button onClick={() => setModalOpen(true)} variant="outline">{dictionary.designSystemModalDescription}</Button></SpecimenBinding>
+        <span id="ds-primitive-alertdialog"><SpecimenBinding owner="modal" state="confirmation"><Button onClick={() => setConfirmOpen(true)} variant="destructive">{dictionary.designSystemOpenConfirm}</Button></SpecimenBinding></span>
+        <SpecimenBinding owner="modal" state="pending"><Button onClick={() => setConfirmOpen(true)} variant="outline">{dictionary.designSystemPending}</Button></SpecimenBinding>
+        <SpecimenBinding owner="modal" state="failed"><Button onClick={() => setFailureOpen(true)} variant="outline">{dictionary.designSystemConfirmFailure}</Button></SpecimenBinding>
+        <SpecimenBinding owner="modal" state="disabled"><Button disabled>{dictionary.designSystemDisabledAction}</Button></SpecimenBinding>
+        <SpecimenBinding owner="modal" state="focus-restored"><Button onClick={() => setModalOpen(true)} variant="outline">{dictionary.designSystemClose}</Button></SpecimenBinding>
+      </div>
     </section>
     <Modal closeLabel={dictionary.designSystemClose} description={dictionary.designSystemModalDescription} footer={<Button onClick={() => setModalOpen(false)}>{dictionary.designSystemClose}</Button>} onOpenChange={setModalOpen} open={modalOpen} title={dictionary.designSystemModalTitle}><p>{dictionary.designSystemModalBody}</p></Modal>
     <ConfirmDialog cancelLabel={dictionary.designSystemCancel} confirmLabel={dictionary.designSystemConfirm} description={dictionary.designSystemConfirmDescription} failureMessage={dictionary.designSystemConfirmFailure} onConfirm={() => Promise.resolve()} onOpenChange={setConfirmOpen} open={confirmOpen} pendingLabel={dictionary.designSystemPending} title={dictionary.designSystemConfirmTitle} />
+    <ConfirmDialog cancelLabel={dictionary.designSystemCancel} confirmLabel={dictionary.designSystemConfirm} description={dictionary.designSystemConfirmDescription} failureMessage={dictionary.designSystemConfirmFailure} onConfirm={() => Promise.reject(new Error("deterministic fixture"))} onOpenChange={setFailureOpen} open={failureOpen} pendingLabel={dictionary.designSystemPending} title={dictionary.designSystemConfirmTitle} />
     <ToastViewport label={dictionary.designSystemToastRegion} />
   </>;
 }

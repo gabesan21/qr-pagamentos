@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import Link from "next/link";
 import { CheckCircle2Icon, CircleIcon, InfoIcon, TriangleAlertIcon } from "lucide-react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -22,7 +23,7 @@ import { localeFromPreferenceCookie, localePreferenceCookieName } from "@/i18n/l
 import { DataDirectorySpecimen } from "@/data-directory/ui/specimen";
 
 import { DesignSystemInteractiveSpecimens } from "./interactive-specimens";
-import { designSystemCoverage } from "./coverage";
+import { SpecimenBinding } from "./specimen-binding";
 
 const themes = [
   ["pix-paper", "light"], ["cashier-daylight", "light"], ["settlement-sand", "light"],
@@ -50,11 +51,11 @@ export default async function DesignSystemPage() {
     <p className="admin-shell__intro" data-ds-prose>{dictionary.designSystemIntroduction}</p>
 
     <Section id="themes" title={dictionary.designSystemThemesHeading} description={dictionary.designSystemThemesDescription}>
-      <div className="ds-row">{themes.map(([id, mode]) => <Badge data-theme-id={id} key={id} variant="outline">{id} · {mode === "light" ? dictionary.designSystemLight : dictionary.designSystemDark}</Badge>)}</div>
+      <div className="ds-row" id="ds-primitive-badge">{themes.map(([id, mode]) => <Badge data-theme-id={id} key={id} variant="outline">{id} · {mode === "light" ? dictionary.designSystemLight : dictionary.designSystemDark}</Badge>)}</div>
     </Section>
 
     <Section id="feedback" title={dictionary.designSystemFeedbackHeading} description={dictionary.designSystemFeedbackDescription}>
-      <div className="grid gap-3 md:grid-cols-2">
+      <div className="grid gap-3 md:grid-cols-2" id="ds-primitive-alert">
         <Alert variant="success"><CheckCircle2Icon aria-hidden /><AlertTitle>{dictionary.designSystemSuccess}</AlertTitle><AlertDescription>{dictionary.designSystemSuccessDescription}</AlertDescription></Alert>
         <Alert variant="warning"><TriangleAlertIcon aria-hidden /><AlertTitle>{dictionary.designSystemWarning}</AlertTitle><AlertDescription>{dictionary.designSystemWarningDescription}</AlertDescription></Alert>
         <Alert variant="destructive"><TriangleAlertIcon aria-hidden /><AlertTitle>{dictionary.designSystemError}</AlertTitle><AlertDescription>{dictionary.designSystemErrorDescription}</AlertDescription></Alert>
@@ -64,33 +65,43 @@ export default async function DesignSystemPage() {
 
     <Section id="display" title={dictionary.designSystemDisplayHeading} description={dictionary.designSystemDisplayDescription}>
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        <Card data-specimen-owner="card"><CardHeader><CardTitle>{dictionary.designSystemCardTitle}</CardTitle><CardDescription>{dictionary.designSystemCardDescription}</CardDescription><CardAction><Badge variant="outline">{dictionary.designSystemReady}</Badge></CardAction></CardHeader><CardContent>{dictionary.designSystemCardBody}</CardContent><CardFooter>{dictionary.designSystemCardFooter}</CardFooter></Card>
-        <StatCard caption={dictionary.designSystemStatCaption} label={dictionary.designSystemStatLabel} trend={{ direction: "up", label: dictionary.designSystemStatTrend }} value={<MoneyText pairLabel="BRL" value="128,40" />} />
-        <Card><CardHeader><CardTitle>{dictionary.designSystemIdentityHeading}</CardTitle></CardHeader><CardContent className="flex flex-wrap items-center gap-4"><Avatar size="lg"><AvatarImage alt="" src="/application-assets/avatar-default.svg" /><AvatarFallback>QP</AvatarFallback><AvatarBadge><CircleIcon aria-hidden /></AvatarBadge></Avatar><AvatarGroup><Avatar><AvatarFallback>QR</AvatarFallback></Avatar><Avatar><AvatarFallback>PX</AvatarFallback></Avatar><AvatarGroupCount>+2</AvatarGroupCount></AvatarGroup><Monogram accessibleName={dictionary.designSystemMonogramName} name="QR Pagamentos" /><Monogram name="Settlement desk" size="sm" /></CardContent></Card>
+        <div id="ds-primitive-card"><Card data-specimen-owner="card"><CardHeader><CardTitle>{dictionary.designSystemCardTitle}</CardTitle><CardDescription>{dictionary.designSystemCardDescription}</CardDescription><CardAction><Badge variant="outline">{dictionary.designSystemReady}</Badge></CardAction></CardHeader><CardContent>{dictionary.designSystemCardBody}</CardContent><CardFooter>{dictionary.designSystemCardFooter}</CardFooter></Card></div>
+        <SpecimenBinding owner="stat-card" state="ready"><StatCard caption={dictionary.designSystemStatCaption} label={dictionary.designSystemStatLabel} trend={{ direction: "up", label: dictionary.designSystemStatTrend }} value={<SpecimenBinding owner="money-text" state="ready"><span id="ds-primitive-money-text"><MoneyText pairLabel="BRL" value="128,40" /></span></SpecimenBinding>} /></SpecimenBinding>
+        <div id="ds-primitive-avatar"><Card><CardHeader><CardTitle>{dictionary.designSystemIdentityHeading}</CardTitle></CardHeader><CardContent className="flex flex-wrap items-center gap-4"><Avatar size="lg"><AvatarImage alt="" src="/application-assets/avatar-default.svg" /><AvatarFallback>QP</AvatarFallback><AvatarBadge><CircleIcon aria-hidden /></AvatarBadge></Avatar><AvatarGroup><Avatar><AvatarFallback>QR</AvatarFallback></Avatar><Avatar><AvatarFallback>PX</AvatarFallback></Avatar><AvatarGroupCount>+2</AvatarGroupCount></AvatarGroup><SpecimenBinding owner="monogram" state="image"><Monogram accessibleName={dictionary.designSystemMonogramName} imageUrl="/application-assets/avatar-default.svg" name="QR Pagamentos" /></SpecimenBinding><SpecimenBinding owner="monogram" state="fallback"><Monogram name="Settlement desk" size="sm" /></SpecimenBinding><SpecimenBinding owner="monogram" state="accessible"><Monogram accessibleName={dictionary.designSystemMonogramName} name="QR Pagamentos" /></SpecimenBinding><SpecimenBinding owner="monogram" state="decorative"><Monogram name="Settlement desk" /></SpecimenBinding></CardContent></Card></div>
       </div>
       <div className="grid gap-4 lg:grid-cols-2">
-        <QrDisplay alternativeLabel={dictionary.designSystemQrAlternativeLabel} alternativeValue="00020126580014br.gov.bcb.pix0136fixture-redacted-payload" caption={dictionary.designSystemQrCaption} graphic={<span className="grid size-full grid-cols-5 gap-1 p-3" aria-hidden>{Array.from({ length: 25 }, (_, index) => <span className={index % 3 === 0 ? "bg-foreground" : "bg-muted"} key={index} />)}</span>} graphicLabel={dictionary.designSystemQrLabel} />
-        <Timeline entries={[{ id: "prepared", title: dictionary.designSystemTimelinePrepared, formattedAt: "2026-08-03 09:30 BRT", tone: "info" }, { id: "confirmed", title: dictionary.designSystemTimelineConfirmed, formattedAt: "2026-08-03 09:31 BRT", tone: "success" }, { id: "review", title: dictionary.designSystemTimelineReview, formattedAt: "2026-08-03 09:32 BRT", tone: "danger" }]} />
+        {(["preparing", "available", "waiting", "recovery", "terminal"] as const).map((state) => <SpecimenBinding key={state} owner="qr-display" state={state}><QrDisplay alternativeLabel={dictionary.designSystemQrAlternativeLabel} alternativeValue={state === "available" ? "00020126580014br.gov.bcb.pix0136fixture-redacted-payload" : undefined} caption={dictionary.designSystemQrCaption} pending={state === "preparing" || state === "waiting"} graphic={<span className="grid size-full grid-cols-5 gap-1 p-3" aria-hidden>{Array.from({ length: 25 }, (_, index) => <span className={index % 3 === 0 ? "bg-foreground" : "bg-muted"} key={index} />)}</span>} graphicLabel={dictionary.designSystemQrLabel} /></SpecimenBinding>)}
+        <SpecimenBinding owner="timeline" state="ready"><Timeline entries={[{ id: "prepared", title: dictionary.designSystemTimelinePrepared, formattedAt: "2026-08-03 09:30 BRT", tone: "info" }, { id: "confirmed", title: dictionary.designSystemTimelineConfirmed, formattedAt: "2026-08-03 09:31 BRT", tone: "success" }, { id: "review", title: dictionary.designSystemTimelineReview, formattedAt: "2026-08-03 09:32 BRT", tone: "danger" }]} /></SpecimenBinding>
+        <SpecimenBinding owner="timeline" state="empty"><Timeline entries={[]} /></SpecimenBinding>
+        {(["default", "success", "info", "danger"] as const).map((tone) => <SpecimenBinding key={tone} owner="timeline" state={tone}><Timeline entries={[{ id: tone, title: dictionary.designSystemTimelinePrepared, formattedAt: "2026-08-03 09:30 BRT", tone }]} /></SpecimenBinding>)}
       </div>
-      <div className="ds-row"><StatusBadge label={dictionary.designSystemSuccess} tone="success" /><StatusBadge label={dictionary.designSystemWarning} tone="warning" /><StatusBadge label={dictionary.designSystemDanger} tone="danger" /><StatusBadge archived label={dictionary.designSystemArchived} /></div>
+      <div className="grid gap-3 sm:grid-cols-3"><SpecimenBinding owner="stat-card" state="empty"><StatCard label={dictionary.designSystemStatLabel} value="0" /></SpecimenBinding><SpecimenBinding owner="stat-card" state="unavailable"><StatCard caption={dictionary.designSystemUnavailableBody} label={dictionary.designSystemStatLabel} value="—" /></SpecimenBinding></div>
+      <div className="ds-row">{(["ready", "neutral", "info", "success", "warning", "danger"] as const).map((state) => <SpecimenBinding key={state} owner="status-badge" state={state}><StatusBadge label={state === "danger" ? dictionary.designSystemDanger : state === "warning" ? dictionary.designSystemWarning : state === "success" ? dictionary.designSystemSuccess : state === "info" ? dictionary.designSystemInfo : dictionary.designSystemReady} tone={state === "ready" ? "neutral" : state} /></SpecimenBinding>)}<SpecimenBinding owner="status-badge" state="archived"><StatusBadge archived label={dictionary.designSystemArchived} /></SpecimenBinding></div>
     </Section>
 
     <Section id="empty-states" title={dictionary.designSystemEmptyHeading} description={dictionary.designSystemEmptyDescription}>
-      <div className="grid gap-4 lg:grid-cols-2"><EmptyState body={dictionary.designSystemEmptyBody} illustration="orders" title={dictionary.designSystemEmpty} /><EmptyState body={dictionary.designSystemFilteredBody} illustration="links" kind="filtered-empty" title={dictionary.designSystemFiltered} /><EmptyState body={dictionary.designSystemUnavailableBody} illustration="unavailable" kind="unavailable" title={dictionary.designSystemUnavailable} /><EmptyState body={dictionary.designSystemErrorDescription} illustration="unavailable" kind="error" title={dictionary.designSystemError} /></div>
-      <Empty><EmptyHeader><EmptyMedia variant="icon"><InfoIcon aria-hidden /></EmptyMedia><EmptyTitle>{dictionary.designSystemPrimitiveEmpty}</EmptyTitle><EmptyDescription>{dictionary.designSystemEmptyBody}</EmptyDescription></EmptyHeader></Empty>
+      <div className="grid gap-4 lg:grid-cols-2"><SpecimenBinding owner="empty-state" state="empty"><EmptyState body={dictionary.designSystemEmptyBody} illustration="orders" title={dictionary.designSystemEmpty} /></SpecimenBinding><SpecimenBinding owner="empty-state" state="filtered-empty"><EmptyState body={dictionary.designSystemFilteredBody} illustration="links" kind="filtered-empty" title={dictionary.designSystemFiltered} /></SpecimenBinding><SpecimenBinding owner="empty-state" state="unavailable"><EmptyState body={dictionary.designSystemUnavailableBody} illustration="unavailable" kind="unavailable" title={dictionary.designSystemUnavailable} /></SpecimenBinding><SpecimenBinding owner="empty-state" state="error"><EmptyState body={dictionary.designSystemErrorDescription} illustration="unavailable" kind="error" title={dictionary.designSystemError} /></SpecimenBinding><SpecimenBinding owner="empty-state" state="recovery-focus"><EmptyState action={<Link className="inline-flex min-h-11 items-center" href="/design-system">{dictionary.designSystemRetry}</Link>} body={dictionary.designSystemErrorDescription} illustration="unavailable" kind="error" title={dictionary.designSystemError} /></SpecimenBinding></div>
+      <div id="ds-primitive-empty"><Empty><EmptyHeader><EmptyMedia variant="icon"><InfoIcon aria-hidden /></EmptyMedia><EmptyTitle>{dictionary.designSystemPrimitiveEmpty}</EmptyTitle><EmptyDescription>{dictionary.designSystemEmptyBody}</EmptyDescription></EmptyHeader></Empty></div>
     </Section>
 
     <Section id="loading" title={dictionary.designSystemLoadingHeading} description={dictionary.designSystemLoadingDescription}>
-      <div className="grid gap-4 lg:grid-cols-2"><CardSkeleton label={dictionary.designSystemLoading} /><StatGridSkeleton label={dictionary.designSystemLoading} /><TableSkeleton label={dictionary.designSystemLoading} /><DetailSkeleton label={dictionary.designSystemLoading} /><CheckoutSkeleton label={dictionary.designSystemLoading} /><div className="flex items-center gap-3" role="status"><Spinner aria-hidden /><span>{dictionary.designSystemLoading}</span></div></div>
+      <SpecimenBinding owner="skeletons" state="loading"><div className="grid gap-4 lg:grid-cols-2" id="ds-primitive-skeleton"><CardSkeleton label={dictionary.designSystemLoading} /><StatGridSkeleton label={dictionary.designSystemLoading} /><TableSkeleton label={dictionary.designSystemLoading} /><DetailSkeleton label={dictionary.designSystemLoading} /><CheckoutSkeleton label={dictionary.designSystemLoading} /><div className="flex items-center gap-3" id="ds-primitive-spinner" role="status"><Spinner aria-hidden /><span>{dictionary.designSystemLoading}</span></div></div></SpecimenBinding>
     </Section>
 
     <Section id="table" title={dictionary.designSystemTableHeading} description={dictionary.designSystemTableDescription}>
-      <Table><TableCaption>{dictionary.designSystemTableCaption}</TableCaption><TableHeader><TableRow><TableHead>{dictionary.designSystemReference}</TableHead><TableHead>{dictionary.designSystemState}</TableHead><TableHead>{dictionary.designSystemAmount}</TableHead></TableRow></TableHeader><TableBody><TableRow><TableCell className="font-mono">FIX-2026-001</TableCell><TableCell>{dictionary.designSystemReady}</TableCell><TableCell className="font-mono">128,40 BRL</TableCell></TableRow></TableBody></Table>
-      <Separator />
+      <div id="ds-primitive-table"><Table><TableCaption>{dictionary.designSystemTableCaption}</TableCaption><TableHeader><TableRow><TableHead>{dictionary.designSystemReference}</TableHead><TableHead>{dictionary.designSystemState}</TableHead><TableHead>{dictionary.designSystemAmount}</TableHead></TableRow></TableHeader><TableBody><TableRow><TableCell className="font-mono">FIX-2026-001</TableCell><TableCell>{dictionary.designSystemReady}</TableCell><TableCell className="font-mono">128,40 BRL</TableCell></TableRow></TableBody></Table></div>
+      <div id="ds-primitive-separator"><Separator /></div>
     </Section>
 
-    <Section id="directory" title={dictionary.dataDirectoryHeading} description={dictionary.dataDirectoryDescription}><DataDirectorySpecimen dictionary={dictionary} /></Section>
+    <Section id="directory" title={dictionary.dataDirectoryHeading} description={dictionary.dataDirectoryDescription}>
+      <div id="ds-primitive-pagination">{
+        [
+          ...["ready", "loading", "empty", "filtered-empty", "invalid-query", "error"].map((state) => ["data-directory-table", state] as const),
+          ...["default", "populated", "focus", "selected", "reset", "disabled"].map((state) => ["data-directory-filter", state] as const),
+          ...["default", "previous", "next", "focus", "disabled"].map((state) => ["pagination", state] as const),
+        ].reduce<React.ReactNode>((child, [owner, state]) => <SpecimenBinding key={`${owner}-${state}`} owner={owner} state={state}>{child}</SpecimenBinding>, <DataDirectorySpecimen dictionary={dictionary} />)
+      }</div>
+    </Section>
     <DesignSystemInteractiveSpecimens dictionary={dictionary} />
-    <section className="sr-only" aria-label={dictionary.designSystemCoverageHeading} data-specimen-coverage="closed">{designSystemCoverage.map((entry) => <span data-coverage-fixture={entry.fixture} data-coverage-owner={entry.owner} key={entry.id}>{entry.id}</span>)}</section>
   </main>;
 }

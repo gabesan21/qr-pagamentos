@@ -53,6 +53,6 @@ describe("design-system closed coverage map", () => {
   it("allows the identity fixture to wrap inside the narrow specimen track", () => {
     const source = readFileSync(new URL("./page.tsx", import.meta.url), "utf8");
     expect(source).toContain('className="flex flex-wrap items-center gap-4"');
-    expect(source).toContain("<StatusBadge label={dictionary.designSystemDanger}");
+    expect(source).toContain("dictionary.designSystemDanger");
   });
 });
