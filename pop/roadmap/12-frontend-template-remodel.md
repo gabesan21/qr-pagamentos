@@ -34,7 +34,6 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[12.2.2-reconcile-template-identity-and-assets]] | Integrate the approved template logo, illustrations, theme swatches, fallbacks, and favicon through `src/brand/**`, `public/**`, and the existing provenance pipeline. · size: L | 001_initial_task |
 | [[12.2.3-rebuild-shared-visual-components]] | Inventory then rebuild `src/components/ui/**` and `src/data-directory/ui/**` around consumed template components, justifying every addition and preventing duplicate ownership. · size: L | 001_initial_task |
 | [[12.2.4-rebuild-design-system-specimen]] | Make `/design-system` exercise every shared component, state, theme, locale, responsive mode, focus treatment, and reduced-motion behavior against the parity contract. · size: M | 001_initial_task |
 
