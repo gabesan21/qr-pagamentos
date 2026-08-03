@@ -14,7 +14,7 @@ The application owns the catalog, payment-link lifecycle, public checkout, and o
 
 The repository holds a working Next.js application in `src/` plus `prisma/`, `container/`, and `install/`. Epochs 1 to 10 are delivered and integrated in `develop`: self-hosted runtime, identity and access control, the bilingual `pt-BR`/`en` admin and merchant panels, the Nautt provider integration (orders, polling, webhook intake and recovery), the administrator catalog and dynamic supported-exchange-currency registry, merchant products/categories/media, Commerce V2 payment links and generalized orders, the public storefront with cart and standalone payments, the branded public checkout with its terminal states, and the administrator operations surface (analytics dashboard, global order and payment-link directories, user directory and profile editor, soft-delete lifecycle, settings hub). Epoch 10's release gate is open: PR #9 (`develop` → `main`) awaits human testing and merge. Epoch 11 (identity security and release) is the next planned epoch, with its tasks sitting in `pop/kanban/001_initial_task`.
 
-Two beta/deferred conditions are live and tracked outside this brief: the Nautt webhook callback currently accepts unsigned bodies (M-5.1 beta decision, must be reversed before production), and CSP is deferred by decision. See [[AGENTS|project AGENTS]] and `pop/open_questions/`.
+Two beta/deferred conditions are live and tracked outside this brief: the Nautt webhook callback currently accepts unsigned bodies (M-5.1 beta decision, must be reversed before production), and CSP is deferred by decision. See [[../AGENTS.md|project AGENTS]] and `pop/open_questions/`.
 
 ## Folder structure
 
@@ -22,7 +22,7 @@ This is an `included` project: application code lives at the repository root (`s
 
 ## Agent harness
 
-- **Type and repository:** declared in [[AGENTS|project AGENTS]]; task PRs target `develop` inside yolo phases and final phase PRs target `main`.
+- **Type and repository:** declared in [[../AGENTS.md|project AGENTS]]; task PRs target `develop` inside yolo phases and final phase PRs target `main`.
 - **Worktree per task:** yes.
 - **Stack:** Next.js full-stack, pnpm, Node.js LTS, Prisma, PostgreSQL, and self-hosted Docker.
 - **Authentication:** local credentials and a simple first-party database session implementation; no external authentication service or framework.
