@@ -54,7 +54,7 @@ function PaginationLink({
       variant={isActive ? "outline" : "ghost"}
       size={size}
       className={cn(
-        "focus-visible:ring-[var(--color-focus-ring)] focus-visible:[outline:var(--focus-width)_solid_var(--color-focus-ring)] focus-visible:[outline-offset:var(--focus-offset)]",
+        "min-w-11 focus-visible:ring-[var(--color-focus-ring)] focus-visible:[outline:var(--focus-width)_solid_var(--color-focus-ring)] focus-visible:[outline-offset:var(--focus-offset)]",
         className
       )}
     >

@@ -30,6 +30,7 @@ describe("pagination link focus", () => {
     for (const markup of [previousMarkup, nextMarkup]) {
       expect(markup).toContain('data-slot="pagination-link"');
       expect(markup).toContain("min-h-11");
+      expect(markup).toContain("min-w-11");
       expect(markup).toContain("focus-visible:ring-3");
       expect(markup).toContain(
         "focus-visible:ring-[var(--color-focus-ring)]",
@@ -51,8 +52,18 @@ describe("pagination link focus", () => {
     expect(globals).toContain('a[data-slot="button"]:focus-visible');
     expect(globals).not.toContain('a[data-slot="pagination-link"]:focus-visible');
 
-    const compiler = await compile("@tailwind utilities;");
-    const css = compiler.build([focusOutline, focusOffset]);
+    const compiler = await compile(
+      "@theme { --spacing: 0.25rem; } @tailwind utilities;",
+    );
+    const css = compiler.build([
+      "min-h-11",
+      "min-w-11",
+      focusOutline,
+      focusOffset,
+    ]);
+    expect(css).toContain("min-height: calc(var(--spacing) * 11);");
+    expect(css).toContain("min-width: calc(var(--spacing) * 11);");
+    expect(0.25 * 16 * 11).toBe(44);
     expect(css).toContain(
       "outline: var(--focus-width) solid var(--color-focus-ring);",
     );
