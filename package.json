@@ -27,6 +27,7 @@
     "lint": "pnpm tokens:check && pnpm brand:check && pnpm fonts:check && node scripts/check-design-tokens.mjs && eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "design-system:source-check": "node scripts/check-design-system-coverage.mjs",
     "design-system:evidence": "pnpm build && playwright test design-system.evidence.spec.ts --project=chromium --workers=1",
     "design-system:evidence:verify": "node scripts/verify-design-system-evidence.mjs",
     "login:evidence": "pnpm build && playwright test login.evidence.spec.ts --project=chromium --workers=1",

@@ -35,6 +35,18 @@
         "$type": "color",
         "$value": "{color.primitive.audit.template.midnight-clearing.accent}"
       },
+      "action-default": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.midnight-clearing.accent}"
+      },
+      "action-hover": {
+        "$type": "color",
+        "$value": "{color.primitive.accessibility.midnight-clearing.action-hover}"
+      },
+      "action-active": {
+        "$type": "color",
+        "$value": "{color.primitive.accessibility.midnight-clearing.action-active}"
+      },
       "accent-audit-foreground": {
         "$type": "color",
         "$value": "{color.primitive.audit.template.midnight-clearing.accent-fg}"

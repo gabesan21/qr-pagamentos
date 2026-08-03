@@ -99,7 +99,10 @@ const COMMON_PROJECTION = {
 const THEME_PROJECTION = {
   "color-surface-page": "color.surface.page", "color-surface-raised": "color.surface.raised", "color-surface-secondary": "color.surface.secondary",
   "color-border-default": "color.border.default", "color-text-primary": "color.text.primary", "color-text-secondary": "color.text.secondary", "color-text-tertiary": "color.text.tertiary",
+  "color-action-default": "color.action.default", "color-action-hover": "color.action.hover", "color-action-active": "color.action.active",
   "color-action-accent": "color.action.accent", "color-action-foreground": "color.action.foreground", "color-action-soft": "color.action.soft",
+  "color-button-primary-background": "component.button.primary.background", "color-button-primary-hover-background": "component.button.primary.hover-background",
+  "color-button-primary-active-background": "component.button.primary.active-background", "color-button-primary-foreground": "component.button.primary.foreground",
   "color-feedback-success": "color.feedback.success", "color-feedback-success-soft": "color.feedback.success.soft", "color-feedback-success-foreground": "color.feedback.success.foreground", "color-feedback-success-soft-foreground": "color.feedback.success.soft-foreground",
   "color-feedback-warning": "color.feedback.warning", "color-feedback-warning-soft": "color.feedback.warning.soft", "color-feedback-warning-foreground": "color.feedback.warning.foreground", "color-feedback-warning-soft-foreground": "color.feedback.warning.soft-foreground",
   "color-feedback-danger": "color.feedback.danger", "color-feedback-danger-soft": "color.feedback.danger.soft", "color-feedback-danger-foreground": "color.feedback.danger.foreground", "color-feedback-danger-soft-foreground": "color.feedback.danger.soft-foreground",
@@ -109,14 +112,14 @@ const THEME_PROJECTION = {
 
 export const COMPATIBILITY_ALIASES = {
   background: "color-surface-page", foreground: "color-text-primary", card: "color-surface-raised", "card-foreground": "color-text-primary",
-  popover: "color-surface-raised", "popover-foreground": "color-text-primary", primary: "color-action-accent", "primary-foreground": "color-action-foreground",
+  popover: "color-surface-raised", "popover-foreground": "color-text-primary", primary: "color-button-primary-background", "primary-hover": "color-button-primary-hover-background", "primary-active": "color-button-primary-active-background", "primary-foreground": "color-button-primary-foreground",
   secondary: "color-surface-secondary", "secondary-foreground": "color-text-primary", muted: "color-surface-secondary", "muted-foreground": "color-text-secondary",
   accent: "color-action-soft", "accent-foreground": "color-text-primary", destructive: "color-feedback-danger", "destructive-foreground": "color-feedback-danger-foreground",
   warning: "color-feedback-warning", "warning-foreground": "color-feedback-warning-foreground", success: "color-feedback-success", "success-foreground": "color-feedback-success-foreground",
-  border: "color-border-default", input: "color-border-default", ring: "color-focus-ring", "action-primary-hover": "color-action-accent",
+  border: "color-border-default", input: "color-border-default", ring: "color-focus-ring", "action-primary-hover": "color-action-hover",
   "surface-page": "color-surface-page", "surface-raised": "color-surface-raised", "surface-subtle": "color-surface-secondary",
   "text-primary": "color-text-primary", "text-secondary": "color-text-secondary", "text-tertiary": "color-text-tertiary", "text-on-action": "color-action-foreground",
-  "border-subtle": "color-border-default", "action-primary": "color-action-accent", "action-secondary": "color-action-soft",
+  "border-subtle": "color-border-default", "action-primary": "color-action-default", "action-primary-active": "color-action-active", "action-secondary": "color-action-soft",
   "feedback-success": "color-feedback-success", "feedback-warning": "color-feedback-warning", "feedback-danger": "color-feedback-danger", "feedback-info": "color-feedback-info",
   "text-on-success": "color-feedback-success-foreground", "text-on-warning": "color-feedback-warning-foreground", "text-on-danger": "color-feedback-danger-foreground", "text-on-info": "color-feedback-info-foreground",
   "focus-color": "color-focus-ring", "shadow-raised": "shadow-elevation-card",

@@ -87,7 +87,7 @@ This spec defines the application-wide presentation, composition, interaction-fe
 - Visual evidence uses repository Playwright `chromium`, Chromium, device scale factor 1, fixed fixture clock, locally settled fonts, disabled animations, hidden caret, and blocked external requests.
 - Applicable surfaces cover `320x1000`, `375x1000`, `768x1000`, and `1440x1000`, both locales, all six themes, and every obligation-owned state. Pixel comparison uses threshold `0.1` and maximum differing-pixel ratio `0.001`.
 - Geometry, typography, content, keyboard/focus, overflow, accessibility, console, request, and contract failures are independent of raster tolerance. Missing, stale, generic, duplicated, or source-divergent evidence fails closed.
-- `pnpm frontend-parity:check` validates the immutable parity authority, `scripts/check-shared-ui-inventory.mjs` validates shared ownership, exclusions, additions and focused dependencies, and `pnpm check` protects application behavior. Current-consumer evidence proves regression safety for delivered owners; task `12.2.4` owns the complete component/state/locale specimen and its evidence.
+- `/design-system` is the closed, role-neutral specimen for the shared foundation. `pnpm design-system:evidence:verify` accepts only its current run when the bound 48 locale/theme/viewport captures, 20 coverage entries, 101 applicable states, 72 explicit N/A states, interaction probes, and source hashes remain valid. `pnpm frontend-parity:check` validates the immutable parity authority, `scripts/check-shared-ui-inventory.mjs` validates shared ownership, exclusions, additions and focused dependencies, and `pnpm check` protects application behavior.
 
 ## Errors and limits
 
@@ -96,14 +96,14 @@ This spec defines the application-wide presentation, composition, interaction-fe
 
 ## Conformance criteria
 
-- [ ] `DESIGN.md` expresses this tone, numeric laws, state matrices, responsive compositions, inventory ownership, asset boundary, precedence, and evidence protocol without retaining the superseded visual direction.
-- [ ] The six stored themes and two locales remain exact, and DTCG semantics can represent every template palette, typography, elevation, focus, spacing, and motion role without component branching.
-- [ ] Every parity obligation has an owner/disposition, and authorized extrapolations preserve business/security contracts.
-- [ ] Accessibility, reduced motion, local fonts, deterministic assets, anti-drift inventory, and the complete evidence matrix are objective gates.
+- [x] `DESIGN.md` expresses this tone, numeric laws, state matrices, responsive compositions, inventory ownership, asset boundary, precedence, and evidence protocol without retaining the superseded visual direction.
+- [x] The six stored themes and two locales remain exact, and DTCG semantics can represent every template palette, typography, elevation, focus, spacing, and motion role without component branching.
+- [x] Every parity obligation has an owner/disposition, and authorized extrapolations preserve business/security contracts.
+- [x] Accessibility, reduced motion, local fonts, deterministic assets, anti-drift inventory, and the complete specimen evidence matrix are objective gates.
 
 ## Out of scope
 
-- Production token, font, asset, component, shell, or route implementation; those are owned by later Epoch 12 tasks.
+- Route-family migration and product-surface composition; the shared foundation and its closed specimen do not grant a product route new behavior or ownership.
 - New backend/API/database behavior, Nautt-hosted links, new themes/locales, or changes to authorization, exact money, redaction, security guards, V1/V2 lifecycle, and media ownership.
 
 ## Related references

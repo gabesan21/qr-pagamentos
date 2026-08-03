@@ -35,6 +35,18 @@
         "$type": "color",
         "$value": "{color.primitive.audit.template.vault-blue.accent}"
       },
+      "action-default": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.vault-blue.accent}"
+      },
+      "action-hover": {
+        "$type": "color",
+        "$value": "{color.primitive.accessibility.vault-blue.action-hover}"
+      },
+      "action-active": {
+        "$type": "color",
+        "$value": "{color.primitive.accessibility.vault-blue.action-active}"
+      },
       "accent-audit-foreground": {
         "$type": "color",
         "$value": "{color.primitive.audit.template.vault-blue.accent-fg}"

@@ -1,0 +1,49 @@
+:global([data-probe="hover"][data-slot="button"]) {
+  background-color: var(--primary-hover) !important;
+  color: var(--primary-foreground) !important;
+}
+
+:global([data-probe="focus"][data-slot="button"]) {
+  outline: var(--focus-width) solid var(--ring) !important;
+  outline-offset: var(--focus-offset) !important;
+  border-color: var(--ring) !important;
+}
+
+:global([data-probe="focus"][data-slot="checkbox"]),
+:global([data-probe="focus"][data-slot="switch"]) {
+  border-color: var(--ring) !important;
+  box-shadow: 0 0 0 var(--focus-width) var(--ring) !important;
+}
+
+:global([data-specimen-owner="simple-tabs"][data-specimen-state="hover"] [role="tab"]:first-child),
+:global([data-specimen-owner="simple-tabs"][data-specimen-state="focus"] [role="tab"]:first-child) {
+  border-color: var(--ring) !important;
+  box-shadow: 0 0 0 var(--focus-width) var(--ring) !important;
+  color: var(--foreground) !important;
+}
+
+:global([data-specimen-owner="simple-tabs"][data-specimen-state="hover"] [role="tab"]:first-child) {
+  background-color: var(--muted) !important;
+}
+
+:global([data-probe="focus"][data-slot="pagination-link"]) {
+  outline: var(--focus-width) solid var(--ring) !important;
+  outline-offset: var(--focus-offset) !important;
+}
+
+:global([data-copy-state="focus"] button) {
+  outline: var(--focus-width) solid var(--ring) !important;
+  outline-offset: var(--focus-offset) !important;
+}
+
+:global([data-specimen-owner="data-directory-filter"][data-specimen-state="focus"] input),
+:global([data-specimen-owner="data-directory-filter"][data-specimen-state="focus"] select) {
+  border-color: var(--ring) !important;
+  box-shadow: 0 0 0 var(--focus-width) var(--ring) !important;
+}
+
+:global([data-specimen-owner="data-directory-filter"][data-specimen-state="disabled"] input),
+:global([data-specimen-owner="data-directory-filter"][data-specimen-state="disabled"] select) {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+}

@@ -4,7 +4,15 @@
       "primary": {
         "background": {
           "$type": "color",
-          "$value": "{color.action.accent}"
+          "$value": "{color.action.default}"
+        },
+        "hover-background": {
+          "$type": "color",
+          "$value": "{color.action.hover}"
+        },
+        "active-background": {
+          "$type": "color",
+          "$value": "{color.action.active}"
         },
         "foreground": {
           "$type": "color",

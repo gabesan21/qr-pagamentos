@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { findDesignTokenViolations } from "./check-design-tokens.mjs";
-import { buildGeneratedThemeTokens, COMPATIBILITY_ALIASES, loadTokenDocuments } from "./generate-design-tokens.mjs";
+import { buildGeneratedThemeTokens, COMPATIBILITY_ALIASES, loadTokenDocuments, projectGeneratedThemeTokens } from "./generate-design-tokens.mjs";
 import { compositeSrgb, contrastRatio, deriveAccessibleProjection, hexFromSrgb, highestContrastForeground, resolveDesignTokens, resolveToken } from "./design-token-graph.mjs";
 
 const root = process.cwd();
@@ -39,6 +39,31 @@ const focusProjection = {
   "vault-blue": ["#4f8dfd", 0, [5.849, 5.417, 4.773]],
   "terminal-amber": ["#ffb224", 0, [10.752, 10.051, 9.241]],
 } as const;
+const actionInteractions = {
+  "pix-paper": { foreground: "#1e2a26", default: "#00b8a0", hover: "#24c3ab", active: "#38cfb6", direction: "lighter" },
+  "cashier-daylight": { foreground: "#ffffff", default: "#2456e6", hover: "#1a48d8", active: "#103aca", direction: "darker" },
+  "settlement-sand": { foreground: "#ffffff", default: "#a85b1e", hover: "#9d510f", active: "#904700", direction: "darker" },
+  "midnight-clearing": { foreground: "#08251f", default: "#5eead4", hover: "#6df7e1", active: "#9effed", direction: "lighter" },
+  "vault-blue": { foreground: "#0b1220", default: "#4f8dfd", hover: "#649bff", active: "#79a9ff", direction: "lighter" },
+  "terminal-amber": { foreground: "#241700", default: "#ffb224", hover: "#ffc46d", active: "#ffd69b", direction: "lighter" },
+} as const;
+
+function oklchFromHex(hex: string) {
+  const [red, green, blue] = hex.match(/[0-9a-f]{2}/giu)!.map((channel) => Number.parseInt(channel, 16) / 255).map((channel) =>
+    channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4,
+  );
+  const l = Math.cbrt(0.4122214708 * red + 0.5363325363 * green + 0.0514459929 * blue);
+  const m = Math.cbrt(0.2119034982 * red + 0.6806995451 * green + 0.1073969566 * blue);
+  const s = Math.cbrt(0.0883024619 * red + 0.2817188376 * green + 0.6299787005 * blue);
+  const lightness = 0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s;
+  const a = 1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s;
+  const b = 0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s;
+  return { lightness, chroma: Math.hypot(a, b), hue: (Math.atan2(b, a) * 180 / Math.PI + 360) % 360 };
+}
+
+function hueDistance(left: number, right: number) {
+  return Math.abs(((left - right + 540) % 360) - 180);
+}
 
 function resolved(theme: ThemeName = "pix-paper", motion = "full") {
   return resolveDesignTokens(resolver, documents, { theme, motion }).tokens;
@@ -227,12 +252,68 @@ describe("DTCG 2025.10 application token graph", () => {
     for (const [name, target] of Object.entries(COMPATIBILITY_ALIASES))
       expect(generated).toContain(`--${name}: var(--${target});`);
     expect(COMPATIBILITY_ALIASES).toMatchObject({
+      primary: "color-button-primary-background", "primary-hover": "color-button-primary-hover-background", "primary-active": "color-button-primary-active-background",
       destructive: "color-feedback-danger", "destructive-foreground": "color-feedback-danger-foreground",
       warning: "color-feedback-warning", "warning-foreground": "color-feedback-warning-foreground",
       success: "color-feedback-success", "success-foreground": "color-feedback-success-foreground",
     });
     const aliases = [...generated.matchAll(/^\s+--(?:background|foreground|card|primary|surface-page|text-primary|action-primary|feedback-success|focus-color):\s*([^;]+);$/gm)].map((match) => match[1]);
     expect(aliases.every((value) => /^var\(--[a-z-]+\)$/.test(value))).toBe(true);
+  });
+
+  it("derives gamut-safe, contrast-safe action states from every immutable audit accent", () => {
+    for (const theme of themeNames) {
+      const tokens = resolved(theme);
+      const expected = actionInteractions[theme];
+      const auditAccent = tokenAt(tokens, `color.primitive.audit.template.${theme}.accent`).$value.hex;
+      const roles = ["default", "hover", "active"] as const;
+      const colors = Object.fromEntries(roles.map((role) => [role, tokenAt(tokens, `color.action.${role}`).$value.hex])) as Record<typeof roles[number], string>;
+
+      expect(auditAccent).toBe(expected.default);
+      expect(colors).toEqual({ default: expected.default, hover: expected.hover, active: expected.active });
+      expect(tokenAt(tokens, "component.button.primary.background").$value.hex).toBe(colors.default);
+      expect(tokenAt(tokens, "component.button.primary.hover-background").$value.hex).toBe(colors.hover);
+      expect(tokenAt(tokens, "component.button.primary.active-background").$value.hex).toBe(colors.active);
+      expect(tokenAt(tokens, "component.button.primary.foreground").$value.hex).toBe(expected.foreground);
+      expect(roles.map((role) => contrastRatio(expected.foreground, colors[role])).every((ratio) => ratio >= 4.5)).toBe(true);
+
+      const progression = roles.map((role) => oklchFromHex(colors[role]));
+      expect(progression.every(({ chroma, hue }) => Number.isFinite(chroma) && Number.isFinite(hue))).toBe(true);
+      expect(hueDistance(progression[0].hue, progression[1].hue)).toBeLessThan(2);
+      expect(hueDistance(progression[1].hue, progression[2].hue)).toBeLessThan(2);
+      expect(progression[1].chroma).toBeLessThanOrEqual(progression[0].chroma + 0.001);
+      expect(progression[2].chroma).toBeLessThanOrEqual(progression[1].chroma + 0.001);
+      if (expected.direction === "lighter") {
+        expect(progression[0].lightness).toBeLessThan(progression[1].lightness);
+        expect(progression[1].lightness).toBeLessThan(progression[2].lightness);
+      } else {
+        expect(progression[0].lightness).toBeGreaterThan(progression[1].lightness);
+        expect(progression[1].lightness).toBeGreaterThan(progression[2].lightness);
+      }
+
+      for (const state of ["hover", "active"] as const) {
+        const primitive = documents["themes.tokens.json"].color.primitive.accessibility[theme][`action-${state}`];
+        expect(primitive.$extensions["com.qr-pagamentos.action-progression"]).toMatchObject({
+          space: "oklch", from: `color.primitive.audit.template.${theme}.accent`, direction: expected.direction, state,
+        });
+      }
+    }
+  });
+
+  it("projects action state variables exactly from the component graph", () => {
+    const css = readFileSync(join(root, "src/app/globals.css"), "utf8");
+    expect(css).toBe(projectGeneratedThemeTokens(css, documents, resolver));
+    const generated = buildGeneratedThemeTokens(documents, resolver);
+    for (const theme of themeNames) {
+      const expected = actionInteractions[theme];
+      expect(generated).toContain(`--color-button-primary-background: ${expected.default};`);
+      expect(generated).toContain(`--color-button-primary-hover-background: ${expected.hover};`);
+      expect(generated).toContain(`--color-button-primary-active-background: ${expected.active};`);
+      expect(generated).toContain(`--primary-hover: var(--color-button-primary-hover-background);`);
+      expect(generated).toContain(`--primary-active: var(--color-button-primary-active-background);`);
+    }
+    expect(css).toContain("--color-primary-hover: var(--primary-hover);");
+    expect(css).toContain("--color-primary-active: var(--primary-active);");
   });
 
   it("imports exactly the ten approved local Latin weights and no legacy/remote family", () => {
