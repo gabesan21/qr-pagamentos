@@ -34,7 +34,6 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[12.2.3-rebuild-shared-visual-components]] | Inventory then rebuild `src/components/ui/**` and `src/data-directory/ui/**` around consumed template components, justifying every addition and preventing duplicate ownership. · size: L | 001_initial_task |
 | [[12.2.4-rebuild-design-system-specimen]] | Make `/design-system` exercise every shared component, state, theme, locale, responsive mode, focus treatment, and reduced-motion behavior against the parity contract. · size: M | 001_initial_task |
 
 ## Phase 12.3 - Application shells and identity journeys
