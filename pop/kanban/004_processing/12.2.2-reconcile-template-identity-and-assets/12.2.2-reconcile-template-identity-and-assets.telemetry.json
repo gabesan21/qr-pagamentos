@@ -82,6 +82,18 @@
       "test_seconds": 43.0,
       "return_kind": null,
       "result": "advanced"
+    },
+    {
+      "at": "2026-08-03T00:52:17-03:00",
+      "event": "transition",
+      "from": "005_closing",
+      "to": "004_processing",
+      "contexts": [
+        "/root/gate_12_2_2_adversarial_judge_r1"
+      ],
+      "test_seconds": 0,
+      "return_kind": "execucao",
+      "result": "returned"
     }
   ]
 }
