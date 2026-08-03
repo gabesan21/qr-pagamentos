@@ -70,6 +70,41 @@
       "test_seconds": 0,
       "return_kind": null,
       "result": "advanced"
+    },
+    {
+      "at": "2026-08-03T10:28:33-03:00",
+      "event": "transition",
+      "from": "004_processing",
+      "to": "002_planning",
+      "contexts": [
+        "replan_12_2_3_parity_refresh"
+      ],
+      "test_seconds": 0,
+      "return_kind": null,
+      "result": "advanced"
+    },
+    {
+      "at": "2026-08-03T10:28:36-03:00",
+      "event": "stage_result",
+      "stage": "002_planning",
+      "contexts": [
+        "replan_12_2_3_parity_refresh"
+      ],
+      "test_seconds": 0,
+      "return_kind": "lacuna",
+      "result": "f05_owns_two_generated_parity_files_for_invariant_guarded_semantic_refresh"
+    },
+    {
+      "at": "2026-08-03T10:29:16-03:00",
+      "event": "transition",
+      "from": "002_planning",
+      "to": "004_processing",
+      "contexts": [
+        "replan_12_2_3_parity_refresh"
+      ],
+      "test_seconds": 0,
+      "return_kind": null,
+      "result": "advanced"
     }
   ]
 }
