@@ -357,7 +357,7 @@ Never solve a presentation gap with a backend/API/database change.
 
 The parity manifest binds 2,230 obligations in
 `docs/frontend-template-parity/obligations.ndjson` at SHA-256
-`276bba6466ce7c316c3b8bc27db48e1a75ad20268c1e8c0e78e97c4859e922dd`.
+`7b62118ffae748e8ef7384cccac4792ce60440166660b3cfe0b6c2e9431a8c93`.
 Each route/component owner consumes its exact obligation IDs, dispositions,
 source hashes, target paths, state fixture, locale/theme applicability, and
 later-owner assignment. Missing, stale, duplicate, generic, hand-authored, or
