@@ -83,6 +83,20 @@ async function hashFiles(paths: string[]) {
   })));
 }
 
+async function sharedUiSourcePaths() {
+  const inventoryPath = join(process.cwd(), "src", "components", "ui", "inventory.json");
+  const inventory = JSON.parse(await readFile(inventoryPath, "utf8")) as {
+    officialAdditions: Array<{ source: string }>;
+    owners: Array<{ owner: string }>;
+  };
+  return [
+    inventoryPath,
+    join(process.cwd(), "scripts", "check-shared-ui-inventory.mjs"),
+    ...inventory.officialAdditions.map(({ source }) => join(process.cwd(), source)),
+    ...inventory.owners.map(({ owner }) => join(process.cwd(), owner)),
+  ].filter((candidate, index, all) => all.indexOf(candidate) === index).sort();
+}
+
 function readExpectedTheme(css: string, theme: ThemeId) {
   const escapedTheme = theme.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const block = css.match(new RegExp(`:root\\[data-theme="${escapedTheme}"\\] \\{([\\s\\S]*?)\\n\\}`))?.[1];
@@ -262,6 +276,7 @@ test("creates current token and typography evidence", async ({ page }) => {
           const styles = getComputedStyle(element);
           return {
             index: targetIndex,
+            target: `${element.tagName.toLowerCase()}[data-slot="${element.dataset.slot ?? "none"}"]:${element.getAttribute("aria-label") ?? element.textContent?.trim() ?? "unnamed"}`,
             outlineWidth: Number.parseFloat(styles.outlineWidth),
             outlineColor: styles.outlineColor,
             ringVisible: styles.boxShadow !== "none",
@@ -421,9 +436,12 @@ test("creates current token and typography evidence", async ({ page }) => {
       expect(measured.semanticContrast.action).toBeGreaterThanOrEqual(4.5);
       expect(measured.focusRing).toBe(measured.themeTokens["color-focus-ring"]);
       expect(Object.values(measured.focusContrast).every((ratio) => ratio >= 3)).toBe(true);
-      expect(focusTraversal.every(({ outlineWidth, outlineColor, ringColor }) => (
-        outlineWidth >= 2 ? outlineColor === measured.focusRing : ringColor === measured.focusRing
-      ))).toBe(true);
+      for (const focus of focusTraversal) {
+        expect(
+          focus.outlineWidth >= 2 ? focus.outlineColor === measured.focusRing : focus.ringColor === measured.focusRing,
+          `Focus color mismatch for ${focus.target} at ${theme.id}/${width}`,
+        ).toBe(true);
+      }
       expect(measured.overflow).toBe(false);
       expect(measured.hitTargets.length).toBeGreaterThan(0);
       expect(measured.hitTargets.every(({ width: targetWidth, height }) => targetWidth >= 44 && height >= 44)).toBe(true);
@@ -503,7 +521,11 @@ test("creates current token and typography evidence", async ({ page }) => {
     join(process.cwd(), "package.json"),
     join(process.cwd(), "pnpm-lock.yaml"),
   ];
-  const sources = [...await hashFiles(fixedSourcePaths), ...tokenFiles].sort((left, right) => left.path.localeCompare(right.path));
+  const sources = [
+    ...await hashFiles(fixedSourcePaths),
+    ...await hashFiles(await sharedUiSourcePaths()),
+    ...tokenFiles,
+  ].sort((left, right) => left.path.localeCompare(right.path));
   const assertionBytes = await readFile(assertionsPath);
   const gitHead = execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim();
   const manifest = {

@@ -44,18 +44,27 @@ const primitiveNames = [
   "textarea",
 ] as const;
 
+const sharedInventory = JSON.parse(
+  readFileSync(new URL("./inventory.json", import.meta.url), "utf8"),
+) as { owners: Array<{ owner: string }> };
+
+const compositionNames = sharedInventory.owners
+  .map(({ owner }) => owner.match(/^src\/components\/ui\/(.+)\.tsx$/u)?.[1])
+  .filter((name): name is string => Boolean(name) && !primitiveNames.includes(name as (typeof primitiveNames)[number]));
+
 function source(name: (typeof primitiveNames)[number]) {
   return readFileSync(new URL(`./${name}.tsx`, import.meta.url), "utf8");
 }
 
 describe("shared primitive inventory", () => {
-  it("has one source owner for every approved primitive and no generated extras", () => {
+  it("distinguishes the approved primitive and composition source inventories", () => {
     const actual = readdirSync(new URL(".", import.meta.url))
       .filter((name) => name.endsWith(".tsx") && !name.endsWith(".test.tsx"))
       .map((name) => name.replace(/\.tsx$/u, ""))
       .sort();
 
-    expect(actual).toEqual([...primitiveNames].sort());
+    expect(actual).toEqual([...new Set([...primitiveNames, ...compositionNames])].sort());
+    expect(compositionNames).toHaveLength(13);
   });
 
   it("keeps client boundaries limited to primitives that require browser state", () => {

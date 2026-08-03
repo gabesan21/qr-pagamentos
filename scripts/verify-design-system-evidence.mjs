@@ -42,6 +42,16 @@ async function parse(path) {
   return JSON.parse(await readFile(path, "utf8"));
 }
 
+async function sharedUiSourcePaths() {
+  const inventory = await parse(join(root, "src", "components", "ui", "inventory.json"));
+  return [
+    "src/components/ui/inventory.json",
+    "scripts/check-shared-ui-inventory.mjs",
+    ...inventory.officialAdditions.map(({ source }) => source),
+    ...inventory.owners.map(({ owner }) => owner),
+  ].filter((candidate, index, all) => all.indexOf(candidate) === index).sort();
+}
+
 const currentPath = join(artifactRoot, "current.json");
 const current = await parse(currentPath);
 assert(/^\d{14}$/.test(current.runId), "Current evidence pointer has an invalid run ID.");
@@ -112,7 +122,7 @@ for (const result of assertions) {
 const expectedTokenPaths = await tokenPaths();
 const tokenManifestPaths = manifest.tokenFiles?.map(({ path }) => path).sort();
 assert(JSON.stringify(tokenManifestPaths) === JSON.stringify(expectedTokenPaths), "Canonical token source inventory is incomplete or stale.");
-const expectedSourcePaths = [...fixedSources, ...expectedTokenPaths].sort();
+const expectedSourcePaths = [...fixedSources, ...await sharedUiSourcePaths(), ...expectedTokenPaths].sort();
 const sourcePaths = manifest.sources?.map(({ path }) => path).sort();
 assert(JSON.stringify(sourcePaths) === JSON.stringify(expectedSourcePaths), "Evidence source inventory is incomplete or stale.");
 assert(manifest.fontProvenance?.path === "src/design-system/fonts/provenance.json", "Font provenance is not explicitly bound.");

@@ -22,6 +22,9 @@
 - `ui/` receives only localized copy, redacted rows, column/fact definitions,
   canonical URLs, and optional consumer actions. Never import auth, a business
   service/store, or theme/role branching.
+- `DataDirectory` is the only production owner for shared table, native-GET
+  filter and canonical previous/next pagination responsibilities; never add a
+  parallel `DataTable`, `FilterBar`, total-count or page-number owner.
 - At narrow widths render ruled `dl` facts; at wide widths render one captioned
   native table. CSS must leave exactly one renderer/action set in the
   accessibility tree, preserve DOM/focus/reading order, and avoid page overflow.
@@ -36,5 +39,5 @@
 ## Related contracts
 
 - [`../../pop/specs/administrative-foundation.md`](../../pop/specs/administrative-foundation.md) — follow when role scope, query, URL, or cursor behavior changes.
-- [`../../pop/specs/administrative-design-system.md`](../../pop/specs/administrative-design-system.md) — follow when responsive semantics, inventory, state, or evidence changes.
+- [`../../pop/specs/application-frontend-system.md`](../../pop/specs/application-frontend-system.md) — follow when responsive semantics, inventory, state, or evidence changes.
 - [`../components/ui/AGENTS.md`](../components/ui/AGENTS.md) — follow before changing owned shadcn source used by this composition.

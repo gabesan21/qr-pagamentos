@@ -245,19 +245,24 @@ storage]]; template assets do not bypass that lifecycle.
 
 ## Shared component ownership and anti-drift
 
-Production primitives live only in `src/components/ui/` and are imported from
-that path. The current owned foundation is `Alert`, `Badge`, `Button`, `Card`,
-`Checkbox`, `Field`/`FieldGroup`, `Input`, `Label`, `NativeSelect`, `Separator`,
-`Skeleton`, `Spinner`, `Table`, and `Textarea`. Later tasks evolve these sources;
-pages do not fork their styling.
+Production primitives and role-neutral compositions live only in
+`src/components/ui/` and are imported from that path. The owned primitive
+foundation is `Alert`, `AlertDialog`, `Avatar`, `Badge`, `Button`, `Card`,
+`Checkbox`, `Dialog`, `Empty`, `Field`/`FieldGroup`, `Input`, `InputOTP`, `Label`,
+`NativeSelect`, `Pagination`, `Separator`, `Skeleton`, `Sonner`, `Spinner`,
+`Switch`, `Table`, `Tabs`, and `Textarea`; pages do not fork their styling.
 
-The reachable template inventory adds these candidate compositions for task
-`12.2.3`: `CopyField`, `DataTable`, `EmptyState`, `FilterBar`, `ImageUploader`,
-`LocalizedFieldGroup`, `Modal`/confirmation, `MoneyText`, `Monogram`/avatar,
-`QRDisplay`, `SimpleTabs`, `Skeletons`, `StatCard`, `StatusBadge`, `Timeline`,
-and `Toast`, plus only the reachable shadcn primitives recorded in the parity
-graph. Names describe target responsibilities, not permission to transplant
-template code or mock behavior.
+Task `12.2.3` delivers the reachable shared compositions `CopyField`,
+`EmptyState`, `LocalizedFieldGroup`, `Modal`/`ConfirmDialog`, `MoneyText`,
+`Monogram`, `QrDisplay`, `SimpleTabs`, the five `Skeletons`, `StatCard`,
+`StatusBadge`, `Timeline`, and `ToastViewport`/`showToast`. `DataDirectory` is
+the single owner for the reachable `DataTable` and `FilterBar` responsibilities;
+it composes canonical previous/next pagination and never adds total-count,
+page-number, arbitrary sorting, or client-list behavior. The executable map is
+`src/components/ui/inventory.json`, checked by
+`scripts/check-shared-ui-inventory.mjs`: all 187 assigned obligations map once,
+and all 49 unreachable generated sources remain exclusions. Official supporting
+sources are recorded with one insufficiency finding each.
 
 Before adding a component:
 
@@ -265,7 +270,10 @@ Before adding a component:
 2. Reuse or extend the single owner when its responsibility matches.
 3. If genuinely new, record one owner/import path, public props, complete
    applicable states, and a one-line insufficiency finding for the inventory.
-4. Update this inventory and the `/design-system` specimen in the same task.
+4. Update the executable inventory in the same task. Task `12.2.4` owns the
+   complete new-inventory state/locale specimen; until it ships, current
+   consumer evidence is proof of regression safety, not complete specimen
+   conformance.
 
 Every `excluded-unreachable-generated-ui` obligation remains excluded. An
 unreachable generated template file, including a registry component, is not an
@@ -285,7 +293,7 @@ them. Mark a state non-applicable instead of simulating it.
 | Data directories | ready, loading with geometry-preserving skeleton, empty, filtered-empty with reset, invalid-query reset, request error with retry, pagination/filter selection; desktop table and narrow facts expose one action set |
 | Empty/unavailable | localized illustration, title, optional body and one recovery/CTA; empty is never destructive and unavailable discloses no cause |
 | Filters and tabs | default, active/selected with non-color marker, clear/reset, hover/focus, disabled; URL and native GET behavior remain server-authoritative |
-| Upload/identity | empty fallback, drag/focus, staged preview, invalid, upload pending, error, remove/clear, stored success; bytes and lifecycle remain media-authoritative |
+| Identity | image or initial fallback, meaningful or decorative naming, and size variants; bytes and lifecycle remain media-authoritative |
 | Modal/confirmation | closed/open, initial focus, keyboard loop, escape/overlay dismissal when allowed, destructive confirmation, pending/disabled, failure without accidental close, focus restoration |
 | Copy and QR | ready, copy pending, copied success announced politely, copy failure/retry; QR preparing, available, waiting/recovery, and terminal states preserve alternative text and exact payload boundaries |
 | Status, money, timeline, stats | ready, empty where data-driven, loading skeleton, unavailable/error; text/icon/shape accompanies color and numeric facts use mono tabular type |
