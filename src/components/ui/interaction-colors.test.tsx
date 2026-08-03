@@ -17,12 +17,15 @@ describe("shared action interaction colors", () => {
 
     expect(badgeVariants({ variant: "default" })).toContain("bg-primary");
     expect(badgeVariants({ variant: "default" })).toContain("[a]:hover:bg-primary-hover");
-    expect(badgeVariants({ variant: "default" })).not.toMatch(/\[a\]:hover:bg-primary\//u);
+    expect(badgeVariants({ variant: "default" })).toContain("[a]:active:bg-primary-active");
+    expect(badgeVariants({ variant: "default" })).not.toMatch(/\[a\]:(?:hover|active):bg-primary\//u);
   });
 
   it("keeps the public Button and Badge markup semantic", () => {
     expect(renderToStaticMarkup(<Button>Continue</Button>)).toContain("text-primary-foreground");
-    expect(renderToStaticMarkup(<Badge asChild><a href="#paid">Paid</a></Badge>)).toContain("hover:bg-primary-hover");
+    const badge = renderToStaticMarkup(<Badge asChild><a href="#paid">Paid</a></Badge>);
+    expect(badge).toContain("hover:bg-primary-hover");
+    expect(badge).toContain("active:bg-primary-active");
   });
 
   it("does not introduce raw colors or theme branches in the shared consumers", () => {
