@@ -22,8 +22,8 @@ import { SpecimenBinding } from "./specimen-binding";
 
 type Dictionary = Readonly<Record<string, string>>;
 
-function BoundOtp({ disabled = false, invalid = false, ownerState, value = "" }: Readonly<{ disabled?: boolean; invalid?: boolean; ownerState: string; value?: string }>) {
-  return <SpecimenBinding owner="input-otp" state={ownerState}><InputOTP aria-invalid={invalid || undefined} disabled={disabled} maxLength={4} value={value}><InputOTPGroup><InputOTPSlot aria-invalid={invalid || undefined} index={0} /><InputOTPSlot aria-invalid={invalid || undefined} index={1} /></InputOTPGroup><InputOTPSeparator /><InputOTPGroup><InputOTPSlot aria-invalid={invalid || undefined} index={2} /><InputOTPSlot aria-invalid={invalid || undefined} index={3} /></InputOTPGroup></InputOTP></SpecimenBinding>;
+function BoundOtp({ disabled = false, invalid = false, label, ownerState, value = "" }: Readonly<{ disabled?: boolean; invalid?: boolean; label: string; ownerState: string; value?: string }>) {
+  return <SpecimenBinding owner="input-otp" state={ownerState}><InputOTP aria-invalid={invalid || undefined} aria-label={label} disabled={disabled} maxLength={4} value={value}><InputOTPGroup><InputOTPSlot aria-invalid={invalid || undefined} index={0} /><InputOTPSlot aria-invalid={invalid || undefined} index={1} /></InputOTPGroup><InputOTPSeparator /><InputOTPGroup><InputOTPSlot aria-invalid={invalid || undefined} index={2} /><InputOTPSlot aria-invalid={invalid || undefined} index={3} /></InputOTPGroup></InputOTP></SpecimenBinding>;
 }
 
 export function DesignSystemInteractiveSpecimens({ dictionary }: Readonly<{ dictionary: Dictionary }>) {
@@ -64,7 +64,7 @@ export function DesignSystemInteractiveSpecimens({ dictionary }: Readonly<{ dict
           <Field><FieldLabel htmlFor="specimen-reference" id="ds-primitive-label">{dictionary.designSystemFieldLabel}</FieldLabel><div id="ds-primitive-input"><Input data-ds-hit-target defaultValue="FIX-2026-001" id="specimen-reference" /></div><FieldDescription>{dictionary.designSystemFieldHelp}</FieldDescription></Field>
           <Field data-invalid><FieldLabel htmlFor="specimen-invalid">{dictionary.designSystemInvalidLabel}</FieldLabel><Input aria-describedby="specimen-invalid-error" aria-invalid data-ds-hit-target id="specimen-invalid" /><FieldError id="specimen-invalid-error">{dictionary.designSystemFieldError}</FieldError></Field>
           <Field><FieldLabel htmlFor="specimen-select">{dictionary.designSystemSelectLabel}</FieldLabel><div id="ds-primitive-nativeselect"><NativeSelect data-ds-hit-target defaultValue="ready" id="specimen-select"><NativeSelectOption value="ready">{dictionary.designSystemReady}</NativeSelectOption><NativeSelectOption value="review">{dictionary.designSystemWarning}</NativeSelectOption></NativeSelect></div></Field>
-          <Field><FieldLabel htmlFor="specimen-textarea">{dictionary.designSystemFieldHelp}</FieldLabel><Textarea defaultValue="FIX-2026-001" id="ds-primitive-textarea" /></Field>
+          <Field><FieldLabel htmlFor="specimen-textarea">{dictionary.designSystemFieldHelp}</FieldLabel><div id="ds-primitive-textarea"><Textarea defaultValue="FIX-2026-001" id="specimen-textarea" /></div></Field>
           <div className="flex flex-wrap gap-3" id="ds-primitive-checkbox">
             <SpecimenBinding owner="checkbox" state="default"><Checkbox aria-label={`${dictionary.designSystemCheckboxLabel}: default`} /></SpecimenBinding>
             <SpecimenBinding owner="checkbox" state="checked"><Checkbox aria-label={`${dictionary.designSystemCheckboxLabel}: checked`} checked /></SpecimenBinding>
@@ -80,7 +80,7 @@ export function DesignSystemInteractiveSpecimens({ dictionary }: Readonly<{ dict
             <SpecimenBinding owner="switch" state="disabled"><Switch aria-label={`${dictionary.designSystemSwitchLabel}: disabled`} disabled /></SpecimenBinding>
           </div>
           <div className="flex flex-wrap gap-3" id="ds-primitive-inputotp">
-            <BoundOtp ownerState="default" /><BoundOtp ownerState="populated" value="1234" /><BoundOtp ownerState="active" value={otp} /><BoundOtp ownerState="focus" value={otp} /><BoundOtp invalid ownerState="invalid" value="1" /><BoundOtp disabled ownerState="disabled" value="12" />
+            <BoundOtp label={`${dictionary.designSystemOtpLabel}: ${dictionary.designSystemDefaultState}`} ownerState="default" /><BoundOtp label={`${dictionary.designSystemOtpLabel}: ${dictionary.designSystemPopulatedState}`} ownerState="populated" value="1234" /><BoundOtp label={`${dictionary.designSystemOtpLabel}: ${dictionary.designSystemActiveState}`} ownerState="active" value={otp} /><BoundOtp label={`${dictionary.designSystemOtpLabel}: ${dictionary.designSystemFocusState}`} ownerState="focus" value={otp} /><BoundOtp invalid label={`${dictionary.designSystemOtpLabel}: ${dictionary.designSystemInvalidState}`} ownerState="invalid" value="1" /><BoundOtp disabled label={`${dictionary.designSystemOtpLabel}: ${dictionary.designSystemDisabledState}`} ownerState="disabled" value="12" />
           </div>
         </FieldGroup>
         <div className="grid gap-3">

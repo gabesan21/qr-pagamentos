@@ -25,6 +25,22 @@ describe("mounted design-system state probes", () => {
     render(<DesignSystemInteractiveSpecimens dictionary={dictionary} />);
     expect(screen.getByLabelText(dictionary.designSystemFieldLabel).id).toBe("specimen-reference");
     expect(screen.getByLabelText(dictionary.designSystemSelectLabel).id).toBe("specimen-select");
+    expect(screen.getByLabelText(dictionary.designSystemFieldHelp).id).toBe("specimen-textarea");
+  });
+
+  it.each([designSystemEn, designSystemPtBR])("gives every OTP fixture a localized state-qualified accessible name", (dictionary) => {
+    render(<DesignSystemInteractiveSpecimens dictionary={dictionary} />);
+    const states = [
+      dictionary.designSystemDefaultState,
+      dictionary.designSystemPopulatedState,
+      dictionary.designSystemActiveState,
+      dictionary.designSystemFocusState,
+      dictionary.designSystemInvalidState,
+      dictionary.designSystemDisabledState,
+    ];
+    for (const state of states) {
+      expect(screen.getByLabelText(`${dictionary.designSystemOtpLabel}: ${state}`)).not.toBeNull();
+    }
   });
 
   it("mounts every interactive binding on a real, visible fixture target", () => {
@@ -88,7 +104,7 @@ describe("mounted design-system state probes", () => {
     expect(container.querySelector("#ds-stat-card-empty")?.textContent).toContain("0");
     expect(container.querySelector("#ds-stat-card-unavailable")?.textContent).toContain("—");
     expect(container.querySelector("#ds-timeline-empty ol")?.children).toHaveLength(0);
-    expect(container.querySelector("#ds-primitive-textarea") instanceof HTMLTextAreaElement).toBe(true);
+    expect(container.querySelector("#ds-primitive-textarea textarea") instanceof HTMLTextAreaElement).toBe(true);
   });
 
   it("binds all 23 primitive targets to mounted shared primitives", () => {
