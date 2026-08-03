@@ -1,9 +1,100 @@
 import { describe, expect, it } from "vitest";
+import { readFile } from "node:fs/promises";
 
 import {
+  auditFontDeclarations,
   auditRuntimeFontSources,
   checkFontProvenance,
 } from "./check-font-provenance.mjs";
+
+const repositoryRoot = new URL("../", import.meta.url);
+
+type MutableProvenance = {
+  families: Array<{
+    family: string;
+    package: string;
+    role: string;
+    weights: Array<{ import: string; weight: number }>;
+  }>;
+  transitionalDependency?: { package: string; version: string };
+  [key: string]: unknown;
+};
+
+type MutableProject = {
+  dependencies: Record<string, string>;
+  [key: string]: unknown;
+};
+
+type DeclarationMutation = (
+  provenance: MutableProvenance,
+  project: MutableProject,
+  lock: string,
+) => string | void;
+
+const declarationMutations: Array<{
+  name: string;
+  mutate: DeclarationMutation;
+  failure: string;
+}> = [
+  {
+    name: "target lock integrity drift",
+    mutate: (_provenance, _project, lock) =>
+      lock.replace("sha512-SqW3OpKxxfKvxD", "sha512-XqW3OpKxxfKvxD"),
+    failure: "@fontsource/sora lock integrity drift.",
+  },
+  {
+    name: "target provenance drift",
+    mutate: (provenance) => {
+      provenance.families[0].role = "display";
+    },
+    failure: "Font family, role, package, version, weight, and import contract must remain exactly",
+  },
+  {
+    name: "transitional provenance reintroduction",
+    mutate: (provenance) => {
+      provenance.transitionalDependency = { package: "@fontsource-variable/ibm-plex-sans", version: "5.2.8" };
+    },
+    failure: "Font provenance must not contain transitionalDependency.",
+  },
+  {
+    name: "legacy dependency reintroduction",
+    mutate: (_provenance, project) => {
+      project.dependencies["@fontsource-variable/ibm-plex-sans"] = "5.2.8";
+    },
+    failure: "@fontsource-variable/ibm-plex-sans must not be a project dependency.",
+  },
+  {
+    name: "legacy lock reintroduction",
+    mutate: (_provenance, _project, lock) =>
+      `${lock}\n'@fontsource-variable/ibm-plex-sans@5.2.8': {}\n`,
+    failure: "@fontsource-variable/ibm-plex-sans must not appear in the lockfile.",
+  },
+];
+
+const targetPackages = ["@fontsource/inter", "@fontsource/sora", "@fontsource/ibm-plex-mono"];
+const targetWeights = [
+  ["Inter", 400],
+  ["Inter", 500],
+  ["Inter", 600],
+  ["Sora", 400],
+  ["Sora", 500],
+  ["Sora", 600],
+  ["Sora", 700],
+  ["IBM Plex Mono", 400],
+  ["IBM Plex Mono", 500],
+  ["IBM Plex Mono", 600],
+] as const;
+
+async function readDeclarationFixture() {
+  const provenance = JSON.parse(
+    await readFile(new URL("src/design-system/fonts/provenance.json", repositoryRoot), "utf8"),
+  ) as MutableProvenance;
+  const project = JSON.parse(
+    await readFile(new URL("package.json", repositoryRoot), "utf8"),
+  ) as MutableProject;
+  const lock = await readFile(new URL("pnpm-lock.yaml", repositoryRoot), "utf8");
+  return { provenance, project, lock };
+}
 
 const expectedImports = [
   "@fontsource/inter/latin-400.css",
@@ -31,6 +122,34 @@ describe("font provenance", () => {
 
   it("accepts exactly the approved local static-weight imports", () => {
     expect(auditRuntimeFontSources([{ path: "src/app/globals.css", source: completeLocalImports }], expectedImports)).toEqual([]);
+  });
+
+  it.each(declarationMutations)("rejects $name", async ({ mutate, failure }) => {
+    const { provenance, project, lock } = await readDeclarationFixture();
+    const mutatedLock = mutate(provenance, project, lock) ?? lock;
+
+    expect(auditFontDeclarations(provenance, project, mutatedLock).join("\n")).toContain(failure);
+  });
+
+  it.each(targetPackages)("rejects direct dependency pin drift for %s", async (targetPackage) => {
+    const { provenance, project, lock } = await readDeclarationFixture();
+    project.dependencies[targetPackage] = "5.3.1";
+
+    expect(auditFontDeclarations(provenance, project, lock)).toContain(
+      `${targetPackage} is not pinned to 5.3.0.`,
+    );
+  });
+
+  it.each(targetWeights)("rejects provenance import drift for %s %i", async (familyName, weightValue) => {
+    const { provenance, project, lock } = await readDeclarationFixture();
+    const family = provenance.families.find(({ family: candidate }) => candidate === familyName);
+    const weight = family?.weights.find(({ weight: candidate }) => candidate === weightValue);
+    expect(weight).toBeDefined();
+    weight!.import = `${weight!.import}.drift`;
+
+    expect(auditFontDeclarations(provenance, project, lock).join("\n")).toContain(
+      "Font family, role, package, version, weight, and import contract must remain exactly",
+    );
   });
 
   it.each([

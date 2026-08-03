@@ -7,9 +7,49 @@ const repositoryRoot = fileURLToPath(new URL("..", import.meta.url));
 const provenancePath = "src/design-system/fonts/provenance.json";
 const runtimeExtensions = new Set([".css", ".js", ".jsx", ".mjs", ".ts", ".tsx"]);
 const remoteFontPattern = /(?:fonts\.(?:googleapis|gstatic)\.com|use\.typekit\.net|fast\.fonts\.net)/i;
+const legacyPackage = "@fontsource-variable/ibm-plex-sans";
 const legacyImportPattern = /@fontsource-variable\/ibm-plex-sans/i;
 const legacyCssPattern = /(?:font-family\s*:|--[\w-]*font[\w-]*\s*:)[^;\n]*IBM Plex Sans/i;
 const targetImportPattern = /@fontsource\/(?:inter|sora|ibm-plex-mono)\/[^"'();\s]+/g;
+const expectedFamilyContracts = [
+  {
+    family: "Inter",
+    role: "body",
+    package: "@fontsource/inter",
+    version: "5.3.0",
+    weights: [400, 500, 600],
+    imports: [
+      "@fontsource/inter/latin-400.css",
+      "@fontsource/inter/latin-500.css",
+      "@fontsource/inter/latin-600.css",
+    ],
+  },
+  {
+    family: "Sora",
+    role: "display",
+    package: "@fontsource/sora",
+    version: "5.3.0",
+    weights: [400, 500, 600, 700],
+    imports: [
+      "@fontsource/sora/latin-400.css",
+      "@fontsource/sora/latin-500.css",
+      "@fontsource/sora/latin-600.css",
+      "@fontsource/sora/latin-700.css",
+    ],
+  },
+  {
+    family: "IBM Plex Mono",
+    role: "numeric",
+    package: "@fontsource/ibm-plex-mono",
+    version: "5.3.0",
+    weights: [400, 500, 600],
+    imports: [
+      "@fontsource/ibm-plex-mono/latin-400.css",
+      "@fontsource/ibm-plex-mono/latin-500.css",
+      "@fontsource/ibm-plex-mono/latin-600.css",
+    ],
+  },
+];
 
 function digest(bytes) {
   return createHash("sha256").update(bytes).digest("hex");
@@ -77,6 +117,56 @@ export function auditRuntimeFontSources(entries, expectedImports) {
   return failures;
 }
 
+export function auditFontDeclarations(provenance, project, lock) {
+  const failures = [];
+  const families = Array.isArray(provenance.families) ? provenance.families : [];
+  const observedFamilyContracts = families.map((family) => ({
+    family: family.family,
+    role: family.role,
+    package: family.package,
+    version: family.version,
+    weights: Array.isArray(family.weights) ? family.weights.map((weight) => weight.weight) : [],
+    imports: Array.isArray(family.weights) ? family.weights.map((weight) => weight.import) : [],
+  }));
+
+  assertCondition(
+    JSON.stringify(observedFamilyContracts) === JSON.stringify(expectedFamilyContracts),
+    "Font family, role, package, version, weight, and import contract must remain exactly Inter 400/500/600, Sora 400/500/600/700, and IBM Plex Mono 400/500/600.",
+    failures,
+  );
+  assertCondition(
+    !Object.hasOwn(provenance, "transitionalDependency"),
+    "Font provenance must not contain transitionalDependency.",
+    failures,
+  );
+  assertCondition(
+    !Object.hasOwn(project.dependencies ?? {}, legacyPackage),
+    `${legacyPackage} must not be a project dependency.`,
+    failures,
+  );
+  assertCondition(!lock.includes(legacyPackage), `${legacyPackage} must not appear in the lockfile.`, failures);
+
+  for (const family of families) {
+    assertCondition(
+      project.dependencies?.[family.package] === family.version,
+      `${family.package} is not pinned to ${family.version}.`,
+      failures,
+    );
+
+    const importerEntry = new RegExp(
+      `'${escapePattern(family.package)}':\\n\\s+specifier: ${escapePattern(family.version)}\\n\\s+version: ${escapePattern(family.version)}(?:\\n|$)`,
+    );
+    assertCondition(importerEntry.test(lock), `${family.package} lock importer pin drift.`, failures);
+
+    const packageEntry = new RegExp(
+      `'${escapePattern(family.package)}@${escapePattern(family.version)}':\\n\\s+resolution: \\{integrity: ${escapePattern(family.packageIntegrity)}\\}`,
+    );
+    assertCondition(packageEntry.test(lock), `${family.package} lock integrity drift.`, failures);
+  }
+
+  return failures;
+}
+
 export async function checkFontProvenance({ root = repositoryRoot, supplyOnly = false } = {}) {
   const failures = [];
   const provenance = await readJson(root, provenancePath);
@@ -93,10 +183,9 @@ export async function checkFontProvenance({ root = repositoryRoot, supplyOnly = 
     "Font locale coverage must remain exactly pt-BR and en.",
     failures,
   );
+  failures.push(...auditFontDeclarations(provenance, project, lock));
 
   for (const family of provenance.families) {
-    assertCondition(project.dependencies?.[family.package] === family.version, `${family.package} is not pinned to ${family.version}.`, failures);
-
     const packageRoot = join(root, "node_modules", ...family.package.split("/"));
     const metadata = JSON.parse(await readFile(join(packageRoot, "package.json"), "utf8"));
     assertCondition(metadata.name === family.package, `${family.package} metadata name drift.`, failures);
@@ -109,11 +198,6 @@ export async function checkFontProvenance({ root = repositoryRoot, supplyOnly = 
     assertCondition(digest(packageLicense) === family.licenseSha256, `${family.package} package license hash drift.`, failures);
     assertCondition(digest(committedLicense) === family.licenseSha256, `${family.package} committed license hash drift.`, failures);
     assertCondition(packageLicense.equals(committedLicense), `${family.package} committed license is not byte-identical.`, failures);
-
-    const lockEntry = new RegExp(
-      `'${escapePattern(family.package)}@${escapePattern(family.version)}':\\n\\s+resolution: \\{integrity: ${escapePattern(family.packageIntegrity)}\\}`,
-    );
-    assertCondition(lockEntry.test(lock), `${family.package} lock integrity drift.`, failures);
 
     for (const weight of family.weights) {
       expectedImports.push(weight.import);
@@ -134,13 +218,6 @@ export async function checkFontProvenance({ root = repositoryRoot, supplyOnly = 
       assertCondition(!/https?:|latin-ext|cyrillic|greek|vietnamese/i.test(css), `${weight.import} is not a Latin-only local entrypoint.`, failures);
     }
   }
-
-  const transition = provenance.transitionalDependency;
-  assertCondition(
-    project.dependencies?.[transition.package] === transition.version,
-    `${transition.package} must remain pinned for task 12.2.2 brand provenance.`,
-    failures,
-  );
 
   if (!supplyOnly) {
     failures.push(...auditRuntimeFontSources(await runtimeSourceEntries(root), expectedImports));
