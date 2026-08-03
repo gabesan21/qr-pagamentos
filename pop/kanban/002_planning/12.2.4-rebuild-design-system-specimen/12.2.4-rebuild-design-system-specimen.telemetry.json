@@ -12,6 +12,17 @@
       "test_seconds": 0,
       "return_kind": null,
       "result": "advanced"
+    },
+    {
+      "at": "2026-08-03T12:07:00-03:00",
+      "event": "stage_result",
+      "stage": "002_planning",
+      "contexts": [
+        "plan_12_2_4"
+      ],
+      "test_seconds": 1,
+      "return_kind": null,
+      "result": "plan_created_3_sequential_fronts_closed_specimen_48_entry_evidence"
     }
   ]
 }
