@@ -2,6 +2,9 @@ import { readFileSync } from "node:fs";
 
 import { describe, expect, it } from "vitest";
 
+import { designSystemEn } from "@/i18n/dictionaries/design-system/en";
+import { designSystemPtBR } from "@/i18n/dictionaries/design-system/pt-BR";
+
 import { designSystemCoverage, primitiveCoverage } from "./coverage";
 
 const sharedInventory = JSON.parse(
@@ -28,5 +31,28 @@ describe("design-system closed coverage map", () => {
     expect(source).not.toContain('"use client"');
     expect(source).not.toMatch(/@\/auth|@\/checkout|@\/integrations|@\/nautt|method=|<form/u);
     expect(source).toContain("localeFromPreferenceCookie");
+  });
+
+  it("keeps the narrow tab fixture on compact dedicated labels", () => {
+    const source = readFileSync(new URL("./interactive-specimens.tsx", import.meta.url), "utf8");
+    expect(source).toContain("dictionary.designSystemTabsReadyLabel");
+    expect(source).toContain("dictionary.designSystemTabsReviewLabel");
+    expect(source).toContain("dictionary.designSystemTabsArchivedLabel");
+    expect([
+      designSystemEn.designSystemTabsReadyLabel,
+      designSystemEn.designSystemTabsReviewLabel,
+      designSystemEn.designSystemTabsArchivedLabel,
+    ]).toEqual(["Ready", "Review", "Archived"]);
+    expect([
+      designSystemPtBR.designSystemTabsReadyLabel,
+      designSystemPtBR.designSystemTabsReviewLabel,
+      designSystemPtBR.designSystemTabsArchivedLabel,
+    ]).toEqual(["Pronto", "Revisão", "Arquivado"]);
+  });
+
+  it("allows the identity fixture to wrap inside the narrow specimen track", () => {
+    const source = readFileSync(new URL("./page.tsx", import.meta.url), "utf8");
+    expect(source).toContain('className="flex flex-wrap items-center gap-4"');
+    expect(source).toContain("<StatusBadge label={dictionary.designSystemDanger}");
   });
 });
