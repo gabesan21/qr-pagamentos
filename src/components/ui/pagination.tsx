@@ -75,7 +75,10 @@ function PaginationPrevious({
     <PaginationLink
       aria-label={label}
       size="default"
-      className={cn("pl-1.5!", className)}
+      className={cn(
+        "pl-1.5! focus-visible:ring-[var(--color-focus-ring)]",
+        className
+      )}
       {...props}
     >
       <ChevronLeftIcon data-icon="inline-start" />
