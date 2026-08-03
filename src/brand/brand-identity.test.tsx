@@ -99,12 +99,19 @@ describe("brand identity", () => {
   });
 
   it("binds the static wordmark to the pinned licensed Sora source", () => {
-    const fontBytes = readFileSync(resolve(process.cwd(), soraWordmarkSource.sourcePath));
+    const fontBytes = readFileSync(
+      resolve(
+        process.cwd(),
+        "node_modules",
+        soraWordmarkSource.packageSource.package,
+        soraWordmarkSource.packageSource.file,
+      ),
+    );
     const licenseBytes = readFileSync(resolve(process.cwd(), soraWordmarkSource.licensePath));
     const outlineBytes = readFileSync(resolve(process.cwd(), soraWordmarkSource.outlinePath));
     const outlines = outlineBytes.toString("utf8");
 
-    expect(sha256(fontBytes)).toBe(soraWordmarkSource.sourceSha256);
+    expect(sha256(fontBytes)).toBe(soraWordmarkSource.packageSource.sha256);
     expect(sha256(licenseBytes)).toBe(soraWordmarkSource.licenseSha256);
     expect(sha256(outlineBytes)).toBe(soraWordmarkSource.outlineSha256);
     expect(outlines).not.toMatch(/<text\b|font-family|@font-face/i);
