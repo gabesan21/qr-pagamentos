@@ -35,6 +35,16 @@
       "test_seconds": 0,
       "return_kind": null,
       "result": "advanced"
+    },
+    {
+      "at": "2026-08-03T00:00:23-03:00",
+      "event": "stage",
+      "stage": "002_planning",
+      "contexts": [
+        "/root/plan_12_2_2_gap"
+      ],
+      "test_seconds": 0,
+      "result": "amended-font-transition-gap"
     }
   ]
 }
