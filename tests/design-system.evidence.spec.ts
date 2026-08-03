@@ -1,7 +1,7 @@
-import { createHash } from "node:crypto";
-import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
-import { join } from "node:path";
 import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
+import { mkdir, readFile, readdir, rename, stat, writeFile } from "node:fs/promises";
+import { join, relative, sep } from "node:path";
 
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
@@ -15,8 +15,84 @@ const themes = [
   { id: "vault-blue", mode: "dark" },
   { id: "terminal-amber", mode: "dark" },
 ] as const;
+const themeVariables = [
+  "color-surface-page",
+  "color-surface-raised",
+  "color-surface-secondary",
+  "color-border-default",
+  "color-text-primary",
+  "color-text-secondary",
+  "color-text-tertiary",
+  "color-action-accent",
+  "color-action-foreground",
+  "color-action-soft",
+  "color-feedback-success",
+  "color-feedback-success-soft",
+  "color-feedback-success-foreground",
+  "color-feedback-warning",
+  "color-feedback-warning-soft",
+  "color-feedback-warning-foreground",
+  "color-feedback-danger",
+  "color-feedback-danger-soft",
+  "color-feedback-danger-foreground",
+  "color-feedback-info",
+  "color-feedback-info-soft",
+  "color-feedback-info-foreground",
+  "color-focus-ring",
+  "shadow-elevation-card",
+] as const;
+const commonVariables = {
+  "radius-tight": "6px",
+  "radius-control": "8px",
+  "radius-panel": "10px",
+  "radius-pill": "999px",
+  "focus-width": "3px",
+  "focus-offset": "2px",
+  "font-interface": "Inter, system-ui, sans-serif",
+  "font-display": "Sora, sans-serif",
+  "font-numeric": '"IBM Plex Mono", monospace',
+  "tracking-display": "-.02em",
+} as const;
 const artifactRoot = join(process.cwd(), "artifacts", "design-system");
+const tokenRoot = join(process.cwd(), "src", "design-system", "tokens");
+const applicationOrigin = new URL(process.env.ADMIN_EVIDENCE_BASE_URL ?? "http://127.0.0.1:4319").origin;
 let pendingObservationId = 0;
+
+type ThemeId = typeof themes[number]["id"];
+
+function sha256(value: Buffer | string) {
+  return createHash("sha256").update(value).digest("hex");
+}
+
+function relativePath(path: string) {
+  return relative(process.cwd(), path).split(sep).join("/");
+}
+
+async function tokenSourcePaths() {
+  const entries = await readdir(tokenRoot, { recursive: true, withFileTypes: true });
+  return entries
+    .filter((entry) => entry.isFile() && entry.name.endsWith(".json"))
+    .map((entry) => join(entry.parentPath, entry.name))
+    .sort();
+}
+
+async function hashFiles(paths: string[]) {
+  return Promise.all(paths.map(async (path) => ({
+    path: relativePath(path),
+    sha256: sha256(await readFile(path)),
+  })));
+}
+
+function readExpectedTheme(css: string, theme: ThemeId) {
+  const escapedTheme = theme.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const block = css.match(new RegExp(`:root\\[data-theme="${escapedTheme}"\\] \\{([\\s\\S]*?)\\n\\}`))?.[1];
+  if (!block) throw new Error(`Generated CSS block is missing for ${theme}.`);
+  return Object.fromEntries(themeVariables.map((variable) => {
+    const value = block.match(new RegExp(`--${variable}: ([^;]+);`))?.[1];
+    if (!value) throw new Error(`Generated CSS does not project --${variable} for ${theme}.`);
+    return [variable, value];
+  }));
+}
 
 async function beginPendingNauttSubmission(
   page: import("@playwright/test").Page,
@@ -88,10 +164,6 @@ async function beginPendingNauttSubmission(
   };
 }
 
-function sha256(value: Buffer | string) {
-  return createHash("sha256").update(value).digest("hex");
-}
-
 test("locks both native Nautt onboarding actions during one in-flight POST", async ({ page }) => {
   for (const scenario of [
     { action: "/nautt-credentials", buttonName: "Conectar conta", pendingLabel: "Conectando conta", fillKey: true },
@@ -105,20 +177,23 @@ test("locks both native Nautt onboarding actions during one in-flight POST", asy
   }
 });
 
-test("creates current, responsive design-system evidence", async ({ page }) => {
-  test.setTimeout(120_000);
+test("creates current token and typography evidence", async ({ page }) => {
+  test.setTimeout(180_000);
   const startedAt = new Date().toISOString();
   const runId = startedAt.replaceAll(/[^\d]/g, "").slice(0, 14);
   const runDirectory = join(artifactRoot, runId);
+  const globalsPath = join(process.cwd(), "src", "app", "globals.css");
+  const globalsCss = await readFile(globalsPath, "utf8");
+  const expectedThemes = Object.fromEntries(themes.map(({ id }) => [id, readExpectedTheme(globalsCss, id)]));
   const externalRequests: string[] = [];
   const consoleErrors: string[] = [];
   const pageErrors: string[] = [];
   const results: Array<Record<string, unknown>> = [];
 
-  await mkdir(runDirectory, { recursive: true });
-  await writeFile(join(artifactRoot, "current.json"), JSON.stringify({ runId, startedAt, review: null }, null, 2));
+  await mkdir(runDirectory, { recursive: false });
   await page.route("**/*", async (route) => {
-    if (route.request().url().startsWith("http://127.0.0.1:4319")) {
+    const requestUrl = new URL(route.request().url());
+    if (requestUrl.origin === applicationOrigin) {
       await route.continue();
       return;
     }
@@ -132,11 +207,47 @@ test("creates current, responsive design-system evidence", async ({ page }) => {
 
   for (const theme of themes) {
     for (const width of viewports) {
-      await page.emulateMedia({ colorScheme: theme.mode, reducedMotion: "reduce" });
+      await page.emulateMedia({ colorScheme: theme.mode, reducedMotion: "no-preference" });
       await page.setViewportSize({ width, height: 900 });
       await page.goto("/design-system", { waitUntil: "domcontentloaded" });
       await page.evaluate((themeId) => { document.documentElement.dataset.theme = themeId; }, theme.id);
-      await page.evaluate(async () => document.fonts.ready);
+      const admittedFonts = await page.evaluate(async () => {
+        const sample = "ÁÉÍÓÚ ãõ ç PIX-0716 128,40";
+        const admittedFaces = {
+          inter: [400, 500, 600].map((weight) => `${weight} 14px Inter`),
+          sora: [400, 500, 600, 700].map((weight) => `${weight} 24px Sora`),
+          plexMono: [400, 500, 600].map((weight) => `${weight} 14px "IBM Plex Mono"`),
+        };
+        const groups = await Promise.all(Object.entries(admittedFaces).map(async ([family, descriptors]) => [
+          family,
+          await Promise.all(descriptors.map((descriptor) => document.fonts.load(descriptor, sample))),
+        ] as const));
+        await document.fonts.ready;
+        return Object.fromEntries(groups.map(([family, loaded]) => [family, loaded.every((faces) => faces.length > 0)]));
+      });
+      expect(admittedFonts).toEqual({ inter: true, sora: true, plexMono: true });
+
+      const fullMotion = await page.evaluate(() => {
+        const styles = getComputedStyle(document.documentElement);
+        return {
+          duration: styles.getPropertyValue("--motion-duration").trim(),
+          iteration: styles.getPropertyValue("--motion-iteration").trim(),
+        };
+      });
+      expect(fullMotion).toEqual({ duration: ".18s", iteration: "1" });
+
+      await page.emulateMedia({ colorScheme: theme.mode, reducedMotion: "reduce" });
+      const reducedMotion = await page.evaluate(() => {
+        const styles = getComputedStyle(document.documentElement);
+        const animated = document.querySelector<HTMLElement>('[data-slot="spinner"]');
+        return {
+          duration: styles.getPropertyValue("--motion-duration").trim(),
+          iteration: styles.getPropertyValue("--motion-iteration").trim(),
+          animationDuration: animated ? getComputedStyle(animated).animationDuration : null,
+          animationIterationCount: animated ? getComputedStyle(animated).animationIterationCount : null,
+        };
+      });
+      expect(reducedMotion).toEqual({ duration: ".01ms", iteration: "1", animationDuration: "1e-05s", animationIterationCount: "1" });
 
       const focusTargets = page.locator('[data-ds-hit-target]:visible, [data-slot="table-container"][tabindex="0"]:visible');
       const focusTargetCount = await focusTargets.count();
@@ -163,8 +274,24 @@ test("creates current, responsive design-system evidence", async ({ page }) => {
         focusTraversal.push(focusState);
       }
 
-      const measured = await page.evaluate(() => {
+      const measured = await page.evaluate(({ variables, common, expectedThemeTokens, admittedFonts }) => {
         const selectors = (selector: string) => Array.from(document.querySelectorAll<HTMLElement>(selector));
+        const rootStyles = getComputedStyle(document.documentElement);
+        const bodyStyles = getComputedStyle(document.body);
+        const heading = document.querySelector<HTMLElement>("h1");
+        const headingStyles = heading ? getComputedStyle(heading) : null;
+        const numericNodes = selectors("table.ds-facts .font-mono");
+        const normalizeThemeToken = (variable: string, value: string) => {
+          const probe = document.createElement("span");
+          probe.style.position = "absolute";
+          probe.style.visibility = "hidden";
+          if (variable === "shadow-elevation-card") probe.style.boxShadow = value;
+          else probe.style.color = value;
+          document.body.append(probe);
+          const normalized = variable === "shadow-elevation-card" ? getComputedStyle(probe).boxShadow : getComputedStyle(probe).color;
+          probe.remove();
+          return normalized;
+        };
         const luminance = (value: string) => {
           const canvas = document.createElement("canvas");
           const context = canvas.getContext("2d");
@@ -193,16 +320,32 @@ test("creates current, responsive design-system evidence", async ({ page }) => {
         reference.remove();
         const textareas = selectors('[data-slot="textarea"]');
         const directoryStates = selectors("[data-directory-specimen-state]");
-        const visible = (element: HTMLElement) => getComputedStyle(element).display !== "none"
-          && element.getClientRects().length > 0;
+        const visible = (element: HTMLElement) => getComputedStyle(element).display !== "none" && element.getClientRects().length > 0;
         const duplicateIds = Array.from(document.querySelectorAll<HTMLElement>("[id]"))
           .map((element) => element.id)
           .filter((id, index, all) => all.indexOf(id) !== index);
         const readyDirectory = document.querySelector<HTMLElement>('[data-directory-specimen-state="ready"]');
         const wideRenderer = readyDirectory?.querySelector<HTMLElement>(".md\\:block");
         const narrowRenderer = readyDirectory?.querySelector<HTMLElement>(".md\\:hidden");
+        const bodyBackground = bodyStyles.backgroundColor;
         return {
-          bodyFont: getComputedStyle(document.body).fontFamily,
+          themeTokens: Object.fromEntries(variables.map((variable) => [variable, normalizeThemeToken(variable, rootStyles.getPropertyValue(`--${variable}`).trim())])),
+          expectedThemeTokens: Object.fromEntries(Object.entries(expectedThemeTokens).map(([variable, value]) => [variable, normalizeThemeToken(variable, value)])),
+          commonTokens: Object.fromEntries(common.map((variable) => [variable, rootStyles.getPropertyValue(`--${variable}`).trim()])),
+          typography: {
+            body: { family: bodyStyles.fontFamily, size: bodyStyles.fontSize, lineHeight: bodyStyles.lineHeight, weight: bodyStyles.fontWeight },
+            heading: headingStyles ? { family: headingStyles.fontFamily, size: headingStyles.fontSize, lineHeight: headingStyles.lineHeight, weight: headingStyles.fontWeight, letterSpacing: headingStyles.letterSpacing } : null,
+            numeric: numericNodes.map((element) => {
+              const styles = getComputedStyle(element);
+              return { text: element.textContent?.trim(), family: styles.fontFamily, size: styles.fontSize, lineHeight: styles.lineHeight, weight: styles.fontWeight, variantNumeric: styles.fontVariantNumeric };
+            }),
+            loaded: admittedFonts,
+          },
+          semanticContrast: {
+            primaryText: contrast(rootStyles.getPropertyValue("--color-text-primary"), bodyBackground),
+            tertiaryText: contrast(rootStyles.getPropertyValue("--color-text-tertiary"), bodyBackground),
+            action: contrast(rootStyles.getPropertyValue("--color-action-foreground"), rootStyles.getPropertyValue("--color-action-accent")),
+          },
           overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
           hitTargets: hits.map((element) => ({ width: element.getBoundingClientRect().width, height: element.getBoundingClientRect().height })),
           primaryActions: selectors("[data-ds-section]").map((section) => section.querySelectorAll('[data-slot=button][data-variant="default"]').length),
@@ -217,13 +360,8 @@ test("creates current, responsive design-system evidence", async ({ page }) => {
           brand: {
             identities: selectors("[data-brand-identity]").length,
             visibleNames: selectors("[data-brand-identity] .brand-identity__name").length,
-            minimumMarkSize: Math.min(
-              ...selectors("[data-brand-mark]").map((element) => Math.min(element.getBoundingClientRect().width, element.getBoundingClientRect().height)),
-            ),
-            contrast: contrast(
-              getComputedStyle(selectors("[data-brand-identity]")[0]).color,
-              getComputedStyle(document.body).backgroundColor,
-            ),
+            minimumMarkSize: Math.min(...selectors("[data-brand-mark]").map((element) => Math.min(element.getBoundingClientRect().width, element.getBoundingClientRect().height))),
+            contrast: contrast(getComputedStyle(selectors("[data-brand-identity]")[0]).color, bodyBackground),
           },
           directory: {
             states: directoryStates.map((element) => element.getAttribute("data-directory-specimen-state")),
@@ -235,20 +373,31 @@ test("creates current, responsive design-system evidence", async ({ page }) => {
             labelledForms: directoryStates.every((state) => {
               const form = state.querySelector("form[method=get]");
               if (!form || form.querySelector("[name=cursor]")) return false;
-              return Array.from(form.querySelectorAll("input,select")).every((control) => (
-                control.id && form.querySelector(`label[for="${control.id}"]`)
-              ));
+              return Array.from(form.querySelectorAll("input,select")).every((control) => control.id && form.querySelector(`label[for="${control.id}"]`));
             }),
             paginationLandmark: Boolean(readyDirectory?.querySelector('nav[aria-label] a[href*="cursor="]')),
           },
           maxProseWidth,
         };
-      });
+      }, { variables: [...themeVariables], common: Object.keys(commonVariables), expectedThemeTokens: expectedThemes[theme.id], admittedFonts });
       const axe = await new AxeBuilder({ page }).analyze();
       const severeAxe = axe.violations.filter((violation) => ["serious", "critical"].includes(violation.impact ?? ""));
 
+      expect(measured.themeTokens).toEqual(measured.expectedThemeTokens);
+      expect(measured.commonTokens).toEqual(commonVariables);
+      expect(measured.typography.body).toEqual({ family: "Inter, system-ui, sans-serif", size: "14px", lineHeight: "20px", weight: "400" });
+      expect(measured.typography.heading).toEqual({ family: "Sora, sans-serif", size: "24px", lineHeight: "32px", weight: "400", letterSpacing: "-0.48px" });
+      expect(measured.typography.numeric).toEqual([
+        { text: "PIX-0716", family: '"IBM Plex Mono", monospace', size: "14px", lineHeight: "20px", weight: "400", variantNumeric: "tabular-nums" },
+        { text: "128,40", family: '"IBM Plex Mono", monospace', size: "14px", lineHeight: "20px", weight: "400", variantNumeric: "tabular-nums" },
+        { text: "PIX-0715", family: '"IBM Plex Mono", monospace', size: "14px", lineHeight: "20px", weight: "400", variantNumeric: "tabular-nums" },
+        { text: "72,00", family: '"IBM Plex Mono", monospace', size: "14px", lineHeight: "20px", weight: "400", variantNumeric: "tabular-nums" },
+      ]);
+      expect(measured.typography.loaded).toEqual({ inter: true, sora: true, plexMono: true });
+      expect(measured.semanticContrast.primaryText).toBeGreaterThanOrEqual(4.5);
+      expect(measured.semanticContrast.tertiaryText).toBeGreaterThanOrEqual(4.5);
+      expect(measured.semanticContrast.action).toBeGreaterThanOrEqual(4.5);
       expect(measured.overflow).toBe(false);
-      expect(measured.bodyFont).toContain("IBM Plex Sans");
       expect(measured.hitTargets.length).toBeGreaterThan(0);
       expect(measured.hitTargets.every(({ width: targetWidth, height }) => targetWidth >= 44 && height >= 44)).toBe(true);
       expect(measured.primaryActions.every((count) => count <= 1)).toBe(true);
@@ -284,33 +433,77 @@ test("creates current, responsive design-system evidence", async ({ page }) => {
       });
       await pendingObservation.release();
       await page.screenshot({ path: screenshot, fullPage: true });
-      results.push({ theme: theme.id, mode: theme.mode, width, screenshot: screenshot.slice(process.cwd().length + 1), measured, focusTraversal, pendingState: pendingObservation.pendingState, severeAxe });
+      results.push({
+        theme: theme.id,
+        mode: theme.mode,
+        width,
+        screenshot: relativePath(screenshot),
+        expectedThemeTokens: measured.expectedThemeTokens,
+        measured,
+        fullMotion,
+        reducedMotion,
+        focusTraversal,
+        pendingState: pendingObservation.pendingState,
+        severeAxe,
+      });
     }
   }
 
   await page.goto("/design-system", { waitUntil: "domcontentloaded" });
   const fallback = await page.evaluate(() => {
     document.documentElement.dataset.theme = "pix-paper";
-    const expected = getComputedStyle(document.body).backgroundColor;
+    const expected = getComputedStyle(document.documentElement).getPropertyValue("--color-surface-page").trim();
     document.documentElement.dataset.theme = "unknown-theme";
-    return { expected, actual: getComputedStyle(document.body).backgroundColor };
+    return { expected, actual: getComputedStyle(document.documentElement).getPropertyValue("--color-surface-page").trim() };
   });
   expect(fallback.actual).toBe(fallback.expected);
 
-  const resultsPath = join(runDirectory, "assertions.json");
-  await writeFile(resultsPath, JSON.stringify(results, null, 2));
+  const assertionsPath = join(runDirectory, "assertions.json");
+  await writeFile(assertionsPath, `${JSON.stringify(results, null, 2)}\n`);
   const pngs = await Promise.all(results.map(async ({ screenshot }) => {
     const path = join(process.cwd(), String(screenshot));
     const [contents, metadata] = await Promise.all([readFile(path), stat(path)]);
     return { path: String(screenshot), bytes: metadata.size, sha256: sha256(contents), mtimeMs: metadata.mtimeMs };
   }));
+  const tokenFiles = await hashFiles(await tokenSourcePaths());
+  const fixedSourcePaths = [
+    globalsPath,
+    join(process.cwd(), "src", "app", "design-system", "page.tsx"),
+    join(process.cwd(), "tests", "design-system.evidence.spec.ts"),
+    join(process.cwd(), "scripts", "verify-design-system-evidence.mjs"),
+    join(process.cwd(), "src", "design-system", "fonts", "provenance.json"),
+    join(process.cwd(), "src", "brand", "assets.manifest.json"),
+    join(process.cwd(), "package.json"),
+    join(process.cwd(), "pnpm-lock.yaml"),
+  ];
+  const sources = [...await hashFiles(fixedSourcePaths), ...tokenFiles].sort((left, right) => left.path.localeCompare(right.path));
+  const assertionBytes = await readFile(assertionsPath);
   const gitHead = execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim();
-  const assertions = await readFile(resultsPath);
-  const brandManifestPath = "src/brand/assets.manifest.json";
-  const brandManifest = await readFile(join(process.cwd(), brandManifestPath));
-  const manifest = { runId, startedAt, gitHead, themes: themes.map(({ id }) => id), fallback, brandManifest: { path: brandManifestPath, sha256: sha256(brandManifest) }, assertions: resultsPath.slice(process.cwd().length + 1), assertionsSha256: sha256(assertions), pngs };
+  const manifest = {
+    schemaVersion: 2,
+    runId,
+    startedAt,
+    gitHead,
+    matrix: { themes: themes.map(({ id }) => id), viewports: [...viewports], captures: results.length },
+    fallback,
+    assertions: { path: relativePath(assertionsPath), sha256: sha256(assertionBytes) },
+    fontProvenance: sources.find(({ path }) => path === "src/design-system/fonts/provenance.json"),
+    brandManifest: sources.find(({ path }) => path === "src/brand/assets.manifest.json"),
+    tokenFiles,
+    sources,
+    pngs,
+  };
   const manifestPath = join(runDirectory, "manifest.json");
-  await writeFile(manifestPath, JSON.stringify(manifest, null, 2));
-  await writeFile(join(artifactRoot, "current.json"), JSON.stringify({ runId, startedAt, manifest: manifestPath.slice(process.cwd().length + 1) }, null, 2));
+  await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
+  const manifestBytes = await readFile(manifestPath);
+  const currentPointerPath = join(artifactRoot, "current.json");
+  const pendingPointerPath = join(artifactRoot, `.current-${runId}.json.tmp`);
+  await writeFile(pendingPointerPath, `${JSON.stringify({
+    runId,
+    startedAt,
+    manifest: relativePath(manifestPath),
+    manifestSha256: sha256(manifestBytes),
+  }, null, 2)}\n`);
+  await rename(pendingPointerPath, currentPointerPath);
   console.log(`DESIGN_SYSTEM_EVIDENCE_RUN=${runId}`);
 });
