@@ -1,7 +1,7 @@
 # Owned shadcn UI contract
 
-- This subtree owns the customized Radix/nova shadcn source used by current
-  Epoch 1 login, administration, and `/design-system` surfaces.
+- This subtree owns the customized Radix/nova shadcn primitives and the
+  role-neutral compositions listed in `inventory.json`.
 - Run the pinned shadcn CLI `info`, component `docs`, and `add --dry-run` before
   adding or updating registry source; never fetch raw registry files manually.
 - Consume semantic Tailwind names projected from
@@ -11,12 +11,17 @@
   themes replace semantic color values only and unknown identifiers fall back
   to `pix-paper`.
 - Keep components server-renderable unless their official primitive requires a
-  client boundary. Preserve Radix `asChild` composition and native semantics.
+  client boundary. Clipboard, localized-field selection, dialogs, tabs and
+  toast are the only composition client boundaries; preserve Radix `asChild`
+  composition and native semantics.
 - Forms compose `FieldGroup` and `Field`; validation pairs `data-invalid` on the
   field with `aria-invalid` on its control.
 - Prefer built-in variants. `className` may arrange layout but must not create a
   second visual variant or override component color and typography.
 - Button icons use the configured Lucide source, `data-icon`, and component-owned
   sizing. Loading buttons compose `Spinner` and remain disabled.
-- Update [`../../../DESIGN.md`](../../../DESIGN.md) and the specimen when the
-  inventory, state matrix, or visual contract changes.
+- Run `node scripts/check-shared-ui-inventory.mjs` after inventory changes; each
+  template obligation maps once and excluded generated sources never become
+  reachable owners.
+- Update [`../../../DESIGN.md`](../../../DESIGN.md) with inventory or state
+  changes. The complete inventory specimen is owned by task `12.2.4`.

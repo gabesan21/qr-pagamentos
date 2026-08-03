@@ -68,6 +68,7 @@ This spec defines the application-wide presentation, composition, interaction-fe
 ## Component and page states
 
 - The anti-drift inventory is the reachable template component set plus current production owners. Only demonstrably consumed components may migrate; every `excluded-unreachable-generated-ui` record stays excluded. A genuinely new component requires one owner, import path, public props/states, and a one-line insufficiency finding for the existing inventory.
+- Task `12.2.3` closes its 187 assigned obligations through `src/components/ui/inventory.json`: 20 reachable template sources map exactly once to production owners, while the 49 unreachable generated sources remain exclusions. `DataDirectory` is the sole owner for reachable table/filter responsibilities and canonical previous/next pagination; role-neutral compositions own copy, empty, localized-field, modal/confirmation, formatted-money, monogram, QR, tabs, skeleton, stat, status, timeline, and toast presentation. No upload component is admitted by this inventory.
 - Components expose default, loading where applicable, empty where applicable, error with descriptive recovery, hover, visible focus, and disabled states; populated, invalid, active, selected, success, and confirmation states are added only where the control contract requires them.
 - Data-driven pages cover ready, loading, empty, filtered-empty, unavailable, validation error, request error, success notice, retry, pending/disabled, and destructive confirmation when applicable. Checkout and recovery journeys also cover preparing, QR/copy, polling recovery, and every existing terminal state.
 - A non-applicable state is documented, never fabricated. Loading preserves final geometry; empty is not an error; filtered-empty preserves reset; unavailable and request errors reveal no identity, submitted value, authorization cause, provider body, or internal detail.
@@ -86,7 +87,7 @@ This spec defines the application-wide presentation, composition, interaction-fe
 - Visual evidence uses repository Playwright `chromium`, Chromium, device scale factor 1, fixed fixture clock, locally settled fonts, disabled animations, hidden caret, and blocked external requests.
 - Applicable surfaces cover `320x1000`, `375x1000`, `768x1000`, and `1440x1000`, both locales, all six themes, and every obligation-owned state. Pixel comparison uses threshold `0.1` and maximum differing-pixel ratio `0.001`.
 - Geometry, typography, content, keyboard/focus, overflow, accessibility, console, request, and contract failures are independent of raster tolerance. Missing, stale, generic, duplicated, or source-divergent evidence fails closed.
-- `pnpm frontend-parity:check` validates the immutable inventory; `pnpm check` protects application behavior. Later route tasks add run-bound screenshots and objective assertions without weakening either gate.
+- `pnpm frontend-parity:check` validates the immutable parity authority, `scripts/check-shared-ui-inventory.mjs` validates shared ownership, exclusions, additions and focused dependencies, and `pnpm check` protects application behavior. Current-consumer evidence proves regression safety for delivered owners; task `12.2.4` owns the complete component/state/locale specimen and its evidence.
 
 ## Errors and limits
 

@@ -1,17 +1,27 @@
 import type { ReactNode } from "react";
 
 import type { DirectoryPageSize } from "@/data-directory/server/query-contract";
-import { AlertCircleIcon, RotateCcwIcon, SearchIcon } from "lucide-react";
+import { AlertCircleIcon, InboxIcon, RotateCcwIcon, SearchIcon, SearchXIcon } from "lucide-react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+
+const LOADING_ROW_KEYS = ["first", "second", "third"] as const;
 
 export type DataDirectoryState =
   | "ready"
@@ -199,18 +209,115 @@ function StateCard({
       </Alert>
     );
   }
+
+  const EmptyIcon = state === "filtered-empty" ? SearchXIcon : InboxIcon;
+
   return (
-    <Card data-directory-state={state}>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        <CardDescription>{description}</CardDescription>
-      </CardHeader>
+    <Empty data-directory-state={state}>
+      <EmptyHeader>
+        <EmptyMedia variant="icon"><EmptyIcon aria-hidden /></EmptyMedia>
+        <EmptyTitle>{title}</EmptyTitle>
+        <EmptyDescription>{description}</EmptyDescription>
+      </EmptyHeader>
       {action ? (
-        <CardFooter>
+        <EmptyContent>
           <Button asChild data-ds-hit-target variant="outline"><a href={action.href}>{action.label}</a></Button>
-        </CardFooter>
+        </EmptyContent>
       ) : null}
-    </Card>
+    </Empty>
+  );
+}
+
+function DirectoryLoading<Row>({
+  actionsLabel,
+  caption,
+  columns,
+  copy,
+}: Readonly<{
+  actionsLabel?: string;
+  caption: string;
+  columns: readonly DataDirectoryColumn<Row>[];
+  copy: DataDirectoryCopy;
+}>) {
+  return (
+    <div aria-live="polite" className="flex flex-col gap-4" data-directory-state="loading" role="status">
+      <div className="flex flex-col gap-1">
+        <span>{copy.loading}</span>
+        <span className="text-sm text-muted-foreground">{copy.loadingDescription}</span>
+      </div>
+      <div className="hidden min-w-0 md:block">
+        <Table>
+          <TableCaption>{caption}</TableCaption>
+          <TableHeader>
+            <TableRow>
+              {columns.map((column) => <TableHead scope="col" key={column.id}>{column.label}</TableHead>)}
+              {actionsLabel ? <TableHead scope="col">{actionsLabel}</TableHead> : null}
+            </TableRow>
+          </TableHeader>
+          <TableBody aria-hidden>
+            {LOADING_ROW_KEYS.map((rowKey) => (
+              <TableRow className="h-13" key={rowKey}>
+                {columns.map((column) => (
+                  <TableCell key={column.id}><Skeleton className="h-4 w-full max-w-32" /></TableCell>
+                ))}
+                {actionsLabel ? <TableCell><Skeleton className="h-11 w-24" /></TableCell> : null}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+      <div aria-hidden className="flex flex-col gap-4 md:hidden">
+        {LOADING_ROW_KEYS.map((rowKey) => (
+          <Card key={rowKey}>
+            <CardContent className="flex flex-col gap-3">
+              {columns.map((column) => <Skeleton className="h-4 w-full" key={column.id} />)}
+              {actionsLabel ? <Skeleton className="h-11 w-24" /> : null}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function DirectoryPagination({
+  copy,
+  nextUrl,
+  previousUrl,
+}: Readonly<{
+  copy: DataDirectoryCopy;
+  nextUrl?: string;
+  previousUrl?: string;
+}>) {
+  if (!previousUrl && !nextUrl) {
+    return null;
+  }
+
+  return (
+    <Pagination className="justify-start" label={copy.paginationLabel}>
+      <PaginationContent className="w-full">
+        {previousUrl ? (
+          <PaginationItem>
+            <PaginationPrevious
+              data-ds-hit-target
+              href={previousUrl}
+              label={copy.previousPage}
+              text={copy.previousPage}
+            />
+          </PaginationItem>
+        ) : null}
+        {nextUrl ? (
+          <PaginationItem className="ml-auto">
+            <PaginationNext
+              data-ds-hit-target
+              href={nextUrl}
+              label={copy.nextPage}
+              text={copy.nextPage}
+            />
+          </PaginationItem>
+        ) : null}
+      </PaginationContent>
+    </Pagination>
   );
 }
 
@@ -238,13 +345,12 @@ export function DataDirectory<Row>(props: DataDirectoryProps<Row>) {
       />
       <Separator />
       {props.state === "loading" ? (
-        <div aria-live="polite" className="flex flex-col gap-3" data-directory-state="loading" role="status">
-          <span>{props.copy.loading}</span>
-          <span className="text-sm text-muted-foreground">{props.copy.loadingDescription}</span>
-          <Skeleton className="h-11 w-full" />
-          <Skeleton className="h-11 w-full" />
-          <Skeleton className="h-11 w-full" />
-        </div>
+        <DirectoryLoading
+          actionsLabel={props.getRowActions ? props.actionsLabel : undefined}
+          caption={props.caption}
+          columns={props.columns}
+          copy={props.copy}
+        />
       ) : null}
       {props.state === "empty" ? (
         <StateCard action={stateAction} description={props.copy.emptyDescription} state="empty" title={props.copy.empty} />
@@ -271,9 +377,9 @@ export function DataDirectory<Row>(props: DataDirectoryProps<Row>) {
               </TableHeader>
               <TableBody>
                 {props.rows.map((row) => (
-                  <TableRow key={props.rowKey(row)}>
+                  <TableRow className="h-13" key={props.rowKey(row)}>
                     {props.columns.map((column) => (
-                      <TableCell className={column.numeric ? "tabular-nums" : "whitespace-normal"} key={column.id}>
+                      <TableCell className={column.numeric ? "font-mono tabular-nums" : "whitespace-normal"} key={column.id}>
                         {column.value(row)}
                       </TableCell>
                     ))}
@@ -291,7 +397,7 @@ export function DataDirectory<Row>(props: DataDirectoryProps<Row>) {
                     {props.columns.map((column) => (
                       <div className="grid gap-1 border-b border-border pb-3 last:border-b-0 last:pb-0" key={column.id}>
                         <dt className="text-sm font-medium text-muted-foreground">{column.label}</dt>
-                        <dd className={column.numeric ? "m-0 tabular-nums" : "m-0 break-words"}>{column.value(row)}</dd>
+                        <dd className={column.numeric ? "m-0 font-mono tabular-nums" : "m-0 break-words"}>{column.value(row)}</dd>
                       </div>
                     ))}
                   </dl>
@@ -300,10 +406,7 @@ export function DataDirectory<Row>(props: DataDirectoryProps<Row>) {
               </Card>
             ))}
           </div>
-          <nav aria-label={props.copy.paginationLabel} className="flex flex-wrap justify-between gap-3">
-            <span>{props.previousUrl ? <Button asChild data-ds-hit-target variant="outline"><a href={props.previousUrl}>{props.copy.previousPage}</a></Button> : null}</span>
-            <span>{props.nextUrl ? <Button asChild data-ds-hit-target variant="outline"><a href={props.nextUrl}>{props.copy.nextPage}</a></Button> : null}</span>
-          </nav>
+          <DirectoryPagination copy={props.copy} nextUrl={props.nextUrl} previousUrl={props.previousUrl} />
         </>
       ) : null}
     </section>
