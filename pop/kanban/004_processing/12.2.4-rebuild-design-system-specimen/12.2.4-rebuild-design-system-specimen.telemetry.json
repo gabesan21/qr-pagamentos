@@ -69,6 +69,18 @@
       "test_seconds": 0,
       "return_kind": null,
       "result": "append_only_c10_f04_input_otp_focus_before_f02_resume"
+    },
+    {
+      "at": "2026-08-03T12:35:10-03:00",
+      "event": "transition",
+      "from": "002_planning",
+      "to": "004_processing",
+      "contexts": [
+        "plan_12_2_4"
+      ],
+      "test_seconds": 0,
+      "return_kind": null,
+      "result": "advanced"
     }
   ]
 }
