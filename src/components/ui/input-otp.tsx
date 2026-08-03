@@ -22,7 +22,7 @@ function InputOTP({
       )}
       spellCheck={false}
       className={cn(
-        "focus-visible:ring-3 focus-visible:ring-ring disabled:cursor-not-allowed",
+        "focus-visible:!outline-3 focus-visible:!outline-ring focus-visible:!outline-offset-2 disabled:cursor-not-allowed",
         className
       )}
       {...props}
