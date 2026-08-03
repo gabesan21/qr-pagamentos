@@ -180,6 +180,17 @@
       "test_seconds": 0,
       "return_kind": "lacuna",
       "result": "returned"
+    },
+    {
+      "at": "2026-08-03T11:01:00-03:00",
+      "event": "stage_result",
+      "stage": "002_planning",
+      "contexts": [
+        "plan_12_2_3_defense"
+      ],
+      "test_seconds": 0,
+      "return_kind": "lacuna",
+      "result": "mandatory_adversarial_defense_added_implementation_intact"
     }
   ]
 }
