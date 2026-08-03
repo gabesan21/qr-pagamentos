@@ -21,7 +21,10 @@ function InputOTP({
         containerClassName
       )}
       spellCheck={false}
-      className={cn("disabled:cursor-not-allowed", className)}
+      className={cn(
+        "focus-visible:ring-3 focus-visible:ring-ring disabled:cursor-not-allowed",
+        className
+      )}
       {...props}
     />
   )
