@@ -86,12 +86,14 @@ async function hashFiles(paths: string[]) {
 async function sharedUiSourcePaths() {
   const inventoryPath = join(process.cwd(), "src", "components", "ui", "inventory.json");
   const inventory = JSON.parse(await readFile(inventoryPath, "utf8")) as {
+    currentPrimitiveSources: string[];
     officialAdditions: Array<{ source: string }>;
     owners: Array<{ owner: string }>;
   };
   return [
     inventoryPath,
     join(process.cwd(), "scripts", "check-shared-ui-inventory.mjs"),
+    ...inventory.currentPrimitiveSources.map((source) => join(process.cwd(), source)),
     ...inventory.officialAdditions.map(({ source }) => join(process.cwd(), source)),
     ...inventory.owners.map(({ owner }) => join(process.cwd(), owner)),
   ].filter((candidate, index, all) => all.indexOf(candidate) === index).sort();
@@ -516,6 +518,7 @@ test("creates current token and typography evidence", async ({ page }) => {
     join(process.cwd(), "src", "app", "design-system", "page.tsx"),
     join(process.cwd(), "tests", "design-system.evidence.spec.ts"),
     join(process.cwd(), "scripts", "verify-design-system-evidence.mjs"),
+    join(process.cwd(), "scripts", "verify-design-system-evidence.test.ts"),
     join(process.cwd(), "src", "design-system", "fonts", "provenance.json"),
     join(process.cwd(), "src", "brand", "assets.manifest.json"),
     join(process.cwd(), "package.json"),

@@ -15,7 +15,7 @@ function fixture() {
 
 describe("shared UI anti-drift inventory", () => {
   it("closes every assigned obligation once and preserves exclusions", async () => {
-    await expect(checkSharedUiInventory(process.cwd())).resolves.toEqual({ obligations: 187, owners: 20, exclusions: 49, additions: 9 });
+    await expect(checkSharedUiInventory(process.cwd())).resolves.toEqual({ obligations: 187, owners: 20, exclusions: 49, additions: 9, currentPrimitives: 8 });
   });
 
   it("rejects a missing production owner", async () => {
@@ -46,5 +46,14 @@ describe("shared UI anti-drift inventory", () => {
     packageJson.dependencies.sonner = "latest";
     writeFileSync(packagePath, JSON.stringify(packageJson));
     await expect(checkSharedUiInventory(root)).rejects.toThrow("dependency sonner must equal 2.0.7");
+  });
+
+  it("rejects a missing changed primitive evidence binding", async () => {
+    const root = fixture();
+    const inventoryPath = path.join(root, "src/components/ui/inventory.json");
+    const inventory = JSON.parse(readFileSync(inventoryPath, "utf8"));
+    inventory.currentPrimitiveSources.pop();
+    writeFileSync(inventoryPath, JSON.stringify(inventory));
+    await expect(checkSharedUiInventory(root)).rejects.toThrow("current primitive evidence inventory drifted");
   });
 });

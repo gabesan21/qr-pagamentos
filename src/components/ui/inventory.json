@@ -8,6 +8,16 @@
     "input-otp": "1.4.2",
     "sonner": "2.0.7"
   },
+  "currentPrimitiveSources": [
+    "src/components/ui/badge.tsx",
+    "src/components/ui/card.tsx",
+    "src/components/ui/field.tsx",
+    "src/components/ui/input.tsx",
+    "src/components/ui/native-select.tsx",
+    "src/components/ui/spinner.tsx",
+    "src/components/ui/table.tsx",
+    "src/components/ui/textarea.tsx"
+  ],
   "officialAdditions": [
     { "source": "src/components/ui/alert-dialog.tsx", "insufficiency": "No owned destructive-confirmation primitive provided focus management and focus restoration." },
     { "source": "src/components/ui/avatar.tsx", "insufficiency": "No owned image/fallback primitive supported the shared monogram composition." },

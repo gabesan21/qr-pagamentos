@@ -228,6 +228,17 @@
       "test_seconds": 0,
       "return_kind": "execucao",
       "result": "returned"
+    },
+    {
+      "at": "2026-08-03T11:40:01-03:00",
+      "event": "stage_result",
+      "stage": "004_processing",
+      "contexts": [
+        "exec_12_2_3_r1_f05"
+      ],
+      "test_seconds": 159,
+      "return_kind": null,
+      "result": "f05_r1_complete_changed_primitive_binding_mutation_proof_and_6x4_evidence"
     }
   ]
 }

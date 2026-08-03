@@ -3,6 +3,16 @@ import path from "node:path";
 
 const authorityPath = "docs/frontend-template-parity/obligations.ndjson";
 const inventoryPath = "src/components/ui/inventory.json";
+const expectedCurrentPrimitiveSources = [
+  "src/components/ui/badge.tsx",
+  "src/components/ui/card.tsx",
+  "src/components/ui/field.tsx",
+  "src/components/ui/input.tsx",
+  "src/components/ui/native-select.tsx",
+  "src/components/ui/spinner.tsx",
+  "src/components/ui/table.tsx",
+  "src/components/ui/textarea.tsx",
+];
 
 function assert(condition, message) {
   if (!condition) throw new Error(`SHARED_UI_INVENTORY ${message}`);
@@ -22,6 +32,10 @@ export async function checkSharedUiInventory(candidateRoot = process.cwd()) {
 
   assert(inventory.schemaVersion === 1, "schema must be v1");
   assert(inventory.obligationAuthority === authorityPath, "authority path drifted");
+  assert(JSON.stringify([...inventory.currentPrimitiveSources].sort()) === JSON.stringify(expectedCurrentPrimitiveSources), "current primitive evidence inventory drifted");
+  for (const source of inventory.currentPrimitiveSources) {
+    assert(await exists(root, source), `missing current primitive evidence source ${source}`);
+  }
   assert(inventory.owners.length === 20, `expected 20 reachable owners, found ${inventory.owners.length}`);
   for (const entry of inventory.owners) {
     assert(!owners.has(entry.templateSource), `duplicate template owner ${entry.templateSource}`);
@@ -56,7 +70,7 @@ export async function checkSharedUiInventory(candidateRoot = process.cwd()) {
     assert(packageJson.dependencies?.[dependency] === version, `dependency ${dependency} must equal ${version}`);
   }
 
-  return { obligations: mappedIds.size, owners: owners.size, exclusions: exclusions.length, additions: inventory.officialAdditions.length };
+  return { obligations: mappedIds.size, owners: owners.size, exclusions: exclusions.length, additions: inventory.officialAdditions.length, currentPrimitives: inventory.currentPrimitiveSources.length };
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
