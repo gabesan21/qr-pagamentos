@@ -5,6 +5,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { designSystemEn } from "@/i18n/dictionaries/design-system/en";
+import { designSystemPtBR } from "@/i18n/dictionaries/design-system/pt-BR";
 import { en } from "@/i18n/dictionaries/en";
 
 import { designSystemCoverage, primitiveBindingId, primitiveCoverage } from "./coverage";
@@ -20,6 +21,12 @@ beforeAll(() => {
 afterEach(() => cleanup());
 
 describe("mounted design-system state probes", () => {
+  it.each([designSystemEn, designSystemPtBR])("associates the reference and select controls with their localized labels", (dictionary) => {
+    render(<DesignSystemInteractiveSpecimens dictionary={dictionary} />);
+    expect(screen.getByLabelText(dictionary.designSystemFieldLabel).id).toBe("specimen-reference");
+    expect(screen.getByLabelText(dictionary.designSystemSelectLabel).id).toBe("specimen-select");
+  });
+
   it("mounts every interactive binding on a real, visible fixture target", () => {
     const { container } = render(<DesignSystemInteractiveSpecimens dictionary={designSystemEn} />);
     const interactiveOwners = new Set(["button", "checkbox", "input-otp", "switch", "copy-field", "localized-field-group", "modal", "simple-tabs", "toast"]);
