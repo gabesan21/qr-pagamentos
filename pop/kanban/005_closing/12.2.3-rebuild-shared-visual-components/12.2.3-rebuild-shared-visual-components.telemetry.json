@@ -151,6 +151,23 @@
       "test_seconds": 171,
       "return_kind": null,
       "result": "f05_complete_inventory_parity_refresh_and_fresh_consumer_evidence"
+    },
+    {
+      "at": "2026-08-03T10:58:23-03:00",
+      "event": "transition",
+      "from": "004_processing",
+      "to": "005_closing",
+      "contexts": [
+        "exec_12_2_3_f01_recovery",
+        "exec_12_2_3_f02",
+        "exec_12_2_3_f03",
+        "exec_12_2_3_f04",
+        "exec_12_2_3_f05",
+        "replan_12_2_3_inventory_test"
+      ],
+      "test_seconds": 0,
+      "return_kind": null,
+      "result": "advanced"
     }
   ]
 }
