@@ -153,6 +153,18 @@
       "test_seconds": 0,
       "return_kind": null,
       "result": "append_only_c11_f05_semantic_action_contrast_before_f02_resume"
+    },
+    {
+      "at": "2026-08-03T15:24:39-03:00",
+      "event": "transition",
+      "from": "002_planning",
+      "to": "004_processing",
+      "contexts": [
+        "plan_12_2_4"
+      ],
+      "test_seconds": 0,
+      "return_kind": null,
+      "result": "advanced"
     }
   ]
 }
