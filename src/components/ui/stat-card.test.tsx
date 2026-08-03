@@ -15,4 +15,12 @@ describe("StatCard", () => {
     expect(markup).toContain("Compared with yesterday");
     expect(markup).toContain("lucide-arrow-up");
   });
+
+  it("renders direct numeric values with the semantic mono/tabular role", () => {
+    const markup = renderToStaticMarkup(<StatCard label="Settled" value={8210} />);
+
+    expect(markup).toContain(">8210<");
+    expect(markup).toContain("font-mono");
+    expect(markup).toContain("tabular-nums");
+  });
 });

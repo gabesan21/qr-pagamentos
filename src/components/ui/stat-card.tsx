@@ -17,7 +17,7 @@ export function StatCard({ caption, className, label, trend, value }: StatCardPr
     <Card className={className}>
       <CardHeader>
         <CardDescription>{label}</CardDescription>
-        <CardTitle className="font-heading text-[length:var(--type-stat)] leading-7 font-semibold">{value}</CardTitle>
+        <CardTitle className="font-mono text-[length:var(--type-stat)] leading-7 font-semibold tabular-nums">{value}</CardTitle>
       </CardHeader>
       {trend || caption ? (
         <CardContent className="flex flex-wrap items-center gap-2">
