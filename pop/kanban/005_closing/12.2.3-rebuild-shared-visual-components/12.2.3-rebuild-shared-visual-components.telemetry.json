@@ -191,6 +191,30 @@
       "test_seconds": 0,
       "return_kind": "lacuna",
       "result": "mandatory_adversarial_defense_added_implementation_intact"
+    },
+    {
+      "at": "2026-08-03T11:02:19-03:00",
+      "event": "transition",
+      "from": "002_planning",
+      "to": "004_processing",
+      "contexts": [
+        "plan_12_2_3_defense"
+      ],
+      "test_seconds": 0,
+      "return_kind": null,
+      "result": "advanced"
+    },
+    {
+      "at": "2026-08-03T11:02:19-03:00",
+      "event": "transition",
+      "from": "004_processing",
+      "to": "005_closing",
+      "contexts": [
+        "root"
+      ],
+      "test_seconds": 0,
+      "return_kind": null,
+      "result": "advanced"
     }
   ]
 }
