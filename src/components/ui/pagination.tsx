@@ -53,7 +53,10 @@ function PaginationLink({
       asChild
       variant={isActive ? "outline" : "ghost"}
       size={size}
-      className={cn(className)}
+      className={cn(
+        "focus-visible:ring-[var(--color-focus-ring)] focus-visible:[outline:var(--focus-width)_solid_var(--color-focus-ring)] focus-visible:[outline-offset:var(--focus-offset)]",
+        className
+      )}
     >
       <a
         aria-current={isActive ? "page" : undefined}
@@ -75,10 +78,7 @@ function PaginationPrevious({
     <PaginationLink
       aria-label={label}
       size="default"
-      className={cn(
-        "pl-1.5! focus-visible:ring-[var(--color-focus-ring)]",
-        className
-      )}
+      className={cn("pl-1.5!", className)}
       {...props}
     >
       <ChevronLeftIcon data-icon="inline-start" />
