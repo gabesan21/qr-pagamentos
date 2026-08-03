@@ -190,6 +190,30 @@
       "test_seconds": 0,
       "return_kind": null,
       "result": "advanced"
+    },
+    {
+      "at": "2026-08-03T17:21:00-03:00",
+      "event": "transition",
+      "from": "005_closing",
+      "to": "004_processing",
+      "contexts": [
+        "critic_12_2_4_r2"
+      ],
+      "test_seconds": 0,
+      "return_kind": "execucao",
+      "result": "returned"
+    },
+    {
+      "at": "2026-08-03T17:22:48-03:00",
+      "event": "work_resumed",
+      "stage": "004_processing",
+      "contexts": [
+        "exec_12_2_4_f01",
+        "exec_12_2_4_f02"
+      ],
+      "test_seconds": 0,
+      "return_kind": null,
+      "result": "power_outage_resumed_f01_f02_active_f03_f04_f05_intact"
     }
   ]
 }

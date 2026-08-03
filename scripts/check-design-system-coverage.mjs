@@ -64,7 +64,7 @@ async function assertRenderedEvidence(entries, primitives) {
     assert(bindings.length === expected.length, `rendered binding count drifted: ${context}`);
     assert(new Set(bindings.map(({ id }) => id)).size === expected.length, `rendered binding is missing or duplicated: ${context}`);
     assert(JSON.stringify(exactKeys(bindings, ({ id, owner, state }) => `${id}:${owner}:${state}`)) === JSON.stringify(expectedBindingKeys), `rendered binding owner/state mismatch: ${context}`);
-    assert(bindings.every(({ childElements, fixture, occurrence, renderedSection, semanticWitness, visible }) => occurrence === 1 && childElements > 0 && fixture && renderedSection && (visible === true || semanticWitness === "empty-list")), `rendered binding lacks one visible or semantic DOM witness: ${context}`);
+    assert(bindings.every(({ childElements, fixture, occurrence, renderedSection, semanticWitness, visible }) => occurrence === 1 && childElements > 0 && fixture && renderedSection && (visible === true || (typeof semanticWitness === "string" && semanticWitness.length > 0))), `rendered binding lacks one visible or semantic DOM witness: ${context}`);
     assert(["actions", "copy", "overlays"].every((fixture) => bindings.some((binding) => binding.fixture === fixture)), `actions/copy/overlays fixture witness missing: ${context}`);
     assert(primitiveBindings.length === primitives.length, `rendered primitive count drifted: ${context}`);
     assert(new Set(primitiveBindings.map(({ id }) => id)).size === primitives.length, `rendered primitive is missing or duplicated: ${context}`);

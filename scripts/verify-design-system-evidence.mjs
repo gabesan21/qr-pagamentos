@@ -68,9 +68,52 @@ for (const record of assertions) {
   assert(record.fullMotion?.duration === ".18s" && record.fullMotion?.iteration === "1", `full-motion contract failed: ${context}`);
   assert(record.reducedMotion?.duration === ".01ms" && record.reducedMotion?.iteration === "1", `reduced-motion contract failed: ${context}`);
   assert(record.interaction?.toast && record.interaction?.modalFocusLoop && record.interaction?.confirmation && record.interaction?.tabSelection && record.interaction?.copy && record.interaction?.clean, `interaction probe missing: ${context}`);
-  assert(JSON.stringify(record.interaction?.operatedBindings) === JSON.stringify(["ds-copy-field-copied", "ds-modal-confirmation", "ds-modal-focus-loop", "ds-modal-open", "ds-simple-tabs-selected", "ds-toast-success"]), `operated binding witness drifted: ${context}`);
+  const expectedOperatedBindings = [
+    "ds-copy-field-copied",
+    "ds-modal-confirmation",
+    "ds-modal-failed",
+    "ds-modal-focus-loop",
+    "ds-modal-focus-restored",
+    "ds-modal-open",
+    "ds-modal-pending",
+    "ds-simple-tabs-selected",
+    "ds-toast-dismiss",
+    "ds-toast-error",
+    "ds-toast-info",
+    "ds-toast-retry",
+    "ds-toast-success",
+    "ds-toast-warning",
+  ];
+  assert(JSON.stringify(record.interaction?.operatedBindings) === JSON.stringify(expectedOperatedBindings), `operated binding witness drifted: ${context}`);
+  assert(record.coverage?.bindings?.length > 0, `coverage bindings missing: ${context}`);
+  for (const binding of record.coverage.bindings) {
+    assert(binding.occurrence === 1 && binding.childElements > 0 && binding.renderedSection, `binding structure failed: ${context}/${binding.id}`);
+    assert(binding.visible === true || typeof binding.semanticWitness === "string" && binding.semanticWitness.length > 0, `visible or semantic DOM witness missing: ${context}/${binding.id}`);
+  }
   assert(record.severeAxe?.length === 0, `serious/critical axe finding: ${context}`);
   assert(record.focus?.length > 0 && record.focus.every(({ visible, focusVisible, width, height, outline, ring }) => visible && focusVisible && width >= 44 && height >= 44 && (outline >= 2 || ring)), `keyboard focus / 44px target failed: ${context}`);
+  assert(record.actionContrast && typeof record.actionContrast === "object", `actionContrast missing: ${context}`);
+  for (const theme of themes) {
+    const contrast = record.actionContrast[theme];
+    assert(contrast && contrast.theme === theme, `actionContrast theme missing: ${context}/${theme}`);
+    for (const component of ["Button", "linkedBadge"]) {
+      const states = contrast[component.toLowerCase() === "linkedbadge" ? "badge" : "button"];
+      assert(states, `actionContrast ${component} missing: ${context}/${theme}`);
+      for (const state of ["default", "hover", "active"]) {
+        const value = states[state];
+        assert(value && typeof value.background === "string" && typeof value.foreground === "string", `actionContrast ${component}/${state} missing: ${context}/${theme}`);
+        const ratio = () => {
+          const lum = (v) => {
+            const c = (v.match(/[\d.]+/g) ?? []).slice(0, 3).map(Number).map((x) => x / 255).map((x) => x <= 0.04045 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4);
+            return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+          };
+          const values = [lum(value.background), lum(value.foreground)].sort((a, b) => b - a);
+          return (values[0] + 0.05) / (values[1] + 0.05);
+        };
+        assert(ratio(value.background, value.foreground) >= 4.5, `actionContrast ${component}/${state} ratio failed: ${context}/${theme}`);
+      }
+    }
+  }
 }
 const sectionSets = new Map(locales.map((locale) => [locale, [...new Set(assertions.filter((record) => record.locale === locale).flatMap((record) => record.localeState.sections))].sort()]));
 assert(JSON.stringify(sectionSets.get("pt-BR")) === JSON.stringify(sectionSets.get("en")), "locale section equivalence failed");

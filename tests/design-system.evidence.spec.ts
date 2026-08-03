@@ -8,6 +8,8 @@ import { expect, test } from "@playwright/test";
 
 import { designSystemCoverage, primitiveBindingId, primitiveCoverage } from "@/app/design-system/coverage";
 import { badgeVariants } from "@/components/ui/badge";
+import { designSystemEn } from "@/i18n/dictionaries/design-system/en";
+import { designSystemPtBR } from "@/i18n/dictionaries/design-system/pt-BR";
 
 const locales = ["pt-BR", "en"] as const;
 const viewports = [320, 375, 768, 1440] as const;
@@ -47,7 +49,7 @@ async function boundSourcePaths() {
   };
   return [
     "package.json", "pnpm-lock.yaml", "scripts/check-design-system-coverage.mjs", "scripts/verify-design-system-evidence.mjs", "scripts/verify-design-system-evidence.test.ts",
-    "src/app/design-system/coverage.ts", "src/app/design-system/coverage.test.ts", "src/app/design-system/interactive-specimens.tsx", "src/app/design-system/page.tsx", "src/app/design-system/specimen-binding.tsx", "src/app/design-system/specimen-mounted.test.tsx", "src/app/globals.css",
+    "src/app/design-system/coverage.ts", "src/app/design-system/coverage.test.ts", "src/app/design-system/interactive-specimens.tsx", "src/app/design-system/page.tsx", "src/app/design-system/specimen-binding.tsx", "src/app/design-system/specimen-mounted.test.tsx", "src/app/design-system/specimen-state.module.css", "src/app/globals.css",
     "src/brand/assets.manifest.json", "src/components/ui/inventory.json", "src/design-system/fonts/provenance.json", "src/i18n/locales.ts", "src/i18n/dictionaries/design-system/en.ts", "src/i18n/dictionaries/design-system/pt-BR.ts",
     "docs/frontend-template-parity/manifest.json", "docs/frontend-template-parity/obligations.ndjson", "src/data-directory/ui/specimen.tsx", "tests/design-system.evidence.spec.ts",
     ...inventory.currentPrimitiveSources, ...inventory.officialAdditions.map(({ source }) => source), ...inventory.owners.map(({ owner }) => owner),
@@ -63,11 +65,149 @@ async function captureRenderedCoverage(page: import("@playwright/test").Page) {
       const rect = element.getBoundingClientRect(); const style = getComputedStyle(element);
       return rect.width > 0 && rect.height > 0 && style.display !== "none" && style.visibility !== "hidden" && element.getAttribute("aria-hidden") !== "true";
     };
+    const textOf = (element: Element | null) => element?.textContent?.trim() ?? "";
+    const witness = (owner: string, state: string, element: Element | null): string | null => {
+      if (!element) return null;
+      const q = (selector: string) => element.querySelector(selector);
+      const qq = (selector: string) => [...element.querySelectorAll(selector)];
+      switch (owner) {
+        case "button": {
+          const button = q('[data-slot="button"]') as HTMLElement | null;
+          if (state === "loading") return button?.getAttribute("aria-busy") === "true" && (button as HTMLButtonElement | null)?.disabled ? "aria-busy-disabled" : null;
+          if (state === "disabled") return (button as HTMLButtonElement | null)?.disabled ? "disabled" : null;
+          if (state === "hover") return button?.getAttribute("data-probe") === "hover" ? "hover-probe" : null;
+          if (state === "focus") return button?.getAttribute("data-probe") === "focus" ? "focus-probe" : null;
+          return button ? "default" : null;
+        }
+        case "checkbox": {
+          const box = q('[data-slot="checkbox"]');
+          if (!box) return null;
+          if (state === "checked") return box.getAttribute("data-state") === "checked" || box.getAttribute("aria-checked") === "true" ? "checked" : null;
+          if (state === "invalid") return box.getAttribute("aria-invalid") === "true" ? "invalid" : null;
+          if (state === "disabled") return (box as HTMLButtonElement).disabled ? "disabled" : null;
+          if (state === "focus") return box.getAttribute("data-probe") === "focus" ? "focus-probe" : null;
+          return "default";
+        }
+        case "input-otp": {
+          if (state === "active") return q('[data-slot="input-otp-slot"][data-active="true"]') ? "active-slot" : null;
+          if (state === "invalid") return q('[aria-invalid="true"]') ? "invalid" : null;
+          if (state === "disabled") return q('input:disabled') ? "disabled" : null;
+          if (state === "focus") return q('[data-probe="focus"]') ? "focus-probe" : null;
+          if (state === "populated") return q('[data-slot="input-otp-slot"]')?.textContent ? "populated" : null;
+          return "default";
+        }
+        case "switch": {
+          const switchRoot = q('[data-slot="switch"]');
+          if (!switchRoot) return null;
+          if (state === "checked") return switchRoot.getAttribute("data-state") === "checked" ? "checked" : null;
+          if (state === "disabled") return (switchRoot as HTMLButtonElement).disabled ? "disabled" : null;
+          if (state === "hover" || state === "focus") return switchRoot.getAttribute("data-probe") === state ? `${state}-probe` : null;
+          return "default";
+        }
+        case "copy-field": {
+          const probe = element.getAttribute("data-copy-state");
+          return probe === state ? `copy-state-${state}` : null;
+        }
+        case "localized-field-group": {
+          if (state === "selected") {
+            const activeTab = q('[role="tab"][data-state="active"]');
+            return activeTab?.getAttribute("data-value") === "en" ? "locale-en-active" : null;
+          }
+          if (state === "populated") {
+            const input = q('input') as HTMLInputElement | null;
+            return input && input.value.length > 0 ? "populated" : null;
+          }
+          if (state === "invalid") return q('[aria-invalid="true"]') ? "invalid" : null;
+          if (state === "disabled") return q('input:disabled') ? "disabled" : null;
+          if (state === "focus") return document.activeElement && element.contains(document.activeElement) ? "focused" : null;
+          return q('[role="tablist"]') ? "default" : null;
+        }
+        case "simple-tabs": {
+          const activeTab = q('[role="tab"][data-state="active"]');
+          const activePanel = q('[role="tabpanel"][data-state="active"]');
+          if (state === "selected") return activeTab?.getAttribute("data-value") === "review" && activePanel ? "review-selected" : null;
+          if (state === "default") return activeTab?.getAttribute("data-value") === "ready" && activePanel ? "ready-selected" : null;
+          if (state === "disabled") return qq('[role="tab"]').some((tab) => (tab as HTMLButtonElement).disabled) ? "disabled-tab" : null;
+          if (state === "hover" || state === "focus") return element.getAttribute("data-specimen-state") === state ? `${state}-probe` : null;
+          return null;
+        }
+        case "modal": {
+          const probe = q('[data-probe-modal]');
+          return probe?.getAttribute("data-probe-modal") === state ? `modal-probe-${state}` : null;
+        }
+        case "toast": {
+          const probe = q('[data-toast-kind]');
+          return probe?.getAttribute("data-toast-kind") === state ? `toast-kind-${state}` : null;
+        }
+        case "data-directory-table": {
+          if (state === "loading") return q('[data-directory-state="loading"]') || element.querySelector('[aria-busy="true"]') ? "loading" : null;
+          if (["empty", "filtered-empty", "invalid-query", "error"].includes(state)) return q(`[data-directory-state="${state}"]`) ? state : null;
+          if (state === "ready") return q('table tbody tr') ? "ready" : null;
+          return null;
+        }
+        case "data-directory-filter": {
+          if (state === "default") return q('form') ? "default" : null;
+          if (state === "populated") {
+            const search = q('input[type="search"]') as HTMLInputElement | null;
+            return search && search.value.length > 0 ? "populated" : null;
+          }
+          if (state === "selected") {
+            const select = q('select') as HTMLSelectElement | null;
+            return select && select.value === "ACTIVE" ? "selected-active" : null;
+          }
+          if (state === "reset") {
+            const search = q('input[type="search"]') as HTMLInputElement | null;
+            return search && search.value.length > 0 && q('a[href="/design-system"]') ? "resettable" : null;
+          }
+          if (state === "focus") return element.getAttribute("data-probe") === "focus" ? "focus-probe" : null;
+          if (state === "disabled") return element.closest("fieldset[disabled]") ? "disabled" : null;
+          return null;
+        }
+        case "pagination": {
+          const previous = q('a[aria-label*="Previous"], a[data-slot="pagination-link"]:has([data-icon="inline-start"])');
+          const next = q('a[aria-label*="Next"], a[data-slot="pagination-link"]:has([data-icon="inline-end"])');
+          if (state === "previous") return previous && previous.getAttribute("aria-disabled") !== "true" ? "previous-link" : null;
+          if (state === "next") return next && next.getAttribute("aria-disabled") !== "true" ? "next-link" : null;
+          if (state === "disabled") return (previous && previous.getAttribute("aria-disabled") === "true") || (next && next.getAttribute("aria-disabled") === "true") ? "disabled-link" : null;
+          if (state === "focus") return q('[data-probe="focus"][data-slot="pagination-link"]') ? "focus-probe" : null;
+          if (state === "default") return previous && next ? "both-links" : null;
+          return null;
+        }
+        case "qr-display": {
+          if (state === "preparing" || state === "waiting") return q('[aria-busy="true"]') && q('[data-pending="true"]') ? `${state}-pending` : null;
+          if (state === "available") return textOf(q('code')).length > 0 ? "payload" : null;
+          if (state === "recovery" || state === "terminal") return textOf(q('figcaption')).length > 0 ? state : null;
+          return q('figure') ? "default" : null;
+        }
+        case "timeline": {
+          if (state === "empty") return q('ol') && q('ol')?.children.length === 0 ? "empty-list" : null;
+          const list = q('ol');
+          return list && list.children.length > 0 ? `${state}-entry` : null;
+        }
+        case "stat-card": {
+          const text = textOf(element);
+          if (state === "empty") return text.includes("0") ? "zero" : null;
+          if (state === "unavailable") return text.includes("—") ? "unavailable" : null;
+          return text.length > 0 ? "ready" : null;
+        }
+        case "status-badge": {
+          const badge = q('[data-slot="badge"]');
+          return badge ? `badge-${badge.getAttribute("data-variant") ?? "neutral"}` : null;
+        }
+        case "money-text":
+        case "monogram":
+        case "empty-state":
+        case "skeletons":
+          return visible(element) ? owner : null;
+        default:
+          return null;
+      }
+    };
     return {
       mountedBindingIds: [...document.querySelectorAll("[data-specimen-owner][data-specimen-state]")].map(({ id }) => id).sort(),
       bindings: expected.map(({ owner, selector, state }) => {
         const matches = [...document.querySelectorAll(selector)]; const element = matches[0];
-        const semanticWitness = owner === "timeline" && state === "empty" && element?.querySelector("ol")?.children.length === 0 ? "empty-list" : null;
+        const semanticWitness = witness(owner, state, element);
         return { childElements: element?.childElementCount ?? 0, occurrence: matches.length, owner: element?.getAttribute("data-specimen-owner"), renderedSection: element?.closest("[data-ds-section]")?.getAttribute("data-ds-section"), semanticWitness, state: element?.getAttribute("data-specimen-state"), visible: element ? visible(element) : false };
       }),
       primitives: primitiveEntries.map(({ id }) => {
@@ -85,7 +225,7 @@ async function captureRenderedCoverage(page: import("@playwright/test").Page) {
     expect(witness.state, binding.id).toBe(binding.state);
     expect(witness.childElements, binding.id).toBeGreaterThan(0);
     expect(witness.renderedSection, binding.id).toBeTruthy();
-    expect(witness.visible || witness.semanticWitness === "empty-list", binding.id).toBe(true);
+    expect(witness.visible || typeof witness.semanticWitness === "string", binding.id).toBe(true);
     bindings.push({ ...binding, ...witness });
   });
   const primitives = primitiveEntries.map((primitive, index) => ({ ...primitive, ...snapshot.primitives[index] }));
@@ -102,28 +242,80 @@ async function resetInteractiveState(page: import("@playwright/test").Page) {
   await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
 }
 
-async function captureInteractionProbes(page: import("@playwright/test").Page) {
+async function captureInteractionProbes(page: import("@playwright/test").Page, dictionary: Record<string, string>) {
   await resetInteractiveState(page);
+  const operated = new Set<string>();
+
+  for (const kind of ["info", "success", "warning", "error", "retry"] as const) {
+    await page.locator(`#ds-toast-${kind} button[data-toast-kind="${kind}"]`).click();
+    await expect(page.locator("[data-sonner-toast]")).toHaveCount(1);
+    operated.add(`ds-toast-${kind}`);
+    await page.locator("[data-probe-reset]").click();
+    await expect(page.locator("[data-sonner-toast]")).toHaveCount(0);
+  }
   await page.locator("#ds-toast-success button").click();
-  await expect(page.locator("[data-sonner-toast]")).toHaveCount(1);
-  await resetInteractiveState(page);
-  await page.locator("#ds-modal-open button").click();
+  await page.locator("#ds-toast-dismiss button").click();
+  await expect(page.locator("[data-sonner-toast]")).toHaveCount(0);
+  operated.add("ds-toast-dismiss");
+
+  await page.locator("#ds-copy-field-copied button").click();
+  operated.add("ds-copy-field-copied");
+
   const dialog = page.getByRole("dialog");
+  const alertDialog = page.getByRole("alertdialog");
+
+  await page.locator("#ds-modal-open button").click();
+  await expect(dialog).toBeVisible();
+  operated.add("ds-modal-open");
+  await page.keyboard.press("Escape");
+  await expect(dialog).toHaveCount(0);
+
+  await page.locator("#ds-modal-focus-loop button").click();
   await expect(dialog).toBeVisible();
   await page.keyboard.press("Tab");
   await expect(dialog.locator(":focus")).toHaveCount(1);
+  operated.add("ds-modal-focus-loop");
   await page.keyboard.press("Escape");
   await expect(dialog).toHaveCount(0);
+
   await page.locator("#ds-modal-confirmation button").click();
-  await expect(page.getByRole("alertdialog")).toBeVisible();
+  await expect(alertDialog).toBeVisible();
+  operated.add("ds-modal-confirmation");
   await page.keyboard.press("Escape");
-  await expect(page.getByRole("alertdialog")).toHaveCount(0);
+  await expect(alertDialog).toHaveCount(0);
+
+  await page.locator("#ds-modal-pending button").click();
+  await expect(alertDialog).toBeVisible();
+  const pendingConfirm = alertDialog.locator('[data-slot="alert-dialog-action"]');
+  await pendingConfirm.click();
+  await expect(pendingConfirm).toBeDisabled();
+  await expect(pendingConfirm.locator('[data-icon="inline-start"]')).toHaveCount(1);
+  operated.add("ds-modal-pending");
+  await expect(alertDialog).toHaveCount(0, { timeout: 5_000 });
+
+  await page.locator("#ds-modal-failed button").click();
+  await expect(alertDialog).toBeVisible();
+  await alertDialog.locator('[data-slot="alert-dialog-action"]').click();
+  await expect(alertDialog.getByText(dictionary.designSystemConfirmFailure)).toBeVisible();
+  operated.add("ds-modal-failed");
+  await page.keyboard.press("Escape");
+  await expect(alertDialog).toHaveCount(0);
+
+  const restoreTrigger = page.locator("#ds-modal-focus-restored button");
+  await restoreTrigger.click();
+  await expect(dialog).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(dialog).toHaveCount(0);
+  await expect(restoreTrigger).toBeFocused();
+  operated.add("ds-modal-focus-restored");
+
   const selectedTabs = page.locator("#ds-simple-tabs-selected").getByRole("tab");
   await selectedTabs.nth(1).click();
   await expect(selectedTabs.nth(1)).toHaveAttribute("data-state", "active");
-  await page.locator("#ds-copy-field-copied button").click();
+  operated.add("ds-simple-tabs-selected");
+
   await resetInteractiveState(page);
-  return { clean: true, confirmation: true, copy: true, modalFocusLoop: true, operatedBindings: ["ds-copy-field-copied", "ds-modal-confirmation", "ds-modal-focus-loop", "ds-modal-open", "ds-simple-tabs-selected", "ds-toast-success"].sort(), tabSelection: true, toast: true };
+  return { clean: true, confirmation: true, copy: true, modalFocusLoop: true, operatedBindings: [...operated].sort(), tabSelection: true, toast: true };
 }
 
 async function probeActionColors(page: import("@playwright/test").Page, theme: string) {
@@ -162,6 +354,8 @@ async function probeActionColors(page: import("@playwright/test").Page, theme: s
     expect(states[state].foreground, `${theme}/${component}/${state}`).toBe(variables.foreground);
     expect(contrastRatio(states[state].foreground, states[state].background), `${theme}/${component}/${state}`).toBeGreaterThanOrEqual(4.5);
   }
+  await page.mouse.move(0, 0);
+  await page.evaluate(() => document.querySelector("[data-action-probe-badge]")?.remove());
   return result;
 }
 
@@ -203,6 +397,8 @@ test("creates exact-head bilingual design-system evidence", async ({ page }) => 
   const consoleErrors: string[] = [];
   const pageErrors: string[] = [];
   let deterministicRepeat: Record<string, unknown> | undefined;
+  const actionContrast: Record<string, Awaited<ReturnType<typeof probeActionColors>>> = {};
+
   await mkdir(runDirectory, { recursive: false });
   await page.route("**/*", async (route) => {
     if (new URL(route.request().url()).origin === applicationOrigin) return route.continue();
@@ -211,6 +407,14 @@ test("creates exact-head bilingual design-system evidence", async ({ page }) => 
   });
   page.on("console", (message) => { if (message.type() === "error") consoleErrors.push(message.text()); });
   page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  for (const theme of themes) {
+    await page.goto("/design-system", { waitUntil: "networkidle" });
+    await page.evaluate((themeId) => { document.documentElement.dataset.theme = themeId; }, theme.id);
+    await page.evaluate(async () => { await document.fonts.ready; });
+    await resetInteractiveState(page);
+    actionContrast[theme.id] = await probeActionColors(page, theme.id);
+  }
 
   for (const locale of locales) for (const theme of themes) for (const width of viewports) {
     await page.context().addCookies([{ name: "qr_locale", value: locale, url: applicationOrigin }]);
@@ -253,16 +457,18 @@ test("creates exact-head bilingual design-system evidence", async ({ page }) => 
     const axe = await new AxeBuilder({ page }).analyze();
     const severeAxe = axe.violations.filter((finding) => ["serious", "critical"].includes(finding.impact ?? ""));
     expect(severeAxe).toEqual([]);
+    const dictionary = locale === "pt-BR" ? designSystemPtBR : designSystemEn;
     await page.emulateMedia({ colorScheme: theme.mode, reducedMotion: "no-preference" });
-    const fullProbe = await captureInteractionProbes(page);
+    const fullProbe = await captureInteractionProbes(page, dictionary);
     await page.emulateMedia({ colorScheme: theme.mode, reducedMotion: "reduce" });
-    const reducedProbe = await captureInteractionProbes(page);
+    const reducedProbe = await captureInteractionProbes(page, dictionary);
     expect(reducedProbe).toEqual(fullProbe);
     expect(externalRequests).toEqual([]); expect(consoleErrors).toEqual([]); expect(pageErrors).toEqual([]);
     await page.reload({ waitUntil: "networkidle" });
     await page.evaluate((themeId) => { document.documentElement.dataset.theme = themeId; }, theme.id);
     await page.evaluate(async () => { await document.fonts.ready; });
     await resetInteractiveState(page);
+    expect(await page.locator("[data-sonner-toast]").count()).toBe(0);
     const screenshot = join(runDirectory, `design-system-${locale}-${theme.id}-${width}.png`);
     const screenshotBytes = await page.screenshot({ path: screenshot, fullPage: true, animations: "disabled", caret: "hide" });
     if (locale === repeatKey.locale && theme.id === repeatKey.theme && width === repeatKey.width) {
@@ -276,7 +482,7 @@ test("creates exact-head bilingual design-system evidence", async ({ page }) => 
       expect(sha256(repeatBytes)).toBe(sha256(screenshotBytes));
       deterministicRepeat = { basePath: relativePath(screenshot), baseSha256: sha256(screenshotBytes), key: `${locale}:${theme.id}:${width}`, lingeringToasts: 0, path: relativePath(repeatPath), sha256: sha256(repeatBytes) };
     }
-    results.push({ locale, theme: theme.id, mode: theme.mode, width, screenshot: relativePath(screenshot), coverage, fullMotion, reducedMotion, focus, localeState, interaction: fullProbe, severeAxe });
+    results.push({ locale, theme: theme.id, mode: theme.mode, width, screenshot: relativePath(screenshot), coverage, actionContrast, fullMotion, reducedMotion, focus, localeState, interaction: fullProbe, severeAxe });
   }
   const localeEquivalence = locales.map((locale) => ({ locale, sections: results.find((result) => result.locale === locale)?.localeState }));
   expect((localeEquivalence[0].sections as { sections: string[] }).sections).toEqual((localeEquivalence[1].sections as { sections: string[] }).sections);

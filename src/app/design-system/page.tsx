@@ -7,6 +7,9 @@ import { Avatar, AvatarBadge, AvatarFallback, AvatarGroup, AvatarGroupCount, Ava
 import { Badge } from "@/components/ui/badge";
 import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
+import { Field, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { EmptyState } from "@/components/ui/empty-state";
 import { MoneyText } from "@/components/ui/money-text";
 import { Monogram } from "@/components/ui/monogram";
@@ -20,7 +23,14 @@ import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, Tabl
 import { Timeline } from "@/components/ui/timeline";
 import { getDictionary } from "@/i18n/dictionaries";
 import { localeFromPreferenceCookie, localePreferenceCookieName } from "@/i18n/locales";
-import { DataDirectorySpecimen } from "@/data-directory/ui/specimen";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { DataDirectory, type DataDirectoryCopy, type DataDirectoryState } from "@/data-directory/ui/data-directory";
 
 import { DesignSystemInteractiveSpecimens } from "./interactive-specimens";
 import { SpecimenBinding } from "./specimen-binding";
@@ -30,11 +40,179 @@ const themes = [
   ["midnight-clearing", "dark"], ["vault-blue", "dark"], ["terminal-amber", "dark"],
 ] as const;
 
+const tableStates: readonly DataDirectoryState[] = [
+  "ready",
+  "loading",
+  "empty",
+  "filtered-empty",
+  "invalid-query",
+  "error",
+];
+
 function Section({ children, description, id, title }: Readonly<{ children: React.ReactNode; description: string; id: string; title: string }>) {
   return <section aria-labelledby={id} className="ds-section" data-ds-section={id}>
     <div className="ds-section__heading"><h2 id={id}>{title}</h2><p data-ds-prose>{description}</p></div>
     {children}
   </section>;
+}
+
+function directoryCopy(dictionary: Record<string, string>): DataDirectoryCopy {
+  return {
+    searchLabel: dictionary.dataDirectorySearchLabel,
+    searchPlaceholder: dictionary.dataDirectorySearchPlaceholder,
+    pageSizeLabel: dictionary.dataDirectoryPageSizeLabel,
+    applyFilters: dictionary.dataDirectoryApplyFilters,
+    resetFilters: dictionary.dataDirectoryResetFilters,
+    previousPage: dictionary.dataDirectoryPreviousPage,
+    nextPage: dictionary.dataDirectoryNextPage,
+    paginationLabel: dictionary.dataDirectoryPaginationLabel,
+    loading: dictionary.dataDirectoryLoading,
+    loadingDescription: dictionary.dataDirectoryLoadingDescription,
+    empty: dictionary.dataDirectoryEmpty,
+    emptyDescription: dictionary.dataDirectoryEmptyDescription,
+    filteredEmpty: dictionary.dataDirectoryFilteredEmpty,
+    filteredEmptyDescription: dictionary.dataDirectoryFilteredEmptyDescription,
+    invalid: dictionary.dataDirectoryInvalid,
+    invalidDescription: dictionary.dataDirectoryInvalidDescription,
+    error: dictionary.dataDirectoryError,
+    errorDescription: dictionary.dataDirectoryErrorDescription,
+    retry: dictionary.dataDirectoryRetry,
+  };
+}
+
+type DirectoryRow = { id: string; label: string; amount: string; status: string };
+
+function directoryRows(dictionary: Record<string, string>): DirectoryRow[] {
+  return [
+    { id: "SYN-001", label: "PIX Alpha", amount: "128,40", status: dictionary.dataDirectoryActiveStatus },
+    { id: "SYN-002", label: "PIX Beta", amount: "72,00", status: dictionary.dataDirectoryReviewStatus },
+  ];
+}
+
+function directoryColumns(dictionary: Record<string, string>) {
+  return [
+    { id: "reference", label: dictionary.dataDirectoryReferenceColumn, value: (row: DirectoryRow) => row.id },
+    { id: "label", label: dictionary.dataDirectoryLabelColumn, value: (row: DirectoryRow) => row.label },
+    { id: "amount", label: dictionary.dataDirectoryAmountColumn, value: (row: DirectoryRow) => row.amount, numeric: true },
+    { id: "status", label: dictionary.dataDirectoryStatusColumn, value: (row: DirectoryRow) => <Badge variant="outline">{row.status}</Badge> },
+  ];
+}
+
+function DirectoryTableSpecimen({ dictionary, state }: Readonly<{ dictionary: Record<string, string>; state: DataDirectoryState }>) {
+  const copy = directoryCopy(dictionary);
+  const rows = directoryRows(dictionary);
+  const columns = directoryColumns(dictionary);
+  const stateLabels: Record<DataDirectoryState, string> = {
+    ready: dictionary.dataDirectoryReadyState,
+    loading: dictionary.dataDirectoryLoadingState,
+    empty: dictionary.dataDirectoryEmptyState,
+    "filtered-empty": dictionary.dataDirectoryFilteredEmptyState,
+    "invalid-query": dictionary.dataDirectoryInvalidState,
+    error: dictionary.dataDirectoryErrorState,
+  };
+
+  return (
+    <section aria-labelledby={`directory-table-${state}-heading`} className="grid gap-5" data-directory-specimen-state={state} data-ds-section={`directory-table-${state}`}>
+      <h3 id={`directory-table-${state}-heading`}>{stateLabels[state]}</h3>
+      <DataDirectory
+        caption={dictionary.dataDirectoryTableCaption}
+        columns={columns}
+        copy={copy}
+        emptyAction={{ href: "/design-system", label: dictionary.dataDirectoryCreateExample }}
+        filters={[{
+          name: "status",
+          label: dictionary.dataDirectoryStatusLabel,
+          allLabel: dictionary.dataDirectoryAllStatuses,
+          options: [
+            { value: "ACTIVE", label: dictionary.dataDirectoryActiveStatus },
+            { value: "REVIEW", label: dictionary.dataDirectoryReviewStatus },
+          ],
+        }]}
+        formAction="/design-system"
+        idPrefix={`specimen-table-${state}`}
+        nextUrl="/design-system?pageSize=25&cursor=synthetic-next"
+        previousUrl={state === "ready" ? "/design-system?pageSize=25&cursor=synthetic-previous" : undefined}
+        resetUrl="/design-system"
+        retryUrl="/design-system"
+        rowKey={(row) => row.id}
+        rows={rows}
+        state={state}
+      />
+    </section>
+  );
+}
+
+function DirectoryFilterSpecimen({ dictionary, state }: Readonly<{ dictionary: Record<string, string>; state: "default" | "populated" | "focus" | "selected" | "reset" | "disabled" }>) {
+  const copy = directoryCopy(dictionary);
+  const rows = directoryRows(dictionary);
+  const columns = directoryColumns(dictionary);
+  const selected = state === "selected" ? "ACTIVE" : undefined;
+  const search = state === "populated" || state === "reset" ? "synthetic fixture" : undefined;
+
+  const directory = (
+    <DataDirectory
+      caption={dictionary.dataDirectoryTableCaption}
+      columns={columns}
+      copy={copy}
+      filters={[{
+        name: "status",
+        label: dictionary.dataDirectoryStatusLabel,
+        allLabel: dictionary.dataDirectoryAllStatuses,
+        selected,
+        options: [
+          { value: "ACTIVE", label: dictionary.dataDirectoryActiveStatus },
+          { value: "REVIEW", label: dictionary.dataDirectoryReviewStatus },
+        ],
+      }]}
+      formAction="/design-system"
+      idPrefix={`specimen-filter-${state}`}
+      resetUrl="/design-system"
+      rowKey={(row) => row.id}
+      rows={rows}
+      search={search}
+      state="ready"
+    />
+  );
+
+  if (state === "disabled") {
+    return (
+      <fieldset className="m-0 min-w-0 border-0 p-0" disabled>
+        <div className="grid gap-5 md:grid-cols-3">
+          <Field><FieldLabel htmlFor={`specimen-filter-disabled-search`}>{copy.searchLabel}</FieldLabel><Input disabled id="specimen-filter-disabled-search" placeholder={copy.searchPlaceholder} type="search" /></Field>
+          <Field><FieldLabel htmlFor={`specimen-filter-disabled-status`}>{dictionary.dataDirectoryStatusLabel}</FieldLabel><NativeSelect disabled id="specimen-filter-disabled-status"><NativeSelectOption value="">{dictionary.dataDirectoryAllStatuses}</NativeSelectOption></NativeSelect></Field>
+          <Field><FieldLabel htmlFor={`specimen-filter-disabled-page-size`}>{copy.pageSizeLabel}</FieldLabel><NativeSelect disabled id="specimen-filter-disabled-page-size"><NativeSelectOption value="25">25</NativeSelectOption></NativeSelect></Field>
+        </div>
+      </fieldset>
+    );
+  }
+
+  return <div data-probe={state === "focus" ? "focus" : undefined}>{directory}</div>;
+}
+
+function PaginationSpecimen({ dictionary, state }: Readonly<{ dictionary: Record<string, string>; state: "default" | "previous" | "next" | "focus" | "disabled" }>) {
+  const previousHref = state === "disabled" || state === "next" ? undefined : "/design-system?page=1";
+  const nextHref = state === "disabled" || state === "previous" ? undefined : "/design-system?page=2";
+
+  return (
+    <Pagination aria-label={dictionary.dataDirectoryPaginationLabel} label={dictionary.dataDirectoryPaginationLabel}>
+      <PaginationContent className="w-full">
+        <PaginationItem>
+          {previousHref ? (
+            <PaginationPrevious data-ds-hit-target data-probe={state === "focus" ? "focus" : undefined} href={previousHref} label={dictionary.dataDirectoryPreviousPage} text={dictionary.dataDirectoryPreviousPage} />
+          ) : (
+            <PaginationPrevious aria-disabled="true" data-probe={state === "disabled" ? "disabled" : undefined} href="/design-system" label={dictionary.dataDirectoryPreviousPage} tabIndex={-1} text={dictionary.dataDirectoryPreviousPage} />
+          )}
+        </PaginationItem>
+        <PaginationItem className="ml-auto">
+          {nextHref ? (
+            <PaginationNext data-ds-hit-target href={nextHref} label={dictionary.dataDirectoryNextPage} text={dictionary.dataDirectoryNextPage} />
+          ) : (
+            <PaginationNext aria-disabled="true" data-probe={state === "disabled" ? "disabled" : undefined} href="/design-system" label={dictionary.dataDirectoryNextPage} tabIndex={-1} text={dictionary.dataDirectoryNextPage} />
+          )}
+        </PaginationItem>
+      </PaginationContent>
+    </Pagination>
+  );
 }
 
 export default async function DesignSystemPage() {
@@ -94,13 +272,17 @@ export default async function DesignSystemPage() {
     </Section>
 
     <Section id="directory" title={dictionary.dataDirectoryHeading} description={dictionary.dataDirectoryDescription}>
-      <div id="ds-primitive-pagination">{
-        [
-          ...["ready", "loading", "empty", "filtered-empty", "invalid-query", "error"].map((state) => ["data-directory-table", state] as const),
-          ...["default", "populated", "focus", "selected", "reset", "disabled"].map((state) => ["data-directory-filter", state] as const),
-          ...["default", "previous", "next", "focus", "disabled"].map((state) => ["pagination", state] as const),
-        ].reduce<React.ReactNode>((child, [owner, state]) => <SpecimenBinding key={`${owner}-${state}`} owner={owner} state={state}>{child}</SpecimenBinding>, <DataDirectorySpecimen dictionary={dictionary} />)
-      }</div>
+      <div className="grid gap-8">
+        <div className="grid gap-8">
+          {tableStates.map((state) => <SpecimenBinding key={state} owner="data-directory-table" state={state}><DirectoryTableSpecimen dictionary={dictionary} state={state} /></SpecimenBinding>)}
+        </div>
+        <div className="grid gap-6">
+          {(["default", "populated", "focus", "selected", "reset", "disabled"] as const).map((state) => <SpecimenBinding key={state} owner="data-directory-filter" state={state}><DirectoryFilterSpecimen dictionary={dictionary} state={state} /></SpecimenBinding>)}
+        </div>
+        <div className="grid gap-6" id="ds-primitive-pagination">
+          {(["default", "previous", "next", "focus", "disabled"] as const).map((state) => <SpecimenBinding key={state} owner="pagination" state={state}><PaginationSpecimen dictionary={dictionary} state={state} /></SpecimenBinding>)}
+        </div>
+      </div>
     </Section>
     <DesignSystemInteractiveSpecimens dictionary={dictionary} />
   </main>;
