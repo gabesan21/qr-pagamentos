@@ -1,23 +1,18 @@
-import { readFileSync } from "node:fs"
-import { renderToStaticMarkup } from "react-dom/server"
-import { describe, expect, it, vi } from "vitest"
+// @vitest-environment jsdom
+
+import { cleanup, render, screen } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
+import { afterEach, describe, expect, it, vi } from "vitest"
 
 import { LocalizedFieldGroup, supportedLocales } from "./localized-field-group"
 
-const source = readFileSync(
-  new URL("./localized-field-group.tsx", import.meta.url),
-  "utf8",
-)
+afterEach(cleanup)
 
 describe("LocalizedFieldGroup", () => {
-  it("keeps the locale set closed and receives already-localized field content", () => {
-    expect(supportedLocales).toEqual(["pt-BR", "en"])
-    expect(source).toContain("Record<SupportedLocale, LocalizedFieldEntry>")
-    expect(source).not.toMatch(/@\/i18n|@\/mock|@\/auth|@\/data/u)
-  })
-
-  it("associates the active field with its localized label and error", () => {
-    const markup = renderToStaticMarkup(
+  it("selects localized fields by keyboard and keeps their labels and errors associated", async () => {
+    const user = userEvent.setup()
+    const onValueChange = vi.fn()
+    render(
       <LocalizedFieldGroup
         id="product-name"
         groupLabel="Localized product name"
@@ -32,17 +27,31 @@ describe("LocalizedFieldGroup", () => {
             localeLabel: "English",
             label: "Product name",
             value: "Coffee",
+            description: "Shown to English-speaking customers.",
           },
         }}
-        onValueChange={vi.fn()}
+        onValueChange={onValueChange}
         required
       />,
     )
 
-    expect(markup).toContain('aria-labelledby="product-name-label"')
-    expect(markup).toContain('id="product-name-pt-BR"')
-    expect(markup).toContain('aria-invalid="true"')
-    expect(markup).toContain('aria-describedby="product-name-pt-BR-error"')
-    expect(markup).toContain("Informe o nome.")
+    expect(supportedLocales).toEqual(["pt-BR", "en"])
+    const portugueseTab = screen.getByRole("tab", { name: /Português/ })
+    expect(portugueseTab.getAttribute("aria-selected")).toBe("true")
+    const portugueseInput = screen.getByLabelText(/Nome do produto/)
+    expect(portugueseInput.getAttribute("aria-invalid")).toBe("true")
+    expect(portugueseInput.getAttribute("aria-describedby")).toBe(
+      "product-name-pt-BR-error",
+    )
+
+    portugueseTab.focus()
+    await user.keyboard("{ArrowRight}")
+
+    const englishTab = screen.getByRole("tab", { name: "English" })
+    expect(englishTab.getAttribute("aria-selected")).toBe("true")
+    const englishInput = screen.getByLabelText(/Product name/)
+    expect(englishInput).toHaveProperty("value", "Coffee")
+    await user.type(englishInput, " beans")
+    expect(onValueChange).toHaveBeenLastCalledWith("en", "Coffees")
   })
 })

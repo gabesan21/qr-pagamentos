@@ -1,38 +1,77 @@
-import { readFileSync } from "node:fs"
-import { renderToStaticMarkup } from "react-dom/server"
-import { describe, expect, it } from "vitest"
+// @vitest-environment jsdom
+
+import { cleanup, render, screen, waitFor } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
+import { afterEach, describe, expect, it, vi } from "vitest"
 
 import { CopyField } from "./copy-field"
 
-const source = readFileSync(new URL("./copy-field.tsx", import.meta.url), "utf8")
+const labels = {
+  copy: "Copy PIX code",
+  pending: "Copying PIX code",
+  copied: "PIX code copied",
+  failed: "Copy failed. Try again.",
+}
+
+afterEach(() => {
+  cleanup()
+  vi.restoreAllMocks()
+})
 
 describe("CopyField", () => {
-  it("renders the supplied value and localized accessible copy label", () => {
-    const markup = renderToStaticMarkup(
-      <CopyField
-        value="000201010212"
-        labels={{
-          copy: "Copy PIX code",
-          pending: "Copying PIX code",
-          copied: "PIX code copied",
-          failed: "Copy failed. Try again.",
-        }}
-      />,
+  it("announces pending and copied feedback while deduplicating an in-flight copy", async () => {
+    const user = userEvent.setup()
+    let resolveCopy: () => void = () => undefined
+    const writeText = vi.fn(
+      () => new Promise<void>((resolve) => {
+        resolveCopy = resolve
+      }),
     )
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText },
+    })
 
-    expect(markup).toContain("000201010212")
-    expect(markup).toContain('aria-label="Copy PIX code"')
-    expect(markup).toContain('role="status"')
+    render(<CopyField value="000201010212" labels={labels} />)
+
+    const copyButton = screen.getByRole("button", {
+      name: labels.copy,
+    }) as HTMLButtonElement
+    await user.click(copyButton)
+
+    expect(copyButton.disabled).toBe(true)
+    expect(screen.getByRole("status").textContent).toContain(labels.pending)
+
+    await user.click(copyButton)
+    expect(writeText).toHaveBeenCalledTimes(1)
+
+    resolveCopy()
+    await waitFor(() => {
+      expect(screen.getByRole("status").textContent).toContain(labels.copied)
+    })
   })
 
-  it("uses the clipboard API in the click handler with pending, success, and retryable failure", () => {
-    expect(source).toContain("async function handleCopy()")
-    expect(source).toContain("navigator.clipboard?.writeText")
-    expect(source).toContain('setState("pending")')
-    expect(source).toContain('setState("copied")')
-    expect(source).toContain('setState("failed")')
-    expect(source).toContain('state === "failed" ? "alert" : "status"')
-    expect(source).not.toContain("execCommand")
-    expect(source).not.toContain("createElement")
+  it("retains clipboard failure as assertive feedback and permits retry", async () => {
+    const user = userEvent.setup()
+    const writeText = vi
+      .fn<() => Promise<void>>()
+      .mockRejectedValueOnce(new Error("denied"))
+      .mockResolvedValueOnce(undefined)
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText },
+    })
+
+    render(<CopyField value="000201010212" labels={labels} />)
+
+    await user.click(screen.getByRole("button", { name: labels.copy }))
+    const failure = await screen.findByRole("alert")
+    expect(failure.textContent).toContain(labels.failed)
+
+    await user.click(screen.getByRole("button", { name: labels.failed }))
+    await waitFor(() => {
+      expect(screen.getByRole("status").textContent).toContain(labels.copied)
+    })
+    expect(writeText).toHaveBeenCalledTimes(2)
   })
 })

@@ -55,7 +55,25 @@ function Modal({
   dismissible = true,
   size = "md",
 }: ModalProps) {
+  const restoreFocusRef = React.useRef<HTMLElement | null>(null)
+  const wasOpenRef = React.useRef(open)
+
+  React.useLayoutEffect(() => {
+    if (open && !wasOpenRef.current && typeof document !== "undefined") {
+      restoreFocusRef.current = document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null
+    }
+    wasOpenRef.current = open
+  }, [open])
+
   function handleOpenChange(nextOpen: boolean) {
+    if (nextOpen && typeof document !== "undefined") {
+      restoreFocusRef.current = document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null
+    }
+
     if (!nextOpen && !dismissible) {
       return
     }
@@ -73,6 +91,12 @@ function Modal({
         }}
         onPointerDownOutside={(event) => {
           if (!dismissible) event.preventDefault()
+        }}
+        onCloseAutoFocus={(event) => {
+          if (restoreFocusRef.current) {
+            event.preventDefault()
+            restoreFocusRef.current.focus()
+          }
         }}
       >
         <DialogHeader>
