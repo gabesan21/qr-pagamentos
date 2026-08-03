@@ -42,17 +42,34 @@ def manifest():
 def excluded(data, relative: Path, label: str = "") -> bool:
     """Caminho que o instalador não propaga.
 
-    Duas listas, dois motivos. `exclude` tira ruído por nome de pasta
+    Três listas, três motivos. `exclude` tira ruído por nome de pasta
     (bytecode, suíte da origem). `exclude_files` tira, por rótulo exato,
     material que **só existe para quem hospeda outros projetos** — índices de
     agregação, criação de projeto, panorama entre escopos. Ele não é omitido
     por economia: se chegasse ao alvo, o harness instalado voltaria a
-    descrever um mundo acima da própria raiz.
+    descrever um mundo acima da própria raiz. `exclude_prefixes` fecha uma
+    subtree inteira (ou um arquivo) da origem sem enumerar seus descendentes.
     """
     names = set(data.get("exclude", DEFAULT_EXCLUDE))
     if names.intersection(relative.parts):
         return True
-    return bool(label) and label in set(data.get("exclude_files", ()))
+    if not label:
+        return False
+    if label in set(data.get("exclude_files", ())):
+        return True
+    return any(label == prefix or label.startswith(prefix + "/")
+               for prefix in data.get("exclude_prefixes", ()))
+
+
+def installed_manifest(data: dict) -> dict:
+    """Manifesto operacional do alvo, sem regras exclusivas da origem.
+
+    Exclusões por prefixo descrevem artefatos que existem somente no escopo
+    hospedeiro. Copiar esses nomes para o marcador ou para o manifesto local
+    reintroduziria uma referência textual à feature que acabamos de excluir.
+    """
+    return {key: value for key, value in data.items()
+            if key != "exclude_prefixes"}
 
 
 def managed_sources(data):
@@ -133,7 +150,11 @@ def copy_file(source: Path, dest: Path, *, overwrite: bool = True,
         return
     dest.parent.mkdir(parents=True, exist_ok=True)
     if source.suffix in {".md", ".py", ".json"}:
-        text = source.read_text(encoding="utf-8")
+        if source.resolve() == MANIFEST.resolve():
+            text = json.dumps(installed_manifest(manifest()), indent=2,
+                              ensure_ascii=False) + "\n"
+        else:
+            text = source.read_text(encoding="utf-8")
         dest.write_text(localize(text, included_paths=(included_paths and source.suffix == ".md")),
                         encoding="utf-8")
     else:
@@ -316,7 +337,8 @@ def install(target: Path) -> None:
                                    for path in written])
     # O marcador é o manifest + o carimbo de conteúdo e o inventário desta
     # instalação — o inventário é o que autoriza a poda da próxima.
-    stamp = dict(data, content_sha=content_sha(data), installed=inventory)
+    stamp = dict(installed_manifest(data), content_sha=content_sha(data),
+                 installed=inventory)
     (hb / ".included-harness.json").write_text(
         json.dumps(stamp, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     for rel in data["anatomy"]:

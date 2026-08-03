@@ -5,10 +5,11 @@
 - **Etapa:** 005_closing (ato 1) · **Responsável:** revisor independente
 
 > **Artefato exclusivo de `yolo: true`.** Fora de yolo não existe revisor agêntico: o gate é o PR humano e este arquivo não nasce.
-> Um único agente fresco verifica comportamento/qualidade, sempre **strong**, e decide `differential|full`: `full` em critical ou retorno por `premissa`; depois de `lacuna` ou falha de execução, o diferencial cobre o **delta**. Evidência inconclusiva é reexecutada.
+> Um único agente fresco verifica comportamento/qualidade, tier **medium** (matriz do [[WORKFLOW|WORKFLOW]]), e decide `differential|full`: `full` em critical ou retorno por `premissa`; depois de `lacuna` ou falha de execução, o diferencial cobre o **delta**. Evidência inconclusiva é reexecutada.
 > Este é o único gate de qualidade (003 só existe em `critical: true`). Responda **primeiro** se o pedido original — o "O quê / Por quê" do card — foi atendido; só depois valide specs e critérios do plano.
 > **Três saídas, não duas:** aprovado; **bloqueante de execução** → 004, quando o executor não cumpriu os critérios que recebeu; **defeito de plano** → 002, quando os critérios não cobriam o pedido do card e o executor cumpriu o que lhe foi entregue. Aderência ao plano que não atende ao pedido nunca é falha do executor.
 > **Você nomeia o delta, não conserta o defeito.** Despachar correção transformaria você em quem encomendou o trabalho que julga.
+> **Falha de ambiente nunca devolve.** Critério bloqueado por sandbox/infra ou evidência flaky recebe `qualified pass (ambiente)` com a evidência alternativa disponível e entra na checklist humana do veredito; devolução exige defeito reproduzível no produto. Critério `verify: user` não é julgado aqui — vai direto para a checklist.
 
 ## Rodada 1 — AAAA-MM-DD
 
@@ -20,7 +21,7 @@
 
 | # | Critério | Modo | Verificação executada | Resultado | Evidência |
 |---|----------|------|------------------------|-----------|-----------|
-| 1 | <critério do plano> | re-run \| evidência | `<run>` ou <artefato auditado> | passou \| falhou | <observado versus esperado> |
+| 1 | <critério do plano> | re-run \| evidência | `<run>` ou <artefato auditado> | passou \| falhou \| qualified pass (ambiente) | <observado versus esperado> |
 
 ### Qualidade da implementação
 
@@ -39,10 +40,11 @@
 
 ## Veredito
 
-- **Decisão:** aprovada → entrega e encerramento | bloqueante de execução → 004_processing | defeito de plano → 002_planning | circuit breaker.
+- **Decisão:** aprovada → entrega e encerramento | **reparo dirigido** (delta pontual — não é rota nem consome contador; o orquestrador despacha o patch e você o confere em adendo ≤10 linhas nesta rodada; máx. 2 por rodada) | bloqueante de execução → 004_processing | defeito de plano → 002_planning | circuit breaker.
 - **Bloqueantes:** nenhum | <lista curta>.
 - **Defeito de plano:** nenhum | <critério que não cobria o pedido do card>.
 - **Sugestões/nits:** <não bloqueiam; registrar somente se úteis>.
+- **Checklist humana:** nenhum | <critérios `verify: user` e qualified passes (ambiente), com passo manual e pass esperado — o orquestrador os leva ao PR/aprovação final>.
 - **Resumo:** <comparação breve entre objetivo inicial e resultado implementado>.
 
 ## Delta da devolução
@@ -56,4 +58,4 @@
 - **Frentes intactas:** `<Fxx>` — aprovadas, permanecem integradas; **não** reexecutar.
 - **Ação esperada:** <uma linha: o que 002 emenda ou o que 004 corrige>.
 
-> Aprovando, escreva `memory/<id>.md` na mesma sessão — você acabou de ler o diff. Integração, PR e merge continuam sendo do orquestrador e do humano.
+> Aprovando, escreva a memory na mesma sessão — você acabou de ler o diff: o ledger `memory/<AAAA-MM-DD>/<id>.md` mais uma entrada `<id>.<nn>-<slug>.md` por coisa feita, com evidência linkada ([[_templates/MEMORY|MEMORY]] · [[_templates/MEMORY-ENTRY|MEMORY-ENTRY]]). Integração, PR e merge continuam do orquestrador e do humano.

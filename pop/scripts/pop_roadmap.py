@@ -27,6 +27,8 @@ TASK_ID = re.compile(
     r"|M-[0-9]+\.[0-9]+-[a-z0-9][a-z0-9-]*)")
 ROW = re.compile(r"^\s*\|.*\|\s*$")
 REQUIRED_MEMORY = ("task", "project", "started", "finished", "commit")
+# Pasta de data de `memory/`: é ela que agrupa o ledger e suas entradas.
+MEMORY_DATE_DIR = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
 # Pastas com linhas de task removíveis no close: epochs e modifications
 # multi-task. O índice MODIFICATIONS.md tem tratamento próprio (só o wikilink
@@ -41,14 +43,39 @@ def task_from_row(line: str) -> str | None:
     return match.group(1) if match else None
 
 
+def memory_ledgers(scope: Path, task_id: str) -> list[Path]:
+    """Ledgers de `task_id` no escopo, layout em pasta de data primeiro.
+
+    Novo: `memory/<AAAA-MM-DD>/<id>.md`, com a pasta igual ao `finished` do
+    próprio ledger. Legado: `memory/<id>.md` plano — tolerado só para memory
+    anterior à adoção (ver `MEMORY_LAYOUT_SINCE` no `pop_validate`), e por isso
+    ainda resolvido aqui. Mais de um ledger para o mesmo id é ambiguidade, não
+    "o primeiro que aparecer": quem chama trata a lista, não um caminho.
+    """
+    base = poplib.harness_root(scope) / "memory"
+    found = [path for path in sorted(base.glob(f"*/{task_id}.md"))
+             if MEMORY_DATE_DIR.match(path.parent.name)]
+    legacy = base / f"{task_id}.md"
+    if legacy.is_file():
+        found.append(legacy)
+    return found
+
+
 def memory_path(root: Path, scope: Path, task_id: str) -> Path:
+    """Caminho do ledger; se não existir, o canônico do layout novo — o
+    caminho só serve de mensagem quando não há arquivo, e a data da pasta é
+    justamente o que ainda não se conhece."""
+    found = memory_ledgers(scope, task_id)
+    if found:
+        return found[0]
     return poplib.harness_root(scope) / "memory" / f"{task_id}.md"
 
 
 def memory_valid(root: Path, scope: Path, task_id: str, *, canonical: bool) -> bool:
-    path = memory_path(root, scope, task_id)
-    if not path.is_file():
-        return False
+    found = memory_ledgers(scope, task_id)
+    if len(found) != 1:
+        return False  # ausente, ou ambíguo entre layouts/datas
+    path = found[0]
     if not canonical:
         return True
     meta, _ = poplib.parse_frontmatter(path.read_text(encoding="utf-8"))
@@ -71,6 +98,11 @@ def memory_valid(root: Path, scope: Path, task_id: str, *, canonical: bool) -> b
         started = datetime.date.fromisoformat(str(meta["started"]))
         finished = datetime.date.fromisoformat(str(meta["finished"]))
     except ValueError:
+        return False
+    # A pasta de data é a única coisa que impede um agrupamento decorativo: ela
+    # tem de ser a data de conclusão que o próprio ledger declara.
+    if (MEMORY_DATE_DIR.match(path.parent.name)
+            and path.parent.name != finished.isoformat()):
         return False
     return started <= finished
 

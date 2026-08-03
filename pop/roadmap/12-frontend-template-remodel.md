@@ -2,7 +2,7 @@
 
 - **Project:** [[PROJECT|QR Pagamentos]]
 - **Roadmap:** [[ROADMAP|Roadmap]]
-- **Status:** pendente
+- **Status:** em andamento
 - **Description:** Replace the complete application frontend with the supplied professional template while preserving the current Next.js stack and established business contracts.
 - **Pause if:** exact visual parity would require replacing the fixed stack, weakening authorization/security/redaction/exact-decimal contracts, or using fonts/assets without an approved production source.
 
@@ -34,7 +34,6 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[12.2.4-rebuild-design-system-specimen]] | Make `/design-system` exercise every shared component, state, theme, locale, responsive mode, focus treatment, and reduced-motion behavior against the parity contract. · size: M | concluída |
 
 ## Phase 12.3 - Application shells and identity journeys
 
