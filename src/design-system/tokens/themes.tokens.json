@@ -1813,6 +1813,11 @@
               }
             }
           },
+          "focus-ring": {
+            "$type": "color",
+            "$value": { "colorSpace": "srgb", "components": [0.023529411765, 0.603921568627, 0.529411764706], "hex": "#069a87" },
+            "$extensions": { "com.qr-pagamentos.contrast": { "interpolationStep": 53 } }
+          },
           "feedback-success": {
             "$type": "color",
             "$value": { "colorSpace": "srgb", "components": [0.117647058824, 0.482352941176, 0.294117647059], "hex": "#1e7b4b" },
@@ -1851,6 +1856,11 @@
                 "interpolationStep": 81
               }
             }
+          },
+          "focus-ring": {
+            "$type": "color",
+            "$value": { "colorSpace": "srgb", "components": [0.141176470588, 0.337254901961, 0.901960784314], "hex": "#2456e6" },
+            "$extensions": { "com.qr-pagamentos.contrast": { "interpolationStep": 0 } }
           },
           "feedback-success": {
             "$type": "color",
@@ -1891,6 +1901,11 @@
               }
             }
           },
+          "focus-ring": {
+            "$type": "color",
+            "$value": { "colorSpace": "srgb", "components": [0.658823529412, 0.356862745098, 0.117647058824], "hex": "#a85b1e" },
+            "$extensions": { "com.qr-pagamentos.contrast": { "interpolationStep": 0 } }
+          },
           "feedback-success": {
             "$type": "color",
             "$value": { "colorSpace": "srgb", "components": [0.286274509804, 0.447058823529, 0.062745098039], "hex": "#497210" },
@@ -1929,6 +1944,11 @@
                 "interpolationStep": 54
               }
             }
+          },
+          "focus-ring": {
+            "$type": "color",
+            "$value": { "colorSpace": "srgb", "components": [0.36862745098, 0.917647058824, 0.83137254902], "hex": "#5eead4" },
+            "$extensions": { "com.qr-pagamentos.contrast": { "interpolationStep": 0 } }
           },
           "feedback-success": {
             "$type": "color",
@@ -1969,6 +1989,11 @@
               }
             }
           },
+          "focus-ring": {
+            "$type": "color",
+            "$value": { "colorSpace": "srgb", "components": [0.309803921569, 0.552941176471, 0.992156862745], "hex": "#4f8dfd" },
+            "$extensions": { "com.qr-pagamentos.contrast": { "interpolationStep": 0 } }
+          },
           "feedback-success": {
             "$type": "color",
             "$value": { "colorSpace": "srgb", "components": [0.243137254902, 0.811764705882, 0.556862745098], "hex": "#3ecf8e" },
@@ -2007,6 +2032,11 @@
                 "interpolationStep": 30
               }
             }
+          },
+          "focus-ring": {
+            "$type": "color",
+            "$value": { "colorSpace": "srgb", "components": [1, 0.698039215686, 0.141176470588], "hex": "#ffb224" },
+            "$extensions": { "com.qr-pagamentos.contrast": { "interpolationStep": 0 } }
           },
           "feedback-success": {
             "$type": "color",

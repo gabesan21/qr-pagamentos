@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 
 import { findDesignTokenViolations } from "./check-design-tokens.mjs";
 import { buildGeneratedThemeTokens, COMPATIBILITY_ALIASES, loadTokenDocuments } from "./generate-design-tokens.mjs";
-import { contrastRatio, deriveAccessibleProjection, hexFromSrgb, highestContrastForeground, resolveDesignTokens, resolveToken } from "./design-token-graph.mjs";
+import { compositeSrgb, contrastRatio, deriveAccessibleProjection, hexFromSrgb, highestContrastForeground, resolveDesignTokens, resolveToken } from "./design-token-graph.mjs";
 
 const root = process.cwd();
 const resolver = JSON.parse(readFileSync(join(root, "src/design-system/tokens/resolver.json"), "utf8"));
@@ -30,6 +30,14 @@ const feedbackProjection = {
   "midnight-clearing": { success: ["#34d399", 0, "#000000"], warning: ["#fbbf24", 0, "#000000"], danger: ["#f87171", 0, "#000000"], info: ["#60a5fa", 0, "#000000"] },
   "vault-blue": { success: ["#3ecf8e", 0, "#000000"], warning: ["#f5b93f", 0, "#000000"], danger: ["#ef6a6a", 0, "#000000"], info: ["#7aa8ff", 0, "#000000"] },
   "terminal-amber": { success: ["#8fcb5c", 0, "#000000"], warning: ["#ffd166", 0, "#000000"], danger: ["#ff7a5c", 0, "#000000"], info: ["#e8b04b", 0, "#000000"] },
+} as const;
+const focusProjection = {
+  "pix-paper": ["#069a87", 53, [3.199, 3.512, 3.006]],
+  "cashier-daylight": ["#2456e6", 0, [5.462, 5.918, 5.210]],
+  "settlement-sand": ["#a85b1e", 0, [4.342, 4.734, 4.001]],
+  "midnight-clearing": ["#5eead4", 0, [12.770, 11.650, 10.383]],
+  "vault-blue": ["#4f8dfd", 0, [5.849, 5.417, 4.773]],
+  "terminal-amber": ["#ffb224", 0, [10.752, 10.051, 9.241]],
 } as const;
 
 function resolved(theme: ThemeName = "pix-paper", motion = "full") {
@@ -144,6 +152,30 @@ describe("DTCG 2025.10 application token graph", () => {
     }
   });
 
+  it.each(themeNames)("projects %s focus to an opaque three-pixel indicator with 3:1 contrast", (theme: ThemeName) => {
+    const tokens = resolved(theme);
+    const audit = documents["themes.tokens.json"].color.primitive.audit.template[theme];
+    const expected = focusProjection[theme];
+    const backgrounds = ["page", "raised", "secondary"].map((name) => tokenAt(tokens, `color.surface.${name}`).$value.hex);
+    const ring = tokenAt(tokens, "color.focus.ring").$value;
+    const derived = deriveAccessibleProjection(audit["ring-color"].$value.hex, audit.text.$value.hex, backgrounds, { minimumRatio: 3 });
+
+    expect([ring.hex, derived.step]).toEqual(expected.slice(0, 2));
+    expect(ring.alpha).toBeUndefined();
+    expect(documents["themes.tokens.json"].color.primitive.accessibility[theme]["focus-ring"].$extensions["com.qr-pagamentos.contrast"].interpolationStep).toBe(derived.step);
+    backgrounds.forEach((background, index) => {
+      const ratio = contrastRatio(ring.hex, background);
+      expect(ratio).toBeGreaterThanOrEqual(3);
+      expect(Number(ratio.toFixed(3))).toBe(expected[2][index]);
+    });
+
+    const auditRing = audit["ring-color"].$value;
+    const auditCompositedRatios = backgrounds.map((background) => contrastRatio(
+      compositeSrgb(auditRing.hex, background, auditRing.alpha), background,
+    ));
+    expect(auditCompositedRatios.some((ratio) => ratio < 3)).toBe(true);
+  });
+
   it("pins geometry, type, elevation, focus and reduced-motion values", () => {
     const full = resolved();
     const reduced = resolved("pix-paper", "reduced");
@@ -153,7 +185,8 @@ describe("DTCG 2025.10 application token graph", () => {
     expect(tokenAt(full, "type.semantic.page-heading").$value).toMatchObject({ fontFamily: ["Sora", "sans-serif"], letterSpacing: { value: -0.02, unit: "rem" } });
     expect(tokenAt(full, "type.semantic.numeric").$value.fontFamily[0]).toBe("IBM Plex Mono");
     expect(tokenAt(full, "focus.semantic.width").$value).toEqual({ value: 3, unit: "px" });
-    expect(tokenAt(full, "color.focus.ring").$value).toMatchObject({ colorSpace: "srgb", hex: "#00b8a0", alpha: 0.35 });
+    expect(tokenAt(full, "color.focus.ring").$value).toMatchObject({ colorSpace: "srgb", hex: "#069a87" });
+    expect(tokenAt(full, "color.focus.ring").$value.alpha).toBeUndefined();
     const durationValue = (token: unknown) => (token as { $value: { value: number } }).$value.value;
     expect(Object.values(full.motion.semantic.duration).map(durationValue)).toEqual([150, 160, 180, 200, 220, 250, 300, 400, 50, 1250, 1400, 1500, 2000]);
     expect(Object.values(reduced.motion.semantic.duration).every((token) => durationValue(token) === 0.01)).toBe(true);

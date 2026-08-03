@@ -93,7 +93,7 @@
       },
       "focus-ring": {
         "$type": "color",
-        "$value": "{color.primitive.audit.template.cashier-daylight.ring-color}"
+        "$value": "{color.primitive.accessibility.cashier-daylight.focus-ring}"
       },
       "text-tertiary": {
         "$type": "color",

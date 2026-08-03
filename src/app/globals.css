@@ -91,7 +91,7 @@
   --color-feedback-info-soft: #dce9f8;
   --color-feedback-info-foreground: #ffffff;
   --color-feedback-info-soft-foreground: #1e2a26;
-  --color-focus-ring: rgba(0, 184, 160, 0.35);
+  --color-focus-ring: #069a87;
   --shadow-elevation-card: 0px 1px 2px 0px rgba(16, 24, 40, 0.06), 0px 1px 3px 0px rgba(16, 24, 40, 0.08);
   --background: var(--color-surface-page);
   --foreground: var(--color-text-primary);
@@ -170,7 +170,7 @@
   --color-feedback-info-soft: #1b2e4c;
   --color-feedback-info-foreground: #000000;
   --color-feedback-info-soft-foreground: #eaeff7;
-  --color-focus-ring: rgba(94, 234, 212, 0.4);
+  --color-focus-ring: #5eead4;
   --shadow-elevation-card: inset 0px 1px 0px 0px rgba(255, 255, 255, 0.04), 0px 8px 24px 0px rgba(0, 0, 0, 0.35);
   --background: var(--color-surface-page);
   --foreground: var(--color-text-primary);
@@ -247,7 +247,7 @@
     --color-feedback-info-soft: #1b2e4c;
     --color-feedback-info-foreground: #000000;
     --color-feedback-info-soft-foreground: #eaeff7;
-    --color-focus-ring: rgba(94, 234, 212, 0.4);
+    --color-focus-ring: #5eead4;
     --shadow-elevation-card: inset 0px 1px 0px 0px rgba(255, 255, 255, 0.04), 0px 8px 24px 0px rgba(0, 0, 0, 0.35);
     --background: var(--color-surface-page);
     --foreground: var(--color-text-primary);
@@ -324,7 +324,7 @@
   --color-feedback-info-soft: #dce9f8;
   --color-feedback-info-foreground: #ffffff;
   --color-feedback-info-soft-foreground: #1e2a26;
-  --color-focus-ring: rgba(0, 184, 160, 0.35);
+  --color-focus-ring: #069a87;
   --shadow-elevation-card: 0px 1px 2px 0px rgba(16, 24, 40, 0.06), 0px 1px 3px 0px rgba(16, 24, 40, 0.08);
   --background: var(--color-surface-page);
   --foreground: var(--color-text-primary);
@@ -400,7 +400,7 @@
   --color-feedback-info-soft: #dce9f8;
   --color-feedback-info-foreground: #ffffff;
   --color-feedback-info-soft-foreground: #1e2a26;
-  --color-focus-ring: rgba(0, 184, 160, 0.35);
+  --color-focus-ring: #069a87;
   --shadow-elevation-card: 0px 1px 2px 0px rgba(16, 24, 40, 0.06), 0px 1px 3px 0px rgba(16, 24, 40, 0.08);
   --background: var(--color-surface-page);
   --foreground: var(--color-text-primary);
@@ -476,7 +476,7 @@
   --color-feedback-info-soft: #daeef9;
   --color-feedback-info-foreground: #ffffff;
   --color-feedback-info-soft-foreground: #16202b;
-  --color-focus-ring: rgba(36, 86, 230, 0.35);
+  --color-focus-ring: #2456e6;
   --shadow-elevation-card: 0px 1px 2px 0px rgba(16, 24, 40, 0.06), 0px 1px 3px 0px rgba(16, 24, 40, 0.08);
   --background: var(--color-surface-page);
   --foreground: var(--color-text-primary);
@@ -552,7 +552,7 @@
   --color-feedback-info-soft: #daeef9;
   --color-feedback-info-foreground: #ffffff;
   --color-feedback-info-soft-foreground: #16202b;
-  --color-focus-ring: rgba(36, 86, 230, 0.35);
+  --color-focus-ring: #2456e6;
   --shadow-elevation-card: 0px 1px 2px 0px rgba(16, 24, 40, 0.06), 0px 1px 3px 0px rgba(16, 24, 40, 0.08);
   --background: var(--color-surface-page);
   --foreground: var(--color-text-primary);
@@ -628,7 +628,7 @@
   --color-feedback-info-soft: #dce6f2;
   --color-feedback-info-foreground: #ffffff;
   --color-feedback-info-soft-foreground: #2b2417;
-  --color-focus-ring: rgba(168, 91, 30, 0.35);
+  --color-focus-ring: #a85b1e;
   --shadow-elevation-card: 0px 1px 2px 0px rgba(16, 24, 40, 0.06), 0px 1px 3px 0px rgba(16, 24, 40, 0.08);
   --background: var(--color-surface-page);
   --foreground: var(--color-text-primary);
@@ -704,7 +704,7 @@
   --color-feedback-info-soft: #dce6f2;
   --color-feedback-info-foreground: #ffffff;
   --color-feedback-info-soft-foreground: #2b2417;
-  --color-focus-ring: rgba(168, 91, 30, 0.35);
+  --color-focus-ring: #a85b1e;
   --shadow-elevation-card: 0px 1px 2px 0px rgba(16, 24, 40, 0.06), 0px 1px 3px 0px rgba(16, 24, 40, 0.08);
   --background: var(--color-surface-page);
   --foreground: var(--color-text-primary);
@@ -780,7 +780,7 @@
   --color-feedback-info-soft: #1b2e4c;
   --color-feedback-info-foreground: #000000;
   --color-feedback-info-soft-foreground: #eaeff7;
-  --color-focus-ring: rgba(94, 234, 212, 0.4);
+  --color-focus-ring: #5eead4;
   --shadow-elevation-card: inset 0px 1px 0px 0px rgba(255, 255, 255, 0.04), 0px 8px 24px 0px rgba(0, 0, 0, 0.35);
   --background: var(--color-surface-page);
   --foreground: var(--color-text-primary);
@@ -856,7 +856,7 @@
   --color-feedback-info-soft: #1b2e4c;
   --color-feedback-info-foreground: #000000;
   --color-feedback-info-soft-foreground: #eaeff7;
-  --color-focus-ring: rgba(94, 234, 212, 0.4);
+  --color-focus-ring: #5eead4;
   --shadow-elevation-card: inset 0px 1px 0px 0px rgba(255, 255, 255, 0.04), 0px 8px 24px 0px rgba(0, 0, 0, 0.35);
   --background: var(--color-surface-page);
   --foreground: var(--color-text-primary);
@@ -932,7 +932,7 @@
   --color-feedback-info-soft: #1c2b50;
   --color-feedback-info-foreground: #000000;
   --color-feedback-info-soft-foreground: #e7edf9;
-  --color-focus-ring: rgba(79, 141, 253, 0.45);
+  --color-focus-ring: #4f8dfd;
   --shadow-elevation-card: inset 0px 1px 0px 0px rgba(255, 255, 255, 0.04), 0px 8px 24px 0px rgba(0, 0, 0, 0.35);
   --background: var(--color-surface-page);
   --foreground: var(--color-text-primary);
@@ -1008,7 +1008,7 @@
   --color-feedback-info-soft: #1c2b50;
   --color-feedback-info-foreground: #000000;
   --color-feedback-info-soft-foreground: #e7edf9;
-  --color-focus-ring: rgba(79, 141, 253, 0.45);
+  --color-focus-ring: #4f8dfd;
   --shadow-elevation-card: inset 0px 1px 0px 0px rgba(255, 255, 255, 0.04), 0px 8px 24px 0px rgba(0, 0, 0, 0.35);
   --background: var(--color-surface-page);
   --foreground: var(--color-text-primary);
@@ -1084,7 +1084,7 @@
   --color-feedback-info-soft: #33270d;
   --color-feedback-info-foreground: #000000;
   --color-feedback-info-soft-foreground: #f5e8ce;
-  --color-focus-ring: rgba(255, 178, 36, 0.45);
+  --color-focus-ring: #ffb224;
   --shadow-elevation-card: inset 0px 1px 0px 0px rgba(255, 255, 255, 0.04), 0px 8px 24px 0px rgba(0, 0, 0, 0.35);
   --background: var(--color-surface-page);
   --foreground: var(--color-text-primary);
@@ -1160,7 +1160,7 @@
   --color-feedback-info-soft: #33270d;
   --color-feedback-info-foreground: #000000;
   --color-feedback-info-soft-foreground: #f5e8ce;
-  --color-focus-ring: rgba(255, 178, 36, 0.45);
+  --color-focus-ring: #ffb224;
   --shadow-elevation-card: inset 0px 1px 0px 0px rgba(255, 255, 255, 0.04), 0px 8px 24px 0px rgba(0, 0, 0, 0.35);
   --background: var(--color-surface-page);
   --foreground: var(--color-text-primary);

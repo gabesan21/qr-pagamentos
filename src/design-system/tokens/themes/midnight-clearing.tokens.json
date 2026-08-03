@@ -93,7 +93,7 @@
       },
       "focus-ring": {
         "$type": "color",
-        "$value": "{color.primitive.audit.template.midnight-clearing.ring-color}"
+        "$value": "{color.primitive.accessibility.midnight-clearing.focus-ring}"
       },
       "text-tertiary": {
         "$type": "color",
