@@ -214,6 +214,44 @@
       "test_seconds": 0,
       "return_kind": null,
       "result": "power_outage_resumed_f01_f02_active_f03_f04_f05_intact"
+    },
+    {
+      "at": "2026-08-03T18:20:00-03:00",
+      "event": "front_result",
+      "front": "F01",
+      "contexts": [
+        "exec_12_2_4_f01"
+      ],
+      "test_seconds": 0,
+      "return_kind": null,
+      "result": "state_semantic_fixtures_101_bindings_23_primitives_dom_witnesses"
+    },
+    {
+      "at": "2026-08-03T18:21:00-03:00",
+      "event": "front_result",
+      "front": "F02",
+      "contexts": [
+        "exec_12_2_4_f02"
+      ],
+      "test_seconds": 0,
+      "return_kind": null,
+      "result": "action_contrast_persistence_mutation_cleanup_implementation_complete_evidence_skipped"
+    },
+    {
+      "at": "2026-08-03T18:22:00-03:00",
+      "event": "transition",
+      "from": "004_processing",
+      "to": "005_closing",
+      "contexts": [
+        "exec_12_2_4_f01",
+        "exec_12_2_4_f02",
+        "exec_12_2_4_f03",
+        "exec_12_2_4_f04",
+        "exec_12_2_4_f05"
+      ],
+      "test_seconds": 0,
+      "return_kind": null,
+      "result": "advanced"
     }
   ]
 }
