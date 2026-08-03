@@ -45,6 +45,18 @@
       ],
       "test_seconds": 0,
       "result": "amended-font-transition-gap"
+    },
+    {
+      "at": "2026-08-03T00:03:00-03:00",
+      "event": "transition",
+      "from": "002_planning",
+      "to": "004_processing",
+      "contexts": [
+        "/root/plan_12_2_2_gap"
+      ],
+      "test_seconds": 0,
+      "return_kind": null,
+      "result": "advanced"
     }
   ]
 }
