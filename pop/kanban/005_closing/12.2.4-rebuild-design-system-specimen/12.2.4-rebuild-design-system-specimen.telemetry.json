@@ -176,6 +176,20 @@
       "test_seconds": 900,
       "return_kind": null,
       "result": "rendered_dom_witnesses_4848_states_1104_primitives_exact_repeat_48_captures_20_mutation_tests"
+    },
+    {
+      "at": "2026-08-03T16:55:31-03:00",
+      "event": "transition",
+      "from": "004_processing",
+      "to": "005_closing",
+      "contexts": [
+        "exec_12_2_4_f01",
+        "exec_12_2_4_f02",
+        "exec_12_2_4_f05"
+      ],
+      "test_seconds": 0,
+      "return_kind": null,
+      "result": "advanced"
     }
   ]
 }
