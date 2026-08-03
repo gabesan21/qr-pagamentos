@@ -1,0 +1,599 @@
+{
+  "schemaVersion": 4,
+  "runId": "20260803193353",
+  "startedAt": "2026-08-03T19:33:53.192Z",
+  "gitHead": "33404e99414bb0f2a49d717074ee38ec25731205",
+  "matrix": {
+    "locales": [
+      "pt-BR",
+      "en"
+    ],
+    "themes": [
+      "pix-paper",
+      "cashier-daylight",
+      "settlement-sand",
+      "midnight-clearing",
+      "vault-blue",
+      "terminal-amber"
+    ],
+    "viewports": [
+      320,
+      375,
+      768,
+      1440
+    ],
+    "captures": 48
+  },
+  "deterministicRepeat": {
+    "basePath": "artifacts/design-system/20260803193353/design-system-en-midnight-clearing-375.png",
+    "baseSha256": "d6f66e2eb95f15e84ee22961513d37baf4f790ed8d4c39544af03d7f2af5807f",
+    "key": "en:midnight-clearing:375",
+    "lingeringToasts": 0,
+    "path": "artifacts/design-system/20260803193353/design-system-en-midnight-clearing-375-repeat.png",
+    "sha256": "d6f66e2eb95f15e84ee22961513d37baf4f790ed8d4c39544af03d7f2af5807f"
+  },
+  "assertions": {
+    "path": "artifacts/design-system/20260803193353/assertions.json",
+    "sha256": "6457b5ab20352a099f7af42a894595881a65a2b792952d847ed3eec128d76c08"
+  },
+  "sources": [
+    {
+      "path": "docs/frontend-template-parity/manifest.json",
+      "sha256": "485003a263163fb99e7f9e3dae18128fa5b82f0e0b1fafa59fb8c8ffb284dd9b"
+    },
+    {
+      "path": "docs/frontend-template-parity/obligations.ndjson",
+      "sha256": "f6d4a5b87e73f401b48f52b4b437d36fa058e489bdce602c0f9248f4d392f354"
+    },
+    {
+      "path": "package.json",
+      "sha256": "ff31f69033c3c02360bf8182fdaa41b254efe6f75cc04224887799f14faa47ff"
+    },
+    {
+      "path": "pnpm-lock.yaml",
+      "sha256": "54b6e9ec70de586d6c167fbbc1797fcb47e1b00abbb1b5109ac6556161b14ea0"
+    },
+    {
+      "path": "scripts/check-design-system-coverage.mjs",
+      "sha256": "50dda790eebb6cdaefe45e13d39b8123f9cc2a5046e2ae6fc1035baa39ce5655"
+    },
+    {
+      "path": "scripts/verify-design-system-evidence.mjs",
+      "sha256": "7b9628c911a2a09a4244e2a943b03dd017d1061585b9169cf82d0ef5b15a3b3c"
+    },
+    {
+      "path": "scripts/verify-design-system-evidence.test.ts",
+      "sha256": "efa3ba2cb816538524fb5c5d2d89904302c7f266048ae93bd49c495b45b90269"
+    },
+    {
+      "path": "src/app/design-system/coverage.test.ts",
+      "sha256": "17921a8db004a7f27520c5c154ccd59fac36b165ae208ce3da1098d327fe2caa"
+    },
+    {
+      "path": "src/app/design-system/coverage.ts",
+      "sha256": "9afd6294174ff2464475854cd7c3af84fa3037d32c30ebef8348aa8f760887fb"
+    },
+    {
+      "path": "src/app/design-system/interactive-specimens.tsx",
+      "sha256": "a4f5ca83797aab4588a515e8cec0406aa909d5983f076e5f63331014231bb3c7"
+    },
+    {
+      "path": "src/app/design-system/page.tsx",
+      "sha256": "8f2bdb6549d24c73d3b09b1744de886c2f2c3c577c7d355e64055ae583ebb29b"
+    },
+    {
+      "path": "src/app/design-system/specimen-binding.tsx",
+      "sha256": "ce2c04efbd9ce9ca67c9364d9dd2e51d4d0246f509501d8ecba5157bf2893018"
+    },
+    {
+      "path": "src/app/design-system/specimen-mounted.test.tsx",
+      "sha256": "f53b965571bfe3c8ebb5c4ef2e5f6b3586375ec373023197006ed13a8f1134fa"
+    },
+    {
+      "path": "src/app/globals.css",
+      "sha256": "79894e91a0d9c07ec6b25d434a12d66f020b639ae9baaed8647335227a39549f"
+    },
+    {
+      "path": "src/brand/assets.manifest.json",
+      "sha256": "9d6479c9eb53c5fefc8b2a615b1234d82bd1ff217f74b1a7b2fef1650e47a108"
+    },
+    {
+      "path": "src/components/ui/alert-dialog.tsx",
+      "sha256": "8244a134dc7f4a3dbd0baaea034968946ea2e7ad8ab3e0da8e68b156d83b4134"
+    },
+    {
+      "path": "src/components/ui/avatar.tsx",
+      "sha256": "4c2060bc3bbc1cbf5029ed678ef71be48b39cd1d1aa432cc2ebbeecc63f800c3"
+    },
+    {
+      "path": "src/components/ui/badge.tsx",
+      "sha256": "a83b67495b234f2a6453dc74f3f5e36bcb5b2b14b63cadd0d15bdec5f89e2c4e"
+    },
+    {
+      "path": "src/components/ui/button.tsx",
+      "sha256": "450d34c0109bc8158f9986a57a34ebf8688f471a69c441d942415a710ae46381"
+    },
+    {
+      "path": "src/components/ui/card.tsx",
+      "sha256": "0dbdf62d69c04c54cd4f6e28349ec3fa326074584fb63d76a2a5fc48af4807b5"
+    },
+    {
+      "path": "src/components/ui/checkbox.tsx",
+      "sha256": "9d3f01ce19c12b762db461de12f6690f94445efef289eb5af1581172a91723c9"
+    },
+    {
+      "path": "src/components/ui/copy-field.tsx",
+      "sha256": "e3f9ab3514b6b6a161a03d5c272ed61769e5aefa6e188588d8de7f660bc8b5fc"
+    },
+    {
+      "path": "src/components/ui/dialog.tsx",
+      "sha256": "5ab6cd07c5a9e9595408bda2e604dc8d8cea50b54d83a6170f0636ce6699dd4a"
+    },
+    {
+      "path": "src/components/ui/empty-state.tsx",
+      "sha256": "eaec707967c0e40bf749ce2fe37754e5eed123f4af1a03d8d5e821950aa78750"
+    },
+    {
+      "path": "src/components/ui/empty.tsx",
+      "sha256": "b5bf6dc42f2e3418b987f1f0b6e57f2fe122ae49ca9942ba0459e088c3923698"
+    },
+    {
+      "path": "src/components/ui/field.tsx",
+      "sha256": "04013d8f6caa916b602124cbba576b22fa44a0225d8fed44591ab96ce8551a9c"
+    },
+    {
+      "path": "src/components/ui/input-otp.tsx",
+      "sha256": "bcc69757d28eedce549df10d400905f6fefe9a7e5e2920f6978a047e847b78ea"
+    },
+    {
+      "path": "src/components/ui/input.tsx",
+      "sha256": "bcc2435085975586f75237a8e00a93671eb2679e54e62b5cde224c126d55f2b3"
+    },
+    {
+      "path": "src/components/ui/inventory.json",
+      "sha256": "c823020da184317d9cb0a6f0634dacf0bfb6a422fe2580978a0046a20490a948"
+    },
+    {
+      "path": "src/components/ui/localized-field-group.tsx",
+      "sha256": "7e8158b786caf35419e8d92fd49b6388424102c8b106391209bf8450512ef631"
+    },
+    {
+      "path": "src/components/ui/modal.tsx",
+      "sha256": "019e8dda0f2fc3a94426d382fbca566140833a621371f5ea78df5fe6c779e8c8"
+    },
+    {
+      "path": "src/components/ui/money-text.tsx",
+      "sha256": "30d7255e3f51a02cc2f3b90958df019dc0b375e69624c51a5ace1af91be1b0d9"
+    },
+    {
+      "path": "src/components/ui/monogram.tsx",
+      "sha256": "dc2914507ba7be6a8f32bd929f5d26dc8a77e64c7c9258cf606f11ba41391010"
+    },
+    {
+      "path": "src/components/ui/native-select.tsx",
+      "sha256": "66d709ffc9406609e5cd82ddfd1c66bd3ea70f5e20d688bcb12c8474a7bdfada"
+    },
+    {
+      "path": "src/components/ui/pagination.tsx",
+      "sha256": "7440e8e21e7e2ff306df5373a0282f7e2329e2d57aa9dc55b692f32af187e912"
+    },
+    {
+      "path": "src/components/ui/qr-display.tsx",
+      "sha256": "eef1821f07ae8a36d5dae581fec84141023a56c9fe8ee4a80a269d2dcd53f055"
+    },
+    {
+      "path": "src/components/ui/simple-tabs.tsx",
+      "sha256": "05bdd9f9b1ff5ba0d80875bfc308c95a756a46eaa5ab9046e797a26462bab98b"
+    },
+    {
+      "path": "src/components/ui/skeletons.tsx",
+      "sha256": "c68b608418fc74289630dc6b31f319aa6700b73828c973a98c8920903a082f7e"
+    },
+    {
+      "path": "src/components/ui/sonner.tsx",
+      "sha256": "0f25dfc6ec0d052d3a192eedb53d35496b2a8962840f76a0f06fc27329ea927d"
+    },
+    {
+      "path": "src/components/ui/spinner.tsx",
+      "sha256": "5d07502d308281dc5152d60686c7a04b1dede7dbcd1bf34f6ae3bc47925b9c9f"
+    },
+    {
+      "path": "src/components/ui/stat-card.tsx",
+      "sha256": "46dfbec4fe6d8ff2f0ed54661e846ee6215c382b3c776d6be8ee5d0ac9b8082c"
+    },
+    {
+      "path": "src/components/ui/status-badge.tsx",
+      "sha256": "9345a3fe4ddf918ac7cd65aec5ac16da899f6accbe3b9440cec2051a79b619ad"
+    },
+    {
+      "path": "src/components/ui/switch.tsx",
+      "sha256": "d1ae0079a63f8452861201da4e4822402646cad9d6972272645f96e5de888681"
+    },
+    {
+      "path": "src/components/ui/table.tsx",
+      "sha256": "b423fe1e6861c021568d8bd97ff5b2f752d533407efaec4910a13f271000ac88"
+    },
+    {
+      "path": "src/components/ui/tabs.tsx",
+      "sha256": "afb2ad373eea1b96d6519a834b84f8b54a986c10e7c907678b50aa885679c77d"
+    },
+    {
+      "path": "src/components/ui/textarea.tsx",
+      "sha256": "87e95b186d9f0d2e0c83374900f85ab1e525045035ab111902013e6166ad7664"
+    },
+    {
+      "path": "src/components/ui/timeline.tsx",
+      "sha256": "bba4035cefc7a4a2e6b9fbe9fa9077477c495fc79498d6b548802ebc9482cb23"
+    },
+    {
+      "path": "src/components/ui/toast.tsx",
+      "sha256": "0d37019df4a2984d35be0442261d65774489b755eeab97f066b415164bef2db4"
+    },
+    {
+      "path": "src/data-directory/ui/data-directory.tsx",
+      "sha256": "f42484edf9cb6289501d8cedcbe829526478be9f59d4bd46a128dd9971e9c882"
+    },
+    {
+      "path": "src/data-directory/ui/specimen.tsx",
+      "sha256": "c92065720c4b9f30ae7464dd7a685ea17c995dedeca6e78384f3a0d668364c20"
+    },
+    {
+      "path": "src/design-system/fonts/provenance.json",
+      "sha256": "59f7aa6b116d11d0319ccbdf67ddc23364773f25e25f5be909abb0f618f02f0b"
+    },
+    {
+      "path": "src/design-system/tokens/components.tokens.json",
+      "sha256": "cbed45709b9b42d2fc0407447e18070f2caae23ee62b45502c2adb4e69929b61"
+    },
+    {
+      "path": "src/design-system/tokens/motion/full.tokens.json",
+      "sha256": "6a5ebf60f9d94c843e44a563489f30852760ba3d0a982da74e4c2cc41d5efeee"
+    },
+    {
+      "path": "src/design-system/tokens/motion/reduced.tokens.json",
+      "sha256": "cb37c3bad85ac9de53977e5e404d96e586ed39f0550c4e4e4f791da953ce944d"
+    },
+    {
+      "path": "src/design-system/tokens/resolver.json",
+      "sha256": "3981fbfe1933458ebebdac6e12bd8125fa452463512de9db9ae2e54b3033af87"
+    },
+    {
+      "path": "src/design-system/tokens/semantic.tokens.json",
+      "sha256": "6ca757ac1bb3507ebe33a1f0ee050cb051e8937ff8013b4943d0b0f2b2d1fe55"
+    },
+    {
+      "path": "src/design-system/tokens/themes.tokens.json",
+      "sha256": "641c8fa24a37fd423c7ef498e09cea265afb0fe1268e6f84f141cafeac0127f7"
+    },
+    {
+      "path": "src/design-system/tokens/themes/cashier-daylight.tokens.json",
+      "sha256": "11433c8eb8d0825ea692615a0e55a420b3edbf0479868a0c259312785206a940"
+    },
+    {
+      "path": "src/design-system/tokens/themes/midnight-clearing.tokens.json",
+      "sha256": "312c31fcb87ce7723b9ff9c6cd39478be672b33208e349b4f5a97cc30d7371a3"
+    },
+    {
+      "path": "src/design-system/tokens/themes/pix-paper.tokens.json",
+      "sha256": "cec4bdc6503345a13812f7884315d98d18c0829486be4e5b0c881cbe98199686"
+    },
+    {
+      "path": "src/design-system/tokens/themes/settlement-sand.tokens.json",
+      "sha256": "740104aebe3312795c5a00078d386b4c26bc6f68b87fae2bafc88d84fa6b9460"
+    },
+    {
+      "path": "src/design-system/tokens/themes/terminal-amber.tokens.json",
+      "sha256": "8ddff04b4d754a5e4755743bc01ebf97daf368413e7898b8d264a1ef236b7dec"
+    },
+    {
+      "path": "src/design-system/tokens/themes/vault-blue.tokens.json",
+      "sha256": "b2c46e9013c024df0606f486519f4d9c9673862170a42304df386a2b2643e53c"
+    },
+    {
+      "path": "src/i18n/dictionaries/design-system/en.ts",
+      "sha256": "c070cf9bedba4797ce64b67a1dfb8c91e33150db99f4e5e02ad66ea758a7ca2f"
+    },
+    {
+      "path": "src/i18n/dictionaries/design-system/pt-BR.ts",
+      "sha256": "3c19ed34015de560f09603bde0970f0810e39ec362527e3f7ab3fb95e0a3889e"
+    },
+    {
+      "path": "src/i18n/locales.ts",
+      "sha256": "75fac72551a8d4878ee1798e47dc1f0dafe994c9876f15c1ac6b56e79a97f57c"
+    },
+    {
+      "path": "tests/design-system.evidence.spec.ts",
+      "sha256": "1b87b80e84f6502952fdb40342f3b4d030c467798b53e558f093128e55162d5b"
+    }
+  ],
+  "pngs": [
+    {
+      "path": "artifacts/design-system/20260803193353/design-system-pt-BR-pix-paper-320.png",
+      "bytes": 622292,
+      "sha256": "2d48aa0eb3eb7ac07c123cb7c653ab49f2d95da93dad42e0aa2e95c80d042e8b",
+      "mtimeMs": 1785785648549.7463
+    },
+    {
+      "path": "artifacts/design-system/20260803193353/design-system-pt-BR-pix-paper-375.png",
+      "bytes": 622263,
+      "sha256": "49b572535c6e4581ecb8d2a338d0a878d16a23def79426a5459ff8e57873439f",
+      "mtimeMs": 1785785663646.5854
+    },
+    {
+      "path": "artifacts/design-system/20260803193353/design-system-pt-BR-pix-paper-768.png",
+      "bytes": 640025,
+      "sha256": "99dbfb692ecc5d4e1ac9805e5bf123c0cd4dff6f0c9118ce56a4a0990e06e4c8",
+      "mtimeMs": 1785785679453.433
+    },
+    {
+      "path": "artifacts/design-system/20260803193353/design-system-pt-BR-pix-paper-1440.png",
+      "bytes": 623536,
+      "sha256": "abc5d1c18462e27afcf36930502e22fbed7d1d1cdb2a8e4720c9904a065ddd50",
+      "mtimeMs": 1785785696393.6272
+    },
+    {
+      "path": "artifacts/design-system/20260803193353/design-system-pt-BR-cashier-daylight-320.png",
+      "bytes": 619789,
+      "sha256": "03c477c1a9a182276a885aa0874dc03570ef3928e59d898cbe095c030d7bb871",
+      "mtimeMs": 1785785714407.167
+    },
+    {
+      "path": "artifacts/design-system/20260803193353/design-system-pt-BR-cashier-daylight-375.png",
+      "bytes": 619771,
+      "sha256": "2cbb50541a4c6e925212001e097eb9d33b619dfad3dafd3215b42a780a9e9d29",
+      "mtimeMs": 1785785731074.025
+    },
+    {
+      "path": "artifacts/design-system/20260803193353/design-system-pt-BR-cashier-daylight-768.png",
+      "bytes": 638991,
+      "sha256": "e77e5f52b9866b6e8af6a677a072b42dd54f280ec6c71a8733d734e4221cf39e",
+      "mtimeMs": 1785785748010.8862
+    },
+    {
+      "path": "artifacts/design-system/20260803193353/design-system-pt-BR-cashier-daylight-1440.png",
+      "bytes": 622258,
+      "sha256": "23ee0d1ce4f44951366bb5f15f6624eb3ab6a455f3ce815a613663c87a2cbc37",
+      "mtimeMs": 1785785765417.753
+    },
+    {
+      "path": "artifacts/design-system/20260803193353/design-system-pt-BR-settlement-sand-320.png",
+      "bytes": 628735,
+      "sha256": "999cd58d9f29c18af06d68bd5862f8455e71c72309f747ed9997421b16cfa77c",
+      "mtimeMs": 1785785782011.2773
+    },
+    {
+      "path": "artifacts/design-system/20260803193353/design-system-pt-BR-settlement-sand-375.png",
+      "bytes": 627838,
+      "sha256": "47f99494b94f8aff4e355cd0d07f81ba16b9725f8a768e5b74d39fa7fbca3bb3",
+      "mtimeMs": 1785785797854.793
+    },
+    {
+      "path": "artifacts/design-system/20260803193353/design-system-pt-BR-settlement-sand-768.png",
+      "bytes": 644221,
+      "sha256": "3038b7f593468fbe689fc820573a9e8822c43fdcd43d5a3355298073e7693096",
+      "mtimeMs": 1785785814351.6497
+    },
+    {
+      "path": "artifacts/design-system/20260803193353/design-system-pt-BR-settlement-sand-1440.png",
+      "bytes": 626962,
+      "sha256": "02e2e8546c5cad90055bb98eeea18baa5e43a2bb00bddb93f7c1ebe7cbb285a9",
+      "mtimeMs": 1785785831348.5125
+    },
+    {
+      "path": "artifacts/design-system/20260803193353/design-system-pt-BR-midnight-clearing-320.png",
+      "bytes": 651329,
+      "sha256": "ac802324c72952fa5a2552ca7f40863e7e0d53bf68bb34f35d10975c3f9db3dd",
+      "mtimeMs": 1785785847972.0376
+    },
+    {
+      "path": "artifacts/design-system/20260803193353/design-system-pt-BR-midnight-clearing-375.png",
+      "bytes": 649443,
+      "sha256": "a15565b7b435dd05b225f6bde9f302d7a3b59f9d67df220e3a5d0c8d82f7db8e",
+      "mtimeMs": 1785785864172.2246
+    },
+    {
+      "path": "artifacts/design-system/20260803193353/design-system-pt-BR-midnight-clearing-768.png",
+      "bytes": 660117,
+      "sha256": "c9f447aba81c1e8fe02863b3ab7008587239e90195588c93ad078de7a8c8a206",
+      "mtimeMs": 1785785880785.75
+    },
+    {
+      "path": "artifacts/design-system/20260803193353/design-system-pt-BR-midnight-clearing-1440.png",
+      "bytes": 641965,
+      "sha256": "9c94055176168c66798e4a6831574dae815f10853e86c2563120bddbd7e9522d",
+      "mtimeMs": 1785785897979.282
+    },
+    {
+      "path": "artifacts/design-system/20260803193353/design-system-pt-BR-vault-blue-320.png",
+      "bytes": 650764,
+      "sha256": "d4ef98c630b6b3acbb2d291f425b7573fafef342ee9d117dca7623c9d46624d2",
+      "mtimeMs": 1785785915226.1482
+    },
+    {
+      "path": "artifacts/design-system/20260803193353/design-system-pt-BR-vault-blue-375.png",
+      "bytes": 649465,
+      "sha256": "0cac9d66a1ac353b48e9904285e555c4d70d77a05d260a3f895c89d39b748dd9",
+      "mtimeMs": 1785785931666.3386
+    },
+    {
+      "path": "artifacts/design-system/20260803193353/design-system-pt-BR-vault-blue-768.png",
+      "bytes": 660770,
+      "sha256": "3ff13a24b9c2b8232bf6458434b805f79660c0628f3d3863600d06cf9ce23073",
+      "mtimeMs": 1785785948963.2056
+    },
+    {
+      "path": "artifacts/design-system/20260803193353/design-system-pt-BR-vault-blue-1440.png",
+      "bytes": 642306,
+      "sha256": "9f7b12be6ae3b97d57fcfcba77af8d2abc0bd7404768e43b348d0a3871f673f7",
+      "mtimeMs": 1785785966730.0781
+    },
+    {
+      "path": "artifacts/design-system/20260803193353/design-system-pt-BR-terminal-amber-320.png",
+      "bytes": 642048,
+      "sha256": "e37bcb8d8ee2e3ab0c858f8092d71f7938b4ca7a9ad4364269a79da825f53689",
+      "mtimeMs": 1785785984693.6199
+    },
+    {
+      "path": "artifacts/design-system/20260803193353/design-system-pt-BR-terminal-amber-375.png",
+      "bytes": 641507,
+      "sha256": "a621c5dad517b18219322e7261d165b164e9db6578d1d4bc68e87dbb2804b130",
+      "mtimeMs": 1785786001747.151
+    },
+    {
+      "path": "artifacts/design-system/20260803193353/design-system-pt-BR-terminal-amber-768.png",
+      "bytes": 656082,
+      "sha256": "b4fce97ce0a8bd453f58c157830ac81ec0860240228b6e0b85214e9722a5c4eb",
+      "mtimeMs": 1785786019657.359
+    },
+    {
+      "path": "artifacts/design-system/20260803193353/design-system-pt-BR-terminal-amber-1440.png",
+      "bytes": 638263,
+      "sha256": "603a36d919c518ef88abea1e43fb7d52aa56cd8eed7cee4d8bad03a73b6a4a17",
+      "mtimeMs": 1785786037980.905
+    },
+    {
+      "path": "artifacts/design-system/20260803193353/design-system-en-pix-paper-320.png",
+      "bytes": 588600,
+      "sha256": "b982f0d5264c845b751ed53d7bbcd0d342f7e375bd438323c7de5eca1bcfe8fc",
+      "mtimeMs": 1785786056644.4553
+    },
+    {
+      "path": "artifacts/design-system/20260803193353/design-system-en-pix-paper-375.png",
+      "bytes": 587908,
+      "sha256": "44be3eb2167f35b98c62f629445035632a1253ddb05e80c72f6f59e85de07bf1",
+      "mtimeMs": 1785786074624.6643
+    },
+    {
+      "path": "artifacts/design-system/20260803193353/design-system-en-pix-paper-768.png",
+      "bytes": 601612,
+      "sha256": "7e1adf57aed94650aa4d08d1f68fd9ad3d31b9741938d9744e46684276140f97",
+      "mtimeMs": 1785786093298.2148
+    },
+    {
+      "path": "artifacts/design-system/20260803193353/design-system-en-pix-paper-1440.png",
+      "bytes": 589999,
+      "sha256": "a5795ec0f1a9d37c84787946848a8025166dce6b99a1b96f2f7fa00f1d63b3d3",
+      "mtimeMs": 1785786112205.1016
+    },
+    {
+      "path": "artifacts/design-system/20260803193353/design-system-en-cashier-daylight-320.png",
+      "bytes": 585736,
+      "sha256": "9303583355f63ff5fe0ec5ee096e260dc71789bfd050864d7a141b95cf580726",
+      "mtimeMs": 1785786132348.6694
+    },
+    {
+      "path": "artifacts/design-system/20260803193353/design-system-en-cashier-daylight-375.png",
+      "bytes": 585161,
+      "sha256": "2bab28b921be18bc9cbd44d1237a9bca4a7bb12c63890cf58afb50478b170a22",
+      "mtimeMs": 1785786151755.562
+    },
+    {
+      "path": "artifacts/design-system/20260803193353/design-system-en-cashier-daylight-768.png",
+      "bytes": 600292,
+      "sha256": "4d9e52803ff3abb6c8e02520743e5c2290fc8e4f9ef4ca7dd5c0d1f9c5344ffe",
+      "mtimeMs": 1785786171589.1265
+    },
+    {
+      "path": "artifacts/design-system/20260803193353/design-system-en-cashier-daylight-1440.png",
+      "bytes": 588725,
+      "sha256": "2f64052a413c75297058a641a44a57232ea35594b5cfb8c030db4dd4e0f7dbab",
+      "mtimeMs": 1785786191962.6973
+    },
+    {
+      "path": "artifacts/design-system/20260803193353/design-system-en-settlement-sand-320.png",
+      "bytes": 594579,
+      "sha256": "14f9a5725f38c16b36812574b20f39de3ff7006356328935f6d3d462c76641ca",
+      "mtimeMs": 1785786212576.271
+    },
+    {
+      "path": "artifacts/design-system/20260803193353/design-system-en-settlement-sand-375.png",
+      "bytes": 593815,
+      "sha256": "791abbd6c990e47728a81bde12fea468cb0faf6081abe7d39a3c067ccb1280dc",
+      "mtimeMs": 1785786232066.4985
+    },
+    {
+      "path": "artifacts/design-system/20260803193353/design-system-en-settlement-sand-768.png",
+      "bytes": 605968,
+      "sha256": "c3ad86373dc140ad30e40950034f6b497da0fd27de341bb23d93642bfee6de3d",
+      "mtimeMs": 1785786252033.3982
+    },
+    {
+      "path": "artifacts/design-system/20260803193353/design-system-en-settlement-sand-1440.png",
+      "bytes": 593244,
+      "sha256": "39210c40fa6c4e71e1a54c96fe1f498db21b65409e5e1c2dbb65d99c114143a6",
+      "mtimeMs": 1785786272966.976
+    },
+    {
+      "path": "artifacts/design-system/20260803193353/design-system-en-midnight-clearing-320.png",
+      "bytes": 613881,
+      "sha256": "1e1e749469a84b94781e80ca8e14539f1608e7ecbd949c6dc14b63ed412dae00",
+      "mtimeMs": 1785786294493.894
+    },
+    {
+      "path": "artifacts/design-system/20260803193353/design-system-en-midnight-clearing-375.png",
+      "bytes": 612868,
+      "sha256": "d6f66e2eb95f15e84ee22961513d37baf4f790ed8d4c39544af03d7f2af5807f",
+      "mtimeMs": 1785786314864.132
+    },
+    {
+      "path": "artifacts/design-system/20260803193353/design-system-en-midnight-clearing-768.png",
+      "bytes": 621476,
+      "sha256": "c61f7fe9e9f515da3afe7168ebf03c1495e941f15963acd8c68ac7753c97c20a",
+      "mtimeMs": 1785786337391.062
+    },
+    {
+      "path": "artifacts/design-system/20260803193353/design-system-en-midnight-clearing-1440.png",
+      "bytes": 606928,
+      "sha256": "32179d1c5b93641283d6221b16b10c122c86e72a01a9d5c0c501325e8e284365",
+      "mtimeMs": 1785786358717.978
+    },
+    {
+      "path": "artifacts/design-system/20260803193353/design-system-en-vault-blue-320.png",
+      "bytes": 614222,
+      "sha256": "44b0146d608a894b0b92bcb098be8be9422b5ade15a202ba2c1e00a016ae1010",
+      "mtimeMs": 1785786380788.2363
+    },
+    {
+      "path": "artifacts/design-system/20260803193353/design-system-en-vault-blue-375.png",
+      "bytes": 613646,
+      "sha256": "ad8c0cdd731c1595adf87e29932763d415713eb951d8c8be93e4758eb17165b6",
+      "mtimeMs": 1785786401655.147
+    },
+    {
+      "path": "artifacts/design-system/20260803193353/design-system-en-vault-blue-768.png",
+      "bytes": 622459,
+      "sha256": "36f6e5b9e7ffa22355f9dad36cecd02a1019e871763957f36181553050b48742",
+      "mtimeMs": 1785786423155.3987
+    },
+    {
+      "path": "artifacts/design-system/20260803193353/design-system-en-vault-blue-1440.png",
+      "bytes": 607697,
+      "sha256": "7059c6999a751c7a1fdbdb9a2db9dae9a847b9d8037f9fcfbb38a06169a756cc",
+      "mtimeMs": 1785786445132.3225
+    },
+    {
+      "path": "artifacts/design-system/20260803193353/design-system-en-terminal-amber-320.png",
+      "bytes": 607415,
+      "sha256": "cb6e23d7e43f6e95b64522c3e356876e6966cda2664e9f41b49f29c2932da300",
+      "mtimeMs": 1785786467612.586
+    },
+    {
+      "path": "artifacts/design-system/20260803193353/design-system-en-terminal-amber-375.png",
+      "bytes": 605733,
+      "sha256": "358a0d046b0bcbe9dd71e9bf3b0d83715f14531792370486a9becc79d37e4588",
+      "mtimeMs": 1785786488672.8325
+    },
+    {
+      "path": "artifacts/design-system/20260803193353/design-system-en-terminal-amber-768.png",
+      "bytes": 618157,
+      "sha256": "22e85b6c946c0513d5c307d4c8732ee4bc3774044796387741149676d445f9db",
+      "mtimeMs": 1785786510719.7576
+    },
+    {
+      "path": "artifacts/design-system/20260803193353/design-system-en-terminal-amber-1440.png",
+      "bytes": 605859,
+      "sha256": "51f885180aa011720b2eede771b7a5c7bdfe53badeb5a284b14116be3ce94c76",
+      "mtimeMs": 1785786533346.6892
+    }
+  ]
+}

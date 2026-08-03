@@ -165,6 +165,17 @@
       "test_seconds": 0,
       "return_kind": null,
       "result": "advanced"
+    },
+    {
+      "at": "2026-08-03T16:52:32-03:00",
+      "event": "front_repair",
+      "front": "F02",
+      "contexts": [
+        "exec_12_2_4_f02"
+      ],
+      "test_seconds": 900,
+      "return_kind": null,
+      "result": "rendered_dom_witnesses_4848_states_1104_primitives_exact_repeat_48_captures_20_mutation_tests"
     }
   ]
 }

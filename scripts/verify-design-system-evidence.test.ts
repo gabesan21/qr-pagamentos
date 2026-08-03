@@ -101,6 +101,45 @@ describe("design-system evidence fail-closed boundaries", () => {
     expect(verify(state.root)).toThrow(/source hash mismatch/);
   });
 
+  it("rejects deleted, duplicated, stale, hidden, or mismatched rendered binding witnesses", () => {
+    const state = fixture();
+    const assertionsPath = path.join(state.root, state.manifest.assertions.path);
+    const assertions = JSON.parse(readFileSync(assertionsPath, "utf8"));
+    const originalCoverage = structuredClone(assertions[0].coverage);
+    const mutate = (change: (coverage: typeof originalCoverage) => void, diagnostic: RegExp) => {
+      assertions[0].coverage = structuredClone(originalCoverage);
+      change(assertions[0].coverage);
+      writeJson(assertionsPath, assertions);
+      state.manifest.assertions.sha256 = hash(readFileSync(assertionsPath));
+      state.persistManifest();
+      expect(verify(state.root)).toThrow(diagnostic);
+    };
+
+    mutate(({ bindings }) => { bindings.pop(); }, /rendered binding count drifted/);
+    mutate(({ bindings }) => { bindings.push(structuredClone(bindings[0])); }, /rendered binding count drifted/);
+    mutate(({ bindings }) => { bindings[0].state = "stale"; }, /rendered binding owner\/state mismatch/);
+    mutate(({ bindings }) => { bindings[0].visible = false; }, /visible or semantic DOM witness/);
+    mutate(({ bindings }) => { bindings[0].owner = "stale-owner"; }, /rendered binding owner\/state mismatch/);
+    mutate(({ primitives }) => { primitives.pop(); }, /rendered primitive count drifted/);
+    mutate(({ primitives }) => { primitives.push(structuredClone(primitives[0])); }, /rendered primitive count drifted/);
+    mutate(({ primitives }) => { primitives[0].primitive = "Stale"; }, /rendered primitive mismatch/);
+    mutate(({ primitives }) => { primitives[0].visible = false; }, /visible DOM witness/);
+  }, 120_000);
+
+  it("rejects stale or divergent deterministic repeat evidence", () => {
+    const state = fixture();
+    const originalRepeat = structuredClone(state.manifest.deterministicRepeat);
+    state.manifest.deterministicRepeat.lingeringToasts = 1;
+    state.persistManifest();
+    expect(verify(state.root)).toThrow(/stale UI state or divergent hash/);
+
+    state.manifest.deterministicRepeat = originalRepeat;
+    state.persistManifest();
+    const repeatPath = path.join(state.root, originalRepeat.path);
+    writeFileSync(repeatPath, Buffer.concat([readFileSync(repeatPath), Buffer.from("divergent pixels")]));
+    expect(verify(state.root)).toThrow(/deterministic repeat pixels diverged/);
+  });
+
   it("rejects owner, fixture/state, matrix, artifact, authority, assertion and source drift", () => {
     const state = fixture();
     expect(verify(state.root)).not.toThrow();
@@ -115,7 +154,7 @@ describe("design-system evidence fail-closed boundaries", () => {
     mutateFile("src/components/ui/button.tsx", (value) => `${value}\n// source drift\n`, /source hash mismatch/);
     mutateFile("src/app/design-system/coverage.ts", (value) => value.replace('["button",', '["stale-button",'), /coverage owner inventory|source hash mismatch/);
     mutateFile("src/app/design-system/coverage.ts", (value) => value.replace('"actions", ["default"', '"stale-fixture", ["default"'), /source hash mismatch/);
-    mutateFile("src/app/design-system/coverage.ts", (value) => value.replace('["default", "hover"', '["stale-state", "hover"'), /source hash mismatch/);
+    mutateFile("src/app/design-system/coverage.ts", (value) => value.replace('["default", "hover"', '["stale-state", "hover"'), /rendered binding owner\/state mismatch|source hash mismatch/);
     mutateFile("docs/frontend-template-parity/obligations.ndjson", (value) => `${value.trim()}\n{}\n`, /canonical parity record count drifted/);
 
     const originalMatrix = structuredClone(state.manifest.matrix);
