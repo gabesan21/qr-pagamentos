@@ -142,6 +142,17 @@
       "test_seconds": 0,
       "return_kind": null,
       "result": "advanced"
+    },
+    {
+      "at": "2026-08-03T15:21:00-03:00",
+      "event": "stage_result",
+      "stage": "002_planning",
+      "contexts": [
+        "plan_12_2_4_color_gap"
+      ],
+      "test_seconds": 0,
+      "return_kind": null,
+      "result": "append_only_c11_f05_semantic_action_contrast_before_f02_resume"
     }
   ]
 }
