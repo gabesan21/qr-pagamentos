@@ -24,4 +24,6 @@
   template obligation maps once and excluded generated sources never become
   reachable owners.
 - Update [`../../../DESIGN.md`](../../../DESIGN.md) with inventory or state
-  changes. The complete inventory specimen is owned by task `12.2.4`.
+  changes. `/design-system` is the role-neutral evidence specimen for this
+  inventory; it composes these owners but never becomes a production-owner
+  boundary.

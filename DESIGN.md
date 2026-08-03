@@ -1,10 +1,10 @@
 # QR Pagamentos frontend memory
 
 This document is the implementation-facing memory for
-[[pop/specs/application-frontend-system|Application frontend system]]. It defines
-the target presentation for Epoch 12; it does not claim that current production
-UI conforms. Until an owning task ships and passes its evidence, the existing
-runtime remains authoritative.
+[[pop/specs/application-frontend-system|Application frontend system]]. The
+closed role-neutral `/design-system` specimen makes the shared foundation
+observable and evidence-bound; product route-family migration remains partial,
+so existing route contracts remain authoritative outside that boundary.
 
 ## Authority
 
@@ -270,10 +270,10 @@ Before adding a component:
 2. Reuse or extend the single owner when its responsibility matches.
 3. If genuinely new, record one owner/import path, public props, complete
    applicable states, and a one-line insufficiency finding for the inventory.
-4. Update the executable inventory in the same task. Task `12.2.4` owns the
-   complete new-inventory state/locale specimen; until it ships, current
-   consumer evidence is proof of regression safety, not complete specimen
-   conformance.
+4. Update the executable inventory with the owner, public props, applicable
+   states, and insufficiency finding. The closed `/design-system` specimen
+   exercises every reachable shared owner and its applicable state across both
+   locales, all six themes, and the fixed responsive matrix.
 
 Every `excluded-unreachable-generated-ui` obligation remains excluded. An
 unreachable generated template file, including a registry component, is not an
@@ -379,8 +379,11 @@ source-divergent evidence fails closed.
 | Raster | threshold `0.1`, maximum differing-pixel ratio `0.001` |
 | Independent assertions | geometry, typography, content, keyboard/focus, overflow, accessibility, console, requests, and contract behavior |
 
-Raster tolerance never waives an independent assertion. Later task evidence is
-run-bound and fresh; it cannot reuse a prior manifest or claim another route's
-capture. `pnpm frontend-parity:check` validates the immutable inventory and
-`pnpm check` protects application behavior. Passing those gates alone does not
-claim that an unimplemented Epoch 12 surface visually conforms.
+Raster tolerance never waives an independent assertion. Evidence is run-bound
+and fresh; it cannot reuse a prior manifest or claim another route's capture.
+`pnpm design-system:evidence:verify` verifies the current closed specimen run,
+including its 48 locale/theme/viewport captures, coverage/state map,
+interaction probes, and bound sources. `pnpm frontend-parity:check` validates
+the immutable inventory and `pnpm check` protects application behavior. These
+gates do not claim visual conformance for a product route family outside the
+specimen boundary.
