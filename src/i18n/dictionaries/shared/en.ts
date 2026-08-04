@@ -24,4 +24,13 @@ export const sharedEn = {
   languageSave: "Save language",
   languageSaved: "Language preference saved.",
   languageError: "Choose a supported language.",
+  cancel: "Cancel",
+  save: "Save",
+  close: "Close",
+  loading: "Loading…",
+  retry: "Retry",
+  copyFieldCopy: "Copy to clipboard",
+  copyFieldCopied: "Copied",
+  copyFieldPending: "Copying",
+  copyFieldFailed: "Copy failed",
 } as const;

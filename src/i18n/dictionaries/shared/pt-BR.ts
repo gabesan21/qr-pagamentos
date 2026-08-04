@@ -24,4 +24,13 @@ export const sharedPtBR = {
   languageSave: "Salvar idioma",
   languageSaved: "Preferência de idioma salva.",
   languageError: "Escolha um idioma compatível.",
+  cancel: "Cancelar",
+  save: "Salvar",
+  close: "Fechar",
+  loading: "Carregando…",
+  retry: "Tentar novamente",
+  copyFieldCopy: "Copiar para área de transferência",
+  copyFieldCopied: "Copiado",
+  copyFieldPending: "Copiando",
+  copyFieldFailed: "Falha ao copiar",
 } as const;

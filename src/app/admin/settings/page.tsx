@@ -1,9 +1,9 @@
-import { AdminSettingsSurface } from "@/app/admin/settings/settings-surface";
 import { getNauttCatalogService } from "@/auth/nautt-catalog";
 import { getPaymentSettingsService } from "@/auth/payment-settings";
 import { getSupportedExchangeCurrencyService } from "@/auth/supported-exchange-currency";
 import { getSystemSettingsService } from "@/auth/system-settings";
 
+import { AdminSettingsSurface, type CurrencyPair, type PaymentMethod } from "./settings-surface";
 import { requireAdminShellContext } from "../shell-context";
 
 export default async function AdminSettingsPage({
@@ -18,6 +18,7 @@ export default async function AdminSettingsPage({
     getSystemSettingsService().getDefaultTheme(principal),
     searchParams,
   ]);
+
   const notice = query.success
     ? {
         tone: "success" as const,
@@ -50,13 +51,26 @@ export default async function AdminSettingsPage({
 
   return (
     <AdminSettingsSurface
-      currencyPairs={currencyPairs}
+      currencyPairs={currencyPairs.map<CurrencyPair>((pair) => ({
+        id: pair.id,
+        label: pair.label,
+        currencyUuid: pair.currencyUuid,
+        exchangeCurrencyUuid: pair.exchangeCurrencyUuid,
+        active: pair.active,
+        createdAt: pair.createdAt.toISOString(),
+      }))}
       defaultThemeId={defaultThemeId}
       dictionary={dictionary}
       locale={locale}
       mappings={mappings}
       notice={notice}
-      paymentMethods={paymentMethods}
+      paymentMethods={paymentMethods.map<PaymentMethod>((method) => ({
+        id: method.id,
+        label: method.label,
+        paymentMethodUuid: method.paymentMethodUuid,
+        active: method.active,
+        createdAt: method.createdAt.toISOString(),
+      }))}
       settings={settings}
     />
   );

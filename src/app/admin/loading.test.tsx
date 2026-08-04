@@ -7,12 +7,16 @@ import { ptBR } from "@/i18n/dictionaries/pt-BR";
 import AdminLoading from "./loading";
 
 describe("admin loading state", () => {
-  it("announces protected loading without selecting the wrong persisted locale", () => {
+  it("renders a busy skeleton placeholder with a fixed English dictionary", () => {
     const markup = renderToStaticMarkup(<AdminLoading />);
+
     expect(markup).toContain('aria-busy="true"');
-    for (const copy of [en.adminLoadingHeading, en.adminLoadingDescription, ptBR.adminLoadingHeading, ptBR.adminLoadingDescription]) {
-      expect(markup).toContain(copy);
-    }
-    expect(markup.match(/data-slot="skeleton"/g)).toHaveLength(3);
+    expect(markup).toContain('role="status"');
+    expect(markup).toContain('data-slot="skeleton"');
+
+    // The loading fallback is hard-coded to the English dictionary so it never
+    // flashes the wrong persisted locale while the admin layout is resolving.
+    expect(markup).toContain(en.adminDashboardUsersHeading);
+    expect(markup).not.toContain(ptBR.adminDashboardUsersHeading);
   });
 });

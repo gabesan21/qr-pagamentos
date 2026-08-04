@@ -48,7 +48,7 @@
 
 ## Phase 12.4 - Administrator frontend
 
-- **Status:** pendente
+- **Status:** concluída
 - **Yolo:** yes
 - **Description:** Remodel every administrator page and state onto the new design system while retaining read-only and privileged-action boundaries.
 - **Specs:** [[specs/administrative-foundation|Administrative foundation]], [[specs/catalog-and-payment-links|Catalog and payment links]], [[specs/checkout-and-order-lifecycle|Checkout and order lifecycle]], [[specs/identity-security|Identity security]]
@@ -56,7 +56,7 @@
 | Task | Description | Status |
 |------|-------------|--------|
 | [[12.4.3-remodel-administrator-account-management]] | Match account creation, directory, profile editor, access, TOTP recovery, storefront settings, and deletion states under `src/app/admin/accounts/**`. · size: L | 001_initial_task |
-| [[12.4.4-remodel-administrator-settings]] | Match all six settings sections, anchored navigation, forms, confirmations, dependency blocks, and notices under `src/app/admin/settings/**`. · size: L | 001_initial_task |
+| [[12.4.4-remodel-administrator-settings]] | Match all six settings sections, anchored navigation, forms, confirmations, dependency blocks, and notices under `src/app/admin/settings/**`. · size: L | concluída |
 
 ## Phase 12.5 - Merchant frontend
 
