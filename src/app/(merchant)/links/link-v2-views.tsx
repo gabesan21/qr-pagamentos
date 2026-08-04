@@ -5,13 +5,17 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { CopyField } from "@/components/ui/copy-field";
+import { MoneyText } from "@/components/ui/money-text";
+import { Monogram } from "@/components/ui/monogram";
 import { Separator } from "@/components/ui/separator";
+import { StatusBadge, type StatusTone } from "@/components/ui/status-badge";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Timeline, type TimelineEntry, type TimelineTone } from "@/components/ui/timeline";
 import type { getDictionary } from "@/i18n/dictionaries";
 import type { SupportedLocale } from "@/i18n/locales";
 
 import { formatCatalogPrice } from "../catalog/price-format";
-import { ShareLinkCopy } from "./share-copy";
 
 type Dictionary = ReturnType<typeof getDictionary>;
 
@@ -26,10 +30,21 @@ export function linkStateLabel(dictionary: Dictionary, state: PaymentLinkV2Deriv
   return dictionary.paymentLinkDirectoryStateActive;
 }
 
+function linkStateTone(state: PaymentLinkV2DerivedState): StatusTone {
+  if (state === "expired") return "danger";
+  if (state === "inactive") return "neutral";
+  if (state === "paid") return "success";
+  return "info";
+}
+
+function toTimelineTone(tone: StatusTone): TimelineTone {
+  if (tone === "neutral") return "default";
+  if (tone === "warning") return "info";
+  return tone;
+}
+
 export function LinkStateBadge({ dictionary, state }: Readonly<{ dictionary: Dictionary; state: PaymentLinkV2DerivedState }>) {
-  if (state === "expired") return <Badge variant="destructive">{linkStateLabel(dictionary, state)}</Badge>;
-  if (state === "inactive") return <Badge variant="outline">{linkStateLabel(dictionary, state)}</Badge>;
-  return <Badge variant="secondary">{linkStateLabel(dictionary, state)}</Badge>;
+  return <StatusBadge label={linkStateLabel(dictionary, state)} tone={linkStateTone(state)} />;
 }
 
 export function linkTypeLabel(dictionary: Dictionary, linkType: PaymentLinkV2View["linkType"]) {
@@ -52,102 +67,233 @@ export function linkSummary(link: PaymentLinkV2View, locale: SupportedLocale) {
   return rest.length > 0 ? `${title} +${rest.length}` : title;
 }
 
-function DetailFacts({ dictionary, link, locale }: Readonly<{ dictionary: Dictionary; link: PaymentLinkV2View; locale: SupportedLocale }>) {
+function copyLabels(dictionary: Dictionary) {
+  return {
+    copy: dictionary.paymentLinkDirectoryCopy,
+    pending: dictionary.paymentLinkDirectoryCopy,
+    copied: dictionary.paymentLinkDirectoryCopied,
+    failed: dictionary.paymentLinkDirectoryCopyFailed,
+  };
+}
+
+function DetailBreadcrumb({ backHref, backLabel, current }: Readonly<{ backHref: string; backLabel: string; current: string }>) {
   return (
-    <dl>
-      <div><dt>{dictionary.paymentLinkDirectoryIdentifier}</dt><dd>{link.identifier}</dd></div>
-      <div><dt>{dictionary.paymentLinkDirectoryColumnState}</dt><dd><LinkStateBadge dictionary={dictionary} state={link.state} /></dd></div>
-      <div><dt>{dictionary.paymentLinkDirectoryColumnComposition}</dt><dd>{linkKindLabel(dictionary, link.compositionKind)}</dd></div>
-      <div><dt>{dictionary.paymentLinkDirectoryColumnType}</dt><dd>{linkTypeLabel(dictionary, link.linkType)}</dd></div>
-      <div><dt>{dictionary.paymentLinkDirectoryColumnOrders}</dt><dd className="tabular-nums">{link.orderCount}</dd></div>
-      <div><dt>{dictionary.paymentLinkDirectoryCurrencyPair}</dt><dd>{link.currencyPairLabel}</dd></div>
-      <div><dt>{dictionary.paymentLinkDirectoryColumnExpiry}</dt><dd>{link.expiresAt ? formatLinkInstant(link.expiresAt, locale) : dictionary.adminPaymentLinkNoExpiry}</dd></div>
-      <div><dt>{dictionary.paymentLinkDirectoryCreated}</dt><dd>{formatLinkInstant(link.createdAt, locale)}</dd></div>
-      <div><dt>{dictionary.paymentLinkDirectoryUpdated}</dt><dd>{formatLinkInstant(link.updatedAt, locale)}</dd></div>
-      <div>
-        <dt>{dictionary.paymentLinkDirectoryShareUrl}</dt>
-        <dd className="flex flex-wrap items-center gap-3">
-          <span className="break-all">{link.sharePath}</span>
-          <ShareLinkCopy
-            copiedLabel={dictionary.paymentLinkDirectoryCopied}
-            copyLabel={dictionary.paymentLinkDirectoryCopy}
-            failedLabel={dictionary.paymentLinkDirectoryCopyFailed}
-            value={link.sharePath}
-          />
-        </dd>
-      </div>
-    </dl>
+    <nav aria-label="breadcrumb" className="flex items-center gap-1.5 text-sm text-muted-foreground">
+      <Link className="inline-flex min-h-11 items-center text-foreground underline-offset-4 hover:underline" href={backHref}>{backLabel}</Link>
+      <span aria-hidden>›</span>
+      <span className="font-mono text-foreground">#{current}</span>
+    </nav>
   );
+}
+
+function buildTimeline(dictionary: Dictionary, link: PaymentLinkV2View): TimelineEntry[] {
+  const entries: TimelineEntry[] = [
+    {
+      id: "created",
+      title: dictionary.paymentLinkDirectoryCreated,
+      formattedAt: formatLinkInstant(link.createdAt, "en"),
+      dateTime: link.createdAt.toISOString(),
+      tone: "info",
+    },
+  ];
+  entries.push({
+    id: "state",
+    title: `${dictionary.paymentLinkDirectoryColumnState}: ${linkStateLabel(dictionary, link.state)}`,
+    formattedAt: formatLinkInstant(link.updatedAt, "en"),
+    dateTime: link.updatedAt.toISOString(),
+    tone: toTimelineTone(linkStateTone(link.state)),
+  });
+  if (link.expiresAt) {
+    entries.push({
+      id: "expires",
+      title: dictionary.paymentLinkDirectoryColumnExpiry,
+      formattedAt: formatLinkInstant(link.expiresAt, "en"),
+      dateTime: link.expiresAt.toISOString(),
+      tone: "default",
+    });
+  }
+  return entries;
 }
 
 export function PaymentLinkV2DetailCard({
   backHref,
+  backLabel,
   dictionary,
   link,
   locale,
+  owner,
 }: Readonly<{
   backHref: string;
+  backLabel?: string;
   dictionary: Dictionary;
   link: PaymentLinkV2View;
   locale: SupportedLocale;
+  owner?: Readonly<{ username: string; deletedAt: Date | null }>;
 }>) {
+  const title = linkSummary(link, locale);
+  const timeline = buildTimeline(dictionary, link);
+
   return (
-    <>
-      <Card>
-        <CardHeader>
-          <CardTitle>{linkSummary(link, locale)}</CardTitle>
-          <CardDescription>{link.id}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="admin-account__facts">
-            <DetailFacts dictionary={dictionary} link={link} locale={locale} />
-          </div>
-          <Separator />
+    <div className="space-y-4">
+      {backLabel ? <DetailBreadcrumb backHref={backHref} backLabel={backLabel} current={link.identifier} /> : null}
+      <div className="grid gap-4 lg:grid-cols-12">
+        <div className="space-y-4 lg:col-span-8">
+          <Card>
+            <CardHeader>
+              <CardTitle>{dictionary.paymentLinkDirectoryColumnSummary}</CardTitle>
+              <CardDescription>{title}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <CopyField labels={copyLabels(dictionary)} truncate={false} value={link.id} />
+              <div className="grid gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{dictionary.paymentLinkDirectoryIdentifier}</p>
+                  <p className="mt-1 font-mono text-xs">{link.identifier}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{dictionary.paymentLinkDirectoryColumnComposition}</p>
+                  <p className="mt-1.5 text-sm">{linkKindLabel(dictionary, link.compositionKind)}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{dictionary.paymentLinkDirectoryColumnType}</p>
+                  <p className="mt-1.5 text-sm">{linkTypeLabel(dictionary, link.linkType)}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{dictionary.paymentLinkDirectoryCreated}</p>
+                  <p className="mt-1 font-mono text-xs">{formatLinkInstant(link.createdAt, locale)}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{dictionary.paymentLinkDirectoryUpdated}</p>
+                  <p className="mt-1 font-mono text-xs">{formatLinkInstant(link.updatedAt, locale)}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{dictionary.paymentLinkDirectoryColumnExpiry}</p>
+                  <p className="mt-1 font-mono text-xs">{link.expiresAt ? formatLinkInstant(link.expiresAt, locale) : dictionary.adminPaymentLinkNoExpiry}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{dictionary.paymentLinkDirectoryCurrencyPair}</p>
+                  <p className="mt-1.5 text-sm">{link.currencyPairLabel}</p>
+                </div>
+              </div>
+              {owner ? (
+                <>
+                  <Separator />
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{dictionary.adminPaymentLinkV2DetailOwnerHeading}</p>
+                    <div className="mt-2 flex items-center gap-3">
+                      <Monogram name={owner.username} />
+                      <span className="text-sm font-medium">{owner.username}</span>
+                      {owner.deletedAt !== null ? <Badge variant="outline">{dictionary.adminPaymentLinkV2DirectoryOwnerDeleted}</Badge> : null}
+                    </div>
+                    <Button asChild className="mt-3" data-ds-hit-target variant="outline">
+                      <Link href="/admin/accounts">{dictionary.adminPaymentLinkV2DetailOwnerAccount}</Link>
+                    </Button>
+                  </div>
+                </>
+              ) : null}
+            </CardContent>
+          </Card>
+
           {link.compositionKind === "FIXED_AMOUNT" ? (
-            <div className="admin-account__facts">
-              <dl>
-                <div><dt>{dictionary.paymentLinkDirectoryAmount}</dt><dd className="tabular-nums">{link.amount ? formatCatalogPrice(link.amount, null, locale) : link.amount}</dd></div>
-              </dl>
-            </div>
+            <Card>
+              <CardHeader>
+                <CardTitle>{dictionary.paymentLinkDirectoryAmount}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <MoneyText className="justify-start" pairLabel={link.currencyPairLabel} size="large" value={link.amount ? formatCatalogPrice(link.amount, null, locale) : "—"} />
+              </CardContent>
+            </Card>
           ) : (
-            <div className="admin-account__facts">
-              <h2>{dictionary.paymentLinkDirectoryLines}</h2>
-              <Table>
-                <TableCaption>{dictionary.paymentLinkDirectoryLines}</TableCaption>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead scope="col">{dictionary.paymentLinkDirectoryColumnSummary}</TableHead>
-                    <TableHead scope="col">{dictionary.paymentLinkDirectoryQuantity}</TableHead>
-                    <TableHead scope="col">{dictionary.paymentLinkDirectoryUnitPrice}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {link.lines.map((line) => (
-                    <TableRow key={line.position}>
-                      <TableCell>{locale === "pt-BR" ? line.titlePtBr : line.titleEn}</TableCell>
-                      <TableCell className="tabular-nums">{line.quantity}</TableCell>
-                      <TableCell className="tabular-nums">{formatCatalogPrice(line.unitPrice, null, locale)}</TableCell>
+            <Card>
+              <CardHeader>
+                <CardTitle>{dictionary.paymentLinkDirectoryLines}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Table>
+                  <TableCaption>{dictionary.paymentLinkDirectoryLines}</TableCaption>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead scope="col">{dictionary.paymentLinkDirectoryColumnSummary}</TableHead>
+                      <TableHead className="text-right" scope="col">{dictionary.paymentLinkDirectoryQuantity}</TableHead>
+                      <TableHead className="text-right" scope="col">{dictionary.paymentLinkDirectoryUnitPrice}</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                  </TableHeader>
+                  <TableBody>
+                    {link.lines.map((line) => (
+                      <TableRow key={line.position}>
+                        <TableCell>{locale === "pt-BR" ? line.titlePtBr : line.titleEn}</TableCell>
+                        <TableCell className="text-right font-mono tabular-nums">{line.quantity}</TableCell>
+                        <TableCell className="text-right font-mono tabular-nums">{formatCatalogPrice(line.unitPrice, null, locale)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
           )}
-        </CardContent>
-      </Card>
-      <Button asChild variant="outline"><Link href={backHref}>{dictionary.paymentLinkDirectoryBack}</Link></Button>
-    </>
+        </div>
+
+        <div className="space-y-4 lg:col-span-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>{dictionary.paymentLinkDirectoryColumnState}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{dictionary.paymentLinkDirectoryColumnState}</p>
+                <div className="mt-1.5 flex items-center gap-2">
+                  <LinkStateBadge dictionary={dictionary} state={link.state} />
+                  <time className="font-mono text-xs text-muted-foreground">{formatLinkInstant(link.updatedAt, locale)}</time>
+                </div>
+              </div>
+              <Separator />
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{dictionary.paymentLinkDirectoryColumnOrders}</p>
+                <p className="mt-1 font-mono text-2xl font-semibold tabular-nums">{link.orderCount}</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>{dictionary.paymentLinkDirectoryShareUrl}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <CopyField labels={copyLabels(dictionary)} truncate={false} value={link.sharePath} />
+              <Button asChild data-ds-hit-target variant="outline">
+                <Link href={link.sharePath}>{dictionary.paymentLinkDirectoryShareOpen}</Link>
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>{dictionary.orderV2DetailChronology}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Timeline entries={timeline} />
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {!backLabel ? (
+        <Button asChild data-ds-hit-target variant="outline">
+          <Link href={backHref}>{dictionary.paymentLinkDirectoryBack}</Link>
+        </Button>
+      ) : null}
+    </div>
   );
 }
 
 export function PaymentLinkV2UnavailableCard({ backHref, dictionary }: Readonly<{ backHref: string; dictionary: Dictionary }>) {
   return (
-    <>
+    <div className="space-y-4">
       <Alert variant="destructive">
         <AlertTitle>{dictionary.paymentLinkDirectoryUnavailable}</AlertTitle>
         <AlertDescription>{dictionary.paymentLinkDirectoryUnavailableDescription}</AlertDescription>
       </Alert>
-      <Button asChild variant="outline"><Link href={backHref}>{dictionary.paymentLinkDirectoryBack}</Link></Button>
-    </>
+      <Button asChild data-ds-hit-target variant="outline"><Link href={backHref}>{dictionary.paymentLinkDirectoryBack}</Link></Button>
+    </div>
   );
 }

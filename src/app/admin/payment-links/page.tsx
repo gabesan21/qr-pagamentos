@@ -19,6 +19,7 @@ import {
 import { PAYMENT_LINK_V2_DERIVED_STATES } from "@/auth/payment-link-v2-view";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Monogram } from "@/components/ui/monogram";
 import { DataDirectory, type DataDirectoryColumn, type DataDirectoryState } from "@/data-directory/ui/data-directory";
 import type { getDictionary } from "@/i18n/dictionaries";
 import type { SupportedLocale } from "@/i18n/locales";
@@ -52,12 +53,13 @@ function pageUrl(query: Readonly<{ canonicalFilterQuery: string; pageSize: numbe
 // a ghost button so the control keeps the design-system hit target in the cell.
 function OwnerCell({ dictionary, owner }: Readonly<{ dictionary: Dictionary; owner: AdminPaymentLinkV2DirectoryRow["owner"] }>) {
   return (
-    <>
-      <Button asChild data-ds-hit-target variant="ghost">
+    <div className="flex items-center gap-3">
+      <Monogram name={owner.username} />
+      <Button asChild className="px-0" data-ds-hit-target variant="ghost">
         <Link href="/admin/accounts">{owner.username}</Link>
       </Button>
-      {owner.deletedAt !== null ? <> <Badge variant="outline">{dictionary.adminPaymentLinkV2DirectoryOwnerDeleted}</Badge></> : null}
-    </>
+      {owner.deletedAt !== null ? <Badge variant="outline">{dictionary.adminPaymentLinkV2DirectoryOwnerDeleted}</Badge> : null}
+    </div>
   );
 }
 
@@ -76,12 +78,16 @@ function AdminPaymentLinkV2Directory({
 }>) {
   const copy = adminPaymentLinksDirectoryCopy(dictionary);
   const columns: readonly DataDirectoryColumn<AdminPaymentLinkV2DirectoryRow>[] = [
-    { id: "summary", label: dictionary.paymentLinkDirectoryColumnSummary, value: (row) => linkSummary(row, locale) },
+    {
+      id: "summary",
+      label: dictionary.paymentLinkDirectoryColumnSummary,
+      value: (row) => <span className="font-medium">{linkSummary(row, locale)}</span>,
+    },
     { id: "composition", label: dictionary.paymentLinkDirectoryColumnComposition, value: (row) => <Badge variant="outline">{linkKindLabel(dictionary, row.compositionKind)}</Badge> },
     { id: "type", label: dictionary.paymentLinkDirectoryColumnType, value: (row) => linkTypeLabel(dictionary, row.linkType) },
     { id: "state", label: dictionary.paymentLinkDirectoryColumnState, value: (row) => <LinkStateBadge dictionary={dictionary} state={row.state} /> },
     { id: "owner", label: dictionary.adminPaymentLinkV2DirectoryColumnOwner, value: (row) => <OwnerCell dictionary={dictionary} owner={row.owner} /> },
-    { id: "orders", label: dictionary.paymentLinkDirectoryColumnOrders, numeric: true, value: (row) => row.orderCount },
+    { id: "orders", label: dictionary.paymentLinkDirectoryColumnOrders, numeric: true, value: (row) => <span className="font-mono tabular-nums">{row.orderCount}</span> },
     { id: "expiry", label: dictionary.paymentLinkDirectoryColumnExpiry, numeric: true, value: (row) => row.expiresAt ? formatLinkInstant(row.expiresAt, locale) : dictionary.adminPaymentLinkNoExpiry },
   ];
 
@@ -112,6 +118,7 @@ function AdminPaymentLinkV2Directory({
   return (
     <DataDirectory
       actionsLabel={dictionary.paymentLinkDirectoryColumnActions}
+      canonicalFilterQuery={query.status === "ready" && !serviceInvalid ? query.query.canonicalFilterQuery : undefined}
       caption={dictionary.adminPaymentLinkV2DirectoryHeading}
       columns={columns}
       copy={copy}

@@ -1,0 +1,273 @@
+{
+  "version": 1,
+  "runId": "20260804062939",
+  "startedAt": "2026-08-04T06:29:39.772Z",
+  "gitHead": "aceb6f762be38edee3b2acab3c526e300dba04dc",
+  "baseCaptureCount": 36,
+  "stateCaptureCount": 12,
+  "totalPngCount": 48,
+  "assertions": "artifacts/admin-orders/20260804062939/assertions.json",
+  "assertionsSha256": "e41c43c132874a9c8f2ef429a4087a4d6619cc9c8839d22954eb54ce9a310959",
+  "captures": [
+    {
+      "path": "artifacts/admin-orders/20260804062939/state-pt-BR-orders-empty-375.png",
+      "bytes": 70380,
+      "sha256": "a66e0f3815430111c26ecfe38f5fbcd9f5a947cc65d5eb58e1740a1a6d53d850"
+    },
+    {
+      "path": "artifacts/admin-orders/20260804062939/state-pt-BR-orders-ready-320.png",
+      "bytes": 574583,
+      "sha256": "13e6b734984321ad2a6a35a3d273750026f0596be6034fe3e18554aea01f3211"
+    },
+    {
+      "path": "artifacts/admin-orders/20260804062939/state-pt-BR-order-detail-1440.png",
+      "bytes": 119675,
+      "sha256": "f84da9b1d0cf20ef260cfe2eb0533ccddea83a99dc0b1af186f478c4338a5d8b"
+    },
+    {
+      "path": "artifacts/admin-orders/20260804062939/state-pt-BR-order-detail-unavailable-1440.png",
+      "bytes": 53908,
+      "sha256": "7da29dcadbd19413df08158726da05e5c361470a63dbead5c9945b5b5798fd8d"
+    },
+    {
+      "path": "artifacts/admin-orders/20260804062939/state-pt-BR-deleted-owner-badge-1440.png",
+      "bytes": 317204,
+      "sha256": "a6d6c1b412f171f22e8c4abb9dd7a0d215a345ae98018965b4ce05238188f686"
+    },
+    {
+      "path": "artifacts/admin-orders/20260804062939/state-en-orders-filtered-empty-1440.png",
+      "bytes": 89647,
+      "sha256": "b8ed03619c46e27d1fc677608c7c66c33801bd18f7d843fa313ce7c00f1f5536"
+    },
+    {
+      "path": "artifacts/admin-orders/20260804062939/state-en-orders-invalid-query-1440.png",
+      "bytes": 79325,
+      "sha256": "8e3d3241f7a8d5a22111f879af401e266bd3eca272c04b577039ee9ff4aaa307"
+    },
+    {
+      "path": "artifacts/admin-orders/20260804062939/state-en-orders-page-2-1440.png",
+      "bytes": 191774,
+      "sha256": "e473681e7ca4a13ecd1345b53266a25bc50bedb0eac26b24ebb0b376fad002d7"
+    },
+    {
+      "path": "artifacts/admin-orders/20260804062939/state-en-orders-search-payer-1440.png",
+      "bytes": 103951,
+      "sha256": "c19721bbd9360f7eaeed8f2ddc89596b9e8b481a4978c45b43d8217a10fb4fd6"
+    },
+    {
+      "path": "artifacts/admin-orders/20260804062939/state-en-orders-filter-source-1440.png",
+      "bytes": 112132,
+      "sha256": "69331aa63ae8cddf8fe04747911fc748eb150f45869fa21caf3bafd15c99abbc"
+    },
+    {
+      "path": "artifacts/admin-orders/20260804062939/state-en-deleted-owner-badge-1440.png",
+      "bytes": 302168,
+      "sha256": "cd0e94426685461936875a6834f87d44823dfd30f74edafef0239613537ce793"
+    },
+    {
+      "path": "artifacts/admin-orders/20260804062939/state-en-order-detail-deleted-owner-1440.png",
+      "bytes": 110772,
+      "sha256": "854f73a0a61ea4e57e9a92a356d0af93c61ad504acb89d3b0a612bd27256e88d"
+    },
+    {
+      "path": "artifacts/admin-orders/20260804062939/directory-pix-paper-pt-BR-375.png",
+      "bytes": 586905,
+      "sha256": "3757390b02e82b08afa069edb91c5a3aca6800b1bfba31d011de86389d9e5f6b"
+    },
+    {
+      "path": "artifacts/admin-orders/20260804062939/directory-pix-paper-pt-BR-768.png",
+      "bytes": 207316,
+      "sha256": "7ed61e73ce967f59fa1a9c30746f93785639ea0aed1f16c43c07c7835e338ce8"
+    },
+    {
+      "path": "artifacts/admin-orders/20260804062939/directory-pix-paper-pt-BR-1440.png",
+      "bytes": 317134,
+      "sha256": "f8df5b520c2d1ee81827c1ac5c1242799c86f208a0fe80e122d4fb0c9d702080"
+    },
+    {
+      "path": "artifacts/admin-orders/20260804062939/directory-cashier-daylight-pt-BR-375.png",
+      "bytes": 581224,
+      "sha256": "4956f4bbc4274e7b8ab2560d460b17a44049f93344926fb9cef6f66ae9b7ed65"
+    },
+    {
+      "path": "artifacts/admin-orders/20260804062939/directory-cashier-daylight-pt-BR-768.png",
+      "bytes": 207339,
+      "sha256": "77cdc12f80ccfa2084ef060ddfef8cd4e82e1450e18acb3faf703c3c674cd859"
+    },
+    {
+      "path": "artifacts/admin-orders/20260804062939/directory-cashier-daylight-pt-BR-1440.png",
+      "bytes": 315135,
+      "sha256": "2a924d8125d78437c3f5a0a275db5eff07a69cab50e6ff7d723fa12e87004493"
+    },
+    {
+      "path": "artifacts/admin-orders/20260804062939/directory-settlement-sand-pt-BR-375.png",
+      "bytes": 592267,
+      "sha256": "b17f7b7c3064f033391c0dffffb148774b78521218316121e204a370d4ff675b"
+    },
+    {
+      "path": "artifacts/admin-orders/20260804062939/directory-settlement-sand-pt-BR-768.png",
+      "bytes": 210029,
+      "sha256": "f2cbb10abb62fa460a7f2c54df8c125c619565c49c4c8bdade9895425ae32f08"
+    },
+    {
+      "path": "artifacts/admin-orders/20260804062939/directory-settlement-sand-pt-BR-1440.png",
+      "bytes": 320595,
+      "sha256": "7791f1769244c764a4f8c4b5b2b172a5a9b9edc19844bd28e12fb77722a62497"
+    },
+    {
+      "path": "artifacts/admin-orders/20260804062939/directory-midnight-clearing-pt-BR-375.png",
+      "bytes": 611518,
+      "sha256": "b8729b216ecd917acf1d43ac4e6dbd9eef59f4abe68ad3b8348d88106ad368b0"
+    },
+    {
+      "path": "artifacts/admin-orders/20260804062939/directory-midnight-clearing-pt-BR-768.png",
+      "bytes": 212594,
+      "sha256": "ad45d2bd97b4873f88f7cb5e59062fa88224491d18a8e2d0517ee7bdf8959a41"
+    },
+    {
+      "path": "artifacts/admin-orders/20260804062939/directory-midnight-clearing-pt-BR-1440.png",
+      "bytes": 323946,
+      "sha256": "4f4f5e78fa965d350711cc2611a6d21a5184f9189fac9af23302211308570f7d"
+    },
+    {
+      "path": "artifacts/admin-orders/20260804062939/directory-vault-blue-pt-BR-375.png",
+      "bytes": 614483,
+      "sha256": "7f4d1b9ddd4fd8e241f63c9c320792ac65ace77354276c9dc650c1fd4b8c9d8b"
+    },
+    {
+      "path": "artifacts/admin-orders/20260804062939/directory-vault-blue-pt-BR-768.png",
+      "bytes": 211991,
+      "sha256": "596690a3635554f029f93f22a9085e532c8c86006755338febdf21dbaa7ab97a"
+    },
+    {
+      "path": "artifacts/admin-orders/20260804062939/directory-vault-blue-pt-BR-1440.png",
+      "bytes": 323999,
+      "sha256": "947178c23f6e3a9beaaf0377c22547356a08b5070a83aa89e129b573c669f8ce"
+    },
+    {
+      "path": "artifacts/admin-orders/20260804062939/directory-terminal-amber-pt-BR-375.png",
+      "bytes": 604970,
+      "sha256": "b69f7209733c40543b1b336564ba52558c76d99df48c4c78cbdcf884b89beb03"
+    },
+    {
+      "path": "artifacts/admin-orders/20260804062939/directory-terminal-amber-pt-BR-768.png",
+      "bytes": 211597,
+      "sha256": "f4f85af1f209be9bceae8dcc6b861846d56236506dce0d5d71fd707123f2e414"
+    },
+    {
+      "path": "artifacts/admin-orders/20260804062939/directory-terminal-amber-pt-BR-1440.png",
+      "bytes": 322540,
+      "sha256": "e776be1ce19a8fae78d0c310994c7b9ad3b0034899f6a0d5a6cb811e56f6511e"
+    },
+    {
+      "path": "artifacts/admin-orders/20260804062939/directory-pix-paper-en-375.png",
+      "bytes": 535523,
+      "sha256": "0dff55616a1e8db42a54ac1a98420a7fa503b2e6e1ef03aa39753c40c4600fb2"
+    },
+    {
+      "path": "artifacts/admin-orders/20260804062939/directory-pix-paper-en-768.png",
+      "bytes": 200177,
+      "sha256": "bdf18477d0cf723204a13e6f6be87486c9c25d3cc62247077b361bff2407055d"
+    },
+    {
+      "path": "artifacts/admin-orders/20260804062939/directory-pix-paper-en-1440.png",
+      "bytes": 302250,
+      "sha256": "3a164b186772f1cbad757c5d49dd469922b638b0c9e13e23dafb6097578fd992"
+    },
+    {
+      "path": "artifacts/admin-orders/20260804062939/directory-cashier-daylight-en-375.png",
+      "bytes": 532141,
+      "sha256": "240bb25f544c2e2d556004320c4cd29ccace31fb06f1fde777632c4ebe5e1cfa"
+    },
+    {
+      "path": "artifacts/admin-orders/20260804062939/directory-cashier-daylight-en-768.png",
+      "bytes": 200317,
+      "sha256": "3252743df5b0438e397f82cc4aac7b4bbd7451120dfa15036c52f71f877bd7b1"
+    },
+    {
+      "path": "artifacts/admin-orders/20260804062939/directory-cashier-daylight-en-1440.png",
+      "bytes": 301535,
+      "sha256": "2ea49ae59ff49995bc5f7666f5b789c2d414076c0183fa337a20a3d7d7183350"
+    },
+    {
+      "path": "artifacts/admin-orders/20260804062939/directory-settlement-sand-en-375.png",
+      "bytes": 540920,
+      "sha256": "2fd2abf9ed239ef471fc681e3890138da1e15b8d6e2a1e070fa5dae4e94d9916"
+    },
+    {
+      "path": "artifacts/admin-orders/20260804062939/directory-settlement-sand-en-768.png",
+      "bytes": 202772,
+      "sha256": "b7ea7cca2f3e5fd6e8cf88176564144035efe601ac6c5b6fcd3fcf4a06a15e0a"
+    },
+    {
+      "path": "artifacts/admin-orders/20260804062939/directory-settlement-sand-en-1440.png",
+      "bytes": 305649,
+      "sha256": "3d4d1270e94aa31fc4a232d979b061a4c3d6a714cefa6018031529276ba4cc17"
+    },
+    {
+      "path": "artifacts/admin-orders/20260804062939/directory-midnight-clearing-en-375.png",
+      "bytes": 559610,
+      "sha256": "8468a22c028b2eff406d42d0dd9b0f030bfd07ec65ba330935e4198c228285eb"
+    },
+    {
+      "path": "artifacts/admin-orders/20260804062939/directory-midnight-clearing-en-768.png",
+      "bytes": 205044,
+      "sha256": "d287629aa7250af12cb2c3fc11e7feafea85d9ad23613f2bbe999563de0f0712"
+    },
+    {
+      "path": "artifacts/admin-orders/20260804062939/directory-midnight-clearing-en-1440.png",
+      "bytes": 309419,
+      "sha256": "12cab5f79cca82d99c03aed7ba1fb809efd0f574638b33f8a330053134cbb326"
+    },
+    {
+      "path": "artifacts/admin-orders/20260804062939/directory-vault-blue-en-375.png",
+      "bytes": 562476,
+      "sha256": "446d135edc6f76166f1e11310dcb8e0fd75576ed07cb53a810a61c05e8bd3727"
+    },
+    {
+      "path": "artifacts/admin-orders/20260804062939/directory-vault-blue-en-768.png",
+      "bytes": 204157,
+      "sha256": "5c1f57ec3644212f7c223bc182b373deb5cf521d9ce16b1d56a820a40ee87dcb"
+    },
+    {
+      "path": "artifacts/admin-orders/20260804062939/directory-vault-blue-en-1440.png",
+      "bytes": 309960,
+      "sha256": "6274ab52d4d28c6b80a04e93cd8fee72dc9d879421eaf04d8488f2089e57cbb7"
+    },
+    {
+      "path": "artifacts/admin-orders/20260804062939/directory-terminal-amber-en-375.png",
+      "bytes": 552815,
+      "sha256": "62bf027a4617cdd76de43c925939c04db49510783c6adf8d6b809e8ca7481465"
+    },
+    {
+      "path": "artifacts/admin-orders/20260804062939/directory-terminal-amber-en-768.png",
+      "bytes": 203881,
+      "sha256": "582cb8cb1253d33876cc863414d0c773195f8f53d8509254e9f9b56129383824"
+    },
+    {
+      "path": "artifacts/admin-orders/20260804062939/directory-terminal-amber-en-1440.png",
+      "bytes": 308050,
+      "sha256": "69293246c447cd3078d5a8f0c0504d1426511a0b626fe57f435bd03f14e10738"
+    }
+  ],
+  "sourceHashes": {
+    "src/orders/order-v2-admin-directory.ts": "3e32efd9cad927c3185d302f37d80668fa31ae78788f698ab45e6211e987fb65",
+    "src/orders/order-v2-view.ts": "59366c6625ae969f2139df1c9106b7f7e7bcaec5b4e08531bab29c9345433af0",
+    "src/app/orders/order-v2-views.tsx": "2529610006fd604bc0364122c1280ba4dd4f517fcd443b49e7122383e48bbba0",
+    "src/app/admin/orders/page.tsx": "8737c77b2b2826bfea26ceda4e340c5789ed88b101d851a54cabab5818668d81",
+    "src/app/admin/orders/directory-query.ts": "6f868fe24314b43600284835aed1c2a583e47bfd290fba7cad347a3e793abbc4",
+    "src/app/admin/orders/directory-copy.ts": "50b674f197654ffe686f01e1e5d2c412d9f0a3e1271f4823ed4694787e3e929d",
+    "src/app/admin/orders/v2/[id]/page.tsx": "d4291f96dde6276d17c9aea1163b4b898856f23a95291dea3e35959e02346fe0",
+    "src/app/admin/orders/[id]/page.tsx": "e3376cca36588f201816374f5b9bbff35516ab7ecdf18bcabfda0d2fb01279a2",
+    "src/data-directory/ui/data-directory.tsx": "6277588c28ef9a1bc202002df45f8fa65ce445c266632fe8316e8589695801b0",
+    "src/i18n/dictionaries/orders-directory/en.ts": "77ed46c957b955ea8aaee681418e698fcdd3a84d170e901063f65245b6c612ef",
+    "src/i18n/dictionaries/orders-directory/pt-BR.ts": "38348b79bce42b366ba312d01aefe330b7939270cdd086d4154ff69a92da9758",
+    "tests/admin-orders.evidence.spec.ts": "5937e1b5927f148793c3dc688ae437558d563f8be2938ea221b38bd677b06216",
+    "scripts/run-admin-evidence.mjs": "10bda618c6c425411040c1be8ae6cb37e427e9eb26e53a2259a565425a50f132",
+    "scripts/run-admin-orders-evidence.mjs": "725bafe21e124e2f9b1d7b2936153e1f90f77aa51827b9e8f7b959bd2a487bcb",
+    "scripts/verify-admin-orders-evidence.mjs": "43ad39f58e7285ef2f4f367bc60095144eabbe2210edfcd02cafdccff1f87377"
+  },
+  "externalRequests": [],
+  "consoleErrors": [],
+  "pageErrors": []
+}

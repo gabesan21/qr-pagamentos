@@ -178,10 +178,11 @@
   background: var(--surface-raised);
   border: thin solid var(--border-subtle);
   border-radius: var(--radius-control);
+  box-sizing: border-box;
   color: var(--text-primary);
   font-size: var(--type-body);
   line-height: var(--line-height-body);
-  min-height: var(--control-compact-height);
+  min-height: var(--control-min-height);
   padding: var(--space-1) var(--space-2);
 }
 

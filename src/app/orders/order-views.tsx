@@ -5,7 +5,12 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { CopyField } from "@/components/ui/copy-field";
+import { MoneyText } from "@/components/ui/money-text";
+import { Monogram } from "@/components/ui/monogram";
 import { Separator } from "@/components/ui/separator";
+import { StatusBadge, type StatusTone } from "@/components/ui/status-badge";
+import { Timeline, type TimelineEntry } from "@/components/ui/timeline";
 import type { getDictionary } from "@/i18n/dictionaries";
 import type { SupportedLocale } from "@/i18n/locales";
 import type { CheckoutDataPolicy, CustomerSnapshotV1, PaymentLinkOrderState } from "@/orders/payment-link-order";
@@ -24,10 +29,15 @@ export function orderStateLabel(dictionary: Dictionary, state: PaymentLinkOrderS
   return dictionary.checkoutStateIndeterminate;
 }
 
-function orderStateBadgeVariant(state: PaymentLinkOrderState): "secondary" | "destructive" | "outline" {
-  if (state === "CONFIRMED") return "secondary";
-  if (state === "REJECTED") return "destructive";
-  return "outline";
+function orderStateTone(state: PaymentLinkOrderState): StatusTone {
+  if (state === "CONFIRMED") return "success";
+  if (state === "REJECTED" || state === "CANCELLED" || state === "EXPIRED") return "danger";
+  if (state === "PENDING" || state === "INDETERMINATE") return "info";
+  return "neutral";
+}
+
+export function OrderStateBadge({ dictionary, state }: Readonly<{ dictionary: Dictionary; state: PaymentLinkOrderState }>) {
+  return <StatusBadge label={orderStateLabel(dictionary, state)} tone={orderStateTone(state)} />;
 }
 
 function orderPolicyLabel(dictionary: Dictionary, policy: CheckoutDataPolicy) {
@@ -42,6 +52,15 @@ function formatOrderInstant(value: Date, locale: SupportedLocale) {
   return new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short", timeZone: "UTC" }).format(value);
 }
 
+function copyLabels(dictionary: Dictionary) {
+  return {
+    copy: dictionary.orderV2DirectoryCopy,
+    pending: dictionary.orderV2DirectoryCopy,
+    copied: dictionary.orderV2DirectoryCopied,
+    failed: dictionary.orderV2DirectoryCopyFailed,
+  };
+}
+
 export function OrderListCard({ detailHref, dictionary, locale, orders }: Readonly<{ detailHref: (orderId: string) => string; dictionary: Dictionary; locale: SupportedLocale; orders: OrderSummary[] }>) {
   return (
     <Card>
@@ -54,8 +73,8 @@ export function OrderListCard({ detailHref, dictionary, locale, orders }: Readon
                 <div className="admin-account__facts">
                   <h3 id={`order-${order.id}`}>{locale === "pt-BR" ? order.productTitlePtBr : order.productTitleEn}</h3>
                   <dl>
-                    <div><dt>{dictionary.orderState}</dt><dd><Badge variant={orderStateBadgeVariant(order.state)}>{orderStateLabel(dictionary, order.state)}</Badge></dd></div>
-                    <div><dt>{dictionary.orderAmount}</dt><dd>{formatProductPrice(order.amount, locale)}</dd></div>
+                    <div><dt>{dictionary.orderState}</dt><dd><OrderStateBadge dictionary={dictionary} state={order.state} /></dd></div>
+                    <div><dt>{dictionary.orderAmount}</dt><dd><MoneyText value={formatProductPrice(order.amount, locale)} /></dd></div>
                     <div><dt>{dictionary.orderPaymentLink}</dt><dd>{order.paymentLinkIdentifier}</dd></div>
                     <div><dt>{dictionary.orderCreated}</dt><dd>{formatOrderInstant(order.createdAt, locale)}</dd></div>
                   </dl>
@@ -70,67 +89,212 @@ export function OrderListCard({ detailHref, dictionary, locale, orders }: Readon
   );
 }
 
+function FieldRow({ dictionary, label, value }: Readonly<{ dictionary: Dictionary; label: string; value: string | null | undefined }>) {
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3 py-1.5">
+      <span className="text-sm text-muted-foreground">{label}</span>
+      {value ? <CopyField labels={copyLabels(dictionary)} truncate={false} value={value} /> : <span className="text-sm text-muted-foreground">—</span>}
+    </div>
+  );
+}
+
 function CustomerFacts({ customer, dictionary }: Readonly<{ customer: CustomerSnapshotV1; dictionary: Dictionary }>) {
   if (!customer.name && !customer.email && !customer.cpf && !customer.address) {
     return <p>{dictionary.checkoutNoCustomerData}</p>;
   }
   const address = customer.address;
   return (
-    <dl>
-      {customer.name ? <div><dt>{dictionary.checkoutNameLabel}</dt><dd>{customer.name}</dd></div> : null}
-      {customer.email ? <div><dt>{dictionary.checkoutEmailLabel}</dt><dd>{customer.email}</dd></div> : null}
-      {customer.cpf ? <div><dt>{dictionary.checkoutCpfLabel}</dt><dd>{customer.cpf}</dd></div> : null}
+    <div className="divide-y">
+      <FieldRow dictionary={dictionary} label={dictionary.checkoutNameLabel} value={customer.name} />
+      <FieldRow dictionary={dictionary} label={dictionary.checkoutEmailLabel} value={customer.email} />
+      <FieldRow dictionary={dictionary} label={dictionary.checkoutCpfLabel} value={customer.cpf} />
       {address ? (
-        <>
-          <div><dt>{dictionary.checkoutStreetLabel}</dt><dd>{address.street}, {address.number}</dd></div>
-          <div><dt>{dictionary.checkoutDistrictLabel}</dt><dd>{address.district}</dd></div>
-          <div><dt>{dictionary.checkoutCityLabel}</dt><dd>{address.city} — {address.stateUf}</dd></div>
-          <div><dt>{dictionary.checkoutPostalCodeLabel}</dt><dd>{address.postalCode}</dd></div>
-          {address.complement ? <div><dt>{dictionary.checkoutComplementLabel}</dt><dd>{address.complement}</dd></div> : null}
-        </>
-      ) : null}
-    </dl>
+        <FieldRow
+          dictionary={dictionary}
+          label={dictionary.checkoutAddressLegend}
+          value={`${address.street}, ${address.number}${address.complement ? ` — ${address.complement}` : ""} — ${address.district}, ${address.city} — ${address.stateUf}, ${address.postalCode}`}
+        />
+      ) : <FieldRow dictionary={dictionary} label={dictionary.checkoutAddressLegend} value={null} />}
+    </div>
   );
 }
 
-export function OrderDetailCard({ backHref, dictionary, locale, order }: Readonly<{ backHref: string; dictionary: Dictionary; locale: SupportedLocale; order: OrderView }>) {
+function DetailBreadcrumb({ backHref, backLabel, current }: Readonly<{ backHref: string; backLabel: string; current: string }>) {
   return (
-    <>
-      <Card>
-        <CardHeader><CardTitle>{locale === "pt-BR" ? order.productTitlePtBr : order.productTitleEn}</CardTitle><CardDescription>{order.id}</CardDescription></CardHeader>
-        <CardContent>
-          <div className="admin-account__facts">
-            <dl>
-              <div><dt>{dictionary.orderState}</dt><dd><Badge variant={orderStateBadgeVariant(order.state)}>{orderStateLabel(dictionary, order.state)}</Badge></dd></div>
-              <div><dt>{dictionary.orderPaymentLink}</dt><dd>{order.paymentLinkIdentifier}</dd></div>
-              <div><dt>{dictionary.orderAmount}</dt><dd>{formatProductPrice(order.amount, locale)}</dd></div>
-              <div><dt>{dictionary.orderCurrencyPair}</dt><dd>{order.currencyPairLabel}</dd></div>
-              <div><dt>{dictionary.checkoutPolicyHeading}</dt><dd>{orderPolicyLabel(dictionary, order.checkoutDataPolicy)}</dd></div>
-              <div><dt>{dictionary.orderCreated}</dt><dd>{formatOrderInstant(order.createdAt, locale)}</dd></div>
-              <div><dt>{dictionary.orderUpdated}</dt><dd>{formatOrderInstant(order.updatedAt, locale)}</dd></div>
-              <div><dt>{dictionary.orderSettled}</dt><dd>{order.settledAt ? formatOrderInstant(order.settledAt, locale) : dictionary.adminNotProvided}</dd></div>
-            </dl>
-          </div>
-          <Separator />
-          <div className="admin-account__facts">
-            <h2>{dictionary.checkoutCustomerHeading}</h2>
-            <CustomerFacts customer={order.customer} dictionary={dictionary} />
-          </div>
-        </CardContent>
-      </Card>
-      <Button asChild variant="outline"><Link href={backHref}>{dictionary.orderBackToList}</Link></Button>
-    </>
+    <nav aria-label="breadcrumb" className="flex items-center gap-1.5 text-sm text-muted-foreground">
+      <Link className="inline-flex min-h-11 items-center text-foreground underline-offset-4 hover:underline" href={backHref}>{backLabel}</Link>
+      <span aria-hidden>›</span>
+      <span className="font-mono text-foreground">#{current}</span>
+    </nav>
+  );
+}
+
+function buildTimeline(dictionary: Dictionary, order: OrderView): TimelineEntry[] {
+  const entries: TimelineEntry[] = [
+    {
+      id: "created",
+      title: dictionary.orderCreated,
+      formattedAt: formatOrderInstant(order.createdAt, "en"),
+      dateTime: order.createdAt.toISOString(),
+      tone: "info",
+    },
+  ];
+  entries.push({
+    id: "state",
+    title: `${dictionary.orderState}: ${orderStateLabel(dictionary, order.state)}`,
+    formattedAt: formatOrderInstant(order.updatedAt, "en"),
+    dateTime: order.updatedAt.toISOString(),
+    tone: orderStateTone(order.state) === "success" ? "success" : orderStateTone(order.state) === "danger" ? "danger" : "default",
+  });
+  if (order.settledAt) {
+    entries.push({
+      id: "settled",
+      title: dictionary.orderSettled,
+      formattedAt: formatOrderInstant(order.settledAt, "en"),
+      dateTime: order.settledAt.toISOString(),
+      tone: "success",
+    });
+  }
+  return entries;
+}
+
+export function OrderDetailCard({
+  backHref,
+  backLabel,
+  dictionary,
+  locale,
+  order,
+  owner,
+}: Readonly<{
+  backHref: string;
+  backLabel?: string;
+  dictionary: Dictionary;
+  locale: SupportedLocale;
+  order: OrderView;
+  owner?: Readonly<{ username: string; deletedAt: Date | null }>;
+}>) {
+  const title = locale === "pt-BR" ? order.productTitlePtBr : order.productTitleEn;
+  const timeline = buildTimeline(dictionary, order);
+
+  return (
+    <div className="space-y-4">
+      {backLabel ? <DetailBreadcrumb backHref={backHref} backLabel={backLabel} current={order.id} /> : null}
+      <div className="grid gap-4 lg:grid-cols-12">
+        <div className="space-y-4 lg:col-span-8">
+          <Card>
+            <CardHeader>
+              <CardTitle>{dictionary.orderProduct}</CardTitle>
+              <CardDescription>{title}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <CopyField labels={copyLabels(dictionary)} truncate={false} value={order.id} />
+              <div className="grid gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{dictionary.orderCreated}</p>
+                  <p className="mt-1 font-mono text-xs">{formatOrderInstant(order.createdAt, locale)}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{dictionary.orderUpdated}</p>
+                  <p className="mt-1 font-mono text-xs">{formatOrderInstant(order.updatedAt, locale)}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{dictionary.orderSettled}</p>
+                  <p className="mt-1 font-mono text-xs">{order.settledAt ? formatOrderInstant(order.settledAt, locale) : dictionary.adminNotProvided}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{dictionary.checkoutPolicyHeading}</p>
+                  <p className="mt-1.5 text-sm">{orderPolicyLabel(dictionary, order.checkoutDataPolicy)}</p>
+                </div>
+              </div>
+              {owner ? (
+                <>
+                  <Separator />
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{dictionary.adminOrderV2DetailOwnerHeading}</p>
+                    <div className="mt-2 flex items-center gap-3">
+                      <Monogram name={owner.username} />
+                      <span className="text-sm font-medium">{owner.username}</span>
+                      {owner.deletedAt !== null ? <Badge variant="outline">{dictionary.adminOrderV2DirectoryOwnerDeleted}</Badge> : null}
+                    </div>
+                    <Button asChild className="mt-3" data-ds-hit-target variant="outline">
+                      <Link href="/admin/accounts">{dictionary.adminOrderV2DetailOwnerAccount}</Link>
+                    </Button>
+                  </div>
+                </>
+              ) : null}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>{dictionary.orderAmount}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <MoneyText className="justify-start" pairLabel={order.currencyPairLabel} size="large" value={formatProductPrice(order.amount, locale)} />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>{dictionary.checkoutCustomerHeading}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CustomerFacts customer={order.customer} dictionary={dictionary} />
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="space-y-4 lg:col-span-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>{dictionary.orderState}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{dictionary.orderPaymentLink}</p>
+                <div className="mt-1.5">
+                  <CopyField labels={copyLabels(dictionary)} truncate={false} value={order.paymentLinkIdentifier} />
+                </div>
+              </div>
+              <Separator />
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{dictionary.orderState}</p>
+                <div className="mt-1.5 flex items-center gap-2">
+                  <OrderStateBadge dictionary={dictionary} state={order.state} />
+                  <time className="font-mono text-xs text-muted-foreground">{formatOrderInstant(order.updatedAt, locale)}</time>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>{dictionary.orderV2DetailChronology}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Timeline entries={timeline} />
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {!backLabel ? (
+        <Button asChild data-ds-hit-target variant="outline">
+          <Link href={backHref}>{dictionary.orderBackToList}</Link>
+        </Button>
+      ) : null}
+    </div>
   );
 }
 
 export function OrderUnavailableCard({ backHref, dictionary }: Readonly<{ backHref: string; dictionary: Dictionary }>) {
   return (
-    <>
+    <div className="space-y-4">
       <Alert variant="destructive">
         <AlertTitle>{dictionary.orderUnavailableHeading}</AlertTitle>
         <AlertDescription>{dictionary.orderUnavailableDescription}</AlertDescription>
       </Alert>
-      <Button asChild variant="outline"><Link href={backHref}>{dictionary.orderBackToList}</Link></Button>
-    </>
+      <Button asChild data-ds-hit-target variant="outline"><Link href={backHref}>{dictionary.orderBackToList}</Link></Button>
+    </div>
   );
 }

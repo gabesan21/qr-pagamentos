@@ -80,7 +80,7 @@ describe("merchant V2 payment-link detail page", () => {
     expect(markup).toContain('href="/links"');
     expect(markup).toContain(`href="/links/v2/${linkId}/orders"`);
     expect(markup).toContain(`>${ordersLabel}<`);
-    expect(markup).toContain(">3</dd>");
+    expect(markup).toContain(">3</p>");
   });
 
   it.each([
