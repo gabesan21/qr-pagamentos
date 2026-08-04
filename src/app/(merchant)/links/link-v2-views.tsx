@@ -122,6 +122,7 @@ export function PaymentLinkV2DetailCard({
   link,
   locale,
   owner,
+  showShareUrl = true,
 }: Readonly<{
   backHref: string;
   backLabel?: string;
@@ -129,6 +130,7 @@ export function PaymentLinkV2DetailCard({
   link: PaymentLinkV2View;
   locale: SupportedLocale;
   owner?: Readonly<{ username: string; deletedAt: Date | null }>;
+  showShareUrl?: boolean;
 }>) {
   const title = linkSummary(link, locale);
   const timeline = buildTimeline(dictionary, link);
@@ -254,17 +256,19 @@ export function PaymentLinkV2DetailCard({
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>{dictionary.paymentLinkDirectoryShareUrl}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <CopyField labels={copyLabels(dictionary)} truncate={false} value={link.sharePath} />
-              <Button asChild data-ds-hit-target variant="outline">
-                <Link href={link.sharePath}>{dictionary.paymentLinkDirectoryShareOpen}</Link>
-              </Button>
-            </CardContent>
-          </Card>
+          {showShareUrl ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>{dictionary.paymentLinkDirectoryShareUrl}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <CopyField labels={copyLabels(dictionary)} truncate={false} value={link.sharePath} />
+                <Button asChild data-ds-hit-target variant="outline">
+                  <Link href={link.sharePath}>{dictionary.paymentLinkDirectoryShareOpen}</Link>
+                </Button>
+              </CardContent>
+            </Card>
+          ) : null}
 
           <Card>
             <CardHeader>

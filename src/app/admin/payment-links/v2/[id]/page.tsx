@@ -31,6 +31,7 @@ export default async function AdminPaymentLinkV2DetailPage({ params }: Readonly<
               link={result.link}
               locale={locale}
               owner={result.link.owner}
+              showShareUrl={false}
             />
             <Button asChild data-ds-hit-target variant="outline">
               <Link href={`/admin/orders?link=${result.link.identifier}`}>{dictionary.paymentLinkOrdersView}</Link>
