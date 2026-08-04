@@ -26,6 +26,10 @@ function removeTokenSource(path, source) {
   const withoutGeneratedTokens = path.endsWith("globals.css")
     ? source.replace(/\/\* generated-theme-tokens:start \*\/[\s\S]*?\/\* generated-theme-tokens:end \*\//, "")
     : source;
+  if (path.endsWith("globals.css")) {
+    return withoutGeneratedTokens
+      .replaceAll("(min-width: 900px)", "(min-width: var(--breakpoint-auth))");
+  }
   if (!path.endsWith("app-shell.css")) return withoutGeneratedTokens;
   return withoutGeneratedTokens
     .replaceAll("(max-width: 48rem)", "(max-width: var(--shell-mobile-breakpoint))")

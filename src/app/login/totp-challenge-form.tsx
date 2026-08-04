@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useFormStatus } from "react-dom";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,7 @@ type TotpChallengeFormProps = {
     mfaHeading: string;
     mfaIntroduction: string;
     mfaCodeLabel: string;
+    mfaRecoveryCodeLabel: string;
     mfaRecoveryLink: string;
     mfaTotpLink: string;
     mfaSubmit: string;
@@ -24,15 +26,12 @@ type TotpChallengeFormProps = {
 
 export function TotpChallengeForm({ dictionary, failed }: Readonly<TotpChallengeFormProps>) {
   const [useRecovery, setUseRecovery] = useState(false);
-  const [pending, setPending] = useState(false);
+  const { pending } = useFormStatus();
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const form = document.getElementById("totp-challenge-form");
-    if (!(form instanceof HTMLFormElement)) return;
-    const observeNativeSubmit = () => setPending(true);
-    form.addEventListener("submit", observeNativeSubmit);
-    return () => form.removeEventListener("submit", observeNativeSubmit);
-  }, []);
+    inputRef.current?.focus();
+  }, [useRecovery]);
 
   const toggleMode = () => setUseRecovery((previous) => !previous);
 
@@ -45,15 +44,16 @@ export function TotpChallengeForm({ dictionary, failed }: Readonly<TotpChallenge
       )}
       <FieldGroup>
         <Field>
-          <FieldLabel htmlFor="mfa-code">{useRecovery ? dictionary.mfaCodeLabel : dictionary.mfaCodeLabel}</FieldLabel>
+          <FieldLabel htmlFor="mfa-code">{useRecovery ? dictionary.mfaRecoveryCodeLabel : dictionary.mfaCodeLabel}</FieldLabel>
           <Input
             autoComplete="one-time-code"
             autoFocus
             id="mfa-code"
-            inputMode="numeric"
+            inputMode={useRecovery ? "text" : "numeric"}
             maxLength={useRecovery ? 64 : 6}
             name="code"
-            pattern={useRecovery ? "[0-9a-f]*" : "[0-9]*"}
+            pattern={useRecovery ? "[0-9a-f]{64}" : "[0-9]{6}"}
+            ref={inputRef}
             required
             type="text"
           />
@@ -68,7 +68,7 @@ export function TotpChallengeForm({ dictionary, failed }: Readonly<TotpChallenge
         >
           {useRecovery ? dictionary.mfaTotpLink : dictionary.mfaRecoveryLink}
         </Button>
-        <Button aria-busy={pending || undefined} disabled={pending} form="totp-challenge-form" type="submit">
+        <Button aria-busy={pending || undefined} disabled={pending} type="submit">
           {pending && <Spinner data-icon="inline-start" />}
           {pending ? dictionary.mfaSubmitting : dictionary.mfaSubmit}
         </Button>

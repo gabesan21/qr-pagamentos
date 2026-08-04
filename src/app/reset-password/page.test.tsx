@@ -37,6 +37,8 @@ describe("reset password page contract", () => {
     expect(markup).toContain('name="confirmation"');
     expect(markup).toContain('type="password"');
     expect(markup).not.toContain(getDictionary("pt-BR").resetPasswordTokenInvalid);
+    expect(markup).toContain('class="auth-card__panel"');
+    expect(markup).toContain('class="auth-card__form reset-password-form"');
   });
 
   it("shows an opaque unavailable message for a missing token", async () => {
@@ -56,6 +58,8 @@ describe("reset password page contract", () => {
     expect(validateResetChallenge).toHaveBeenCalledWith("invalid-token");
     expect(markup).toContain(getDictionary("pt-BR").resetPasswordTokenInvalid);
     expect(markup).not.toContain('name="newPassword"');
+    expect(markup).toContain('class="auth-card__form auth-card__form--tight"');
+    expect(markup).toContain('class="auth-card__panel"');
   });
 
   it("shows the failure alert when the route reports an error", async () => {

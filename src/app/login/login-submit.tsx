@@ -1,30 +1,36 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useFormStatus } from "react-dom";
 
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 
 type LoginSubmitProps = {
-  form: string;
   label: string;
   pendingLabel: string;
 };
 
-export function LoginSubmit({ form, label, pendingLabel }: Readonly<LoginSubmitProps>) {
-  const [pending, setPending] = useState(false);
+export function LoginSubmit({ label, pendingLabel }: Readonly<LoginSubmitProps>) {
+  const { pending: formPending } = useFormStatus();
+  const [nativePending, setNativePending] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    const loginForm = document.getElementById(form);
-    if (!(loginForm instanceof HTMLFormElement)) return;
+    const form = buttonRef.current?.form;
+    if (!form) return;
 
-    const observeNativeSubmit = () => setPending(true);
-    loginForm.addEventListener("submit", observeNativeSubmit);
-    return () => loginForm.removeEventListener("submit", observeNativeSubmit);
-  }, [form]);
+    const observeNativeSubmit = () => setNativePending(true);
+    form.addEventListener("submit", observeNativeSubmit);
+    return () => form.removeEventListener("submit", observeNativeSubmit);
+  }, []);
 
-  return <Button aria-busy={pending || undefined} className="w-full" disabled={pending} form={form} type="submit">
-    {pending && <Spinner data-icon="inline-start" />}
-    {pending ? pendingLabel : label}
-  </Button>;
+  const pending = formPending || nativePending;
+
+  return (
+    <Button ref={buttonRef} aria-busy={pending || undefined} className="w-full" disabled={pending} type="submit">
+      {pending && <Spinner data-icon="inline-start" />}
+      {pending ? pendingLabel : label}
+    </Button>
+  );
 }

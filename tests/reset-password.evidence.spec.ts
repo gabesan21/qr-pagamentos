@@ -118,7 +118,7 @@ test("creates current reset-password evidence", async ({ page }) => {
           })),
         };
       });
-      expect(measured.bodyFont).toContain("IBM Plex Sans");
+      expect(measured.bodyFont).toContain("Inter");
       expect(measured.overflow).toBe(false);
       expect(measured.targets.every(({ height, width }) => height >= 44 && width >= 44)).toBe(true);
 
