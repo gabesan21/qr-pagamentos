@@ -1,0 +1,239 @@
+{
+  "version": 1,
+  "runId": "20260804130605",
+  "startedAt": "2026-08-04T13:06:05.702Z",
+  "gitHead": "77f8c2d9d59ab34909c16cad131ef1d067e5fc9e",
+  "baseCaptureCount": 36,
+  "stateCaptureCount": 4,
+  "totalPngCount": 40,
+  "assertions": "artifacts/admin-settings/20260804130605/assertions.json",
+  "assertionsSha256": "226b9f1377311833b4d82763e25136ffe684d4dd7e171b6c85ae695742cfcb61",
+  "captures": [
+    {
+      "path": "artifacts/admin-settings/20260804130605/state-pt-BR-hub-empty-375.png",
+      "bytes": 70215,
+      "sha256": "498eee6812ea897b7b56914761aa7bd8775858870035802835a453a29a35d9fe"
+    },
+    {
+      "path": "artifacts/admin-settings/20260804130605/state-pt-BR-theme-default-saved-1440.png",
+      "bytes": 119343,
+      "sha256": "412f3acbfbcc1601cc5b6bc8354874d1a9ab0d732436a9dd015143447bbe946b"
+    },
+    {
+      "path": "artifacts/admin-settings/20260804130605/state-pt-BR-hub-ready-320.png",
+      "bytes": 67514,
+      "sha256": "1987b233d357383988e2404a3bab36f84db566f8247724968b0f49dc2bb2fefa"
+    },
+    {
+      "path": "artifacts/admin-settings/20260804130605/state-en-exchange-currency-registered-1440.png",
+      "bytes": 125102,
+      "sha256": "ca7c98c02a4430d878514b32ff084dc7809b77180ded4cb5ed4511fc9773d524"
+    },
+    {
+      "path": "artifacts/admin-settings/20260804130605/hub-pix-paper-pt-BR-375.png",
+      "bytes": 57712,
+      "sha256": "696e0221f575c8b3ebcded75e3a0659b5585b841d28c69a60a8405931f4d1c60"
+    },
+    {
+      "path": "artifacts/admin-settings/20260804130605/hub-pix-paper-pt-BR-768.png",
+      "bytes": 74377,
+      "sha256": "8161f9a1936a190e8e140b5cd98f97de501b9e273148e5d8377f75e20b3dbe05"
+    },
+    {
+      "path": "artifacts/admin-settings/20260804130605/hub-pix-paper-pt-BR-1440.png",
+      "bytes": 107301,
+      "sha256": "4373bc2b688d220bb40b07ad590fb93b328b5ed98e8162a8b8fe971b11d881cb"
+    },
+    {
+      "path": "artifacts/admin-settings/20260804130605/hub-cashier-daylight-pt-BR-375.png",
+      "bytes": 57487,
+      "sha256": "9d7a711cbadda4f6629db9fa80f4153d4b2fcc97539879470cca5da405a042f7"
+    },
+    {
+      "path": "artifacts/admin-settings/20260804130605/hub-cashier-daylight-pt-BR-768.png",
+      "bytes": 74156,
+      "sha256": "830b1041164035cc70b8237a831dd05ae59dab930bc00d81887c0bb0b4f0a0df"
+    },
+    {
+      "path": "artifacts/admin-settings/20260804130605/hub-cashier-daylight-pt-BR-1440.png",
+      "bytes": 106955,
+      "sha256": "e9acb3728b8ad9b4b963a7627eb969ea9870dea2461d6de1e34bd50810b449f7"
+    },
+    {
+      "path": "artifacts/admin-settings/20260804130605/hub-settlement-sand-pt-BR-375.png",
+      "bytes": 58223,
+      "sha256": "91b8d99e3e94c3d52eb320f845f8c00b27225ba58adb5f5479a6c067234ac20f"
+    },
+    {
+      "path": "artifacts/admin-settings/20260804130605/hub-settlement-sand-pt-BR-768.png",
+      "bytes": 75278,
+      "sha256": "cd06b81c2e55aee97c8eb240520eb0bd6837247b93b1627831eb6d01953b6533"
+    },
+    {
+      "path": "artifacts/admin-settings/20260804130605/hub-settlement-sand-pt-BR-1440.png",
+      "bytes": 107976,
+      "sha256": "1b9f1f90b7b3d922409b689c0deef89c38212664820eabd2b90fae11adb2122f"
+    },
+    {
+      "path": "artifacts/admin-settings/20260804130605/hub-midnight-clearing-pt-BR-375.png",
+      "bytes": 60873,
+      "sha256": "e31e4f4324279f9b1198385910305248de9a84fdb78b68797ad5734f207087fd"
+    },
+    {
+      "path": "artifacts/admin-settings/20260804130605/hub-midnight-clearing-pt-BR-768.png",
+      "bytes": 78166,
+      "sha256": "b7745e9a4fd197f758bd9997fb05c0244021308548662c8694c2d16461d09fc2"
+    },
+    {
+      "path": "artifacts/admin-settings/20260804130605/hub-midnight-clearing-pt-BR-1440.png",
+      "bytes": 111483,
+      "sha256": "9571b7bb83239546c5f29c67a703f8621a266de310632880fb2ea04b65d358f1"
+    },
+    {
+      "path": "artifacts/admin-settings/20260804130605/hub-vault-blue-pt-BR-375.png",
+      "bytes": 61017,
+      "sha256": "4164203fc61e9588bcf48c84872f3d79e9195bbfb0de2aa93a98a58b750487a7"
+    },
+    {
+      "path": "artifacts/admin-settings/20260804130605/hub-vault-blue-pt-BR-768.png",
+      "bytes": 78451,
+      "sha256": "7586332bcbf69281edfbf6d1a1b1d71122e4ad66a8eafa0cff405129af74ccd2"
+    },
+    {
+      "path": "artifacts/admin-settings/20260804130605/hub-vault-blue-pt-BR-1440.png",
+      "bytes": 111733,
+      "sha256": "a6eb73f52f74bc80c017d9ffcab3faafc50fa9c99d0946876e1ebcd4255ee914"
+    },
+    {
+      "path": "artifacts/admin-settings/20260804130605/hub-terminal-amber-pt-BR-375.png",
+      "bytes": 59871,
+      "sha256": "33ef9cffca6ce2502898212635d59100fb69167612250baf771a5b93f41b6741"
+    },
+    {
+      "path": "artifacts/admin-settings/20260804130605/hub-terminal-amber-pt-BR-768.png",
+      "bytes": 77212,
+      "sha256": "ce70dc82ec9ded375d57d0899723836342da95950eb00649a8ee8c36f7d56f54"
+    },
+    {
+      "path": "artifacts/admin-settings/20260804130605/hub-terminal-amber-pt-BR-1440.png",
+      "bytes": 110499,
+      "sha256": "26e3e0d55302363d4c8cd9161117f8e4c04eb226fae0060b9c9a8bcb576042c5"
+    },
+    {
+      "path": "artifacts/admin-settings/20260804130605/hub-pix-paper-en-375.png",
+      "bytes": 55333,
+      "sha256": "ecba2626db1da359f183c227b5caa9f76be334d7c7297e44b92212b61faafc95"
+    },
+    {
+      "path": "artifacts/admin-settings/20260804130605/hub-pix-paper-en-768.png",
+      "bytes": 70602,
+      "sha256": "fedd9e9155bc8d101fbab3e5380403bd2aad8e3b3b815c687ee9658b668340d3"
+    },
+    {
+      "path": "artifacts/admin-settings/20260804130605/hub-pix-paper-en-1440.png",
+      "bytes": 101250,
+      "sha256": "0b2ad1b37104e4f7fdf2fef3a2ccd5eacfa1fd4205ef8e0e1c79f5adb10ac6ac"
+    },
+    {
+      "path": "artifacts/admin-settings/20260804130605/hub-cashier-daylight-en-375.png",
+      "bytes": 54998,
+      "sha256": "ba4968feeed4ba49f0ec68e02b21eeb0fea6cc0580268670b4a197fd8ad6e3f2"
+    },
+    {
+      "path": "artifacts/admin-settings/20260804130605/hub-cashier-daylight-en-768.png",
+      "bytes": 70348,
+      "sha256": "30b74b01f99c518fe42fe6968a2033f2e13c0062388f718dcc5aec7f02c5db42"
+    },
+    {
+      "path": "artifacts/admin-settings/20260804130605/hub-cashier-daylight-en-1440.png",
+      "bytes": 101184,
+      "sha256": "c0866575a9aec26976d4724a76609f528edc7845603c539f8c84255c185f44c1"
+    },
+    {
+      "path": "artifacts/admin-settings/20260804130605/hub-settlement-sand-en-375.png",
+      "bytes": 55882,
+      "sha256": "1110e2450824f45be2b6386d87bae3c33027dfe72dbca64b0975a8fbff7a6336"
+    },
+    {
+      "path": "artifacts/admin-settings/20260804130605/hub-settlement-sand-en-768.png",
+      "bytes": 71424,
+      "sha256": "2cab1c7b935a908de8ab9d2c84b17a86fda024fec690c8d6f42203a9580bf8cf"
+    },
+    {
+      "path": "artifacts/admin-settings/20260804130605/hub-settlement-sand-en-1440.png",
+      "bytes": 101922,
+      "sha256": "56b77bda6d4ffcc383ff198ade6a02411e41f81c355363c5c01f001870ea96a2"
+    },
+    {
+      "path": "artifacts/admin-settings/20260804130605/hub-midnight-clearing-en-375.png",
+      "bytes": 58807,
+      "sha256": "1956891dba908d6d753433bf8f978801bcfb1716215ae39a3304f82223b11b51"
+    },
+    {
+      "path": "artifacts/admin-settings/20260804130605/hub-midnight-clearing-en-768.png",
+      "bytes": 74153,
+      "sha256": "4395139dcae13ec3c933361d3956fe3832e98c98ea1983a0e2f59ee7170ba421"
+    },
+    {
+      "path": "artifacts/admin-settings/20260804130605/hub-midnight-clearing-en-1440.png",
+      "bytes": 105458,
+      "sha256": "befd4cc2c4ed79e81f0ab6251d4ae7364d55ff75e9b52503e2f5cf3dbade38bc"
+    },
+    {
+      "path": "artifacts/admin-settings/20260804130605/hub-vault-blue-en-375.png",
+      "bytes": 58868,
+      "sha256": "b8e59679c94ea320dbf58301d50c12dbb1427a378a6e24429045b9a4ec4fed11"
+    },
+    {
+      "path": "artifacts/admin-settings/20260804130605/hub-vault-blue-en-768.png",
+      "bytes": 74433,
+      "sha256": "01bb34aa416dbfb5989d25b32c1eb35be84abc7ceeb87c2ced8dde69ee153bf0"
+    },
+    {
+      "path": "artifacts/admin-settings/20260804130605/hub-vault-blue-en-1440.png",
+      "bytes": 105776,
+      "sha256": "edc7193cf607a15a448ffb7c9367d0d8f56eb92766424ad7ee12daa2093e8b3b"
+    },
+    {
+      "path": "artifacts/admin-settings/20260804130605/hub-terminal-amber-en-375.png",
+      "bytes": 57946,
+      "sha256": "318be1e9983887e3f9904edd6d798bbe126dcf0b38a89bfd4aba6e95ef976ecb"
+    },
+    {
+      "path": "artifacts/admin-settings/20260804130605/hub-terminal-amber-en-768.png",
+      "bytes": 73332,
+      "sha256": "d792a310caf22b8f82fbe5be030233f1a85c12993587b9033ad65453bea62955"
+    },
+    {
+      "path": "artifacts/admin-settings/20260804130605/hub-terminal-amber-en-1440.png",
+      "bytes": 104585,
+      "sha256": "13f4afe5bc94c2ef8f97f3f8e41af3c2d68164e12bbf86e6c055ddf905555842"
+    }
+  ],
+  "sourceHashes": {
+    "src/auth/system-settings.ts": "5ffb56012cfd23f6e0b12c960c3314e270cc8b2a1a570f998f40f65d8ffd7e56",
+    "src/auth/administration.ts": "728580bc377871c3638028c4e660db7afc60ace4516cbecc0ba7719b49f12088",
+    "src/auth/supported-exchange-currency.ts": "06ef2054dbbf65dc70ec0a7cbebe524646769771d00e4e8f808ef83114f80316",
+    "src/app/admin/settings/page.tsx": "8bbfdd5eb49c15132f9e6c43d19310e1491a7cbf9aefcd2f214b656465c60ee2",
+    "src/app/admin/settings/settings-surface.tsx": "6550800ca9b5bfa85f0ce9ad76c1b093ef5c06a5f2ddeea169de51a36d3e124b",
+    "src/app/admin/settings/exchange-currencies-section.tsx": "6757404e490192fcf6308122eb90857de245b11469ae30814e90c30ddf27c5df",
+    "src/app/admin/settings/catalog-records-section.tsx": "cb7cb9d0076c5421988094210663a6ec6246c178a519231dc821077201fefb45",
+    "src/app/admin/settings/payment-settings-section.tsx": "e5fd25630c43bab19668fd53d4fe38646b467d5d54260a8ac519d566d8d949c6",
+    "src/app/admin/settings/appearance-section.tsx": "4a5c97a41a555d92a813bf790d4e7e8771404b2c2354213446e2c0609137b3c0",
+    "src/app/admin/settings/language-section.tsx": "920447bb2c7206c91bc5761fc0ab3aaace4792d5075a55d67db7073a66d281bf",
+    "src/app/admin/settings/confirm-toggle.tsx": "2f2da83474f6684d3a55a86e84d83f588c29d5f725a9047c52f2d8409e4b293a",
+    "src/app/admin/settings/default-theme/route.ts": "3890a1a507cd789368bbbd48dcc7b0fadae3794a9e5358a4170cb150487dbee4",
+    "src/app/admin/admin-submit.tsx": "e8b83f00cd417d6c6ab174dde1a2173074d3b0ad5ce051280fc59fe3c2587705",
+    "src/i18n/dictionaries/administration/en.ts": "12b525d84c5fdccdf161a12c823e93b0762b0fea9d9bbb2313521e2db1f84914",
+    "src/i18n/dictionaries/administration/pt-BR.ts": "bac0557228a07a632f80fd390dc6f2002f9b3952beb3c4bfec0fac92995fd67f",
+    "src/i18n/dictionaries/shared/en.ts": "37aad022bdf6979a81bfc9565afee9a4a8bd7338a62d701b3d2ccdccb5e7c28d",
+    "src/i18n/dictionaries/shared/pt-BR.ts": "f4bb2f1fee65e8508c72b9e8bba3f84f1713931e792689ed3c917682c0f79ff7",
+    "tests/admin-settings.evidence.spec.ts": "aed86eb06b1e5e38e4a02780a5e9800d106a882fd48bb35d6ba91d5ed4ae3885",
+    "scripts/run-admin-evidence.mjs": "10bda618c6c425411040c1be8ae6cb37e427e9eb26e53a2259a565425a50f132",
+    "scripts/run-admin-settings-evidence.mjs": "8ae46c26407a4165e9f67bc59b1444dd633a1b8eb4153b4898ebcc19f54fde87",
+    "scripts/verify-admin-settings-evidence.mjs": "94f47eb7adde9c2527735a25b0ca82ed6957e23d5982ca821fc601a798c739c7"
+  },
+  "externalRequests": [],
+  "consoleErrors": [],
+  "pageErrors": []
+}
