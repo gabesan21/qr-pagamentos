@@ -39,18 +39,20 @@ export default async function AdminPage({
 
   return (
     <>
-      <WorkspaceHeading
-        description={dictionary.shellAdminDashboardDescription}
-        eyebrow={dictionary.shellAdminEyebrow}
-        title={dictionary.shellAdminDashboardTitle}
-      />
+      <div className="admin-dashboard__header">
+        <WorkspaceHeading
+          description={dictionary.shellAdminDashboardDescription}
+          eyebrow={dictionary.shellAdminEyebrow}
+          title={dictionary.shellAdminDashboardTitle}
+        />
+        <AdminDashboardPeriodNavigation current={view.period.id} dictionary={dictionary} />
+      </div>
       {succeeded || failed ? (
         <Alert role={failed ? "alert" : "status"} variant={failed ? "destructive" : "success"}>
           <AlertTitle>{failed ? dictionary.adminErrorHeading : dictionary.adminSuccessHeading}</AlertTitle>
           <AlertDescription>{noticeText}</AlertDescription>
         </Alert>
       ) : null}
-      <AdminDashboardPeriodNavigation current={view.period.id} dictionary={dictionary} />
       <AdminDashboard dictionary={dictionary} locale={locale} view={view} />
     </>
   );

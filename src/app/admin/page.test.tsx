@@ -63,7 +63,9 @@ describe("administrator dashboard", () => {
     expect(requireContext).toHaveBeenCalledOnce();
     expect(getGlobal).toHaveBeenCalledWith(principal, undefined);
     expect(html).toContain(ptBR.shellAdminDashboardTitle);
-    expect(html).toContain(ptBR.adminDashboardUsersHeading);
+    expect(html).toContain(ptBR.adminDashboardUsersRegistered);
+    expect(html).toContain(ptBR.adminDashboardUsersActiveNow);
+    expect(html).toContain(ptBR.adminDashboardUsersDeleted);
     expect(html).toContain(ptBR.adminDashboardOrdersHeading);
     expect(html).toContain(ptBR.adminDashboardConfirmedSales);
     expect(html).toContain(ptBR.adminDashboardLocallyFinalizedSales);
@@ -73,7 +75,10 @@ describe("administrator dashboard", () => {
     expect(html).toContain(ptBR.adminDashboardFunnelHeading);
     expect(html).toContain("66,66%");
     expect(html).toContain("33,33%");
-    expect(html).toContain(ptBR.adminDashboardLinksProductsHeading);
+    expect(html).toContain(ptBR.adminDashboardLinksTotal);
+    expect(html).toContain(ptBR.adminDashboardLinksActive);
+    expect(html).toContain(ptBR.adminDashboardProductsActive);
+    expect(html).toContain(ptBR.adminDashboardProductsArchived);
     expect(html).toContain(ptBR.adminDashboardTopOwnersHeading);
     expect(html).toContain(ptBR.adminDashboardTopProductsHeading);
     expect(html).toContain("Café expresso");
@@ -84,7 +89,7 @@ describe("administrator dashboard", () => {
 
     const html = await render();
 
-    expect(html.match(new RegExp(ptBR.adminDashboardPeriodIndependentCaption, "g"))).toHaveLength(2);
+    expect(html.match(new RegExp(ptBR.adminDashboardPeriodIndependentCaption, "g"))).toHaveLength(6);
   });
 
   it("labels the null order state explicitly and groups by source", async () => {
@@ -98,6 +103,17 @@ describe("administrator dashboard", () => {
     expect(html).toContain(ptBR.checkoutStateConfirmed);
   });
 
+  it("renders a source progress bar and origin chips", async () => {
+    arrange("pt-BR", readyView());
+
+    const html = await render();
+
+    expect(html).toContain("admin-dashboard__progress");
+    expect(html).toContain("admin-dashboard__source-bar--link");
+    expect(html).toContain("admin-dashboard__source-bar--ad-hoc");
+    expect(html).toContain("admin-dashboard__origin-row");
+  });
+
   it("renders the deleted-owner badge on leaderboard rows without changing aggregates", async () => {
     arrange("pt-BR", readyView());
 
@@ -106,6 +122,15 @@ describe("administrator dashboard", () => {
     expect(html).toContain("lojista");
     expect(html).toContain("saiu");
     expect(html).toContain(ptBR.adminDashboardDeletedOwnerBadge);
+  });
+
+  it("links top owners to the accounts directory", async () => {
+    arrange("pt-BR", readyView());
+
+    const html = await render();
+
+    expect(html).toContain('href="/admin/accounts"');
+    expect(html).toContain("admin-dashboard__leaderboard-row");
   });
 
   it("passes a closed-set period through to the service", async () => {

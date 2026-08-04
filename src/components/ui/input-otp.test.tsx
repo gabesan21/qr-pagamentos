@@ -1,9 +1,9 @@
 // @vitest-environment jsdom
 
-import { render } from "@testing-library/react"
+import { cleanup, render } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { compile } from "tailwindcss"
-import { describe, expect, it } from "vitest"
+import { afterEach, describe, expect, it } from "vitest"
 
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "./input-otp"
 
@@ -23,6 +23,10 @@ globalThis.ResizeObserver = InputOtpResizeObserver
 Object.defineProperty(document, "elementFromPoint", {
   configurable: true,
   value: () => null,
+})
+
+afterEach(() => {
+  cleanup()
 })
 
 describe("InputOTP focus", () => {

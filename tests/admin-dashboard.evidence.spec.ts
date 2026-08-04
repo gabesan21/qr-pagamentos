@@ -40,7 +40,7 @@ async function signIn(page: Page, username: string, password: string, landing: "
 async function setLocale(page: Page, locale: "pt-BR" | "en") {
   await page.goto(`${baseUrl}/admin/settings`);
   const form = page.locator('form[action="/language-preference"]');
-  await form.locator('select[name="locale"]').selectOption(locale);
+  await form.locator('select[name="locale"]#admin-locale').selectOption(locale);
   // The preference POST redirects to `/?language=saved`, and `/` dispatches
   // the administrator to `/admin` (the query is not preserved).
   await Promise.all([
@@ -232,7 +232,7 @@ test("creates the closed administrator dashboard evidence run", async ({ page })
         })),
       };
     });
-    expect(measured.bodyFont).toContain("IBM Plex Sans");
+    expect(measured.bodyFont).toContain("Inter");
     expect(measured.overflow).toBe(false);
     expect(measured.targets.every(({ height, width }) => height >= 44 && width >= 44)).toBe(true);
     const periodLink = page.locator("a.admin-dashboard__period").first();
@@ -378,7 +378,7 @@ test("creates the closed administrator dashboard evidence run", async ({ page })
     // ---- Deleted-owner badge: the withdrawn owner stays on the leaderboard
     // with the localized non-color badge. ----
     await openDashboard();
-    const goneRow = page.locator("tbody tr", { hasText: goneUsername });
+    const goneRow = page.locator(".admin-dashboard__leaderboard-row", { hasText: goneUsername });
     await expect(goneRow).toContainText(dictionary.adminDashboardDeletedOwnerBadge);
     await expect(goneRow.locator('[data-slot="badge"]', { hasText: dictionary.adminDashboardDeletedOwnerBadge })).toBeVisible();
     assertions.push({ state: `${locale}-deleted-badge`, badge: dictionary.adminDashboardDeletedOwnerBadge });
