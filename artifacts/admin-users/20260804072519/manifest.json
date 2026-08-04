@@ -1,0 +1,281 @@
+{
+  "version": 1,
+  "runId": "20260804072519",
+  "startedAt": "2026-08-04T07:25:19.591Z",
+  "gitHead": "1582aae0d82b7ecf19f0704c829a47c2dbaf8c0a",
+  "baseCaptureCount": 36,
+  "stateCaptureCount": 12,
+  "totalPngCount": 48,
+  "assertions": "artifacts/admin-users/20260804072519/assertions.json",
+  "assertionsSha256": "ad2f1709413b1e20e6c6f792f05587cc2cc3e71fea8141d456849cd0c57e8dbd",
+  "captures": [
+    {
+      "path": "artifacts/admin-users/20260804072519/state-pt-BR-accounts-ready-375.png",
+      "bytes": 419214,
+      "sha256": "0d14a270011be55c9e1cb58adf06acdc03e96acecf3a3250eb6c0c14b81ea772"
+    },
+    {
+      "path": "artifacts/admin-users/20260804072519/state-pt-BR-accounts-ready-320.png",
+      "bytes": 412472,
+      "sha256": "c9713e1224ccbce5867c61a61fba0e67419dd96faa2f8c8d36e62742a369360d"
+    },
+    {
+      "path": "artifacts/admin-users/20260804072519/state-pt-BR-account-detail-1440.png",
+      "bytes": 226865,
+      "sha256": "c9bfafe31047dafa37ce2f497a945abe39e2eb8eac12ccced77f7faffbf08aa6"
+    },
+    {
+      "path": "artifacts/admin-users/20260804072519/state-pt-BR-account-detail-unavailable-1440.png",
+      "bytes": 53652,
+      "sha256": "327fb7b622c2c99f1fc2b960cbbb09a2e7f00ac3b0f30826e8c4dd4f578f9855"
+    },
+    {
+      "path": "artifacts/admin-users/20260804072519/state-pt-BR-deleted-badge-1440.png",
+      "bytes": 232945,
+      "sha256": "7f60e27d940a9098d7a64d459564d216d3ceef7770c10f4eae37fc4a62d6db93"
+    },
+    {
+      "path": "artifacts/admin-users/20260804072519/state-pt-BR-account-detail-deleted-1440.png",
+      "bytes": 74718,
+      "sha256": "730550ff02a32677fbebae1af780e7405b9f0f61e9f466f72cd96c33c0cd6aac"
+    },
+    {
+      "path": "artifacts/admin-users/20260804072519/state-en-accounts-filtered-empty-1440.png",
+      "bytes": 80400,
+      "sha256": "589baa388306c7c804c0bd602ba55ba69f512e911d2ebba1e21735339145aa5a"
+    },
+    {
+      "path": "artifacts/admin-users/20260804072519/state-en-accounts-invalid-query-1440.png",
+      "bytes": 77128,
+      "sha256": "84ea643bf733b49788932644b9002eff3ede9bb80a0bfa173f87544cd1f47cb2"
+    },
+    {
+      "path": "artifacts/admin-users/20260804072519/state-en-accounts-page-2-1440.png",
+      "bytes": 145325,
+      "sha256": "3afb77c0f708a8cce71b97a14ed7cfa2a3f811c1d277a9a933a8b3fb8fed09d2"
+    },
+    {
+      "path": "artifacts/admin-users/20260804072519/state-en-accounts-search-1440.png",
+      "bytes": 86654,
+      "sha256": "d00b9e5802fbe3fd84679940cf8e021e5fb9a3c1b609d62a39d7681f5be3890a"
+    },
+    {
+      "path": "artifacts/admin-users/20260804072519/state-en-accounts-filter-state-1440.png",
+      "bytes": 87510,
+      "sha256": "55808cb47c490eba5017b1ef17b8432906bb0e41d47b826be83cf9f4d904c29a"
+    },
+    {
+      "path": "artifacts/admin-users/20260804072519/state-en-deleted-badge-1440.png",
+      "bytes": 228986,
+      "sha256": "0484d1098babbe81dd0fe28716e2f99e71cf8d031f09d557afa8f7bdafb03150"
+    },
+    {
+      "path": "artifacts/admin-users/20260804072519/directory-pix-paper-pt-BR-375.png",
+      "bytes": 418734,
+      "sha256": "c97ec157a4dd978cbf8df1c307bc046c17225097b63ff78f5d3c91f6d5bfedbf"
+    },
+    {
+      "path": "artifacts/admin-users/20260804072519/directory-pix-paper-pt-BR-768.png",
+      "bytes": 177238,
+      "sha256": "e446ede374be42c10615432dc8c3b8a1ddf0b34ec8afeb9d245898143b227ecd"
+    },
+    {
+      "path": "artifacts/admin-users/20260804072519/directory-pix-paper-pt-BR-1440.png",
+      "bytes": 232920,
+      "sha256": "ef67d02f3030c1040c6b2f5b6bb866a4f325d19e786b65d04a602cabc5591b46"
+    },
+    {
+      "path": "artifacts/admin-users/20260804072519/directory-cashier-daylight-pt-BR-375.png",
+      "bytes": 416361,
+      "sha256": "411d84e3fa130f5577c1f5df606c1ceec3b96d95c7d723feab30ce19b3265eed"
+    },
+    {
+      "path": "artifacts/admin-users/20260804072519/directory-cashier-daylight-pt-BR-768.png",
+      "bytes": 177086,
+      "sha256": "32d40f5771b2c6084c129295122d45660aee5ee7bbdfe9d9f270db1d6b5fd009"
+    },
+    {
+      "path": "artifacts/admin-users/20260804072519/directory-cashier-daylight-pt-BR-1440.png",
+      "bytes": 232284,
+      "sha256": "9b8592c5dc113a35dd95f7b12282bf47270057cb94cb6a0c5ac159d14ea422df"
+    },
+    {
+      "path": "artifacts/admin-users/20260804072519/directory-settlement-sand-pt-BR-375.png",
+      "bytes": 423240,
+      "sha256": "8e59cea49ccf9abf4b44b47e78c1ce7f0ce8a573072a3ed64e2052882252cdaf"
+    },
+    {
+      "path": "artifacts/admin-users/20260804072519/directory-settlement-sand-pt-BR-768.png",
+      "bytes": 178839,
+      "sha256": "3361e7eb8e8cbf2ffb4f0dd94e50e968b4c5c89df57f8c8af7f37eff26cf1d1b"
+    },
+    {
+      "path": "artifacts/admin-users/20260804072519/directory-settlement-sand-pt-BR-1440.png",
+      "bytes": 233922,
+      "sha256": "0691109324e745a9e4fd660fb206afad54aee563289e01db441d0ba5331f7be5"
+    },
+    {
+      "path": "artifacts/admin-users/20260804072519/directory-midnight-clearing-pt-BR-375.png",
+      "bytes": 442860,
+      "sha256": "fa5e08c42cfed555f89a8a9f897fb3d1fe02f5e1d0162de7a3c9690f1c53d735"
+    },
+    {
+      "path": "artifacts/admin-users/20260804072519/directory-midnight-clearing-pt-BR-768.png",
+      "bytes": 181933,
+      "sha256": "629663c59120524f850e4f10be3491b6c8c6bded15e3ca1c61f6e4893fc86465"
+    },
+    {
+      "path": "artifacts/admin-users/20260804072519/directory-midnight-clearing-pt-BR-1440.png",
+      "bytes": 237613,
+      "sha256": "521d88ff2dda032d26d74af5d7761e4d930f23d15700a02f504a9390fdeb7ef2"
+    },
+    {
+      "path": "artifacts/admin-users/20260804072519/directory-vault-blue-pt-BR-375.png",
+      "bytes": 443850,
+      "sha256": "079152b672312a5389b3245dd68d8bec73e644604cce8581d72743ae6b8e9caa"
+    },
+    {
+      "path": "artifacts/admin-users/20260804072519/directory-vault-blue-pt-BR-768.png",
+      "bytes": 182353,
+      "sha256": "0a47148104582138041e3c6e07a414d0b633faf393f734c91ff5192129b8582a"
+    },
+    {
+      "path": "artifacts/admin-users/20260804072519/directory-vault-blue-pt-BR-1440.png",
+      "bytes": 237651,
+      "sha256": "3ef4878891d4d5134b6d4ee3a5d675bd201d389c53a5cd57006448192b9515f3"
+    },
+    {
+      "path": "artifacts/admin-users/20260804072519/directory-terminal-amber-pt-BR-375.png",
+      "bytes": 437504,
+      "sha256": "767be445baeee4bacfe7516542ad438207c2c24e219ec1460402e5d95d33741c"
+    },
+    {
+      "path": "artifacts/admin-users/20260804072519/directory-terminal-amber-pt-BR-768.png",
+      "bytes": 180939,
+      "sha256": "74634d340110cf42255cf7c67e63239277ff299e96db93090e7f62beb8c8d725"
+    },
+    {
+      "path": "artifacts/admin-users/20260804072519/directory-terminal-amber-pt-BR-1440.png",
+      "bytes": 236499,
+      "sha256": "992c7320d73e66456879d40816e83200f616af86ef7d4955327158a2c62e9dcd"
+    },
+    {
+      "path": "artifacts/admin-users/20260804072519/directory-pix-paper-en-375.png",
+      "bytes": 389885,
+      "sha256": "b97baedefc1609afe8208026abeb2cb01350beb38f5807838d51afd5b431f3ba"
+    },
+    {
+      "path": "artifacts/admin-users/20260804072519/directory-pix-paper-en-768.png",
+      "bytes": 167510,
+      "sha256": "9e1b7da0a925c4414b468ac1e8d133980f666203acccb9d7937aa7a08d9931e8"
+    },
+    {
+      "path": "artifacts/admin-users/20260804072519/directory-pix-paper-en-1440.png",
+      "bytes": 229051,
+      "sha256": "12c4370df746b9eea02253bda71c2ab21d5e1822c4a60375eb316c014fb06695"
+    },
+    {
+      "path": "artifacts/admin-users/20260804072519/directory-cashier-daylight-en-375.png",
+      "bytes": 386449,
+      "sha256": "c37a2d971e239a00f48951cd3f27c4d27c3e7984e362ebdf4b4882e64f6130ad"
+    },
+    {
+      "path": "artifacts/admin-users/20260804072519/directory-cashier-daylight-en-768.png",
+      "bytes": 167620,
+      "sha256": "94c84421cfd88c8fa1007fe0cca191955e96554122b3a4148c100c04d469852b"
+    },
+    {
+      "path": "artifacts/admin-users/20260804072519/directory-cashier-daylight-en-1440.png",
+      "bytes": 228179,
+      "sha256": "569417a2614c1f7c8a6382ec90a9a8f9c251fbdc7ebd20517fa71b2cb1bc0a5c"
+    },
+    {
+      "path": "artifacts/admin-users/20260804072519/directory-settlement-sand-en-375.png",
+      "bytes": 394866,
+      "sha256": "92788b857bcce94aa7fb05441210316bd8380b1d06428469e1e297017844e3ba"
+    },
+    {
+      "path": "artifacts/admin-users/20260804072519/directory-settlement-sand-en-768.png",
+      "bytes": 169314,
+      "sha256": "3ae6436ad80f82166e72173615dc746293d305e42286977b9f67fe9c1218ef13"
+    },
+    {
+      "path": "artifacts/admin-users/20260804072519/directory-settlement-sand-en-1440.png",
+      "bytes": 230710,
+      "sha256": "485738c2719552670cc47258b198a5533da47f2ba5fec2f96db8b83ee03b7a2f"
+    },
+    {
+      "path": "artifacts/admin-users/20260804072519/directory-midnight-clearing-en-375.png",
+      "bytes": 413759,
+      "sha256": "1f52c942565eba99868b2292ac689d0b3eb8bf2923f236b8049506687ea9f2c3"
+    },
+    {
+      "path": "artifacts/admin-users/20260804072519/directory-midnight-clearing-en-768.png",
+      "bytes": 172588,
+      "sha256": "b132f1dbe00fa5bbc9226046cbfb68ccf5a4be458afaff9b8915d7ad64d9372e"
+    },
+    {
+      "path": "artifacts/admin-users/20260804072519/directory-midnight-clearing-en-1440.png",
+      "bytes": 234350,
+      "sha256": "8587c3540b743d389f763b001a4210fabe21ed70ea6bdcb487c6c962659a935b"
+    },
+    {
+      "path": "artifacts/admin-users/20260804072519/directory-vault-blue-en-375.png",
+      "bytes": 414252,
+      "sha256": "8a7abd399a325a480f4cbb90362841ce5d87a67460458d753e5538858ae136b1"
+    },
+    {
+      "path": "artifacts/admin-users/20260804072519/directory-vault-blue-en-768.png",
+      "bytes": 172980,
+      "sha256": "758e376357ebd0a4d8cd31b99104a424c30f6ea890cf316894a6798827fea1a9"
+    },
+    {
+      "path": "artifacts/admin-users/20260804072519/directory-vault-blue-en-1440.png",
+      "bytes": 234474,
+      "sha256": "72ad4a4b48e368a8cc38ec456a0dae651e9926dfccbf9609da7ecc82a3b52550"
+    },
+    {
+      "path": "artifacts/admin-users/20260804072519/directory-terminal-amber-en-375.png",
+      "bytes": 407954,
+      "sha256": "e9f2122783275aa65f70b4473267be148ad00f4bc296de78ecf53a9eaf6a8d79"
+    },
+    {
+      "path": "artifacts/admin-users/20260804072519/directory-terminal-amber-en-768.png",
+      "bytes": 171749,
+      "sha256": "7637212d32eac7ce1efaf73fe0c50fd598afaa77b8d811a6f0b825f45c2e2cd2"
+    },
+    {
+      "path": "artifacts/admin-users/20260804072519/directory-terminal-amber-en-1440.png",
+      "bytes": 233586,
+      "sha256": "5c6fbcfb3bc90906c192f293a7702f3364e8b7e6454b6ce79beeb9d5bedad4d0"
+    }
+  ],
+  "sourceHashes": {
+    "src/auth/admin-user-directory.ts": "e6dfcc01c7bedabe698ad10a5aa2444fbc681ba53a8dc9611df791205d508784",
+    "src/auth/admin-user-profile.ts": "ea88c09f54db76016958f6947d3a9d7912ec83d774d15d5a40dc48e596e85726",
+    "src/app/admin/accounts/page.tsx": "6bc1dfe581fa4ea114d173d1b479dfb06f797c7106111510274664aa0840bf46",
+    "src/app/admin/accounts/directory-query.ts": "551087f18e444dbd78bd9a6fbfda17d5aded482a06911345800586e5f80092a6",
+    "src/app/admin/accounts/directory-copy.ts": "7b94a81b46aaf2203c938379fbbfc49fbe11d048f93315d3c2dabf604cf56a94",
+    "src/app/admin/accounts/instant.ts": "d90920e7aadf91a162e8a9f1e8e6f86cb438a43640062bf7aa94cfb54542880f",
+    "src/app/admin/accounts/[id]/page.tsx": "2b2925e443ed2c9c28f401988c7b5aa72071f6cde20e1c0e2830ee3461ec60b0",
+    "src/app/admin/users/[id]/identity/route.ts": "2699ead53851af03022dac11755cf2d6e8142a53ec4a668a0f44f5c5bc4911ea",
+    "src/app/admin/users/[id]/locale/route.ts": "0331ebc1f186f92ec57b4bcd4672cc00f41481bf582b634eb1bf17058f2feb5b",
+    "src/app/admin/users/[id]/checkout-policy/route.ts": "4ff86493d78be915c97d6c351e69d13d605eea849931b7f0d8574c38ec36222c",
+    "src/app/admin/users/[id]/storefront/route.ts": "174ae3e365b6be756b3a355e8241b63d056a096e022aff952d067696b199a9c4",
+    "src/app/admin/users/[id]/reset-password/route.ts": "d751cfd47bc77ec43abcffa491e0b01c8e82004905b0b7d8fd499ff00bdfa888",
+    "src/auth/admin-password-reset.ts": "22587bbe9c4d5f1a55e90ce0c17cfdb1710dcde4917442c662e9e8909d7bc4ed",
+    "src/app/admin/admin-surface.tsx": "71fb4a11fa98c43796aac4788d3558f0082978aa351efc89fdc934a2011e5f42",
+    "src/data-directory/ui/data-directory.tsx": "6277588c28ef9a1bc202002df45f8fa65ce445c266632fe8316e8589695801b0",
+    "src/i18n/dictionaries/admin-users-directory/en.ts": "a2bd260159c0f2e26ff099cc1d0b8c034bbb23cddd3f1f5322795621fbd7f43a",
+    "src/i18n/dictionaries/admin-users-directory/pt-BR.ts": "8f74606aff407c389808c15ac71ec2faf6103fe4c647cd6f27bb1dc2122a3005",
+    "src/i18n/dictionaries/admin-user-profile/en.ts": "8cc40a3129d8d2776639923a8559e0ade0fe2a8d3226116e66920cbefd25763d",
+    "src/i18n/dictionaries/admin-user-profile/pt-BR.ts": "bc782ee3e19d6d952e84823680aa5e86462e31b43789214bb010667af2a4930e",
+    "tests/admin-users.evidence.spec.ts": "772b3b4e37b4cde1b4697fd88c1abaf7c188224c83b634c5651ca2f022ad6234",
+    "scripts/run-admin-evidence.mjs": "10bda618c6c425411040c1be8ae6cb37e427e9eb26e53a2259a565425a50f132",
+    "scripts/run-admin-users-evidence.mjs": "0717a221845012088663f296ce4201ce2032b3715a2b6e6d8e0ae028e96ed258",
+    "scripts/verify-admin-users-evidence.mjs": "6670f08999725be80cb9c3d440c3d73a850e482574e48bcf090a73d8b2c2eb43"
+  },
+  "externalRequests": [],
+  "consoleErrors": [],
+  "pageErrors": []
+}

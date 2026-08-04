@@ -1,4 +1,12 @@
 export const adminUserProfileEn = {
+  adminUserProfileSectionsLabel: "Profile sections",
+  adminUserProfileBreadcrumbLabel: "Breadcrumb",
+  adminUserProfileSectionIdentity: "Identity",
+  adminUserProfileSectionAccess: "Access",
+  adminUserProfileSectionSecurity: "Security",
+  adminUserProfileSectionPreferences: "Preferences",
+  adminUserProfileSectionStorefront: "Storefront",
+  adminUserProfileSectionDanger: "Danger zone",
   adminUserProfileChanged: "Account change saved.",
   adminUserProfileConflict: "That account change conflicts with a newer state or an existing value. Review the fields and try again.",
   adminUserProfileFailed: "The account change could not be completed. Review the details and try again.",

@@ -36,7 +36,7 @@ async function signIn(page: Page, username: string, password: string, landing: "
 
 async function setLocale(page: Page, locale: "pt-BR" | "en") {
   await page.goto(`${baseUrl}/admin/settings`);
-  const form = page.locator('form[action="/language-preference"]');
+  const form = page.locator('#language form[action="/language-preference"]');
   await form.locator('select[name="locale"]').selectOption(locale);
   // The preference POST redirects to `/?language=saved`, and `/` dispatches
   // the administrator to `/admin` (the query is not preserved).
@@ -151,7 +151,7 @@ test("creates the closed administrator users evidence run", async ({ page }) => 
         })),
       };
     });
-    expect(measured.bodyFont).toContain("IBM Plex Sans");
+    expect(measured.bodyFont).toContain("Inter");
     expect(measured.overflow).toBe(false);
     expect(measured.targets.every(({ height, width }) => height >= 44 && width >= 44)).toBe(true);
     const formControls = page.locator('input:not([type="hidden"]):not([type="file"]), select, textarea');
