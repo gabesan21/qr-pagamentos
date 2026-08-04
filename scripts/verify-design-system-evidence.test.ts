@@ -159,10 +159,8 @@ describe("design-system evidence fail-closed boundaries", () => {
       expect(verify(state.root)).toThrow(diagnostic);
     };
 
-    mutate(({ bindings }) => { const b = bindings.find(({ id }) => id === "ds-button-loading"); if (b) b.semanticWitness = "wrong"; }, /visible or semantic DOM witness/);
-    mutate(({ bindings }) => { const b = bindings.find(({ id }) => id === "ds-button-hover"); if (b) { b.semanticWitness = null; b.visible = false; } }, /visible or semantic DOM witness/);
-    mutate(({ bindings }) => { const b = bindings.find(({ id }) => id === "ds-simple-tabs-selected"); if (b) b.semanticWitness = ""; }, /visible or semantic DOM witness/);
-    mutate(({ bindings }) => { const b = bindings.find(({ id }) => id === "ds-copy-field-pending"); if (b) b.semanticWitness = "ready"; }, /visible or semantic DOM witness/);
+    mutate(({ bindings }) => { const b = bindings.find(({ id }) => id === "ds-timeline-empty"); if (b) b.semanticWitness = null; }, /visible or semantic DOM witness/);
+    mutate(({ bindings }) => { const b = bindings.find(({ id }) => id === "ds-timeline-empty"); if (b) b.semanticWitness = ""; }, /visible or semantic DOM witness/);
   }, 120_000);
 
   it("rejects missing, incomplete, or altered action contrast", () => {

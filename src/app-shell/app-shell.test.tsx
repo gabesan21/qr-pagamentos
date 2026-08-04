@@ -24,19 +24,31 @@ describe("role shell contract", () => {
     );
   });
 
+  it("keeps the shell frame server-only and inert", () => {
+    const source = readFileSync(`${root}/src/app-shell/app-shell.tsx`, "utf8");
+    expect(source).not.toContain('"use client"');
+    expect(source).not.toMatch(/@\/auth|@\/orders|@\/integrations|@\/media/);
+  });
+
   it("keeps the client boundary free of authentication and business imports", () => {
     const source = readFileSync(`${root}/src/app-shell/shell-navigation.tsx`, "utf8");
     expect(source).toContain('"use client"');
     expect(source).not.toMatch(/@\/auth|@\/orders|@\/integrations|@\/media/);
   });
 
-  it("fixes five distinct routes for each persona", () => {
+  it("fixes five distinct routes with icons for each persona", () => {
     const admin = readFileSync(`${root}/src/app/admin/layout.tsx`, "utf8");
     const merchant = readFileSync(`${root}/src/app/(merchant)/layout.tsx`, "utf8");
-    const adminNavigation = admin.match(/const navigation[\s\S]*?= \[([\s\S]*?)\];/)?.[1] ?? "";
-    const merchantNavigation = merchant.match(/const navigation[\s\S]*?= \[([\s\S]*?)\];/)?.[1] ?? "";
+    const adminNavigation = admin.match(/const navigation[\s\S]*?= \(([\s\S]*?)\);/)?.[1]
+      ?? admin.match(/const navigation[\s\S]*?= \[([\s\S]*?)\];/)?.[1]
+      ?? "";
+    const merchantNavigation = merchant.match(/const navigation[\s\S]*?= \(([\s\S]*?)\);/)?.[1]
+      ?? merchant.match(/const navigation[\s\S]*?= \[([\s\S]*?)\];/)?.[1]
+      ?? "";
     expect(adminNavigation.match(/href:/g)).toHaveLength(5);
     expect(merchantNavigation.match(/href:/g)).toHaveLength(5);
+    expect(adminNavigation.match(/icon:/g)).toHaveLength(5);
+    expect(merchantNavigation.match(/icon:/g)).toHaveLength(5);
     expect(admin).not.toContain('href: "/"');
     expect(merchant).not.toContain('href: "/admin"');
     expect(merchant).toContain('profileLink={{ href: "/profile"');

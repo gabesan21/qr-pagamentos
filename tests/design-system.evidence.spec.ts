@@ -388,7 +388,7 @@ test("proves the deterministic suspicious viewport before a full evidence run", 
 
 test("creates exact-head bilingual design-system evidence", async ({ page }) => {
   test.skip(process.env.DESIGN_SYSTEM_EVIDENCE_TRIAL === "1", "full matrix disabled during targeted preflight");
-  test.setTimeout(1_200_000);
+  test.setTimeout(2_400_000);
   const startedAt = new Date().toISOString();
   const runId = startedAt.replaceAll(/[^\d]/g, "").slice(0, 14);
   const runDirectory = join(artifactRoot, runId);

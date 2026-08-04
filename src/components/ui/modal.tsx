@@ -231,6 +231,7 @@ function ConfirmDialogContentBody({
         <AlertDialogCancel disabled={pending}>{cancelLabel}</AlertDialogCancel>
         <Button
           type="button"
+          data-slot="alert-dialog-action"
           variant={destructive ? "destructive" : "default"}
           disabled={pending || !confirmationMatches}
           onClick={() => void handleConfirm()}

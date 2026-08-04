@@ -1,0 +1,315 @@
+{
+  "runId": "20260804000633",
+  "startedAt": "2026-08-04T00:06:33.702Z",
+  "gitHead": "f08caba1b31d84ddce528c8fc4995375b473bd84",
+  "assertions": "artifacts/app-shell/20260804000633/assertions.json",
+  "assertionsSha256": "01b4759e27c299acac3cc9d8791fb964d977c83a25a40e77ff636a2c3133d79e",
+  "captures": [
+    {
+      "path": "artifacts/app-shell/20260804000633/admin-pix-paper-320.png",
+      "bytes": 95945,
+      "sha256": "e5f027e35f3646312ccd84821ce8bf3d6e3bc0eb3592fef68f959fbc80721904",
+      "mtimeMs": 1785801996750.1416
+    },
+    {
+      "path": "artifacts/app-shell/20260804000633/admin-pix-paper-375.png",
+      "bytes": 95068,
+      "sha256": "53aa938e2d1a734ddc579fbd87be920afc52c84a34a23da7f864beea67b777b2",
+      "mtimeMs": 1785801997700.1387
+    },
+    {
+      "path": "artifacts/app-shell/20260804000633/admin-pix-paper-768.png",
+      "bytes": 101547,
+      "sha256": "4ed1757e0d44e40273f9fcc07db8af2ace3b391b34146bfff131faa46a55dc9b",
+      "mtimeMs": 1785801998673.4692
+    },
+    {
+      "path": "artifacts/app-shell/20260804000633/admin-pix-paper-1440.png",
+      "bytes": 123500,
+      "sha256": "17e639d6777e77b041d4ffceaf2857e507f57efe3a67141d12179c5df03e2017",
+      "mtimeMs": 1785801999513.4668
+    },
+    {
+      "path": "artifacts/app-shell/20260804000633/admin-cashier-daylight-320.png",
+      "bytes": 95609,
+      "sha256": "5bfccb806bd9f7efef255b7e87e30417be65d7f9e87a0215a3ab988e058e9123",
+      "mtimeMs": 1785802000483.464
+    },
+    {
+      "path": "artifacts/app-shell/20260804000633/admin-cashier-daylight-375.png",
+      "bytes": 94894,
+      "sha256": "7f42b506f678203a51e0f1305066a4af080e483d79774e181b0df728ae7dbffb",
+      "mtimeMs": 1785802001398.8972
+    },
+    {
+      "path": "artifacts/app-shell/20260804000633/admin-cashier-daylight-768.png",
+      "bytes": 101257,
+      "sha256": "a0d48523ca8fc390b7839c730f664f864df0edf81e060d903336c4099d294075",
+      "mtimeMs": 1785802002363.4587
+    },
+    {
+      "path": "artifacts/app-shell/20260804000633/admin-cashier-daylight-1440.png",
+      "bytes": 123064,
+      "sha256": "fae89b3991634768408408a1c08620031f1f267d66424a331d814406a6cb5e31",
+      "mtimeMs": 1785802003280.1228
+    },
+    {
+      "path": "artifacts/app-shell/20260804000633/admin-settlement-sand-320.png",
+      "bytes": 97649,
+      "sha256": "7e1ca326a93544fe1e5279b44867337f540313c0d2365b0b66901dfe5e328a1b",
+      "mtimeMs": 1785802004213.4536
+    },
+    {
+      "path": "artifacts/app-shell/20260804000633/admin-settlement-sand-375.png",
+      "bytes": 96727,
+      "sha256": "3c4ee8c05773313e495a35192c5f8f07d7c9b6c55a7eaba595589273e0fefe9d",
+      "mtimeMs": 1785802005150.1177
+    },
+    {
+      "path": "artifacts/app-shell/20260804000633/admin-settlement-sand-768.png",
+      "bytes": 102968,
+      "sha256": "ee3e046254a15f247a2302a816578eda382a79422d2a288e2f8990e3037536db",
+      "mtimeMs": 1785802006073.4485
+    },
+    {
+      "path": "artifacts/app-shell/20260804000633/admin-settlement-sand-1440.png",
+      "bytes": 124751,
+      "sha256": "ab7573d5101b22170e810198fa91142296d307deb95131a8cd1a4b42191875c8",
+      "mtimeMs": 1785802007013.4458
+    },
+    {
+      "path": "artifacts/app-shell/20260804000633/admin-midnight-clearing-320.png",
+      "bytes": 104158,
+      "sha256": "b7bd88138f6c2cc336001a009a1d237adae52986e72676b6ac189bf20e45efec",
+      "mtimeMs": 1785802007970.11
+    },
+    {
+      "path": "artifacts/app-shell/20260804000633/admin-midnight-clearing-375.png",
+      "bytes": 103704,
+      "sha256": "7c041b71ab08ec746ad5be377a9b57363de22807f54241b921ebd187cbd6d873",
+      "mtimeMs": 1785802008900.1074
+    },
+    {
+      "path": "artifacts/app-shell/20260804000633/admin-midnight-clearing-768.png",
+      "bytes": 110375,
+      "sha256": "29c46ea28ac90515df1ecaacedb3574052bab3c32802377a8a1f007434197f13",
+      "mtimeMs": 1785802009850.105
+    },
+    {
+      "path": "artifacts/app-shell/20260804000633/admin-midnight-clearing-1440.png",
+      "bytes": 133456,
+      "sha256": "24499882d07990d31e7dfd283653418ccd13fbd566692a339f8a7465ab700776",
+      "mtimeMs": 1785802010780.1025
+    },
+    {
+      "path": "artifacts/app-shell/20260804000633/admin-vault-blue-320.png",
+      "bytes": 104455,
+      "sha256": "610ce7428d71e7d7f176d9e3d40360525080f11fb3d631b5fa99b76ad0025ff8",
+      "mtimeMs": 1785802011733.4333
+    },
+    {
+      "path": "artifacts/app-shell/20260804000633/admin-vault-blue-375.png",
+      "bytes": 104141,
+      "sha256": "bc18b2dab12d082ec15afb62b4af1656d4da920ee35138f23a733acf4e7a96d8",
+      "mtimeMs": 1785802012650.0977
+    },
+    {
+      "path": "artifacts/app-shell/20260804000633/admin-vault-blue-768.png",
+      "bytes": 110752,
+      "sha256": "3a24d73a86f0fffc42f1b3d7ec7467705f6f230de6a3cbfcfc200644bf4534b9",
+      "mtimeMs": 1785802013610.0952
+    },
+    {
+      "path": "artifacts/app-shell/20260804000633/admin-vault-blue-1440.png",
+      "bytes": 134048,
+      "sha256": "08ba8108635f112c8bf2c37edb5b8e98ef6d1f2676195ab6f6c496c5a8e252e1",
+      "mtimeMs": 1785802014530.0928
+    },
+    {
+      "path": "artifacts/app-shell/20260804000633/admin-terminal-amber-320.png",
+      "bytes": 101081,
+      "sha256": "4c31429455818d0a7cf80f22368008a904ad54c8616e2af458424bae6a96800c",
+      "mtimeMs": 1785802015480.0903
+    },
+    {
+      "path": "artifacts/app-shell/20260804000633/admin-terminal-amber-375.png",
+      "bytes": 101023,
+      "sha256": "4babb214de09ca959c4e528ae791d344ed253983930ad7a24774b363da802b03",
+      "mtimeMs": 1785802016400.0881
+    },
+    {
+      "path": "artifacts/app-shell/20260804000633/admin-terminal-amber-768.png",
+      "bytes": 107533,
+      "sha256": "889b35ad29ae3ada315df7257c920d720287ccb960c3af215afd01d4929036e5",
+      "mtimeMs": 1785802017346.7524
+    },
+    {
+      "path": "artifacts/app-shell/20260804000633/admin-terminal-amber-1440.png",
+      "bytes": 130781,
+      "sha256": "3891a012cb777c2f17aa567e05d1aa973c27d2328dd1afccb89e9710cbb0a29c",
+      "mtimeMs": 1785802018263.4167
+    },
+    {
+      "path": "artifacts/app-shell/20260804000633/admin-mobile-open.png",
+      "bytes": 22184,
+      "sha256": "d91684a67fb28a9ce73e89b0f3f8a1d274e2d6b9139b6e257779a3af22222b57",
+      "mtimeMs": 1785802018550.0828
+    },
+    {
+      "path": "artifacts/app-shell/20260804000633/merchant-pix-paper-320.png",
+      "bytes": 66838,
+      "sha256": "c51828267b109a1855f7a70b929b5659cfc5c8efd2df0cb13226b90c1353596d",
+      "mtimeMs": 1785802020056.7456
+    },
+    {
+      "path": "artifacts/app-shell/20260804000633/merchant-pix-paper-375.png",
+      "bytes": 66961,
+      "sha256": "d30c3e7412be66c1befa9f1bb9f8bf4d9c853b95276e3626792e4e5128219c1a",
+      "mtimeMs": 1785802020910.077
+    },
+    {
+      "path": "artifacts/app-shell/20260804000633/merchant-pix-paper-768.png",
+      "bytes": 75560,
+      "sha256": "54c55c55a05f684bf8b4ba5dd20be2cfa155beb93265ab1950e312f1c4de5471",
+      "mtimeMs": 1785802021784.1147
+    },
+    {
+      "path": "artifacts/app-shell/20260804000633/merchant-pix-paper-1440.png",
+      "bytes": 97084,
+      "sha256": "6deae1f4ff974c564ecac1b375e5778d4a2d08c00676042fc5c6108a2cb046d4",
+      "mtimeMs": 1785802022600.0728
+    },
+    {
+      "path": "artifacts/app-shell/20260804000633/merchant-cashier-daylight-320.png",
+      "bytes": 66644,
+      "sha256": "59647f3cff7c1ebcd9e5ba538f841a3046308e6124d3784da4d7dd578fbf3111",
+      "mtimeMs": 1785802023506.7373
+    },
+    {
+      "path": "artifacts/app-shell/20260804000633/merchant-cashier-daylight-375.png",
+      "bytes": 66719,
+      "sha256": "780fcf70f50abc2c95556729d904420f954e837c1f90a21c338eba39eee8e782",
+      "mtimeMs": 1785802024373.402
+    },
+    {
+      "path": "artifacts/app-shell/20260804000633/merchant-cashier-daylight-768.png",
+      "bytes": 75222,
+      "sha256": "73a6302431fb68458867031885bd6f567f0b8c576768ae213169424b4034fab6",
+      "mtimeMs": 1785802025266.7332
+    },
+    {
+      "path": "artifacts/app-shell/20260804000633/merchant-cashier-daylight-1440.png",
+      "bytes": 96904,
+      "sha256": "648580c9cf9712d89d44302006d32fe2f379025a8fade4cd7533f518178b8283",
+      "mtimeMs": 1785802026063.398
+    },
+    {
+      "path": "artifacts/app-shell/20260804000633/merchant-settlement-sand-320.png",
+      "bytes": 67870,
+      "sha256": "6b6e690ae1b59da9de44b8bff56b0fc4b67c1b153fdebc69e8bcbc8bbe568982",
+      "mtimeMs": 1785802026940.0627
+    },
+    {
+      "path": "artifacts/app-shell/20260804000633/merchant-settlement-sand-375.png",
+      "bytes": 67903,
+      "sha256": "e43c4a8a372c2dc63492570907c6be22cf27dfcd7ba0a68552b2f0ad0a2a9c51",
+      "mtimeMs": 1785802027773.394
+    },
+    {
+      "path": "artifacts/app-shell/20260804000633/merchant-settlement-sand-768.png",
+      "bytes": 76522,
+      "sha256": "93e76e1bfee03f3be0fa7c25122a49e986a94358088aa99f29d422647464b80a",
+      "mtimeMs": 1785802028646.7256
+    },
+    {
+      "path": "artifacts/app-shell/20260804000633/merchant-settlement-sand-1440.png",
+      "bytes": 97956,
+      "sha256": "de708d6d13a358dc0b67474cc231c016939fe38cba1504e6432357dd4141fbcd",
+      "mtimeMs": 1785802029500.057
+    },
+    {
+      "path": "artifacts/app-shell/20260804000633/merchant-midnight-clearing-320.png",
+      "bytes": 72695,
+      "sha256": "1943d0267804d357f97eda23763274345f2bdb319e8174cd81e4434f50944098",
+      "mtimeMs": 1785802030360.055
+    },
+    {
+      "path": "artifacts/app-shell/20260804000633/merchant-midnight-clearing-375.png",
+      "bytes": 73008,
+      "sha256": "f506c332fea37e741382d3a1f35c1b436bc91ef8470da85d8ef84fe54b03cd3c",
+      "mtimeMs": 1785802031226.7197
+    },
+    {
+      "path": "artifacts/app-shell/20260804000633/merchant-midnight-clearing-768.png",
+      "bytes": 81744,
+      "sha256": "f886b7704383b35bad440ed963b5d9abe40a12f4da37133b8c2893949ee9f3ad",
+      "mtimeMs": 1785802032080.0513
+    },
+    {
+      "path": "artifacts/app-shell/20260804000633/merchant-midnight-clearing-1440.png",
+      "bytes": 104308,
+      "sha256": "50628f6d070dd3859cb4827763a8c7cdea0237150e926e1fb47ad996d5e50a27",
+      "mtimeMs": 1785802032883.3828
+    },
+    {
+      "path": "artifacts/app-shell/20260804000633/merchant-vault-blue-320.png",
+      "bytes": 72942,
+      "sha256": "6540c345047d1fe4699e65c7599f45374069a2d9ebe1eb27e1bc276784b02d26",
+      "mtimeMs": 1785802033776.714
+    },
+    {
+      "path": "artifacts/app-shell/20260804000633/merchant-vault-blue-375.png",
+      "bytes": 73361,
+      "sha256": "28e90879e20aaf3ad2da5cc0de2c0e126fa371f0d5f422b1b346553cd2509262",
+      "mtimeMs": 1785802034640.0457
+    },
+    {
+      "path": "artifacts/app-shell/20260804000633/merchant-vault-blue-768.png",
+      "bytes": 82102,
+      "sha256": "42ff253d6107176f4f127f51e2f9129727f45b6345a334b8903873ddb41c4acb",
+      "mtimeMs": 1785802035536.7104
+    },
+    {
+      "path": "artifacts/app-shell/20260804000633/merchant-vault-blue-1440.png",
+      "bytes": 104725,
+      "sha256": "f4b3c1f13e156490be511d25a756037a72375e601de835f8c73365d58da5c1da",
+      "mtimeMs": 1785802036400.042
+    },
+    {
+      "path": "artifacts/app-shell/20260804000633/merchant-terminal-amber-320.png",
+      "bytes": 70878,
+      "sha256": "04011bcebb4abc799be8017c667ef770f30a971bcc9aee22d2f0465803e8c1b3",
+      "mtimeMs": 1785802037303.3733
+    },
+    {
+      "path": "artifacts/app-shell/20260804000633/merchant-terminal-amber-375.png",
+      "bytes": 71215,
+      "sha256": "71012631156e9e3bfe881143ed624c49eac8ac653f61c586d47be7794161147b",
+      "mtimeMs": 1785802038190.038
+    },
+    {
+      "path": "artifacts/app-shell/20260804000633/merchant-terminal-amber-768.png",
+      "bytes": 79736,
+      "sha256": "5013918abeb98d555cee53336175d33b45c303b6b1bbbc2fd159e7bc13622a92",
+      "mtimeMs": 1785802039083.3696
+    },
+    {
+      "path": "artifacts/app-shell/20260804000633/merchant-terminal-amber-1440.png",
+      "bytes": 102260,
+      "sha256": "9ea7d8e8965186b0c6d4e790e1fd583419e5c44b365ae3c4fa0d4774c3283b34",
+      "mtimeMs": 1785802039950.532
+    },
+    {
+      "path": "artifacts/app-shell/20260804000633/merchant-mobile-open.png",
+      "bytes": 23720,
+      "sha256": "4effe91efd25e911ead17e5aa2fd6fe44adb9f0147f787624f488ff2f2ac9c4f",
+      "mtimeMs": 1785802040216.7007
+    }
+  ],
+  "baseCaptureCount": 48,
+  "mobileOpenCaptureCount": 2,
+  "nestedActiveRoutes": [
+    "/orders/not-a-real-order",
+    "/admin/orders/not-a-real-order"
+  ]
+}

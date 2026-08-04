@@ -44,8 +44,7 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| `12.3.1-rebuild-role-specific-application-shells` | Reproduce the desktop rail, mobile drawer, top bar, account menu, language controls, footer, and role navigation in `src/app-shell/**` and authenticated layouts. · size: L | não iniciada |
-| `12.3.2-remodel-authentication-and-recovery-pages` | Reproduce login, MFA challenge, password reset, unavailable, pending, validation, and success states in `src/app/login/**` and `src/app/reset-password/**`. · size: L | não iniciada |
+| [[12.3.2-remodel-authentication-and-recovery-pages]] | Reproduce login, MFA challenge, password reset, unavailable, pending, validation, and success states in `src/app/login/**` and `src/app/reset-password/**`. · size: L | 001_initial_task |
 
 ## Phase 12.4 - Administrator frontend
 
@@ -56,10 +55,10 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| `12.4.1-remodel-administrator-dashboard` | Match the template dashboard in `src/app/admin/page.tsx` and `src/app/admin/dashboard.tsx` using the existing analytics projection and exact per-currency facts. · size: L | não iniciada |
-| `12.4.2-remodel-administrator-commerce-directories` | Match administrator order/link directories and V1/V2 read-only details under `src/app/admin/orders/**`, `src/app/admin/payment-links/**`, and shared order views. · size: L | não iniciada |
-| `12.4.3-remodel-administrator-account-management` | Match account creation, directory, profile editor, access, TOTP recovery, storefront settings, and deletion states under `src/app/admin/accounts/**`. · size: L | não iniciada |
-| `12.4.4-remodel-administrator-settings` | Match all six settings sections, anchored navigation, forms, confirmations, dependency blocks, and notices under `src/app/admin/settings/**`. · size: L | não iniciada |
+| `[[12.4.1-remodel-administrator-dashboard]]` | Match the template dashboard in `src/app/admin/page.tsx` and `src/app/admin/dashboard.tsx` using the existing analytics projection and exact per-currency facts. · size: L | 001_initial_task |
+| [[12.4.2-remodel-administrator-commerce-directories]] | Match administrator order/link directories and V1/V2 read-only details under `src/app/admin/orders/**`, `src/app/admin/payment-links/**`, and shared order views. · size: L | 001_initial_task |
+| [[12.4.3-remodel-administrator-account-management]] | Match account creation, directory, profile editor, access, TOTP recovery, storefront settings, and deletion states under `src/app/admin/accounts/**`. · size: L | 001_initial_task |
+| [[12.4.4-remodel-administrator-settings]] | Match all six settings sections, anchored navigation, forms, confirmations, dependency blocks, and notices under `src/app/admin/settings/**`. · size: L | 001_initial_task |
 
 ## Phase 12.5 - Merchant frontend
 

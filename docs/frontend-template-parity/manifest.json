@@ -2784,7 +2784,7 @@
   "obligations": {
     "path": "docs/frontend-template-parity/obligations.ndjson",
     "count": 2230,
-    "sha256": "f6d4a5b87e73f401b48f52b4b437d36fa058e489bdce602c0f9248f4d392f354"
+    "sha256": "017c87110917aaea9652236b5522c623aa5dfec522b79f6dd6a67092a86da4dd"
   },
   "semanticContract": {
     "parser": "TypeScript 5 AST",
