@@ -55,7 +55,6 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[12.4.2-remodel-administrator-commerce-directories]] | Match administrator order/link directories and V1/V2 read-only details under `src/app/admin/orders/**`, `src/app/admin/payment-links/**`, and shared order views. · size: L | 001_initial_task |
 | [[12.4.3-remodel-administrator-account-management]] | Match account creation, directory, profile editor, access, TOTP recovery, storefront settings, and deletion states under `src/app/admin/accounts/**`. · size: L | 001_initial_task |
 | [[12.4.4-remodel-administrator-settings]] | Match all six settings sections, anchored navigation, forms, confirmations, dependency blocks, and notices under `src/app/admin/settings/**`. · size: L | 001_initial_task |
 
