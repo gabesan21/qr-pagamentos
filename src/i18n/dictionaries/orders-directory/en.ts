@@ -21,6 +21,7 @@ export const ordersDirectoryEn = {
   orderV2DirectoryFilterLinkPlaceholder: "Link identifier",
   orderV2DirectorySourceLink: "Payment link",
   orderV2DirectorySourceAdHoc: "Ad hoc",
+  orderV2DirectorySourceStandalone: "Standalone payment",
   orderV2DirectoryMoneyUsd: "USD",
   orderV2DirectoryMoneyFiat: "Fiat",
   orderV2DirectoryStateNone: "No payment",

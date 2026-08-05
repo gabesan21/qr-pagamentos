@@ -22,7 +22,7 @@ export default async function OrderDetailPage({ params }: Readonly<{ params: Pro
     <>
       <WorkspaceHeading description={dictionary.ordersDescription} eyebrow={dictionary.shellMerchantEyebrow} title={dictionary.ordersHeading} />
       {result.kind === "found"
-        ? <OrderDetailCard backHref="/orders" dictionary={dictionary} locale={locale} order={result.order} />
+        ? <OrderDetailCard backHref="/orders" backLabel={dictionary.orderBackToList} dictionary={dictionary} locale={locale} order={result.order} />
         : <OrderUnavailableCard backHref="/orders" dictionary={dictionary} />}
     </>
   );

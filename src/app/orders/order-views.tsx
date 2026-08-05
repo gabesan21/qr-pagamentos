@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CopyField } from "@/components/ui/copy-field";
+import { EmptyState } from "@/components/ui/empty-state";
 import { MoneyText } from "@/components/ui/money-text";
 import { Monogram } from "@/components/ui/monogram";
 import { Separator } from "@/components/ui/separator";
@@ -289,12 +290,12 @@ export function OrderDetailCard({
 
 export function OrderUnavailableCard({ backHref, dictionary }: Readonly<{ backHref: string; dictionary: Dictionary }>) {
   return (
-    <div className="space-y-4">
-      <Alert variant="destructive">
-        <AlertTitle>{dictionary.orderUnavailableHeading}</AlertTitle>
-        <AlertDescription>{dictionary.orderUnavailableDescription}</AlertDescription>
-      </Alert>
-      <Button asChild data-ds-hit-target variant="outline"><Link href={backHref}>{dictionary.orderBackToList}</Link></Button>
-    </div>
+    <EmptyState
+      action={<Button asChild data-ds-hit-target variant="outline"><Link href={backHref}>{dictionary.orderBackToList}</Link></Button>}
+      body={dictionary.orderUnavailableDescription}
+      illustration="unavailable"
+      kind="unavailable"
+      title={dictionary.orderUnavailableHeading}
+    />
   );
 }

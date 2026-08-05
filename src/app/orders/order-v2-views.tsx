@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CopyField } from "@/components/ui/copy-field";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { MoneyText } from "@/components/ui/money-text";
@@ -333,9 +334,6 @@ export function OrderV2DetailCard({
                   truncate={false}
                   value={order.paymentLinkV2Identifier}
                 />
-                <Button asChild data-ds-hit-target variant="outline">
-                  <Link href={`/admin/orders?link=${order.paymentLinkV2Identifier}`}>{dictionary.paymentLinkOrdersView}</Link>
-                </Button>
               </CardContent>
             </Card>
           ) : null}
@@ -510,12 +508,12 @@ export function OrderV2OutcomeCard({
 
 export function OrderV2UnavailableCard({ backHref, dictionary }: Readonly<{ backHref: string; dictionary: Dictionary }>) {
   return (
-    <div className="space-y-4">
-      <Alert variant="destructive">
-        <AlertTitle>{dictionary.orderV2DetailUnavailable}</AlertTitle>
-        <AlertDescription>{dictionary.orderV2DetailUnavailableDescription}</AlertDescription>
-      </Alert>
-      <Button asChild data-ds-hit-target variant="outline"><Link href={backHref}>{dictionary.orderV2DetailBack}</Link></Button>
-    </div>
+    <EmptyState
+      action={<Button asChild data-ds-hit-target variant="outline"><Link href={backHref}>{dictionary.orderV2DetailBack}</Link></Button>}
+      body={dictionary.orderV2DetailUnavailableDescription}
+      illustration="unavailable"
+      kind="unavailable"
+      title={dictionary.orderV2DetailUnavailable}
+    />
   );
 }

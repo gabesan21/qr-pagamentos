@@ -21,6 +21,7 @@ export const ordersDirectoryPtBR = {
   orderV2DirectoryFilterLinkPlaceholder: "Identificador do link",
   orderV2DirectorySourceLink: "Link de pagamento",
   orderV2DirectorySourceAdHoc: "Avulso",
+  orderV2DirectorySourceStandalone: "Pagamento avulso",
   orderV2DirectoryMoneyUsd: "USD",
   orderV2DirectoryMoneyFiat: "Fiduciária",
   orderV2DirectoryStateNone: "Sem pagamento",
