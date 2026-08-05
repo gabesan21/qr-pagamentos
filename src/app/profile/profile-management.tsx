@@ -1,10 +1,11 @@
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import type { MerchantProfile } from "@/auth/profile";
 import type { getDictionary } from "@/i18n/dictionaries";
 
+import { PasswordFields } from "./password-fields";
 import { ProfileFormBody } from "./profile-form";
 import { TotpSection } from "./totp-section";
 
@@ -36,11 +37,31 @@ export function ProfileManagement({
           : null;
   const noticeFailed = notice !== null && notice !== "identity-changed";
 
+  const totpNoticeCopy = totpNotice === "totp-enrolled"
+    ? dictionary.totpEnrolled
+    : totpNotice === "totp-confirmed"
+      ? dictionary.totpConfirmed
+      : totpNotice === "totp-disabled"
+        ? dictionary.totpDisabled
+        : totpNotice === "totp-failed"
+          ? dictionary.totpFailed
+          : totpNotice === "totp-conflict"
+            ? dictionary.totpConflict
+            : null;
+  const totpNoticeFailed = totpNotice === "totp-failed" || totpNotice === "totp-conflict";
+
   return (
     <div className="profile-workspace">
       {noticeCopy ? (
         <Alert role={noticeFailed ? "alert" : "status"} variant={noticeFailed ? "destructive" : "success"}>
+          <AlertTitle>{noticeFailed ? dictionary.adminErrorHeading : dictionary.adminSuccessHeading}</AlertTitle>
           <AlertDescription>{noticeCopy}</AlertDescription>
+        </Alert>
+      ) : null}
+      {totpNoticeCopy ? (
+        <Alert role={totpNoticeFailed ? "alert" : "status"} variant={totpNoticeFailed ? "destructive" : "success"}>
+          <AlertTitle>{dictionary.profileTotpTitle}</AlertTitle>
+          <AlertDescription>{totpNoticeCopy}</AlertDescription>
         </Alert>
       ) : null}
       <div className="profile-workspace__cards">
@@ -59,6 +80,7 @@ export function ProfileManagement({
                 <Field>
                   <FieldLabel htmlFor="profile-email">{dictionary.profileEmailLabel}</FieldLabel>
                   <Input autoComplete="email" defaultValue={profile.email ?? ""} id="profile-email" maxLength={254} name="email" type="email" />
+                  <FieldDescription>{dictionary.profileEmailCaption}</FieldDescription>
                 </Field>
               </FieldGroup>
               <input name="expectedVersion" type="hidden" value={profile.version} />
@@ -72,24 +94,73 @@ export function ProfileManagement({
           </CardHeader>
           <form action="/profile/password" method="post">
             <ProfileFormBody label={dictionary.profileChangePassword} pendingLabel={dictionary.profileChangingPassword}>
-              <FieldGroup>
-                <Field>
-                  <FieldLabel htmlFor="profile-current-password">{dictionary.profileCurrentPasswordLabel}</FieldLabel>
-                  <Input autoComplete="current-password" id="profile-current-password" name="currentPassword" required type="password" />
-                </Field>
-                <Field>
-                  <FieldLabel htmlFor="profile-new-password">{dictionary.profileNewPasswordLabel}</FieldLabel>
-                  <Input autoComplete="new-password" id="profile-new-password" minLength={12} name="newPassword" required type="password" />
-                </Field>
-                <Field>
-                  <FieldLabel htmlFor="profile-confirm-password">{dictionary.profileConfirmPasswordLabel}</FieldLabel>
-                  <Input autoComplete="new-password" id="profile-confirm-password" minLength={12} name="confirmation" required type="password" />
-                </Field>
-              </FieldGroup>
+              <PasswordFields
+                dictionary={{
+                  profileCurrentPasswordLabel: dictionary.profileCurrentPasswordLabel,
+                  profileNewPasswordLabel: dictionary.profileNewPasswordLabel,
+                  profileConfirmPasswordLabel: dictionary.profileConfirmPasswordLabel,
+                  profilePasswordShow: dictionary.profilePasswordShow,
+                  profilePasswordHide: dictionary.profilePasswordHide,
+                  profilePasswordLengthMeter: dictionary.profilePasswordLengthMeter,
+                  profilePasswordRequirement: dictionary.profilePasswordRequirement,
+                }}
+              />
             </ProfileFormBody>
           </form>
         </Card>
-        {totpStatus !== undefined && <TotpSection dictionary={dictionary} notice={totpNotice ?? null} status={totpStatus} />}
+        {totpStatus !== undefined && (
+          <TotpSection
+            dictionary={{
+              profileTotpTitle: dictionary.profileTotpTitle,
+              profileTotpDescription: dictionary.profileTotpDescription,
+              profileTotpNoneDescription: dictionary.profileTotpNoneDescription,
+              profileTotpEnroll: dictionary.profileTotpEnroll,
+              profileTotpEnrolling: dictionary.profileTotpEnrolling,
+              profileTotpConfirmTitle: dictionary.profileTotpConfirmTitle,
+              profileTotpConfirmDescription: dictionary.profileTotpConfirmDescription,
+              profileTotpConfirm: dictionary.profileTotpConfirm,
+              profileTotpActiveDescription: dictionary.profileTotpActiveDescription,
+              profileTotpDisable: dictionary.profileTotpDisable,
+              profileTotpDisableDescription: dictionary.profileTotpDisableDescription,
+              profileTotpRegenerate: dictionary.profileTotpRegenerate,
+              profileTotpRegenerating: dictionary.profileTotpRegenerating,
+              profileTotpRecoveryCodesTitle: dictionary.profileTotpRecoveryCodesTitle,
+              profileTotpRecoveryCodesDescription: dictionary.profileTotpRecoveryCodesDescription,
+              profileTotpCopied: dictionary.profileTotpCopied,
+              profileTotpCopy: dictionary.profileTotpCopy,
+              profileTotpQrLabel: dictionary.profileTotpQrLabel,
+              profileTotpQrCaption: dictionary.profileTotpQrCaption,
+              profileCurrentPasswordLabel: dictionary.profileCurrentPasswordLabel,
+              profileTotpEnabledBadge: dictionary.profileTotpEnabledBadge,
+              profileTotpStep1Title: dictionary.profileTotpStep1Title,
+              profileTotpStep1Body: dictionary.profileTotpStep1Body,
+              profileTotpStep2Title: dictionary.profileTotpStep2Title,
+              profileTotpStep2Body: dictionary.profileTotpStep2Body,
+              profileTotpContinue: dictionary.profileTotpContinue,
+              profileTotpBack: dictionary.profileTotpBack,
+              profileTotpDone: dictionary.profileTotpDone,
+              profileTotpCloseWarning: dictionary.profileTotpCloseWarning,
+              profileTotpDisableTitle: dictionary.profileTotpDisableTitle,
+              profileTotpDisableBody: dictionary.profileTotpDisableBody,
+              profileTotpRegenerateTitle: dictionary.profileTotpRegenerateTitle,
+              profileTotpRegenerateBody: dictionary.profileTotpRegenerateBody,
+              profileTotpSavedCodes: dictionary.profileTotpSavedCodes,
+              profileTotpCodeLabel: dictionary.profileTotpCodeLabel,
+              cancel: dictionary.cancel,
+              close: dictionary.close,
+              loading: dictionary.loading,
+              copyFieldCopied: dictionary.copyFieldCopied,
+              copyFieldCopy: dictionary.copyFieldCopy,
+              totpEnrolled: dictionary.totpEnrolled,
+              totpConfirmed: dictionary.totpConfirmed,
+              totpDisabled: dictionary.totpDisabled,
+              totpFailed: dictionary.totpFailed,
+              totpConflict: dictionary.totpConflict,
+            }}
+            notice={totpNotice ?? null}
+            status={totpStatus}
+          />
+        )}
       </div>
     </div>
   );

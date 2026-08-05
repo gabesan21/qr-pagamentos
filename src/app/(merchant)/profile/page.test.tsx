@@ -33,6 +33,11 @@ describe("merchant profile page", () => {
     expect(getProfile).toHaveBeenCalledWith(principal);
     expect(html).toContain(dictionary.profileTitle);
     expect(html).toContain(dictionary.profileIdentityChanged);
+    expect(html).toContain(dictionary.profileIdentityTitle);
+    expect(html).toContain(dictionary.profilePasswordTitle);
+    expect(html).toContain(dictionary.profileTotpTitle);
+    expect(html).toContain('action="/profile/identity"');
+    expect(html).toContain('action="/profile/password"');
   });
 
   it("ignores unknown, repeated, or combined notice values", async () => {
@@ -51,5 +56,13 @@ describe("merchant profile page", () => {
       expect(html).not.toContain(dictionary.profileIdentityFailed);
       expect(html).not.toContain(dictionary.profilePasswordFailed);
     }
+  });
+
+  it.each(["en", "pt-BR"] as const)("renders TOTP notices in %s", async (locale) => {
+    const dictionary = getDictionary(locale);
+    requireContext.mockResolvedValue({ dictionary, locale, principal });
+    getProfile.mockResolvedValue(profile);
+    const html = renderToStaticMarkup(await ProfilePage({ searchParams: Promise.resolve({ totp: "confirmed" }) }));
+    expect(html).toContain(dictionary.totpConfirmed);
   });
 });

@@ -20,6 +20,26 @@
       "test_seconds": 0,
       "return_kind": null,
       "result": "advanced"
+    },
+    {
+      "at": "2026-08-05T06:28:41-03:00",
+      "event": "transition",
+      "from": "004_processing",
+      "to": "005_closing",
+      "contexts": [],
+      "test_seconds": 0,
+      "return_kind": null,
+      "result": "advanced"
+    },
+    {
+      "at": "2026-08-05T06:43:22-03:00",
+      "event": "transition",
+      "from": "005_closing",
+      "to": "004_processing",
+      "contexts": [],
+      "test_seconds": 0,
+      "return_kind": "execucao",
+      "result": "returned"
     }
   ]
 }
