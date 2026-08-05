@@ -129,12 +129,7 @@ function ProductDirectory({
       id: "price",
       label: dictionary.adminProductPrice,
       numeric: true,
-      value: (row) => (
-        <MoneyText
-          pairLabel={row.currencyCode ?? undefined}
-          value={formatCatalogPrice(row.price, null, locale)}
-        />
-      ),
+      value: (row) => <MoneyText value={formatCatalogPrice(row.price, row.currencyCode, locale)} />,
     },
     {
       id: "category",
