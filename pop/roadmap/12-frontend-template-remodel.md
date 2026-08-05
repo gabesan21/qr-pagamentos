@@ -70,7 +70,6 @@
 |------|-------------|--------|
 | [[12.5.1-remodel-merchant-dashboard]] | Match the template dashboard in `src/app/(merchant)/page.tsx` and `dashboard.tsx` while preserving existing analytics, period, currency, and storefront-link behavior. · size: L | concluída |
 | [[12.5.2-remodel-merchant-order-management]] | Match owner order directories, V1/V2 details, comments, local outcomes, and unavailable states under `src/app/(merchant)/orders/**` and shared order views. · size: L | 001_initial_task |
-| [[12.5.3-remodel-merchant-payment-links]] | Match link directories, create/edit/detail, lifecycle actions, sharing, versioning, and nested order drill-downs under `src/app/(merchant)/links/**`. · size: L | 001_initial_task |
 | `12.5.4-remodel-merchant-catalog` | Match product/category directories, forms, localized content, media staging, lifecycle confirmations, and archived facts under `src/app/(merchant)/catalog/**`. · size: L | não iniciada |
 | `12.5.5-remodel-merchant-settings-and-profile` | Match Nautt onboarding, checkout policy, storefront configuration, theme preview, logo, currency, language, identity, password, and TOTP under merchant settings/profile surfaces. · size: L | não iniciada |
 | `12.5.6-phase-verification` | Author/run the phase suite (accumulated `verify: phase` criteria) via direct pnpm and repair what it catches; depends on all 12.5 tasks. · size: M | não iniciada |
