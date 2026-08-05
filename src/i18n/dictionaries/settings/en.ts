@@ -1,0 +1,16 @@
+export const settingsEn = {
+  settingsNavLabel: "Settings navigation",
+  settingsNavConnection: "Connection",
+  settingsNavPolicy: "Checkout policy",
+  settingsNavIdentity: "Identity",
+  settingsNavStore: "Store",
+  settingsNavPayments: "Payments",
+  settingsNavCurrency: "Currency",
+  settingsNavLanguage: "Language",
+  nauttStatusActive: "Active",
+  nauttStatusUnregistered: "Pending setup",
+  nauttStatusIndeterminate: "Setup in progress",
+  nauttStatusNotConfigured: "Not connected",
+  hidePassword: "Hide password",
+  showPassword: "Show password",
+} as const;
