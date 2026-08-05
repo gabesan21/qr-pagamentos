@@ -44,7 +44,7 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[12.3.2-remodel-authentication-and-recovery-pages]] | Reproduce login, MFA challenge, password reset, unavailable, pending, validation, and success states in `src/app/login/**` and `src/app/reset-password/**`. · size: L | 001_initial_task |
+| [[12.3.2-remodel-authentication-and-recovery-pages]] | Reproduce login, MFA challenge, password reset, unavailable, pending, validation, and success states in `src/app/login/**` and `src/app/reset-password/**`. · size: L | concluída |
 | [[12.3.3-phase-verification]] | Author/run the phase suite (accumulated `verify: phase` criteria) via direct pnpm and repair what it catches; depends on all 12.3 tasks. · size: M | concluída |
 
 ## Phase 12.4 - Administrator frontend
@@ -68,7 +68,7 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[12.5.1-remodel-merchant-dashboard]] | Match the template dashboard in `src/app/(merchant)/page.tsx` and `dashboard.tsx` while preserving existing analytics, period, currency, and storefront-link behavior. · size: L | 001_initial_task |
+| [[12.5.1-remodel-merchant-dashboard]] | Match the template dashboard in `src/app/(merchant)/page.tsx` and `dashboard.tsx` while preserving existing analytics, period, currency, and storefront-link behavior. · size: L | concluída |
 | [[12.5.2-remodel-merchant-order-management]] | Match owner order directories, V1/V2 details, comments, local outcomes, and unavailable states under `src/app/(merchant)/orders/**` and shared order views. · size: L | 001_initial_task |
 | `12.5.3-remodel-merchant-payment-links` | Match link directories, create/edit/detail, lifecycle actions, sharing, versioning, and nested order drill-downs under `src/app/(merchant)/links/**`. · size: L | não iniciada |
 | `12.5.4-remodel-merchant-catalog` | Match product/category directories, forms, localized content, media staging, lifecycle confirmations, and archived facts under `src/app/(merchant)/catalog/**`. · size: L | não iniciada |
@@ -84,7 +84,7 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[12.6.1-remodel-public-payment-link-checkout]] | Match the template V1/V2 buyer flow, policy-specific forms, QR/copy, polling, retry, privacy, paid, unavailable, and terminal states under `src/app/pay/[identifier]/**`. · size: L | 001_initial_task |
+| [[12.6.1-remodel-public-payment-link-checkout]] | Match the template V1/V2 buyer flow, policy-specific forms, QR/copy, polling, retry, privacy, paid, unavailable, and terminal states under `src/app/pay/[identifier]/**`. · size: L | concluída |
 | `12.6.2-remodel-public-storefront-and-cart` | Extrapolate the template faithfully across `/store/[slug]`, its boxed/table catalog, custom amount, cart, reconciliation, branding, and all loading/empty/error states. · size: L | não iniciada |
 | `12.6.3-remodel-standalone-payment-journey` | Extrapolate the template faithfully across `/store/[slug]/pay`, preserving standalone order creation, exact money, buyer policy, QR, polling, retry, and terminal outcomes. · size: L | não iniciada |
 | `12.6.4-phase-verification` | Author/run the phase suite (accumulated `verify: phase` criteria) via direct pnpm and repair what it catches; depends on all 12.6 tasks. · size: M | não iniciada |
