@@ -5,6 +5,7 @@ import { Archive } from "lucide-react";
 
 import { WorkspaceHeading } from "@/app-shell/workspace-heading";
 import type { OwnerProduct } from "@/auth/product";
+import type { OwnerProductCategory } from "@/auth/product-category";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,9 +14,9 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import type { getDictionary } from "@/i18n/dictionaries";
 import type { SupportedLocale } from "@/i18n/locales";
 
-import { CatalogSubmit } from "../../../catalog-submit";
-import { Banner, Breadcrumb } from "../../../catalog-fields";
-import { ProductForm } from "../../../product-form";
+import { CatalogSubmit } from "../../catalog-submit";
+import { Banner, Breadcrumb } from "../../catalog-fields";
+import { ProductForm } from "../../product-form";
 
 type Dictionary = ReturnType<typeof getDictionary>;
 
@@ -106,7 +107,7 @@ export function ProductDetailClient({
   locale,
   product,
 }: Readonly<{
-  categories: readonly { id: string; namePtBr: string; nameEn: string; active: boolean }[];
+  categories: readonly OwnerProductCategory[];
   choices: readonly { code: string; label: string }[];
   dictionary: Dictionary;
   locale: SupportedLocale;
@@ -153,19 +154,20 @@ export function ProductDetailClient({
 
       {archived ? <ArchivedBanner dictionary={dictionary} /> : null}
 
-      <ProductForm
-        categories={categories}
-        choices={choices}
-        dictionary={dictionary}
-        formId="product-edit"
-        locale={locale}
-        onActiveChange={(active) => {
-          setPendingActive(active);
-          setActiveDialogOpen(true);
-        }}
-        product={product}
-        readOnly={archived}
-      />
+      {!archived ? (
+        <ProductForm
+          categories={categories}
+          choices={choices}
+          dictionary={dictionary}
+          formId="product-edit"
+          locale={locale}
+          onActiveChange={(active: boolean) => {
+            setPendingActive(active);
+            setActiveDialogOpen(true);
+          }}
+          product={product}
+        />
+      ) : null}
 
       {!archived ? (
         <>
@@ -191,7 +193,7 @@ export function ProductDetailClient({
           <ArchiveForm dictionary={dictionary} formId="product-archive" product={product} />
 
           <ConfirmDialog
-            cancelLabel={dictionary.dataDirectoryResetFilters}
+            cancelLabel={dictionary.cancel}
             confirmLabel={pendingActive ? dictionary.catalogProductActivate : dictionary.catalogProductDeactivate}
             destructive={!pendingActive}
             description={
@@ -203,11 +205,11 @@ export function ProductDetailClient({
             onConfirm={() => activeFormRef.current?.requestSubmit()}
             onOpenChange={setActiveDialogOpen}
             open={activeDialogOpen}
-            pendingLabel={dictionary.dataDirectoryLoading}
+            pendingLabel={dictionary.loading}
             title={pendingActive ? dictionary.catalogProductActivateConfirmTitle : dictionary.catalogProductDeactivateConfirmTitle}
           />
           <ConfirmDialog
-            cancelLabel={dictionary.dataDirectoryResetFilters}
+            cancelLabel={dictionary.cancel}
             confirmLabel={dictionary.catalogProductArchive}
             description={dictionary.catalogProductArchiveDescription}
             destructive
@@ -215,7 +217,7 @@ export function ProductDetailClient({
             onConfirm={() => archiveFormRef.current?.requestSubmit()}
             onOpenChange={setArchiveOpen}
             open={archiveOpen}
-            pendingLabel={dictionary.dataDirectoryLoading}
+            pendingLabel={dictionary.loading}
             title={dictionary.catalogProductArchiveConfirm}
           />
         </>
