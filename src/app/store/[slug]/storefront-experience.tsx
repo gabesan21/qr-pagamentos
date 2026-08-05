@@ -20,7 +20,7 @@ import {
   type StorefrontCartItem,
   type StorefrontCartProductItem,
 } from "@/storefront/cart";
-import type { PublicStorefrontCatalogGroup, PublicStorefrontCatalogProduct } from "@/storefront/public-storefront";
+import type { PublicStorefrontCatalogGroup } from "@/storefront/public-storefront";
 
 export type StorefrontExperienceCopy = Readonly<{
   cartCheckout: string;
