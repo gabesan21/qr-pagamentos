@@ -16,7 +16,7 @@ Project brief: [[PROJECT|QR Pagamentos]]
 | 9 | [[roadmap/9-public-storefront-and-checkout|Public storefront and checkout]] | Deliver the branded storefront cart, standalone payment, and composable public QR checkout journeys. | concluída |
 | 10 | [[roadmap/10-administrative-operations|Administrative operations]] | Deliver administrator analytics and read-only global order/link directories plus user lifecycle and system settings management. | concluída |
 | 11 | [[roadmap/11-identity-security-and-release|Identity security and release]] | Add password recovery and 2FA, then prove role isolation, visual quality, and production upgrade/recovery readiness. | concluída |
-| 12 | [[roadmap/12-frontend-template-remodel|Frontend template remodel]] | Replace the complete application frontend with the supplied professional template while preserving the current stack and business contracts. | pendente |
+| 12 | [[roadmap/12-frontend-template-remodel|Frontend template remodel]] | Replace the complete application frontend with the supplied professional template while preserving the current stack and business contracts. | concluída |
 | 13 | Pre-production hardening | Restore production security gates and close remaining release-blocking lifecycle gaps before deployment. | pendente |
 
 **Epoch/phase status:** pendente | em andamento | concluída

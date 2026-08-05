@@ -2,7 +2,7 @@
 
 - **Project:** [[PROJECT|QR Pagamentos]]
 - **Roadmap:** [[ROADMAP|Roadmap]]
-- **Status:** em andamento
+- **Status:** concluída
 - **Description:** Replace the complete application frontend with the supplied professional template while preserving the current Next.js stack and established business contracts.
 - **Pause if:** exact visual parity would require replacing the fixed stack, weakening authorization/security/redaction/exact-decimal contracts, or using fonts/assets without an approved production source.
 
@@ -59,7 +59,7 @@
 
 ## Phase 12.5 - Merchant frontend
 
-- **Status:** pendente
+- **Status:** concluída
 - **Yolo:** yes
 - **Description:** Remodel every owner-scoped dashboard, commerce, catalog, settings, and profile journey onto the template interaction system.
 - **Specs:** [[specs/catalog-and-payment-links|Catalog and payment links]], [[specs/checkout-and-order-lifecycle|Checkout and order lifecycle]], [[specs/storefront-and-customization|Storefront and customization]], [[specs/identity-security|Identity security]], [[specs/nautt-finance-integration|Nautt Finance integration]]
@@ -71,7 +71,7 @@
 
 ## Phase 12.6 - Public storefront and checkout
 
-- **Status:** pendente
+- **Status:** concluída
 - **Yolo:** yes
 - **Description:** Extend the template language across every sessionless buyer surface while preserving public security, cart, and payment contracts.
 - **Specs:** [[specs/checkout-and-order-lifecycle|Checkout and order lifecycle]], [[specs/storefront-and-customization|Storefront and customization]], [[specs/media-storage|Media storage]]
@@ -82,7 +82,7 @@
 
 ## Phase 12.7 - Frontend convergence and parity proof
 
-- **Status:** pendente
+- **Status:** concluída
 - **Yolo:** yes
 - **Description:** Remove the superseded visual system and prove complete template parity without behavioral regressions.
 - **Specs:** [[specs/administrative-design-system|Administrative design system]], [[specs/administrative-foundation|Administrative foundation]], [[specs/catalog-and-payment-links|Catalog and payment links]], [[specs/checkout-and-order-lifecycle|Checkout and order lifecycle]], [[specs/storefront-and-customization|Storefront and customization]], [[specs/identity-security|Identity security]]
