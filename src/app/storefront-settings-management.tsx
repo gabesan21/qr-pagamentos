@@ -140,121 +140,137 @@ export function StorefrontSettingsManagement({
       <form action="/storefront" id={formId} method="post">
         <fieldset aria-busy={pending || undefined} className="storefront-workspace__fieldset" ref={fieldsetRef}>
           <div className="storefront-workspace">
-            <Card>
-              <CardHeader><CardTitle>{dictionary.storefrontIdentityHeading}</CardTitle><CardDescription>{dictionary.storefrontIdentityDescription}</CardDescription></CardHeader>
-              <CardContent>
-                <FieldGroup>
-                  <Field>
-                    <FieldLabel htmlFor="storefront-slug">{dictionary.storefrontSlugLabel}</FieldLabel>
-                    <Input aria-describedby="storefront-slug-help" defaultValue={settings.storefrontSlug ?? ""} id="storefront-slug" maxLength={63} name="storefrontSlug" />
-                    <FieldDescription id="storefront-slug-help">{dictionary.storefrontSlugHelp}</FieldDescription>
-                  </Field>
-                  <Field>
-                    <FieldLabel htmlFor="storefront-display-name-pt-br">{dictionary.storefrontDisplayNamePtBrLabel}</FieldLabel>
-                    <Input defaultValue={displayNamePtBr} id="storefront-display-name-pt-br" maxLength={160} name="storefrontDisplayNamePtBr" />
-                  </Field>
-                  <Field>
-                    <FieldLabel htmlFor="storefront-display-name-en">{dictionary.storefrontDisplayNameEnLabel}</FieldLabel>
-                    <Input defaultValue={displayNameEn} id="storefront-display-name-en" maxLength={160} name="storefrontDisplayNameEn" />
-                  </Field>
-                </FieldGroup>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader><CardTitle>{dictionary.storefrontAppearanceHeading}</CardTitle><CardDescription>{dictionary.storefrontAppearanceDescription}</CardDescription></CardHeader>
-              <CardContent>
-                <FieldGroup>
-                  <Field>
-                    <FieldLabel htmlFor="storefront-theme">{dictionary.storefrontThemeLabel}</FieldLabel>
-                    <NativeSelect aria-describedby="storefront-theme-help" defaultValue={prefill.themeId} id="storefront-theme" name="storefrontThemeId">
-                      {STOREFRONT_THEME_IDS.map((id) => <NativeSelectOption key={id} value={id}>{themeNames[id] ?? id}</NativeSelectOption>)}
-                    </NativeSelect>
-                    <FieldDescription id="storefront-theme-help">{dictionary.storefrontThemeHelp}</FieldDescription>
-                  </Field>
-                  <Field>
-                    <FieldLabel htmlFor="storefront-layout">{dictionary.storefrontLayoutLabel}</FieldLabel>
-                    <NativeSelect defaultValue={prefill.layout} id="storefront-layout" name="storefrontLayout">
-                      <NativeSelectOption value="boxed">{dictionary.storefrontLayoutBoxed}</NativeSelectOption>
-                      <NativeSelectOption value="table">{dictionary.storefrontLayoutTable}</NativeSelectOption>
-                    </NativeSelect>
-                  </Field>
-                  <Field>
-                    <FieldLabel htmlFor="storefront-accent-color">{dictionary.storefrontAccentColorLabel}</FieldLabel>
-                    <Input aria-describedby="storefront-accent-color-help" defaultValue={settings.storefrontAccentColor ?? ""} id="storefront-accent-color" maxLength={7} name="storefrontAccentColor" placeholder="#RRGGBB" />
-                    <FieldDescription id="storefront-accent-color-help">{dictionary.storefrontAccentColorHelp}</FieldDescription>
-                  </Field>
-                  <Field>
-                    <FieldLabel htmlFor="storefront-logo-file">{dictionary.storefrontLogoLabel}</FieldLabel>
-                    <div className="storefront-logo-block">
-                      {logo
-                        ? <img alt={dictionary.storefrontLogoPreviewAlt} className="storefront-logo-current" src={`/media/${logo}`} />
-                        : <span aria-label={dictionary.storefrontLogoFallbackAlt} role="img"><BrandIdentity variant="merchant-fallback" /></span>}
-                      {stagedLogoMediaIdentifier ? <p className="storefront-logo-staged" role="status">{dictionary.storefrontLogoStaged}</p> : null}
-                      {logoNotice === "failed" ? (
-                        <Alert variant="destructive"><AlertTitle>{dictionary.adminErrorHeading}</AlertTitle><AlertDescription>{dictionary.storefrontLogoUploadFailed}</AlertDescription></Alert>
-                      ) : null}
-                      <Input accept="image/jpeg,image/png,image/webp" aria-describedby="storefront-logo-help" form={uploadFormId} id="storefront-logo-file" name="logo" required type="file" />
-                      <FieldDescription id="storefront-logo-help">{dictionary.storefrontLogoHelp}</FieldDescription>
-                      <div className="storefront-logo-actions">
-                        <Button aria-busy={uploadPending || undefined} form={uploadFormId} type="submit" variant="secondary">
-                          {uploadPending ? <Spinner data-icon="inline-start" /> : null}{dictionary.storefrontLogoUpload}
-                        </Button>
-                        {logo ? <Button onClick={() => setLogo(null)} type="button" variant="outline">{dictionary.storefrontLogoRemove}</Button> : null}
+            <section aria-labelledby="settings-identity-heading" className="settings-surface__section" id="settings-identity">
+              <h2 className="settings-surface__section-heading" id="settings-identity-heading">{dictionary.storefrontIdentityHeading}</h2>
+              <p className="settings-surface__section-description">{dictionary.storefrontIdentityDescription}</p>
+              <Card>
+                <CardHeader><CardTitle>{dictionary.storefrontIdentityHeading}</CardTitle><CardDescription>{dictionary.storefrontIdentityDescription}</CardDescription></CardHeader>
+                <CardContent>
+                  <FieldGroup>
+                    <Field>
+                      <FieldLabel htmlFor="storefront-slug">{dictionary.storefrontSlugLabel}</FieldLabel>
+                      <Input aria-describedby="storefront-slug-help" defaultValue={settings.storefrontSlug ?? ""} id="storefront-slug" maxLength={63} name="storefrontSlug" />
+                      <FieldDescription id="storefront-slug-help">{dictionary.storefrontSlugHelp}</FieldDescription>
+                    </Field>
+                    <Field>
+                      <FieldLabel htmlFor="storefront-display-name-pt-br">{dictionary.storefrontDisplayNamePtBrLabel}</FieldLabel>
+                      <Input defaultValue={displayNamePtBr} id="storefront-display-name-pt-br" maxLength={160} name="storefrontDisplayNamePtBr" />
+                    </Field>
+                    <Field>
+                      <FieldLabel htmlFor="storefront-display-name-en">{dictionary.storefrontDisplayNameEnLabel}</FieldLabel>
+                      <Input defaultValue={displayNameEn} id="storefront-display-name-en" maxLength={160} name="storefrontDisplayNameEn" />
+                    </Field>
+                  </FieldGroup>
+                </CardContent>
+              </Card>
+            </section>
+            <section aria-labelledby="settings-store-heading" className="settings-surface__section" id="settings-store">
+              <h2 className="settings-surface__section-heading" id="settings-store-heading">{dictionary.storefrontAppearanceHeading}</h2>
+              <p className="settings-surface__section-description">{dictionary.storefrontAppearanceDescription}</p>
+              <Card>
+                <CardHeader><CardTitle>{dictionary.storefrontAppearanceHeading}</CardTitle><CardDescription>{dictionary.storefrontAppearanceDescription}</CardDescription></CardHeader>
+                <CardContent>
+                  <FieldGroup>
+                    <Field>
+                      <FieldLabel htmlFor="storefront-theme">{dictionary.storefrontThemeLabel}</FieldLabel>
+                      <NativeSelect aria-describedby="storefront-theme-help" defaultValue={prefill.themeId} id="storefront-theme" name="storefrontThemeId">
+                        {STOREFRONT_THEME_IDS.map((id) => <NativeSelectOption key={id} value={id}>{themeNames[id] ?? id}</NativeSelectOption>)}
+                      </NativeSelect>
+                      <FieldDescription id="storefront-theme-help">{dictionary.storefrontThemeHelp}</FieldDescription>
+                    </Field>
+                    <Field>
+                      <FieldLabel htmlFor="storefront-layout">{dictionary.storefrontLayoutLabel}</FieldLabel>
+                      <NativeSelect defaultValue={prefill.layout} id="storefront-layout" name="storefrontLayout">
+                        <NativeSelectOption value="boxed">{dictionary.storefrontLayoutBoxed}</NativeSelectOption>
+                        <NativeSelectOption value="table">{dictionary.storefrontLayoutTable}</NativeSelectOption>
+                      </NativeSelect>
+                    </Field>
+                    <Field>
+                      <FieldLabel htmlFor="storefront-accent-color">{dictionary.storefrontAccentColorLabel}</FieldLabel>
+                      <Input aria-describedby="storefront-accent-color-help" defaultValue={settings.storefrontAccentColor ?? ""} id="storefront-accent-color" maxLength={7} name="storefrontAccentColor" placeholder="#RRGGBB" />
+                      <FieldDescription id="storefront-accent-color-help">{dictionary.storefrontAccentColorHelp}</FieldDescription>
+                    </Field>
+                    <Field>
+                      <FieldLabel htmlFor="storefront-logo-file">{dictionary.storefrontLogoLabel}</FieldLabel>
+                      <div className="storefront-logo-block">
+                        {logo
+                          ? <img alt={dictionary.storefrontLogoPreviewAlt} className="storefront-logo-current" src={`/media/${logo}`} />
+                          : <span aria-label={dictionary.storefrontLogoFallbackAlt} role="img"><BrandIdentity variant="merchant-fallback" /></span>}
+                        {stagedLogoMediaIdentifier ? <p className="storefront-logo-staged" role="status">{dictionary.storefrontLogoStaged}</p> : null}
+                        {logoNotice === "failed" ? (
+                          <Alert variant="destructive"><AlertTitle>{dictionary.adminErrorHeading}</AlertTitle><AlertDescription>{dictionary.storefrontLogoUploadFailed}</AlertDescription></Alert>
+                        ) : null}
+                        <Input accept="image/jpeg,image/png,image/webp" aria-describedby="storefront-logo-help" form={uploadFormId} id="storefront-logo-file" name="logo" required type="file" />
+                        <FieldDescription id="storefront-logo-help">{dictionary.storefrontLogoHelp}</FieldDescription>
+                        <div className="storefront-logo-actions">
+                          <Button aria-busy={uploadPending || undefined} form={uploadFormId} type="submit" variant="secondary">
+                            {uploadPending ? <Spinner data-icon="inline-start" /> : null}{dictionary.storefrontLogoUpload}
+                          </Button>
+                          {logo ? <Button onClick={() => setLogo(null)} type="button" variant="outline">{dictionary.storefrontLogoRemove}</Button> : null}
+                        </div>
                       </div>
-                    </div>
-                  </Field>
-                  <StorefrontPreview
-                    accentColor={previewAccent}
-                    displayName={previewName}
-                    fallbackAlt={dictionary.storefrontLogoFallbackAlt}
-                    heading={dictionary.storefrontPreviewHeading}
-                    layout={layout}
-                    logoAlt={dictionary.storefrontLogoPreviewAlt}
-                    logoMediaIdentifier={logo}
-                    priceLabel={dictionary.storefrontPriceLabel}
-                    productsHeading={dictionary.storefrontProductsHeading}
-                    sampleAction={dictionary.storefrontPreviewSampleAction}
-                    sampleDescription={dictionary.storefrontPreviewSampleDescription}
-                    samplePrice={dictionary.storefrontPreviewSamplePrice}
-                    sampleTitle={dictionary.storefrontPreviewSampleTitle}
-                    themeId={themeId}
-                  />
-                </FieldGroup>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader><CardTitle>{dictionary.storefrontPaymentsHeading}</CardTitle><CardDescription>{dictionary.storefrontPaymentsDescription}</CardDescription></CardHeader>
-              <CardContent>
-                <FieldGroup>
-                  <Field orientation="horizontal">
-                    <Checkbox defaultChecked={settings.storefrontEnabled} id="storefront-enabled" name="storefrontEnabled" value="true" />
-                    <FieldLabel htmlFor="storefront-enabled">{dictionary.storefrontEnabledLabel}</FieldLabel>
-                  </Field>
-                  <Field orientation="horizontal">
-                    <Checkbox checked={standalonePayments} id="storefront-standalone-payments" onCheckedChange={(checked) => setStandalonePayments(checked === true)} />
-                    <FieldLabel htmlFor="storefront-standalone-payments">{dictionary.storefrontStandalonePaymentsLabel}</FieldLabel>
-                    <FieldDescription>{dictionary.storefrontStandalonePaymentsHelp}</FieldDescription>
-                  </Field>
-                  <input name="storefrontStandalonePaymentsEnabled" readOnly type="hidden" value={standalonePayments ? "true" : "false"} />
-                </FieldGroup>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader><CardTitle>{dictionary.storefrontCurrencyHeading}</CardTitle><CardDescription>{dictionary.storefrontCurrencyDescription}</CardDescription></CardHeader>
-              <CardContent>
-                <FieldGroup>
-                  <Field>
-                    <FieldLabel htmlFor="storefront-currency">{dictionary.storefrontCurrencyLabel}</FieldLabel>
-                    <NativeSelect aria-describedby="storefront-currency-help" defaultValue={prefill.defaultCurrencyCode} disabled={currencyDisabled} id="storefront-currency" name="storefrontDefaultCurrencyCode">
-                      <NativeSelectOption value="">{dictionary.storefrontCurrencyNone}</NativeSelectOption>
-                      {currencyChoices.map((choice) => <NativeSelectOption key={choice.code} value={choice.code}>{choice.label} ({choice.code})</NativeSelectOption>)}
-                      {currencyDisabled && prefill.defaultCurrencyCode !== "" ? <NativeSelectOption value={prefill.defaultCurrencyCode}>{prefill.defaultCurrencyCode}</NativeSelectOption> : null}
-                    </NativeSelect>
-                    <FieldDescription id="storefront-currency-help">{currencyDisabled ? dictionary.storefrontCurrencyUnavailable : dictionary.storefrontCurrencyHelp}</FieldDescription>
-                  </Field>
-                </FieldGroup>
-              </CardContent>
-            </Card>
+                    </Field>
+                    <StorefrontPreview
+                      accentColor={previewAccent}
+                      displayName={previewName}
+                      fallbackAlt={dictionary.storefrontLogoFallbackAlt}
+                      heading={dictionary.storefrontPreviewHeading}
+                      layout={layout}
+                      logoAlt={dictionary.storefrontLogoPreviewAlt}
+                      logoMediaIdentifier={logo}
+                      priceLabel={dictionary.storefrontPriceLabel}
+                      productsHeading={dictionary.storefrontProductsHeading}
+                      sampleAction={dictionary.storefrontPreviewSampleAction}
+                      sampleDescription={dictionary.storefrontPreviewSampleDescription}
+                      samplePrice={dictionary.storefrontPreviewSamplePrice}
+                      sampleTitle={dictionary.storefrontPreviewSampleTitle}
+                      themeId={themeId}
+                    />
+                  </FieldGroup>
+                </CardContent>
+              </Card>
+            </section>
+            <section aria-labelledby="settings-payments-heading" className="settings-surface__section" id="settings-payments">
+              <h2 className="settings-surface__section-heading" id="settings-payments-heading">{dictionary.storefrontPaymentsHeading}</h2>
+              <p className="settings-surface__section-description">{dictionary.storefrontPaymentsDescription}</p>
+              <Card>
+                <CardHeader><CardTitle>{dictionary.storefrontPaymentsHeading}</CardTitle><CardDescription>{dictionary.storefrontPaymentsDescription}</CardDescription></CardHeader>
+                <CardContent>
+                  <FieldGroup>
+                    <Field orientation="horizontal">
+                      <Checkbox defaultChecked={settings.storefrontEnabled} id="storefront-enabled" name="storefrontEnabled" value="true" />
+                      <FieldLabel htmlFor="storefront-enabled">{dictionary.storefrontEnabledLabel}</FieldLabel>
+                    </Field>
+                    <Field orientation="horizontal">
+                      <Checkbox checked={standalonePayments} id="storefront-standalone-payments" onCheckedChange={(checked) => setStandalonePayments(checked === true)} />
+                      <FieldLabel htmlFor="storefront-standalone-payments">{dictionary.storefrontStandalonePaymentsLabel}</FieldLabel>
+                      <FieldDescription>{dictionary.storefrontStandalonePaymentsHelp}</FieldDescription>
+                    </Field>
+                    <input name="storefrontStandalonePaymentsEnabled" readOnly type="hidden" value={standalonePayments ? "true" : "false"} />
+                  </FieldGroup>
+                </CardContent>
+              </Card>
+            </section>
+            <section aria-labelledby="settings-currency-heading" className="settings-surface__section" id="settings-currency">
+              <h2 className="settings-surface__section-heading" id="settings-currency-heading">{dictionary.storefrontCurrencyHeading}</h2>
+              <p className="settings-surface__section-description">{dictionary.storefrontCurrencyDescription}</p>
+              <Card>
+                <CardHeader><CardTitle>{dictionary.storefrontCurrencyHeading}</CardTitle><CardDescription>{dictionary.storefrontCurrencyDescription}</CardDescription></CardHeader>
+                <CardContent>
+                  <FieldGroup>
+                    <Field>
+                      <FieldLabel htmlFor="storefront-currency">{dictionary.storefrontCurrencyLabel}</FieldLabel>
+                      <NativeSelect aria-describedby="storefront-currency-help" defaultValue={prefill.defaultCurrencyCode} disabled={currencyDisabled} id="storefront-currency" name="storefrontDefaultCurrencyCode">
+                        <NativeSelectOption value="">{dictionary.storefrontCurrencyNone}</NativeSelectOption>
+                        {currencyChoices.map((choice) => <NativeSelectOption key={choice.code} value={choice.code}>{choice.label} ({choice.code})</NativeSelectOption>)}
+                        {currencyDisabled && prefill.defaultCurrencyCode !== "" ? <NativeSelectOption value={prefill.defaultCurrencyCode}>{prefill.defaultCurrencyCode}</NativeSelectOption> : null}
+                      </NativeSelect>
+                      <FieldDescription id="storefront-currency-help">{currencyDisabled ? dictionary.storefrontCurrencyUnavailable : dictionary.storefrontCurrencyHelp}</FieldDescription>
+                    </Field>
+                  </FieldGroup>
+                </CardContent>
+              </Card>
+            </section>
             <input name="storefrontLogoMediaIdentifier" readOnly type="hidden" value={logo ?? ""} />
             <div className="storefront-workspace__actions">
               <Button type="submit">{pending ? <Spinner data-icon="inline-start" /> : null}{dictionary.storefrontSave}</Button>

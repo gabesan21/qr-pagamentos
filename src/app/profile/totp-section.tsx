@@ -242,7 +242,6 @@ export function TotpSection({ dictionary, status, notice }: TotpSectionProps) {
 
       <Modal
         closeLabel={dictionary.close}
-        dismissible={enrollStep !== 2}
         footer={
           enrollStep === 1 ? (
             <Button disabled={!codesSaved} onClick={() => setEnrollStep(2)} type="button">
