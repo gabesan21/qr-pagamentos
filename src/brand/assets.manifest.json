@@ -42,23 +42,6 @@
   },
   "sources": [
     {
-      "parityId": "asset:824c7f9692a86081",
-      "sourcePath": "docs/template/app/public/auth-texture.svg",
-      "bytes": 23349,
-      "sha256": "747a89c02c2a8b4c2715d80ffcf43f722f0dcf4c90005cb17365fb034029c321",
-      "intrinsic": {
-        "width": 480,
-        "height": 480
-      },
-      "role": "decorative auth texture",
-      "mime": "image/svg+xml",
-      "sourceCommit": "813f0cd7",
-      "projectOrigin": "Os assets foram todos construídos para nosso projeto",
-      "projectUseAuthorized": true,
-      "viewBox": "0 0 480 480",
-      "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetSources:asset:824c7f9692a86081"
-    },
-    {
       "parityId": "asset:b184c76c76b9f75f",
       "sourcePath": "docs/template/app/public/avatar-default.svg",
       "bytes": 284,
@@ -74,23 +57,6 @@
       "projectUseAuthorized": true,
       "viewBox": "0 0 96 96",
       "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetSources:asset:b184c76c76b9f75f"
-    },
-    {
-      "parityId": "asset:3fc36185f375758e",
-      "sourcePath": "docs/template/app/public/checkout-success.svg",
-      "bytes": 687,
-      "sha256": "251486b5fec604a7535d34eeb5261d82741677ea5fad77436cca206f172e8a10",
-      "intrinsic": {
-        "width": 200,
-        "height": 200
-      },
-      "role": "decorative success illustration",
-      "mime": "image/svg+xml",
-      "sourceCommit": "813f0cd7",
-      "projectOrigin": "Os assets foram todos construídos para nosso projeto",
-      "projectUseAuthorized": true,
-      "viewBox": "0 0 200 200",
-      "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetSources:asset:3fc36185f375758e"
     },
     {
       "parityId": "asset:852a445b58a8d7b6",
@@ -193,23 +159,6 @@
       "projectUseAuthorized": true,
       "viewBox": "0 0 400 400",
       "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetSources:asset:6d5afe0fe3f49398"
-    },
-    {
-      "parityId": "asset:9347e7da43396922",
-      "sourcePath": "docs/template/app/public/store-logo-fallback.svg",
-      "bytes": 462,
-      "sha256": "e489298cbad3128539111f3f446abf489bbb2230902165d8fd991df7c5a900e2",
-      "intrinsic": {
-        "width": 128,
-        "height": 128
-      },
-      "role": "application-owned merchant-logo fallback",
-      "mime": "image/svg+xml",
-      "sourceCommit": "813f0cd7",
-      "projectOrigin": "Os assets foram todos construídos para nosso projeto",
-      "projectUseAuthorized": true,
-      "viewBox": "0 0 128 128",
-      "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetSources:asset:9347e7da43396922"
     },
     {
       "parityId": "asset:fbd688b3e7a7dd01",
@@ -501,28 +450,6 @@
       "staticVariant": "reversed"
     },
     {
-      "id": "auth-texture",
-      "role": "auth-texture",
-      "derivation": "validated-static-copy",
-      "outputPath": "public/application-assets/auth-texture.svg",
-      "mime": "image/svg+xml",
-      "intrinsic": {
-        "width": 480,
-        "height": 480,
-        "viewBox": "0 0 480 480"
-      },
-      "colorMode": "fixed-template-palette",
-      "accessibilityMode": "decorative",
-      "generated": true,
-      "bytes": 23404,
-      "sha256": "855031847351f0d4e2ea7100e896af34729d93bd2c940d1aa8bc6359a12206fb",
-      "sourceParityIds": [
-        "asset:824c7f9692a86081"
-      ],
-      "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetSources",
-      "applicationOwnership": "decorative"
-    },
-    {
       "id": "avatar-default",
       "role": "avatar-fallback",
       "derivation": "validated-static-copy",
@@ -543,28 +470,6 @@
       ],
       "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetSources",
       "applicationOwnership": "application-fallback"
-    },
-    {
-      "id": "checkout-success",
-      "role": "checkout-success",
-      "derivation": "validated-static-copy",
-      "outputPath": "public/application-assets/checkout-success.svg",
-      "mime": "image/svg+xml",
-      "intrinsic": {
-        "width": 200,
-        "height": 200,
-        "viewBox": "0 0 200 200"
-      },
-      "colorMode": "fixed-template-palette",
-      "accessibilityMode": "decorative",
-      "generated": true,
-      "bytes": 742,
-      "sha256": "7cfd59bd24ae3c3ef2560a94d0038396c05b86c887e6b046024aece568cb8b3a",
-      "sourceParityIds": [
-        "asset:3fc36185f375758e"
-      ],
-      "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetSources",
-      "applicationOwnership": "decorative"
     },
     {
       "id": "empty-links",
@@ -675,28 +580,6 @@
       ],
       "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetSources",
       "applicationOwnership": "application-fallback"
-    },
-    {
-      "id": "store-logo-fallback",
-      "role": "store-logo-fallback",
-      "derivation": "validated-static-copy",
-      "outputPath": "public/application-assets/store-logo-fallback.svg",
-      "mime": "image/svg+xml",
-      "intrinsic": {
-        "width": 128,
-        "height": 128,
-        "viewBox": "0 0 128 128"
-      },
-      "colorMode": "fixed-template-palette",
-      "accessibilityMode": "consumer-supplied-adjacent-context",
-      "generated": true,
-      "bytes": 517,
-      "sha256": "fb3d64128ff8db904da023788b3d1263147c3be2e1565a93f6061667aa799592",
-      "sourceParityIds": [
-        "asset:9347e7da43396922"
-      ],
-      "provenanceReference": "src/brand/template-asset-sources.ts#templateAssetSources",
-      "applicationOwnership": "application-owned-merchant-fallback"
     },
     {
       "id": "theme-swatch-cashier-daylight",

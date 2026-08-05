@@ -16,7 +16,7 @@ type StatusIcon = ComponentType<SVGProps<SVGSVGElement>>;
 
 const toneClasses: Readonly<Record<StatusTone, string>> = {
   danger: "bg-destructive text-destructive-foreground",
-  info: "bg-[var(--feedback-info)] text-[var(--text-on-info)]",
+  info: "bg-[var(--feedback-info)] text-[var(--color-feedback-info-foreground)]",
   neutral: "bg-secondary text-secondary-foreground",
   success: "bg-success text-success-foreground",
   warning: "bg-warning text-warning-foreground",

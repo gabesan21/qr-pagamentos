@@ -487,7 +487,6 @@ test("creates the closed merchant payment-links evidence run", async ({ page }) 
     "src/app/(merchant)/links/directory-query.ts",
     "src/app/(merchant)/links/directory-copy.ts",
     "src/app/(merchant)/links/link-v2-views.tsx",
-    "src/app/(merchant)/links/share-copy.tsx",
     "src/app/(merchant)/links/loading.tsx",
     "src/app/(merchant)/links/links-notices.tsx",
     "src/app/(merchant)/links/dirty-input.tsx",

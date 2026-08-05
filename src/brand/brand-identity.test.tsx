@@ -71,9 +71,9 @@ describe("brand identity", () => {
   });
 
   it("binds all supplied sources to factual project authorization without broader claims", () => {
-    expect(templateAssetSources).toHaveLength(17);
-    expect(new Set(templateAssetSources.map(({ parityId }) => parityId)).size).toBe(17);
-    expect(new Set(templateAssetSources.map(({ sourcePath }) => sourcePath)).size).toBe(17);
+    expect(templateAssetSources).toHaveLength(14);
+    expect(new Set(templateAssetSources.map(({ parityId }) => parityId)).size).toBe(14);
+    expect(new Set(templateAssetSources.map(({ sourcePath }) => sourcePath)).size).toBe(14);
     expect(templateAssetAuthorization).toEqual({
       recordedAt: "2026-08-02",
       sourceCommit: "813f0cd7",

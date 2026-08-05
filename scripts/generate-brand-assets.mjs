@@ -25,15 +25,12 @@ const sourceProvenanceReference = "src/brand/template-asset-sources.ts#templateA
 const originProvenanceReference = "src/brand/template-asset-sources.ts#templateAssetAuthorization";
 
 const applicationRoles = Object.freeze({
-  "auth-texture.svg": ["auth-texture", "decorative"],
   "avatar-default.svg": ["avatar-fallback", "application-fallback"],
-  "checkout-success.svg": ["checkout-success", "decorative"],
   "empty-links.svg": ["empty-links", "decorative"],
   "empty-orders.svg": ["empty-orders", "decorative"],
   "empty-products.svg": ["empty-products", "decorative"],
   "empty-users.svg": ["empty-users", "decorative"],
   "product-fallback.svg": ["product-fallback", "application-fallback"],
-  "store-logo-fallback.svg": ["store-logo-fallback", "application-owned-merchant-fallback"],
   "unavailable.svg": ["unavailable", "decorative"],
 });
 

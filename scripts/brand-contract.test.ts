@@ -69,7 +69,7 @@ describe("closed manifest and identity contract", () => {
 
   it("rejects incomplete source, derivative, duplicate, and swatch inventories", async () => {
     const invalid = { version: 2, family: "QR Pagamentos template identity", identities: [...requiredIdentityIds], sources: [], derivatives: [] };
-    expect(() => validateManifestContract(invalid)).toThrow(/17 unique/);
+    expect(() => validateManifestContract(invalid)).toThrow(/14 unique/);
     const original = JSON.parse(await readFile("src/brand/assets.manifest.json", "utf8"));
     for (const mutate of [
       (manifest: typeof original) => { delete manifest.sources[0].provenanceReference; },

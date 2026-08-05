@@ -26,7 +26,7 @@ const toneIcons: Readonly<Record<TimelineTone, TimelineIcon>> = {
 const toneClasses: Readonly<Record<TimelineTone, string>> = {
   danger: "bg-destructive text-destructive-foreground",
   default: "bg-secondary text-secondary-foreground",
-  info: "bg-[var(--feedback-info)] text-[var(--text-on-info)]",
+  info: "bg-[var(--feedback-info)] text-[var(--color-feedback-info-foreground)]",
   success: "bg-success text-success-foreground",
 };
 

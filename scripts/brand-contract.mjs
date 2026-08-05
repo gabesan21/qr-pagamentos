@@ -17,12 +17,11 @@ export const requiredThemeIds = Object.freeze([
   "terminal-amber",
 ]);
 const requiredSourceFiles = Object.freeze([
-  "auth-texture.svg", "avatar-default.svg", "checkout-success.svg", "empty-links.svg",
-  "empty-orders.svg", "empty-products.svg", "empty-users.svg", "logo.svg",
-  "product-fallback.svg", "store-logo-fallback.svg", "theme-swatch-cashier-daylight.svg",
-  "theme-swatch-midnight-clearing.svg", "theme-swatch-pix-paper.svg",
-  "theme-swatch-settlement-sand.svg", "theme-swatch-terminal-amber.svg",
-  "theme-swatch-vault-blue.svg", "unavailable.svg",
+  "avatar-default.svg", "empty-links.svg", "empty-orders.svg",
+  "empty-products.svg", "empty-users.svg", "logo.svg", "product-fallback.svg",
+  "theme-swatch-cashier-daylight.svg", "theme-swatch-midnight-clearing.svg",
+  "theme-swatch-pix-paper.svg", "theme-swatch-settlement-sand.svg",
+  "theme-swatch-terminal-amber.svg", "theme-swatch-vault-blue.svg", "unavailable.svg",
 ]);
 const requiredDerivativePaths = Object.freeze([
   ...Object.values(requiredIdentityContract).flat().map((id) => `public/brand/${id}.svg`),
@@ -264,10 +263,10 @@ export function validateManifestContract(manifest) {
   if (manifest.version !== 2 || manifest.family !== "QR Pagamentos template identity") {
     throw new Error("Brand manifest version or family is invalid.");
   }
-  if (!Array.isArray(manifest.sources) || manifest.sources.length !== 17 ||
-      new Set(manifest.sources.map(({ parityId }) => parityId)).size !== 17 ||
-      new Set(manifest.sources.map(({ sha256: hash }) => hash)).size !== 17) {
-    throw new Error("Source inventory must contain 17 unique parity and byte identities.");
+  if (!Array.isArray(manifest.sources) || manifest.sources.length !== 14 ||
+      new Set(manifest.sources.map(({ parityId }) => parityId)).size !== 14 ||
+      new Set(manifest.sources.map(({ sha256: hash }) => hash)).size !== 14) {
+    throw new Error("Source inventory must contain 14 unique parity and byte identities.");
   }
   if (!sameMembers(manifest.sources.map(({ sourcePath }) => sourcePath),
     requiredSourceFiles.map((file) => `docs/template/app/public/${file}`))) {
@@ -289,7 +288,7 @@ export function validateManifestContract(manifest) {
       throw new Error(`Incomplete source provenance: ${source.sourcePath ?? "unknown"}.`);
     }
   }
-  if (!Array.isArray(manifest.derivatives) || manifest.derivatives.length !== 28 ||
+  if (!Array.isArray(manifest.derivatives) || manifest.derivatives.length !== 25 ||
       new Set(manifest.derivatives.map(({ outputPath }) => outputPath)).size !== manifest.derivatives.length ||
       new Set(manifest.derivatives.map(({ sha256: hash }) => hash)).size !== manifest.derivatives.length) {
     throw new Error("Derivative inventory must be closed, path-unique, and byte-unique.");
