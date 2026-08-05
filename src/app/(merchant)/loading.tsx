@@ -1,20 +1,35 @@
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { CardSkeleton, StatGridSkeleton } from "@/components/ui/skeletons";
+import { en } from "@/i18n/dictionaries/en";
 
 export default function MerchantDashboardLoading() {
   return (
-    <div aria-busy="true" className="merchant-dashboard" role="status">
-      <div className="merchant-dashboard__header">
-        <Skeleton className="h-9 w-1/3" />
-        <Skeleton className="h-11 w-28" />
+    <div aria-busy="true" className="space-y-6" role="status">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="space-y-2">
+          <Skeleton className="h-8 w-56 max-w-full" />
+          <Skeleton className="h-4 w-40 max-w-full" />
+        </div>
+        <Skeleton className="h-11 w-64 max-w-full" />
       </div>
-      <Skeleton className="h-11 w-64" />
-      {[0, 1, 2].map((card) => (
-        <Card key={card}>
-          <CardHeader><Skeleton className="h-6 w-1/2" /><Skeleton className="h-4 w-3/4" /></CardHeader>
-          <CardContent><Skeleton className="h-11 w-full" /><Skeleton className="h-11 w-full" /></CardContent>
-        </Card>
-      ))}
+      <StatGridSkeleton count={4} label={en.merchantDashboardCheckoutAttempts} />
+      <div className="grid gap-4 lg:grid-cols-12">
+        <div className="lg:col-span-7">
+          <CardSkeleton label={en.merchantDashboardSalesHeading} />
+        </div>
+        <div className="lg:col-span-5">
+          <CardSkeleton label={en.merchantDashboardFunnelHeading} />
+        </div>
+      </div>
+      <StatGridSkeleton count={2} label={en.merchantDashboardLinksHeading} />
+      <div className="grid gap-4 lg:grid-cols-12">
+        <div className="lg:col-span-7">
+          <CardSkeleton label={en.merchantDashboardBestSellersHeading} />
+        </div>
+        <div className="lg:col-span-5">
+          <CardSkeleton label={en.merchantDashboardRecentHeading} />
+        </div>
+      </div>
     </div>
   );
 }

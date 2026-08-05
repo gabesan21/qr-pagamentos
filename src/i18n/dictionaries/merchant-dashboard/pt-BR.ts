@@ -1,5 +1,11 @@
 export const merchantDashboardPtBR = {
+  merchantDashboardTitle: "Painel",
+  merchantDashboardGreeting: "Bem-vindo de volta, {username}",
   merchantDashboardViewStore: "Ver loja",
+  merchantDashboardViewAll: "Ver todos",
+  merchantDashboardNoSales: "Sem vendas",
+  merchantDashboardCheckoutAttempts: "Tentativas de checkout",
+  merchantDashboardLinksWithActivity: "Links com atividade",
   merchantDashboardPeriodLabel: "Período do painel",
   merchantDashboardPeriodToday: "Hoje",
   merchantDashboardPeriod7d: "Últimos 7 dias",
