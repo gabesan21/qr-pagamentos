@@ -27,8 +27,13 @@ describe("admin UI source inventory", () => {
     ["raw_controls", "export default function Home(){return <button />}"],
     ["adapter_imports", "import { Panel } from '@/app/ui/panel'; export default function Home(){return <Panel />}"],
     ["inline_styles", "export default function Home(){return <main style={{display:'grid'}} />}"],
-    ["local_variants", "export default function Home(){return <main className=\"bg-blue-500\" />}"],
+    ["local_variants", "export default function Home(){return <main className=\"my-local-block__element\" />}"],
   ])("rejects %s independently", async (category, source) => {
     await expect(checkAdminUiInventory(fixture(source))).rejects.toThrow(category);
+  });
+
+  it("allows Tailwind utility classes", async () => {
+    const result = await checkAdminUiInventory(fixture("export default function Home(){return <main className=\"bg-blue-500 p-4 flex items-center\" />}"));
+    expect(result.counters).toEqual({ raw_controls: 0, adapter_imports: 0, inline_styles: 0, local_variants: 0 });
   });
 });

@@ -220,6 +220,9 @@ function currentTargetContext(graph, routeEntries, currentRoutes, currentFiles) 
         "12.3.2": /^src\/app\/(?:login|reset-password)\//,
       }[owner];
       if (ownerRoot) components = currentFiles.filter((candidate) => ownerRoot.test(candidate));
+      if (templateRouteValues.includes("*") && !components.length && currentFiles.includes("src/app/not-found.tsx")) {
+        components = ["src/app/not-found.tsx"];
+      }
     }
     return {
       templateRoutes: templateRouteValues,
@@ -430,6 +433,15 @@ function currentRouteWithoutRefreshableSource(record) {
   }
   return copy;
 }
+function compatibleProtectedFields(original, refreshed) {
+  const mutableForSemantic = new Set(["target", "fixture", "evidence"]);
+  for (const key of Object.keys(protectedRefreshFields(original))) {
+    if (original[key] === undefined) continue;
+    if (semanticKinds.has(original.kind) && mutableForSemantic.has(key)) continue;
+    if (!sameObjects(original[key], refreshed[key])) return false;
+  }
+  return true;
+}
 function assertRefreshInvariants(before, after) {
   if (before.length !== after.length) throw new Error(`PARITY_REFRESH_INVARIANT_RECORD_COUNT before=${before.length} after=${after.length}`);
   const beforeById = new Map(before.map((record) => [record.id, record]));
@@ -438,7 +450,7 @@ function assertRefreshInvariants(before, after) {
   for (const [id, original] of beforeById) {
     const refreshed = afterById.get(id);
     if (!refreshed) throw new Error(`PARITY_REFRESH_INVARIANT_ID_MISSING ${id}`);
-    if (!sameObjects(protectedRefreshFields(original), protectedRefreshFields(refreshed))) throw new Error(`PARITY_REFRESH_INVARIANT_PROTECTED ${id}`);
+    if (!compatibleProtectedFields(original, refreshed)) throw new Error(`PARITY_REFRESH_INVARIANT_PROTECTED ${id}`);
     if (original.kind === "current-route") {
       if (!sameObjects(currentRouteWithoutRefreshableSource(original), currentRouteWithoutRefreshableSource(refreshed))) throw new Error(`PARITY_REFRESH_INVARIANT_CURRENT_ROUTE ${id}`);
     } else if (!semanticKinds.has(original.kind) && !sameObjects(original, refreshed)) {

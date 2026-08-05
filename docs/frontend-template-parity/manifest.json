@@ -2783,8 +2783,8 @@
   },
   "obligations": {
     "path": "docs/frontend-template-parity/obligations.ndjson",
-    "count": 2230,
-    "sha256": "44155bdf1ab4693a8a5cdf6d7d3f12802ecc9fad0a1da055e09c9cca79ee7963"
+    "count": 2225,
+    "sha256": "1e6e43ebf51b5908f4fb07447b80cb428b287530a1c0f4254887622704d8eb41"
   },
   "semanticContract": {
     "parser": "TypeScript 5 AST",

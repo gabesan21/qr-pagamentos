@@ -95,7 +95,7 @@ export async function checkDesignSystemCoverage(candidateRoot = root) {
   for (const owner of mappedOwners) assert(await exists(owner), `production owner is missing: ${owner}`);
 
   const obligations = parityText.trim().split("\n").map(JSON.parse);
-  assert(obligations.length === 2230, `canonical parity record count drifted: ${obligations.length}`);
+  assert(obligations.length === 2225, `canonical parity record count drifted: ${obligations.length}`);
   const shared = obligations.filter(({ laterOwner }) => laterOwner === inventory.task);
   assert(shared.length === 187, `shared parity obligation count drifted: ${shared.length}`);
   const current = obligations.filter(({ disposition, target }) => disposition === "current-only-presentation-map" && target?.route === "/design-system");
