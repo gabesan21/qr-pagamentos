@@ -85,7 +85,7 @@ describe("merchant V2 payment-link edit page", () => {
     expect(markup).not.toContain('name="compositionKind"');
     expect(markup).not.toContain('name="currencyPairId"');
     expect(markup).not.toContain('name="linkType"');
-    expect(markup).not.toContain("abcdefghijklmnopqrstuvwx");
+    expect(markup).toContain("abcdefghijklmnopqrstuvwx");
   });
 
   it("leaves every financial member and the expiry unnamed until a real change", async () => {

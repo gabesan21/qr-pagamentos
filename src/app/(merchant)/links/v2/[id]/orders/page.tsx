@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { formatCatalogPrice } from "@/app/(merchant)/catalog/price-format";
 import { WorkspaceHeading } from "@/app-shell/workspace-heading";
 import { getPaymentLinkV2ViewService } from "@/auth/payment-link-v2-view";
+import { ArrowLeftIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DataDirectory, type DataDirectoryColumn, type DataDirectoryState } from "@/data-directory/ui/data-directory";
 import type { getDictionary } from "@/i18n/dictionaries";
@@ -13,7 +14,7 @@ import type { OrderV2Summary } from "@/orders/order-v2-view";
 
 import { requireMerchantShellContext } from "../../../../shell-context";
 import type { LinksSearchParams } from "../../../directory-query";
-import { formatLinkInstant, PaymentLinkV2UnavailableCard } from "../../../link-v2-views";
+import { formatLinkInstant, LinkStateBadge, PaymentLinkV2UnavailableCard } from "../../../link-v2-views";
 import { linkOrdersDirectoryCopy } from "./directory-copy";
 import { OrderV2LocalOutcomeBadge, OrderV2StateBadge, orderV2SummaryLabel } from "./order-v2-views";
 
@@ -64,11 +65,20 @@ function LinkOrderDirectory({
 }>) {
   const copy = linkOrdersDirectoryCopy(dictionary);
   const columns: readonly DataDirectoryColumn<OrderV2Summary>[] = [
-    { id: "summary", label: dictionary.paymentLinkDirectoryColumnSummary, value: (row) => orderV2SummaryLabel(row, locale) },
-    { id: "amount", label: dictionary.orderAmount, numeric: true, value: (row) => formatCatalogPrice(row.amount, null, locale) },
+    {
+      id: "order",
+      label: dictionary.paymentLinkOrderDetailHeading,
+      value: (row) => (
+        <span className="flex flex-col gap-1">
+          <span className="font-mono text-xs">{row.id}</span>
+          <span className="text-xs text-muted-foreground">{orderV2SummaryLabel(row, locale)}</span>
+        </span>
+      ),
+    },
+    { id: "amount", label: dictionary.orderAmount, numeric: true, value: (row) => <span className="font-mono tabular-nums">{formatCatalogPrice(row.amount, null, locale)}</span> },
     { id: "state", label: dictionary.orderState, value: (row) => <OrderV2StateBadge dictionary={dictionary} state={row.state} /> },
     { id: "outcome", label: dictionary.paymentLinkOrderLocalOutcome, value: (row) => <OrderV2LocalOutcomeBadge dictionary={dictionary} outcome={row.currentLocalOutcome} /> },
-    { id: "created", label: dictionary.orderCreated, value: (row) => formatLinkInstant(row.createdAt, locale) },
+    { id: "created", label: dictionary.orderCreated, value: (row) => <span className="text-xs">{formatLinkInstant(row.createdAt, locale)}</span> },
   ];
 
   if (result === null || result.status === "invalid-query") {
@@ -104,7 +114,7 @@ function LinkOrderDirectory({
       copy={copy}
       formAction={path}
       getRowActions={(row) => (
-        <Button asChild data-ds-hit-target variant="outline">
+        <Button asChild data-ds-hit-target size="sm" variant="outline">
           <Link href={`${path}/${row.id}`}>{dictionary.ordersView}</Link>
         </Button>
       )}
@@ -153,10 +163,18 @@ export default async function PaymentLinkV2OrdersPage({
   if (result?.status === "redirect") redirect(result.location);
 
   return (
-    <>
+    <div className="space-y-4">
       <WorkspaceHeading description={dictionary.paymentLinkOrdersDescription} eyebrow={dictionary.shellMerchantEyebrow} title={dictionary.paymentLinkOrdersHeading} />
+
+      <div className="flex flex-wrap items-center gap-3">
+        <span className="font-mono text-sm">#{link.identifier}</span>
+        <LinkStateBadge dictionary={dictionary} state={link.state} />
+        <Button asChild className="ml-auto" data-ds-hit-target size="sm" variant="outline">
+          <Link href={`/links/v2/${link.id}`}><ArrowLeftIcon aria-hidden /> {dictionary.paymentLinkBackToDetail}</Link>
+        </Button>
+      </div>
+
       <LinkOrderDirectory dictionary={dictionary} locale={locale} path={path} requestTarget={requestTarget} result={result} />
-      <Button asChild variant="outline"><Link href={`/links/v2/${link.id}`}>{dictionary.paymentLinkBackToDetail}</Link></Button>
-    </>
+    </div>
   );
 }

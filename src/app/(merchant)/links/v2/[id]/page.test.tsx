@@ -79,8 +79,8 @@ describe("merchant V2 payment-link detail page", () => {
     expect(markup).toContain("BRL/USDT");
     expect(markup).toContain('href="/links"');
     expect(markup).toContain(`href="/links/v2/${linkId}/orders"`);
-    expect(markup).toContain(`>${ordersLabel}<`);
-    expect(markup).toContain(">3</p>");
+    expect(markup).toContain(ordersLabel);
+    expect(markup).toContain(">3</dd>");
   });
 
   it.each([
@@ -95,7 +95,7 @@ describe("merchant V2 payment-link detail page", () => {
     const markup = renderToStaticMarkup(await PaymentLinkV2DetailPage({ params: Promise.resolve({ id: linkId }) }));
     expect(getPrefill).toHaveBeenCalledWith(principal, linkId);
     expect(markup).toContain(`href="/links/v2/${linkId}/edit`);
-    expect(markup).toContain(`>${editLabel}<`);
+    expect(markup).toContain(editLabel);
     expect(markup).toContain(deactivateHeading);
     expect(markup).toContain(`action="/payment-links-v2/${linkId}"`);
     expect(markup).toContain(`value="${action}"`);

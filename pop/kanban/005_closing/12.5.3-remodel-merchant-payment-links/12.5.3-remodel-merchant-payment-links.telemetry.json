@@ -1,0 +1,69 @@
+{
+  "version": 1,
+  "events": [
+    {
+      "at": "2026-08-05T02:25:07-03:00",
+      "event": "transition",
+      "from": "001_initial_task",
+      "to": "002_planning",
+      "contexts": [],
+      "test_seconds": 0,
+      "return_kind": null,
+      "result": "advanced"
+    },
+    {
+      "at": "2026-08-05T02:32:35-03:00",
+      "event": "transition",
+      "from": "002_planning",
+      "to": "004_processing",
+      "contexts": [],
+      "test_seconds": 0,
+      "return_kind": null,
+      "result": "advanced"
+    },
+    {
+      "at": "2026-08-05T03:19:59-03:00",
+      "event": "transition",
+      "from": "004_processing",
+      "to": "005_closing",
+      "contexts": [],
+      "test_seconds": 0,
+      "return_kind": null,
+      "result": "advanced"
+    },
+    {
+      "at": "2026-08-05T06:20:36Z",
+      "event": "return",
+      "from": "005_closing",
+      "to": "004_processing",
+      "contexts": [
+        "ownership-invasion-12.5.2",
+        "ownership-invasion-12.6.2",
+        "F01-missing"
+      ],
+      "test_seconds": 0,
+      "return_kind": "execucao",
+      "result": "returned"
+    },
+    {
+      "at": "2026-08-05T03:32:19-03:00",
+      "event": "transition",
+      "from": "005_closing",
+      "to": "004_processing",
+      "contexts": [],
+      "test_seconds": 0,
+      "return_kind": "execucao",
+      "result": "returned"
+    },
+    {
+      "at": "2026-08-05T03:55:11-03:00",
+      "event": "transition",
+      "from": "004_processing",
+      "to": "005_closing",
+      "contexts": [],
+      "test_seconds": 0,
+      "return_kind": null,
+      "result": "advanced"
+    }
+  ]
+}

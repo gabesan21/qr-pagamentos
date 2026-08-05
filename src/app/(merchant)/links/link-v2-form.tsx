@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, FieldDescription, FieldGroup, FieldLabel, FieldLegend, FieldSet } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
@@ -70,45 +71,51 @@ function FixedAmountFields({
   const markDirty = () => setDirty(true);
 
   return (
-    <>
-      <Field>
-        <FieldLabel htmlFor={`${formId}-description-pt-br`}>{copy.descriptionPtBr}</FieldLabel>
-        <Input
-          defaultValue={values?.descriptionPtBr}
-          id={`${formId}-description-pt-br`}
-          maxLength={160}
-          name={fieldName("descriptionPtBr")}
-          onChange={markDirty}
-          required
-        />
-      </Field>
-      <Field>
-        <FieldLabel htmlFor={`${formId}-description-en`}>{copy.descriptionEn}</FieldLabel>
-        <Input
-          aria-describedby={`${formId}-description-help`}
-          defaultValue={values?.descriptionEn}
-          id={`${formId}-description-en`}
-          maxLength={160}
-          name={fieldName("descriptionEn")}
-          onChange={markDirty}
-          required
-        />
-        <FieldDescription id={`${formId}-description-help`}>{copy.descriptionHelp}</FieldDescription>
-      </Field>
-      <Field>
-        <FieldLabel htmlFor={`${formId}-amount`}>{copy.amount}</FieldLabel>
-        <Input
-          aria-describedby={`${formId}-amount-help`}
-          defaultValue={values?.amount}
-          id={`${formId}-amount`}
-          inputMode="decimal"
-          name={fieldName("amount")}
-          onChange={markDirty}
-          required
-        />
-        <FieldDescription id={`${formId}-amount-help`}>{copy.amountHelp}</FieldDescription>
-      </Field>
-    </>
+    <Card>
+      <CardHeader>
+        <CardTitle>{copy.amount}</CardTitle>
+        <CardDescription>{copy.descriptionHelp}</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <Field>
+          <FieldLabel htmlFor={`${formId}-description-pt-br`}>{copy.descriptionPtBr}</FieldLabel>
+          <Input
+            defaultValue={values?.descriptionPtBr}
+            id={`${formId}-description-pt-br`}
+            maxLength={160}
+            name={fieldName("descriptionPtBr")}
+            onChange={markDirty}
+            required
+          />
+        </Field>
+        <Field>
+          <FieldLabel htmlFor={`${formId}-description-en`}>{copy.descriptionEn}</FieldLabel>
+          <Input
+            aria-describedby={`${formId}-description-help`}
+            defaultValue={values?.descriptionEn}
+            id={`${formId}-description-en`}
+            maxLength={160}
+            name={fieldName("descriptionEn")}
+            onChange={markDirty}
+            required
+          />
+          <FieldDescription id={`${formId}-description-help`}>{copy.descriptionHelp}</FieldDescription>
+        </Field>
+        <Field>
+          <FieldLabel htmlFor={`${formId}-amount`}>{copy.amount}</FieldLabel>
+          <Input
+            aria-describedby={`${formId}-amount-help`}
+            defaultValue={values?.amount}
+            id={`${formId}-amount`}
+            inputMode="decimal"
+            name={fieldName("amount")}
+            onChange={markDirty}
+            required
+          />
+          <FieldDescription id={`${formId}-amount-help`}>{copy.amountHelp}</FieldDescription>
+        </Field>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -159,49 +166,62 @@ export function LinkV2Form({
           <Input name="version" type="hidden" value={version ?? 0} />
         </>
       ) : null}
-      <FieldGroup>
+      <FieldGroup className="space-y-4">
         {editing ? null : (
-          <>
-            <Field>
-              <FieldLabel htmlFor={`${formId}-kind`}>{copy.composition}</FieldLabel>
-              <NativeSelect id={`${formId}-kind`} name="compositionKind" onChange={(event) => setKind(event.target.value === "FIXED_AMOUNT" ? "FIXED_AMOUNT" : "PRODUCT_LINES")} value={kind}>
-                <NativeSelectOption value="PRODUCT_LINES">{copy.kindProductLines}</NativeSelectOption>
-                <NativeSelectOption value="FIXED_AMOUNT">{copy.kindFixedAmount}</NativeSelectOption>
-              </NativeSelect>
-            </Field>
-            <Field>
-              <FieldLabel htmlFor={`${formId}-pair`}>{copy.currencyPair}</FieldLabel>
-              <NativeSelect defaultValue="" disabled={noPairs} id={`${formId}-pair`} name="currencyPairId" required>
-                <NativeSelectOption disabled value="">{copy.chooseCurrencyPair}</NativeSelectOption>
-                {pairs.map((pair) => (
-                  <NativeSelectOption key={pair.id} value={pair.id}>{pair.label}</NativeSelectOption>
-                ))}
-              </NativeSelect>
-            </Field>
-            <Field>
-              <FieldLabel htmlFor={`${formId}-type`}>{copy.linkType}</FieldLabel>
-              <NativeSelect defaultValue={initialLinkType ?? "REUSABLE"} id={`${formId}-type`} name="linkType" required>
-                <NativeSelectOption value="REUSABLE">{copy.reusable}</NativeSelectOption>
-                <NativeSelectOption value="SINGLE_USE">{copy.singleUse}</NativeSelectOption>
-              </NativeSelect>
-            </Field>
-            {noPairs ? (
-              <Alert variant="warning">
-                <AlertTitle>{copy.pairsUnavailable}</AlertTitle>
-                <AlertDescription>{copy.pairsUnavailableDescription}</AlertDescription>
-              </Alert>
-            ) : null}
-          </>
+          <Card>
+            <CardHeader>
+              <CardTitle>{copy.composition}</CardTitle>
+              <CardDescription>{copy.currencyPair}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Field>
+                <FieldLabel htmlFor={`${formId}-kind`}>{copy.composition}</FieldLabel>
+                <NativeSelect id={`${formId}-kind`} name="compositionKind" onChange={(event) => setKind(event.target.value === "FIXED_AMOUNT" ? "FIXED_AMOUNT" : "PRODUCT_LINES")} value={kind}>
+                  <NativeSelectOption value="PRODUCT_LINES">{copy.kindProductLines}</NativeSelectOption>
+                  <NativeSelectOption value="FIXED_AMOUNT">{copy.kindFixedAmount}</NativeSelectOption>
+                </NativeSelect>
+              </Field>
+              <Field>
+                <FieldLabel htmlFor={`${formId}-pair`}>{copy.currencyPair}</FieldLabel>
+                <NativeSelect defaultValue="" disabled={noPairs} id={`${formId}-pair`} name="currencyPairId" required>
+                  <NativeSelectOption disabled value="">{copy.chooseCurrencyPair}</NativeSelectOption>
+                  {pairs.map((pair) => (
+                    <NativeSelectOption key={pair.id} value={pair.id}>{pair.label}</NativeSelectOption>
+                  ))}
+                </NativeSelect>
+              </Field>
+              <Field>
+                <FieldLabel htmlFor={`${formId}-type`}>{copy.linkType}</FieldLabel>
+                <NativeSelect defaultValue={initialLinkType ?? "REUSABLE"} id={`${formId}-type`} name="linkType" required>
+                  <NativeSelectOption value="REUSABLE">{copy.reusable}</NativeSelectOption>
+                  <NativeSelectOption value="SINGLE_USE">{copy.singleUse}</NativeSelectOption>
+                </NativeSelect>
+              </Field>
+              {noPairs ? (
+                <Alert variant="warning">
+                  <AlertTitle>{copy.pairsUnavailable}</AlertTitle>
+                  <AlertDescription>{copy.pairsUnavailableDescription}</AlertDescription>
+                </Alert>
+              ) : null}
+            </CardContent>
+          </Card>
         )}
-        <Field>
-          <FieldLabel htmlFor={`${formId}-expiry`}>{copy.expiry}</FieldLabel>
-          {editing ? (
-            <DirtyInput aria-describedby={`${formId}-expiry-help`} defaultValue={initialExpiresAt ?? ""} fieldName="expiresAt" id={`${formId}-expiry`} type="datetime-local" />
-          ) : (
-            <Input aria-describedby={`${formId}-expiry-help`} id={`${formId}-expiry`} name="expiresAt" type="datetime-local" />
-          )}
-          <FieldDescription id={`${formId}-expiry-help`}>{copy.expiryHelp}</FieldDescription>
-        </Field>
+        <Card>
+          <CardHeader>
+            <CardTitle>{copy.expiry}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Field>
+              <FieldLabel htmlFor={`${formId}-expiry`}>{copy.expiry}</FieldLabel>
+              {editing ? (
+                <DirtyInput aria-describedby={`${formId}-expiry-help`} defaultValue={initialExpiresAt ?? ""} fieldName="expiresAt" id={`${formId}-expiry`} type="datetime-local" />
+              ) : (
+                <Input aria-describedby={`${formId}-expiry-help`} id={`${formId}-expiry`} name="expiresAt" type="datetime-local" />
+              )}
+              <FieldDescription id={`${formId}-expiry-help`}>{copy.expiryHelp}</FieldDescription>
+            </Field>
+          </CardContent>
+        </Card>
         {kind === "PRODUCT_LINES" ? (
           <FieldSet>
             <FieldLegend>{copy.lines}</FieldLegend>
