@@ -1,11 +1,13 @@
-# Verificação e crítica — [[<id>-<slug>]]
+# Julgamento — [[<id>-<slug>]]
 
 > Blockquotes deste template são instruções de preenchimento — **apague-os ao preencher**.
 
-- **Etapa:** 005_closing (ato 1) · **Responsável:** revisor independente
+- **Etapa:** 005_closing (ato 1) · **Responsável:** Judge Dredd (juiz único)
 
 > **Artefato exclusivo de `yolo: true`.** Fora de yolo não existe revisor agêntico: o gate é o PR humano e este arquivo não nasce.
-> Um único agente fresco verifica comportamento/qualidade, tier **medium** (matriz do [[WORKFLOW|WORKFLOW]]), e decide `differential|full`: `full` em critical ou retorno por `premissa`; depois de `lacuna` ou falha de execução, o diferencial cobre o **delta**. Evidência inconclusiva é reexecutada.
+> **Teto: 80 linhas** (validado por `pop_validate`). Rodada nova acrescenta seção `## Rodada <n>` neste mesmo arquivo e **nunca** apaga a anterior; a de maior número decide.
+> O Judge Dredd ([[.agents/skills/judge-dredd/SKILL|judge-dredd]]) nasce em sessão limpa, tier pela matriz do [[WORKFLOW|WORKFLOW]] (medium em `S`/`M`, strong em `L`/`critical`), e decide `differential|full`: `full` em critical ou retorno por `premissa`; depois de `lacuna` ou falha de execução, o diferencial cobre o **delta**.
+> **Julgue por leitura, não por re-run:** diff integrado e evidência registrada. Não execute testes — critério `verify: phase` pertence à task `verificacao-da-phase` e aqui só se confere seu registro na checklist; a exceção é a própria task de verificação da phase, cujo plano declara re-run. Todo achado passa pelo teste de materialidade da skill antes de entrar na tabela.
 > Este é o único gate de qualidade (003 só existe em `critical: true`). Responda **primeiro** se o pedido original — o "O quê / Por quê" do card — foi atendido; só depois valide specs e critérios do plano.
 > **Três saídas, não duas:** aprovado; **bloqueante de execução** → 004, quando o executor não cumpriu os critérios que recebeu; **defeito de plano** → 002, quando os critérios não cobriam o pedido do card e o executor cumpriu o que lhe foi entregue. Aderência ao plano que não atende ao pedido nunca é falha do executor.
 > **Você nomeia o delta, não conserta o defeito.** Despachar correção transformaria você em quem encomendou o trabalho que julga.
@@ -19,13 +21,13 @@
 
 ### Conformidade com objetivo e specs
 
-| # | Critério | Modo | Verificação executada | Resultado | Evidência |
-|---|----------|------|------------------------|-----------|-----------|
-| 1 | <critério do plano> | re-run \| evidência | `<run>` ou <artefato auditado> | passou \| falhou \| qualified pass (ambiente) | <observado versus esperado> |
+| # | Critério | Modo | Verificação | Resultado | Evidência |
+|---|----------|------|-------------|-----------|-----------|
+| 1 | <critério do plano> | evidência \| phase \| humano | <artefato auditado> ou registro na checklist da phase | passou \| falhou \| registrado (phase) \| qualified pass (ambiente) | <observado versus esperado> |
 
 ### Qualidade da implementação
 
-> Revise o diff com a skill de revisão aplicável: correção, complexidade, acoplamento, nomes, erros, testes, segurança, contratos DOX, documentação e specs. Registre somente achados acionáveis, com fonte.
+> Revise o diff com a skill de revisão aplicável: correção, complexidade, acoplamento, nomes, erros, segurança, contratos DOX, documentação e specs. Registre somente achados acionáveis que passaram no teste de materialidade, com fonte.
 
 | Severidade | Achado | Evidência | Correção necessária |
 |------------|--------|-----------|---------------------|
@@ -35,7 +37,7 @@
 
 - [ ] Alterações respeitam `Owns` e `Must not edit` de cada frente.
 - [ ] Dependências não foram implementadas oportunisticamente por consumidores.
-- [ ] Gate agregado passou após a integração.
+- [ ] Critérios `verify: phase` registrados na checklist da phase.
 - [ ] Specs, documentação e contratos DOX afetados estão coerentes.
 
 ## Veredito
