@@ -66,7 +66,9 @@ export function OrderV2OutcomeBadge({ dictionary, outcome }: Readonly<{ dictiona
 }
 
 export function orderV2SourceLabel(dictionary: Dictionary, source: OrderV2Source) {
-  return source === "LINK" ? dictionary.orderV2DirectorySourceLink : dictionary.orderV2DirectorySourceAdHoc;
+  if (source === "LINK") return dictionary.orderV2DirectorySourceLink;
+  if (source === "STANDALONE") return dictionary.orderV2DirectorySourceStandalone;
+  return dictionary.orderV2DirectorySourceAdHoc;
 }
 
 function orderV2SourceTone(source: OrderV2Source): "info" | "neutral" | "success" {
