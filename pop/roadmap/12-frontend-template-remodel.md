@@ -80,7 +80,6 @@
 | Task | Description | Status |
 |------|-------------|--------|
 | [[12.6.1-remodel-public-payment-link-checkout]] | Match the template V1/V2 buyer flow, policy-specific forms, QR/copy, polling, retry, privacy, paid, unavailable, and terminal states under `src/app/pay/[identifier]/**`. · size: L | concluída |
-| `12.6.4-phase-verification` | Author/run the phase suite (accumulated `verify: phase` criteria) via direct pnpm and repair what it catches; depends on all 12.6 tasks. · size: M | não iniciada |
 
 ## Phase 12.7 - Frontend convergence and parity proof
 
