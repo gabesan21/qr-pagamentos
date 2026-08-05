@@ -21,7 +21,7 @@ Yolo scopes integrate task branches into `develop`; the final `develop` -> `main
 Every change goes through `pop/kanban/` (`001_initial_task` -> `005_closing`); read [[WORKFLOW|WORKFLOW]] for stages, gates, yolo route, and return paths.
 
 - **Delivery:** task branches integrate into `develop`; the scope closes with the `develop` -> `main` PR.
-- **Gates:** every code task passes `pnpm check` before `005_closing`, plus `pnpm db:test`, `pnpm container:contract-check`, or `install/test.sh` when it touches those subtrees.
+- **Gates:** tests run only in each phase's final `phase-verification` task, always via **direct pnpm** (`pnpm check`) — ordinary tasks are judged by reading, without test runs ([[WORKFLOW|WORKFLOW]] › phase verification). Docker-dependent checks are user-exclusive (see Project verification).
 - **Context:** read the affected `pop/specs/` documents and walk the DOX tree before editing code; unresolved uncertainty is `RECON NEEDED` or `blocked`, never a guess.
 
 ## Skills
@@ -57,7 +57,7 @@ Walk this tree before editing any subtree; the closest `AGENTS.md` wins on local
 
 #### Project verification
 
-Run `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm build` independently, or `pnpm check` for the aggregate gate. Run `pnpm db:test` separately for the disposable PostgreSQL contract; it is never part of `pnpm check`.
+Run `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm build` independently, or `pnpm check` for the aggregate gate — always **direct pnpm, never through containers**. Anything Docker-dependent (`pnpm db:test`, `pnpm container:*`, `install/test.sh`, compose files) is **user-exclusive**: it enters the human verification checklist (`verify: user`) and is never executed by the agent.
 
 ## Application contract
 
@@ -82,6 +82,7 @@ Use the exact Node and pnpm pins in `.node-version` and `package.json`; install 
 ## Essential rules
 
 - Use English for project content and ISO dates (`YYYY-MM-DD`). Use wikilinks for internal references and keep notes near 150 lines.
+- The project's Docker containers (`Dockerfile`, `compose*.yaml`, `container/`, `install/`) exist solely for the **user's installation** of the product and are **user-exclusive**: the AI agent never uses them for anything — no builds, runs, tests, or checks through containers. Build/test verification is always direct pnpm.
 - Never implement or modify application behavior outside a task in `004_processing` with an approved plan.
 - Never use Nautt Finance hosted payment links; this application owns its products, links, and checkout pages.
 - Never expose Nautt API keys, session secrets, or webhook secrets to clients or committed files.
