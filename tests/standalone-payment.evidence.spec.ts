@@ -301,7 +301,7 @@ test("creates the closed standalone payment evidence run", async ({ page }) => {
     const qr = page.locator("img.checkout-qr");
     await expect(qr).toBeVisible({ timeout: 20_000 });
     expect(await qr.evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
-    await expect(page.locator(".checkout-copy input")).toHaveValue("pix-copy-paste-evidence-code");
+    await expect(page.locator(".checkout-copy button")).toContainText("pix-copy-paste-evidence-code");
     await expect(payment).toContainText(checkout.checkoutStatePending);
     assertions.push({ state: `${locale}-payment-qr`, qrLoaded: true, pixVisible: true });
     await screenshot(`interaction-${locale}-payment-qr`);

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Plus } from "lucide-react";
 
 import { WorkspaceHeading } from "@/app-shell/workspace-heading";
 import { getProductService, type OwnerProduct } from "@/auth/product";
@@ -7,6 +8,8 @@ import { getProductCategoryService } from "@/auth/product-category";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataDirectory, type DataDirectoryColumn, type DataDirectoryState } from "@/data-directory/ui/data-directory";
+import { MoneyText } from "@/components/ui/money-text";
+import { StatusBadge } from "@/components/ui/status-badge";
 import type { getDictionary } from "@/i18n/dictionaries";
 import type { SupportedLocale } from "@/i18n/locales";
 import { BrandIdentity } from "@/brand/brand-identity";
@@ -30,28 +33,68 @@ function productState(product: OwnerProduct): "active" | "inactive" | "archived"
 function ProductThumbnail({ product }: Readonly<{ product: OwnerProduct }>) {
   if (product.imageMediaId) {
     return (
-      <img alt="" className="size-12 rounded-md border border-border object-cover" height={48} src={`/media/${product.imageMediaId}`} width={48} />
+      <img
+        alt=""
+        className="size-10 rounded-md border border-border object-cover"
+        height={40}
+        src={`/media/${product.imageMediaId}`}
+        width={40}
+      />
     );
   }
   return (
-    <span aria-hidden="true" className="flex size-12 items-center justify-center rounded-md border border-dashed border-border text-muted-foreground">
+    <span
+      aria-hidden="true"
+      className="flex size-10 items-center justify-center rounded-md border border-dashed border-border text-muted-foreground"
+    >
       <BrandIdentity variant="mark-only" />
     </span>
   );
 }
 
-function stateBadge(dictionary: Dictionary, product: OwnerProduct) {
+function ProductTitle({
+  dictionary,
+  locale,
+  product,
+}: Readonly<{ dictionary: Dictionary; locale: SupportedLocale; product: OwnerProduct }>) {
+  const title = locale === "pt-BR" ? product.titlePtBr : product.titleEn;
+  const other = locale === "pt-BR" ? product.titleEn : product.titlePtBr;
+  return (
+    <span className="block">
+      <span className="block">{title}</span>
+      {other ? <span className="block text-xs text-muted-foreground">{other}</span> : null}
+    </span>
+  );
+}
+
+function ProductStateBadge({ dictionary, product }: Readonly<{ dictionary: Dictionary; product: OwnerProduct }>) {
   const state = productState(product);
-  if (state === "archived") return <Badge variant="destructive">{dictionary.catalogProductStateArchived}</Badge>;
-  if (state === "inactive") return <Badge variant="outline">{dictionary.catalogProductStateInactive}</Badge>;
-  return <Badge variant="secondary">{dictionary.catalogProductStateActive}</Badge>;
+  if (state === "archived") {
+    return <StatusBadge archived label={dictionary.catalogProductStateArchived} tone="danger" />;
+  }
+  if (state === "inactive") {
+    return <StatusBadge label={dictionary.catalogProductStateInactive} tone="neutral" />;
+  }
+  return <StatusBadge label={dictionary.catalogProductStateActive} tone="success" />;
+}
+
+function CategoryPill({
+  categoryId,
+  categoryNames,
+  noneLabel,
+}: Readonly<{ categoryId: string | null; categoryNames: Map<string, string>; noneLabel: string }>) {
+  if (!categoryId) return <span className="text-muted-foreground">{noneLabel}</span>;
+  const name = categoryNames.get(categoryId);
+  if (!name) return <span className="text-muted-foreground">{noneLabel}</span>;
+  return <Badge variant="secondary">{name}</Badge>;
 }
 
 function matchesSearch(product: OwnerProduct, q: string | undefined) {
   if (!q) return true;
   const needle = q.toLocaleLowerCase();
-  return [product.internalName, product.titlePtBr, product.titleEn]
-    .some((value) => value.toLocaleLowerCase().includes(needle));
+  return [product.internalName, product.titlePtBr, product.titleEn].some((value) =>
+    value.toLocaleLowerCase().includes(needle),
+  );
 }
 
 function ProductDirectory({
@@ -67,14 +110,44 @@ function ProductDirectory({
   products: readonly OwnerProduct[];
   query: Extract<ReturnType<typeof resolveCatalogDirectoryQuery>, { status: "ready" | "invalid-query" }>;
 }>) {
-  const categoryNames = new Map(categories.map((category) => [category.id, locale === "pt-BR" ? category.namePtBr : category.nameEn]));
+  const categoryNames = new Map(
+    categories.map((category) => [category.id, locale === "pt-BR" ? category.namePtBr : category.nameEn]),
+  );
   const columns: readonly DataDirectoryColumn<OwnerProduct>[] = [
     { id: "image", label: dictionary.catalogProductImageColumn, value: (row) => <ProductThumbnail product={row} /> },
-    { id: "internalName", label: dictionary.adminProductInternalName, value: (row) => row.internalName },
-    { id: "title", label: dictionary.catalogProductTitleColumn, value: (row) => locale === "pt-BR" ? row.titlePtBr : row.titleEn },
-    { id: "price", label: dictionary.adminProductPrice, numeric: true, value: (row) => formatCatalogPrice(row.price, row.currencyCode, locale) },
-    { id: "category", label: dictionary.catalogProductCategoryColumn, value: (row) => row.categoryId ? categoryNames.get(row.categoryId) ?? dictionary.catalogProductCategoryNone : dictionary.catalogProductCategoryNone },
-    { id: "state", label: dictionary.catalogProductStateColumn, value: (row) => stateBadge(dictionary, row) },
+    {
+      id: "internalName",
+      label: dictionary.adminProductInternalName,
+      value: (row) => <span className="font-medium">{row.internalName}</span>,
+    },
+    {
+      id: "title",
+      label: dictionary.catalogProductTitleColumn,
+      value: (row) => <ProductTitle dictionary={dictionary} locale={locale} product={row} />,
+    },
+    {
+      id: "price",
+      label: dictionary.adminProductPrice,
+      numeric: true,
+      value: (row) => (
+        <MoneyText
+          pairLabel={row.currencyCode ?? undefined}
+          value={formatCatalogPrice(row.price, null, locale)}
+        />
+      ),
+    },
+    {
+      id: "category",
+      label: dictionary.catalogProductCategoryColumn,
+      value: (row) => (
+        <CategoryPill categoryId={row.categoryId} categoryNames={categoryNames} noneLabel={dictionary.catalogProductCategoryNone} />
+      ),
+    },
+    {
+      id: "state",
+      label: dictionary.catalogProductStateColumn,
+      value: (row) => <ProductStateBadge dictionary={dictionary} product={row} />,
+    },
   ];
 
   if (query.status === "invalid-query") {
@@ -95,16 +168,15 @@ function ProductDirectory({
 
   const stateFilter = typeof query.filters.state === "string" ? query.filters.state : query.filters.state?.[0];
   const categoryFilter = typeof query.filters.category === "string" ? [query.filters.category] : query.filters.category;
-  const filtered = products.filter((product) =>
-    matchesSearch(product, query.q)
-    && (!stateFilter || productState(product) === stateFilter)
-    && (!categoryFilter || (product.categoryId !== null && categoryFilter.includes(product.categoryId))));
+  const filtered = products.filter(
+    (product) =>
+      matchesSearch(product, query.q)
+      && (!stateFilter || productState(product) === stateFilter)
+      && (!categoryFilter || (product.categoryId !== null && categoryFilter.includes(product.categoryId))),
+  );
   const filtering = Boolean(query.q) || Boolean(stateFilter) || Boolean(categoryFilter);
-  const state: DataDirectoryState = products.length === 0 && !filtering
-    ? "empty"
-    : filtered.length === 0
-      ? "filtered-empty"
-      : "ready";
+  const state: DataDirectoryState =
+    products.length === 0 && !filtering ? "empty" : filtered.length === 0 ? "filtered-empty" : "ready";
   const truncated = filtered.length > query.pageSize;
   const rows = truncated ? filtered.slice(0, query.pageSize) : filtered;
 
@@ -124,23 +196,35 @@ function ProductDirectory({
             ...(stateFilter ? { selected: stateFilter } : {}),
             options: STATE_FILTER_VALUES.map((value) => ({
               value,
-              label: value === "active" ? dictionary.catalogProductStateActive : value === "inactive" ? dictionary.catalogProductStateInactive : dictionary.catalogProductStateArchived,
+              label:
+                value === "active"
+                  ? dictionary.catalogProductStateActive
+                  : value === "inactive"
+                    ? dictionary.catalogProductStateInactive
+                    : dictionary.catalogProductStateArchived,
             })),
           },
           ...(categories.length > 0
-            ? [{
-              name: "category",
-              label: dictionary.catalogProductFilterCategory,
-              allLabel: dictionary.catalogProductFilterAllCategories,
-              ...(categoryFilter?.[0] ? { selected: categoryFilter[0] } : {}),
-              options: categories.map((category) => ({ value: category.id, label: locale === "pt-BR" ? category.namePtBr : category.nameEn })),
-            }]
+            ? [
+                {
+                  name: "category",
+                  label: dictionary.catalogProductFilterCategory,
+                  allLabel: dictionary.catalogProductFilterAllCategories,
+                  ...(categoryFilter?.[0] ? { selected: categoryFilter[0] } : {}),
+                  options: categories.map((category) => ({
+                    value: category.id,
+                    label: locale === "pt-BR" ? category.namePtBr : category.nameEn,
+                  })),
+                },
+              ]
             : []),
         ]}
         formAction="/catalog"
         getRowActions={(row) => (
-          <Button asChild data-ds-hit-target variant="outline">
-            <Link href={`/catalog/products/${row.id}`}>{row.archivedAt !== null ? dictionary.catalogProductView : dictionary.catalogProductEdit}</Link>
+          <Button asChild data-ds-hit-target size="sm" variant={row.archivedAt !== null ? "ghost" : "secondary"}>
+            <Link href={`/catalog/products/${row.id}`}>
+              {row.archivedAt !== null ? dictionary.catalogProductView : dictionary.catalogProductEdit}
+            </Link>
           </Button>
         )}
         idPrefix="catalog-products"
@@ -183,9 +267,9 @@ export default async function MerchantCatalogPage({
     searchParams: params,
     definitions: [
       { name: "state", kind: "enum", values: STATE_FILTER_VALUES },
-      // Enum filters require at least one registered value; without any
-      // category the filter does not exist and its key is invalid input.
-      ...(categories.length > 0 ? [{ name: "category", kind: "enum", values: categories.map((category) => category.id) } as const] : []),
+      ...(categories.length > 0
+        ? [{ name: "category", kind: "enum", values: categories.map((category) => category.id) } as const]
+        : []),
     ],
     noticeKey: "products",
     noticeValues: PRODUCT_NOTICE_VALUES,
@@ -193,17 +277,26 @@ export default async function MerchantCatalogPage({
   if (query.status === "redirect") redirect(query.location);
 
   return (
-    <>
-      <WorkspaceHeading description={dictionary.catalogProductsDescription} eyebrow={dictionary.shellMerchantEyebrow} title={dictionary.shellProducts} />
-      {query.status === "ready" && query.notice ? <ProductNotice dictionary={dictionary} notice={query.notice} /> : null}
-      <div className="flex flex-wrap gap-3">
-        <Button asChild data-ds-hit-target>
-          <Link href="/catalog/products/new">{dictionary.adminProductCreate}</Link>
-        </Button>
-        <Button asChild data-ds-hit-target variant="outline">
-          <Link href="/catalog/categories">{dictionary.catalogCategoriesTitle}</Link>
-        </Button>
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <WorkspaceHeading
+          description={dictionary.catalogProductsDescription}
+          eyebrow={dictionary.shellMerchantEyebrow}
+          title={dictionary.shellProducts}
+        />
+        <div className="flex items-center gap-2">
+          <Button asChild data-ds-hit-target variant="outline">
+            <Link href="/catalog/categories">{dictionary.catalogCategoriesTitle}</Link>
+          </Button>
+          <Button asChild data-ds-hit-target>
+            <Link href="/catalog/products/new">
+              <Plus aria-hidden className="size-4" />
+              {dictionary.adminProductCreate}
+            </Link>
+          </Button>
+        </div>
       </div>
+      {query.status === "ready" && query.notice ? <ProductNotice dictionary={dictionary} notice={query.notice} /> : null}
       {loadFailed ? (
         <DataDirectory
           caption={dictionary.shellProducts}
@@ -220,6 +313,6 @@ export default async function MerchantCatalogPage({
       ) : (
         <ProductDirectory categories={categories} dictionary={dictionary} locale={locale} products={products} query={query} />
       )}
-    </>
+    </div>
   );
 }

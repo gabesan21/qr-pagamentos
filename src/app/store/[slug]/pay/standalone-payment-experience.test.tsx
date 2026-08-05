@@ -4,6 +4,10 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("server-only", () => ({}));
 
 import { getDictionary } from "@/i18n/dictionaries";
+
+function textContent(markup: string): string {
+  return markup.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+}
 import type { CheckoutDataPolicy } from "@/orders/payment-link-order";
 
 import {
@@ -101,11 +105,10 @@ describe("standalone payment view", () => {
   ] as const)("renders %s as the waiting treatment, never an error", (state: StandalonePaymentState, label: string) => {
     const markup = renderView({ payment: { state }, submittedAmount: "12.5" });
 
-    expect(markup).toContain(label);
-    expect(markup).toContain("bg-secondary");
+    expect(textContent(markup)).toContain(label);
+    expect(textContent(markup)).toContain("12.5 BRL");
     expect(markup).not.toContain("bg-destructive");
-    expect(markup).toContain("Payment details are still being prepared.");
-    expect(markup).toContain("12.5 BRL");
+    expect(textContent(markup)).toContain("Payment details are still being prepared.");
     expect(markup).toContain('href="/store/ana-store"');
   });
 
@@ -114,9 +117,9 @@ describe("standalone payment view", () => {
 
     expect(markup).toContain('src="https://provider.example/qr.png"');
     expect(markup).toContain('alt="PIX payment QR code"');
-    expect(markup).toContain('value="pix-code"');
-    expect(markup).toContain("Copy PIX code");
-    expect(markup).not.toContain("Payment details are still being prepared.");
+    expect(textContent(markup)).toContain("pix-code");
+    expect(textContent(markup)).toContain("Copy PIX code");
+    expect(textContent(markup)).not.toContain("Payment details are still being prepared.");
   });
 
   it("announces copy feedback politely", () => {

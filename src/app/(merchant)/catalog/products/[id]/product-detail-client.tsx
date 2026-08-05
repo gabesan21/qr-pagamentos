@@ -1,23 +1,21 @@
+"use client";
+
 import { useRef, useState } from "react";
 import { Archive } from "lucide-react";
 
 import { WorkspaceHeading } from "@/app-shell/workspace-heading";
-import { getProductService, type OwnerProduct } from "@/auth/product";
-import { getProductCategoryService } from "@/auth/product-category";
-import { getSupportedExchangeCurrencyService } from "@/auth/supported-exchange-currency";
+import type { OwnerProduct } from "@/auth/product";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ConfirmDialog } from "@/components/ui/modal";
 import { StatusBadge } from "@/components/ui/status-badge";
 import type { getDictionary } from "@/i18n/dictionaries";
 import type { SupportedLocale } from "@/i18n/locales";
 
-import { requireMerchantShellContext } from "../../../shell-context";
-import { CatalogSubmit } from "../../catalog-submit";
-import { ConfirmDialog } from "@/components/ui/modal";
-
-import { Banner, Breadcrumb } from "../../catalog-fields";
-import { ProductForm } from "../../product-form";
+import { CatalogSubmit } from "../../../catalog-submit";
+import { Banner, Breadcrumb } from "../../../catalog-fields";
+import { ProductForm } from "../../../product-form";
 
 type Dictionary = ReturnType<typeof getDictionary>;
 
@@ -101,7 +99,7 @@ function ArchiveForm({
   );
 }
 
-function ProductDetailClient({
+export function ProductDetailClient({
   categories,
   choices,
   dictionary,
@@ -223,30 +221,5 @@ function ProductDetailClient({
         </>
       ) : null}
     </div>
-  );
-}
-
-export default async function ProductDetailPage({
-  params,
-}: Readonly<{
-  params: Promise<{ id: string }>;
-}>) {
-  const { dictionary, locale, principal } = await requireMerchantShellContext();
-  const { id } = await params;
-  const [products, categories, choices] = await Promise.all([
-    getProductService().listForOwner(principal),
-    getProductCategoryService().listForOwner(principal),
-    getSupportedExchangeCurrencyService().listActiveChoices(principal),
-  ]);
-  const product = products.find((candidate) => candidate.id === id.toLowerCase());
-
-  return (
-    <ProductDetailClient
-      categories={categories}
-      choices={choices}
-      dictionary={dictionary}
-      locale={locale}
-      product={product}
-    />
   );
 }

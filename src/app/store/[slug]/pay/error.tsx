@@ -2,9 +2,8 @@
 
 import { useEffect, useSyncExternalStore } from "react";
 
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { storefrontEn } from "@/i18n/dictionaries/storefront/en";
 import { storefrontPtBR } from "@/i18n/dictionaries/storefront/pt-BR";
 
@@ -21,16 +20,17 @@ export default function StandalonePaymentError({ error, reset }: Readonly<{ erro
 
   return (
     <main className="storefront-shell storefront-shell--unavailable">
-      <Card className="storefront-card">
-        <CardHeader><CardTitle>{dictionary.storefrontErrorHeading}</CardTitle></CardHeader>
-        <CardContent className="storefront-error">
-          <Alert variant="destructive">
-            <AlertTitle>{dictionary.storefrontErrorHeading}</AlertTitle>
-            <AlertDescription>{dictionary.storefrontErrorDescription}</AlertDescription>
-          </Alert>
-          <Button onClick={reset} type="button">{dictionary.storefrontErrorRetry}</Button>
-        </CardContent>
-      </Card>
+      <EmptyState
+        action={
+          <Button onClick={reset} type="button">
+            {dictionary.storefrontErrorRetry}
+          </Button>
+        }
+        body={dictionary.storefrontErrorDescription}
+        illustration="unavailable"
+        kind="error"
+        title={dictionary.storefrontErrorHeading}
+      />
     </main>
   );
 }
