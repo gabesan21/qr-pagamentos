@@ -15,7 +15,7 @@ export function MoneyText({ className, pairLabel, size = "default", value }: Mon
       <span
         className={cn(
           "font-mono font-medium tabular-nums",
-          size === "large" && "font-semibold text-[length:var(--type-stat)] leading-7",
+          size === "large" && "text-2xl leading-7 font-semibold",
         )}
       >
         {value}

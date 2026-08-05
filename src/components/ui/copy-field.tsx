@@ -25,6 +25,7 @@ type CopyFieldProps = {
   labels: CopyFieldLabels
   truncate?: boolean
   className?: string
+  onCopy?: (state: CopyState) => void
 }
 
 function CopyStateIcon({ state }: { state: CopyState }) {
@@ -48,6 +49,7 @@ function CopyField({
   labels,
   truncate = true,
   className,
+  onCopy,
 }: CopyFieldProps) {
   const [state, setState] = React.useState<CopyState>("ready")
   const resetTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -77,12 +79,14 @@ function CopyField({
 
       await navigator.clipboard.writeText(value)
       setState("copied")
+      onCopy?.("copied")
       if (resetTimer.current) {
         clearTimeout(resetTimer.current)
       }
       resetTimer.current = setTimeout(() => setState("ready"), 2_000)
     } catch {
       setState("failed")
+      onCopy?.("failed")
     }
   }
 

@@ -25,7 +25,7 @@ export default function PublicCheckoutError({ reset }: Readonly<{ error: Error &
             <AlertTitle>{dictionary.checkoutErrorHeading}</AlertTitle>
             <AlertDescription>{dictionary.checkoutErrorDescription}</AlertDescription>
           </Alert>
-          <Button onClick={reset} type="button">{dictionary.checkoutErrorRetry}</Button>
+          <Button onClick={reset} size="lg" type="button">{dictionary.checkoutErrorRetry}</Button>
         </CardContent>
       </Card>
     </main>

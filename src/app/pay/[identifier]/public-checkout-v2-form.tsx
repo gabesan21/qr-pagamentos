@@ -3,14 +3,15 @@
 import { useEffect, useRef, useState } from "react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { CopyField } from "@/components/ui/copy-field";
 import { Field, FieldError, FieldGroup, FieldLabel, FieldLegend, FieldSet } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
-import { Separator } from "@/components/ui/separator";
+import { QrDisplay } from "@/components/ui/qr-display";
 import { Spinner } from "@/components/ui/spinner";
+import { StatusBadge, type StatusTone } from "@/components/ui/status-badge";
 import type { getDictionary } from "@/i18n/dictionaries";
 import type { CheckoutDataPolicy, CustomerSnapshotV1, PaymentLinkOrderState } from "@/orders/payment-link-order";
 
@@ -76,6 +77,14 @@ function paymentCopy(dictionary: Dictionary, state: CheckoutV2PaymentState): str
     REFUNDED: dictionary.checkoutStateRefunded,
   };
   return copy[state];
+}
+
+function paymentTone(state: CheckoutV2PaymentState): StatusTone {
+  if (state === "CONFIRMED") return "success";
+  if (state === "REJECTED" || state === "CANCELLED" || state === "EXPIRED") return "danger";
+  if (state === "REFUNDED") return "neutral";
+  if (state === "PENDING" || state === "INDETERMINATE") return "warning";
+  return "info";
 }
 
 export function paymentFromResponse(value: unknown): Payment | null {
@@ -160,55 +169,127 @@ export function PublicCheckoutV2Form({ dictionary, identifier, policy }: Readonl
     } catch { setCheckoutError(true); } finally { setSubmitting(false); }
   };
 
-  const copyPix = async () => {
-    if (!payment?.pixCopyPaste || !navigator.clipboard) { setCopyState("error"); return; }
-    try { await navigator.clipboard.writeText(payment.pixCopyPaste); setCopyState("success"); } catch { setCopyState("error"); }
-  };
+  const field = (name: FieldName, label: string, type = "text", autoComplete?: string) => (
+    <Field data-invalid={invalid.has(name) || undefined}>
+      <FieldLabel htmlFor={`checkout-${name}`}>{label}</FieldLabel>
+      <Input aria-invalid={invalid.has(name) || undefined} autoComplete={autoComplete} id={`checkout-${name}`} name={name} onChange={(event) => update(name, event.target.value)} required={requiredFields(policy).includes(name)} type={type} value={values[name]} />
+      {invalid.has(name) ? <FieldError>{dictionary.checkoutValidationError}</FieldError> : null}
+    </Field>
+  );
 
-  const field = (name: FieldName, label: string, type = "text", autoComplete?: string) => <Field data-invalid={invalid.has(name) || undefined}>
-    <FieldLabel htmlFor={`checkout-${name}`}>{label}</FieldLabel>
-    <Input aria-invalid={invalid.has(name) || undefined} autoComplete={autoComplete} id={`checkout-${name}`} name={name} onChange={(event) => update(name, event.target.value)} required={requiredFields(policy).includes(name)} type={type} value={values[name]} />
-    {invalid.has(name) ? <FieldError>{dictionary.checkoutValidationError}</FieldError> : null}
-  </Field>;
+  const showPayment = payment !== null;
+  const isTerminal = payment ? TERMINAL_STATES.has(payment.state) : false;
+  const awaitingQr = payment && !payment.pixQrCodeUrl && !payment.pixCopyPaste && !isTerminal;
 
-  return <Card className="checkout-card">
-    <CardHeader><CardTitle>{dictionary.checkoutCustomerHeading}</CardTitle></CardHeader>
-    <CardContent>
-      <form className="checkout-form" onSubmit={submit}>
-        <FieldGroup>
-          {requiredFields(policy).length === 0 ? <Alert role="status"><AlertDescription>{dictionary.checkoutNoCustomerData}</AlertDescription></Alert> : null}
-          {requiredFields(policy).includes("name") ? field("name", dictionary.checkoutNameLabel, "text", "name") : null}
-          {requiredFields(policy).includes("email") ? field("email", dictionary.checkoutEmailLabel, "email", "email") : null}
-          {requiredFields(policy).includes("cpf") ? field("cpf", dictionary.checkoutCpfLabel, "text", "off") : null}
-          {policy === "NAME_EMAIL_CPF_ADDRESS" ? <FieldSet><FieldLegend>{dictionary.checkoutAddressLegend}</FieldLegend><FieldGroup>
-            {field("street", dictionary.checkoutStreetLabel, "text", "street-address")}
-            {field("number", dictionary.checkoutNumberLabel)}
-            {field("district", dictionary.checkoutDistrictLabel)}
-            {field("city", dictionary.checkoutCityLabel, "text", "address-level2")}
-            <Field data-invalid={invalid.has("stateUf") || undefined}><FieldLabel htmlFor="checkout-stateUf">{dictionary.checkoutStateUfLabel}</FieldLabel><NativeSelect aria-invalid={invalid.has("stateUf") || undefined} id="checkout-stateUf" name="stateUf" onChange={(event) => update("stateUf", event.target.value)} required value={values.stateUf}><NativeSelectOption value="">{dictionary.checkoutStateUfPlaceholder}</NativeSelectOption>{BRAZILIAN_UFS.map((uf) => <NativeSelectOption key={uf} value={uf}>{uf}</NativeSelectOption>)}</NativeSelect>{invalid.has("stateUf") ? <FieldError>{dictionary.checkoutValidationError}</FieldError> : null}</Field>
-            {field("postalCode", dictionary.checkoutPostalCodeLabel, "text", "postal-code")}
-            <Field><FieldLabel htmlFor="checkout-complement">{dictionary.checkoutComplementLabel}</FieldLabel><Input autoComplete="address-line2" id="checkout-complement" name="complement" onChange={(event) => update("complement", event.target.value)} value={values.complement} /></Field>
-          </FieldGroup></FieldSet> : null}
-          {checkoutError ? <Alert variant="destructive"><AlertTitle>{dictionary.checkoutErrorHeading}</AlertTitle><AlertDescription>{dictionary.checkoutErrorDescription}</AlertDescription></Alert> : null}
-          {unavailable ? <Alert variant="warning"><AlertTitle>{dictionary.checkoutUnavailableHeading}</AlertTitle><AlertDescription>{dictionary.checkoutUnavailableDescription}</AlertDescription></Alert> : null}
-          <Button aria-busy={submitting || undefined} disabled={submitting || unavailable} type="submit">{submitting ? <Spinner data-icon="inline-start" /> : null}{submitting ? dictionary.checkoutSubmitting : attempt ? dictionary.checkoutRetry : dictionary.checkoutSubmit}</Button>
-        </FieldGroup>
-      </form>
-      {payment ? <section aria-live="polite" className="checkout-payment" aria-label={dictionary.checkoutPaymentHeading}>
-        <Separator />
-        <div className="checkout-payment__heading"><h2>{dictionary.checkoutPaymentHeading}</h2><Badge variant={TERMINAL_STATES.has(payment.state) && payment.state !== "CONFIRMED" ? "destructive" : "secondary"}>{paymentCopy(dictionary, payment.state)}</Badge></div>
-        {payment.pixQrCodeUrl ? <>
-          {/* The opaque, short-lived provider QR URL must be used directly; optimizing it would proxy payment data. */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img alt={dictionary.checkoutQrAlt} className="checkout-qr" src={payment.pixQrCodeUrl} />
-        </> : null}
-        {payment.pixCopyPaste ? <div className="checkout-copy"><Input aria-label={dictionary.checkoutPixLabel} readOnly value={payment.pixCopyPaste} /><Button onClick={() => { void copyPix(); }} type="button" variant="outline">{dictionary.checkoutCopyPix}</Button></div> : null}
-        {!payment.pixCopyPaste && !payment.pixQrCodeUrl && !TERMINAL_STATES.has(payment.state) ? <Alert role="status"><AlertDescription>{dictionary.checkoutWaitingPaymentData}</AlertDescription></Alert> : null}
-        {copyState ? <p aria-live="polite">{copyState === "success" ? dictionary.checkoutCopySuccess : dictionary.checkoutCopyError}</p> : null}
-        {statusError ? <Alert variant="warning"><AlertTitle>{dictionary.checkoutStatusErrorHeading}</AlertTitle><AlertDescription>{dictionary.checkoutStatusErrorDescription}</AlertDescription></Alert> : null}
-        {statusError ? <Button onClick={() => setStatusRetry((value) => value + 1)} type="button" variant="outline">{dictionary.checkoutRetryStatus}</Button> : null}
-      </section> : null}
-    </CardContent>
-    <CardFooter><p className="checkout-privacy">{dictionary.checkoutPrivacyNotice}</p></CardFooter>
-  </Card>;
+  return (
+    <Card className="checkout-card">
+      <CardHeader>
+        <CardTitle>{dictionary.checkoutCustomerHeading}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form className="checkout-form" onSubmit={submit}>
+          <FieldGroup>
+            {requiredFields(policy).length === 0 ? <Alert role="status"><AlertDescription>{dictionary.checkoutNoCustomerData}</AlertDescription></Alert> : null}
+            {requiredFields(policy).includes("name") ? field("name", dictionary.checkoutNameLabel, "text", "name") : null}
+            {requiredFields(policy).includes("email") ? field("email", dictionary.checkoutEmailLabel, "email", "email") : null}
+            {requiredFields(policy).includes("cpf") ? field("cpf", dictionary.checkoutCpfLabel, "text", "off") : null}
+            {policy === "NAME_EMAIL_CPF_ADDRESS" ? (
+              <FieldSet>
+                <FieldLegend>{dictionary.checkoutAddressLegend}</FieldLegend>
+                <FieldGroup>
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_auto]">
+                    {field("street", dictionary.checkoutStreetLabel, "text", "street-address")}
+                    {field("number", dictionary.checkoutNumberLabel)}
+                  </div>
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    {field("district", dictionary.checkoutDistrictLabel)}
+                    {field("city", dictionary.checkoutCityLabel, "text", "address-level2")}
+                  </div>
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <Field data-invalid={invalid.has("stateUf") || undefined}>
+                      <FieldLabel htmlFor="checkout-stateUf">{dictionary.checkoutStateUfLabel}</FieldLabel>
+                      <NativeSelect aria-invalid={invalid.has("stateUf") || undefined} id="checkout-stateUf" name="stateUf" onChange={(event) => update("stateUf", event.target.value)} required value={values.stateUf}>
+                        <NativeSelectOption value="">{dictionary.checkoutStateUfPlaceholder}</NativeSelectOption>
+                        {BRAZILIAN_UFS.map((uf) => <NativeSelectOption key={uf} value={uf}>{uf}</NativeSelectOption>)}
+                      </NativeSelect>
+                      {invalid.has("stateUf") ? <FieldError>{dictionary.checkoutValidationError}</FieldError> : null}
+                    </Field>
+                    {field("postalCode", dictionary.checkoutPostalCodeLabel, "text", "postal-code")}
+                  </div>
+                  <Field>
+                    <FieldLabel htmlFor="checkout-complement">{dictionary.checkoutComplementLabel}</FieldLabel>
+                    <Input autoComplete="address-line2" id="checkout-complement" name="complement" onChange={(event) => update("complement", event.target.value)} value={values.complement} />
+                  </Field>
+                </FieldGroup>
+              </FieldSet>
+            ) : null}
+            {checkoutError ? (
+              <Alert variant="destructive">
+                <AlertTitle>{dictionary.checkoutErrorHeading}</AlertTitle>
+                <AlertDescription>{dictionary.checkoutErrorDescription}</AlertDescription>
+              </Alert>
+            ) : null}
+            {unavailable ? (
+              <Alert variant="warning">
+                <AlertTitle>{dictionary.checkoutUnavailableHeading}</AlertTitle>
+                <AlertDescription>{dictionary.checkoutUnavailableDescription}</AlertDescription>
+              </Alert>
+            ) : null}
+            <Button aria-busy={submitting || undefined} disabled={submitting || unavailable} size="lg" type="submit">
+              {submitting ? <Spinner data-icon="inline-start" /> : null}
+              {submitting ? dictionary.checkoutSubmitting : attempt ? dictionary.checkoutRetry : dictionary.checkoutSubmit}
+            </Button>
+          </FieldGroup>
+        </form>
+
+        {showPayment ? (
+          <div className="checkout-payment">
+            <div className="flex flex-col items-center gap-3">
+              <StatusBadge label={paymentCopy(dictionary, payment.state)} tone={paymentTone(payment.state)} />
+              {isTerminal ? null : (
+                <>
+                  {awaitingQr ? (
+                    <QrDisplay graphicLabel={dictionary.checkoutQrAlt} graphic={<></>} pending />
+                  ) : payment.pixQrCodeUrl ? (
+                    <QrDisplay
+                      caption={dictionary.checkoutQrAlt}
+                      graphicLabel={dictionary.checkoutQrAlt}
+                      graphic={
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img alt={dictionary.checkoutQrAlt} className="checkout-qr" src={payment.pixQrCodeUrl} />
+                      }
+                      pending={payment.state === "CREATED" || payment.state === "RESERVED" || payment.state === "CREATING"}
+                    />
+                  ) : null}
+                  {payment.pixCopyPaste ? (
+                    <CopyField
+                      labels={{ copy: dictionary.checkoutCopyPix, pending: dictionary.checkoutCopyPending, copied: dictionary.checkoutCopySuccess, failed: dictionary.checkoutCopyError }}
+                      onCopy={(state) => setCopyState(state === "copied" ? "success" : state === "failed" ? "error" : null)}
+                      value={payment.pixCopyPaste}
+                    />
+                  ) : null}
+                  {statusError ? (
+                    <Alert variant="warning">
+                      <AlertTitle>{dictionary.checkoutStatusErrorHeading}</AlertTitle>
+                      <AlertDescription>{dictionary.checkoutStatusErrorDescription}</AlertDescription>
+                    </Alert>
+                  ) : null}
+                  {statusError ? <Button onClick={() => setStatusRetry((value) => value + 1)} type="button" variant="outline">{dictionary.checkoutRetryStatus}</Button> : null}
+                  {awaitingQr ? (
+                    <Alert role="status">
+                      <AlertDescription>{dictionary.checkoutWaitingPaymentData}</AlertDescription>
+                    </Alert>
+                  ) : null}
+                </>
+              )}
+              {copyState ? <p aria-live="polite" className="text-sm text-muted-foreground">{copyState === "success" ? dictionary.checkoutCopySuccess : dictionary.checkoutCopyError}</p> : null}
+            </div>
+          </div>
+        ) : null}
+      </CardContent>
+      <CardFooter>
+        <p className="checkout-privacy">{dictionary.checkoutPrivacyNotice}</p>
+      </CardFooter>
+    </Card>
+  );
 }

@@ -1,13 +1,14 @@
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+import { CheckoutSkeleton } from "@/components/ui/skeletons";
+import { getDictionary } from "@/i18n/dictionaries";
+import { defaultLocale } from "@/i18n/locales";
 
 export default function PublicCheckoutLoading() {
+  const dictionary = getDictionary(defaultLocale);
   return (
     <main aria-busy="true" className="checkout-shell">
-      <Card className="checkout-card">
-        <CardHeader><Skeleton className="checkout-skeleton checkout-skeleton--title" /></CardHeader>
-        <CardContent><Skeleton className="checkout-skeleton checkout-skeleton--body" /></CardContent>
-      </Card>
+      <div className="checkout-main">
+        <CheckoutSkeleton label={dictionary.checkoutLoadingLabel} />
+      </div>
     </main>
   );
 }
