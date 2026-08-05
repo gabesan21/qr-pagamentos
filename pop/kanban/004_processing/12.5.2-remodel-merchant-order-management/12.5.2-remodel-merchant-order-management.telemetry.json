@@ -15,10 +15,22 @@
       "at": "2026-08-05T00:32:19-03:00",
       "event": "plan",
       "stage": "002_planning",
-      "contexts": ["planejador strong"],
+      "contexts": [
+        "planejador strong"
+      ],
       "test_seconds": 0,
       "return_kind": null,
       "result": "plan-md-created"
+    },
+    {
+      "at": "2026-08-05T02:22:31-03:00",
+      "event": "transition",
+      "from": "002_planning",
+      "to": "004_processing",
+      "contexts": [],
+      "test_seconds": 0,
+      "return_kind": null,
+      "result": "advanced"
     }
   ]
 }
