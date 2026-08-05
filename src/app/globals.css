@@ -1690,6 +1690,10 @@ p { text-wrap: pretty; }
 .storefront-preview__price { font-variant-numeric: tabular-nums; margin: 0; }
 .storefront-preview__price span { color: var(--text-secondary); font-size: var(--type-small); font-weight: var(--font-weight-strong); }
 .storefront-preview__card { width: 100%; }
+.storefront-empty { margin-inline: auto; max-width: var(--layout-max); }
+.storefront-empty [data-slot="empty"] { border-color: transparent; }
+.storefront-error__retry { min-inline-size: var(--target-min-size); }
+.storefront-cart__empty [data-slot="empty"] { border-color: transparent; padding-block: var(--space-6); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto; transition: none; animation: none; }
 }

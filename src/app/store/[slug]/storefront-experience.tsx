@@ -6,7 +6,10 @@ import { useEffect, useMemo, useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { MoneyText } from "@/components/ui/money-text";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
   STOREFRONT_CART_QUANTITY_MAXIMUM,
@@ -162,6 +165,44 @@ function QuantityStepper({ copy, onCommit, quantity }: Readonly<{
   );
 }
 
+function CustomAmountField({
+  amountDraft,
+  amountInvalid,
+  copy,
+  currencyCode,
+  layout,
+  onChange,
+}: Readonly<{
+  amountDraft: string;
+  amountInvalid: boolean;
+  copy: StorefrontExperienceCopy;
+  currencyCode: string | null;
+  layout: string;
+  onChange: (value: string) => void;
+}>) {
+  return (
+    <Field className="storefront-custom-amount__field" data-invalid={amountInvalid || undefined}>
+      <FieldLabel className={layout === "table" ? "sr-only" : undefined} htmlFor="storefront-custom-amount">
+        {copy.customAmountLabel}
+        {currencyCode ? ` (${currencyCode})` : ""}
+      </FieldLabel>
+      {layout !== "table" ? <FieldDescription>{copy.customAmountDescription}</FieldDescription> : null}
+      <Input
+        aria-describedby={amountInvalid ? "storefront-custom-amount-error" : undefined}
+        aria-invalid={amountInvalid || undefined}
+        autoComplete="off"
+        id="storefront-custom-amount"
+        inputMode="decimal"
+        onChange={(event) => onChange(event.target.value)}
+        value={amountDraft}
+      />
+      {amountInvalid ? (
+        <FieldError id="storefront-custom-amount-error">{copy.customAmountInvalid}</FieldError>
+      ) : null}
+    </Field>
+  );
+}
+
 // Pure presentational composition: the server render and the first client
 // render agree on an empty cart, and the stateful wrapper hydrates the stored
 // cart afterwards. Exported so tests can exercise populated states without a
@@ -212,28 +253,7 @@ export function StorefrontExperienceView({
   const customAmountInCart = items.some((item) => item.kind === "custom-amount");
   const totals = storefrontCartTotals(items, catalogProducts, standalonePaymentCurrencyCode);
 
-  const customAmountField = (
-    <div className="storefront-custom-amount__field">
-      <label className="storefront-custom-amount__label" htmlFor="storefront-custom-amount">
-        {copy.customAmountLabel}{standalonePaymentCurrencyCode ? ` (${standalonePaymentCurrencyCode})` : ""}
-      </label>
-      <Input
-        aria-describedby={amountInvalid ? "storefront-custom-amount-error" : undefined}
-        aria-invalid={amountInvalid || undefined}
-        autoComplete="off"
-        id="storefront-custom-amount"
-        inputMode="decimal"
-        onChange={(event) => onAmountDraftChange(event.target.value)}
-        value={amountDraft}
-      />
-      {amountInvalid ? (
-        <p className="storefront-custom-amount__error" id="storefront-custom-amount-error" role="alert">
-          {copy.customAmountInvalid}
-        </p>
-      ) : null}
-    </div>
-  );
-  const customAmountAction = (
+  const customAmountActions = (
     <div className="storefront-custom-amount__actions">
       <Button onClick={onAmountSubmit} type="button">
         {customAmountInCart ? copy.customAmountUpdate : copy.customAmountAdd}
@@ -246,6 +266,17 @@ export function StorefrontExperienceView({
     </div>
   );
 
+  const customAmountField = (
+    <CustomAmountField
+      amountDraft={amountDraft}
+      amountInvalid={amountInvalid}
+      copy={copy}
+      currencyCode={standalonePaymentCurrencyCode}
+      layout={layout}
+      onChange={onAmountDraftChange}
+    />
+  );
+
   return (
     <div className="storefront-experience">
       <section aria-label={copy.productsHeading} className="storefront-products" data-layout={layout}>
@@ -256,26 +287,34 @@ export function StorefrontExperienceView({
               <TableHeader>
                 <TableRow>
                   <TableHead>{copy.customAmountTitle}</TableHead>
-                  <TableHead>{copy.customAmountLabel}{standalonePaymentCurrencyCode ? ` (${standalonePaymentCurrencyCode})` : ""}</TableHead>
-                  <TableHead><span className="sr-only">{copy.customAmountAdd}</span></TableHead>
+                  <TableHead>
+                    {copy.customAmountLabel}
+                    {standalonePaymentCurrencyCode ? ` (${standalonePaymentCurrencyCode})` : ""}
+                  </TableHead>
+                  <TableHead>
+                    <span className="sr-only">{copy.customAmountAdd}</span>
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 <TableRow>
-                  <TableCell><p className="storefront-product-description">{copy.customAmountDescription}</p></TableCell>
+                  <TableCell>
+                    <p className="storefront-product-name">{copy.customAmountTitle}</p>
+                    <p className="storefront-product-description">{copy.customAmountDescription}</p>
+                  </TableCell>
                   <TableCell>{customAmountField}</TableCell>
-                  <TableCell>{customAmountAction}</TableCell>
+                  <TableCell>{customAmountActions}</TableCell>
                 </TableRow>
               </TableBody>
             </Table>
           ) : (
-            <Card className="storefront-card">
+            <Card className="storefront-card storefront-card--custom-amount">
               <CardHeader>
                 <CardTitle>{copy.customAmountTitle}</CardTitle>
                 <CardDescription className="storefront-product-description">{copy.customAmountDescription}</CardDescription>
               </CardHeader>
               <CardContent>{customAmountField}</CardContent>
-              <CardFooter>{customAmountAction}</CardFooter>
+              <CardFooter>{customAmountActions}</CardFooter>
             </Card>
           )
         ) : null}
@@ -298,9 +337,18 @@ export function StorefrontExperienceView({
                         <p className="storefront-product-name">{product.title}</p>
                         <p className="storefront-product-description">{product.description}</p>
                       </TableCell>
-                      <TableCell className="storefront-price">{formatAmount(product.price, product.currencyCode)}</TableCell>
                       <TableCell>
-                        <QuantityStepper copy={copy} onCommit={(quantity) => onQuantityCommit(product.reference, quantity)} quantity={quantityFor(product.reference)} />
+                        <MoneyText
+                          pairLabel={product.currencyCode ?? undefined}
+                          value={product.price}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <QuantityStepper
+                          copy={copy}
+                          onCommit={(quantity) => onQuantityCommit(product.reference, quantity)}
+                          quantity={quantityFor(product.reference)}
+                        />
                       </TableCell>
                     </TableRow>
                   ))}
@@ -311,17 +359,29 @@ export function StorefrontExperienceView({
                 {group.products.map((product) => (
                   <Card className="storefront-card" key={product.reference}>
                     {product.imageMediaIdentifier ? (
-                      <img alt="" className="storefront-product-image" src={`/media/${product.imageMediaIdentifier}`} />
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        alt=""
+                        className="storefront-product-image"
+                        src={`/media/${product.imageMediaIdentifier}`}
+                      />
                     ) : null}
                     <CardHeader>
                       <CardTitle>{product.title}</CardTitle>
                       <CardDescription className="storefront-product-description">{product.description}</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <p className="storefront-price"><span>{copy.priceLabel}</span> {formatAmount(product.price, product.currencyCode)}</p>
+                      <p className="storefront-price">
+                        <span>{copy.priceLabel}</span>{" "}
+                        <MoneyText pairLabel={product.currencyCode ?? undefined} value={product.price} />
+                      </p>
                     </CardContent>
                     <CardFooter>
-                      <QuantityStepper copy={copy} onCommit={(quantity) => onQuantityCommit(product.reference, quantity)} quantity={quantityFor(product.reference)} />
+                      <QuantityStepper
+                        copy={copy}
+                        onCommit={(quantity) => onQuantityCommit(product.reference, quantity)}
+                        quantity={quantityFor(product.reference)}
+                      />
                     </CardFooter>
                   </Card>
                 ))}
@@ -333,13 +393,17 @@ export function StorefrontExperienceView({
       <section aria-labelledby="storefront-cart-heading" className="storefront-cart">
         <h2 className="storefront-cart__heading" id="storefront-cart-heading">{copy.cartHeading}</h2>
         {recovered ? (
-          <Alert><AlertDescription>{copy.cartUpdated}</AlertDescription></Alert>
+          <Alert>
+            <AlertDescription>{copy.cartUpdated}</AlertDescription>
+          </Alert>
         ) : null}
         {checkoutFailed ? (
-          <Alert variant="destructive"><AlertDescription>{copy.cartCheckoutFailed}</AlertDescription></Alert>
+          <Alert variant="destructive">
+            <AlertDescription>{copy.cartCheckoutFailed}</AlertDescription>
+          </Alert>
         ) : null}
         {items.length === 0 ? (
-          <p className="storefront-cart__empty">{copy.cartEmpty}</p>
+          <EmptyState className="storefront-cart__empty" illustration="products" kind="empty" title={copy.cartEmpty} />
         ) : (
           <>
             <ul className="storefront-cart__lines">
@@ -351,9 +415,15 @@ export function StorefrontExperienceView({
                     <li className="storefront-cart__line" key={item.reference}>
                       <div className="storefront-cart__facts">
                         <p className="storefront-cart__name">{product.title}</p>
-                        <p className="storefront-cart__detail">{item.quantity} × {formatAmount(product.price, product.currencyCode)}</p>
+                        <p className="storefront-cart__detail">
+                          {item.quantity} × {formatAmount(product.price, product.currencyCode)}
+                        </p>
                       </div>
-                      <p className="storefront-cart__amount">{formatAmount(totals.lines.get(item) ?? "", product.currencyCode)}</p>
+                      <MoneyText
+                        className="storefront-cart__amount"
+                        pairLabel={product.currencyCode ?? undefined}
+                        value={totals.lines.get(item) ?? ""}
+                      />
                       <Button
                         aria-label={`${copy.cartRemove}: ${product.title}`}
                         onClick={() => onRemove(item)}
@@ -371,7 +441,11 @@ export function StorefrontExperienceView({
                     <div className="storefront-cart__facts">
                       <p className="storefront-cart__name">{copy.customAmountTitle}</p>
                     </div>
-                    <p className="storefront-cart__amount">{formatAmount(totals.lines.get(item) ?? "", standalonePaymentCurrencyCode)}</p>
+                    <MoneyText
+                      className="storefront-cart__amount"
+                      pairLabel={standalonePaymentCurrencyCode ?? undefined}
+                      value={totals.lines.get(item) ?? ""}
+                    />
                     <Button
                       aria-label={`${copy.cartRemove}: ${copy.customAmountTitle}`}
                       onClick={() => onRemove(item)}
@@ -388,8 +462,13 @@ export function StorefrontExperienceView({
             <ul className="storefront-cart__totals">
               {totals.groups.map((group) => (
                 <li className="storefront-cart__total" key={group.currencyCode ?? "unlabeled"}>
-                  <span>{copy.cartTotalLabel}{group.currencyCode ? ` (${group.currencyCode})` : ""}</span>{" "}
-                  <strong>{group.total}</strong>
+                  <span>
+                    {copy.cartTotalLabel}
+                    {group.currencyCode ? ` (${group.currencyCode})` : ""}
+                  </span>
+                  <strong>
+                    <MoneyText pairLabel={group.currencyCode ?? undefined} value={group.total} />
+                  </strong>
                 </li>
               ))}
             </ul>

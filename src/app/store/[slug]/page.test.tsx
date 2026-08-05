@@ -11,6 +11,10 @@ vi.mock("@/storefront/public-storefront", () => ({ getPublicStorefrontService: (
 
 import PublicStorefrontPage from "./page";
 
+function textContent(markup: string): string {
+  return markup.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+}
+
 const coffeeReference = "11111111-1111-4111-8111-111111111111";
 const teaReference = "22222222-2222-4222-8222-222222222222";
 
@@ -69,20 +73,20 @@ describe("public storefront page", () => {
     expect(read).toHaveBeenCalledWith("ana-store", "pt-BR");
     expect(markup).toContain('data-theme-preview="vault-blue"');
     expect(markup).toContain('style="--storefront-accent:#106B5B"');
-    expect(markup).toContain("Loja da Ana");
+    expect(textContent(markup)).toContain("Loja da Ana");
     expect(markup).toContain('data-brand-identity="merchant-fallback"');
-    expect(markup).toContain("Cafés");
-    expect(markup).toContain("Mais produtos");
-    expect(markup).toContain("Café especial.");
-    expect(markup).toContain("12.5 BRL");
-    expect(markup).toContain("Valor livre");
-    expect(markup).toContain("Valor (BRL)");
-    expect(markup).toContain("Adicionar ao carrinho");
-    expect(markup).toContain("Carrinho");
-    expect(markup).toContain("Seu carrinho está vazio.");
+    expect(textContent(markup)).toContain("Cafés");
+    expect(textContent(markup)).toContain("Mais produtos");
+    expect(textContent(markup)).toContain("Café especial.");
+    expect(textContent(markup)).toContain("12.5 BRL");
+    expect(textContent(markup)).toContain("Valor livre");
+    expect(textContent(markup)).toContain("Valor (BRL)");
+    expect(textContent(markup)).toContain("Adicionar ao carrinho");
+    expect(textContent(markup)).toContain("Carrinho");
+    expect(textContent(markup)).toContain("Seu carrinho está vazio.");
     expect(markup).toContain('aria-label="Diminuir a quantidade"');
     expect(markup).toContain('aria-label="Aumentar a quantidade"');
-    expect(markup.indexOf("Valor livre")).toBeLessThan(markup.indexOf("Cafés"));
+    expect(textContent(markup).indexOf("Valor livre")).toBeLessThan(textContent(markup).indexOf("Cafés"));
     // The V1 link-driven list no longer renders; /pay links stay direct-only.
     expect(markup).not.toContain('href="/pay/');
     // Redaction: no owner, provider, toggle, or internal field leaks.
@@ -98,9 +102,9 @@ describe("public storefront page", () => {
     const markup = renderToStaticMarkup(await PublicStorefrontPage({ params: Promise.resolve({ slug: "ana-store" }) }));
 
     expect(markup).toContain('data-layout="table"');
-    expect(markup).toContain("Quantidade");
+    expect(textContent(markup)).toContain("Quantidade");
     expect(markup).toContain("<table");
-    expect(markup).toContain("Chá verde.");
+    expect(textContent(markup)).toContain("Chá verde.");
   });
 
   it("renders the merchant logo through the media read route with a localized alt", async () => {
@@ -123,23 +127,24 @@ describe("public storefront page", () => {
     const markup = renderToStaticMarkup(await PublicStorefrontPage({ params: Promise.resolve({ slug: "ana-store" }) }));
 
     expect(read).toHaveBeenCalledWith("ana-store", "en");
-    expect(markup).toContain("QR Pagamentos storefront");
-    expect(markup).toContain("Custom amount");
-    expect(markup).toContain("Your cart is empty.");
-    expect(markup).toContain("More products");
+    expect(textContent(markup)).toContain("QR Pagamentos storefront");
+    expect(textContent(markup)).toContain("Custom amount");
+    expect(textContent(markup)).toContain("Your cart is empty.");
+    expect(textContent(markup)).toContain("More products");
   });
 
   it("treats the standalone item alone as a non-empty store and the plain empty state otherwise", async () => {
     get.mockReturnValue(undefined);
     read.mockResolvedValueOnce({ ...storefront, catalog: [] });
     const standaloneOnly = renderToStaticMarkup(await PublicStorefrontPage({ params: Promise.resolve({ slug: "ana-store" }) }));
-    expect(standaloneOnly).toContain("Valor livre");
-    expect(standaloneOnly).not.toContain("Nenhum produto está disponível agora.");
+    expect(textContent(standaloneOnly)).toContain("Valor livre");
+    expect(textContent(standaloneOnly)).not.toContain("Nenhum produto está disponível agora.");
 
     read.mockResolvedValueOnce({ ...storefront, catalog: [], standalonePayments: false });
     const empty = renderToStaticMarkup(await PublicStorefrontPage({ params: Promise.resolve({ slug: "ana-store" }) }));
-    expect(empty).toContain("Nenhum produto está disponível agora.");
-    expect(empty).not.toContain("Carrinho");
+    expect(textContent(empty)).toContain("Nenhum produto está disponível agora.");
+    expect(textContent(empty)).not.toContain("Carrinho");
+    expect(empty).toContain('data-state="empty"');
   });
 
   it("uses one opaque unavailable state for unknown, disabled, and malformed storefronts", async () => {
@@ -149,8 +154,9 @@ describe("public storefront page", () => {
     const markup = renderToStaticMarkup(await PublicStorefrontPage({ params: Promise.resolve({ slug: "unknown" }) }));
 
     expect(read).toHaveBeenCalledWith("unknown", "pt-BR");
-    expect(markup).toContain("Esta vitrine está indisponível");
+    expect(textContent(markup)).toContain("Esta vitrine está indisponível");
     expect(markup).not.toContain('data-theme-preview');
-    expect(markup).not.toContain("Carrinho");
+    expect(textContent(markup)).not.toContain("Carrinho");
+    expect(markup).toContain('data-state="unavailable"');
   });
 });

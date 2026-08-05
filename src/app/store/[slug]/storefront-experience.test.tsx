@@ -5,6 +5,10 @@ import { storefrontPtBR } from "@/i18n/dictionaries/storefront/pt-BR";
 
 import { StorefrontExperienceView, submitStorefrontCartCheckout, type StorefrontExperienceCopy } from "./storefront-experience";
 
+function textContent(markup: string): string {
+  return markup.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+}
+
 const coffeeReference = "11111111-1111-4111-8111-111111111111";
 const teaReference = "22222222-2222-4222-8222-222222222222";
 
@@ -92,38 +96,38 @@ describe("storefront experience view", () => {
     const markup = renderView();
 
     expect(markup).toContain('data-layout="boxed"');
-    expect(markup.indexOf("Valor livre")).toBeLessThan(markup.indexOf("Cafés"));
+    expect(textContent(markup).indexOf("Valor livre")).toBeLessThan(textContent(markup).indexOf("Cafés"));
     expect(markup).toContain(`src="/media/${"p".repeat(43)}"`);
     expect(markup).toContain('value="0"');
     expect(markup).toContain('aria-label="Diminuir a quantidade"');
     expect(markup).toContain('aria-label="Aumentar a quantidade"');
-    expect(markup).toContain("Seu carrinho está vazio.");
-    expect(markup).not.toContain("Seu carrinho foi atualizado");
-    expect(markup).toContain("Mais produtos");
+    expect(textContent(markup)).toContain("Seu carrinho está vazio.");
+    expect(textContent(markup)).not.toContain("Seu carrinho foi atualizado");
+    expect(textContent(markup)).toContain("Mais produtos");
   });
 
   it("renders the standalone pay action linking to the pay page with the draft amount as prefill only", () => {
     const markup = renderView({ payHref: "/store/ana-store/pay?amount=12.5" });
 
     expect(markup).toContain('href="/store/ana-store/pay?amount=12.5"');
-    expect(markup).toContain("Pagar agora");
-    expect(markup).toContain("Adicionar ao carrinho");
+    expect(textContent(markup)).toContain("Pagar agora");
+    expect(textContent(markup)).toContain("Adicionar ao carrinho");
   });
 
   it("renders the table layout with ruled rows and the standalone row first", () => {
     const markup = renderView({ layout: "table" });
 
     expect(markup).toContain('data-layout="table"');
-    expect(markup).toContain("Quantidade");
-    expect(markup.indexOf("Valor livre")).toBeLessThan(markup.indexOf("Cafés"));
-    expect(markup).toContain("Chá verde.");
+    expect(textContent(markup)).toContain("Quantidade");
+    expect(textContent(markup).indexOf("Valor livre")).toBeLessThan(textContent(markup).indexOf("Cafés"));
+    expect(textContent(markup)).toContain("Chá verde.");
   });
 
   it("omits the standalone item when standalone payments are off", () => {
     const markup = renderView({ standalonePayments: false });
 
-    expect(markup).not.toContain("Valor livre");
-    expect(markup).toContain("Cafés");
+    expect(textContent(markup)).not.toContain("Valor livre");
+    expect(textContent(markup)).toContain("Cafés");
   });
 
   it("renders the populated cart with exact line totals grouped per currency, never summed across", () => {
@@ -136,54 +140,54 @@ describe("storefront experience view", () => {
       ],
     });
 
-    expect(markup).toContain("Atualizar o carrinho");
+    expect(textContent(markup)).toContain("Atualizar o carrinho");
     expect(markup).toContain('value="5"');
     expect(markup).toContain('value="2"');
-    expect(markup).toContain("2 × 12.5 BRL");
-    expect(markup).toContain("3 × 9");
-    expect(markup).toContain("25 BRL");
-    expect(markup).toContain("Total (BRL)");
-    expect(markup).toContain("<strong>30</strong>");
-    expect(markup).toContain("<strong>27</strong>");
-    expect(markup).not.toContain("57");
+    expect(textContent(markup)).toContain("2 × 12.5 BRL");
+    expect(textContent(markup)).toContain("3 × 9");
+    expect(textContent(markup)).toContain("25 BRL");
+    expect(textContent(markup)).toContain("Total (BRL)");
+    expect(textContent(markup)).toContain("30 BRL");
+    expect(textContent(markup)).toContain("27");
+    expect(textContent(markup)).not.toContain("57");
     expect(markup).toContain('aria-label="Remover: Café"');
     expect(markup).toContain('aria-label="Remover: Valor livre"');
-    expect(markup).not.toContain("Seu carrinho está vazio.");
+    expect(textContent(markup)).not.toContain("Seu carrinho está vazio.");
   });
 
   it("announces the recovered-cart notice exactly once and flags an invalid custom amount", () => {
     const markup = renderView({ amountDraft: "0", amountInvalid: true, recovered: true });
 
-    expect(markup).toContain("Seu carrinho foi atualizado porque esta loja mudou.");
-    expect(markup.match(/carrinho foi atualizado/g)).toHaveLength(1);
-    expect(markup).toContain("Informe um valor válido maior que zero");
+    expect(textContent(markup)).toContain("Seu carrinho foi atualizado porque esta loja mudou.");
+    expect(textContent(markup).match(/carrinho foi atualizado/g)).toHaveLength(1);
+    expect(textContent(markup)).toContain("Informe um valor válido maior que zero");
     expect(markup).toContain('aria-invalid="true"');
   });
 
   it("renders the checkout control only for a populated product-only cart", () => {
     const productOnly = renderView({ items: [{ kind: "product", reference: coffeeReference, quantity: 2 }] });
-    expect(productOnly).toContain("Ir para o pagamento");
-    expect(productOnly.match(/Ir para o pagamento/g)).toHaveLength(1);
+    expect(textContent(productOnly)).toContain("Ir para o pagamento");
+    expect(textContent(productOnly).match(/Ir para o pagamento/g)).toHaveLength(1);
 
     const withCustomAmount = renderView({
       items: [{ kind: "custom-amount", amount: "5" }, { kind: "product", reference: coffeeReference, quantity: 2 }],
     });
-    expect(withCustomAmount).not.toContain("Ir para o pagamento");
+    expect(textContent(withCustomAmount)).not.toContain("Ir para o pagamento");
 
     const empty = renderView();
-    expect(empty).not.toContain("Ir para o pagamento");
+    expect(textContent(empty)).not.toContain("Ir para o pagamento");
   });
 
   it("disables the pending checkout control and announces the opaque failure", () => {
     const items = [{ kind: "product" as const, reference: coffeeReference, quantity: 1 }];
     const pending = renderView({ items, checkoutPending: true });
-    expect(pending).toContain("Ir para o pagamento");
+    expect(textContent(pending)).toContain("Ir para o pagamento");
     expect(pending).toContain("disabled");
     expect(pending).toContain('aria-busy="true"');
 
     const failed = renderView({ items, checkoutFailed: true });
-    expect(failed).toContain("Não foi possível iniciar o pagamento deste carrinho. Tente novamente.");
-    expect(failed.match(/Não foi possível iniciar o pagamento/g)).toHaveLength(1);
+    expect(textContent(failed)).toContain("Não foi possível iniciar o pagamento deste carrinho. Tente novamente.");
+    expect(textContent(failed).match(/Não foi possível iniciar o pagamento/g)).toHaveLength(1);
   });
 });
 
