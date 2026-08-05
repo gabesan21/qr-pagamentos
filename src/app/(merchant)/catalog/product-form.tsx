@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState, type ReactNode } from "react";
 
 import type { OwnerProduct } from "@/auth/product";
@@ -118,7 +119,7 @@ function ProductPreview({
   return (
     <div className="lg:col-span-4">
       <div className="sticky top-20 rounded-lg border border-border bg-card p-5 shadow-sm">
-        <h3 className="font-heading text-[15px] font-medium text-card-foreground">{dictionary.catalogProductPreviewTitle}</h3>
+        <h3 className="font-heading text-compact-heading font-medium text-card-foreground">{dictionary.catalogProductPreviewTitle}</h3>
         <div className="mt-4 flex items-center gap-3">
           {imageMediaId ? (
             <img
@@ -327,9 +328,9 @@ export function ProductForm({
                 {activeCategories.length === 0 ? (
                   <Banner tone="info">
                     {dictionary.catalogProductNoCategory}{" "}
-                    <a className="font-medium underline" href="/catalog/categories">
+                    <Link className="font-medium underline" href="/catalog/categories">
                       {dictionary.catalogCategoriesTitle}
-                    </a>
+                    </Link>
                   </Banner>
                 ) : null}
               </Field>

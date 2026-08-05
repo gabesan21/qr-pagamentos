@@ -74,7 +74,7 @@ export function SegmentedControl({
           <button
             aria-checked={selected}
             className={cn(
-              "rounded px-3 py-1.5 text-[13px] font-medium transition-colors",
+              "rounded px-3 py-1.5 text-label font-medium transition-colors",
               selected
                 ? "bg-background text-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground",

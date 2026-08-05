@@ -1,24 +1,22 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Plus } from "lucide-react";
 
 import { WorkspaceHeading } from "@/app-shell/workspace-heading";
 import { getProductService, type OwnerProduct } from "@/auth/product";
 import { getProductCategoryService, type OwnerProductCategory } from "@/auth/product-category";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
-import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { DataDirectory, type DataDirectoryColumn, type DataDirectoryState } from "@/data-directory/ui/data-directory";
 import type { getDictionary } from "@/i18n/dictionaries";
 
 import { requireMerchantShellContext } from "../../shell-context";
 import { CategoryNotice } from "../catalog-notices";
-import { CatalogSubmit } from "../catalog-submit";
+import { Breadcrumb, SectionCard } from "../catalog-fields";
 import { catalogDirectoryCopy } from "../directory-copy";
 import { resolveCatalogDirectoryQuery, type CatalogSearchParams } from "../directory-query";
+
+import { CategoryRowActions } from "./category-row-actions";
 
 type Dictionary = ReturnType<typeof getDictionary>;
 
@@ -27,99 +25,39 @@ const STATE_FILTER_VALUES = ["active", "inactive"] as const;
 
 function CreateCategoryCard({ dictionary }: Readonly<{ dictionary: Dictionary }>) {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{dictionary.catalogCategoryCreateHeading}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form action="/product-categories" id="category-create" method="post">
-          <Input name="action" type="hidden" value="create" />
-          <FieldGroup>
-            <Field>
-              <FieldLabel htmlFor="category-create-name-pt-br">{dictionary.catalogCategoryNamePtBr}</FieldLabel>
-              <Input id="category-create-name-pt-br" name="namePtBr" required />
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="category-create-name-en">{dictionary.catalogCategoryNameEn}</FieldLabel>
-              <Input id="category-create-name-en" name="nameEn" required />
-            </Field>
-            <CatalogSubmit form="category-create" label={dictionary.catalogCategoryCreate} />
-          </FieldGroup>
-        </form>
-      </CardContent>
-    </Card>
-  );
-}
-
-function CategoryRowActions({
-  activeReplacements,
-  category,
-  dictionary,
-  references,
-}: Readonly<{
-  activeReplacements: readonly OwnerProductCategory[];
-  category: OwnerProductCategory;
-  dictionary: Dictionary;
-  references: number;
-}>) {
-  const editFormId = `category-${category.id}-edit`;
-  const deactivateFormId = `category-${category.id}-deactivate`;
-
-  return (
-    <div className="flex flex-col gap-4">
-      <details>
-        <summary>{dictionary.catalogCategoryEdit}</summary>
-        <form action="/product-categories" id={editFormId} method="post">
-          <Input name="action" type="hidden" value="edit" />
-          <Input name="id" type="hidden" value={category.id} />
-          <Input name="version" type="hidden" value={category.version} />
-          <FieldGroup>
-            <Field>
-              <FieldLabel htmlFor={`${editFormId}-name-pt-br`}>{dictionary.catalogCategoryNamePtBr}</FieldLabel>
-              <Input defaultValue={category.namePtBr} id={`${editFormId}-name-pt-br`} name="namePtBr" required />
-            </Field>
-            <Field>
-              <FieldLabel htmlFor={`${editFormId}-name-en`}>{dictionary.catalogCategoryNameEn}</FieldLabel>
-              <Input defaultValue={category.nameEn} id={`${editFormId}-name-en`} name="nameEn" required />
-            </Field>
-            <CatalogSubmit label={dictionary.catalogCategorySave} />
-          </FieldGroup>
-        </form>
-      </details>
-      <details>
-        <summary>{dictionary.catalogCategoryDeactivateHeading}</summary>
-        <Alert variant="warning">
-          <AlertTitle>{dictionary.catalogCategoryDeactivateConfirm}</AlertTitle>
-          <AlertDescription>{dictionary.catalogCategoryDeactivateDescription}</AlertDescription>
-        </Alert>
-        {references > 0 && activeReplacements.length === 0 ? (
-          <Alert variant="destructive">
-            <AlertTitle>{dictionary.catalogCategoryDeactivateHeading}</AlertTitle>
-            <AlertDescription>{dictionary.catalogCategoryDeactivateNoReplacement}</AlertDescription>
-          </Alert>
-        ) : (
-          <form action="/product-categories" id={deactivateFormId} method="post">
-            <Input name="action" type="hidden" value="deactivate" />
-            <Input name="id" type="hidden" value={category.id} />
-            <Input name="version" type="hidden" value={category.version} />
-            <FieldGroup>
-              {references > 0 ? (
-                <Field>
-                  <FieldLabel htmlFor={`${deactivateFormId}-replacement`}>{dictionary.catalogCategoryDeactivateReplacement}</FieldLabel>
-                  <NativeSelect data-ds-hit-target defaultValue="" id={`${deactivateFormId}-replacement`} name="replacementId" required>
-                    <NativeSelectOption disabled value="">{dictionary.catalogCategoryDeactivateReplacementRequired}</NativeSelectOption>
-                    {activeReplacements.map((replacement) => (
-                      <NativeSelectOption key={replacement.id} value={replacement.id}>{replacement.namePtBr} / {replacement.nameEn}</NativeSelectOption>
-                    ))}
-                  </NativeSelect>
-                </Field>
-              ) : null}
-              <CatalogSubmit label={dictionary.catalogCategoryDeactivate} tone="destructive" />
-            </FieldGroup>
-          </form>
-        )}
-      </details>
-    </div>
+    <SectionCard title={dictionary.catalogCategoryCreateHeading}>
+      <form action="/product-categories" id="category-create" method="post">
+        <input name="action" type="hidden" value="create" />
+        <div className="grid items-end gap-3 sm:grid-cols-[1fr_1fr_auto]">
+          <div>
+            <label className="text-sm font-medium" htmlFor="category-create-name-pt-br">
+              {dictionary.catalogCategoryNamePtBr}
+            </label>
+            <input
+              className="mt-1.5 h-11 w-full rounded-md border border-input bg-background px-3 text-base text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring"
+              id="category-create-name-pt-br"
+              name="namePtBr"
+              required
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium" htmlFor="category-create-name-en">
+              {dictionary.catalogCategoryNameEn}
+            </label>
+            <input
+              className="mt-1.5 h-11 w-full rounded-md border border-input bg-background px-3 text-base text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring"
+              id="category-create-name-en"
+              name="nameEn"
+              required
+            />
+          </div>
+          <Button type="submit">
+            <Plus aria-hidden className="size-4" />
+            {dictionary.catalogCategoryCreate}
+          </Button>
+        </div>
+      </form>
+    </SectionCard>
   );
 }
 
@@ -138,18 +76,36 @@ function CategoryDirectory({
   for (const product of products) {
     if (product.categoryId) referenceCount.set(product.categoryId, (referenceCount.get(product.categoryId) ?? 0) + 1);
   }
-  const copy = catalogDirectoryCopy(dictionary, { title: dictionary.catalogCategoriesEmpty, description: dictionary.catalogCategoriesEmptyDescription });
+  const copy = catalogDirectoryCopy(dictionary, {
+    title: dictionary.catalogCategoriesEmpty,
+    description: dictionary.catalogCategoriesEmptyDescription,
+  });
   const columns: readonly DataDirectoryColumn<OwnerProductCategory>[] = [
-    { id: "namePtBr", label: dictionary.catalogCategoryNamePtBr, value: (row) => row.namePtBr },
+    {
+      id: "namePtBr",
+      label: dictionary.catalogCategoryNamePtBr,
+      value: (row) => <span className="font-medium">{row.namePtBr}</span>,
+    },
     { id: "nameEn", label: dictionary.catalogCategoryNameEn, value: (row) => row.nameEn },
     {
       id: "state",
       label: dictionary.catalogCategoryStateColumn,
-      value: (row) => row.active
-        ? <Badge variant="secondary">{dictionary.catalogCategoryStateActive}</Badge>
-        : <Badge variant="outline">{dictionary.catalogCategoryStateInactive}</Badge>,
+      value: (row) =>
+        row.active ? (
+          <Badge variant="secondary">{dictionary.catalogCategoryStateActive}</Badge>
+        ) : (
+          <Badge variant="outline">{dictionary.catalogCategoryStateInactive}</Badge>
+        ),
     },
-    { id: "products", label: dictionary.catalogCategoryProductsColumn, numeric: true, value: (row) => String(referenceCount.get(row.id) ?? 0) },
+    {
+      id: "products",
+      label: dictionary.catalogCategoryProductsColumn,
+      numeric: true,
+      value: (row) => {
+        const count = referenceCount.get(row.id) ?? 0;
+        return <span className={count === 0 ? "text-muted-foreground" : ""}>{String(count)}</span>;
+      },
+    },
   ];
 
   if (query.status === "invalid-query") {
@@ -170,15 +126,16 @@ function CategoryDirectory({
 
   const stateFilter = typeof query.filters.state === "string" ? query.filters.state : query.filters.state?.[0];
   const needle = query.q?.toLocaleLowerCase();
-  const filtered = categories.filter((category) =>
-    (!needle || category.namePtBr.toLocaleLowerCase().includes(needle) || category.nameEn.toLocaleLowerCase().includes(needle))
-    && (!stateFilter || (stateFilter === "active") === category.active));
+  const filtered = categories.filter(
+    (category) =>
+      (!needle ||
+        category.namePtBr.toLocaleLowerCase().includes(needle) ||
+        category.nameEn.toLocaleLowerCase().includes(needle))
+      && (!stateFilter || (stateFilter === "active") === category.active),
+  );
   const filtering = Boolean(needle) || Boolean(stateFilter);
-  const state: DataDirectoryState = categories.length === 0 && !filtering
-    ? "empty"
-    : filtered.length === 0
-      ? "filtered-empty"
-      : "ready";
+  const state: DataDirectoryState =
+    categories.length === 0 && !filtering ? "empty" : filtered.length === 0 ? "filtered-empty" : "ready";
   const truncated = filtered.length > query.pageSize;
   const rows = truncated ? filtered.slice(0, query.pageSize) : filtered;
 
@@ -202,14 +159,16 @@ function CategoryDirectory({
           },
         ]}
         formAction="/catalog/categories"
-        getRowActions={(row) => row.active ? (
-          <CategoryRowActions
-            activeReplacements={categories.filter((candidate) => candidate.active && candidate.id !== row.id)}
-            category={row}
-            dictionary={dictionary}
-            references={referenceCount.get(row.id) ?? 0}
-          />
-        ) : null}
+        getRowActions={(row) =>
+          row.active ? (
+            <CategoryRowActions
+              activeReplacements={categories.filter((candidate) => candidate.active && candidate.id !== row.id)}
+              category={row}
+              dictionary={dictionary}
+              references={referenceCount.get(row.id) ?? 0}
+            />
+          ) : null
+        }
         idPrefix="catalog-categories"
         pageSize={query.pageSize}
         resetUrl="/catalog/categories"
@@ -255,20 +214,33 @@ export default async function CatalogCategoriesPage({
   if (query.status === "redirect") redirect(query.location);
 
   return (
-    <>
-      <WorkspaceHeading description={dictionary.catalogCategoriesDescription} eyebrow={dictionary.shellMerchantEyebrow} title={dictionary.catalogCategoriesTitle} />
-      {query.status === "ready" && query.notice ? <CategoryNotice dictionary={dictionary} notice={query.notice} /> : null}
-      <div className="flex flex-wrap gap-3">
+    <div className="space-y-6">
+      <Breadcrumb
+        items={[
+          { href: "/catalog", label: dictionary.shellProducts },
+          { label: dictionary.catalogCategoriesTitle },
+        ]}
+      />
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <WorkspaceHeading
+          description={dictionary.catalogCategoriesDescription}
+          eyebrow={dictionary.shellMerchantEyebrow}
+          title={dictionary.catalogCategoriesTitle}
+        />
         <Button asChild data-ds-hit-target variant="outline">
           <Link href="/catalog">{dictionary.catalogProductBackToCatalog}</Link>
         </Button>
       </div>
+      {query.status === "ready" && query.notice ? <CategoryNotice dictionary={dictionary} notice={query.notice} /> : null}
       <CreateCategoryCard dictionary={dictionary} />
       {loadFailed ? (
         <DataDirectory
           caption={dictionary.catalogCategoriesTitle}
           columns={[]}
-          copy={catalogDirectoryCopy(dictionary, { title: dictionary.catalogCategoriesEmpty, description: dictionary.catalogCategoriesEmptyDescription })}
+          copy={catalogDirectoryCopy(dictionary, {
+            title: dictionary.catalogCategoriesEmpty,
+            description: dictionary.catalogCategoriesEmptyDescription,
+          })}
           formAction="/catalog/categories"
           idPrefix="catalog-categories"
           resetUrl="/catalog/categories"
@@ -280,6 +252,6 @@ export default async function CatalogCategoriesPage({
       ) : (
         <CategoryDirectory categories={categories} dictionary={dictionary} products={products} query={query} />
       )}
-    </>
+    </div>
   );
 }

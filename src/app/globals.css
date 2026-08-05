@@ -1411,6 +1411,8 @@
   --radius-sm: var(--radius-tight);
   --radius-md: var(--radius-control);
   --radius-lg: var(--radius-panel);
+  --text-label: var(--type-label);
+  --text-compact-heading: var(--type-compact-heading);
 }
 
 @layer base {
