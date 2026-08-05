@@ -56,7 +56,6 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[12.4.4-remodel-administrator-settings]] | Match all six settings sections, anchored navigation, forms, confirmations, dependency blocks, and notices under `src/app/admin/settings/**`. · size: L | concluída |
 
 ## Phase 12.5 - Merchant frontend
 
