@@ -37,6 +37,7 @@ export const profilePtBR = {
   profileTotpConfirming: "Confirmando",
   profileTotpActiveTitle: "Autenticação em dois fatores ativa",
   profileTotpActiveDescription: "Sua conta exige um código do aplicativo autenticador ao entrar.",
+  profileTotpPendingDescription: "A configuração da autenticação em dois fatores está aguardando o primeiro código de confirmação.",
   profileTotpDisable: "Desativar autenticação em dois fatores",
   profileTotpDisableDescription: "Informe sua senha e um código atual para remover a autenticação em dois fatores. Isso encerra todas as sessões ativas.",
   profileTotpDisabling: "Desativando",

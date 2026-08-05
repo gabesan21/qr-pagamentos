@@ -34,6 +34,8 @@ import { profileEn } from "./profile/en";
 import { profilePtBR } from "./profile/pt-BR";
 import { passwordResetEn } from "./password-reset/en";
 import { passwordResetPtBR } from "./password-reset/pt-BR";
+import { settingsEn } from "./settings/en";
+import { settingsPtBR } from "./settings/pt-BR";
 import { sharedEn } from "./shared/en";
 import { sharedPtBR } from "./shared/pt-BR";
 import { storefrontEn } from "./storefront/en";
@@ -58,6 +60,7 @@ export const dictionaryDomains = {
   products: { en: productsEn, "pt-BR": productsPtBR },
   profile: { en: profileEn, "pt-BR": profilePtBR },
   passwordReset: { en: passwordResetEn, "pt-BR": passwordResetPtBR },
+  settings: { en: settingsEn, "pt-BR": settingsPtBR },
   shared: { en: sharedEn, "pt-BR": sharedPtBR },
   storefront: { en: storefrontEn, "pt-BR": storefrontPtBR },
 } as const;

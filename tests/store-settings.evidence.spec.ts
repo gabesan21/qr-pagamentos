@@ -249,6 +249,16 @@ test("creates the closed store-settings evidence run", async ({ browser, page })
     await page.goto(`${baseUrl}/settings`);
     await waitForWorkspace();
     await page.evaluate(async () => document.fonts.ready);
+
+    const navLinks = page.locator(".settings-surface__nav-link");
+    await expect(navLinks).toHaveCount(7);
+    const navHrefs = await navLinks.evaluateAll((elements) => elements.map((element) => element.getAttribute("href")));
+    expect(navHrefs.every((href) => href?.startsWith("#settings-"))).toBe(true);
+    await expect(page.locator('section[id^="settings-"]')).toHaveCount(7);
+    await expect(page.locator('form[action="/nautt-credentials"]')).toBeVisible();
+    await expect(page.locator('input[name="apiKey"]')).toBeVisible();
+    assertions.push({ state: `${locale}-settings-surface`, sectionCount: 7, anchoredNav: true, nauttForm: true });
+
     for (const theme of themes) {
       for (const width of widths) {
         await page.setViewportSize({ width, height: 1000 });
@@ -407,11 +417,13 @@ test("creates the closed store-settings evidence run", async ({ browser, page })
   const sourceInventory = [
     "src/app/(merchant)/settings/page.tsx",
     "src/app/(merchant)/settings/loading.tsx",
+    "src/app/(merchant)/settings/settings-surface.tsx",
     "src/app/storefront-settings-management.tsx",
     "src/app/storefront-preview.tsx",
     "src/app/storefront-form-preparation.ts",
     "src/app/storefront/route.ts",
     "src/app/storefront/logo/route.ts",
+    "src/app/nautt-credential-surface.tsx",
     "src/auth/storefront-settings.ts",
     "src/observability/server-request-log.ts",
     "src/i18n/dictionaries/storefront/en.ts",

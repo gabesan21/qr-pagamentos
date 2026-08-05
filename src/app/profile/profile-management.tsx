@@ -120,6 +120,7 @@ export function ProfileManagement({
               profileTotpConfirmDescription: dictionary.profileTotpConfirmDescription,
               profileTotpConfirm: dictionary.profileTotpConfirm,
               profileTotpActiveDescription: dictionary.profileTotpActiveDescription,
+              profileTotpPendingDescription: dictionary.profileTotpPendingDescription,
               profileTotpDisable: dictionary.profileTotpDisable,
               profileTotpDisableDescription: dictionary.profileTotpDisableDescription,
               profileTotpRegenerate: dictionary.profileTotpRegenerate,

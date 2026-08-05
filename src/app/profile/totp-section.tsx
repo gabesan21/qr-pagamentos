@@ -29,6 +29,7 @@ type TotpDictionary = {
   profileTotpConfirmDescription: string;
   profileTotpConfirm: string;
   profileTotpActiveDescription: string;
+  profileTotpPendingDescription: string;
   profileTotpDisable: string;
   profileTotpDisableDescription: string;
   profileTotpRegenerate: string;
@@ -198,15 +199,26 @@ export function TotpSection({ dictionary, status, notice }: TotpSectionProps) {
             </Button>
           </div>
         )}
-        {resolvedStatus === "pending" && enrollment && (
+        {resolvedStatus === "pending" && (
           <div className="space-y-4">
             <div className="flex flex-wrap items-center gap-3">
               <StatusBadge label={dictionary.profileTotpEnabledBadge} tone="warning" />
-              <p className="text-sm text-muted-foreground">{dictionary.profileTotpActiveDescription}</p>
+              <p className="text-sm text-muted-foreground">
+                {enrollment ? dictionary.profileTotpActiveDescription : dictionary.profileTotpPendingDescription}
+              </p>
             </div>
-            <Button onClick={() => void handleEnroll()} type="button" variant="secondary">
-              {dictionary.profileTotpEnroll}
-            </Button>
+            {enrollment ? (
+              <Button
+                onClick={() => {
+                  setEnrollStep(codesSaved ? 2 : 1);
+                  setEnrollOpen(true);
+                }}
+                type="button"
+                variant="secondary"
+              >
+                {dictionary.profileTotpContinue}
+              </Button>
+            ) : null}
           </div>
         )}
         {resolvedStatus === "active" && (

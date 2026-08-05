@@ -37,6 +37,7 @@ export const profileEn = {
   profileTotpConfirming: "Confirming",
   profileTotpActiveTitle: "Two-factor authentication is active",
   profileTotpActiveDescription: "Your account requires a code from your authenticator app when signing in.",
+  profileTotpPendingDescription: "Two-factor authentication setup is waiting for the first confirmation code.",
   profileTotpDisable: "Disable two-factor authentication",
   profileTotpDisableDescription: "Enter your password and a current code to remove two-factor authentication. This signs out every active session.",
   profileTotpDisabling: "Disabling",
