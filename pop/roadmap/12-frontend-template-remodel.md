@@ -90,7 +90,6 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| `12.7.1-retire-superseded-frontend-sources` | Remove obsolete CSS, visual assets, component variants, dictionaries, and adapters after every consumer migrates, leaving one documented source per frontend concern. · size: M | não iniciada |
 | `12.7.2-prove-full-frontend-template-parity` | Verify every route/state in `pt-BR` and `en` across six themes and 320/375/768/1440 widths with visual, keyboard, WCAG 2.2 AA, contract, and `pnpm check` evidence — this task **is** the 12.7 phase-verification (and the epoch's final proof); all runs via direct pnpm. · size: L | não iniciada |
 
 ## Dependency and parallel-wave map
