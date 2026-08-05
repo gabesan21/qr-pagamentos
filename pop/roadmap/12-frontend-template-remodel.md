@@ -69,7 +69,6 @@
 |------|-------------|--------|
 | [[12.5.1-remodel-merchant-dashboard]] | Match the template dashboard in `src/app/(merchant)/page.tsx` and `dashboard.tsx` while preserving existing analytics, period, currency, and storefront-link behavior. · size: L | concluída |
 | [[12.5.3-remodel-merchant-payment-links]] | Match owner payment-link directories, creation, revocation, V2 forms, and unavailable states under `src/app/(merchant)/links/**`. · size: L | concluída |
-| `12.5.6-phase-verification` | Author/run the phase suite (accumulated `verify: phase` criteria) via direct pnpm and repair what it catches; depends on all 12.5 tasks. · size: M | não iniciada |
 
 ## Phase 12.6 - Public storefront and checkout
 
