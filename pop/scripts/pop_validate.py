@@ -10,7 +10,9 @@ positiva — só as pastas de harness, nunca o código do produto); anatomia
 fronteira da regra 13); frontmatter
 obrigatório dos cards de task e coerência do `stage:` com a pasta; tetos dos
 artefatos do gate adversarial (defesa 30, acusação 50, julgamento 40) e a
-exclusividade entre as duas configurações do ato 1; layout de `memory/`
+exclusividade entre as duas configurações do ato 1; coerência dos marcadores
+`pop-verdict`/`pop-delta` do `.verify.md` (um juiz por rodada, aprovação
+terminal, devolução com delta); layout de `memory/`
 (pasta por data de conclusão, ledger <=1200 chars, entrada <=800 chars com
 wikilink de evidência e indexada pelo ledger); worktrees
 órfãs (aviso); wikilinks quebrados (aviso — link para nota futura é
@@ -549,6 +551,63 @@ def check_gate_artifacts(root, projects, violations):
                         f"não produz artefatos do gate adversarial")
 
 
+def check_verify_markers(root, projects, violations):
+    """(l) marcadores de veredito do Judge Dredd no `.verify.md`.
+
+    O `.verify.md` que usa marcadores de máquina (`pop-verdict`/`pop-delta`,
+    ver [[specs/judge-dredd]]) precisa ser coerente: **um juiz por rodada**
+    (round duplicado é o re-julgamento que estourou o breaker da 12.5.5),
+    **aprovação é terminal** (nenhum veredito depois de `aprovada`) e **toda
+    devolução carrega o pop-delta da própria rodada**. Arquivo sem marcador é
+    legado tolerado — a exigência de presença é do `pop_move`, na hora do
+    retorno; aqui só se valida o que existe.
+    """
+    for project in projects:
+        for _stage, task_dir, _card in poplib.iter_cards(project):
+            verify = task_dir / f"{task_dir.name}{VERIFY_ARTIFACT}"
+            if not verify.is_file():
+                continue
+            verdicts, deltas = poplib.parse_verify_markers(
+                verify.read_text(encoding="utf-8"))
+            seen, approved = set(), False
+            for fields in verdicts:
+                rnd = fields.get("round")
+                decision = fields.get("decision")
+                if approved:
+                    violations.append(
+                        f"{verify}:1: pop-verdict após `aprovada` — aprovação "
+                        "é terminal; re-julgamento não existe")
+                if decision not in poplib.VERDICT_DECISIONS:
+                    violations.append(
+                        f"{verify}:1: pop-verdict com decision inválida "
+                        f"`{decision}` (use "
+                        f"{' | '.join(poplib.VERDICT_DECISIONS)})")
+                if rnd in seen:
+                    violations.append(
+                        f"{verify}:1: pop-verdict duplicado para round "
+                        f"`{rnd}` — um juiz por rodada")
+                seen.add(rnd)
+                if decision == "aprovada":
+                    approved = True
+                elif (decision in poplib.RETURN_KINDS
+                        and rnd not in deltas):
+                    violations.append(
+                        f"{verify}:1: devolução `{decision}` sem "
+                        f"`pop-delta round={rnd}` — toda devolução carrega "
+                        "delta nomeado")
+            for rnd, fields in deltas.items():
+                kind = fields.get("kind")
+                if kind not in poplib.RETURN_KINDS:
+                    violations.append(
+                        f"{verify}:1: pop-delta round={rnd} com kind "
+                        f"inválido `{kind}` (use "
+                        f"{' | '.join(poplib.RETURN_KINDS)})")
+                if fields.get("pontual") not in (None, "true", "false"):
+                    violations.append(
+                        f"{verify}:1: pop-delta round={rnd} com pontual "
+                        f"inválido `{fields.get('pontual')}` (use true|false)")
+
+
 def check_release(root, projects, warnings):
     """(g) card além de 001 sem a liberação marcada (aviso)."""
     for project in projects:
@@ -995,6 +1054,7 @@ def main():
     check_note_sizes(root, projects, violations)
     check_cards(root, projects, violations)
     check_gate_artifacts(root, projects, violations)
+    check_verify_markers(root, projects, violations)
     check_release(root, projects, warnings)
     check_worktrees(root, projects, warnings)
     check_memory(root, projects, violations)

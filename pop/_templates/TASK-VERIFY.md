@@ -7,7 +7,10 @@
 > **Artefato exclusivo de `yolo: true`.** Fora de yolo não existe revisor agêntico: o gate é o PR humano e este arquivo não nasce.
 > **Teto: 80 linhas** (validado por `pop_validate`). Rodada nova acrescenta seção `## Rodada <n>` neste mesmo arquivo e **nunca** apaga a anterior; a de maior número decide.
 > O Judge Dredd ([[.agents/skills/judge-dredd/SKILL|judge-dredd]]) nasce em sessão limpa, tier pela matriz do [[WORKFLOW|WORKFLOW]] (medium em `S`/`M`, strong em `L`/`critical`), e decide `differential|full`: `full` em critical ou retorno por `premissa`; depois de `lacuna` ou falha de execução, o diferencial cobre o **delta**.
-> **Julgue por leitura, não por re-run:** diff integrado e evidência registrada. Não execute testes — critério `verify: phase` pertence à task `verificacao-da-phase` e aqui só se confere seu registro na checklist; a exceção é a própria task de verificação da phase, cujo plano declara re-run. Todo achado passa pelo teste de materialidade da skill antes de entrar na tabela.
+> **Julgue por leitura, não por re-run:** diff integrado e evidência registrada. Não execute testes — critério `verify: phase` pertence à task `verificacao-da-phase` e aqui só se confere seu registro na checklist; as exceções são a própria task de verificação da phase (plano declara re-run) e a **disputa teste×código**: achado do tipo "este teste falhará contra este código" exige rodar somente o arquivo de teste em disputa como evidência — nunca a suíte. Todo achado passa pelo teste de materialidade da skill antes de entrar na tabela.
+> **Rodada diferencial tem superfície congelada no delta:** frente aprovada em rodada anterior permanece aprovada — assert/teste novo introduzido pelo reparo não a invalida nem sustenta bloqueante contra ela; só `premissa` invalida verificação anterior.
+> **Aprovação é terminal:** rodada `aprovada` encerra o gate — nenhum re-julgamento ou "revisão independente" depois dela; `pop_move` recusa retorno sobre aprovação.
+> **Toda rodada termina com marcadores de máquina** (é o que `pop_move`/`pop_validate` leem; campos sem espaços, listas por vírgula): `<!-- pop-verdict round=<n> decision=aprovada|reparo-dirigido|execucao|lacuna|premissa -->` sempre e, ao devolver, `<!-- pop-delta round=<n> kind=<tipo> pontual=true|false paths=<a,b> frentes=<Fxx> intactas=<Fxx> -->`.
 > Este é o único gate de qualidade (003 só existe em `critical: true`). Responda **primeiro** se o pedido original — o "O quê / Por quê" do card — foi atendido; só depois valide specs e critérios do plano.
 > **Três saídas, não duas:** aprovado; **bloqueante de execução** → 004, quando o executor não cumpriu os critérios que recebeu; **defeito de plano** → 002, quando os critérios não cobriam o pedido do card e o executor cumpriu o que lhe foi entregue. Aderência ao plano que não atende ao pedido nunca é falha do executor.
 > **Você nomeia o delta, não conserta o defeito.** Despachar correção transformaria você em quem encomendou o trabalho que julga.
@@ -42,7 +45,7 @@
 
 ## Veredito
 
-- **Decisão:** aprovada → entrega e encerramento | **reparo dirigido** (delta pontual — não é rota nem consome contador; o orquestrador despacha o patch e você o confere em adendo ≤10 linhas nesta rodada; máx. 2 por rodada) | bloqueante de execução → 004_processing | defeito de plano → 002_planning | circuit breaker.
+- **Decisão:** aprovada → entrega e encerramento | **reparo dirigido** (rota **default** de delta pontual — não é rota de kanban nem consome contador; o orquestrador despacha o patch e você o confere em adendo ≤10 linhas nesta rodada; máx. 2 por rodada, o 3º reclassifica como difuso) | bloqueante de execução → 004_processing | defeito de plano → 002_planning | circuit breaker.
 - **Bloqueantes:** nenhum | <lista curta>.
 - **Defeito de plano:** nenhum | <critério que não cobria o pedido do card>.
 - **Sugestões/nits:** <não bloqueiam; registrar somente se úteis>.
@@ -59,5 +62,8 @@
 - **Frentes afetadas:** `<Fxx>` — reentram em 004 (ou: frente nova a criar em 002).
 - **Frentes intactas:** `<Fxx>` — aprovadas, permanecem integradas; **não** reexecutar.
 - **Ação esperada:** <uma linha: o que 002 emenda ou o que 004 corrige>.
+
+<!-- pop-verdict round=<n> decision=<decisão> -->
+<!-- pop-delta round=<n> kind=<tipo> pontual=<true|false> paths=<a,b> frentes=<Fxx> intactas=<Fxx> -->
 
 > Aprovando, escreva a memory na mesma sessão — você acabou de ler o diff: o ledger `memory/<AAAA-MM-DD>/<id>.md` mais uma entrada `<id>.<nn>-<slug>.md` por coisa feita, com evidência linkada ([[_templates/MEMORY|MEMORY]] · [[_templates/MEMORY-ENTRY|MEMORY-ENTRY]]). Integração, PR e merge continuam do orquestrador e do humano.
