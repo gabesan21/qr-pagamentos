@@ -19,9 +19,13 @@ export default async function OrderV2DetailPage({ params }: Readonly<{ params: P
       {result.kind === "found"
         ? (
           <>
-            <OrderV2DetailCard backHref="/orders" dictionary={dictionary} locale={locale} order={result.order} />
-            <OrderV2CommentsCard dictionary={dictionary} locale={locale} order={result.order} />
-            <OrderV2OutcomeCard dictionary={dictionary} order={result.order} />
+            <OrderV2DetailCard backHref="/orders" backLabel={dictionary.orderV2DetailBack} dictionary={dictionary} locale={locale} order={result.order} />
+            <div className="grid gap-4 lg:grid-cols-12">
+              <div className="space-y-4 lg:col-span-8">
+                <OrderV2CommentsCard dictionary={dictionary} locale={locale} order={result.order} />
+                <OrderV2OutcomeCard dictionary={dictionary} order={result.order} />
+              </div>
+            </div>
           </>
         )
         : <OrderV2UnavailableCard backHref="/orders" dictionary={dictionary} />}

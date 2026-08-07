@@ -1,0 +1,78 @@
+{
+  "motion": {
+    "context": {
+      "duration": {
+        "fast-150": {
+          "$type": "duration",
+          "$value": "{motion.primitive.duration.reduced}"
+        },
+        "selection-160": {
+          "$type": "duration",
+          "$value": "{motion.primitive.duration.reduced}"
+        },
+        "enter-180": {
+          "$type": "duration",
+          "$value": "{motion.primitive.duration.reduced}"
+        },
+        "overlay-200": {
+          "$type": "duration",
+          "$value": "{motion.primitive.duration.reduced}"
+        },
+        "checkout-220": {
+          "$type": "duration",
+          "$value": "{motion.primitive.duration.reduced}"
+        },
+        "medium-250": {
+          "$type": "duration",
+          "$value": "{motion.primitive.duration.reduced}"
+        },
+        "reveal-300": {
+          "$type": "duration",
+          "$value": "{motion.primitive.duration.reduced}"
+        },
+        "success-400": {
+          "$type": "duration",
+          "$value": "{motion.primitive.duration.reduced}"
+        },
+        "stagger-50": {
+          "$type": "duration",
+          "$value": "{motion.primitive.duration.reduced}"
+        },
+        "caret-1250": {
+          "$type": "duration",
+          "$value": "{motion.primitive.duration.reduced}"
+        },
+        "skeleton-1400": {
+          "$type": "duration",
+          "$value": "{motion.primitive.duration.reduced}"
+        },
+        "highlight-1500": {
+          "$type": "duration",
+          "$value": "{motion.primitive.duration.reduced}"
+        },
+        "pending-2000": {
+          "$type": "duration",
+          "$value": "{motion.primitive.duration.reduced}"
+        }
+      },
+      "easing": {
+        "standard": {
+          "$type": "cubicBezier",
+          "$value": "{motion.primitive.easing.standard}"
+        },
+        "ease-out": {
+          "$type": "cubicBezier",
+          "$value": "{motion.primitive.easing.ease-out}"
+        },
+        "ease-in-out": {
+          "$type": "cubicBezier",
+          "$value": "{motion.primitive.easing.ease-in-out}"
+        }
+      },
+      "iteration": {
+        "$type": "number",
+        "$value": "{motion.primitive.iteration.reduced}"
+      }
+    }
+  }
+}

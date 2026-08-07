@@ -1,0 +1,54 @@
+[
+  {
+    "width": 320,
+    "sourceRoles": 17,
+    "identityVariants": 8,
+    "swatches": 6,
+    "imagesReady": true,
+    "sora700Loaded": true,
+    "overflow": false,
+    "seriousAxe": [],
+    "externalRequests": [],
+    "consoleErrors": [],
+    "pageErrors": []
+  },
+  {
+    "width": 375,
+    "sourceRoles": 17,
+    "identityVariants": 8,
+    "swatches": 6,
+    "imagesReady": true,
+    "sora700Loaded": true,
+    "overflow": false,
+    "seriousAxe": [],
+    "externalRequests": [],
+    "consoleErrors": [],
+    "pageErrors": []
+  },
+  {
+    "width": 768,
+    "sourceRoles": 17,
+    "identityVariants": 8,
+    "swatches": 6,
+    "imagesReady": true,
+    "sora700Loaded": true,
+    "overflow": false,
+    "seriousAxe": [],
+    "externalRequests": [],
+    "consoleErrors": [],
+    "pageErrors": []
+  },
+  {
+    "width": 1440,
+    "sourceRoles": 17,
+    "identityVariants": 8,
+    "swatches": 6,
+    "imagesReady": true,
+    "sora700Loaded": true,
+    "overflow": false,
+    "seriousAxe": [],
+    "externalRequests": [],
+    "consoleErrors": [],
+    "pageErrors": []
+  }
+]

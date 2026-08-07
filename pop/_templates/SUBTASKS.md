@@ -18,6 +18,7 @@
 ## Contrato de execução
 
 - Entregar somente o escopo e os critérios desta frente.
+- **Saber parar:** no máximo 2 tentativas de fazer um critério `agent` passar quando a falha é de ambiente (sandbox, permissão, flakiness); na segunda, registre `ambiente`, reporte a reclassificação para `verify: user` e siga. Nunca construa infraestrutura nova só para verificar.
 - Dependência ou entrada ausente/incompatível → responder `BLOCKED` ao orquestrador com evidência.
 - Não implementar, simular ou corrigir dependências por conta própria.
 - Não alterar caminhos fora de `Owns`; necessidade nova volta ao orquestrador.

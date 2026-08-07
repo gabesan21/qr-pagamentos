@@ -97,6 +97,33 @@ test("creates the closed merchant-profile evidence run", async ({ browser, page 
   await signIn(page, initialUsername, merchantPassword!, "/");
   let merchantUsername = initialUsername;
 
+  async function exerciseTotpModal(username: string, password: string) {
+    const context = await browser.newContext();
+    const modalPage = await context.newPage();
+    await signIn(modalPage, username, password, "/");
+    await modalPage.goto(`${baseUrl}/profile`);
+    await waitForProfile();
+    await modalPage.getByRole("button", { name: /Ativar autenticação em dois fatores|Enable two-factor authentication/ }).click();
+    const modal = modalPage.locator('[role="dialog"]');
+    await expect(modal).toBeVisible();
+    await expect(modal).toContainText(/Save your recovery codes|Salve seus códigos de recuperação/);
+    const recoveryCodeItems = modal.locator("ul > li");
+    await expect(recoveryCodeItems).toHaveCount(10);
+    await modalPage.locator('[role="dialog"] [data-slot="checkbox"]').check();
+    await modalPage.getByRole("button", { name: /Continue|Continuar/ }).click();
+    await expect(modal).toContainText(/Confirm your authenticator app|Confirme seu aplicativo autenticador/);
+    await expect(modal.locator('form[action="/profile/totp/confirm"]')).toBeVisible();
+    await expect(modal.locator('input[name="currentPassword"]')).toBeVisible();
+    await expect(modal.locator('[data-slot="input-otp"]')).toBeVisible();
+    await expect(modal.locator("figure")).toBeVisible();
+    await modalPage.keyboard.press("Escape");
+    await expect(modal).toBeHidden();
+    await context.close();
+    assertions.push({ state: "totp-modal-flow", recoveryCodeCount: 10 });
+  }
+
+  await exerciseTotpModal(initialUsername, merchantPassword!);
+
   async function inspectProfile(state: string) {
     const measured = await page.evaluate(() => {
       const visible = (element: HTMLElement) => {
@@ -276,6 +303,13 @@ test("creates the closed merchant-profile evidence run", async ({ browser, page 
     await page.goto(`${baseUrl}/profile`);
     await waitForProfile();
     await page.evaluate(async () => document.fonts.ready);
+
+    const profileDictionary = locale === "pt-BR" ? profilePtBR : profileEn;
+    await page.getByLabel(/^Nova senha$|^New password$/).fill("abcdefgh");
+    const meterText = profileDictionary.profilePasswordLengthMeter.replace("{{len}}", "8");
+    await expect(page.getByText(meterText)).toBeVisible();
+    assertions.push({ state: `${locale}-password-meter`, meterText });
+
     for (const theme of themes) {
       for (const width of widths) {
         await page.setViewportSize({ width, height: 1000 });
@@ -455,8 +489,16 @@ test("creates the closed merchant-profile evidence run", async ({ browser, page 
     "src/app/(merchant)/profile/page.tsx",
     "src/app/profile/profile-management.tsx",
     "src/app/profile/profile-form.tsx",
+    "src/app/profile/password-fields.tsx",
+    "src/app/profile/recovery-codes.tsx",
+    "src/app/profile/totp-section.tsx",
+    "src/app/profile/totp-qr-code.tsx",
     "src/app/profile/identity/route.ts",
     "src/app/profile/password/route.ts",
+    "src/app/profile/totp/enroll/route.ts",
+    "src/app/profile/totp/confirm/route.ts",
+    "src/app/profile/totp/disable/route.ts",
+    "src/app/profile/totp/regenerate/route.ts",
     "src/i18n/locales.ts",
     "tests/profile.evidence.spec.ts",
     "scripts/run-profile-evidence.mjs",

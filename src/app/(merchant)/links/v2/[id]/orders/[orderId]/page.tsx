@@ -28,19 +28,19 @@ export default async function PaymentLinkV2OrderDetailPage({
   const orderResult = await getOrderV2ViewService().getForOwner(principal, orderId);
 
   return (
-    <>
+    <div className="space-y-4">
       <WorkspaceHeading description={dictionary.paymentLinkOrdersDescription} eyebrow={dictionary.shellMerchantEyebrow} title={dictionary.paymentLinkOrderDetailHeading} />
       {orderResult.kind === "found" && orderResult.order.paymentLinkV2Identifier === link.identifier
         ? (
           <OrderV2DrilldownDetailCard
             backHref={backToOrders}
             dictionary={dictionary}
-            linkIdentifier={link.identifier}
+            link={{ identifier: link.identifier, state: link.state }}
             locale={locale}
             order={orderResult.order}
           />
         )
         : <OrderV2DrilldownUnavailableCard backHref={backToOrders} dictionary={dictionary} />}
-    </>
+    </div>
   );
 }

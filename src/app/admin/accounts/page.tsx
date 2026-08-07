@@ -9,7 +9,7 @@ import {
   type AdminUserDirectoryResult,
   type AdminUserSummary,
 } from "@/auth/admin-user-directory";
-import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
 import { DataDirectory, type DataDirectoryColumn, type DataDirectoryState } from "@/data-directory/ui/data-directory";
 import type { getDictionary } from "@/i18n/dictionaries";
@@ -47,23 +47,63 @@ function storeStateLabel(dictionary: Dictionary, storeState: AdminUserSummary["s
       : dictionary.adminUsersDirectoryStoreNone;
 }
 
+function roleTone(role: AdminUserSummary["role"]): "info" | "neutral" {
+  return role === "ADMIN" ? "info" : "neutral";
+}
+
+function stateTone(state: AdminUserSummary["state"]): "success" | "warning" | "danger" {
+  return state === "active" ? "success" : state === "disabled" ? "warning" : "danger";
+}
+
+function accountStateLabel(dictionary: Dictionary, state: AdminUserSummary["state"]) {
+  return state === "deleted"
+    ? dictionary.adminUsersDirectoryStateDeleted
+    : state === "disabled"
+      ? dictionary.adminDisabled
+      : dictionary.adminActive;
+}
+
 // The username cell carries the administrator-only deletion fact as a
 // localized non-color badge; a deleted row keeps its place and renders no
 // actions (every mutation on a deleted target already shares the opaque
 // not-found outcome server-side).
 function UsernameCell({ dictionary, row }: Readonly<{ dictionary: Dictionary; row: AdminUserSummary }>) {
   return (
-    <>
-      {row.username}
-      {row.deletedAt !== null ? <> <Badge variant="outline">{dictionary.adminUsersDirectoryStateDeleted}</Badge></> : null}
-    </>
+    <span className="flex items-center gap-2">
+      <span className={row.deletedAt !== null ? "font-mono line-through" : "font-mono"}>{row.username}</span>
+      {row.deletedAt !== null ? (
+        <StatusBadge label={dictionary.adminUsersDirectoryStateDeleted} tone="neutral" />
+      ) : null}
+    </span>
+  );
+}
+
+function RoleBadge({ dictionary, row }: Readonly<{ dictionary: Dictionary; row: AdminUserSummary }>) {
+  return (
+    <StatusBadge
+      label={row.role === "ADMIN" ? dictionary.adminAdministrator : dictionary.adminUser}
+      tone={roleTone(row.role)}
+    />
   );
 }
 
 function StateBadge({ dictionary, row }: Readonly<{ dictionary: Dictionary; row: AdminUserSummary }>) {
-  if (row.state === "deleted") return <Badge variant="outline">{dictionary.adminUsersDirectoryStateDeleted}</Badge>;
-  if (row.state === "disabled") return <Badge variant="destructive">{dictionary.adminDisabled}</Badge>;
-  return <Badge variant="secondary">{dictionary.adminActive}</Badge>;
+  return (
+    <StatusBadge
+      label={accountStateLabel(dictionary, row.state)}
+      tone={stateTone(row.state)}
+    />
+  );
+}
+
+function StoreBadge({ dictionary, row }: Readonly<{ dictionary: Dictionary; row: AdminUserSummary }>) {
+  const label = storeStateLabel(dictionary, row.storeState);
+  return (
+    <StatusBadge
+      label={label}
+      tone={row.storeState === "active" ? "success" : row.storeState === "configured" ? "warning" : "neutral"}
+    />
+  );
 }
 
 // Row actions: edit navigates to the read-only detail (10.3.3's editor
@@ -72,15 +112,16 @@ function StateBadge({ dictionary, row }: Readonly<{ dictionary: Dictionary; row:
 function RowActions({ dictionary, row }: Readonly<{ dictionary: Dictionary; row: AdminUserSummary }>) {
   if (row.state === "deleted") return null;
   return (
-    <>
+    <span className="flex items-center gap-2">
       <Button asChild data-ds-hit-target variant="outline">
         <Link href={`/admin/accounts/${row.id}`}>{dictionary.adminUsersDirectoryEdit}</Link>
       </Button>
-      {" "}
       <form action={`/admin/users/${row.id}/delete`} method="post">
-        <Button data-ds-hit-target type="submit" variant="destructive">{dictionary.adminUsersDirectoryDelete}</Button>
+        <Button data-ds-hit-target type="submit" variant="destructive">
+          {dictionary.adminUsersDirectoryDelete}
+        </Button>
       </form>
-    </>
+    </span>
   );
 }
 
@@ -100,12 +141,12 @@ function AdminUserDirectory({
   const copy = adminAccountsDirectoryCopy(dictionary);
   const columns: readonly DataDirectoryColumn<AdminUserSummary>[] = [
     { id: "username", label: dictionary.adminUsersDirectoryColumnUsername, value: (row) => <UsernameCell dictionary={dictionary} row={row} /> },
-    { id: "email", label: dictionary.adminUsersDirectoryColumnEmail, value: (row) => row.email ?? dictionary.adminNotProvided },
-    { id: "role", label: dictionary.adminUsersDirectoryColumnRole, value: (row) => <Badge variant="outline">{row.role === "ADMIN" ? dictionary.adminAdministrator : dictionary.adminUser}</Badge> },
+    { id: "email", label: dictionary.adminUsersDirectoryColumnEmail, value: (row) => <span className="text-sm text-muted-foreground">{row.email ?? dictionary.adminNotProvided}</span> },
+    { id: "role", label: dictionary.adminUsersDirectoryColumnRole, value: (row) => <RoleBadge dictionary={dictionary} row={row} /> },
     { id: "state", label: dictionary.adminUsersDirectoryColumnState, value: (row) => <StateBadge dictionary={dictionary} row={row} /> },
-    { id: "store", label: dictionary.adminUsersDirectoryColumnStore, value: (row) => storeStateLabel(dictionary, row.storeState) },
-    { id: "created", label: dictionary.adminUsersDirectoryColumnCreated, numeric: true, value: (row) => formatAccountInstant(row.createdAt, locale) },
-    { id: "lastActivity", label: dictionary.adminUsersDirectoryColumnLastActivity, numeric: true, value: (row) => row.lastActivityAt ? formatAccountInstant(row.lastActivityAt, locale) : dictionary.adminUsersDirectoryLastActivityNever },
+    { id: "store", label: dictionary.adminUsersDirectoryColumnStore, value: (row) => <StoreBadge dictionary={dictionary} row={row} /> },
+    { id: "created", label: dictionary.adminUsersDirectoryColumnCreated, numeric: true, value: (row) => <span className="font-mono">{formatAccountInstant(row.createdAt, locale)}</span> },
+    { id: "lastActivity", label: dictionary.adminUsersDirectoryColumnLastActivity, numeric: true, value: (row) => <span className="font-mono">{row.lastActivityAt ? formatAccountInstant(row.lastActivityAt, locale) : dictionary.adminUsersDirectoryLastActivityNever}</span> },
   ];
 
   if (query.status === "invalid-query" || serviceInvalid) {

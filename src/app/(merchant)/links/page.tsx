@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ListOrderedIcon, Share2Icon } from "lucide-react";
+import { ListOrderedIcon, PlusIcon, Share2Icon } from "lucide-react";
 
 import { OwnerPaymentLinkManagement } from "@/app/admin/payment-link-management";
 import { WorkspaceHeading } from "@/app-shell/workspace-heading";
@@ -12,6 +12,7 @@ import {
 } from "@/auth/payment-link-v2-view";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { CopyField } from "@/components/ui/copy-field";
 import { Separator } from "@/components/ui/separator";
 import {
   queryMerchantDirectory,
@@ -32,7 +33,7 @@ import {
   type LinksSearchParams,
 } from "./directory-query";
 import { PaymentLinkV2Notice } from "./links-notices";
-import { formatLinkInstant, LinkStateBadge, linkKindLabel, linkSummary, linkTypeLabel } from "./link-v2-views";
+import { copyLabels, formatLinkInstant, LinkStateBadge, linkKindLabel, linkSummary, linkTypeLabel } from "./link-v2-views";
 
 type Dictionary = ReturnType<typeof getDictionary>;
 
@@ -67,12 +68,41 @@ function PaymentLinkDirectory({
 }>) {
   const copy = linksDirectoryCopy(dictionary);
   const columns: readonly DataDirectoryColumn<PaymentLinkV2DirectoryRow>[] = [
-    { id: "summary", label: dictionary.paymentLinkDirectoryColumnSummary, value: (row) => linkSummary(row, locale) },
-    { id: "composition", label: dictionary.paymentLinkDirectoryColumnComposition, value: (row) => <Badge variant="outline">{linkKindLabel(dictionary, row.compositionKind)}</Badge> },
-    { id: "type", label: dictionary.paymentLinkDirectoryColumnType, value: (row) => linkTypeLabel(dictionary, row.linkType) },
-    { id: "state", label: dictionary.paymentLinkDirectoryColumnState, value: (row) => <LinkStateBadge dictionary={dictionary} state={row.state} /> },
-    { id: "orders", label: dictionary.paymentLinkDirectoryColumnOrders, numeric: true, value: (row) => row.orderCount },
-    { id: "expiry", label: dictionary.paymentLinkDirectoryColumnExpiry, numeric: true, value: (row) => row.expiresAt ? formatLinkInstant(row.expiresAt, locale) : dictionary.adminPaymentLinkNoExpiry },
+    {
+      id: "identifier",
+      label: dictionary.paymentLinkDirectoryColumnIdentifier,
+      value: (row) => <CopyField labels={copyLabels(dictionary)} truncate value={row.identifier} />,
+    },
+    {
+      id: "summary",
+      label: dictionary.paymentLinkDirectoryColumnSummary,
+      value: (row) => <span className="text-sm text-muted-foreground line-clamp-2">{linkSummary(row, locale)}</span>,
+    },
+    {
+      id: "composition",
+      label: dictionary.paymentLinkDirectoryColumnComposition,
+      value: (row) => <Badge variant="outline">{linkKindLabel(dictionary, row.compositionKind)}</Badge>,
+    },
+    {
+      id: "type",
+      label: dictionary.paymentLinkDirectoryColumnType,
+      value: (row) => <Badge variant="outline">{linkTypeLabel(dictionary, row.linkType)}</Badge>,
+    },
+    {
+      id: "state",
+      label: dictionary.paymentLinkDirectoryColumnState,
+      value: (row) => <LinkStateBadge dictionary={dictionary} state={row.state} />,
+    },
+    {
+      id: "dates",
+      label: dictionary.paymentLinkDirectoryColumnDates,
+      value: (row) => (
+        <div className="text-xs leading-4">
+          <div>{formatLinkInstant(row.createdAt, locale)}</div>
+          <div className="text-muted-foreground">{row.expiresAt ? formatLinkInstant(row.expiresAt, locale) : dictionary.adminPaymentLinkNoExpiry}</div>
+        </div>
+      ),
+    },
   ];
 
   if (query.status === "invalid-query") {
@@ -203,11 +233,11 @@ export default async function MerchantLinksPage({
   }
 
   return (
-    <>
-      <WorkspaceHeading description={dictionary.paymentLinkDirectoryDescription} eyebrow={dictionary.shellMerchantEyebrow} title={dictionary.shellLinks} />
-      <div className="flex flex-wrap gap-3">
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <WorkspaceHeading description={dictionary.paymentLinkDirectoryDescription} eyebrow={dictionary.shellMerchantEyebrow} title={dictionary.shellLinks} />
         <Button asChild data-ds-hit-target>
-          <Link href="/links/new">{dictionary.paymentLinkCreateTitle}</Link>
+          <Link href="/links/new"><PlusIcon aria-hidden /> {dictionary.paymentLinkCreateTitle}</Link>
         </Button>
       </div>
       {query.status === "ready" && query.notice ? <PaymentLinkV2Notice dictionary={dictionary} notice={query.notice} /> : null}
@@ -220,6 +250,6 @@ export default async function MerchantLinksPage({
         </header>
         <OwnerPaymentLinkManagement data={data} dictionary={dictionary} locale={locale} />
       </section>
-    </>
+    </div>
   );
 }

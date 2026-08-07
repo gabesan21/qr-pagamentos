@@ -16,6 +16,15 @@ devolução é incremental: o tipo dimensiona a emenda de plano, decide quais
 frentes reentram em 004 e escolhe o modo da re-revisão. `→002` exige
 `--return-kind lacuna|premissa`; `→004` assume `execucao`.
 
+Em task yolo, o retorno saindo de `005_closing` é validado contra os
+marcadores de máquina do `.verify.md` (ver poplib/[[specs/judge-dredd]]):
+o último `pop-verdict` precisa existir e casar com a rota; `aprovada` é
+terminal (não há re-julgamento); veredito com `pontual=true` segue a rota de
+reparo dirigido, não o pop_move; devolução exige o `pop-delta` da rodada. O
+retorno grava `return_base:` (HEAD do repo) e a reentrada `004→005_closing`
+exige que algum caminho do delta tenha mudado desde essa base — reapresentar
+ao juiz sem trabalho no delta é recusado. `--force` sobrepõe cada trava.
+
 Travas (sobrepostas só com `--force`): task com claim ativo de **outro**
 agente não se move (`--by` identifica quem pede, default usuario@host);
 001→002 exige a liberação humana `- [x] Pronto para planejar` no card —
@@ -29,6 +38,7 @@ Uso:
 
 import argparse
 import shutil
+import subprocess
 import sys
 
 import poplib
@@ -91,6 +101,114 @@ def resolve_return_kind(src, dst, requested):
                       "retornos saindo de 005_closing são classificados "
                       "(use --force para exceções).")
     return None, None
+
+
+def git_head(project):
+    """HEAD do repo que contém o projeto, ou None sem git."""
+    try:
+        out = subprocess.run(["git", "-C", str(project), "rev-parse", "HEAD"],
+                             capture_output=True, text=True, check=True)
+    except (OSError, subprocess.CalledProcessError):
+        return None
+    return out.stdout.strip() or None
+
+
+def git_changed_paths(project, base):
+    """Arquivos mudados desde `base` (inclui worktree), ou None sem git."""
+    try:
+        out = subprocess.run(
+            ["git", "-C", str(project), "diff", "--name-only", base],
+            capture_output=True, text=True, check=True)
+    except (OSError, subprocess.CalledProcessError):
+        return None
+    return [line.strip() for line in out.stdout.splitlines() if line.strip()]
+
+
+def verify_gate_error(task_dir, task_id, dst, return_kind):
+    """Recusa de retorno 005→004/002 pelos marcadores do `.verify.md`.
+
+    O veredito da rodada é o contrato executável do gate: sem ele o retorno é
+    palpite do orquestrador. As travas cortam os bugs observados em campo
+    (incidente 12.5.5/qr-pagamentos, 2026-08-05): re-julgar aprovação, rota
+    completa para delta pontual e devolução sem delta.
+    """
+    verify = task_dir / f"{task_id}.verify.md"
+    if not verify.is_file():
+        return ("SEM JULGAMENTO: retorno saindo de 005_closing exige "
+                f"`{verify.name}` com o veredito da rodada — juiz que reprova "
+                "sem artefato não devolve (use --force para exceções).")
+    verdicts, deltas = poplib.parse_verify_markers(
+        verify.read_text(encoding="utf-8"))
+    if not verdicts:
+        return ("SEM MARCADOR DE VEREDITO: encerre a rodada no "
+                f"`{verify.name}` com `<!-- pop-verdict round=<n> "
+                "decision=... -->` (e `<!-- pop-delta ... -->` ao devolver) "
+                "antes de mover (use --force para exceções).")
+    last = verdicts[-1]
+    decision = last.get("decision")
+    if decision == "aprovada":
+        return ("APROVAÇÃO É TERMINAL: o último pop-verdict do "
+                f"`{verify.name}` aprova a task — não existe re-julgamento "
+                "nem revisão independente sobre aprovação; siga para "
+                "entrega/encerramento (use --force para exceções).")
+    if decision == "reparo-dirigido":
+        return ("REPARO DIRIGIDO EM ANDAMENTO: delta pontual não vira rota — "
+                "despache o patch e colha o adendo do juiz; só o adendo que "
+                "devolver autoriza mover (use --force para exceções).")
+    expected = "execucao" if dst == "004_processing" else return_kind
+    if decision != expected:
+        return (f"VEREDITO INCOMPATÍVEL: o último pop-verdict declara "
+                f"`{decision}`, mas a rota pedida é `{expected}` — rota e "
+                "veredito andam juntos (use --force para exceções).")
+    delta = deltas.get(last.get("round"))
+    if not delta:
+        return ("DEVOLUÇÃO SEM DELTA: o veredito devolve mas falta o "
+                f"`<!-- pop-delta round={last.get('round')} ... -->` no "
+                f"`{verify.name}` — sem delta, 002 não sabe se emenda ou "
+                "replaneja e 004 não sabe o que reexecutar (use --force "
+                "para exceções).")
+    if decision == "execucao" and delta.get("pontual") == "true":
+        return ("DELTA PONTUAL: bloqueante `pontual=true` segue a rota "
+                "default de reparo dirigido (sem pop_move, sem contador); a "
+                "rota completa é para defeito difuso — esgotados os 2 "
+                "reparos da rodada, repita com --force e o motivo no "
+                "--reason.")
+    return None
+
+
+def reentry_gate_error(project, task_dir, task_id, meta):
+    """Recusa de reentrada 004→005 sem trabalho nos caminhos do delta.
+
+    Só age quando há evidência completa (delta com `paths`, `return_base` e
+    git disponível) — fail-open no resto: a trava existe para cortar a
+    reapresentação do mesmo problema ao juiz, não para bloquear fluxo legado.
+    """
+    base = str(meta.get("return_base") or "").strip()
+    if not base or meta.get("return_kind") not in poplib.RETURN_KINDS:
+        return None
+    verify = task_dir / f"{task_id}.verify.md"
+    if not verify.is_file():
+        return None
+    _verdicts, deltas = poplib.parse_verify_markers(
+        verify.read_text(encoding="utf-8"))
+    if not deltas:
+        return None
+    last_delta = list(deltas.values())[-1]
+    paths = poplib.marker_paths(last_delta)
+    if not paths:
+        return None
+    changed = git_changed_paths(project, base)
+    if changed is None:
+        return None
+    for path in paths:
+        for touched in changed:
+            if (touched == path or touched.endswith("/" + path)
+                    or path.endswith("/" + touched)):
+                return None
+    return ("REENTRADA SEM TRABALHO NO DELTA: nenhum caminho do delta "
+            f"({', '.join(paths)}) mudou desde `return_base` {base[:12]} — "
+            "reapresentar ao juiz com o mesmo problema queima rodada à toa; "
+            "execute o delta antes de mover (use --force para exceções).")
 
 
 def update_card(card, new_stage, reason, fields=None):
@@ -213,9 +331,28 @@ def main():
         print(kind_error)
         return 1
 
+    if meta.get("yolo") is True and not args.force:
+        if src == "005_closing" and args.stage in ("004_processing",
+                                                   "002_planning"):
+            gate_error = verify_gate_error(task_dir, args.task_id,
+                                           args.stage, return_kind)
+            if gate_error:
+                print(gate_error)
+                return 1
+        if (src, args.stage) == ("004_processing", "005_closing"):
+            gate_error = reentry_gate_error(project, task_dir,
+                                            args.task_id, meta)
+            if gate_error:
+                print(gate_error)
+                return 1
+
     fields = {}
     if return_kind:
         fields["return_kind"] = return_kind
+        if src == "005_closing":
+            head = git_head(project)
+            if head:
+                fields["return_base"] = head
     if meta.get("yolo") is True and return_gate:
         key = f"yolo_{return_gate}_returns"
         try:

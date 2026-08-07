@@ -58,6 +58,9 @@ describe("DataDirectory", () => {
     expect(html).toContain('name="pageSize"');
     expect(html).not.toContain('name="cursor"');
     expect(html).toContain('aria-label="Pages"');
+    expect(html).toContain('data-slot="pagination"');
+    expect(html).toContain('aria-label="Previous"');
+    expect(html).toContain('aria-label="Next"');
     expect(html).toContain("<caption");
     expect(html).toContain("<dl");
   });
@@ -80,9 +83,36 @@ describe("DataDirectory", () => {
       if (state === "loading") {
         expect(html).toContain('aria-busy="true"');
         expect(html).toContain('aria-live="polite"');
+        expect(html).toContain("h-13");
+      }
+      if (state === "empty" || state === "filtered-empty") {
+        expect(html).toContain('data-slot="empty"');
       }
     },
   );
+
+  it("omits unavailable cursor controls instead of rendering fake disabled actions", () => {
+    const html = renderToStaticMarkup(
+      <DataDirectory {...common} nextUrl="/design-system?cursor=next" state="ready" />,
+    );
+    expect(html).not.toContain('aria-label="Previous"');
+    expect(html).toContain('aria-label="Next"');
+    expect(html).not.toContain(' disabled=""');
+  });
+
+  it("keeps loading geometry aligned with registered columns and actions", () => {
+    const html = renderToStaticMarkup(
+      <DataDirectory
+        {...common}
+        actionsLabel="Actions"
+        getRowActions={() => "Open"}
+        state="loading"
+      />,
+    );
+    expect(html).toContain("Actions");
+    expect(html.match(/data-slot="table-row"/g)).toHaveLength(4);
+    expect(html.match(/data-slot="skeleton"/g)).toHaveLength(18);
+  });
 
   it("renders at most one primary action in the toolbar", () => {
     const html = renderToStaticMarkup(<DataDirectory {...common} state="empty" emptyAction={{ href: "/new", label: "Create" }} />);
@@ -124,5 +154,6 @@ describe("DataDirectory", () => {
     const source = readFileSync(new URL("./data-directory.tsx", import.meta.url), "utf8");
     expect(source).not.toMatch(/@\/(?:auth|orders|checkout|media|storefront|app\/admin)/u);
     expect(source).not.toMatch(/data-theme|principal|ownerId|ADMIN|USER/u);
+    expect(source).not.toMatch(/total|offset|sort|useSearchParams|use client/u);
   });
 });

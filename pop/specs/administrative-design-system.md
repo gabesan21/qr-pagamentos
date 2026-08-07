@@ -2,7 +2,7 @@
 
 - **Project:** [[PROJECT|QR Pagamentos]]
 - **Epoch/Phase:** [[roadmap/1-administrative-foundation|Phase 1.4]]
-- **Status:** implemented
+- **Status:** superseded · **Superseded by:** [[specs/application-frontend-system|Application frontend system]]
 - **Created:** 2026-07-16
 
 ## What it is

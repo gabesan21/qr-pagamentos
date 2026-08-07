@@ -86,6 +86,7 @@ describe("merchant orders directory page", () => {
       row(),
       row({ id: "440e8400-e29b-41d4-a716-446655440011", source: "AD_HOC", paymentLinkV2Identifier: null, state: null, currentLocalOutcome: { outcome: "LOCAL_FINALIZED", note: null, createdAt: new Date("2026-07-02T12:00:00.000Z") }, payer: { name: null, email: null, cpf: null, address: null } }),
       row({ id: "440e8400-e29b-41d4-a716-446655440012", state: "REJECTED", currentLocalOutcome: { outcome: "LOCAL_CANCELLED", note: null, createdAt: new Date("2026-07-03T12:00:00.000Z") } }),
+      row({ id: "440e8400-e29b-41d4-a716-446655440013", source: "STANDALONE", paymentLinkV2Identifier: null, state: "PENDING", payer: { name: "Carlos", email: null, cpf: null, address: null } }),
     ]);
 
     const markup = renderToStaticMarkup(await MerchantOrdersPage());
@@ -99,6 +100,8 @@ describe("merchant orders directory page", () => {
     expect(markup).toContain(">Locally cancelled</");
     expect(markup).toContain(">No local outcome</");
     expect(markup).toContain(">Ad hoc</");
+    expect(markup).toContain(">Standalone payment</");
+    expect(markup).toContain("Carlos");
     expect(markup).toContain("abcdefghijklmnopqrstuvwx");
     expect(markup).toContain(">No link</");
     expect(markup).toContain('href="/orders/v2/440e8400-e29b-41d4-a716-446655440010"');
@@ -124,6 +127,7 @@ describe("merchant orders directory page", () => {
     ready("en", []);
     const markup = renderToStaticMarkup(await MerchantOrdersPage());
     expect(markup).toContain("No orders yet");
+    expect(markup).toContain('href="/links/new"');
 
     const filtered = renderToStaticMarkup(await MerchantOrdersPage({ searchParams: Promise.resolve({ q: "no-such-order" }) }));
     expect(filtered).toContain("No matching records");

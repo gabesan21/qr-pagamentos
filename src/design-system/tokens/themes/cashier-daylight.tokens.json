@@ -1,0 +1,126 @@
+{
+  "$extensions": {
+    "com.qr-pagamentos.theme": {
+      "id": "cashier-daylight",
+      "mode": "light"
+    }
+  },
+  "theme": {
+    "color": {
+      "page": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.cashier-daylight.bg}"
+      },
+      "raised": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.cashier-daylight.surface}"
+      },
+      "secondary": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.cashier-daylight.surface-2}"
+      },
+      "border": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.cashier-daylight.border}"
+      },
+      "text-primary": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.cashier-daylight.text}"
+      },
+      "text-secondary": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.cashier-daylight.text-2}"
+      },
+      "accent": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.cashier-daylight.accent}"
+      },
+      "action-default": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.cashier-daylight.accent}"
+      },
+      "action-hover": {
+        "$type": "color",
+        "$value": "{color.primitive.accessibility.cashier-daylight.action-hover}"
+      },
+      "action-active": {
+        "$type": "color",
+        "$value": "{color.primitive.accessibility.cashier-daylight.action-active}"
+      },
+      "accent-audit-foreground": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.cashier-daylight.accent-fg}"
+      },
+      "accent-soft": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.cashier-daylight.accent-soft}"
+      },
+      "success": {
+        "$type": "color",
+        "$value": "{color.primitive.accessibility.cashier-daylight.feedback-success}"
+      },
+      "success-foreground": {
+        "$type": "color",
+        "$value": "{color.primitive.accessibility.neutral.white}"
+      },
+      "success-soft": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.cashier-daylight.success-soft}"
+      },
+      "warning": {
+        "$type": "color",
+        "$value": "{color.primitive.accessibility.cashier-daylight.feedback-warning}"
+      },
+      "warning-foreground": {
+        "$type": "color",
+        "$value": "{color.primitive.accessibility.neutral.white}"
+      },
+      "warning-soft": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.cashier-daylight.warning-soft}"
+      },
+      "danger": {
+        "$type": "color",
+        "$value": "{color.primitive.accessibility.cashier-daylight.feedback-danger}"
+      },
+      "danger-foreground": {
+        "$type": "color",
+        "$value": "{color.primitive.accessibility.neutral.white}"
+      },
+      "danger-soft": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.cashier-daylight.danger-soft}"
+      },
+      "info": {
+        "$type": "color",
+        "$value": "{color.primitive.accessibility.cashier-daylight.feedback-info}"
+      },
+      "info-foreground": {
+        "$type": "color",
+        "$value": "{color.primitive.accessibility.neutral.white}"
+      },
+      "info-soft": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.cashier-daylight.info-soft}"
+      },
+      "focus-ring": {
+        "$type": "color",
+        "$value": "{color.primitive.accessibility.cashier-daylight.focus-ring}"
+      },
+      "text-tertiary": {
+        "$type": "color",
+        "$value": "{color.primitive.accessibility.cashier-daylight.text-tertiary}"
+      },
+      "action-foreground": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.cashier-daylight.accent-fg}"
+      }
+    },
+    "shadow": {
+      "card": {
+        "$type": "shadow",
+        "$value": "{color.primitive.audit.template.cashier-daylight.elevation}"
+      }
+    }
+  }
+}

@@ -1,7 +1,7 @@
 {
   "_meta": {
     "updated": "2026-07-20",
-    "uso": "modelos por tier (cheap | medium | strong) — WORKFLOW decide o tier por papel, size e risco para planejador, orquestrador de execução, especialistas e revisor independente",
+    "uso": "modelos por tier (cheap | medium | strong) — WORKFLOW decide o tier por papel, size e risco para planejador, orquestrador de execução, especialistas e o Judge Dredd (juiz único do yolo)",
     "nota": "valores revisáveis; confira disponibilidade na execução com o comando de listagem da ferramenta (lookup pontual permitido: `cursor-agent models`, `opencode models`)"
   },
   "session": {

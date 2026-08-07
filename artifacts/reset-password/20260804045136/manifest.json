@@ -1,0 +1,86 @@
+{
+  "runId": "20260804045136",
+  "startedAt": "2026-08-04T04:51:36.015Z",
+  "gitHead": "9d3fe0e1a9b3b62cc91fd400c0e384a406e30f48",
+  "tokenDigestPrefixes": {
+    "ptBr": "1aa6e45d6fd6e693",
+    "en": "dbc778102f85fcc6"
+  },
+  "userId": "afff0ee3-6141-4b3c-b7ad-39e86be99275",
+  "assertions": "artifacts/reset-password/20260804045136/assertions.json",
+  "assertionsSha256": "9a788a8cdcff45098436d29adb49cfef36b0b69ded3e4b7c5a04194d55126a2b",
+  "pngs": [
+    {
+      "path": "artifacts/reset-password/20260804045136/reset-password-invalid-pt-BR-1440.png",
+      "bytes": 20220,
+      "sha256": "0061de529c8c9fdf77cf2664e366bb26e60d4927adc902403093e122642591bb",
+      "mtimeMs": 1785819096831.3103
+    },
+    {
+      "path": "artifacts/reset-password/20260804045136/reset-password-valid-pt-BR-375.png",
+      "bytes": 16620,
+      "sha256": "16e6474f66bb95a5f8088c8ed0d2d4204a896f93aa87a5b4633cbf256c74b9d8",
+      "mtimeMs": 1785819097331.3145
+    },
+    {
+      "path": "artifacts/reset-password/20260804045136/reset-password-valid-pt-BR-768.png",
+      "bytes": 18078,
+      "sha256": "a56c4e9eebc5d6dd7d9d84b40921fede42db76aba6f65a33edab77beb1d0186f",
+      "mtimeMs": 1785819097824.6519
+    },
+    {
+      "path": "artifacts/reset-password/20260804045136/reset-password-valid-pt-BR-1440.png",
+      "bytes": 23983,
+      "sha256": "8d9bb3a919d05d15c15806364795954b3f681fe5b1789014ab433ab41068429d",
+      "mtimeMs": 1785819098314.656
+    },
+    {
+      "path": "artifacts/reset-password/20260804045136/reset-password-error-pt-BR-1440.png",
+      "bytes": 29032,
+      "sha256": "a6d37d4d1dad5f327b54aab0ec0e98385404763d12a21e73d3539358b8d94373",
+      "mtimeMs": 1785819098931.3276
+    },
+    {
+      "path": "artifacts/reset-password/20260804045136/reset-password-success-pt-BR-1440.png",
+      "bytes": 25309,
+      "sha256": "f1f0ad410a27c10203f6fef946315aab75f689b83f6b7be29df16526436ff267",
+      "mtimeMs": 1785819099831.3352
+    },
+    {
+      "path": "artifacts/reset-password/20260804045136/reset-password-invalid-en-1440.png",
+      "bytes": 23537,
+      "sha256": "366e580ea67ea0f310310869592f9cc97d6d639e338bb01b66cd01f670e02f42",
+      "mtimeMs": 1785819100264.672
+    },
+    {
+      "path": "artifacts/reset-password/20260804045136/reset-password-valid-en-375.png",
+      "bytes": 18849,
+      "sha256": "40cc8c5b3a8be98bef47a1ac9546e144e8ace4f0b84a8035a137985202056d25",
+      "mtimeMs": 1785819100734.676
+    },
+    {
+      "path": "artifacts/reset-password/20260804045136/reset-password-valid-en-768.png",
+      "bytes": 20518,
+      "sha256": "13de7f6fbfa5a19fd250d38dc79eab10ad3dfa5f07d8da9ea1fc8528747c4bf9",
+      "mtimeMs": 1785819101221.3467
+    },
+    {
+      "path": "artifacts/reset-password/20260804045136/reset-password-valid-en-1440.png",
+      "bytes": 26519,
+      "sha256": "2777fff99eff50ed7fdd1507752745abb01896c7767daad3145567a3fe637c05",
+      "mtimeMs": 1785819101714.684
+    },
+    {
+      "path": "artifacts/reset-password/20260804045136/reset-password-error-en-1440.png",
+      "bytes": 31827,
+      "sha256": "8b2164a86621f248c8e61fa4e8cc254aa214638f5a1424542355ae067af1ce1e",
+      "mtimeMs": 1785819102338.0227
+    },
+    {
+      "path": "artifacts/reset-password/20260804045136/reset-password-success-en-1440.png",
+      "bytes": 25360,
+      "sha256": "f107c60400123e8701747168ca3a7c07695b92ccec12a8ec159fbb9cf257667e",
+      "mtimeMs": 1785819103214.6965
+    }
+  ]
+}

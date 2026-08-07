@@ -79,6 +79,6 @@ Uma frase: por que agora e o que destrava.
 
 > Uma linha por estágio concluído/retornado. Registre custo observável, nunca reasoning, prompts ou tentativas.
 
-| Estágio | Contextos | Devoluções | Testes/estratégia | Resultado |
-|---------|-----------|------------|-------------------|-----------|
-| 002 | planejador: 1 | 0 | n/a | plano criado |
+| Estágio | Contextos | Devoluções | Testes/estratégia | Duração | Resultado |
+|---------|-----------|------------|-------------------|---------|-----------|
+| 002 | planejador: 1 | 0 | n/a | <ex.: 20min> | plano criado |

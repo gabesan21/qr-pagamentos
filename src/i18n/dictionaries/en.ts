@@ -1,4 +1,5 @@
 import { sharedEn } from "./shared/en";
+import { settingsEn } from "./settings/en";
 import { nauttEn } from "./nautt/en";
 import { designSystemEn } from "./design-system/en";
 import { administrationEn } from "./administration/en";
@@ -23,6 +24,7 @@ export const en = {
   ...appShellEn,
   ...profileEn,
   ...passwordResetEn,
+  ...settingsEn,
   ...merchantDashboardEn,
   ...adminDashboardEn,
   ...adminUsersDirectoryEn,

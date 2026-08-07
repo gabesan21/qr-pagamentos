@@ -1,6 +1,7 @@
 import Link from "next/link";
 
-import { WorkspaceHeading } from "@/app-shell/workspace-heading";
+import { ExternalLink } from "lucide-react";
+
 import type { Principal } from "@/auth/authorization";
 import { getStorefrontSettingsService } from "@/auth/storefront-settings";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -47,16 +48,25 @@ export default async function MerchantDashboardPage({
     : null;
 
   return (
-    <>
-      <div className="merchant-dashboard__header">
-        <WorkspaceHeading
-          description={dictionary.shellMerchantDashboardDescription}
-          eyebrow={dictionary.shellMerchantEyebrow}
-          title={dictionary.shellMerchantDashboardTitle}
-        />
-        {viewStore ? (
-          <Button asChild><Link href={viewStore}>{dictionary.merchantDashboardViewStore}</Link></Button>
-        ) : null}
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="font-display text-2xl font-semibold tracking-tight">{dictionary.shellMerchantDashboardTitle}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {dictionary.merchantDashboardGreeting.replace("{username}", principal.username)}
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          {viewStore ? (
+            <Button asChild variant="secondary">
+              <Link href={viewStore}>
+                <ExternalLink className="size-4" aria-hidden />
+                {dictionary.merchantDashboardViewStore}
+              </Link>
+            </Button>
+          ) : null}
+          <DashboardPeriodNavigation current={view.period.id} dictionary={dictionary} />
+        </div>
       </div>
       {ownerNotice ? (
         <Alert role={failed ? "alert" : "status"} variant={failed ? "destructive" : "success"}>
@@ -64,10 +74,19 @@ export default async function MerchantDashboardPage({
           <AlertDescription>{failed ? dictionary.ownerSettingsFailed : dictionary.ownerSettingsUpdated}</AlertDescription>
         </Alert>
       ) : null}
-      {notices.language === "saved" ? <Alert role="status" variant="success"><AlertTitle>{dictionary.languageHeading}</AlertTitle><AlertDescription>{dictionary.languageSaved}</AlertDescription></Alert> : null}
-      {notices.language === "error" ? <Alert variant="destructive"><AlertTitle>{dictionary.languageHeading}</AlertTitle><AlertDescription>{dictionary.languageError}</AlertDescription></Alert> : null}
-      <DashboardPeriodNavigation current={view.period.id} dictionary={dictionary} />
+      {notices.language === "saved" ? (
+        <Alert role="status" variant="success">
+          <AlertTitle>{dictionary.languageHeading}</AlertTitle>
+          <AlertDescription>{dictionary.languageSaved}</AlertDescription>
+        </Alert>
+      ) : null}
+      {notices.language === "error" ? (
+        <Alert variant="destructive">
+          <AlertTitle>{dictionary.languageHeading}</AlertTitle>
+          <AlertDescription>{dictionary.languageError}</AlertDescription>
+        </Alert>
+      ) : null}
       <MerchantDashboard dictionary={dictionary} locale={locale} view={view} />
-    </>
+    </div>
   );
 }

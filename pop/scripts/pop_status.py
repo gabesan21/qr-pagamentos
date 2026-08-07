@@ -21,6 +21,7 @@ import poplib
 
 WIP_LIMIT = 3
 STALE_DAYS = 14
+IDLE_HOURS = 2  # watchdog: task em 004 sem escrita na pasta há mais que isso
 
 
 def _stale_since(meta):
@@ -33,11 +34,28 @@ def _stale_since(meta):
     return (datetime.date.today() - updated).days
 
 
+def _idle_hours(task_dir):
+    """Horas desde a escrita mais recente na pasta da task, ou None."""
+    newest = None
+    for path in task_dir.rglob("*"):
+        try:
+            mtime = path.stat().st_mtime
+        except OSError:
+            continue
+        if newest is None or mtime > newest:
+            newest = mtime
+    if newest is None:
+        return None
+    delta = datetime.datetime.now().timestamp() - newest
+    return delta / 3600.0
+
+
 def collect(project):
     """Coleta contagens e listas de atenção de um projeto."""
     counts = {stage: 0 for stage in poplib.STAGES}
     attention = {"release": [], "approval": [], "merge": [],
-                 "blocked": [], "circuit": [], "stale": [], "claimed": []}
+                 "blocked": [], "circuit": [], "stale": [], "idle": [],
+                 "claimed": []}
     for stage, task_dir, card in poplib.iter_cards(project):
         counts[stage] += 1
         meta = poplib.read_card(card)
@@ -57,6 +75,11 @@ def collect(project):
             r005 = meta.get("yolo_005_returns") or 0
             attention["circuit"].append(
                 f"{tid} — devoluções 003={r003}, 005={r005}")
+        if stage == "004_processing" and meta.get("blocked") is not True:
+            hours = _idle_hours(task_dir)
+            if hours is not None and hours > IDLE_HOURS:
+                attention["idle"].append(
+                    f"{tid} — em 004 sem escrita há {hours:.1f}h")
         # Task aguardando merge já aparece na lista própria; não duplique.
         if meta.get("awaiting_merge") is not True:
             days = _stale_since(meta)
@@ -115,7 +138,8 @@ def main():
         return 0
 
     merged = {"release": [], "approval": [], "merge": [],
-              "blocked": [], "circuit": [], "stale": [], "claimed": []}
+              "blocked": [], "circuit": [], "stale": [], "idle": [],
+              "claimed": []}
     print(f"Vault: {root}")
     for project in projects:
         label = poplib.project_label(root, project)
@@ -133,6 +157,9 @@ def main():
     print_list("Circuit breakers yolo (intervenção humana)", merged["circuit"])
     print_list(f"Paradas (sem update há >{STALE_DAYS} dias, fora das que "
                f"aguardam merge)", merged["stale"])
+    print_list(f"Watchdog 004 (sem escrita há >{IDLE_HOURS}h — janela morta "
+               f"possível; justifique no Log ou marque blocked)",
+               merged["idle"])
     print_list("Em execução (claim ativo — não pegue estas tasks)",
                merged["claimed"])
     if not any(merged.values()):

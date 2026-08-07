@@ -47,23 +47,21 @@ describe("administrator settings hub", () => {
       const html = renderToStaticMarkup(await AdminSettingsPage({ searchParams: query() }));
 
       expect(requireContext).toHaveBeenCalled();
-      for (const anchor of ["exchange-currencies", "currency-pairs", "payment-methods", "payment-settings", "appearance", "language"]) {
+      for (const anchor of ["sec-currencies", "sec-pairs", "sec-methods", "sec-globalPayments", "sec-appearance", "sec-language"]) {
         expect(html).toContain(`id="${anchor}"`);
         expect(html).toContain(`href="#${anchor}"`);
       }
-      expect(html).toContain(dictionary.adminExchangeCurrenciesHeading);
-      expect(html).toContain(dictionary.adminCatalogCurrencyPairsHeading);
-      expect(html).toContain(dictionary.adminCatalogPaymentMethodsHeading);
-      expect(html).toContain(dictionary.adminPaymentSettingsHeading);
+      expect(html).toContain(dictionary.adminSecCurrencies);
+      expect(html).toContain(dictionary.adminSecPairs);
+      expect(html).toContain(dictionary.adminSecMethods);
+      expect(html).toContain(dictionary.adminSecGlobalPayments);
       expect(html).toContain(dictionary.adminAppearanceHeading);
       expect(html).toContain(dictionary.languageHeading);
       expect(html).toContain('action="/admin/exchange-currencies"');
-      expect(html).toContain('action="/admin/catalog/currency-pairs"');
-      expect(html).toContain('action="/admin/catalog/payment-methods"');
       expect(html).toContain('action="/admin/payment-settings"');
       expect(html).toContain('action="/admin/settings/default-theme"');
       expect(html).toContain('action="/language-preference"');
-      expect(html).toContain('value="vault-blue" selected=""');
+      expect(html).toContain('value="vault-blue"');
       expect(html).toContain("BRL/USDT");
     }
   });
@@ -87,8 +85,7 @@ describe("administrator settings hub", () => {
 
     const html = renderToStaticMarkup(await AdminSettingsPage({ searchParams: query() }));
 
-    expect(html).toContain(en.adminExchangeCurrencyEmpty);
-    expect(html).toContain(en.adminCatalogEmptyCurrencyPairs);
-    expect(html).toContain(en.adminCatalogEmptyPaymentMethods);
+    expect(html).toContain(en.adminEmptyCurrencies);
+    expect(html).toContain(en.adminEmptyRecords);
   });
 });

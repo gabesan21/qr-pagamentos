@@ -1,11 +1,12 @@
 import type { CSSProperties } from "react";
 
 import { cookies } from "next/headers";
+import Link from "next/link";
 
 import { getAuthorizationService } from "@/auth/authorization";
 import { BrandIdentity } from "@/brand/brand-identity";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
 import { getDictionary } from "@/i18n/dictionaries";
 import { getLocalePreferenceService } from "@/i18n/locale-preference";
 import { defaultLocale } from "@/i18n/locales";
@@ -26,28 +27,53 @@ export default async function PublicStorefrontPage({ params }: Readonly<{ params
   if (!storefront) {
     return (
       <main className="storefront-shell storefront-shell--unavailable">
-        <Card className="storefront-card">
-          <CardHeader><CardTitle>{dictionary.storefrontUnavailableHeading}</CardTitle></CardHeader>
-          <CardContent><Alert variant="destructive"><AlertTitle>{dictionary.storefrontUnavailableHeading}</AlertTitle><AlertDescription>{dictionary.storefrontUnavailableDescription}</AlertDescription></Alert></CardContent>
-        </Card>
+        <EmptyState
+          body={dictionary.storefrontUnavailableDescription}
+          illustration="unavailable"
+          kind="unavailable"
+          title={dictionary.storefrontUnavailableHeading}
+        />
       </main>
     );
   }
 
   const displayName = storefront.displayName ?? dictionary.storefrontFallbackName;
+  const isEmpty = storefront.catalog.length === 0 && !storefront.standalonePayments;
+
   return (
-    <main className="storefront-shell" data-theme-preview={storefront.themeId} style={{ "--storefront-accent": storefront.accentColor } as CSSProperties}>
+    <main
+      className="storefront-shell"
+      data-theme-preview={storefront.themeId}
+      style={{ "--storefront-accent": storefront.accentColor } as CSSProperties}
+    >
       <header className="receipt-rail storefront-rail">
-        {storefront.logoMediaIdentifier
-          ? <img alt={dictionary.storefrontLogoAlt} className="storefront-logo" src={`/media/${storefront.logoMediaIdentifier}`} />
-          : <BrandIdentity variant="merchant-fallback" />}
+        {storefront.logoMediaIdentifier ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            alt={dictionary.storefrontLogoAlt}
+            className="storefront-logo"
+            src={`/media/${storefront.logoMediaIdentifier}`}
+          />
+        ) : (
+          <span aria-label={dictionary.storefrontLogoFallbackAlt} role="img">
+            <BrandIdentity variant="merchant-fallback" />
+          </span>
+        )}
         <h1 className="storefront-heading">{displayName}</h1>
         <p className="storefront-introduction">{dictionary.storefrontIntroduction}</p>
       </header>
-      {storefront.catalog.length === 0 && !storefront.standalonePayments ? (
-        <Card className="storefront-card">
-          <CardHeader><CardTitle>{dictionary.storefrontEmptyHeading}</CardTitle><CardDescription>{dictionary.storefrontEmptyDescription}</CardDescription></CardHeader>
-        </Card>
+      {isEmpty ? (
+        <EmptyState
+          action={
+            <Button asChild variant="outline">
+              <Link href="/">{dictionary.storefrontErrorRetry}</Link>
+            </Button>
+          }
+          body={dictionary.storefrontEmptyDescription}
+          illustration="products"
+          kind="empty"
+          title={dictionary.storefrontEmptyHeading}
+        />
       ) : (
         <StorefrontExperience
           catalog={storefront.catalog}

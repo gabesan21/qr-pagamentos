@@ -40,6 +40,39 @@ RETURN_KINDS = ("lacuna", "premissa", "execucao")
 # Checkbox de liberação humana no card (gate de saída do 001).
 RELEASE_MARK = re.compile(r"^\s*[-*]\s*\[[xX]\]\s*Pronto para planejar")
 
+# Marcadores de máquina do Judge Dredd no `.verify.md` (ver [[specs/judge-dredd]]).
+# Toda rodada termina com um `pop-verdict`; devolução acrescenta o `pop-delta`
+# da mesma rodada. São eles que `pop_move` e `pop_validate` leem — o texto em
+# prosa é para humanos, o marcador é o contrato executável. Campos `chave=valor`
+# sem espaços; listas separadas por vírgula (`paths=src/a.ts,tests/b.spec.ts`).
+VERDICT_MARKER = re.compile(r"<!--\s*pop-verdict\s+([^>]*?)-->")
+DELTA_MARKER = re.compile(r"<!--\s*pop-delta\s+([^>]*?)-->")
+MARKER_FIELD = re.compile(r"([\w-]+)=([^\s>]+)")
+# `aprovada` encerra o gate (terminal); `reparo-dirigido` não é rota (a pasta
+# não se move); os três de RETURN_KINDS são as rotas de devolução.
+VERDICT_DECISIONS = ("aprovada", "reparo-dirigido") + RETURN_KINDS
+
+
+def parse_verify_markers(text: str):
+    """(vereditos, deltas) dos marcadores de máquina de um `.verify.md`.
+
+    Vereditos vêm na ordem do arquivo (a última rodada decide); deltas são
+    indexados pelo `round` declarado. Campos são strings cruas — quem valida
+    enums é o chamador.
+    """
+    verdicts = [dict(MARKER_FIELD.findall(m.group(1)))
+                for m in VERDICT_MARKER.finditer(text)]
+    deltas = {}
+    for m in DELTA_MARKER.finditer(text):
+        fields = dict(MARKER_FIELD.findall(m.group(1)))
+        deltas[fields.get("round")] = fields
+    return verdicts, deltas
+
+
+def marker_paths(delta: dict) -> list:
+    """Lista de caminhos do campo `paths` de um pop-delta (vazia se ausente)."""
+    return [p for p in (delta.get("paths") or "").split(",") if p]
+
 def vault_root(override: Optional[str] = None) -> Path:
     """Raiz do escopo corrente: `--vault` se dado, senão a pasta acima de
     `scripts/`.

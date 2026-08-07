@@ -1,0 +1,2797 @@
+{
+  "schemaVersion": 2,
+  "generatedBy": "deterministic source parser in scripts/check-frontend-template-parity-contract.mjs",
+  "authority": {
+    "template": "presentation and interaction feedback",
+    "current": "business, security, runtime, precision, stored locale and theme identifiers",
+    "mocks": "non-authoritative"
+  },
+  "sourceRoots": {
+    "template": "docs/template/app",
+    "appEntry": {
+      "path": "docs/template/app/src/App.tsx",
+      "sha256": "a3afbe34bcfaec0d8b7578c92824021a515a08c476f820afa3a1027ae3c010a9"
+    },
+    "currentApp": "src/app"
+  },
+  "graph": {
+    "reachableFiles": [
+      {
+        "path": "docs/template/app/src/App.tsx",
+        "sha256": "a3afbe34bcfaec0d8b7578c92824021a515a08c476f820afa3a1027ae3c010a9"
+      },
+      {
+        "path": "docs/template/app/src/components/Footer.tsx",
+        "sha256": "969cf1c24507f1bbedbfadeea0bd24f030b2b41273383cccd18bf6dc75edd262"
+      },
+      {
+        "path": "docs/template/app/src/components/Layout.tsx",
+        "sha256": "34b7537f69cde474a3be3f5ec5f693a96ecd4bb2c7a7278539978885993f5b93"
+      },
+      {
+        "path": "docs/template/app/src/components/Logo.tsx",
+        "sha256": "1c2d0468b7928b916bb87f79f1d58026a91c782aa8be5e0c8ef4b449f53af4a7"
+      },
+      {
+        "path": "docs/template/app/src/components/Navbar.tsx",
+        "sha256": "17ca460089791aeef6a814913aad45592b6403d9a8544b122024aa11ed92d588"
+      },
+      {
+        "path": "docs/template/app/src/components/RoleGuard.tsx",
+        "sha256": "03f88f67fd3bccb1e85cec7ae628a09b9a1ba3a774bd0041cf9e4c32bfbaa803"
+      },
+      {
+        "path": "docs/template/app/src/components/ui/button.tsx",
+        "sha256": "5a5c4b8b60a8a80ba7b8b5d0319be2d3c61bfd2ce4fc2a645371dee9f6db0a77"
+      },
+      {
+        "path": "docs/template/app/src/components/ui/checkbox.tsx",
+        "sha256": "a8292972a5b81eff164f621ac0bb66f4ed4419d1599e2d4901968e216574677f"
+      },
+      {
+        "path": "docs/template/app/src/components/ui/CopyField.tsx",
+        "sha256": "4f8f8eb249dfb2764959ac2a3f912a6f6f1fa1685a2c904af317a00adfcfaceb"
+      },
+      {
+        "path": "docs/template/app/src/components/ui/DataTable.tsx",
+        "sha256": "bb425e4c18f997eb1d5985ba65148d81c225826000831395fc7618cc6e449eef"
+      },
+      {
+        "path": "docs/template/app/src/components/ui/EmptyState.tsx",
+        "sha256": "42757ec0e75c7e12e34e99bac2daa498cd1eaf2817b3bcaabb4217d7d69ae56e"
+      },
+      {
+        "path": "docs/template/app/src/components/ui/FilterBar.tsx",
+        "sha256": "262b1c842c723c577a938435f6ea849657b48bf6f721adc6621fa476f2165240"
+      },
+      {
+        "path": "docs/template/app/src/components/ui/input-otp.tsx",
+        "sha256": "7fd7ed5273f849cde558238148ee1bbae729aa1149407c7c732b6c65906933d2"
+      },
+      {
+        "path": "docs/template/app/src/components/ui/LocalizedFieldGroup.tsx",
+        "sha256": "ccc6ee9b577d4209b6c64ef94e2e1ba09f08add64170f1e9090d958d45adeece"
+      },
+      {
+        "path": "docs/template/app/src/components/ui/Modal.tsx",
+        "sha256": "9946c0d1a4a274167f663a823abcfcfb01e03514b4ffdcb413c07b72a68a3448"
+      },
+      {
+        "path": "docs/template/app/src/components/ui/MoneyText.tsx",
+        "sha256": "7b351f6bd8c1dedc25ed84a2579b4d594910572a70afd8afe8208b18f137c541"
+      },
+      {
+        "path": "docs/template/app/src/components/ui/Monogram.tsx",
+        "sha256": "70cec488bb1ae5a489c9d29d6b2975412f6c8d1e00738f0e38cca98cc1f1c4c0"
+      },
+      {
+        "path": "docs/template/app/src/components/ui/pagination.tsx",
+        "sha256": "816b00e461649b37c7c789ce7c52cd2fc224f7fdade01eb3f29164192c785170"
+      },
+      {
+        "path": "docs/template/app/src/components/ui/QRDisplay.tsx",
+        "sha256": "38d4107683b322abc13bacc4feac1b90158026d1a213e733002f6c188333fb83"
+      },
+      {
+        "path": "docs/template/app/src/components/ui/SimpleTabs.tsx",
+        "sha256": "9d07ea74b7c92c7b62a20439c7e62ff7562b7457e32cd5cf04155856def277af"
+      },
+      {
+        "path": "docs/template/app/src/components/ui/Skeletons.tsx",
+        "sha256": "eeaa9558154294f65c2e3d9e6c29b4bb56a256b8ca5a2441002be1feb3c7ee8e"
+      },
+      {
+        "path": "docs/template/app/src/components/ui/StatCard.tsx",
+        "sha256": "a2129c08fc994e9bfbb8ef1db496385691ecd1d62adb7a4b795c55af5cac9c4c"
+      },
+      {
+        "path": "docs/template/app/src/components/ui/StatusBadge.tsx",
+        "sha256": "dbd1e9bf89fdb222c69e3333d8198e7c4378109830ef71fb00ef97dfba073d1f"
+      },
+      {
+        "path": "docs/template/app/src/components/ui/switch.tsx",
+        "sha256": "17f2390d98e8ce4d9e90155eac1918266914d6a9ada7c276b5d1c917cef0e969"
+      },
+      {
+        "path": "docs/template/app/src/components/ui/Timeline.tsx",
+        "sha256": "c923b98c2222c7430c89bbd0ee390a68a24ef3b60db81455459a1cbd7468bbbe"
+      },
+      {
+        "path": "docs/template/app/src/components/ui/Toast.tsx",
+        "sha256": "aa37cf0252ac239164b802076697915a941c40840bb6d1501b57e38de82f254c"
+      },
+      {
+        "path": "docs/template/app/src/i18n/en.ts",
+        "sha256": "fc0066bc6ff67c193ddc41fd3843bea61acaed8c0e12332ecb199d193fb7d279"
+      },
+      {
+        "path": "docs/template/app/src/i18n/index.tsx",
+        "sha256": "9edb68b61dd752f4550088769397b5ccf4396729fb5766293cfab8320ad37c08"
+      },
+      {
+        "path": "docs/template/app/src/i18n/pt-BR.ts",
+        "sha256": "6061ad079ac3d1608bc85e1d3316ee191d820bc5ef0895b2c8c1ebd454e06401"
+      },
+      {
+        "path": "docs/template/app/src/lib/utils.ts",
+        "sha256": "7c8c3dfc0cdd370d44932828eb067ef771c8fe7996693221d5d4b90af6d54f2d"
+      },
+      {
+        "path": "docs/template/app/src/mock/fixtures.ts",
+        "sha256": "825d5af37f85f0f96fb8ce0e662a0cfeeed161524d881cc13abceffac56364ba"
+      },
+      {
+        "path": "docs/template/app/src/mock/session.tsx",
+        "sha256": "af68a951821f8f655dba067cf70fc316f93d05d3d0e9a031cb8bedbe7685b2da"
+      },
+      {
+        "path": "docs/template/app/src/mock/types.ts",
+        "sha256": "b1ceb189c79ebda8747c32b46ad31957a54fe5a626f8ecc320c488665afc799d"
+      },
+      {
+        "path": "docs/template/app/src/pages/admin/AdminAccountDetail.tsx",
+        "sha256": "0527ee75282f0446e6016dfe64458f5b329bd96f6f25d8af64ae62e4be374bfd"
+      },
+      {
+        "path": "docs/template/app/src/pages/admin/AdminAccounts.tsx",
+        "sha256": "6c9296e1a015abed8a99ce770458b3ed34d1583698249678d9ebfbda36238e16"
+      },
+      {
+        "path": "docs/template/app/src/pages/admin/AdminDashboard.tsx",
+        "sha256": "f35bf7b785f736422a84472409d9eca43401bf325b1fe5d95822cd86025d4c17"
+      },
+      {
+        "path": "docs/template/app/src/pages/admin/AdminLinkDetail.tsx",
+        "sha256": "d0d221941f56bb6d3819e0881c5ac9f820292ea09369567b2f9c8e01de567c6d"
+      },
+      {
+        "path": "docs/template/app/src/pages/admin/AdminLinks.tsx",
+        "sha256": "c2ea2e35160a99a7797df22cedb7ecaf0ab32f8e51c8de9337a277ebb72faf9c"
+      },
+      {
+        "path": "docs/template/app/src/pages/admin/AdminOrderDetail.tsx",
+        "sha256": "3614e8160c893a5ce89d662858ef6a4454ceec106beb5ae13b5703546e99af06"
+      },
+      {
+        "path": "docs/template/app/src/pages/admin/AdminOrders.tsx",
+        "sha256": "e63794485eb2383ca04a627e4d277a7b4ee4684da5268ed2d844e743504f270a"
+      },
+      {
+        "path": "docs/template/app/src/pages/admin/AdminSettings.tsx",
+        "sha256": "df198e06f8b6f44e6392f6103b86260112cd705321da9c6609fb65733fbcf309"
+      },
+      {
+        "path": "docs/template/app/src/pages/admin/shared.tsx",
+        "sha256": "f20e2a3883078d13e24cbabd0937c663d6b3bab4ab6c446b752b130b8c4bee86"
+      },
+      {
+        "path": "docs/template/app/src/pages/admin/unavailable.tsx",
+        "sha256": "3d6449da0ca02dabd1967c3b16d67db38b46efa4a4f913cdfa2105457f2c6d48"
+      },
+      {
+        "path": "docs/template/app/src/pages/auth/AuthShell.tsx",
+        "sha256": "57370be68d94c7e390e2baac80f4d82ef50ab80583da506ec258ef0a7d179aa4"
+      },
+      {
+        "path": "docs/template/app/src/pages/auth/Login.tsx",
+        "sha256": "739550e40be935ddd3f0bc20ffcb0acf82eaa0e4e51c5033183a7a57984af575"
+      },
+      {
+        "path": "docs/template/app/src/pages/auth/ResetPassword.tsx",
+        "sha256": "61d0f7aab2f1cafd9c4dae631ee7b0b95f4a2821eddd7542f9784795ab69e78b"
+      },
+      {
+        "path": "docs/template/app/src/pages/catalog/CatalogPage.tsx",
+        "sha256": "97b547b5fe126651f4eb6d258b9e9fe7ff891437ecbfdfd3a634df9e3feca6ec"
+      },
+      {
+        "path": "docs/template/app/src/pages/catalog/CategoriesPage.tsx",
+        "sha256": "7a5e2df6d5bde6ca05bc76bb8d9cb684c0908ded793353cf49b3860557c7833c"
+      },
+      {
+        "path": "docs/template/app/src/pages/catalog/fields.tsx",
+        "sha256": "831fda22798e0736981e539e611906c699b2e59cfbfdcc576ea40b16bb318d23"
+      },
+      {
+        "path": "docs/template/app/src/pages/catalog/ProductDetailPage.tsx",
+        "sha256": "5a27775a138633cbabf7454b8202c109587a19b732f79df526b96423adbc2728"
+      },
+      {
+        "path": "docs/template/app/src/pages/catalog/ProductForm.tsx",
+        "sha256": "3c8be965a909dea0bb378652f290157d89bba7599dbef716a81e70985493add4"
+      },
+      {
+        "path": "docs/template/app/src/pages/catalog/ProductNewPage.tsx",
+        "sha256": "45864f7976ad6b6f1140b87c3e14f5a42274824cdcaceee89b0b55f1398cf768"
+      },
+      {
+        "path": "docs/template/app/src/pages/checkout/CheckoutPage.tsx",
+        "sha256": "29c99f74de2d3d88d07a714ead232c4123ed0e7fe55b278da0aebac74eb8816c"
+      },
+      {
+        "path": "docs/template/app/src/pages/links/LinkCreate.tsx",
+        "sha256": "d9c4de0994bcaaeafb28a17db97a9d5a8a9440a5e5f0f72b4deb1c26170d6428"
+      },
+      {
+        "path": "docs/template/app/src/pages/links/LinkDetail.tsx",
+        "sha256": "6b8dbb0e853837b40b7299ad2800277004f91ac4e7d02991ae42cc77583b427b"
+      },
+      {
+        "path": "docs/template/app/src/pages/links/LinkEdit.tsx",
+        "sha256": "28231b44d98958030a5afb053b18f5d3d6676b6b2772ddcaad1002cd81d77bba"
+      },
+      {
+        "path": "docs/template/app/src/pages/links/LinkForm.tsx",
+        "sha256": "8581dc92ca20bf11888e6ed698f8071de5e30abf76112b5a6b3f6a5576152587"
+      },
+      {
+        "path": "docs/template/app/src/pages/links/LinkOrderDetail.tsx",
+        "sha256": "42848ed813da5858f2bbb2ed8a33a875ef5a829ac9d966453a9d23662001b990"
+      },
+      {
+        "path": "docs/template/app/src/pages/links/LinkOrders.tsx",
+        "sha256": "495aec391c2432e2e6722c98bd0ea8885d6aa33d5273e8c2125a09e8777a5f2c"
+      },
+      {
+        "path": "docs/template/app/src/pages/links/LinksDirectory.tsx",
+        "sha256": "8119f61539a9d01b73973521296b39b9aba2ac95f35a9ad6309a4bcecbb56d68"
+      },
+      {
+        "path": "docs/template/app/src/pages/links/linkStore.ts",
+        "sha256": "ec1208ceb9343a0556b62e36f90f4e966978ab95af39db0862e802db75182f7c"
+      },
+      {
+        "path": "docs/template/app/src/pages/links/shared.tsx",
+        "sha256": "90164c068869975ca4e5c5f49ed40b3ca0a7c10d55921ef04cbcef800f21bc1e"
+      },
+      {
+        "path": "docs/template/app/src/pages/merchant/MerchantDashboard.tsx",
+        "sha256": "3a60cb225cf310f861434d98e352c0ee0686eaef19b1c99a7b8548b2114b30a3"
+      },
+      {
+        "path": "docs/template/app/src/pages/merchant/MerchantOrderDetail.tsx",
+        "sha256": "826cf87e3c3cbc13a236f8fe6985724fe71342079d99fd97abb2b2b674f61969"
+      },
+      {
+        "path": "docs/template/app/src/pages/merchant/MerchantOrders.tsx",
+        "sha256": "ad8b11a4d9d51f886b3ae14330402e9b8d69abc6d241d2a76d465657c4bddf58"
+      },
+      {
+        "path": "docs/template/app/src/pages/PageStub.tsx",
+        "sha256": "ecc0aae79a6d6c1f1568b0e1683c9e74ffa1015e3aa8fb71fc8f0db1c9d8689b"
+      },
+      {
+        "path": "docs/template/app/src/pages/profile/ProfilePage.tsx",
+        "sha256": "a62ef1fa07e89118d466b6c46e46581142fd3d0f0523b27d3ead17fbaa1a252e"
+      },
+      {
+        "path": "docs/template/app/src/pages/settings/SettingsPage.tsx",
+        "sha256": "e3a30ac8461aa3ac855856df760c84c1adfd303120ef969448491e3d21091abd"
+      },
+      {
+        "path": "docs/template/app/src/theme/ThemeProvider.tsx",
+        "sha256": "7735a5e937d7910c670345285d0f561f91316ec375e40eaafe41fa3cf3443cb2"
+      }
+    ],
+    "edges": [
+      {
+        "from": "docs/template/app/src/App.tsx",
+        "specifier": "@/components/Layout",
+        "to": "docs/template/app/src/components/Layout.tsx"
+      },
+      {
+        "from": "docs/template/app/src/App.tsx",
+        "specifier": "@/components/RoleGuard",
+        "to": "docs/template/app/src/components/RoleGuard.tsx"
+      },
+      {
+        "from": "docs/template/app/src/App.tsx",
+        "specifier": "@/components/ui/Toast",
+        "to": "docs/template/app/src/components/ui/Toast.tsx"
+      },
+      {
+        "from": "docs/template/app/src/App.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/App.tsx",
+        "specifier": "@/mock/session",
+        "to": "docs/template/app/src/mock/session.tsx"
+      },
+      {
+        "from": "docs/template/app/src/App.tsx",
+        "specifier": "@/pages/admin/AdminAccountDetail",
+        "to": "docs/template/app/src/pages/admin/AdminAccountDetail.tsx"
+      },
+      {
+        "from": "docs/template/app/src/App.tsx",
+        "specifier": "@/pages/admin/AdminAccounts",
+        "to": "docs/template/app/src/pages/admin/AdminAccounts.tsx"
+      },
+      {
+        "from": "docs/template/app/src/App.tsx",
+        "specifier": "@/pages/admin/AdminDashboard",
+        "to": "docs/template/app/src/pages/admin/AdminDashboard.tsx"
+      },
+      {
+        "from": "docs/template/app/src/App.tsx",
+        "specifier": "@/pages/admin/AdminLinkDetail",
+        "to": "docs/template/app/src/pages/admin/AdminLinkDetail.tsx"
+      },
+      {
+        "from": "docs/template/app/src/App.tsx",
+        "specifier": "@/pages/admin/AdminLinks",
+        "to": "docs/template/app/src/pages/admin/AdminLinks.tsx"
+      },
+      {
+        "from": "docs/template/app/src/App.tsx",
+        "specifier": "@/pages/admin/AdminOrderDetail",
+        "to": "docs/template/app/src/pages/admin/AdminOrderDetail.tsx"
+      },
+      {
+        "from": "docs/template/app/src/App.tsx",
+        "specifier": "@/pages/admin/AdminOrders",
+        "to": "docs/template/app/src/pages/admin/AdminOrders.tsx"
+      },
+      {
+        "from": "docs/template/app/src/App.tsx",
+        "specifier": "@/pages/admin/AdminSettings",
+        "to": "docs/template/app/src/pages/admin/AdminSettings.tsx"
+      },
+      {
+        "from": "docs/template/app/src/App.tsx",
+        "specifier": "@/pages/auth/Login",
+        "to": "docs/template/app/src/pages/auth/Login.tsx"
+      },
+      {
+        "from": "docs/template/app/src/App.tsx",
+        "specifier": "@/pages/auth/ResetPassword",
+        "to": "docs/template/app/src/pages/auth/ResetPassword.tsx"
+      },
+      {
+        "from": "docs/template/app/src/App.tsx",
+        "specifier": "@/pages/catalog/CatalogPage",
+        "to": "docs/template/app/src/pages/catalog/CatalogPage.tsx"
+      },
+      {
+        "from": "docs/template/app/src/App.tsx",
+        "specifier": "@/pages/catalog/CategoriesPage",
+        "to": "docs/template/app/src/pages/catalog/CategoriesPage.tsx"
+      },
+      {
+        "from": "docs/template/app/src/App.tsx",
+        "specifier": "@/pages/catalog/ProductDetailPage",
+        "to": "docs/template/app/src/pages/catalog/ProductDetailPage.tsx"
+      },
+      {
+        "from": "docs/template/app/src/App.tsx",
+        "specifier": "@/pages/catalog/ProductNewPage",
+        "to": "docs/template/app/src/pages/catalog/ProductNewPage.tsx"
+      },
+      {
+        "from": "docs/template/app/src/App.tsx",
+        "specifier": "@/pages/checkout/CheckoutPage",
+        "to": "docs/template/app/src/pages/checkout/CheckoutPage.tsx"
+      },
+      {
+        "from": "docs/template/app/src/App.tsx",
+        "specifier": "@/pages/links/LinkCreate",
+        "to": "docs/template/app/src/pages/links/LinkCreate.tsx"
+      },
+      {
+        "from": "docs/template/app/src/App.tsx",
+        "specifier": "@/pages/links/LinkDetail",
+        "to": "docs/template/app/src/pages/links/LinkDetail.tsx"
+      },
+      {
+        "from": "docs/template/app/src/App.tsx",
+        "specifier": "@/pages/links/LinkEdit",
+        "to": "docs/template/app/src/pages/links/LinkEdit.tsx"
+      },
+      {
+        "from": "docs/template/app/src/App.tsx",
+        "specifier": "@/pages/links/LinkOrderDetail",
+        "to": "docs/template/app/src/pages/links/LinkOrderDetail.tsx"
+      },
+      {
+        "from": "docs/template/app/src/App.tsx",
+        "specifier": "@/pages/links/LinkOrders",
+        "to": "docs/template/app/src/pages/links/LinkOrders.tsx"
+      },
+      {
+        "from": "docs/template/app/src/App.tsx",
+        "specifier": "@/pages/links/LinksDirectory",
+        "to": "docs/template/app/src/pages/links/LinksDirectory.tsx"
+      },
+      {
+        "from": "docs/template/app/src/App.tsx",
+        "specifier": "@/pages/merchant/MerchantDashboard",
+        "to": "docs/template/app/src/pages/merchant/MerchantDashboard.tsx"
+      },
+      {
+        "from": "docs/template/app/src/App.tsx",
+        "specifier": "@/pages/merchant/MerchantOrderDetail",
+        "to": "docs/template/app/src/pages/merchant/MerchantOrderDetail.tsx"
+      },
+      {
+        "from": "docs/template/app/src/App.tsx",
+        "specifier": "@/pages/merchant/MerchantOrders",
+        "to": "docs/template/app/src/pages/merchant/MerchantOrders.tsx"
+      },
+      {
+        "from": "docs/template/app/src/App.tsx",
+        "specifier": "@/pages/PageStub",
+        "to": "docs/template/app/src/pages/PageStub.tsx"
+      },
+      {
+        "from": "docs/template/app/src/App.tsx",
+        "specifier": "@/pages/profile/ProfilePage",
+        "to": "docs/template/app/src/pages/profile/ProfilePage.tsx"
+      },
+      {
+        "from": "docs/template/app/src/App.tsx",
+        "specifier": "@/pages/settings/SettingsPage",
+        "to": "docs/template/app/src/pages/settings/SettingsPage.tsx"
+      },
+      {
+        "from": "docs/template/app/src/App.tsx",
+        "specifier": "@/theme/ThemeProvider",
+        "to": "docs/template/app/src/theme/ThemeProvider.tsx"
+      },
+      {
+        "from": "docs/template/app/src/components/Footer.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/components/Footer.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/components/Layout.tsx",
+        "specifier": "./Footer",
+        "to": "docs/template/app/src/components/Footer.tsx"
+      },
+      {
+        "from": "docs/template/app/src/components/Layout.tsx",
+        "specifier": "./Navbar",
+        "to": "docs/template/app/src/components/Navbar.tsx"
+      },
+      {
+        "from": "docs/template/app/src/components/Layout.tsx",
+        "specifier": "@/components/ui/Monogram",
+        "to": "docs/template/app/src/components/ui/Monogram.tsx"
+      },
+      {
+        "from": "docs/template/app/src/components/Layout.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/components/Layout.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/components/Layout.tsx",
+        "specifier": "@/lib/utils",
+        "to": "docs/template/app/src/lib/utils.ts"
+      },
+      {
+        "from": "docs/template/app/src/components/Layout.tsx",
+        "specifier": "@/mock/session",
+        "to": "docs/template/app/src/mock/session.tsx"
+      },
+      {
+        "from": "docs/template/app/src/components/Logo.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/components/Logo.tsx",
+        "specifier": "@/lib/utils",
+        "to": "docs/template/app/src/lib/utils.ts"
+      },
+      {
+        "from": "docs/template/app/src/components/Navbar.tsx",
+        "specifier": "./Logo",
+        "to": "docs/template/app/src/components/Logo.tsx"
+      },
+      {
+        "from": "docs/template/app/src/components/Navbar.tsx",
+        "specifier": "@/components/ui/Monogram",
+        "to": "docs/template/app/src/components/ui/Monogram.tsx"
+      },
+      {
+        "from": "docs/template/app/src/components/Navbar.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/components/Navbar.tsx",
+        "specifier": "@/lib/utils",
+        "to": "docs/template/app/src/lib/utils.ts"
+      },
+      {
+        "from": "docs/template/app/src/components/Navbar.tsx",
+        "specifier": "@/mock/session",
+        "to": "docs/template/app/src/mock/session.tsx"
+      },
+      {
+        "from": "docs/template/app/src/components/RoleGuard.tsx",
+        "specifier": "@/components/ui/button",
+        "to": "docs/template/app/src/components/ui/button.tsx"
+      },
+      {
+        "from": "docs/template/app/src/components/RoleGuard.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/components/RoleGuard.tsx",
+        "specifier": "@/mock/session",
+        "to": "docs/template/app/src/mock/session.tsx"
+      },
+      {
+        "from": "docs/template/app/src/components/RoleGuard.tsx",
+        "specifier": "@/mock/types",
+        "to": "docs/template/app/src/mock/types.ts"
+      },
+      {
+        "from": "docs/template/app/src/components/ui/button.tsx",
+        "specifier": "@/lib/utils",
+        "to": "docs/template/app/src/lib/utils.ts"
+      },
+      {
+        "from": "docs/template/app/src/components/ui/checkbox.tsx",
+        "specifier": "@/lib/utils",
+        "to": "docs/template/app/src/lib/utils.ts"
+      },
+      {
+        "from": "docs/template/app/src/components/ui/CopyField.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/components/ui/CopyField.tsx",
+        "specifier": "@/lib/utils",
+        "to": "docs/template/app/src/lib/utils.ts"
+      },
+      {
+        "from": "docs/template/app/src/components/ui/DataTable.tsx",
+        "specifier": "./button",
+        "to": "docs/template/app/src/components/ui/button.tsx"
+      },
+      {
+        "from": "docs/template/app/src/components/ui/DataTable.tsx",
+        "specifier": "./EmptyState",
+        "to": "docs/template/app/src/components/ui/EmptyState.tsx"
+      },
+      {
+        "from": "docs/template/app/src/components/ui/DataTable.tsx",
+        "specifier": "./EmptyState",
+        "to": "docs/template/app/src/components/ui/EmptyState.tsx"
+      },
+      {
+        "from": "docs/template/app/src/components/ui/DataTable.tsx",
+        "specifier": "./pagination",
+        "to": "docs/template/app/src/components/ui/pagination.tsx"
+      },
+      {
+        "from": "docs/template/app/src/components/ui/DataTable.tsx",
+        "specifier": "./Skeletons",
+        "to": "docs/template/app/src/components/ui/Skeletons.tsx"
+      },
+      {
+        "from": "docs/template/app/src/components/ui/DataTable.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/components/ui/DataTable.tsx",
+        "specifier": "@/lib/utils",
+        "to": "docs/template/app/src/lib/utils.ts"
+      },
+      {
+        "from": "docs/template/app/src/components/ui/EmptyState.tsx",
+        "specifier": "@/lib/utils",
+        "to": "docs/template/app/src/lib/utils.ts"
+      },
+      {
+        "from": "docs/template/app/src/components/ui/FilterBar.tsx",
+        "specifier": "./button",
+        "to": "docs/template/app/src/components/ui/button.tsx"
+      },
+      {
+        "from": "docs/template/app/src/components/ui/FilterBar.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/components/ui/FilterBar.tsx",
+        "specifier": "@/lib/utils",
+        "to": "docs/template/app/src/lib/utils.ts"
+      },
+      {
+        "from": "docs/template/app/src/components/ui/input-otp.tsx",
+        "specifier": "@/lib/utils",
+        "to": "docs/template/app/src/lib/utils.ts"
+      },
+      {
+        "from": "docs/template/app/src/components/ui/LocalizedFieldGroup.tsx",
+        "specifier": "@/lib/utils",
+        "to": "docs/template/app/src/lib/utils.ts"
+      },
+      {
+        "from": "docs/template/app/src/components/ui/LocalizedFieldGroup.tsx",
+        "specifier": "@/mock/types",
+        "to": "docs/template/app/src/mock/types.ts"
+      },
+      {
+        "from": "docs/template/app/src/components/ui/Modal.tsx",
+        "specifier": "./button",
+        "to": "docs/template/app/src/components/ui/button.tsx"
+      },
+      {
+        "from": "docs/template/app/src/components/ui/Modal.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/components/ui/Modal.tsx",
+        "specifier": "@/lib/utils",
+        "to": "docs/template/app/src/lib/utils.ts"
+      },
+      {
+        "from": "docs/template/app/src/components/ui/MoneyText.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/components/ui/MoneyText.tsx",
+        "specifier": "@/lib/utils",
+        "to": "docs/template/app/src/lib/utils.ts"
+      },
+      {
+        "from": "docs/template/app/src/components/ui/MoneyText.tsx",
+        "specifier": "@/mock/types",
+        "to": "docs/template/app/src/mock/types.ts"
+      },
+      {
+        "from": "docs/template/app/src/components/ui/Monogram.tsx",
+        "specifier": "@/lib/utils",
+        "to": "docs/template/app/src/lib/utils.ts"
+      },
+      {
+        "from": "docs/template/app/src/components/ui/pagination.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/components/ui/pagination.tsx",
+        "specifier": "@/lib/utils",
+        "to": "docs/template/app/src/lib/utils.ts"
+      },
+      {
+        "from": "docs/template/app/src/components/ui/QRDisplay.tsx",
+        "specifier": "./CopyField",
+        "to": "docs/template/app/src/components/ui/CopyField.tsx"
+      },
+      {
+        "from": "docs/template/app/src/components/ui/QRDisplay.tsx",
+        "specifier": "./Monogram",
+        "to": "docs/template/app/src/components/ui/Monogram.tsx"
+      },
+      {
+        "from": "docs/template/app/src/components/ui/QRDisplay.tsx",
+        "specifier": "@/lib/utils",
+        "to": "docs/template/app/src/lib/utils.ts"
+      },
+      {
+        "from": "docs/template/app/src/components/ui/SimpleTabs.tsx",
+        "specifier": "@/lib/utils",
+        "to": "docs/template/app/src/lib/utils.ts"
+      },
+      {
+        "from": "docs/template/app/src/components/ui/Skeletons.tsx",
+        "specifier": "@/lib/utils",
+        "to": "docs/template/app/src/lib/utils.ts"
+      },
+      {
+        "from": "docs/template/app/src/components/ui/StatCard.tsx",
+        "specifier": "@/lib/utils",
+        "to": "docs/template/app/src/lib/utils.ts"
+      },
+      {
+        "from": "docs/template/app/src/components/ui/StatusBadge.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/components/ui/StatusBadge.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/components/ui/StatusBadge.tsx",
+        "specifier": "@/lib/utils",
+        "to": "docs/template/app/src/lib/utils.ts"
+      },
+      {
+        "from": "docs/template/app/src/components/ui/StatusBadge.tsx",
+        "specifier": "@/mock/types",
+        "to": "docs/template/app/src/mock/types.ts"
+      },
+      {
+        "from": "docs/template/app/src/components/ui/switch.tsx",
+        "specifier": "@/lib/utils",
+        "to": "docs/template/app/src/lib/utils.ts"
+      },
+      {
+        "from": "docs/template/app/src/components/ui/Timeline.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/components/ui/Timeline.tsx",
+        "specifier": "@/lib/utils",
+        "to": "docs/template/app/src/lib/utils.ts"
+      },
+      {
+        "from": "docs/template/app/src/components/ui/Toast.tsx",
+        "specifier": "@/lib/utils",
+        "to": "docs/template/app/src/lib/utils.ts"
+      },
+      {
+        "from": "docs/template/app/src/i18n/en.ts",
+        "specifier": "./pt-BR",
+        "to": "docs/template/app/src/i18n/pt-BR.ts"
+      },
+      {
+        "from": "docs/template/app/src/i18n/index.tsx",
+        "specifier": "./en",
+        "to": "docs/template/app/src/i18n/en.ts"
+      },
+      {
+        "from": "docs/template/app/src/i18n/index.tsx",
+        "specifier": "./pt-BR",
+        "to": "docs/template/app/src/i18n/pt-BR.ts"
+      },
+      {
+        "from": "docs/template/app/src/i18n/index.tsx",
+        "specifier": "./pt-BR",
+        "to": "docs/template/app/src/i18n/pt-BR.ts"
+      },
+      {
+        "from": "docs/template/app/src/mock/fixtures.ts",
+        "specifier": "./types",
+        "to": "docs/template/app/src/mock/types.ts"
+      },
+      {
+        "from": "docs/template/app/src/mock/session.tsx",
+        "specifier": "./fixtures",
+        "to": "docs/template/app/src/mock/fixtures.ts"
+      },
+      {
+        "from": "docs/template/app/src/mock/session.tsx",
+        "specifier": "./types",
+        "to": "docs/template/app/src/mock/types.ts"
+      },
+      {
+        "from": "docs/template/app/src/mock/types.ts",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/mock/types.ts",
+        "specifier": "@/theme/ThemeProvider",
+        "to": "docs/template/app/src/theme/ThemeProvider.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminAccountDetail.tsx",
+        "specifier": "./shared",
+        "to": "docs/template/app/src/pages/admin/shared.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminAccountDetail.tsx",
+        "specifier": "./unavailable",
+        "to": "docs/template/app/src/pages/admin/unavailable.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminAccountDetail.tsx",
+        "specifier": "@/components/ui/button",
+        "to": "docs/template/app/src/components/ui/button.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminAccountDetail.tsx",
+        "specifier": "@/components/ui/CopyField",
+        "to": "docs/template/app/src/components/ui/CopyField.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminAccountDetail.tsx",
+        "specifier": "@/components/ui/LocalizedFieldGroup",
+        "to": "docs/template/app/src/components/ui/LocalizedFieldGroup.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminAccountDetail.tsx",
+        "specifier": "@/components/ui/Modal",
+        "to": "docs/template/app/src/components/ui/Modal.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminAccountDetail.tsx",
+        "specifier": "@/components/ui/Monogram",
+        "to": "docs/template/app/src/components/ui/Monogram.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminAccountDetail.tsx",
+        "specifier": "@/components/ui/SimpleTabs",
+        "to": "docs/template/app/src/components/ui/SimpleTabs.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminAccountDetail.tsx",
+        "specifier": "@/components/ui/Skeletons",
+        "to": "docs/template/app/src/components/ui/Skeletons.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminAccountDetail.tsx",
+        "specifier": "@/components/ui/StatusBadge",
+        "to": "docs/template/app/src/components/ui/StatusBadge.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminAccountDetail.tsx",
+        "specifier": "@/components/ui/Toast",
+        "to": "docs/template/app/src/components/ui/Toast.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminAccountDetail.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminAccountDetail.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminAccountDetail.tsx",
+        "specifier": "@/mock/fixtures",
+        "to": "docs/template/app/src/mock/fixtures.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminAccountDetail.tsx",
+        "specifier": "@/mock/types",
+        "to": "docs/template/app/src/mock/types.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminAccountDetail.tsx",
+        "specifier": "@/theme/ThemeProvider",
+        "to": "docs/template/app/src/theme/ThemeProvider.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminAccounts.tsx",
+        "specifier": "./shared",
+        "to": "docs/template/app/src/pages/admin/shared.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminAccounts.tsx",
+        "specifier": "@/components/ui/button",
+        "to": "docs/template/app/src/components/ui/button.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminAccounts.tsx",
+        "specifier": "@/components/ui/CopyField",
+        "to": "docs/template/app/src/components/ui/CopyField.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminAccounts.tsx",
+        "specifier": "@/components/ui/DataTable",
+        "to": "docs/template/app/src/components/ui/DataTable.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminAccounts.tsx",
+        "specifier": "@/components/ui/DataTable",
+        "to": "docs/template/app/src/components/ui/DataTable.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminAccounts.tsx",
+        "specifier": "@/components/ui/FilterBar",
+        "to": "docs/template/app/src/components/ui/FilterBar.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminAccounts.tsx",
+        "specifier": "@/components/ui/FilterBar",
+        "to": "docs/template/app/src/components/ui/FilterBar.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminAccounts.tsx",
+        "specifier": "@/components/ui/Modal",
+        "to": "docs/template/app/src/components/ui/Modal.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminAccounts.tsx",
+        "specifier": "@/components/ui/StatusBadge",
+        "to": "docs/template/app/src/components/ui/StatusBadge.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminAccounts.tsx",
+        "specifier": "@/components/ui/Toast",
+        "to": "docs/template/app/src/components/ui/Toast.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminAccounts.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminAccounts.tsx",
+        "specifier": "@/mock/fixtures",
+        "to": "docs/template/app/src/mock/fixtures.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminAccounts.tsx",
+        "specifier": "@/mock/types",
+        "to": "docs/template/app/src/mock/types.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminDashboard.tsx",
+        "specifier": "./shared",
+        "to": "docs/template/app/src/pages/admin/shared.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminDashboard.tsx",
+        "specifier": "@/components/ui/button",
+        "to": "docs/template/app/src/components/ui/button.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminDashboard.tsx",
+        "specifier": "@/components/ui/MoneyText",
+        "to": "docs/template/app/src/components/ui/MoneyText.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminDashboard.tsx",
+        "specifier": "@/components/ui/Monogram",
+        "to": "docs/template/app/src/components/ui/Monogram.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminDashboard.tsx",
+        "specifier": "@/components/ui/Skeletons",
+        "to": "docs/template/app/src/components/ui/Skeletons.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminDashboard.tsx",
+        "specifier": "@/components/ui/StatCard",
+        "to": "docs/template/app/src/components/ui/StatCard.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminDashboard.tsx",
+        "specifier": "@/components/ui/Toast",
+        "to": "docs/template/app/src/components/ui/Toast.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminDashboard.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminDashboard.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminDashboard.tsx",
+        "specifier": "@/mock/fixtures",
+        "to": "docs/template/app/src/mock/fixtures.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminDashboard.tsx",
+        "specifier": "@/mock/types",
+        "to": "docs/template/app/src/mock/types.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminLinkDetail.tsx",
+        "specifier": "./shared",
+        "to": "docs/template/app/src/pages/admin/shared.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminLinkDetail.tsx",
+        "specifier": "./unavailable",
+        "to": "docs/template/app/src/pages/admin/unavailable.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminLinkDetail.tsx",
+        "specifier": "@/components/ui/CopyField",
+        "to": "docs/template/app/src/components/ui/CopyField.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminLinkDetail.tsx",
+        "specifier": "@/components/ui/MoneyText",
+        "to": "docs/template/app/src/components/ui/MoneyText.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminLinkDetail.tsx",
+        "specifier": "@/components/ui/Monogram",
+        "to": "docs/template/app/src/components/ui/Monogram.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminLinkDetail.tsx",
+        "specifier": "@/components/ui/Skeletons",
+        "to": "docs/template/app/src/components/ui/Skeletons.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminLinkDetail.tsx",
+        "specifier": "@/components/ui/StatusBadge",
+        "to": "docs/template/app/src/components/ui/StatusBadge.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminLinkDetail.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminLinkDetail.tsx",
+        "specifier": "@/mock/fixtures",
+        "to": "docs/template/app/src/mock/fixtures.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminLinks.tsx",
+        "specifier": "./shared",
+        "to": "docs/template/app/src/pages/admin/shared.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminLinks.tsx",
+        "specifier": "@/components/ui/CopyField",
+        "to": "docs/template/app/src/components/ui/CopyField.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminLinks.tsx",
+        "specifier": "@/components/ui/DataTable",
+        "to": "docs/template/app/src/components/ui/DataTable.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminLinks.tsx",
+        "specifier": "@/components/ui/DataTable",
+        "to": "docs/template/app/src/components/ui/DataTable.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminLinks.tsx",
+        "specifier": "@/components/ui/FilterBar",
+        "to": "docs/template/app/src/components/ui/FilterBar.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminLinks.tsx",
+        "specifier": "@/components/ui/FilterBar",
+        "to": "docs/template/app/src/components/ui/FilterBar.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminLinks.tsx",
+        "specifier": "@/components/ui/MoneyText",
+        "to": "docs/template/app/src/components/ui/MoneyText.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminLinks.tsx",
+        "specifier": "@/components/ui/Monogram",
+        "to": "docs/template/app/src/components/ui/Monogram.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminLinks.tsx",
+        "specifier": "@/components/ui/StatusBadge",
+        "to": "docs/template/app/src/components/ui/StatusBadge.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminLinks.tsx",
+        "specifier": "@/components/ui/Toast",
+        "to": "docs/template/app/src/components/ui/Toast.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminLinks.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminLinks.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminLinks.tsx",
+        "specifier": "@/mock/fixtures",
+        "to": "docs/template/app/src/mock/fixtures.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminLinks.tsx",
+        "specifier": "@/mock/types",
+        "to": "docs/template/app/src/mock/types.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminOrderDetail.tsx",
+        "specifier": "./shared",
+        "to": "docs/template/app/src/pages/admin/shared.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminOrderDetail.tsx",
+        "specifier": "@/components/ui/CopyField",
+        "to": "docs/template/app/src/components/ui/CopyField.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminOrderDetail.tsx",
+        "specifier": "@/components/ui/MoneyText",
+        "to": "docs/template/app/src/components/ui/MoneyText.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminOrderDetail.tsx",
+        "specifier": "@/components/ui/Monogram",
+        "to": "docs/template/app/src/components/ui/Monogram.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminOrderDetail.tsx",
+        "specifier": "@/components/ui/Skeletons",
+        "to": "docs/template/app/src/components/ui/Skeletons.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminOrderDetail.tsx",
+        "specifier": "@/components/ui/StatusBadge",
+        "to": "docs/template/app/src/components/ui/StatusBadge.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminOrderDetail.tsx",
+        "specifier": "@/components/ui/Timeline",
+        "to": "docs/template/app/src/components/ui/Timeline.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminOrderDetail.tsx",
+        "specifier": "@/components/ui/Timeline",
+        "to": "docs/template/app/src/components/ui/Timeline.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminOrderDetail.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminOrderDetail.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminOrderDetail.tsx",
+        "specifier": "@/mock/fixtures",
+        "to": "docs/template/app/src/mock/fixtures.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminOrderDetail.tsx",
+        "specifier": "@/mock/types",
+        "to": "docs/template/app/src/mock/types.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminOrderDetail.tsx",
+        "specifier": "@/pages/admin/unavailable",
+        "to": "docs/template/app/src/pages/admin/unavailable.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminOrders.tsx",
+        "specifier": "./shared",
+        "to": "docs/template/app/src/pages/admin/shared.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminOrders.tsx",
+        "specifier": "@/components/ui/CopyField",
+        "to": "docs/template/app/src/components/ui/CopyField.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminOrders.tsx",
+        "specifier": "@/components/ui/DataTable",
+        "to": "docs/template/app/src/components/ui/DataTable.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminOrders.tsx",
+        "specifier": "@/components/ui/DataTable",
+        "to": "docs/template/app/src/components/ui/DataTable.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminOrders.tsx",
+        "specifier": "@/components/ui/FilterBar",
+        "to": "docs/template/app/src/components/ui/FilterBar.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminOrders.tsx",
+        "specifier": "@/components/ui/FilterBar",
+        "to": "docs/template/app/src/components/ui/FilterBar.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminOrders.tsx",
+        "specifier": "@/components/ui/MoneyText",
+        "to": "docs/template/app/src/components/ui/MoneyText.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminOrders.tsx",
+        "specifier": "@/components/ui/Monogram",
+        "to": "docs/template/app/src/components/ui/Monogram.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminOrders.tsx",
+        "specifier": "@/components/ui/StatusBadge",
+        "to": "docs/template/app/src/components/ui/StatusBadge.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminOrders.tsx",
+        "specifier": "@/components/ui/Toast",
+        "to": "docs/template/app/src/components/ui/Toast.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminOrders.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminOrders.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminOrders.tsx",
+        "specifier": "@/mock/fixtures",
+        "to": "docs/template/app/src/mock/fixtures.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminOrders.tsx",
+        "specifier": "@/mock/types",
+        "to": "docs/template/app/src/mock/types.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminSettings.tsx",
+        "specifier": "./shared",
+        "to": "docs/template/app/src/pages/admin/shared.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminSettings.tsx",
+        "specifier": "@/components/ui/button",
+        "to": "docs/template/app/src/components/ui/button.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminSettings.tsx",
+        "specifier": "@/components/ui/CopyField",
+        "to": "docs/template/app/src/components/ui/CopyField.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminSettings.tsx",
+        "specifier": "@/components/ui/Modal",
+        "to": "docs/template/app/src/components/ui/Modal.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminSettings.tsx",
+        "specifier": "@/components/ui/Skeletons",
+        "to": "docs/template/app/src/components/ui/Skeletons.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminSettings.tsx",
+        "specifier": "@/components/ui/switch",
+        "to": "docs/template/app/src/components/ui/switch.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminSettings.tsx",
+        "specifier": "@/components/ui/Toast",
+        "to": "docs/template/app/src/components/ui/Toast.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminSettings.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminSettings.tsx",
+        "specifier": "@/mock/fixtures",
+        "to": "docs/template/app/src/mock/fixtures.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminSettings.tsx",
+        "specifier": "@/mock/types",
+        "to": "docs/template/app/src/mock/types.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/AdminSettings.tsx",
+        "specifier": "@/theme/ThemeProvider",
+        "to": "docs/template/app/src/theme/ThemeProvider.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/shared.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/shared.tsx",
+        "specifier": "@/lib/utils",
+        "to": "docs/template/app/src/lib/utils.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/shared.tsx",
+        "specifier": "@/mock/types",
+        "to": "docs/template/app/src/mock/types.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/unavailable.tsx",
+        "specifier": "@/components/ui/button",
+        "to": "docs/template/app/src/components/ui/button.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/unavailable.tsx",
+        "specifier": "@/components/ui/EmptyState",
+        "to": "docs/template/app/src/components/ui/EmptyState.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/admin/unavailable.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/auth/AuthShell.tsx",
+        "specifier": "@/components/Footer",
+        "to": "docs/template/app/src/components/Footer.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/auth/AuthShell.tsx",
+        "specifier": "@/components/Logo",
+        "to": "docs/template/app/src/components/Logo.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/auth/AuthShell.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/auth/Login.tsx",
+        "specifier": "./AuthShell",
+        "to": "docs/template/app/src/pages/auth/AuthShell.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/auth/Login.tsx",
+        "specifier": "@/components/ui/button",
+        "to": "docs/template/app/src/components/ui/button.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/auth/Login.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/auth/Login.tsx",
+        "specifier": "@/lib/utils",
+        "to": "docs/template/app/src/lib/utils.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/auth/Login.tsx",
+        "specifier": "@/mock/session",
+        "to": "docs/template/app/src/mock/session.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/auth/ResetPassword.tsx",
+        "specifier": "./AuthShell",
+        "to": "docs/template/app/src/pages/auth/AuthShell.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/auth/ResetPassword.tsx",
+        "specifier": "@/components/ui/button",
+        "to": "docs/template/app/src/components/ui/button.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/auth/ResetPassword.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/auth/ResetPassword.tsx",
+        "specifier": "@/lib/utils",
+        "to": "docs/template/app/src/lib/utils.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/auth/ResetPassword.tsx",
+        "specifier": "@/mock/session",
+        "to": "docs/template/app/src/mock/session.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/auth/ResetPassword.tsx",
+        "specifier": "@/mock/session",
+        "to": "docs/template/app/src/mock/session.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/CatalogPage.tsx",
+        "specifier": "./fields",
+        "to": "docs/template/app/src/pages/catalog/fields.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/CatalogPage.tsx",
+        "specifier": "@/components/ui/button",
+        "to": "docs/template/app/src/components/ui/button.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/CatalogPage.tsx",
+        "specifier": "@/components/ui/DataTable",
+        "to": "docs/template/app/src/components/ui/DataTable.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/CatalogPage.tsx",
+        "specifier": "@/components/ui/DataTable",
+        "to": "docs/template/app/src/components/ui/DataTable.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/CatalogPage.tsx",
+        "specifier": "@/components/ui/FilterBar",
+        "to": "docs/template/app/src/components/ui/FilterBar.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/CatalogPage.tsx",
+        "specifier": "@/components/ui/FilterBar",
+        "to": "docs/template/app/src/components/ui/FilterBar.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/CatalogPage.tsx",
+        "specifier": "@/components/ui/MoneyText",
+        "to": "docs/template/app/src/components/ui/MoneyText.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/CatalogPage.tsx",
+        "specifier": "@/components/ui/StatusBadge",
+        "to": "docs/template/app/src/components/ui/StatusBadge.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/CatalogPage.tsx",
+        "specifier": "@/components/ui/Toast",
+        "to": "docs/template/app/src/components/ui/Toast.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/CatalogPage.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/CatalogPage.tsx",
+        "specifier": "@/mock/fixtures",
+        "to": "docs/template/app/src/mock/fixtures.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/CatalogPage.tsx",
+        "specifier": "@/mock/session",
+        "to": "docs/template/app/src/mock/session.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/CatalogPage.tsx",
+        "specifier": "@/mock/types",
+        "to": "docs/template/app/src/mock/types.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/CategoriesPage.tsx",
+        "specifier": "./fields",
+        "to": "docs/template/app/src/pages/catalog/fields.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/CategoriesPage.tsx",
+        "specifier": "@/components/ui/button",
+        "to": "docs/template/app/src/components/ui/button.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/CategoriesPage.tsx",
+        "specifier": "@/components/ui/DataTable",
+        "to": "docs/template/app/src/components/ui/DataTable.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/CategoriesPage.tsx",
+        "specifier": "@/components/ui/DataTable",
+        "to": "docs/template/app/src/components/ui/DataTable.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/CategoriesPage.tsx",
+        "specifier": "@/components/ui/FilterBar",
+        "to": "docs/template/app/src/components/ui/FilterBar.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/CategoriesPage.tsx",
+        "specifier": "@/components/ui/FilterBar",
+        "to": "docs/template/app/src/components/ui/FilterBar.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/CategoriesPage.tsx",
+        "specifier": "@/components/ui/Modal",
+        "to": "docs/template/app/src/components/ui/Modal.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/CategoriesPage.tsx",
+        "specifier": "@/components/ui/StatusBadge",
+        "to": "docs/template/app/src/components/ui/StatusBadge.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/CategoriesPage.tsx",
+        "specifier": "@/components/ui/Toast",
+        "to": "docs/template/app/src/components/ui/Toast.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/CategoriesPage.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/CategoriesPage.tsx",
+        "specifier": "@/mock/fixtures",
+        "to": "docs/template/app/src/mock/fixtures.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/CategoriesPage.tsx",
+        "specifier": "@/mock/session",
+        "to": "docs/template/app/src/mock/session.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/CategoriesPage.tsx",
+        "specifier": "@/mock/types",
+        "to": "docs/template/app/src/mock/types.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/fields.tsx",
+        "specifier": "@/components/ui/button",
+        "to": "docs/template/app/src/components/ui/button.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/fields.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/fields.tsx",
+        "specifier": "@/lib/utils",
+        "to": "docs/template/app/src/lib/utils.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/ProductDetailPage.tsx",
+        "specifier": "./fields",
+        "to": "docs/template/app/src/pages/catalog/fields.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/ProductDetailPage.tsx",
+        "specifier": "./ProductForm",
+        "to": "docs/template/app/src/pages/catalog/ProductForm.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/ProductDetailPage.tsx",
+        "specifier": "./ProductForm",
+        "to": "docs/template/app/src/pages/catalog/ProductForm.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/ProductDetailPage.tsx",
+        "specifier": "@/components/ui/button",
+        "to": "docs/template/app/src/components/ui/button.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/ProductDetailPage.tsx",
+        "specifier": "@/components/ui/EmptyState",
+        "to": "docs/template/app/src/components/ui/EmptyState.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/ProductDetailPage.tsx",
+        "specifier": "@/components/ui/Modal",
+        "to": "docs/template/app/src/components/ui/Modal.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/ProductDetailPage.tsx",
+        "specifier": "@/components/ui/Skeletons",
+        "to": "docs/template/app/src/components/ui/Skeletons.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/ProductDetailPage.tsx",
+        "specifier": "@/components/ui/StatusBadge",
+        "to": "docs/template/app/src/components/ui/StatusBadge.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/ProductDetailPage.tsx",
+        "specifier": "@/components/ui/Toast",
+        "to": "docs/template/app/src/components/ui/Toast.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/ProductDetailPage.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/ProductDetailPage.tsx",
+        "specifier": "@/mock/fixtures",
+        "to": "docs/template/app/src/mock/fixtures.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/ProductDetailPage.tsx",
+        "specifier": "@/mock/session",
+        "to": "docs/template/app/src/mock/session.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/ProductDetailPage.tsx",
+        "specifier": "@/mock/types",
+        "to": "docs/template/app/src/mock/types.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/ProductForm.tsx",
+        "specifier": "./fields",
+        "to": "docs/template/app/src/pages/catalog/fields.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/ProductForm.tsx",
+        "specifier": "@/components/ui/LocalizedFieldGroup",
+        "to": "docs/template/app/src/components/ui/LocalizedFieldGroup.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/ProductForm.tsx",
+        "specifier": "@/components/ui/MoneyText",
+        "to": "docs/template/app/src/components/ui/MoneyText.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/ProductForm.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/ProductForm.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/ProductForm.tsx",
+        "specifier": "@/mock/types",
+        "to": "docs/template/app/src/mock/types.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/ProductNewPage.tsx",
+        "specifier": "./fields",
+        "to": "docs/template/app/src/pages/catalog/fields.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/ProductNewPage.tsx",
+        "specifier": "./ProductForm",
+        "to": "docs/template/app/src/pages/catalog/ProductForm.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/ProductNewPage.tsx",
+        "specifier": "./ProductForm",
+        "to": "docs/template/app/src/pages/catalog/ProductForm.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/ProductNewPage.tsx",
+        "specifier": "@/components/ui/button",
+        "to": "docs/template/app/src/components/ui/button.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/ProductNewPage.tsx",
+        "specifier": "@/components/ui/Skeletons",
+        "to": "docs/template/app/src/components/ui/Skeletons.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/ProductNewPage.tsx",
+        "specifier": "@/components/ui/Toast",
+        "to": "docs/template/app/src/components/ui/Toast.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/ProductNewPage.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/ProductNewPage.tsx",
+        "specifier": "@/mock/fixtures",
+        "to": "docs/template/app/src/mock/fixtures.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/ProductNewPage.tsx",
+        "specifier": "@/mock/session",
+        "to": "docs/template/app/src/mock/session.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/catalog/ProductNewPage.tsx",
+        "specifier": "@/mock/types",
+        "to": "docs/template/app/src/mock/types.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/checkout/CheckoutPage.tsx",
+        "specifier": "@/components/Footer",
+        "to": "docs/template/app/src/components/Footer.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/checkout/CheckoutPage.tsx",
+        "specifier": "@/components/ui/CopyField",
+        "to": "docs/template/app/src/components/ui/CopyField.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/checkout/CheckoutPage.tsx",
+        "specifier": "@/components/ui/Modal",
+        "to": "docs/template/app/src/components/ui/Modal.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/checkout/CheckoutPage.tsx",
+        "specifier": "@/components/ui/MoneyText",
+        "to": "docs/template/app/src/components/ui/MoneyText.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/checkout/CheckoutPage.tsx",
+        "specifier": "@/components/ui/Monogram",
+        "to": "docs/template/app/src/components/ui/Monogram.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/checkout/CheckoutPage.tsx",
+        "specifier": "@/components/ui/QRDisplay",
+        "to": "docs/template/app/src/components/ui/QRDisplay.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/checkout/CheckoutPage.tsx",
+        "specifier": "@/components/ui/Skeletons",
+        "to": "docs/template/app/src/components/ui/Skeletons.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/checkout/CheckoutPage.tsx",
+        "specifier": "@/components/ui/StatusBadge",
+        "to": "docs/template/app/src/components/ui/StatusBadge.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/checkout/CheckoutPage.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/checkout/CheckoutPage.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/checkout/CheckoutPage.tsx",
+        "specifier": "@/lib/utils",
+        "to": "docs/template/app/src/lib/utils.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/checkout/CheckoutPage.tsx",
+        "specifier": "@/mock/fixtures",
+        "to": "docs/template/app/src/mock/fixtures.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/checkout/CheckoutPage.tsx",
+        "specifier": "@/mock/types",
+        "to": "docs/template/app/src/mock/types.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/checkout/CheckoutPage.tsx",
+        "specifier": "@/theme/ThemeProvider",
+        "to": "docs/template/app/src/theme/ThemeProvider.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkCreate.tsx",
+        "specifier": "./LinkForm",
+        "to": "docs/template/app/src/pages/links/LinkForm.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkCreate.tsx",
+        "specifier": "./LinkForm",
+        "to": "docs/template/app/src/pages/links/LinkForm.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkCreate.tsx",
+        "specifier": "./linkStore",
+        "to": "docs/template/app/src/pages/links/linkStore.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkCreate.tsx",
+        "specifier": "./shared",
+        "to": "docs/template/app/src/pages/links/shared.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkCreate.tsx",
+        "specifier": "@/components/ui/Toast",
+        "to": "docs/template/app/src/components/ui/Toast.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkCreate.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkCreate.tsx",
+        "specifier": "@/mock/session",
+        "to": "docs/template/app/src/mock/session.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkCreate.tsx",
+        "specifier": "@/mock/types",
+        "to": "docs/template/app/src/mock/types.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkDetail.tsx",
+        "specifier": "./linkStore",
+        "to": "docs/template/app/src/pages/links/linkStore.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkDetail.tsx",
+        "specifier": "./shared",
+        "to": "docs/template/app/src/pages/links/shared.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkDetail.tsx",
+        "specifier": "@/components/ui/button",
+        "to": "docs/template/app/src/components/ui/button.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkDetail.tsx",
+        "specifier": "@/components/ui/CopyField",
+        "to": "docs/template/app/src/components/ui/CopyField.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkDetail.tsx",
+        "specifier": "@/components/ui/EmptyState",
+        "to": "docs/template/app/src/components/ui/EmptyState.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkDetail.tsx",
+        "specifier": "@/components/ui/Modal",
+        "to": "docs/template/app/src/components/ui/Modal.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkDetail.tsx",
+        "specifier": "@/components/ui/MoneyText",
+        "to": "docs/template/app/src/components/ui/MoneyText.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkDetail.tsx",
+        "specifier": "@/components/ui/Skeletons",
+        "to": "docs/template/app/src/components/ui/Skeletons.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkDetail.tsx",
+        "specifier": "@/components/ui/StatusBadge",
+        "to": "docs/template/app/src/components/ui/StatusBadge.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkDetail.tsx",
+        "specifier": "@/components/ui/Toast",
+        "to": "docs/template/app/src/components/ui/Toast.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkDetail.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkDetail.tsx",
+        "specifier": "@/mock/session",
+        "to": "docs/template/app/src/mock/session.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkDetail.tsx",
+        "specifier": "@/mock/types",
+        "to": "docs/template/app/src/mock/types.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkEdit.tsx",
+        "specifier": "./LinkForm",
+        "to": "docs/template/app/src/pages/links/LinkForm.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkEdit.tsx",
+        "specifier": "./LinkForm",
+        "to": "docs/template/app/src/pages/links/LinkForm.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkEdit.tsx",
+        "specifier": "./linkStore",
+        "to": "docs/template/app/src/pages/links/linkStore.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkEdit.tsx",
+        "specifier": "./shared",
+        "to": "docs/template/app/src/pages/links/shared.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkEdit.tsx",
+        "specifier": "@/components/ui/button",
+        "to": "docs/template/app/src/components/ui/button.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkEdit.tsx",
+        "specifier": "@/components/ui/EmptyState",
+        "to": "docs/template/app/src/components/ui/EmptyState.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkEdit.tsx",
+        "specifier": "@/components/ui/Skeletons",
+        "to": "docs/template/app/src/components/ui/Skeletons.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkEdit.tsx",
+        "specifier": "@/components/ui/Toast",
+        "to": "docs/template/app/src/components/ui/Toast.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkEdit.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkEdit.tsx",
+        "specifier": "@/mock/session",
+        "to": "docs/template/app/src/mock/session.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkEdit.tsx",
+        "specifier": "@/mock/types",
+        "to": "docs/template/app/src/mock/types.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkForm.tsx",
+        "specifier": "./linkStore",
+        "to": "docs/template/app/src/pages/links/linkStore.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkForm.tsx",
+        "specifier": "./shared",
+        "to": "docs/template/app/src/pages/links/shared.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkForm.tsx",
+        "specifier": "@/components/ui/button",
+        "to": "docs/template/app/src/components/ui/button.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkForm.tsx",
+        "specifier": "@/components/ui/LocalizedFieldGroup",
+        "to": "docs/template/app/src/components/ui/LocalizedFieldGroup.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkForm.tsx",
+        "specifier": "@/components/ui/MoneyText",
+        "to": "docs/template/app/src/components/ui/MoneyText.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkForm.tsx",
+        "specifier": "@/components/ui/Toast",
+        "to": "docs/template/app/src/components/ui/Toast.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkForm.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkForm.tsx",
+        "specifier": "@/lib/utils",
+        "to": "docs/template/app/src/lib/utils.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkForm.tsx",
+        "specifier": "@/mock/session",
+        "to": "docs/template/app/src/mock/session.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkForm.tsx",
+        "specifier": "@/mock/types",
+        "to": "docs/template/app/src/mock/types.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkOrderDetail.tsx",
+        "specifier": "./linkStore",
+        "to": "docs/template/app/src/pages/links/linkStore.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkOrderDetail.tsx",
+        "specifier": "./shared",
+        "to": "docs/template/app/src/pages/links/shared.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkOrderDetail.tsx",
+        "specifier": "@/components/ui/button",
+        "to": "docs/template/app/src/components/ui/button.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkOrderDetail.tsx",
+        "specifier": "@/components/ui/CopyField",
+        "to": "docs/template/app/src/components/ui/CopyField.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkOrderDetail.tsx",
+        "specifier": "@/components/ui/EmptyState",
+        "to": "docs/template/app/src/components/ui/EmptyState.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkOrderDetail.tsx",
+        "specifier": "@/components/ui/MoneyText",
+        "to": "docs/template/app/src/components/ui/MoneyText.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkOrderDetail.tsx",
+        "specifier": "@/components/ui/Skeletons",
+        "to": "docs/template/app/src/components/ui/Skeletons.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkOrderDetail.tsx",
+        "specifier": "@/components/ui/StatusBadge",
+        "to": "docs/template/app/src/components/ui/StatusBadge.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkOrderDetail.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkOrderDetail.tsx",
+        "specifier": "@/mock/session",
+        "to": "docs/template/app/src/mock/session.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkOrderDetail.tsx",
+        "specifier": "@/mock/types",
+        "to": "docs/template/app/src/mock/types.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkOrders.tsx",
+        "specifier": "./linkStore",
+        "to": "docs/template/app/src/pages/links/linkStore.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkOrders.tsx",
+        "specifier": "./shared",
+        "to": "docs/template/app/src/pages/links/shared.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkOrders.tsx",
+        "specifier": "@/components/ui/button",
+        "to": "docs/template/app/src/components/ui/button.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkOrders.tsx",
+        "specifier": "@/components/ui/CopyField",
+        "to": "docs/template/app/src/components/ui/CopyField.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkOrders.tsx",
+        "specifier": "@/components/ui/DataTable",
+        "to": "docs/template/app/src/components/ui/DataTable.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkOrders.tsx",
+        "specifier": "@/components/ui/DataTable",
+        "to": "docs/template/app/src/components/ui/DataTable.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkOrders.tsx",
+        "specifier": "@/components/ui/EmptyState",
+        "to": "docs/template/app/src/components/ui/EmptyState.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkOrders.tsx",
+        "specifier": "@/components/ui/FilterBar",
+        "to": "docs/template/app/src/components/ui/FilterBar.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkOrders.tsx",
+        "specifier": "@/components/ui/MoneyText",
+        "to": "docs/template/app/src/components/ui/MoneyText.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkOrders.tsx",
+        "specifier": "@/components/ui/Skeletons",
+        "to": "docs/template/app/src/components/ui/Skeletons.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkOrders.tsx",
+        "specifier": "@/components/ui/StatusBadge",
+        "to": "docs/template/app/src/components/ui/StatusBadge.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkOrders.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkOrders.tsx",
+        "specifier": "@/mock/session",
+        "to": "docs/template/app/src/mock/session.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinkOrders.tsx",
+        "specifier": "@/mock/types",
+        "to": "docs/template/app/src/mock/types.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinksDirectory.tsx",
+        "specifier": "./linkStore",
+        "to": "docs/template/app/src/pages/links/linkStore.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinksDirectory.tsx",
+        "specifier": "./shared",
+        "to": "docs/template/app/src/pages/links/shared.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinksDirectory.tsx",
+        "specifier": "@/components/ui/button",
+        "to": "docs/template/app/src/components/ui/button.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinksDirectory.tsx",
+        "specifier": "@/components/ui/CopyField",
+        "to": "docs/template/app/src/components/ui/CopyField.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinksDirectory.tsx",
+        "specifier": "@/components/ui/DataTable",
+        "to": "docs/template/app/src/components/ui/DataTable.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinksDirectory.tsx",
+        "specifier": "@/components/ui/DataTable",
+        "to": "docs/template/app/src/components/ui/DataTable.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinksDirectory.tsx",
+        "specifier": "@/components/ui/FilterBar",
+        "to": "docs/template/app/src/components/ui/FilterBar.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinksDirectory.tsx",
+        "specifier": "@/components/ui/FilterBar",
+        "to": "docs/template/app/src/components/ui/FilterBar.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinksDirectory.tsx",
+        "specifier": "@/components/ui/Modal",
+        "to": "docs/template/app/src/components/ui/Modal.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinksDirectory.tsx",
+        "specifier": "@/components/ui/MoneyText",
+        "to": "docs/template/app/src/components/ui/MoneyText.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinksDirectory.tsx",
+        "specifier": "@/components/ui/StatusBadge",
+        "to": "docs/template/app/src/components/ui/StatusBadge.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinksDirectory.tsx",
+        "specifier": "@/components/ui/Toast",
+        "to": "docs/template/app/src/components/ui/Toast.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinksDirectory.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinksDirectory.tsx",
+        "specifier": "@/mock/session",
+        "to": "docs/template/app/src/mock/session.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/LinksDirectory.tsx",
+        "specifier": "@/mock/types",
+        "to": "docs/template/app/src/mock/types.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/linkStore.ts",
+        "specifier": "@/mock/fixtures",
+        "to": "docs/template/app/src/mock/fixtures.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/linkStore.ts",
+        "specifier": "@/mock/types",
+        "to": "docs/template/app/src/mock/types.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/links/shared.tsx",
+        "specifier": "@/lib/utils",
+        "to": "docs/template/app/src/lib/utils.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/merchant/MerchantDashboard.tsx",
+        "specifier": "@/components/ui/button",
+        "to": "docs/template/app/src/components/ui/button.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/merchant/MerchantDashboard.tsx",
+        "specifier": "@/components/ui/EmptyState",
+        "to": "docs/template/app/src/components/ui/EmptyState.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/merchant/MerchantDashboard.tsx",
+        "specifier": "@/components/ui/MoneyText",
+        "to": "docs/template/app/src/components/ui/MoneyText.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/merchant/MerchantDashboard.tsx",
+        "specifier": "@/components/ui/SimpleTabs",
+        "to": "docs/template/app/src/components/ui/SimpleTabs.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/merchant/MerchantDashboard.tsx",
+        "specifier": "@/components/ui/Skeletons",
+        "to": "docs/template/app/src/components/ui/Skeletons.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/merchant/MerchantDashboard.tsx",
+        "specifier": "@/components/ui/StatCard",
+        "to": "docs/template/app/src/components/ui/StatCard.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/merchant/MerchantDashboard.tsx",
+        "specifier": "@/components/ui/StatusBadge",
+        "to": "docs/template/app/src/components/ui/StatusBadge.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/merchant/MerchantDashboard.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/merchant/MerchantDashboard.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/merchant/MerchantDashboard.tsx",
+        "specifier": "@/lib/utils",
+        "to": "docs/template/app/src/lib/utils.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/merchant/MerchantDashboard.tsx",
+        "specifier": "@/mock/fixtures",
+        "to": "docs/template/app/src/mock/fixtures.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/merchant/MerchantDashboard.tsx",
+        "specifier": "@/mock/session",
+        "to": "docs/template/app/src/mock/session.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/merchant/MerchantDashboard.tsx",
+        "specifier": "@/mock/types",
+        "to": "docs/template/app/src/mock/types.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/merchant/MerchantOrderDetail.tsx",
+        "specifier": "@/components/ui/button",
+        "to": "docs/template/app/src/components/ui/button.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/merchant/MerchantOrderDetail.tsx",
+        "specifier": "@/components/ui/CopyField",
+        "to": "docs/template/app/src/components/ui/CopyField.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/merchant/MerchantOrderDetail.tsx",
+        "specifier": "@/components/ui/EmptyState",
+        "to": "docs/template/app/src/components/ui/EmptyState.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/merchant/MerchantOrderDetail.tsx",
+        "specifier": "@/components/ui/Modal",
+        "to": "docs/template/app/src/components/ui/Modal.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/merchant/MerchantOrderDetail.tsx",
+        "specifier": "@/components/ui/MoneyText",
+        "to": "docs/template/app/src/components/ui/MoneyText.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/merchant/MerchantOrderDetail.tsx",
+        "specifier": "@/components/ui/Monogram",
+        "to": "docs/template/app/src/components/ui/Monogram.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/merchant/MerchantOrderDetail.tsx",
+        "specifier": "@/components/ui/Skeletons",
+        "to": "docs/template/app/src/components/ui/Skeletons.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/merchant/MerchantOrderDetail.tsx",
+        "specifier": "@/components/ui/StatusBadge",
+        "to": "docs/template/app/src/components/ui/StatusBadge.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/merchant/MerchantOrderDetail.tsx",
+        "specifier": "@/components/ui/Timeline",
+        "to": "docs/template/app/src/components/ui/Timeline.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/merchant/MerchantOrderDetail.tsx",
+        "specifier": "@/components/ui/Toast",
+        "to": "docs/template/app/src/components/ui/Toast.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/merchant/MerchantOrderDetail.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/merchant/MerchantOrderDetail.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/merchant/MerchantOrderDetail.tsx",
+        "specifier": "@/lib/utils",
+        "to": "docs/template/app/src/lib/utils.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/merchant/MerchantOrderDetail.tsx",
+        "specifier": "@/mock/fixtures",
+        "to": "docs/template/app/src/mock/fixtures.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/merchant/MerchantOrderDetail.tsx",
+        "specifier": "@/mock/session",
+        "to": "docs/template/app/src/mock/session.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/merchant/MerchantOrderDetail.tsx",
+        "specifier": "@/mock/types",
+        "to": "docs/template/app/src/mock/types.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/merchant/MerchantOrders.tsx",
+        "specifier": "@/components/ui/button",
+        "to": "docs/template/app/src/components/ui/button.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/merchant/MerchantOrders.tsx",
+        "specifier": "@/components/ui/CopyField",
+        "to": "docs/template/app/src/components/ui/CopyField.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/merchant/MerchantOrders.tsx",
+        "specifier": "@/components/ui/DataTable",
+        "to": "docs/template/app/src/components/ui/DataTable.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/merchant/MerchantOrders.tsx",
+        "specifier": "@/components/ui/DataTable",
+        "to": "docs/template/app/src/components/ui/DataTable.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/merchant/MerchantOrders.tsx",
+        "specifier": "@/components/ui/FilterBar",
+        "to": "docs/template/app/src/components/ui/FilterBar.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/merchant/MerchantOrders.tsx",
+        "specifier": "@/components/ui/FilterBar",
+        "to": "docs/template/app/src/components/ui/FilterBar.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/merchant/MerchantOrders.tsx",
+        "specifier": "@/components/ui/MoneyText",
+        "to": "docs/template/app/src/components/ui/MoneyText.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/merchant/MerchantOrders.tsx",
+        "specifier": "@/components/ui/StatusBadge",
+        "to": "docs/template/app/src/components/ui/StatusBadge.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/merchant/MerchantOrders.tsx",
+        "specifier": "@/components/ui/Toast",
+        "to": "docs/template/app/src/components/ui/Toast.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/merchant/MerchantOrders.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/merchant/MerchantOrders.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/merchant/MerchantOrders.tsx",
+        "specifier": "@/lib/utils",
+        "to": "docs/template/app/src/lib/utils.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/merchant/MerchantOrders.tsx",
+        "specifier": "@/mock/fixtures",
+        "to": "docs/template/app/src/mock/fixtures.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/merchant/MerchantOrders.tsx",
+        "specifier": "@/mock/session",
+        "to": "docs/template/app/src/mock/session.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/merchant/MerchantOrders.tsx",
+        "specifier": "@/mock/types",
+        "to": "docs/template/app/src/mock/types.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/PageStub.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/profile/ProfilePage.tsx",
+        "specifier": "../catalog/fields",
+        "to": "docs/template/app/src/pages/catalog/fields.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/profile/ProfilePage.tsx",
+        "specifier": "@/components/ui/button",
+        "to": "docs/template/app/src/components/ui/button.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/profile/ProfilePage.tsx",
+        "specifier": "@/components/ui/checkbox",
+        "to": "docs/template/app/src/components/ui/checkbox.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/profile/ProfilePage.tsx",
+        "specifier": "@/components/ui/CopyField",
+        "to": "docs/template/app/src/components/ui/CopyField.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/profile/ProfilePage.tsx",
+        "specifier": "@/components/ui/input-otp",
+        "to": "docs/template/app/src/components/ui/input-otp.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/profile/ProfilePage.tsx",
+        "specifier": "@/components/ui/Modal",
+        "to": "docs/template/app/src/components/ui/Modal.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/profile/ProfilePage.tsx",
+        "specifier": "@/components/ui/QRDisplay",
+        "to": "docs/template/app/src/components/ui/QRDisplay.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/profile/ProfilePage.tsx",
+        "specifier": "@/components/ui/Skeletons",
+        "to": "docs/template/app/src/components/ui/Skeletons.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/profile/ProfilePage.tsx",
+        "specifier": "@/components/ui/Toast",
+        "to": "docs/template/app/src/components/ui/Toast.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/profile/ProfilePage.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/profile/ProfilePage.tsx",
+        "specifier": "@/mock/fixtures",
+        "to": "docs/template/app/src/mock/fixtures.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/profile/ProfilePage.tsx",
+        "specifier": "@/mock/session",
+        "to": "docs/template/app/src/mock/session.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/settings/SettingsPage.tsx",
+        "specifier": "../catalog/fields",
+        "to": "docs/template/app/src/pages/catalog/fields.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/settings/SettingsPage.tsx",
+        "specifier": "@/components/ui/button",
+        "to": "docs/template/app/src/components/ui/button.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/settings/SettingsPage.tsx",
+        "specifier": "@/components/ui/LocalizedFieldGroup",
+        "to": "docs/template/app/src/components/ui/LocalizedFieldGroup.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/settings/SettingsPage.tsx",
+        "specifier": "@/components/ui/Modal",
+        "to": "docs/template/app/src/components/ui/Modal.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/settings/SettingsPage.tsx",
+        "specifier": "@/components/ui/Monogram",
+        "to": "docs/template/app/src/components/ui/Monogram.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/settings/SettingsPage.tsx",
+        "specifier": "@/components/ui/Skeletons",
+        "to": "docs/template/app/src/components/ui/Skeletons.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/settings/SettingsPage.tsx",
+        "specifier": "@/components/ui/Toast",
+        "to": "docs/template/app/src/components/ui/Toast.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/settings/SettingsPage.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/settings/SettingsPage.tsx",
+        "specifier": "@/i18n",
+        "to": "docs/template/app/src/i18n/index.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/settings/SettingsPage.tsx",
+        "specifier": "@/lib/utils",
+        "to": "docs/template/app/src/lib/utils.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/settings/SettingsPage.tsx",
+        "specifier": "@/mock/fixtures",
+        "to": "docs/template/app/src/mock/fixtures.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/settings/SettingsPage.tsx",
+        "specifier": "@/mock/session",
+        "to": "docs/template/app/src/mock/session.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/settings/SettingsPage.tsx",
+        "specifier": "@/mock/types",
+        "to": "docs/template/app/src/mock/types.ts"
+      },
+      {
+        "from": "docs/template/app/src/pages/settings/SettingsPage.tsx",
+        "specifier": "@/theme/ThemeProvider",
+        "to": "docs/template/app/src/theme/ThemeProvider.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/settings/SettingsPage.tsx",
+        "specifier": "@/theme/ThemeProvider",
+        "to": "docs/template/app/src/theme/ThemeProvider.tsx"
+      },
+      {
+        "from": "docs/template/app/src/pages/settings/SettingsPage.tsx",
+        "specifier": "@/theme/ThemeProvider",
+        "to": "docs/template/app/src/theme/ThemeProvider.tsx"
+      }
+    ]
+  },
+  "evidenceProfiles": {
+    "all-states": {
+      "browser": {
+        "project": "chromium",
+        "engine": "Chromium",
+        "pinnedBy": "playwright.config.ts"
+      },
+      "environment": {
+        "deviceScaleFactor": 1,
+        "clock": "fixed fixture clock",
+        "fonts": "local settled fonts",
+        "animations": "disabled",
+        "caret": "hidden",
+        "externalRequests": "blocked"
+      },
+      "viewports": [
+        "320x1000",
+        "375x1000",
+        "768x1000",
+        "1440x1000"
+      ],
+      "locales": [
+        "pt-BR",
+        "en"
+      ],
+      "themes": [
+        "pix-paper",
+        "cashier-daylight",
+        "settlement-sand",
+        "midnight-clearing",
+        "vault-blue",
+        "terminal-amber"
+      ],
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "error",
+        "hover-focus",
+        "disabled"
+      ],
+      "raster": {
+        "threshold": 0.1,
+        "maxDiffPixelRatio": 0.001,
+        "semanticAndGeometryFailuresIndependent": true
+      }
+    },
+    "interactive": {
+      "browser": {
+        "project": "chromium",
+        "engine": "Chromium",
+        "pinnedBy": "playwright.config.ts"
+      },
+      "environment": {
+        "deviceScaleFactor": 1,
+        "clock": "fixed fixture clock",
+        "fonts": "local settled fonts",
+        "animations": "disabled",
+        "caret": "hidden",
+        "externalRequests": "blocked"
+      },
+      "viewports": [
+        "320x1000",
+        "375x1000",
+        "768x1000",
+        "1440x1000"
+      ],
+      "locales": [
+        "pt-BR",
+        "en"
+      ],
+      "themes": [
+        "pix-paper",
+        "cashier-daylight",
+        "settlement-sand",
+        "midnight-clearing",
+        "vault-blue",
+        "terminal-amber"
+      ],
+      "states": [
+        "default",
+        "hover-focus",
+        "disabled"
+      ],
+      "raster": {
+        "threshold": 0.1,
+        "maxDiffPixelRatio": 0.001,
+        "semanticAndGeometryFailuresIndependent": true
+      }
+    },
+    "default": {
+      "browser": {
+        "project": "chromium",
+        "engine": "Chromium",
+        "pinnedBy": "playwright.config.ts"
+      },
+      "environment": {
+        "deviceScaleFactor": 1,
+        "clock": "fixed fixture clock",
+        "fonts": "local settled fonts",
+        "animations": "disabled",
+        "caret": "hidden",
+        "externalRequests": "blocked"
+      },
+      "viewports": [
+        "320x1000",
+        "375x1000",
+        "768x1000",
+        "1440x1000"
+      ],
+      "locales": [
+        "pt-BR",
+        "en"
+      ],
+      "themes": [
+        "pix-paper",
+        "cashier-daylight",
+        "settlement-sand",
+        "midnight-clearing",
+        "vault-blue",
+        "terminal-amber"
+      ],
+      "states": [
+        "default"
+      ],
+      "raster": {
+        "threshold": 0.1,
+        "maxDiffPixelRatio": 0.001,
+        "semanticAndGeometryFailuresIndependent": true
+      }
+    },
+    "loading": {
+      "browser": {
+        "project": "chromium",
+        "engine": "Chromium",
+        "pinnedBy": "playwright.config.ts"
+      },
+      "environment": {
+        "deviceScaleFactor": 1,
+        "clock": "fixed fixture clock",
+        "fonts": "local settled fonts",
+        "animations": "disabled",
+        "caret": "hidden",
+        "externalRequests": "blocked"
+      },
+      "viewports": [
+        "320x1000",
+        "375x1000",
+        "768x1000",
+        "1440x1000"
+      ],
+      "locales": [
+        "pt-BR",
+        "en"
+      ],
+      "themes": [
+        "pix-paper",
+        "cashier-daylight",
+        "settlement-sand",
+        "midnight-clearing",
+        "vault-blue",
+        "terminal-amber"
+      ],
+      "states": [
+        "loading"
+      ],
+      "raster": {
+        "threshold": 0.1,
+        "maxDiffPixelRatio": 0.001,
+        "semanticAndGeometryFailuresIndependent": true
+      }
+    },
+    "error-retry": {
+      "browser": {
+        "project": "chromium",
+        "engine": "Chromium",
+        "pinnedBy": "playwright.config.ts"
+      },
+      "environment": {
+        "deviceScaleFactor": 1,
+        "clock": "fixed fixture clock",
+        "fonts": "local settled fonts",
+        "animations": "disabled",
+        "caret": "hidden",
+        "externalRequests": "blocked"
+      },
+      "viewports": [
+        "320x1000",
+        "375x1000",
+        "768x1000",
+        "1440x1000"
+      ],
+      "locales": [
+        "pt-BR",
+        "en"
+      ],
+      "themes": [
+        "pix-paper",
+        "cashier-daylight",
+        "settlement-sand",
+        "midnight-clearing",
+        "vault-blue",
+        "terminal-amber"
+      ],
+      "states": [
+        "error",
+        "retry"
+      ],
+      "raster": {
+        "threshold": 0.1,
+        "maxDiffPixelRatio": 0.001,
+        "semanticAndGeometryFailuresIndependent": true
+      }
+    }
+  },
+  "obligations": {
+    "path": "docs/frontend-template-parity/obligations.ndjson",
+    "count": 2225,
+    "sha256": "1e6e43ebf51b5908f4fb07447b80cb428b287530a1c0f4254887622704d8eb41"
+  },
+  "semanticContract": {
+    "parser": "TypeScript 5 AST",
+    "classes": "exact className initializer expression/value",
+    "states": "lexical component/hook owner, binding name, setter, initial value, owner-local transitions, and owner-local JSX/derived view bindings",
+    "interactions": "event, resolved handler implementation, and classified effect calls",
+    "targets": "App route-import transitive closure mapped to exact current route/component paths; template :params normalize to current [params] for matching",
+    "fixtures": "record-specific source/hash/line identity with exact routes, current paths, fixture imports, and fixed clock"
+  }
+}

@@ -93,8 +93,9 @@ describe("merchant links directory page", () => {
     expect(markup).toContain('href="/pay/abcdefghijklmnopqrstuvwx"');
     expect(markup).toContain('href="/links/v2/440e8400-e29b-41d4-a716-446655440010"');
     expect(markup).toContain('href="/links/v2/440e8400-e29b-41d4-a716-446655440010/orders"');
-    expect(markup).toContain(">7</td>");
-    expect(markup).toContain("Orders");
+    expect(markup).toContain("abcdefghijklmnopqrstuvwx");
+    expect(markup).toContain("Identifier");
+    expect(markup).toContain("Dates");
     expect(markup).toContain("View orders");
     expect(markup).toContain('action="/links"');
     expect(markup).toContain("Single-product links");

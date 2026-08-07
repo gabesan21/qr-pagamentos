@@ -1,0 +1,2620 @@
+[
+  {
+    "role": "admin",
+    "theme": "pix-paper",
+    "width": 320,
+    "screenshot": "artifacts/app-shell/20260804000633/admin-pix-paper-320.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation",
+        "Aadmin.userAdministrator",
+        "Today",
+        "Last 30 days"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 50
+        },
+        {
+          "height": 44,
+          "width": 66
+        },
+        {
+          "height": 44,
+          "width": 79
+        },
+        {
+          "height": 44,
+          "width": 124
+        }
+      ]
+    },
+    "severeAxe": [],
+    "skipToContent": {
+      "hitIsLink": true,
+      "outlineWidth": 3,
+      "rectangle": {
+        "bottom": 58,
+        "left": 8,
+        "right": 181,
+        "top": 8
+      },
+      "visible": true
+    }
+  },
+  {
+    "role": "admin",
+    "theme": "pix-paper",
+    "width": 375,
+    "screenshot": "artifacts/app-shell/20260804000633/admin-pix-paper-375.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation",
+        "Aadmin.userAdministrator",
+        "Today",
+        "Last 30 days"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 50
+        },
+        {
+          "height": 44,
+          "width": 66
+        },
+        {
+          "height": 44,
+          "width": 79
+        },
+        {
+          "height": 44,
+          "width": 124
+        }
+      ]
+    },
+    "severeAxe": [],
+    "skipToContent": {
+      "hitIsLink": true,
+      "outlineWidth": 3,
+      "rectangle": {
+        "bottom": 58,
+        "left": 8,
+        "right": 181,
+        "top": 8
+      },
+      "visible": true
+    }
+  },
+  {
+    "role": "admin",
+    "theme": "pix-paper",
+    "width": 768,
+    "screenshot": "artifacts/app-shell/20260804000633/admin-pix-paper-768.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation",
+        "Aadmin.userAdministrator",
+        "Today",
+        "Last 30 days"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 142
+        },
+        {
+          "height": 44,
+          "width": 66
+        },
+        {
+          "height": 44,
+          "width": 79
+        },
+        {
+          "height": 44,
+          "width": 124
+        }
+      ]
+    },
+    "severeAxe": [],
+    "skipToContent": {
+      "hitIsLink": true,
+      "outlineWidth": 3,
+      "rectangle": {
+        "bottom": 58,
+        "left": 8,
+        "right": 181,
+        "top": 8
+      },
+      "visible": true
+    }
+  },
+  {
+    "role": "admin",
+    "theme": "pix-paper",
+    "width": 1440,
+    "screenshot": "artifacts/app-shell/20260804000633/admin-pix-paper-1440.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Dashboard",
+        "Orders",
+        "Links",
+        "Users",
+        "Settings",
+        "Sign out",
+        "Aadmin.userAdministrator"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 88
+        },
+        {
+          "height": 50,
+          "width": 152
+        }
+      ]
+    },
+    "severeAxe": [],
+    "skipToContent": {
+      "hitIsLink": true,
+      "outlineWidth": 3,
+      "rectangle": {
+        "bottom": 58,
+        "left": 8,
+        "right": 181,
+        "top": 8
+      },
+      "visible": true
+    }
+  },
+  {
+    "role": "admin",
+    "theme": "cashier-daylight",
+    "width": 320,
+    "screenshot": "artifacts/app-shell/20260804000633/admin-cashier-daylight-320.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation",
+        "Aadmin.userAdministrator",
+        "Today",
+        "Last 30 days"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 50
+        },
+        {
+          "height": 44,
+          "width": 66
+        },
+        {
+          "height": 44,
+          "width": 79
+        },
+        {
+          "height": 44,
+          "width": 124
+        }
+      ]
+    },
+    "severeAxe": [],
+    "skipToContent": {
+      "hitIsLink": true,
+      "outlineWidth": 3,
+      "rectangle": {
+        "bottom": 58,
+        "left": 8,
+        "right": 181,
+        "top": 8
+      },
+      "visible": true
+    }
+  },
+  {
+    "role": "admin",
+    "theme": "cashier-daylight",
+    "width": 375,
+    "screenshot": "artifacts/app-shell/20260804000633/admin-cashier-daylight-375.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation",
+        "Aadmin.userAdministrator",
+        "Today",
+        "Last 30 days"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 50
+        },
+        {
+          "height": 44,
+          "width": 66
+        },
+        {
+          "height": 44,
+          "width": 79
+        },
+        {
+          "height": 44,
+          "width": 124
+        }
+      ]
+    },
+    "severeAxe": [],
+    "skipToContent": {
+      "hitIsLink": true,
+      "outlineWidth": 3,
+      "rectangle": {
+        "bottom": 58,
+        "left": 8,
+        "right": 181,
+        "top": 8
+      },
+      "visible": true
+    }
+  },
+  {
+    "role": "admin",
+    "theme": "cashier-daylight",
+    "width": 768,
+    "screenshot": "artifacts/app-shell/20260804000633/admin-cashier-daylight-768.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation",
+        "Aadmin.userAdministrator",
+        "Today",
+        "Last 30 days"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 142
+        },
+        {
+          "height": 44,
+          "width": 66
+        },
+        {
+          "height": 44,
+          "width": 79
+        },
+        {
+          "height": 44,
+          "width": 124
+        }
+      ]
+    },
+    "severeAxe": [],
+    "skipToContent": {
+      "hitIsLink": true,
+      "outlineWidth": 3,
+      "rectangle": {
+        "bottom": 58,
+        "left": 8,
+        "right": 181,
+        "top": 8
+      },
+      "visible": true
+    }
+  },
+  {
+    "role": "admin",
+    "theme": "cashier-daylight",
+    "width": 1440,
+    "screenshot": "artifacts/app-shell/20260804000633/admin-cashier-daylight-1440.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Dashboard",
+        "Orders",
+        "Links",
+        "Users",
+        "Settings",
+        "Sign out",
+        "Aadmin.userAdministrator",
+        "Today",
+        "Last 30 days"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 88
+        },
+        {
+          "height": 50,
+          "width": 152
+        },
+        {
+          "height": 44,
+          "width": 79
+        },
+        {
+          "height": 44,
+          "width": 124
+        }
+      ]
+    },
+    "severeAxe": [],
+    "skipToContent": {
+      "hitIsLink": true,
+      "outlineWidth": 3,
+      "rectangle": {
+        "bottom": 58,
+        "left": 8,
+        "right": 181,
+        "top": 8
+      },
+      "visible": true
+    }
+  },
+  {
+    "role": "admin",
+    "theme": "settlement-sand",
+    "width": 320,
+    "screenshot": "artifacts/app-shell/20260804000633/admin-settlement-sand-320.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation",
+        "Aadmin.userAdministrator",
+        "Today",
+        "Last 30 days"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 50
+        },
+        {
+          "height": 44,
+          "width": 66
+        },
+        {
+          "height": 44,
+          "width": 79
+        },
+        {
+          "height": 44,
+          "width": 124
+        }
+      ]
+    },
+    "severeAxe": [],
+    "skipToContent": {
+      "hitIsLink": true,
+      "outlineWidth": 3,
+      "rectangle": {
+        "bottom": 58,
+        "left": 8,
+        "right": 181,
+        "top": 8
+      },
+      "visible": true
+    }
+  },
+  {
+    "role": "admin",
+    "theme": "settlement-sand",
+    "width": 375,
+    "screenshot": "artifacts/app-shell/20260804000633/admin-settlement-sand-375.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation",
+        "Aadmin.userAdministrator",
+        "Today",
+        "Last 30 days"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 50
+        },
+        {
+          "height": 44,
+          "width": 66
+        },
+        {
+          "height": 44,
+          "width": 79
+        },
+        {
+          "height": 44,
+          "width": 124
+        }
+      ]
+    },
+    "severeAxe": [],
+    "skipToContent": {
+      "hitIsLink": true,
+      "outlineWidth": 3,
+      "rectangle": {
+        "bottom": 58,
+        "left": 8,
+        "right": 181,
+        "top": 8
+      },
+      "visible": true
+    }
+  },
+  {
+    "role": "admin",
+    "theme": "settlement-sand",
+    "width": 768,
+    "screenshot": "artifacts/app-shell/20260804000633/admin-settlement-sand-768.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation",
+        "Aadmin.userAdministrator",
+        "Today",
+        "Last 30 days"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 142
+        },
+        {
+          "height": 44,
+          "width": 66
+        },
+        {
+          "height": 44,
+          "width": 79
+        },
+        {
+          "height": 44,
+          "width": 124
+        }
+      ]
+    },
+    "severeAxe": [],
+    "skipToContent": {
+      "hitIsLink": true,
+      "outlineWidth": 3,
+      "rectangle": {
+        "bottom": 58,
+        "left": 8,
+        "right": 181,
+        "top": 8
+      },
+      "visible": true
+    }
+  },
+  {
+    "role": "admin",
+    "theme": "settlement-sand",
+    "width": 1440,
+    "screenshot": "artifacts/app-shell/20260804000633/admin-settlement-sand-1440.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Dashboard",
+        "Orders",
+        "Links",
+        "Users",
+        "Settings",
+        "Sign out",
+        "Aadmin.userAdministrator",
+        "Today",
+        "Last 30 days"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 88
+        },
+        {
+          "height": 50,
+          "width": 152
+        },
+        {
+          "height": 44,
+          "width": 79
+        },
+        {
+          "height": 44,
+          "width": 124
+        }
+      ]
+    },
+    "severeAxe": [],
+    "skipToContent": {
+      "hitIsLink": true,
+      "outlineWidth": 3,
+      "rectangle": {
+        "bottom": 58,
+        "left": 8,
+        "right": 181,
+        "top": 8
+      },
+      "visible": true
+    }
+  },
+  {
+    "role": "admin",
+    "theme": "midnight-clearing",
+    "width": 320,
+    "screenshot": "artifacts/app-shell/20260804000633/admin-midnight-clearing-320.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation",
+        "Aadmin.userAdministrator",
+        "Today",
+        "Last 30 days"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 50
+        },
+        {
+          "height": 44,
+          "width": 66
+        },
+        {
+          "height": 44,
+          "width": 79
+        },
+        {
+          "height": 44,
+          "width": 124
+        }
+      ]
+    },
+    "severeAxe": [],
+    "skipToContent": {
+      "hitIsLink": true,
+      "outlineWidth": 3,
+      "rectangle": {
+        "bottom": 58,
+        "left": 8,
+        "right": 181,
+        "top": 8
+      },
+      "visible": true
+    }
+  },
+  {
+    "role": "admin",
+    "theme": "midnight-clearing",
+    "width": 375,
+    "screenshot": "artifacts/app-shell/20260804000633/admin-midnight-clearing-375.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation",
+        "Aadmin.userAdministrator",
+        "Today",
+        "Last 30 days"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 50
+        },
+        {
+          "height": 44,
+          "width": 66
+        },
+        {
+          "height": 44,
+          "width": 79
+        },
+        {
+          "height": 44,
+          "width": 124
+        }
+      ]
+    },
+    "severeAxe": [],
+    "skipToContent": {
+      "hitIsLink": true,
+      "outlineWidth": 3,
+      "rectangle": {
+        "bottom": 58,
+        "left": 8,
+        "right": 181,
+        "top": 8
+      },
+      "visible": true
+    }
+  },
+  {
+    "role": "admin",
+    "theme": "midnight-clearing",
+    "width": 768,
+    "screenshot": "artifacts/app-shell/20260804000633/admin-midnight-clearing-768.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation",
+        "Aadmin.userAdministrator",
+        "Today",
+        "Last 30 days"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 142
+        },
+        {
+          "height": 44,
+          "width": 66
+        },
+        {
+          "height": 44,
+          "width": 79
+        },
+        {
+          "height": 44,
+          "width": 124
+        }
+      ]
+    },
+    "severeAxe": [],
+    "skipToContent": {
+      "hitIsLink": true,
+      "outlineWidth": 3,
+      "rectangle": {
+        "bottom": 58,
+        "left": 8,
+        "right": 181,
+        "top": 8
+      },
+      "visible": true
+    }
+  },
+  {
+    "role": "admin",
+    "theme": "midnight-clearing",
+    "width": 1440,
+    "screenshot": "artifacts/app-shell/20260804000633/admin-midnight-clearing-1440.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Dashboard",
+        "Orders",
+        "Links",
+        "Users",
+        "Settings",
+        "Sign out",
+        "Aadmin.userAdministrator",
+        "Today",
+        "Last 30 days"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 88
+        },
+        {
+          "height": 50,
+          "width": 152
+        },
+        {
+          "height": 44,
+          "width": 79
+        },
+        {
+          "height": 44,
+          "width": 124
+        }
+      ]
+    },
+    "severeAxe": [],
+    "skipToContent": {
+      "hitIsLink": true,
+      "outlineWidth": 3,
+      "rectangle": {
+        "bottom": 58,
+        "left": 8,
+        "right": 181,
+        "top": 8
+      },
+      "visible": true
+    }
+  },
+  {
+    "role": "admin",
+    "theme": "vault-blue",
+    "width": 320,
+    "screenshot": "artifacts/app-shell/20260804000633/admin-vault-blue-320.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation",
+        "Aadmin.userAdministrator",
+        "Today",
+        "Last 30 days"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 50
+        },
+        {
+          "height": 44,
+          "width": 66
+        },
+        {
+          "height": 44,
+          "width": 79
+        },
+        {
+          "height": 44,
+          "width": 124
+        }
+      ]
+    },
+    "severeAxe": [],
+    "skipToContent": {
+      "hitIsLink": true,
+      "outlineWidth": 3,
+      "rectangle": {
+        "bottom": 58,
+        "left": 8,
+        "right": 181,
+        "top": 8
+      },
+      "visible": true
+    }
+  },
+  {
+    "role": "admin",
+    "theme": "vault-blue",
+    "width": 375,
+    "screenshot": "artifacts/app-shell/20260804000633/admin-vault-blue-375.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation",
+        "Aadmin.userAdministrator",
+        "Today",
+        "Last 30 days"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 50
+        },
+        {
+          "height": 44,
+          "width": 66
+        },
+        {
+          "height": 44,
+          "width": 79
+        },
+        {
+          "height": 44,
+          "width": 124
+        }
+      ]
+    },
+    "severeAxe": [],
+    "skipToContent": {
+      "hitIsLink": true,
+      "outlineWidth": 3,
+      "rectangle": {
+        "bottom": 58,
+        "left": 8,
+        "right": 181,
+        "top": 8
+      },
+      "visible": true
+    }
+  },
+  {
+    "role": "admin",
+    "theme": "vault-blue",
+    "width": 768,
+    "screenshot": "artifacts/app-shell/20260804000633/admin-vault-blue-768.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation",
+        "Aadmin.userAdministrator",
+        "Today",
+        "Last 30 days"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 142
+        },
+        {
+          "height": 44,
+          "width": 66
+        },
+        {
+          "height": 44,
+          "width": 79
+        },
+        {
+          "height": 44,
+          "width": 124
+        }
+      ]
+    },
+    "severeAxe": [],
+    "skipToContent": {
+      "hitIsLink": true,
+      "outlineWidth": 3,
+      "rectangle": {
+        "bottom": 58,
+        "left": 8,
+        "right": 181,
+        "top": 8
+      },
+      "visible": true
+    }
+  },
+  {
+    "role": "admin",
+    "theme": "vault-blue",
+    "width": 1440,
+    "screenshot": "artifacts/app-shell/20260804000633/admin-vault-blue-1440.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Dashboard",
+        "Orders",
+        "Links",
+        "Users",
+        "Settings",
+        "Sign out",
+        "Aadmin.userAdministrator",
+        "Today",
+        "Last 30 days"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 88
+        },
+        {
+          "height": 50,
+          "width": 152
+        },
+        {
+          "height": 44,
+          "width": 79
+        },
+        {
+          "height": 44,
+          "width": 124
+        }
+      ]
+    },
+    "severeAxe": [],
+    "skipToContent": {
+      "hitIsLink": true,
+      "outlineWidth": 3,
+      "rectangle": {
+        "bottom": 58,
+        "left": 8,
+        "right": 181,
+        "top": 8
+      },
+      "visible": true
+    }
+  },
+  {
+    "role": "admin",
+    "theme": "terminal-amber",
+    "width": 320,
+    "screenshot": "artifacts/app-shell/20260804000633/admin-terminal-amber-320.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation",
+        "Aadmin.userAdministrator",
+        "Today",
+        "Last 30 days"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 50
+        },
+        {
+          "height": 44,
+          "width": 66
+        },
+        {
+          "height": 44,
+          "width": 79
+        },
+        {
+          "height": 44,
+          "width": 124
+        }
+      ]
+    },
+    "severeAxe": [],
+    "skipToContent": {
+      "hitIsLink": true,
+      "outlineWidth": 3,
+      "rectangle": {
+        "bottom": 58,
+        "left": 8,
+        "right": 181,
+        "top": 8
+      },
+      "visible": true
+    }
+  },
+  {
+    "role": "admin",
+    "theme": "terminal-amber",
+    "width": 375,
+    "screenshot": "artifacts/app-shell/20260804000633/admin-terminal-amber-375.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation",
+        "Aadmin.userAdministrator"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 50
+        },
+        {
+          "height": 44,
+          "width": 66
+        }
+      ]
+    },
+    "severeAxe": [],
+    "skipToContent": {
+      "hitIsLink": true,
+      "outlineWidth": 3,
+      "rectangle": {
+        "bottom": 58,
+        "left": 8,
+        "right": 181,
+        "top": 8
+      },
+      "visible": true
+    }
+  },
+  {
+    "role": "admin",
+    "theme": "terminal-amber",
+    "width": 768,
+    "screenshot": "artifacts/app-shell/20260804000633/admin-terminal-amber-768.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation",
+        "Aadmin.userAdministrator",
+        "Today",
+        "Last 30 days"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 142
+        },
+        {
+          "height": 44,
+          "width": 66
+        },
+        {
+          "height": 44,
+          "width": 79
+        },
+        {
+          "height": 44,
+          "width": 124
+        }
+      ]
+    },
+    "severeAxe": [],
+    "skipToContent": {
+      "hitIsLink": true,
+      "outlineWidth": 3,
+      "rectangle": {
+        "bottom": 58,
+        "left": 8,
+        "right": 181,
+        "top": 8
+      },
+      "visible": true
+    }
+  },
+  {
+    "role": "admin",
+    "theme": "terminal-amber",
+    "width": 1440,
+    "screenshot": "artifacts/app-shell/20260804000633/admin-terminal-amber-1440.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Dashboard",
+        "Orders",
+        "Links",
+        "Users",
+        "Settings",
+        "Sign out",
+        "Aadmin.userAdministrator",
+        "Today",
+        "Last 30 days"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 88
+        },
+        {
+          "height": 50,
+          "width": 152
+        },
+        {
+          "height": 44,
+          "width": 79
+        },
+        {
+          "height": 44,
+          "width": 124
+        }
+      ]
+    },
+    "severeAxe": [],
+    "skipToContent": {
+      "hitIsLink": true,
+      "outlineWidth": 3,
+      "rectangle": {
+        "bottom": 58,
+        "left": 8,
+        "right": 181,
+        "top": 8
+      },
+      "visible": true
+    }
+  },
+  {
+    "role": "admin",
+    "state": "mobile-open",
+    "screenshot": "artifacts/app-shell/20260804000633/admin-mobile-open.png"
+  },
+  {
+    "role": "merchant",
+    "theme": "pix-paper",
+    "width": 320,
+    "screenshot": "artifacts/app-shell/20260804000633/merchant-pix-paper-320.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation",
+        "Eevidence.merchantMerchant",
+        "Today",
+        "Last 30 days"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 50
+        },
+        {
+          "height": 44,
+          "width": 66
+        },
+        {
+          "height": 44,
+          "width": 79
+        },
+        {
+          "height": 44,
+          "width": 124
+        }
+      ]
+    },
+    "severeAxe": [],
+    "skipToContent": {
+      "hitIsLink": true,
+      "outlineWidth": 3,
+      "rectangle": {
+        "bottom": 58,
+        "left": 8,
+        "right": 181,
+        "top": 8
+      },
+      "visible": true
+    }
+  },
+  {
+    "role": "merchant",
+    "theme": "pix-paper",
+    "width": 375,
+    "screenshot": "artifacts/app-shell/20260804000633/merchant-pix-paper-375.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation",
+        "Eevidence.merchantMerchant",
+        "Today",
+        "Last 30 days"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 50
+        },
+        {
+          "height": 44,
+          "width": 66
+        },
+        {
+          "height": 44,
+          "width": 79
+        },
+        {
+          "height": 44,
+          "width": 124
+        }
+      ]
+    },
+    "severeAxe": [],
+    "skipToContent": {
+      "hitIsLink": true,
+      "outlineWidth": 3,
+      "rectangle": {
+        "bottom": 58,
+        "left": 8,
+        "right": 181,
+        "top": 8
+      },
+      "visible": true
+    }
+  },
+  {
+    "role": "merchant",
+    "theme": "pix-paper",
+    "width": 768,
+    "screenshot": "artifacts/app-shell/20260804000633/merchant-pix-paper-768.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation",
+        "Eevidence.merchantMerchant"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 142
+        },
+        {
+          "height": 44,
+          "width": 66
+        }
+      ]
+    },
+    "severeAxe": [],
+    "skipToContent": {
+      "hitIsLink": true,
+      "outlineWidth": 3,
+      "rectangle": {
+        "bottom": 58,
+        "left": 8,
+        "right": 181,
+        "top": 8
+      },
+      "visible": true
+    }
+  },
+  {
+    "role": "merchant",
+    "theme": "pix-paper",
+    "width": 1440,
+    "screenshot": "artifacts/app-shell/20260804000633/merchant-pix-paper-1440.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Dashboard",
+        "Orders",
+        "Links",
+        "Products",
+        "Settings",
+        "Sign out",
+        "Eevidence.merchantMerchant"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 88
+        },
+        {
+          "height": 50,
+          "width": 206
+        }
+      ]
+    },
+    "severeAxe": [],
+    "skipToContent": {
+      "hitIsLink": true,
+      "outlineWidth": 3,
+      "rectangle": {
+        "bottom": 58,
+        "left": 8,
+        "right": 181,
+        "top": 8
+      },
+      "visible": true
+    }
+  },
+  {
+    "role": "merchant",
+    "theme": "cashier-daylight",
+    "width": 320,
+    "screenshot": "artifacts/app-shell/20260804000633/merchant-cashier-daylight-320.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation",
+        "Eevidence.merchantMerchant"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 50
+        },
+        {
+          "height": 44,
+          "width": 66
+        }
+      ]
+    },
+    "severeAxe": [],
+    "skipToContent": {
+      "hitIsLink": true,
+      "outlineWidth": 3,
+      "rectangle": {
+        "bottom": 58,
+        "left": 8,
+        "right": 181,
+        "top": 8
+      },
+      "visible": true
+    }
+  },
+  {
+    "role": "merchant",
+    "theme": "cashier-daylight",
+    "width": 375,
+    "screenshot": "artifacts/app-shell/20260804000633/merchant-cashier-daylight-375.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation",
+        "Eevidence.merchantMerchant",
+        "Today",
+        "Last 30 days"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 50
+        },
+        {
+          "height": 44,
+          "width": 66
+        },
+        {
+          "height": 44,
+          "width": 79
+        },
+        {
+          "height": 44,
+          "width": 124
+        }
+      ]
+    },
+    "severeAxe": [],
+    "skipToContent": {
+      "hitIsLink": true,
+      "outlineWidth": 3,
+      "rectangle": {
+        "bottom": 58,
+        "left": 8,
+        "right": 181,
+        "top": 8
+      },
+      "visible": true
+    }
+  },
+  {
+    "role": "merchant",
+    "theme": "cashier-daylight",
+    "width": 768,
+    "screenshot": "artifacts/app-shell/20260804000633/merchant-cashier-daylight-768.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation",
+        "Eevidence.merchantMerchant"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 142
+        },
+        {
+          "height": 44,
+          "width": 66
+        }
+      ]
+    },
+    "severeAxe": [],
+    "skipToContent": {
+      "hitIsLink": true,
+      "outlineWidth": 3,
+      "rectangle": {
+        "bottom": 58,
+        "left": 8,
+        "right": 181,
+        "top": 8
+      },
+      "visible": true
+    }
+  },
+  {
+    "role": "merchant",
+    "theme": "cashier-daylight",
+    "width": 1440,
+    "screenshot": "artifacts/app-shell/20260804000633/merchant-cashier-daylight-1440.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Dashboard",
+        "Orders",
+        "Links",
+        "Products",
+        "Settings",
+        "Sign out",
+        "Eevidence.merchantMerchant"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 88
+        },
+        {
+          "height": 50,
+          "width": 206
+        }
+      ]
+    },
+    "severeAxe": [],
+    "skipToContent": {
+      "hitIsLink": true,
+      "outlineWidth": 3,
+      "rectangle": {
+        "bottom": 58,
+        "left": 8,
+        "right": 181,
+        "top": 8
+      },
+      "visible": true
+    }
+  },
+  {
+    "role": "merchant",
+    "theme": "settlement-sand",
+    "width": 320,
+    "screenshot": "artifacts/app-shell/20260804000633/merchant-settlement-sand-320.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation",
+        "Eevidence.merchantMerchant",
+        "Today",
+        "Last 30 days"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 50
+        },
+        {
+          "height": 44,
+          "width": 66
+        },
+        {
+          "height": 44,
+          "width": 79
+        },
+        {
+          "height": 44,
+          "width": 124
+        }
+      ]
+    },
+    "severeAxe": [],
+    "skipToContent": {
+      "hitIsLink": true,
+      "outlineWidth": 3,
+      "rectangle": {
+        "bottom": 58,
+        "left": 8,
+        "right": 181,
+        "top": 8
+      },
+      "visible": true
+    }
+  },
+  {
+    "role": "merchant",
+    "theme": "settlement-sand",
+    "width": 375,
+    "screenshot": "artifacts/app-shell/20260804000633/merchant-settlement-sand-375.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation",
+        "Eevidence.merchantMerchant",
+        "Today",
+        "Last 30 days"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 50
+        },
+        {
+          "height": 44,
+          "width": 66
+        },
+        {
+          "height": 44,
+          "width": 79
+        },
+        {
+          "height": 44,
+          "width": 124
+        }
+      ]
+    },
+    "severeAxe": [],
+    "skipToContent": {
+      "hitIsLink": true,
+      "outlineWidth": 3,
+      "rectangle": {
+        "bottom": 58,
+        "left": 8,
+        "right": 181,
+        "top": 8
+      },
+      "visible": true
+    }
+  },
+  {
+    "role": "merchant",
+    "theme": "settlement-sand",
+    "width": 768,
+    "screenshot": "artifacts/app-shell/20260804000633/merchant-settlement-sand-768.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation",
+        "Eevidence.merchantMerchant"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 142
+        },
+        {
+          "height": 44,
+          "width": 66
+        }
+      ]
+    },
+    "severeAxe": [],
+    "skipToContent": {
+      "hitIsLink": true,
+      "outlineWidth": 3,
+      "rectangle": {
+        "bottom": 58,
+        "left": 8,
+        "right": 181,
+        "top": 8
+      },
+      "visible": true
+    }
+  },
+  {
+    "role": "merchant",
+    "theme": "settlement-sand",
+    "width": 1440,
+    "screenshot": "artifacts/app-shell/20260804000633/merchant-settlement-sand-1440.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Dashboard",
+        "Orders",
+        "Links",
+        "Products",
+        "Settings",
+        "Sign out",
+        "Eevidence.merchantMerchant",
+        "Today",
+        "Last 30 days"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 88
+        },
+        {
+          "height": 50,
+          "width": 206
+        },
+        {
+          "height": 44,
+          "width": 79
+        },
+        {
+          "height": 44,
+          "width": 124
+        }
+      ]
+    },
+    "severeAxe": [],
+    "skipToContent": {
+      "hitIsLink": true,
+      "outlineWidth": 3,
+      "rectangle": {
+        "bottom": 58,
+        "left": 8,
+        "right": 181,
+        "top": 8
+      },
+      "visible": true
+    }
+  },
+  {
+    "role": "merchant",
+    "theme": "midnight-clearing",
+    "width": 320,
+    "screenshot": "artifacts/app-shell/20260804000633/merchant-midnight-clearing-320.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation",
+        "Eevidence.merchantMerchant",
+        "Today",
+        "Last 30 days"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 50
+        },
+        {
+          "height": 44,
+          "width": 66
+        },
+        {
+          "height": 44,
+          "width": 79
+        },
+        {
+          "height": 44,
+          "width": 124
+        }
+      ]
+    },
+    "severeAxe": [],
+    "skipToContent": {
+      "hitIsLink": true,
+      "outlineWidth": 3,
+      "rectangle": {
+        "bottom": 58,
+        "left": 8,
+        "right": 181,
+        "top": 8
+      },
+      "visible": true
+    }
+  },
+  {
+    "role": "merchant",
+    "theme": "midnight-clearing",
+    "width": 375,
+    "screenshot": "artifacts/app-shell/20260804000633/merchant-midnight-clearing-375.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation",
+        "Eevidence.merchantMerchant"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 50
+        },
+        {
+          "height": 44,
+          "width": 66
+        }
+      ]
+    },
+    "severeAxe": [],
+    "skipToContent": {
+      "hitIsLink": true,
+      "outlineWidth": 3,
+      "rectangle": {
+        "bottom": 58,
+        "left": 8,
+        "right": 181,
+        "top": 8
+      },
+      "visible": true
+    }
+  },
+  {
+    "role": "merchant",
+    "theme": "midnight-clearing",
+    "width": 768,
+    "screenshot": "artifacts/app-shell/20260804000633/merchant-midnight-clearing-768.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation",
+        "Eevidence.merchantMerchant",
+        "Today",
+        "Last 30 days"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 142
+        },
+        {
+          "height": 44,
+          "width": 66
+        },
+        {
+          "height": 44,
+          "width": 79
+        },
+        {
+          "height": 44,
+          "width": 124
+        }
+      ]
+    },
+    "severeAxe": [],
+    "skipToContent": {
+      "hitIsLink": true,
+      "outlineWidth": 3,
+      "rectangle": {
+        "bottom": 58,
+        "left": 8,
+        "right": 181,
+        "top": 8
+      },
+      "visible": true
+    }
+  },
+  {
+    "role": "merchant",
+    "theme": "midnight-clearing",
+    "width": 1440,
+    "screenshot": "artifacts/app-shell/20260804000633/merchant-midnight-clearing-1440.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Dashboard",
+        "Orders",
+        "Links",
+        "Products",
+        "Settings",
+        "Sign out",
+        "Eevidence.merchantMerchant"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 88
+        },
+        {
+          "height": 50,
+          "width": 206
+        }
+      ]
+    },
+    "severeAxe": [],
+    "skipToContent": {
+      "hitIsLink": true,
+      "outlineWidth": 3,
+      "rectangle": {
+        "bottom": 58,
+        "left": 8,
+        "right": 181,
+        "top": 8
+      },
+      "visible": true
+    }
+  },
+  {
+    "role": "merchant",
+    "theme": "vault-blue",
+    "width": 320,
+    "screenshot": "artifacts/app-shell/20260804000633/merchant-vault-blue-320.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation",
+        "Eevidence.merchantMerchant"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 50
+        },
+        {
+          "height": 44,
+          "width": 66
+        }
+      ]
+    },
+    "severeAxe": [],
+    "skipToContent": {
+      "hitIsLink": true,
+      "outlineWidth": 3,
+      "rectangle": {
+        "bottom": 58,
+        "left": 8,
+        "right": 181,
+        "top": 8
+      },
+      "visible": true
+    }
+  },
+  {
+    "role": "merchant",
+    "theme": "vault-blue",
+    "width": 375,
+    "screenshot": "artifacts/app-shell/20260804000633/merchant-vault-blue-375.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation",
+        "Eevidence.merchantMerchant"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 50
+        },
+        {
+          "height": 44,
+          "width": 66
+        }
+      ]
+    },
+    "severeAxe": [],
+    "skipToContent": {
+      "hitIsLink": true,
+      "outlineWidth": 3,
+      "rectangle": {
+        "bottom": 58,
+        "left": 8,
+        "right": 181,
+        "top": 8
+      },
+      "visible": true
+    }
+  },
+  {
+    "role": "merchant",
+    "theme": "vault-blue",
+    "width": 768,
+    "screenshot": "artifacts/app-shell/20260804000633/merchant-vault-blue-768.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation",
+        "Eevidence.merchantMerchant"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 142
+        },
+        {
+          "height": 44,
+          "width": 66
+        }
+      ]
+    },
+    "severeAxe": [],
+    "skipToContent": {
+      "hitIsLink": true,
+      "outlineWidth": 3,
+      "rectangle": {
+        "bottom": 58,
+        "left": 8,
+        "right": 181,
+        "top": 8
+      },
+      "visible": true
+    }
+  },
+  {
+    "role": "merchant",
+    "theme": "vault-blue",
+    "width": 1440,
+    "screenshot": "artifacts/app-shell/20260804000633/merchant-vault-blue-1440.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Dashboard",
+        "Orders",
+        "Links",
+        "Products",
+        "Settings",
+        "Sign out",
+        "Eevidence.merchantMerchant",
+        "Today",
+        "Last 30 days"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 88
+        },
+        {
+          "height": 50,
+          "width": 206
+        },
+        {
+          "height": 44,
+          "width": 79
+        },
+        {
+          "height": 44,
+          "width": 124
+        }
+      ]
+    },
+    "severeAxe": [],
+    "skipToContent": {
+      "hitIsLink": true,
+      "outlineWidth": 3,
+      "rectangle": {
+        "bottom": 58,
+        "left": 8,
+        "right": 181,
+        "top": 8
+      },
+      "visible": true
+    }
+  },
+  {
+    "role": "merchant",
+    "theme": "terminal-amber",
+    "width": 320,
+    "screenshot": "artifacts/app-shell/20260804000633/merchant-terminal-amber-320.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation",
+        "Eevidence.merchantMerchant",
+        "Today",
+        "Last 30 days"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 50
+        },
+        {
+          "height": 44,
+          "width": 66
+        },
+        {
+          "height": 44,
+          "width": 79
+        },
+        {
+          "height": 44,
+          "width": 124
+        }
+      ]
+    },
+    "severeAxe": [],
+    "skipToContent": {
+      "hitIsLink": true,
+      "outlineWidth": 3,
+      "rectangle": {
+        "bottom": 58,
+        "left": 8,
+        "right": 181,
+        "top": 8
+      },
+      "visible": true
+    }
+  },
+  {
+    "role": "merchant",
+    "theme": "terminal-amber",
+    "width": 375,
+    "screenshot": "artifacts/app-shell/20260804000633/merchant-terminal-amber-375.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation",
+        "Eevidence.merchantMerchant",
+        "Today",
+        "Last 30 days"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 50
+        },
+        {
+          "height": 44,
+          "width": 66
+        },
+        {
+          "height": 44,
+          "width": 79
+        },
+        {
+          "height": 44,
+          "width": 124
+        }
+      ]
+    },
+    "severeAxe": [],
+    "skipToContent": {
+      "hitIsLink": true,
+      "outlineWidth": 3,
+      "rectangle": {
+        "bottom": 58,
+        "left": 8,
+        "right": 181,
+        "top": 8
+      },
+      "visible": true
+    }
+  },
+  {
+    "role": "merchant",
+    "theme": "terminal-amber",
+    "width": 768,
+    "screenshot": "artifacts/app-shell/20260804000633/merchant-terminal-amber-768.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Open navigation",
+        "Eevidence.merchantMerchant"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 142
+        },
+        {
+          "height": 44,
+          "width": 66
+        }
+      ]
+    },
+    "severeAxe": [],
+    "skipToContent": {
+      "hitIsLink": true,
+      "outlineWidth": 3,
+      "rectangle": {
+        "bottom": 58,
+        "left": 8,
+        "right": 181,
+        "top": 8
+      },
+      "visible": true
+    }
+  },
+  {
+    "role": "merchant",
+    "theme": "terminal-amber",
+    "width": 1440,
+    "screenshot": "artifacts/app-shell/20260804000633/merchant-terminal-amber-1440.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusOrder": [
+        "Skip to main content",
+        "Dashboard",
+        "Orders",
+        "Links",
+        "Products",
+        "Settings",
+        "Sign out",
+        "Eevidence.merchantMerchant",
+        "Today",
+        "Last 30 days"
+      ],
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 88
+        },
+        {
+          "height": 50,
+          "width": 206
+        },
+        {
+          "height": 44,
+          "width": 79
+        },
+        {
+          "height": 44,
+          "width": 124
+        }
+      ]
+    },
+    "severeAxe": [],
+    "skipToContent": {
+      "hitIsLink": true,
+      "outlineWidth": 3,
+      "rectangle": {
+        "bottom": 58,
+        "left": 8,
+        "right": 181,
+        "top": 8
+      },
+      "visible": true
+    }
+  },
+  {
+    "role": "merchant",
+    "state": "mobile-open",
+    "screenshot": "artifacts/app-shell/20260804000633/merchant-mobile-open.png"
+  }
+]

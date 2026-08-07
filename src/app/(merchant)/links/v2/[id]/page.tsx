@@ -4,6 +4,7 @@ import { WorkspaceHeading } from "@/app-shell/workspace-heading";
 import { getPaymentLinkV2PrefillService } from "@/auth/payment-link-v2-prefill";
 import { getPaymentLinkV2ViewService } from "@/auth/payment-link-v2-view";
 import { Button } from "@/components/ui/button";
+import { ExternalLinkIcon, GitBranchIcon, ListOrderedIcon, PencilIcon } from "lucide-react";
 
 import { requireMerchantShellContext } from "../../../shell-context";
 import { PaymentLinkV2LifecycleCard } from "../../link-v2-actions";
@@ -17,25 +18,47 @@ export default async function PaymentLinkV2DetailPage({ params }: Readonly<{ par
     getPaymentLinkV2PrefillService().getForOwner(principal, id),
   ]);
 
+  if (result.kind !== "found" || prefill === null) {
+    return (
+      <>
+        <WorkspaceHeading description={dictionary.paymentLinkDirectoryDescription} eyebrow={dictionary.shellMerchantEyebrow} title={dictionary.shellLinks} />
+        <PaymentLinkV2UnavailableCard backHref="/links" dictionary={dictionary} />
+      </>
+    );
+  }
+
+  const link = result.link;
+  const payUrl = link.sharePath;
+
   return (
-    <>
+    <div className="space-y-4">
       <WorkspaceHeading description={dictionary.paymentLinkDirectoryDescription} eyebrow={dictionary.shellMerchantEyebrow} title={dictionary.shellLinks} />
-      {result.kind === "found" && prefill !== null
-        ? (
-          <>
-            <PaymentLinkV2DetailCard backHref="/links" dictionary={dictionary} link={result.link} locale={locale} />
-            <div className="flex flex-wrap gap-3">
-              <Button asChild data-ds-hit-target>
-                <Link href={`/links/v2/${result.link.id}/edit`}>{dictionary.paymentLinkEditAction}</Link>
-              </Button>
-              <Button asChild data-ds-hit-target variant="outline">
-                <Link href={`/links/v2/${result.link.id}/orders`}>{dictionary.paymentLinkOrdersView}</Link>
-              </Button>
-            </div>
-            <PaymentLinkV2LifecycleCard active={result.link.active} dictionary={dictionary} id={result.link.id} version={prefill.version} />
-          </>
-        )
-        : <PaymentLinkV2UnavailableCard backHref="/links" dictionary={dictionary} />}
-    </>
+
+      <PaymentLinkV2DetailCard
+        backHref="/links"
+        backLabel={dictionary.paymentLinkDirectoryBack}
+        dictionary={dictionary}
+        link={link}
+        locale={locale}
+        orders={{ total: link.orderCount, confirmed: 0, volume: "0.00" }}
+      />
+
+      <div className="flex flex-wrap items-center gap-2">
+        <Button asChild data-ds-hit-target size="sm" variant="outline">
+          <a href={payUrl} rel="noopener" target="_blank"><ExternalLinkIcon aria-hidden /> {dictionary.paymentLinkDirectoryShareOpen}</a>
+        </Button>
+        <Button asChild data-ds-hit-target size="sm" variant="outline">
+          <Link href={`/links/v2/${link.id}/edit`}><PencilIcon aria-hidden /> {dictionary.paymentLinkEditAction}</Link>
+        </Button>
+        <Button asChild data-ds-hit-target size="sm" variant="outline">
+          <Link href={`/links/new?from=${link.id}`}><GitBranchIcon aria-hidden /> {dictionary.paymentLinkNewVersion}</Link>
+        </Button>
+        <Button asChild data-ds-hit-target size="sm" variant="outline">
+          <Link href={`/links/v2/${link.id}/orders`}><ListOrderedIcon aria-hidden /> {dictionary.paymentLinkOrdersView}</Link>
+        </Button>
+      </div>
+
+      <PaymentLinkV2LifecycleCard active={link.active} dictionary={dictionary} id={link.id} version={prefill.version} />
+    </div>
   );
 }

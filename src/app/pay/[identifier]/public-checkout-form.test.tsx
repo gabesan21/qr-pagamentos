@@ -11,7 +11,7 @@ import { createPollingController, PublicCheckoutForm } from "./public-checkout-f
 const identifier = "AbCdEfGhIjKlMnOpQrStUvWx";
 
 function markup(policy: CheckoutDataPolicy) {
-  return renderToStaticMarkup(<PublicCheckoutForm dictionary={getDictionary("en")} identifier={identifier} policy={policy} />);
+  return renderToStaticMarkup(<PublicCheckoutForm dictionary={getDictionary("en")} identifier={identifier} policy={policy} product={{ title: "Donation", description: "Support the project.", price: "12.50" }} />);
 }
 
 class TestVisibilityDocument {

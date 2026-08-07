@@ -3,6 +3,7 @@ export const appShellEn = {
   shellOpenNavigation: "Open navigation",
   shellCloseNavigation: "Close navigation",
   shellLocale: "Language",
+  shellLanguage: "Language",
   shellAdminNavigation: "Administrator areas",
   shellMerchantNavigation: "Merchant areas",
   shellDashboard: "Dashboard",
@@ -23,4 +24,9 @@ export const appShellEn = {
   shellAdminLinksDescription: "Global payment-link visibility is not available yet.",
   shellWorkspaceEmptyTitle: "No information to show yet",
   shellWorkspaceEmptyDescription: "This area is ready for its approved capability. No data has been inferred or fabricated.",
+  shellAccountMenu: "Account menu",
+  shellProfile: "Profile",
+  shellStorefront: "Storefront",
+  shellPrivacy: "Privacy",
+  shellCopyright: "QR Pagamentos",
 } as const;

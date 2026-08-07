@@ -1,0 +1,16 @@
+export const settingsPtBR = {
+  settingsNavLabel: "Navegação de configurações",
+  settingsNavConnection: "Conexão",
+  settingsNavPolicy: "Política de checkout",
+  settingsNavIdentity: "Identidade",
+  settingsNavStore: "Loja",
+  settingsNavPayments: "Pagamentos",
+  settingsNavCurrency: "Moeda",
+  settingsNavLanguage: "Idioma",
+  nauttStatusActive: "Ativo",
+  nauttStatusUnregistered: "Configuração pendente",
+  nauttStatusIndeterminate: "Configuração em andamento",
+  nauttStatusNotConfigured: "Não conectado",
+  hidePassword: "Ocultar senha",
+  showPassword: "Mostrar senha",
+} as const;

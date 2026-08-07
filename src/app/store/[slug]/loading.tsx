@@ -1,23 +1,15 @@
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+import { CardSkeleton, TableSkeleton } from "@/components/ui/skeletons";
+import { getDictionary } from "@/i18n/dictionaries";
+import { defaultLocale } from "@/i18n/locales";
 
 export default function PublicStorefrontLoading() {
+  const dictionary = getDictionary(defaultLocale);
+
   return (
-    <main aria-busy="true" className="storefront-shell">
-      <Card className="storefront-card">
-        <CardHeader><Skeleton className="storefront-skeleton storefront-skeleton--title" /></CardHeader>
-        <CardContent><Skeleton className="storefront-skeleton storefront-skeleton--body" /></CardContent>
-        <CardFooter><Skeleton className="storefront-skeleton storefront-skeleton--control" /></CardFooter>
-      </Card>
-      <Card className="storefront-card">
-        <CardHeader><Skeleton className="storefront-skeleton storefront-skeleton--title" /></CardHeader>
-        <CardContent><Skeleton className="storefront-skeleton storefront-skeleton--body" /></CardContent>
-        <CardFooter><Skeleton className="storefront-skeleton storefront-skeleton--control" /></CardFooter>
-      </Card>
-      <Card className="storefront-card">
-        <CardHeader><Skeleton className="storefront-skeleton storefront-skeleton--title" /></CardHeader>
-        <CardContent><Skeleton className="storefront-skeleton storefront-skeleton--lines" /></CardContent>
-      </Card>
+    <main aria-busy="true" className="storefront-shell" role="status">
+      <CardSkeleton label={dictionary.storefrontProductsHeading} />
+      <TableSkeleton columns={3} label={dictionary.storefrontProductsHeading} rows={6} />
+      <CardSkeleton label={dictionary.storefrontCartHeading} />
     </main>
   );
 }

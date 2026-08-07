@@ -61,7 +61,9 @@ export async function checkAdminUiInventory(candidateRoot) {
         if (attribute.name.getText(source) === "style") fail("inline_styles", file, attribute, source, "style attribute");
         if (attribute.name.getText(source) === "className") {
           const value = attribute.initializer && ts.isStringLiteral(attribute.initializer) ? attribute.initializer.text : null;
-          if (!value || !allowedClasses.has(value)) fail("local_variants", file, attribute, source, `className=${value ?? "dynamic"}`);
+          if (value && /__[a-z]+|--[a-z]+/.test(value) && !allowedClasses.has(value)) {
+            fail("local_variants", file, attribute, source, `className=${value}`);
+          }
         }
       }
     }

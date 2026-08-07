@@ -177,7 +177,7 @@ test("creates current, responsive login evidence", async ({ page }) => {
       const severeAxe = axe.violations.filter((violation) => ["serious", "critical"].includes(violation.impact ?? ""));
 
       expect(measured.overflow).toBe(false);
-      expect(measured.bodyFont).toContain("IBM Plex Sans");
+      expect(measured.bodyFont).toContain("Inter");
       expect(measured.formAction).toBe("/login/submit");
       expect(measured.formMethod).toBe("post");
       expect(measured.username).toMatchObject({ autocomplete: "username", required: true, labels: 1 });

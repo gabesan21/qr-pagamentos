@@ -42,9 +42,14 @@ export default async function StandalonePaymentPage({ params, searchParams }: Re
   return (
     <main className="storefront-shell" data-theme-preview={storefront.themeId} style={{ "--storefront-accent": storefront.accentColor } as CSSProperties}>
       <header className="receipt-rail storefront-rail">
-        {storefront.logoMediaIdentifier
-          ? <img alt={dictionary.storefrontLogoAlt} className="storefront-logo" src={`/media/${storefront.logoMediaIdentifier}`} />
-          : <BrandIdentity variant="merchant-fallback" />}
+        {storefront.logoMediaIdentifier ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img alt={dictionary.storefrontLogoAlt} className="storefront-logo" src={`/media/${storefront.logoMediaIdentifier}`} />
+        ) : (
+          <span aria-label={dictionary.storefrontLogoFallbackAlt} role="img">
+            <BrandIdentity variant="merchant-fallback" />
+          </span>
+        )}
         <h1 className="storefront-heading">{displayName}</h1>
         <p className="storefront-introduction">{dictionary.storefrontPayIntroduction}</p>
       </header>

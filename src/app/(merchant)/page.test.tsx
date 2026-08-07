@@ -87,6 +87,8 @@ describe("merchant dashboard", () => {
 
     expect(requireContext).toHaveBeenCalledOnce();
     expect(getForOwner).toHaveBeenCalledWith(principal, undefined);
+    expect(html).toContain(ptBR.merchantDashboardGreeting.replace("{username}", principal.username));
+    expect(html).toContain(ptBR.merchantDashboardCheckoutAttempts);
     expect(html).toContain(ptBR.merchantDashboardConfirmedSales);
     expect(html).toContain(ptBR.merchantDashboardLocallyFinalizedSales);
     expect(html).toContain("34,90 BRL");
@@ -97,6 +99,8 @@ describe("merchant dashboard", () => {
     expect(html).toContain(ptBR.checkoutStateConfirmed);
     expect(html).toContain("66,66%");
     expect(html).toContain("33,33%");
+    expect(html).toContain(ptBR.merchantDashboardViewAll);
+    expect(html).toContain('href="/orders"');
   });
 
   it("passes a closed-set period through to the service", async () => {
@@ -135,10 +139,10 @@ describe("merchant dashboard", () => {
 
     const html = await render();
 
+    expect(html).toContain(ptBR.merchantDashboardNoSales);
     expect(html).toContain(ptBR.merchantDashboardSalesEmpty);
     expect(html).toContain(ptBR.merchantDashboardFunnelEmpty);
     expect(html).toContain(ptBR.merchantDashboardBestSellersEmpty);
-    expect(html).toContain(ptBR.merchantDashboardLinksEmpty);
     expect(html).toContain(ptBR.merchantDashboardRecentEmpty);
   });
 

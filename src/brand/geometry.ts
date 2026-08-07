@@ -1,16 +1,20 @@
 export const brandGeometry = {
-  viewBox: "0 0 48 48",
+  viewBox: "0 0 32 32",
+  finderPatterns: [
+    { x: 0, y: 0 },
+    { x: 20, y: 0 },
+    { x: 0, y: 20 },
+  ],
   rectangles: [
-    { x: 4, y: 4, width: 18, height: 6 },
-    { x: 4, y: 10, width: 6, height: 12 },
-    { x: 26, y: 4, width: 18, height: 6 },
-    { x: 38, y: 10, width: 6, height: 12 },
-    { x: 4, y: 26, width: 6, height: 18 },
-    { x: 10, y: 38, width: 12, height: 6 },
-    { x: 20, y: 20, width: 8, height: 8 },
-    { x: 26, y: 32, width: 18, height: 4 },
-    { x: 32, y: 26, width: 4, height: 18 },
-    { x: 40, y: 40, width: 4, height: 4 },
+    { x: 16, y: 4, width: 3, height: 3 },
+    { x: 4, y: 16, width: 3, height: 3 },
+    { x: 10, y: 16, width: 3, height: 3 },
+    { x: 16, y: 16, width: 3, height: 3 },
+    { x: 22, y: 16, width: 3, height: 3 },
+    { x: 16, y: 22, width: 3, height: 3 },
+    { x: 16, y: 28, width: 3, height: 3 },
+    { x: 28, y: 22, width: 3, height: 3 },
+    { x: 28, y: 28, width: 3, height: 3 },
   ],
 } as const;
 

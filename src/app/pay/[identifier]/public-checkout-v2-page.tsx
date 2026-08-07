@@ -1,10 +1,10 @@
 import type { CSSProperties, ReactNode } from "react";
 
-import { CheckCircle2Icon } from "lucide-react";
-
 import { BrandIdentity } from "@/brand/brand-identity";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { MoneyText } from "@/components/ui/money-text";
 import { Separator } from "@/components/ui/separator";
+import { StatusBadge } from "@/components/ui/status-badge";
 import type { PublicCheckoutV2Branding, PublicCheckoutV2Composition, PublicCheckoutV2PaidPresentation, PublicCheckoutV2Presentation } from "@/checkout/public-checkout-v2-presentation";
 import type { getDictionary } from "@/i18n/dictionaries";
 
@@ -21,16 +21,23 @@ function CheckoutV2Shell({ children, dictionary, presentation }: Readonly<{ chil
   const displayName = presentation.branding.displayName ?? dictionary.storefrontFallbackName;
   return (
     <main className="checkout-shell checkout-v2" data-theme-preview={presentation.branding.themeId} style={{ "--storefront-accent": presentation.branding.accentColor } as CSSProperties}>
-      <header className="receipt-rail checkout-v2__rail">
-        {presentation.branding.logoMediaIdentifier
-          // The owner-activated public media object renders directly; the
-          // official merchant fallback stays the only placeholder identity.
-          // eslint-disable-next-line @next/next/no-img-element
-          ? <img alt={dictionary.checkoutMerchantLogoAlt} className="checkout-v2__logo" src={`/media/${presentation.branding.logoMediaIdentifier}`} />
-          : <span aria-label={dictionary.checkoutMerchantFallbackAlt} role="img"><BrandIdentity variant="merchant-fallback" /></span>}
-        <h1 className="checkout-v2__name">{displayName}</h1>
-      </header>
-      {children}
+      <div className="checkout-main">
+        <header className="checkout-v2__rail">
+          {presentation.branding.logoMediaIdentifier ? (
+            <div className="rounded-full bg-primary p-1.5">
+              {/* The owner-activated public media object renders directly; the
+                  official merchant fallback stays the only placeholder identity. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img alt={dictionary.checkoutMerchantLogoAlt} className="checkout-v2__logo" src={`/media/${presentation.branding.logoMediaIdentifier}`} />
+            </div>
+          ) : (
+            <span aria-label={dictionary.checkoutMerchantFallbackAlt} role="img"><BrandIdentity variant="merchant-fallback" /></span>
+          )}
+          <h1 className="checkout-v2__name font-[family-name:var(--font-display)] text-lg font-semibold leading-7">{displayName}</h1>
+          <p className="text-xs text-muted-foreground">{dictionary.checkoutTrustLine}</p>
+        </header>
+        {children}
+      </div>
     </main>
   );
 }
@@ -53,7 +60,15 @@ function CheckoutV2CompositionFacts({ composition }: Readonly<{ composition: Pub
 
 function CheckoutV2Total({ composition, currencyCode, dictionary }: Readonly<{ composition: PublicCheckoutV2Composition; currencyCode: string | null; dictionary: Dictionary }>) {
   const total = composition.kind === "PRODUCT_LINES" ? composition.total : composition.amount;
-  return <p className="checkout-v2__total"><span>{dictionary.checkoutTotalLabel}</span> {total} {currencyCode ?? dictionary.checkoutUnlabeledCurrency}</p>;
+  return (
+    <p className="checkout-v2__total">
+      <span>{dictionary.checkoutTotalLabel}</span>
+      <span className="inline-flex items-baseline gap-1.5">
+        <MoneyText size="large" value={total} />
+        {currencyCode ? <MoneyText pairLabel={currencyCode} value="" /> : <span className="text-sm text-muted-foreground">{dictionary.checkoutUnlabeledCurrency}</span>}
+      </span>
+    </p>
+  );
 }
 
 // The branded two-column Commerce V2 checkout composition (9.3.1): the
@@ -63,13 +78,17 @@ function CheckoutV2Total({ composition, currencyCode, dictionary }: Readonly<{ c
 export function PublicCheckoutV2Page({ dictionary, identifier, presentation }: Readonly<{ dictionary: Dictionary; identifier: string; presentation: PublicCheckoutV2Presentation }>) {
   return (
     <CheckoutV2Shell dictionary={dictionary} presentation={presentation}>
-      <div className="checkout-v2__columns">
-        <section aria-label={dictionary.checkoutSummaryHeading} className="checkout-v2__summary">
-          <h2 className="checkout-v2__heading">{dictionary.checkoutSummaryHeading}</h2>
-          <CheckoutV2CompositionFacts composition={presentation.composition} />
-          <Separator />
-          <CheckoutV2Total composition={presentation.composition} currencyCode={presentation.currencyCode} dictionary={dictionary} />
-        </section>
+      <div className="checkout-v2__columns lg:grid-cols-2">
+        <Card className="checkout-card">
+          <CardHeader>
+            <CardTitle>{dictionary.checkoutSummaryHeading}</CardTitle>
+          </CardHeader>
+          <CardContent className="checkout-v2__summary">
+            <CheckoutV2CompositionFacts composition={presentation.composition} />
+            <Separator />
+            <CheckoutV2Total composition={presentation.composition} currencyCode={presentation.currencyCode} dictionary={dictionary} />
+          </CardContent>
+        </Card>
         <PublicCheckoutV2Form dictionary={dictionary} identifier={identifier} policy={presentation.checkoutPolicy} />
       </div>
     </CheckoutV2Shell>
@@ -84,15 +103,19 @@ export function PublicCheckoutV2PaidPage({ dictionary, presentation }: Readonly<
   return (
     <CheckoutV2Shell dictionary={dictionary} presentation={presentation}>
       <div className="checkout-v2__columns">
-        <section aria-label={dictionary.checkoutPaidHeading} className="checkout-v2__summary">
-          <Badge variant="secondary"><CheckCircle2Icon />{dictionary.checkoutPaidBadge}</Badge>
-          <h2 className="checkout-v2__heading">{dictionary.checkoutPaidHeading}</h2>
-          <p className="checkout-v2__line-description">{dictionary.checkoutPaidDescription}</p>
-          <Separator />
-          <CheckoutV2CompositionFacts composition={presentation.composition} />
-          <Separator />
-          <CheckoutV2Total composition={presentation.composition} currencyCode={presentation.currencyCode} dictionary={dictionary} />
-        </section>
+        <Card className="checkout-card">
+          <CardContent className="flex flex-col items-center gap-4 p-6 text-center">
+            <StatusBadge label={dictionary.checkoutPaidBadge} tone="success" />
+            <div>
+              <h2 className="font-[family-name:var(--font-display)] text-lg font-semibold leading-7">{dictionary.checkoutPaidHeading}</h2>
+              <p className="text-sm text-muted-foreground">{dictionary.checkoutPaidDescription}</p>
+            </div>
+            <Separator />
+            <CheckoutV2CompositionFacts composition={presentation.composition} />
+            <Separator />
+            <CheckoutV2Total composition={presentation.composition} currencyCode={presentation.currencyCode} dictionary={dictionary} />
+          </CardContent>
+        </Card>
       </div>
     </CheckoutV2Shell>
   );

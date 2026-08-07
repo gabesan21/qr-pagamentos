@@ -81,10 +81,11 @@ describe("administrator payment-link V2 detail page", () => {
     // The drill-down navigates to the administrator orders directory filtered
     // by this link's identifier.
     expect(markup).toContain('href="/admin/orders?link=abcdefghijklmnopqrstuvwx"');
-    // Read-only: no owner mutation surface, no edit or lifecycle actions.
+    // Read-only: no owner mutation surface, no edit or lifecycle actions, no public share URL.
     expect(markup).not.toContain("/links/v2/");
     expect(markup).not.toContain('method="post"');
     expect(markup).not.toContain(">Deleted</");
+    expect(markup).not.toContain(link.sharePath);
   });
 
   it("renders the deleted badge for a soft-deleted owner", async () => {

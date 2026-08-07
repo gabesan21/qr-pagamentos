@@ -1,0 +1,254 @@
+{
+  "version": 1,
+  "runId": "20260804082452",
+  "startedAt": "2026-08-04T08:24:52.865Z",
+  "gitHead": "935cf59cd0913f599a329e6b331ce2f4d5f329c8",
+  "baseCaptureCount": 36,
+  "interactionCaptureCount": 9,
+  "totalPngCount": 45,
+  "assertions": "artifacts/admin-dashboard/20260804082452/assertions.json",
+  "assertionsSha256": "40d7c909206c886c563663acc6bc4a0fd50bb28029c92ca38d4909a49e478e12",
+  "captures": [
+    {
+      "path": "artifacts/admin-dashboard/20260804082452/interaction-pt-BR-empty.png",
+      "bytes": 125957,
+      "sha256": "d41358c07f56540e37da7bd54a576eadd8188fa9e551da5c8216367345deb47d"
+    },
+    {
+      "path": "artifacts/admin-dashboard/20260804082452/interaction-en-empty.png",
+      "bytes": 122348,
+      "sha256": "1fd4d51d189ea141feed0c2523b669ee4b8ed1257ec360f9e8e7ad52be4b981f"
+    },
+    {
+      "path": "artifacts/admin-dashboard/20260804082452/populated-pix-paper-pt-BR-375.png",
+      "bytes": 164177,
+      "sha256": "eb8948a3105790abfa36cc6d748723a8d7120e09af0d8c72092f1a118258c58f"
+    },
+    {
+      "path": "artifacts/admin-dashboard/20260804082452/populated-pix-paper-pt-BR-768.png",
+      "bytes": 160429,
+      "sha256": "c738a1314ffb262306cf1aca321603c29f3426fd9c2bbb9620a378d1a12e4e33"
+    },
+    {
+      "path": "artifacts/admin-dashboard/20260804082452/populated-pix-paper-pt-BR-1440.png",
+      "bytes": 162400,
+      "sha256": "31e413aa6629d6b472ce7ebbba5b677d0afeb02ea5d2fc9cab7d6c433636c015"
+    },
+    {
+      "path": "artifacts/admin-dashboard/20260804082452/populated-cashier-daylight-pt-BR-375.png",
+      "bytes": 163431,
+      "sha256": "924b21caf611334eb9bc881333d9276fec4bb158e4627f0adf1ea8d07b6f7385"
+    },
+    {
+      "path": "artifacts/admin-dashboard/20260804082452/populated-cashier-daylight-pt-BR-768.png",
+      "bytes": 159920,
+      "sha256": "1652f20be7682cdf79a7596cd35559eb5a94231c42cf2e27963ceb1924e6452e"
+    },
+    {
+      "path": "artifacts/admin-dashboard/20260804082452/populated-cashier-daylight-pt-BR-1440.png",
+      "bytes": 162112,
+      "sha256": "252e0248afd80745ea35b16ca6210b9a43845cdf2b25b77cfd587253c221cb9c"
+    },
+    {
+      "path": "artifacts/admin-dashboard/20260804082452/populated-settlement-sand-pt-BR-375.png",
+      "bytes": 166554,
+      "sha256": "7a5ad3d570aec5f395ef8d35a176309bbef74e01cf4026e042ceb42d7222cf0a"
+    },
+    {
+      "path": "artifacts/admin-dashboard/20260804082452/populated-settlement-sand-pt-BR-768.png",
+      "bytes": 162275,
+      "sha256": "30541462c2a789f4dd5c4aff0471aaf443ef67b71454717896f45f300d5154dd"
+    },
+    {
+      "path": "artifacts/admin-dashboard/20260804082452/populated-settlement-sand-pt-BR-1440.png",
+      "bytes": 163723,
+      "sha256": "0b7a96e1d6c4da1f65d74c56301d18b02c0ae2cdf73a2505a05be2248eca85c0"
+    },
+    {
+      "path": "artifacts/admin-dashboard/20260804082452/populated-midnight-clearing-pt-BR-375.png",
+      "bytes": 179128,
+      "sha256": "97d4a2020789a8eec7e122e7869165a09bd35cd03013132e495692fac1c06ef1"
+    },
+    {
+      "path": "artifacts/admin-dashboard/20260804082452/populated-midnight-clearing-pt-BR-768.png",
+      "bytes": 176644,
+      "sha256": "51faf3c30edb526c240fb9d9988de97d8b460340b9d8e7e343c217b1420d335e"
+    },
+    {
+      "path": "artifacts/admin-dashboard/20260804082452/populated-midnight-clearing-pt-BR-1440.png",
+      "bytes": 176398,
+      "sha256": "c8084fec98dfe07b0150bb5218a931b9b977025a8d452e22254b64dd1050c4e3"
+    },
+    {
+      "path": "artifacts/admin-dashboard/20260804082452/populated-vault-blue-pt-BR-375.png",
+      "bytes": 179728,
+      "sha256": "2c77eb0bab55d0591428c97beea0bdcaff9282aeb990eb1be6780dac693a70a0"
+    },
+    {
+      "path": "artifacts/admin-dashboard/20260804082452/populated-vault-blue-pt-BR-768.png",
+      "bytes": 177520,
+      "sha256": "2620b03ffa5180c64c0f1f3009eeb46e362fa046b55a2f47ff57400033c6f2b3"
+    },
+    {
+      "path": "artifacts/admin-dashboard/20260804082452/populated-vault-blue-pt-BR-1440.png",
+      "bytes": 177645,
+      "sha256": "ebe63877e1e8ccbb5b95a442ad6f279b7562fdcbcadcb85a8f439211c9454dbf"
+    },
+    {
+      "path": "artifacts/admin-dashboard/20260804082452/populated-terminal-amber-pt-BR-375.png",
+      "bytes": 174890,
+      "sha256": "5e3fde548be9a1da1f0260a1a1f5a87814985c5e4a887e03ac02be6374a680b7"
+    },
+    {
+      "path": "artifacts/admin-dashboard/20260804082452/populated-terminal-amber-pt-BR-768.png",
+      "bytes": 172415,
+      "sha256": "bc052f29221ee5f48375a6e67b1f29312f572e20c0119941de19f1e467b0a5ba"
+    },
+    {
+      "path": "artifacts/admin-dashboard/20260804082452/populated-terminal-amber-pt-BR-1440.png",
+      "bytes": 172843,
+      "sha256": "b7e54d729de490c5b603782982bcec5050f5ebcc6d2a826d03f420faf63c2b6b"
+    },
+    {
+      "path": "artifacts/admin-dashboard/20260804082452/interaction-pt-BR-period-today.png",
+      "bytes": 163123,
+      "sha256": "06090751986b273072fc171f29230ec8e8f06010f99e281e965e6d1ac4cf261b"
+    },
+    {
+      "path": "artifacts/admin-dashboard/20260804082452/interaction-pt-BR-period-30d.png",
+      "bytes": 162772,
+      "sha256": "2966877c2a07bd50a19555f1a99ea94a87608489481a29fe1b246670fbbedb8c"
+    },
+    {
+      "path": "artifacts/admin-dashboard/20260804082452/interaction-pt-BR-deleted-badge.png",
+      "bytes": 163199,
+      "sha256": "a3e14725a5222aee83ebb9c0c526ac17b0395792ed3f548a88725d98430a0c56"
+    },
+    {
+      "path": "artifacts/admin-dashboard/20260804082452/populated-pix-paper-en-375.png",
+      "bytes": 159454,
+      "sha256": "c6ce0326238f8bc5770b87d77f55d5c49b8ab59993ce2d60963bf79866a95201"
+    },
+    {
+      "path": "artifacts/admin-dashboard/20260804082452/populated-pix-paper-en-768.png",
+      "bytes": 151943,
+      "sha256": "f9c3165aaed5435a2f6f659c3df9b97b10fb5a7860cbc342f34bb6e6bc8b0a7d"
+    },
+    {
+      "path": "artifacts/admin-dashboard/20260804082452/populated-pix-paper-en-1440.png",
+      "bytes": 158072,
+      "sha256": "6de095a4e90df39c96652cdc2bd62ae9ecf828a51b4966333d91fec2855e820a"
+    },
+    {
+      "path": "artifacts/admin-dashboard/20260804082452/populated-cashier-daylight-en-375.png",
+      "bytes": 158790,
+      "sha256": "07fef7dff6ac6e011b526eadd2c3837ee00ab92bda10aebb86466b7ab399cb4c"
+    },
+    {
+      "path": "artifacts/admin-dashboard/20260804082452/populated-cashier-daylight-en-768.png",
+      "bytes": 151547,
+      "sha256": "265f292389b7f2e8beb57da958b9495603291915ed64a1e0a0882734c2749d3a"
+    },
+    {
+      "path": "artifacts/admin-dashboard/20260804082452/populated-cashier-daylight-en-1440.png",
+      "bytes": 157825,
+      "sha256": "6052adc49f09f2d504751a2bfce2ec0fdda854a6ec8b83da2e50926262edfe88"
+    },
+    {
+      "path": "artifacts/admin-dashboard/20260804082452/populated-settlement-sand-en-375.png",
+      "bytes": 161999,
+      "sha256": "c99396530d71fb351562d8627ea1f5527b9592f51d6f5f68b71e4842ef8acc07"
+    },
+    {
+      "path": "artifacts/admin-dashboard/20260804082452/populated-settlement-sand-en-768.png",
+      "bytes": 153734,
+      "sha256": "0cbeba4a06f0ecc174ecdadfc1e9bf02deb5d132e753c79ed44aefa0aa9a0964"
+    },
+    {
+      "path": "artifacts/admin-dashboard/20260804082452/populated-settlement-sand-en-1440.png",
+      "bytes": 159393,
+      "sha256": "b2067e5a26241f04a33c9e76b3131f400efc72cf39913033f69fe5aa7b6becc9"
+    },
+    {
+      "path": "artifacts/admin-dashboard/20260804082452/populated-midnight-clearing-en-375.png",
+      "bytes": 174113,
+      "sha256": "2ea4526062df8efa89d38a90b86321490bc6655d16d041bfb44d0949b2c44801"
+    },
+    {
+      "path": "artifacts/admin-dashboard/20260804082452/populated-midnight-clearing-en-768.png",
+      "bytes": 167754,
+      "sha256": "f65068384bed1f8381e355441179fa85a955f7fe158f99cd6240afe4fdcae9cf"
+    },
+    {
+      "path": "artifacts/admin-dashboard/20260804082452/populated-midnight-clearing-en-1440.png",
+      "bytes": 172226,
+      "sha256": "6c5c241045285eee0ee313d95c37ec994aaad8c9df63ce31a37d415454f2ed85"
+    },
+    {
+      "path": "artifacts/admin-dashboard/20260804082452/populated-vault-blue-en-375.png",
+      "bytes": 175181,
+      "sha256": "6f099acc39f46efc2461b28caa209751814033b334b7a772a6b0f280c35ead49"
+    },
+    {
+      "path": "artifacts/admin-dashboard/20260804082452/populated-vault-blue-en-768.png",
+      "bytes": 168898,
+      "sha256": "584a3961117bb298cd62f86dd27160c39cdeb55cad2ee19e2300efc84a4ff270"
+    },
+    {
+      "path": "artifacts/admin-dashboard/20260804082452/populated-vault-blue-en-1440.png",
+      "bytes": 173110,
+      "sha256": "3d1a171f6e095712031764fb167746580d7c7c00309996d56355fc17e4cdd241"
+    },
+    {
+      "path": "artifacts/admin-dashboard/20260804082452/populated-terminal-amber-en-375.png",
+      "bytes": 169960,
+      "sha256": "0c6cbc69ea166a4f55d4385ce5250e63ed4647890306af837711ff0eb0cf6e97"
+    },
+    {
+      "path": "artifacts/admin-dashboard/20260804082452/populated-terminal-amber-en-768.png",
+      "bytes": 163826,
+      "sha256": "16e627af911f90cfabce3ad0ed1fa164f0758466eaf1c57c69803c6650278dee"
+    },
+    {
+      "path": "artifacts/admin-dashboard/20260804082452/populated-terminal-amber-en-1440.png",
+      "bytes": 168482,
+      "sha256": "d91053a513b27b5a176bbc3384d199d116d8157f82043a0a24b6f42d355fb446"
+    },
+    {
+      "path": "artifacts/admin-dashboard/20260804082452/interaction-en-period-today.png",
+      "bytes": 158334,
+      "sha256": "4a97b731a4ca1144dedc1bf83084891307585d9b33c96b1ff2509868ce03757c"
+    },
+    {
+      "path": "artifacts/admin-dashboard/20260804082452/interaction-en-period-30d.png",
+      "bytes": 158605,
+      "sha256": "0383cac9da67b2ad63e2fffa49517e6e66287a00658f0fecdddd50d0d034a0d3"
+    },
+    {
+      "path": "artifacts/admin-dashboard/20260804082452/interaction-en-deleted-badge.png",
+      "bytes": 158685,
+      "sha256": "4b5d97daaa17b8bfcebf07fd945d260058c3753dc793af0ad5c0453484cf01ab"
+    },
+    {
+      "path": "artifacts/admin-dashboard/20260804082452/interaction-reflow-320.png",
+      "bytes": 154760,
+      "sha256": "8d53c7211db6ed22933a089731a8413d8b4605b9d79e3ef67286e8dc60f593d3"
+    }
+  ],
+  "sourceHashes": {
+    "src/app/admin/page.tsx": "d151527d0860b16481b5b059d54f9578a288645182629f22e0a88d4707abb810",
+    "src/app/admin/loading.tsx": "193c527931e6f6c52c75f6e93e3d06255e3382f1f7a4d2098505f8ea63f4e307",
+    "src/app/admin/dashboard.tsx": "2df7cbe72634808e7e06a6b5978daf6f601fe7010fd2cc1c86a314a920f5caa7",
+    "src/i18n/dictionaries/admin-dashboard/en.ts": "0c274d2df4d3e68d4f9a8781182983e9f1e71c2f270d31ce839fca740844a109",
+    "src/i18n/dictionaries/admin-dashboard/pt-BR.ts": "035f24a356646f66557dbdb6892e8fdb21327d50cc60259ee409ac15b51f398d",
+    "src/orders/admin-analytics.ts": "342bcc35e6f5c30c34f8d730689c84053080a7344f418032b813a84533016250",
+    "src/app/globals.css": "de1e8a6608a4916bb400c4266c95b9a3d3b7e9355d5c77973674fdec74e7488a",
+    "scripts/run-admin-evidence.mjs": "10bda618c6c425411040c1be8ae6cb37e427e9eb26e53a2259a565425a50f132",
+    "tests/admin-dashboard.evidence.spec.ts": "f2cce00ce018890aac48bd1fdc5632acf463351cf3dccae6c54dce673e9d17b6",
+    "scripts/run-admin-dashboard-evidence.mjs": "ebd38198fd437b88c078b91e8b48588213b6c8fefb9899edc03802ec7247682e",
+    "scripts/verify-admin-dashboard-evidence.mjs": "a20652daeafe25598995c7498bcb36a0d9617c997b1d7d6088c8e6f154aa4276"
+  },
+  "externalRequests": [],
+  "consoleErrors": [],
+  "pageErrors": []
+}

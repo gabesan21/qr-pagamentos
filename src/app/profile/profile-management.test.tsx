@@ -25,6 +25,7 @@ describe("profile management composition", () => {
     expect(html.match(/autoComplete="new-password"/g)).toHaveLength(2);
     expect(html).toContain(dictionary.profileIdentityTitle);
     expect(html).toContain(dictionary.profilePasswordTitle);
+    expect(html).toContain(dictionary.profilePasswordLengthMeter.replace("{{len}}", "0"));
     expect(html).not.toMatch(/passwordHash|credentialRevision|ownerId/);
   });
 
@@ -40,6 +41,13 @@ describe("profile management composition", () => {
       const html = renderToStaticMarkup(<ProfileManagement dictionary={dictionary} notice={notice} profile={profile} />);
       expect(html).toContain(copy);
     }
+  });
+
+  it("renders the TOTP card when a status is provided", () => {
+    const dictionary = getDictionary("en");
+    const html = renderToStaticMarkup(<ProfileManagement dictionary={dictionary} notice={null} profile={profile} totpStatus="none" />);
+    expect(html).toContain(dictionary.profileTotpTitle);
+    expect(html).toContain(dictionary.profileTotpEnroll);
   });
 
   it("keeps native controls enabled before submission", () => {

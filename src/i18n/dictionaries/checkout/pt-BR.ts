@@ -34,6 +34,7 @@ export const checkoutPtBR = {
   checkoutQrAlt: "Código QR para pagamento PIX",
   checkoutPixLabel: "Código PIX copia e cola",
   checkoutCopyPix: "Copiar código PIX",
+  checkoutCopyPending: "Copiando código PIX...",
   checkoutCopySuccess: "Código PIX copiado.",
   checkoutCopyError: "Não foi possível copiar o código PIX. Selecione-o e copie manualmente.",
   checkoutWaitingPaymentData: "Os dados de pagamento ainda estão sendo preparados. Esta página verificará novamente em breve.",
@@ -50,4 +51,6 @@ export const checkoutPtBR = {
   checkoutPaidBadge: "Pago",
   checkoutPaidHeading: "Este link de pagamento já foi pago",
   checkoutPaidDescription: "Este link de uso único já foi utilizado e não aceita um novo pagamento.",
+  checkoutLoadingLabel: "Carregando checkout",
+  checkoutTrustLine: "Pagamento seguro processado por QR Pagamentos",
 } as const;

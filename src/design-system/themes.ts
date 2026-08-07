@@ -1,13 +1,18 @@
 import resolver from "./tokens/resolver.json";
 
-// The resolver's theme modifier is the single source of the closed theme set;
-// themes.test.ts pins this export to the resolver keys so the two never drift.
-export const STOREFRONT_THEME_IDS: readonly string[] = Object.freeze(
-  Object.keys(resolver.modifiers.theme.contexts),
+export type StorefrontThemeId = keyof typeof resolver.modifiers.theme.contexts;
+
+// Persisted IDs and fallbacks remain server-owned; this adapter exports the
+// resolver contract without introducing client storage or theme-ID branching.
+export const STOREFRONT_THEME_IDS = Object.freeze(
+  Object.keys(resolver.modifiers.theme.contexts) as StorefrontThemeId[],
 );
 
-export const DEFAULT_STOREFRONT_THEME_ID: string = resolver.modifiers.theme.default;
+export const DEFAULT_STOREFRONT_THEME_ID =
+  resolver.modifiers.theme.default as StorefrontThemeId;
+export const DARK_SYSTEM_STOREFRONT_THEME_ID: StorefrontThemeId =
+  resolver.$extensions["com.qr-pagamentos.theme"].defaultDark as StorefrontThemeId;
 
-export function isStorefrontThemeId(value: unknown): value is string {
-  return typeof value === "string" && STOREFRONT_THEME_IDS.includes(value);
+export function isStorefrontThemeId(value: unknown): value is StorefrontThemeId {
+  return typeof value === "string" && STOREFRONT_THEME_IDS.includes(value as StorefrontThemeId);
 }

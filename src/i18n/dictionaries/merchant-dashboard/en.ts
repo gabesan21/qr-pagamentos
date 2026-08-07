@@ -1,5 +1,11 @@
 export const merchantDashboardEn = {
+  merchantDashboardTitle: "Dashboard",
+  merchantDashboardGreeting: "Welcome back, {username}",
   merchantDashboardViewStore: "View store",
+  merchantDashboardViewAll: "View all",
+  merchantDashboardNoSales: "No sales",
+  merchantDashboardCheckoutAttempts: "Checkout attempts",
+  merchantDashboardLinksWithActivity: "Links with activity",
   merchantDashboardPeriodLabel: "Dashboard period",
   merchantDashboardPeriodToday: "Today",
   merchantDashboardPeriod7d: "Last 7 days",

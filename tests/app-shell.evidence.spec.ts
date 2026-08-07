@@ -169,7 +169,7 @@ test("creates current six-theme evidence for both role shells", async ({ page })
             })),
           };
         });
-        expect(measured.bodyFont).toContain("IBM Plex Sans");
+        expect(measured.bodyFont).toContain("Inter");
         expect(measured.overflow).toBe(false);
         expect(measured.targets.every(({ height, width: targetWidth }) => height >= 44 && targetWidth >= 44)).toBe(true);
 

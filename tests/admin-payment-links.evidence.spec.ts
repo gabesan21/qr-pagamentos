@@ -35,7 +35,7 @@ async function signIn(page: Page, username: string, password: string, landing: "
 
 async function setLocale(page: Page, locale: "pt-BR" | "en") {
   await page.goto(`${baseUrl}/admin/settings`);
-  const form = page.locator('form[action="/language-preference"]');
+  const form = page.locator('#language form[action="/language-preference"]');
   await form.locator('select[name="locale"]').selectOption(locale);
   // The preference POST redirects to `/?language=saved`, and `/` dispatches
   // the administrator to `/admin` (the query is not preserved).
@@ -192,11 +192,13 @@ test("creates the closed administrator payment-links evidence run", async ({ pag
         targets: controls.map((control) => ({
           height: control.getBoundingClientRect().height,
           width: control.getBoundingClientRect().width,
+          tag: control.tagName,
+          text: control.textContent?.slice(0, 40) ?? "",
           html: control.outerHTML.slice(0, 160),
         })),
       };
     });
-    expect(measured.bodyFont).toContain("IBM Plex Sans");
+    expect(measured.bodyFont).toContain("Inter");
     expect(measured.overflow).toBe(false);
     const undersized = measured.targets.filter(({ height, width }) => height < 44 || width < 44);
     expect(undersized, JSON.stringify(undersized)).toEqual([]);

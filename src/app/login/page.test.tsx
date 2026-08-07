@@ -34,6 +34,8 @@ describe("login page contract", () => {
     expect(markup).toContain('aria-hidden="true"');
     expect(markup).toContain("Nome de usuário ou senha inválidos.");
     expect(markup).not.toContain("database unavailable");
+    expect(markup).toContain('class="auth-card__panel"');
+    expect(markup).toContain('class="auth-card__form login-form"');
   });
 
   it("composes the page exclusively from the approved shared inventory", async () => {
@@ -94,7 +96,7 @@ describe("login page contract", () => {
     const dictionary = getDictionary(locale);
     const markup = renderToStaticMarkup(await LoginPage({ searchParams: Promise.resolve({ password: "changed" }) }));
 
-    expect(markup).toContain(dictionary.passwordChanged);
+    expect(markup).toContain(dictionary.passwordChangedSuccess);
     expect(markup).toContain(dictionary.loginHeading);
   });
 
@@ -102,7 +104,7 @@ describe("login page contract", () => {
     readCookie.mockReturnValue({ value: "es" });
     const markup = renderToStaticMarkup(await LoginPage({ searchParams: Promise.resolve({ password: "changed" }) }));
 
-    expect(markup).toContain(getDictionary("pt-BR").passwordChanged);
+    expect(markup).toContain(getDictionary("pt-BR").passwordChangedSuccess);
   });
 
   it.each(["pt-BR", "en"] as const)("renders the MFA challenge form when required in %s", async (locale) => {
@@ -114,5 +116,16 @@ describe("login page contract", () => {
     expect(markup).toContain('action="/login/totp-challenge"');
     expect(markup).toContain('id="mfa-code"');
     expect(markup).toContain('autoComplete="one-time-code"');
+    expect(markup).toContain(dictionary.mfaCodeLabel);
+    expect(markup).toContain(dictionary.mfaRecoveryLink);
+  });
+
+  it.each(["pt-BR", "en"] as const)("renders the failed MFA alert opaquely in %s", async (locale) => {
+    readCookie.mockReturnValue({ value: locale });
+    const dictionary = getDictionary(locale);
+    const markup = renderToStaticMarkup(await LoginPage({ searchParams: Promise.resolve({ mfa: "failed" }) }));
+
+    expect(markup).toContain(dictionary.mfaFailed);
+    expect(markup).toContain('action="/login/totp-challenge"');
   });
 });

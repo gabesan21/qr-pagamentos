@@ -1,0 +1,9154 @@
+[
+  {
+    "state": "state-pt-BR-accounts-ready-375",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusableCount": 49,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 243
+        },
+        {
+          "height": 44,
+          "width": 50
+        },
+        {
+          "height": 44,
+          "width": 154
+        },
+        {
+          "height": 44,
+          "width": 66
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 106
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 144
+        },
+        {
+          "height": 44,
+          "width": 118
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "directory-facts",
+    "users": [
+      "admin.users.keep",
+      "admin.users.idle"
+    ],
+    "badges": [
+      "Ativo",
+      "Desativado"
+    ],
+    "stores": [
+      "Loja ativa",
+      "Loja configurada",
+      "Sem loja"
+    ]
+  },
+  {
+    "state": "state-pt-BR-accounts-ready-320",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusableCount": 4,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 243
+        },
+        {
+          "height": 44,
+          "width": 50
+        },
+        {
+          "height": 44,
+          "width": 154
+        },
+        {
+          "height": 44,
+          "width": 66
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "detail-editor",
+    "user": "admin.users.keep",
+    "deleteForm": true,
+    "editorForms": true
+  },
+  {
+    "state": "state-pt-BR-account-detail-1440",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusableCount": 40,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 243
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 59
+        },
+        {
+          "height": 44,
+          "width": 154
+        },
+        {
+          "height": 50,
+          "width": 154
+        },
+        {
+          "height": 44,
+          "width": 118
+        },
+        {
+          "height": 44,
+          "width": 142
+        },
+        {
+          "height": 44,
+          "width": 106
+        },
+        {
+          "height": 44,
+          "width": 84
+        },
+        {
+          "height": 44,
+          "width": 105
+        },
+        {
+          "height": 44,
+          "width": 118
+        },
+        {
+          "height": 44,
+          "width": 78
+        },
+        {
+          "height": 44,
+          "width": 135
+        },
+        {
+          "height": 44,
+          "width": 548
+        },
+        {
+          "height": 44,
+          "width": 548
+        },
+        {
+          "height": 44,
+          "width": 149
+        },
+        {
+          "height": 44,
+          "width": 1112
+        },
+        {
+          "height": 44,
+          "width": 1112
+        },
+        {
+          "height": 44,
+          "width": 1112
+        },
+        {
+          "height": 44,
+          "width": 1112
+        },
+        {
+          "height": 44,
+          "width": 121
+        },
+        {
+          "height": 44,
+          "width": 216
+        },
+        {
+          "height": 44,
+          "width": 548
+        },
+        {
+          "height": 44,
+          "width": 122
+        },
+        {
+          "height": 44,
+          "width": 548
+        },
+        {
+          "height": 44,
+          "width": 212
+        },
+        {
+          "height": 44,
+          "width": 548
+        },
+        {
+          "height": 44,
+          "width": 503.25
+        },
+        {
+          "height": 44,
+          "width": 548
+        },
+        {
+          "height": 44,
+          "width": 548
+        },
+        {
+          "height": 44,
+          "width": 548
+        },
+        {
+          "height": 44,
+          "width": 548
+        },
+        {
+          "height": 44,
+          "width": 548
+        },
+        {
+          "height": 44,
+          "width": 119
+        },
+        {
+          "height": 44,
+          "width": 150
+        },
+        {
+          "height": 44,
+          "width": 77
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "detail-reset-requested-pt-BR",
+    "severeAxe": []
+  },
+  {
+    "state": "detail-reset-failed-pt-BR",
+    "severeAxe": []
+  },
+  {
+    "state": "detail-unavailable",
+    "opaque": true
+  },
+  {
+    "state": "state-pt-BR-account-detail-unavailable-1440",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusableCount": 10,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 243
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 59
+        },
+        {
+          "height": 44,
+          "width": 154
+        },
+        {
+          "height": 50,
+          "width": 154
+        },
+        {
+          "height": 44,
+          "width": 142
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "soft-delete",
+    "outcome": "deleted"
+  },
+  {
+    "state": "deleted-badge",
+    "user": "admin.users.gone",
+    "badge": "Excluída"
+  },
+  {
+    "state": "state-pt-BR-deleted-badge-1440",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusableCount": 52,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 243
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 59
+        },
+        {
+          "height": 44,
+          "width": 154
+        },
+        {
+          "height": 50,
+          "width": 154
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 106
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 144
+        },
+        {
+          "height": 44,
+          "width": 118
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "detail-deleted",
+    "user": "admin.users.gone",
+    "badge": "Excluída",
+    "deleteForm": false,
+    "editorForms": false
+  },
+  {
+    "state": "state-pt-BR-account-detail-deleted-1440",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusableCount": 11,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 243
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 59
+        },
+        {
+          "height": 44,
+          "width": 154
+        },
+        {
+          "height": 50,
+          "width": 154
+        },
+        {
+          "height": 44,
+          "width": 118
+        },
+        {
+          "height": 44,
+          "width": 142
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "detail-reset-button-en",
+    "visible": true
+  },
+  {
+    "state": "state-en-accounts-filtered-empty-1440",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusableCount": 23,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 88
+        },
+        {
+          "height": 44,
+          "width": 154
+        },
+        {
+          "height": 50,
+          "width": 152
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 135
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 137
+        },
+        {
+          "height": 44,
+          "width": 96
+        },
+        {
+          "height": 44,
+          "width": 72
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "invalid-query-no-echo",
+    "echoed": false
+  },
+  {
+    "state": "state-en-accounts-invalid-query-1440",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusableCount": 19,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 88
+        },
+        {
+          "height": 44,
+          "width": 154
+        },
+        {
+          "height": 50,
+          "width": 152
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 135
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 137
+        },
+        {
+          "height": 44,
+          "width": 96
+        },
+        {
+          "height": 44,
+          "width": 1098
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "pagination",
+    "firstPage": 10,
+    "secondPage": 5,
+    "distinct": true
+  },
+  {
+    "state": "state-en-accounts-page-2-1440",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusableCount": 33,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 88
+        },
+        {
+          "height": 44,
+          "width": 154
+        },
+        {
+          "height": 50,
+          "width": 152
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 135
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 137
+        },
+        {
+          "height": 44,
+          "width": 96
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 144
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "search-username",
+    "matched": "admin.users.gone"
+  },
+  {
+    "state": "state-en-accounts-search-1440",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusableCount": 22,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 88
+        },
+        {
+          "height": 44,
+          "width": 154
+        },
+        {
+          "height": 50,
+          "width": 152
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 135
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 137
+        },
+        {
+          "height": 44,
+          "width": 96
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "filter-state",
+    "filter": "DELETED"
+  },
+  {
+    "state": "state-en-accounts-filter-state-1440",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusableCount": 22,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 88
+        },
+        {
+          "height": 44,
+          "width": 154
+        },
+        {
+          "height": 50,
+          "width": 152
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 135
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 137
+        },
+        {
+          "height": 44,
+          "width": 96
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "filter-role",
+    "filter": "ADMIN"
+  },
+  {
+    "state": "state-en-deleted-badge-1440",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusableCount": 52,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 88
+        },
+        {
+          "height": 44,
+          "width": 154
+        },
+        {
+          "height": 50,
+          "width": 152
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 135
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 137
+        },
+        {
+          "height": 44,
+          "width": 96
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "directory-pix-paper-pt-BR-375",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusableCount": 47,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 243
+        },
+        {
+          "height": 44,
+          "width": 50
+        },
+        {
+          "height": 44,
+          "width": 154
+        },
+        {
+          "height": 44,
+          "width": 66
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 106
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 144
+        },
+        {
+          "height": 44,
+          "width": 118
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "directory-pix-paper-pt-BR-768",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusableCount": 47,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 243
+        },
+        {
+          "height": 44,
+          "width": 143
+        },
+        {
+          "height": 44,
+          "width": 154
+        },
+        {
+          "height": 44,
+          "width": 66
+        },
+        {
+          "height": 44,
+          "width": 342
+        },
+        {
+          "height": 44,
+          "width": 342
+        },
+        {
+          "height": 44,
+          "width": 342
+        },
+        {
+          "height": 44,
+          "width": 342
+        },
+        {
+          "height": 44,
+          "width": 106
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 144
+        },
+        {
+          "height": 44,
+          "width": 118
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "directory-pix-paper-pt-BR-1440",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusableCount": 52,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 243
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 59
+        },
+        {
+          "height": 44,
+          "width": 154
+        },
+        {
+          "height": 50,
+          "width": 154
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 106
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 144
+        },
+        {
+          "height": 44,
+          "width": 118
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "directory-cashier-daylight-pt-BR-375",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusableCount": 47,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 243
+        },
+        {
+          "height": 44,
+          "width": 50
+        },
+        {
+          "height": 44,
+          "width": 154
+        },
+        {
+          "height": 44,
+          "width": 66
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 106
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 144
+        },
+        {
+          "height": 44,
+          "width": 118
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "directory-cashier-daylight-pt-BR-768",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusableCount": 47,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 243
+        },
+        {
+          "height": 44,
+          "width": 143
+        },
+        {
+          "height": 44,
+          "width": 154
+        },
+        {
+          "height": 44,
+          "width": 66
+        },
+        {
+          "height": 44,
+          "width": 342
+        },
+        {
+          "height": 44,
+          "width": 342
+        },
+        {
+          "height": 44,
+          "width": 342
+        },
+        {
+          "height": 44,
+          "width": 342
+        },
+        {
+          "height": 44,
+          "width": 106
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 144
+        },
+        {
+          "height": 44,
+          "width": 118
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "directory-cashier-daylight-pt-BR-1440",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusableCount": 52,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 243
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 59
+        },
+        {
+          "height": 44,
+          "width": 154
+        },
+        {
+          "height": 50,
+          "width": 154
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 106
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 144
+        },
+        {
+          "height": 44,
+          "width": 118
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "directory-settlement-sand-pt-BR-375",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusableCount": 47,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 243
+        },
+        {
+          "height": 44,
+          "width": 50
+        },
+        {
+          "height": 44,
+          "width": 154
+        },
+        {
+          "height": 44,
+          "width": 66
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 106
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 144
+        },
+        {
+          "height": 44,
+          "width": 118
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "directory-settlement-sand-pt-BR-768",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusableCount": 47,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 243
+        },
+        {
+          "height": 44,
+          "width": 143
+        },
+        {
+          "height": 44,
+          "width": 154
+        },
+        {
+          "height": 44,
+          "width": 66
+        },
+        {
+          "height": 44,
+          "width": 342
+        },
+        {
+          "height": 44,
+          "width": 342
+        },
+        {
+          "height": 44,
+          "width": 342
+        },
+        {
+          "height": 44,
+          "width": 342
+        },
+        {
+          "height": 44,
+          "width": 106
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 144
+        },
+        {
+          "height": 44,
+          "width": 118
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "directory-settlement-sand-pt-BR-1440",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusableCount": 52,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 243
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 59
+        },
+        {
+          "height": 44,
+          "width": 154
+        },
+        {
+          "height": 50,
+          "width": 154
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 106
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 144
+        },
+        {
+          "height": 44,
+          "width": 118
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "directory-midnight-clearing-pt-BR-375",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusableCount": 47,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 243
+        },
+        {
+          "height": 44,
+          "width": 50
+        },
+        {
+          "height": 44,
+          "width": 154
+        },
+        {
+          "height": 44,
+          "width": 66
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 106
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 144
+        },
+        {
+          "height": 44,
+          "width": 118
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "directory-midnight-clearing-pt-BR-768",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusableCount": 47,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 243
+        },
+        {
+          "height": 44,
+          "width": 143
+        },
+        {
+          "height": 44,
+          "width": 154
+        },
+        {
+          "height": 44,
+          "width": 66
+        },
+        {
+          "height": 44,
+          "width": 342
+        },
+        {
+          "height": 44,
+          "width": 342
+        },
+        {
+          "height": 44,
+          "width": 342
+        },
+        {
+          "height": 44,
+          "width": 342
+        },
+        {
+          "height": 44,
+          "width": 106
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 144
+        },
+        {
+          "height": 44,
+          "width": 118
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "directory-midnight-clearing-pt-BR-1440",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusableCount": 52,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 243
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 59
+        },
+        {
+          "height": 44,
+          "width": 154
+        },
+        {
+          "height": 50,
+          "width": 154
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 106
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 144
+        },
+        {
+          "height": 44,
+          "width": 118
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "directory-vault-blue-pt-BR-375",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusableCount": 47,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 243
+        },
+        {
+          "height": 44,
+          "width": 50
+        },
+        {
+          "height": 44,
+          "width": 154
+        },
+        {
+          "height": 44,
+          "width": 66
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 106
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 144
+        },
+        {
+          "height": 44,
+          "width": 118
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "directory-vault-blue-pt-BR-768",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusableCount": 47,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 243
+        },
+        {
+          "height": 44,
+          "width": 143
+        },
+        {
+          "height": 44,
+          "width": 154
+        },
+        {
+          "height": 44,
+          "width": 66
+        },
+        {
+          "height": 44,
+          "width": 342
+        },
+        {
+          "height": 44,
+          "width": 342
+        },
+        {
+          "height": 44,
+          "width": 342
+        },
+        {
+          "height": 44,
+          "width": 342
+        },
+        {
+          "height": 44,
+          "width": 106
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 144
+        },
+        {
+          "height": 44,
+          "width": 118
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "directory-vault-blue-pt-BR-1440",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusableCount": 52,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 243
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 59
+        },
+        {
+          "height": 44,
+          "width": 154
+        },
+        {
+          "height": 50,
+          "width": 154
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 106
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 144
+        },
+        {
+          "height": 44,
+          "width": 118
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "directory-terminal-amber-pt-BR-375",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusableCount": 47,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 243
+        },
+        {
+          "height": 44,
+          "width": 50
+        },
+        {
+          "height": 44,
+          "width": 154
+        },
+        {
+          "height": 44,
+          "width": 66
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 106
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 144
+        },
+        {
+          "height": 44,
+          "width": 118
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "directory-terminal-amber-pt-BR-768",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusableCount": 47,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 243
+        },
+        {
+          "height": 44,
+          "width": 143
+        },
+        {
+          "height": 44,
+          "width": 154
+        },
+        {
+          "height": 44,
+          "width": 66
+        },
+        {
+          "height": 44,
+          "width": 342
+        },
+        {
+          "height": 44,
+          "width": 342
+        },
+        {
+          "height": 44,
+          "width": 342
+        },
+        {
+          "height": 44,
+          "width": 342
+        },
+        {
+          "height": 44,
+          "width": 106
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 144
+        },
+        {
+          "height": 44,
+          "width": 118
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "directory-terminal-amber-pt-BR-1440",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusableCount": 52,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 243
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 59
+        },
+        {
+          "height": 44,
+          "width": 154
+        },
+        {
+          "height": 50,
+          "width": 154
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 106
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 144
+        },
+        {
+          "height": 44,
+          "width": 118
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        },
+        {
+          "height": 44,
+          "width": 73
+        },
+        {
+          "height": 44,
+          "width": 77
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "directory-pix-paper-en-375",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusableCount": 47,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 50
+        },
+        {
+          "height": 44,
+          "width": 154
+        },
+        {
+          "height": 44,
+          "width": 66
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 135
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 137
+        },
+        {
+          "height": 44,
+          "width": 96
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "directory-pix-paper-en-768",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusableCount": 47,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 142
+        },
+        {
+          "height": 44,
+          "width": 154
+        },
+        {
+          "height": 44,
+          "width": 66
+        },
+        {
+          "height": 44,
+          "width": 342
+        },
+        {
+          "height": 44,
+          "width": 342
+        },
+        {
+          "height": 44,
+          "width": 342
+        },
+        {
+          "height": 44,
+          "width": 342
+        },
+        {
+          "height": 44,
+          "width": 135
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 137
+        },
+        {
+          "height": 44,
+          "width": 96
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "directory-pix-paper-en-1440",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusableCount": 52,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 88
+        },
+        {
+          "height": 44,
+          "width": 154
+        },
+        {
+          "height": 50,
+          "width": 152
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 135
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 137
+        },
+        {
+          "height": 44,
+          "width": 96
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "directory-cashier-daylight-en-375",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusableCount": 47,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 50
+        },
+        {
+          "height": 44,
+          "width": 154
+        },
+        {
+          "height": 44,
+          "width": 66
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 135
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 137
+        },
+        {
+          "height": 44,
+          "width": 96
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "directory-cashier-daylight-en-768",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusableCount": 47,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 142
+        },
+        {
+          "height": 44,
+          "width": 154
+        },
+        {
+          "height": 44,
+          "width": 66
+        },
+        {
+          "height": 44,
+          "width": 342
+        },
+        {
+          "height": 44,
+          "width": 342
+        },
+        {
+          "height": 44,
+          "width": 342
+        },
+        {
+          "height": 44,
+          "width": 342
+        },
+        {
+          "height": 44,
+          "width": 135
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 137
+        },
+        {
+          "height": 44,
+          "width": 96
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "directory-cashier-daylight-en-1440",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusableCount": 52,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 88
+        },
+        {
+          "height": 44,
+          "width": 154
+        },
+        {
+          "height": 50,
+          "width": 152
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 135
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 137
+        },
+        {
+          "height": 44,
+          "width": 96
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "directory-settlement-sand-en-375",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusableCount": 47,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 50
+        },
+        {
+          "height": 44,
+          "width": 154
+        },
+        {
+          "height": 44,
+          "width": 66
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 135
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 137
+        },
+        {
+          "height": 44,
+          "width": 96
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "directory-settlement-sand-en-768",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusableCount": 47,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 142
+        },
+        {
+          "height": 44,
+          "width": 154
+        },
+        {
+          "height": 44,
+          "width": 66
+        },
+        {
+          "height": 44,
+          "width": 342
+        },
+        {
+          "height": 44,
+          "width": 342
+        },
+        {
+          "height": 44,
+          "width": 342
+        },
+        {
+          "height": 44,
+          "width": 342
+        },
+        {
+          "height": 44,
+          "width": 135
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 137
+        },
+        {
+          "height": 44,
+          "width": 96
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "directory-settlement-sand-en-1440",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusableCount": 52,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 88
+        },
+        {
+          "height": 44,
+          "width": 154
+        },
+        {
+          "height": 50,
+          "width": 152
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 135
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 137
+        },
+        {
+          "height": 44,
+          "width": 96
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "directory-midnight-clearing-en-375",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusableCount": 47,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 50
+        },
+        {
+          "height": 44,
+          "width": 154
+        },
+        {
+          "height": 44,
+          "width": 66
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 135
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 137
+        },
+        {
+          "height": 44,
+          "width": 96
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "directory-midnight-clearing-en-768",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusableCount": 47,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 142
+        },
+        {
+          "height": 44,
+          "width": 154
+        },
+        {
+          "height": 44,
+          "width": 66
+        },
+        {
+          "height": 44,
+          "width": 342
+        },
+        {
+          "height": 44,
+          "width": 342
+        },
+        {
+          "height": 44,
+          "width": 342
+        },
+        {
+          "height": 44,
+          "width": 342
+        },
+        {
+          "height": 44,
+          "width": 135
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 137
+        },
+        {
+          "height": 44,
+          "width": 96
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "directory-midnight-clearing-en-1440",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusableCount": 52,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 88
+        },
+        {
+          "height": 44,
+          "width": 154
+        },
+        {
+          "height": 50,
+          "width": 152
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 135
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 137
+        },
+        {
+          "height": 44,
+          "width": 96
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "directory-vault-blue-en-375",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusableCount": 47,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 50
+        },
+        {
+          "height": 44,
+          "width": 154
+        },
+        {
+          "height": 44,
+          "width": 66
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 135
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 137
+        },
+        {
+          "height": 44,
+          "width": 96
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "directory-vault-blue-en-768",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusableCount": 47,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 142
+        },
+        {
+          "height": 44,
+          "width": 154
+        },
+        {
+          "height": 44,
+          "width": 66
+        },
+        {
+          "height": 44,
+          "width": 342
+        },
+        {
+          "height": 44,
+          "width": 342
+        },
+        {
+          "height": 44,
+          "width": 342
+        },
+        {
+          "height": 44,
+          "width": 342
+        },
+        {
+          "height": 44,
+          "width": 135
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 137
+        },
+        {
+          "height": 44,
+          "width": 96
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "directory-vault-blue-en-1440",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusableCount": 52,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 88
+        },
+        {
+          "height": 44,
+          "width": 154
+        },
+        {
+          "height": 50,
+          "width": 152
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 135
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 137
+        },
+        {
+          "height": 44,
+          "width": 96
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "directory-terminal-amber-en-375",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusableCount": 47,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 50
+        },
+        {
+          "height": 44,
+          "width": 154
+        },
+        {
+          "height": 44,
+          "width": 66
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 311
+        },
+        {
+          "height": 44,
+          "width": 135
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 343
+        },
+        {
+          "height": 44,
+          "width": 137
+        },
+        {
+          "height": 44,
+          "width": 96
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "directory-terminal-amber-en-768",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusableCount": 47,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 142
+        },
+        {
+          "height": 44,
+          "width": 154
+        },
+        {
+          "height": 44,
+          "width": 66
+        },
+        {
+          "height": 44,
+          "width": 342
+        },
+        {
+          "height": 44,
+          "width": 342
+        },
+        {
+          "height": 44,
+          "width": 342
+        },
+        {
+          "height": 44,
+          "width": 342
+        },
+        {
+          "height": 44,
+          "width": 135
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 232
+        },
+        {
+          "height": 44,
+          "width": 137
+        },
+        {
+          "height": 44,
+          "width": 96
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  },
+  {
+    "state": "directory-terminal-amber-en-1440",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "focusableCount": 52,
+      "overflow": false,
+      "targets": [
+        {
+          "height": 50,
+          "width": 173
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 205
+        },
+        {
+          "height": 44,
+          "width": 88
+        },
+        {
+          "height": 44,
+          "width": 154
+        },
+        {
+          "height": 50,
+          "width": 152
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 546
+        },
+        {
+          "height": 44,
+          "width": 135
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 368
+        },
+        {
+          "height": 44,
+          "width": 137
+        },
+        {
+          "height": 44,
+          "width": 96
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        },
+        {
+          "height": 44,
+          "width": 60
+        },
+        {
+          "height": 44,
+          "width": 76
+        }
+      ]
+    },
+    "focus": {
+      "boxShadow": "none",
+      "outlineWidth": 3
+    },
+    "severeAxe": []
+  }
+]

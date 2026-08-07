@@ -1,0 +1,126 @@
+{
+  "$extensions": {
+    "com.qr-pagamentos.theme": {
+      "id": "pix-paper",
+      "mode": "light"
+    }
+  },
+  "theme": {
+    "color": {
+      "page": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.pix-paper.bg}"
+      },
+      "raised": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.pix-paper.surface}"
+      },
+      "secondary": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.pix-paper.surface-2}"
+      },
+      "border": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.pix-paper.border}"
+      },
+      "text-primary": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.pix-paper.text}"
+      },
+      "text-secondary": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.pix-paper.text-2}"
+      },
+      "accent": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.pix-paper.accent}"
+      },
+      "action-default": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.pix-paper.accent}"
+      },
+      "action-hover": {
+        "$type": "color",
+        "$value": "{color.primitive.accessibility.pix-paper.action-hover}"
+      },
+      "action-active": {
+        "$type": "color",
+        "$value": "{color.primitive.accessibility.pix-paper.action-active}"
+      },
+      "accent-audit-foreground": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.pix-paper.accent-fg}"
+      },
+      "accent-soft": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.pix-paper.accent-soft}"
+      },
+      "success": {
+        "$type": "color",
+        "$value": "{color.primitive.accessibility.pix-paper.feedback-success}"
+      },
+      "success-foreground": {
+        "$type": "color",
+        "$value": "{color.primitive.accessibility.neutral.white}"
+      },
+      "success-soft": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.pix-paper.success-soft}"
+      },
+      "warning": {
+        "$type": "color",
+        "$value": "{color.primitive.accessibility.pix-paper.feedback-warning}"
+      },
+      "warning-foreground": {
+        "$type": "color",
+        "$value": "{color.primitive.accessibility.neutral.white}"
+      },
+      "warning-soft": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.pix-paper.warning-soft}"
+      },
+      "danger": {
+        "$type": "color",
+        "$value": "{color.primitive.accessibility.pix-paper.feedback-danger}"
+      },
+      "danger-foreground": {
+        "$type": "color",
+        "$value": "{color.primitive.accessibility.neutral.white}"
+      },
+      "danger-soft": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.pix-paper.danger-soft}"
+      },
+      "info": {
+        "$type": "color",
+        "$value": "{color.primitive.accessibility.pix-paper.feedback-info}"
+      },
+      "info-foreground": {
+        "$type": "color",
+        "$value": "{color.primitive.accessibility.neutral.white}"
+      },
+      "info-soft": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.pix-paper.info-soft}"
+      },
+      "focus-ring": {
+        "$type": "color",
+        "$value": "{color.primitive.accessibility.pix-paper.focus-ring}"
+      },
+      "text-tertiary": {
+        "$type": "color",
+        "$value": "{color.primitive.accessibility.pix-paper.text-tertiary}"
+      },
+      "action-foreground": {
+        "$type": "color",
+        "$value": "{color.primitive.audit.template.pix-paper.text}"
+      }
+    },
+    "shadow": {
+      "card": {
+        "$type": "shadow",
+        "$value": "{color.primitive.audit.template.pix-paper.elevation}"
+      }
+    }
+  }
+}

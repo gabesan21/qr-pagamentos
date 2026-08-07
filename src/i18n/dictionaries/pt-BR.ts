@@ -1,4 +1,5 @@
 import { sharedPtBR } from "./shared/pt-BR";
+import { settingsPtBR } from "./settings/pt-BR";
 import { nauttPtBR } from "./nautt/pt-BR";
 import { designSystemPtBR } from "./design-system/pt-BR";
 import { administrationPtBR } from "./administration/pt-BR";
@@ -23,6 +24,7 @@ export const ptBR = {
   ...appShellPtBR,
   ...profilePtBR,
   ...passwordResetPtBR,
+  ...settingsPtBR,
   ...merchantDashboardPtBR,
   ...adminDashboardPtBR,
   ...adminUsersDirectoryPtBR,

@@ -51,7 +51,7 @@ Poucos parágrafos sobre a abordagem base, decisões que restringem a execução
 
 1. **Onda 1:** F01.
 2. **Onda 2:** F02 e F03 em paralelo após F01.
-3. **Integração:** orquestrador valida ownership, integra resultados e roda o gate agregado.
+3. **Integração:** orquestrador valida ownership, integra resultados e confere os critérios `agent` de inspeção.
 
 ## Riscos e condições de aborto
 
@@ -62,12 +62,13 @@ Poucos parágrafos sobre a abordagem base, decisões que restringem a execução
 
 ## Critérios de aceite
 
-> Critérios observáveis, comparados no gate de `005_closing`. Eles são **o contrato**: valem para o executor e para o gate, e precisam cobrir o "O quê / Por quê" do card — critério que não cobre o pedido é defeito de plano e volta para cá. Prefira o gate agregado. Superfície de runtime exige ao menos um `re-run`.
+> Critérios observáveis, comparados no gate de `005_closing`. Eles são **o contrato**: valem para o executor e para o gate, e precisam cobrir o "O quê / Por quê" do card — critério que não cobre o pedido é defeito de plano e volta para cá.
+> **Todo critério declara quem verifica** (`agent` | `phase` | `user`). **A task não roda teste algum:** critério que exige executar teste (unitário, integração, e2e, bateria) é **`phase`** — acumula na checklist da phase e roda uma única vez, na task `verificacao-da-phase` (seção "Verificação de phase" do [[WORKFLOW|WORKFLOW]]); só o plano dessa task declara re-run como critério `agent`. `agent` fica para inspeção barata e determinística no alcance do agente — consulte `notes/references/limites-de-verificacao.md` do escopo antes de atribuir; verificação que dependa de infra fora desse alcance nasce `user` e vai para a checklist de verificação humana da entrega, sem bloquear gate. Exigir do agente verificação impossível é defeito de plano.
 > **Append-only entre rodadas:** devolução por `lacuna` acrescenta linha e mantém os IDs existentes — renumerar critério ou frente quebra as referências do `.verify.md` e da telemetria, e força a re-revisão a recomeçar do zero.
 
-| # | Critério | Verificação | Pass é | Modo 005 |
-|---|----------|-------------|--------|----------|
-| 1 | <comportamento ou contrato> | `<comando>` ou leitura de <artefato> | <observação objetiva> | re-run \| evidência |
+| # | Critério | Verifica | Verificação | Pass é | Modo 005 |
+|---|----------|----------|-------------|--------|----------|
+| 1 | <comportamento ou contrato> | agent \| phase \| user | leitura de <artefato> ou `<teste na task de verificação da phase>` | <observação objetiva> | evidência \| phase \| humano |
 
 ## Specs e contratos
 

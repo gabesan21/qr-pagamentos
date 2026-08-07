@@ -4,8 +4,10 @@ import { WorkspaceHeading } from "@/app-shell/workspace-heading";
 import { getPaymentLinkService } from "@/auth/payment-link";
 import { getPaymentLinkV2PrefillService } from "@/auth/payment-link-v2-prefill";
 import { getPaymentLinkV2ViewService } from "@/auth/payment-link-v2-view";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { GitBranchIcon } from "lucide-react";
 
 import { requireMerchantShellContext } from "../../shell-context";
 import { linkV2FormCopy } from "../link-v2-form-copy";
@@ -69,13 +71,23 @@ export default async function NewPaymentLinkPage({
   const description = from === undefined ? dictionary.paymentLinkCreateDescription : dictionary.paymentLinkCreateFromDescription;
 
   return (
-    <>
+    <div className="space-y-4">
+      <nav aria-label="breadcrumb" className="flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
+        <Link className="inline-flex min-h-11 items-center text-foreground underline-offset-4 hover:underline" href="/links">{dictionary.shellLinks}</Link>
+        <span aria-hidden>›</span>
+        <span className="text-foreground">{dictionary.paymentLinkCreateTitle}</span>
+      </nav>
+
       <WorkspaceHeading description={description} eyebrow={dictionary.shellMerchantEyebrow} title={dictionary.paymentLinkCreateTitle} />
-      <div className="flex flex-wrap gap-3">
-        <Button asChild data-ds-hit-target variant="outline">
-          <Link href="/links">{dictionary.paymentLinkDirectoryBack}</Link>
-        </Button>
-      </div>
+
+      {from !== undefined ? (
+        <Alert variant="default">
+          <GitBranchIcon aria-hidden className="size-4" />
+          <AlertTitle>{dictionary.paymentLinkNewVersion}</AlertTitle>
+          <AlertDescription>{dictionary.paymentLinkNewVersionDescription}</AlertDescription>
+        </Alert>
+      ) : null}
+
       <Card>
         <CardHeader>
           <CardTitle>{dictionary.paymentLinkCreateTitle}</CardTitle>
@@ -101,6 +113,12 @@ export default async function NewPaymentLinkPage({
           />
         </CardContent>
       </Card>
-    </>
+
+      <div className="flex flex-wrap gap-3">
+        <Button asChild data-ds-hit-target variant="outline">
+          <Link href="/links">{dictionary.paymentLinkDirectoryBack}</Link>
+        </Button>
+      </div>
+    </div>
   );
 }

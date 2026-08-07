@@ -2,7 +2,12 @@ import { readFileSync } from "node:fs";
 
 import { describe, expect, it } from "vitest";
 
-import { DEFAULT_STOREFRONT_THEME_ID, isStorefrontThemeId, STOREFRONT_THEME_IDS } from "./themes";
+import {
+  DARK_SYSTEM_STOREFRONT_THEME_ID,
+  DEFAULT_STOREFRONT_THEME_ID,
+  isStorefrontThemeId,
+  STOREFRONT_THEME_IDS,
+} from "./themes";
 
 const resolver = JSON.parse(
   readFileSync(new URL("./tokens/resolver.json", import.meta.url), "utf8"),
@@ -14,17 +19,17 @@ describe("storefront theme ids", () => {
     expect(DEFAULT_STOREFRONT_THEME_ID).toBe(resolver.modifiers.theme.default);
   });
 
-  it("is the closed six-theme set with pix-paper as the deterministic default", () => {
-    expect([...STOREFRONT_THEME_IDS].sort()).toEqual([
-      "cashier-daylight",
-      "midnight-clearing",
+  it("is the ordered closed set with safe light and dark-system fallbacks", () => {
+    expect(STOREFRONT_THEME_IDS).toEqual([
       "pix-paper",
+      "cashier-daylight",
       "settlement-sand",
-      "terminal-amber",
+      "midnight-clearing",
       "vault-blue",
+      "terminal-amber",
     ]);
     expect(DEFAULT_STOREFRONT_THEME_ID).toBe("pix-paper");
-    expect(STOREFRONT_THEME_IDS[0]).toBe("pix-paper");
+    expect(DARK_SYSTEM_STOREFRONT_THEME_ID).toBe("midnight-clearing");
   });
 
   it("recognizes only persisted theme ids", () => {

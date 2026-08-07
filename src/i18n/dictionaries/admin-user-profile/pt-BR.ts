@@ -1,4 +1,12 @@
 export const adminUserProfilePtBR = {
+  adminUserProfileSectionsLabel: "Seções do perfil",
+  adminUserProfileBreadcrumbLabel: "Navegação estrutural",
+  adminUserProfileSectionIdentity: "Identidade",
+  adminUserProfileSectionAccess: "Acesso",
+  adminUserProfileSectionSecurity: "Segurança",
+  adminUserProfileSectionPreferences: "Preferências",
+  adminUserProfileSectionStorefront: "Vitrine",
+  adminUserProfileSectionDanger: "Zona de perigo",
   adminUserProfileChanged: "Alteração da conta salva.",
   adminUserProfileConflict: "Essa alteração da conta conflita com um estado mais recente ou um valor existente. Revise os campos e tente novamente.",
   adminUserProfileFailed: "A alteração da conta não pôde ser concluída. Revise os dados e tente novamente.",

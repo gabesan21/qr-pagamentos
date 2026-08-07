@@ -1,0 +1,212 @@
+[
+  {
+    "state": "invalid-pt-BR",
+    "locale": "pt-BR",
+    "width": 1440,
+    "screenshot": "artifacts/reset-password/20260804045136/reset-password-invalid-pt-BR-1440.png",
+    "severeAxe": [],
+    "formVisible": false
+  },
+  {
+    "state": "valid-pt-BR-375",
+    "locale": "pt-BR",
+    "width": 375,
+    "screenshot": "artifacts/reset-password/20260804045136/reset-password-valid-pt-BR-375.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "overflow": false,
+      "focusableCount": 3,
+      "targets": [
+        {
+          "height": 44,
+          "width": 263
+        },
+        {
+          "height": 44,
+          "width": 263
+        },
+        {
+          "height": 44,
+          "width": 263
+        }
+      ]
+    },
+    "severeAxe": [],
+    "formVisible": true
+  },
+  {
+    "state": "valid-pt-BR-768",
+    "locale": "pt-BR",
+    "width": 768,
+    "screenshot": "artifacts/reset-password/20260804045136/reset-password-valid-pt-BR-768.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "overflow": false,
+      "focusableCount": 3,
+      "targets": [
+        {
+          "height": 44,
+          "width": 340
+        },
+        {
+          "height": 44,
+          "width": 340
+        },
+        {
+          "height": 44,
+          "width": 340
+        }
+      ]
+    },
+    "severeAxe": [],
+    "formVisible": true
+  },
+  {
+    "state": "valid-pt-BR-1440",
+    "locale": "pt-BR",
+    "width": 1440,
+    "screenshot": "artifacts/reset-password/20260804045136/reset-password-valid-pt-BR-1440.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "overflow": false,
+      "focusableCount": 3,
+      "targets": [
+        {
+          "height": 44,
+          "width": 308
+        },
+        {
+          "height": 44,
+          "width": 308
+        },
+        {
+          "height": 44,
+          "width": 308
+        }
+      ]
+    },
+    "severeAxe": [],
+    "formVisible": true
+  },
+  {
+    "state": "error-pt-BR",
+    "locale": "pt-BR",
+    "width": 1440,
+    "screenshot": "artifacts/reset-password/20260804045136/reset-password-error-pt-BR-1440.png",
+    "severeAxe": [],
+    "formVisible": true
+  },
+  {
+    "state": "success-pt-BR",
+    "locale": "pt-BR",
+    "width": 1440,
+    "screenshot": "artifacts/reset-password/20260804045136/reset-password-success-pt-BR-1440.png",
+    "severeAxe": [],
+    "changed": true
+  },
+  {
+    "state": "invalid-en",
+    "locale": "en",
+    "width": 1440,
+    "screenshot": "artifacts/reset-password/20260804045136/reset-password-invalid-en-1440.png",
+    "severeAxe": [],
+    "formVisible": false
+  },
+  {
+    "state": "valid-en-375",
+    "locale": "en",
+    "width": 375,
+    "screenshot": "artifacts/reset-password/20260804045136/reset-password-valid-en-375.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "overflow": false,
+      "focusableCount": 3,
+      "targets": [
+        {
+          "height": 44,
+          "width": 263
+        },
+        {
+          "height": 44,
+          "width": 263
+        },
+        {
+          "height": 44,
+          "width": 263
+        }
+      ]
+    },
+    "severeAxe": [],
+    "formVisible": true
+  },
+  {
+    "state": "valid-en-768",
+    "locale": "en",
+    "width": 768,
+    "screenshot": "artifacts/reset-password/20260804045136/reset-password-valid-en-768.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "overflow": false,
+      "focusableCount": 3,
+      "targets": [
+        {
+          "height": 44,
+          "width": 340
+        },
+        {
+          "height": 44,
+          "width": 340
+        },
+        {
+          "height": 44,
+          "width": 340
+        }
+      ]
+    },
+    "severeAxe": [],
+    "formVisible": true
+  },
+  {
+    "state": "valid-en-1440",
+    "locale": "en",
+    "width": 1440,
+    "screenshot": "artifacts/reset-password/20260804045136/reset-password-valid-en-1440.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "overflow": false,
+      "focusableCount": 3,
+      "targets": [
+        {
+          "height": 44,
+          "width": 308
+        },
+        {
+          "height": 44,
+          "width": 308
+        },
+        {
+          "height": 44,
+          "width": 308
+        }
+      ]
+    },
+    "severeAxe": [],
+    "formVisible": true
+  },
+  {
+    "state": "error-en",
+    "locale": "en",
+    "width": 1440,
+    "screenshot": "artifacts/reset-password/20260804045136/reset-password-error-en-1440.png",
+    "severeAxe": [],
+    "formVisible": true
+  },
+  {
+    "state": "success-en",
+    "locale": "en",
+    "width": 1440,
+    "screenshot": "artifacts/reset-password/20260804045136/reset-password-success-en-1440.png",
+    "severeAxe": [],
+    "changed": true
+  }
+]

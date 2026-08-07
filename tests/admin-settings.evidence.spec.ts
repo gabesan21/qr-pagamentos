@@ -34,14 +34,21 @@ async function signIn(page: Page, username: string, password: string) {
 }
 
 async function setLocale(page: Page, locale: "pt-BR" | "en") {
+  // Use a desktop viewport so the shell language select is reliably visible
+  // and not affected by narrow-viewport reflow.
+  await page.setViewportSize({ width: 1440, height: 1400 });
   await page.goto(`${baseUrl}/admin/settings`);
-  const form = page.locator('form[action="/language-preference"]');
-  await form.locator('select[name="locale"]').selectOption(locale);
+  // The app-shell language form auto-submits on change; the settings page also
+  // contains a language segment, so target the shell's select explicitly.
+  const select = page.locator('form[action="/language-preference"] select[name="locale"]').first();
+  await select.waitFor({ state: "visible" });
+  const current = await select.inputValue();
+  if (current === locale) return;
   // The preference POST redirects to `/?language=saved`, and `/` dispatches
   // the administrator to `/admin` (the query is not preserved).
   await Promise.all([
     page.waitForURL(`${baseUrl}/admin`),
-    form.getByRole("button").click(),
+    select.selectOption(locale),
   ]);
 }
 
@@ -93,17 +100,21 @@ test("creates the closed administrator settings hub evidence run", async ({ page
         return style.display !== "none" && style.visibility !== "hidden" && rectangle.width > 44 && rectangle.height > 10;
       };
       const controls = Array.from(document.querySelectorAll<HTMLElement>("input:not([type=hidden]):not([type=file]), button, select, a[href], textarea")).filter(visible);
+      const scrollWidth = document.documentElement.scrollWidth;
+      const clientWidth = document.documentElement.clientWidth;
       return {
         bodyFont: getComputedStyle(document.body).fontFamily,
         focusableCount: controls.length,
-        overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
+        overflow: scrollWidth > clientWidth,
+        scrollWidth,
+        clientWidth,
         targets: controls.map((control) => ({
           height: control.getBoundingClientRect().height,
           width: control.getBoundingClientRect().width,
         })),
       };
     });
-    expect(measured.bodyFont).toContain("IBM Plex Sans");
+    expect(measured.bodyFont).toContain("Inter");
     expect(measured.overflow).toBe(false);
     expect(measured.targets.every(({ height, width }) => height >= 44 && width >= 44)).toBe(true);
     const formControls = page.locator('input:not([type="hidden"]):not([type="file"]), select, textarea');
@@ -128,7 +139,7 @@ test("creates the closed administrator settings hub evidence run", async ({ page
 
   async function screenshot(name: string) {
     const relativePath = `artifacts/admin-settings/${runId}/${name}.png`;
-    await page.screenshot({ path: join(process.cwd(), relativePath), fullPage: true });
+    await page.screenshot({ path: join(process.cwd(), relativePath) });
     screenshots.push(relativePath);
     return relativePath;
   }
@@ -144,29 +155,29 @@ test("creates the closed administrator settings hub evidence run", async ({ page
   // ---- pt-BR pass: hub structure, empty registry, functional theme-default save ----
   await setLocale(page, "pt-BR");
 
-  await page.setViewportSize({ width: 375, height: 1000 });
+  await page.setViewportSize({ width: 375, height: 1400 });
   await page.goto(`${baseUrl}/admin/settings`);
-  const sectionIds = ["exchange-currencies", "currency-pairs", "payment-methods", "payment-settings", "appearance", "language"];
+  const sectionIds = ["sec-currencies", "sec-pairs", "sec-methods", "sec-globalPayments", "sec-appearance", "sec-language"];
   for (const id of sectionIds) await expect(page.locator(`#${id}`)).toBeVisible();
   const anchors = page.locator('nav[aria-label="Seções de configurações"] a[href^="#"]');
   await expect(anchors).toHaveCount(6);
   await expect(page.getByText("Nenhuma moeda de troca está ativa.")).toBeVisible();
-  await expect(page.getByText("Nenhum par de moedas está configurado.")).toBeVisible();
-  await expect(page.getByText("Nenhum método de pagamento está configurado.")).toBeVisible();
-  await expect(page.locator("#default-theme")).toHaveValue("pix-paper");
+  await expect(page.getByText("Nenhum registro está configurado.")).toHaveCount(2);
+  const themeInput = page.locator('form[action="/admin/settings/default-theme"] input[name="themeId"]');
+  await expect(themeInput).toHaveValue("pix-paper");
   assertions.push({ state: "hub-structure", sections: 6, anchors: 6, emptyStates: 3, fallbackTheme: "pix-paper" });
   await captureState("state-pt-BR-hub-empty-375");
 
-  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.setViewportSize({ width: 1440, height: 1400 });
   await page.goto(`${baseUrl}/admin/settings`);
-  await page.locator("#default-theme").selectOption("vault-blue");
+  await page.locator('form[action="/admin/settings/default-theme"] button[data-theme-id="vault-blue"]').click();
   await Promise.all([
     page.waitForURL(/\/admin\/settings\?success=theme-default$/),
     page.getByRole("button", { name: "Salvar tema padrão" }).click(),
   ]);
   await expect(page.getByText("Tema padrão salvo.")).toBeVisible();
   await page.goto(`${baseUrl}/admin/settings`);
-  await expect(page.locator("#default-theme")).toHaveValue("vault-blue");
+  await expect(themeInput).toHaveValue("vault-blue");
   assertions.push({ state: "theme-default-save", outcome: "saved", persisted: "vault-blue" });
   await captureState("state-pt-BR-theme-default-saved-1440");
 
@@ -189,27 +200,28 @@ test("creates the closed administrator settings hub evidence run", async ({ page
   expect(stampedAdmin).toBe("<null>");
   assertions.push({ state: "creation-stamping", merchantTheme: stampedMerchant, adminTheme: null });
 
-  await page.setViewportSize({ width: 320, height: 1000 });
+  await page.setViewportSize({ width: 320, height: 1400 });
   await page.goto(`${baseUrl}/admin/settings`);
   await captureState("state-pt-BR-hub-ready-320");
 
   // ---- en pass: functional exchange-currency registration ----
   await setLocale(page, "en");
 
-  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.setViewportSize({ width: 1440, height: 1400 });
   await page.goto(`${baseUrl}/admin/settings`);
-  const registerForm = page.locator('form[action="/admin/exchange-currencies"]', { has: page.locator('input[name="label"]') }).first();
+  await page.locator('#sec-currencies button', { hasText: "Add" }).click();
+  const registerForm = page.locator('#sec-currencies form[action="/admin/exchange-currencies"]');
   await registerForm.locator('input[name="code"]').fill("USD");
   await registerForm.locator('input[name="label"]').fill("USD/USDT");
   await registerForm.locator('input[name="currencyUuid"]').fill(randomUUID());
   await registerForm.locator('input[name="exchangeCurrencyUuid"]').fill(randomUUID());
   await Promise.all([
     page.waitForURL(/\/admin\/settings\?success=exchange-currency$/),
-    registerForm.getByRole("button", { name: "Register mapping" }).click(),
+    registerForm.getByRole("button", { name: "Add" }).click(),
   ]);
   await expect(page.getByText("Exchange currency change saved.")).toBeVisible();
-  await expect(page.locator("#exchange-currencies").getByText("USD/USDT")).toBeVisible();
-  await expect(page.locator("#exchange-currencies").getByRole("button", { name: "Deactivate" })).toBeVisible();
+  await expect(page.locator("#sec-currencies").getByText("USD/USDT")).toBeVisible();
+  await expect(page.locator("#sec-currencies").getByRole("button", { name: "Deactivate" })).toBeVisible();
   assertions.push({ state: "exchange-currency-register", outcome: "registered", code: "USD" });
   await captureState("state-en-exchange-currency-registered-1440");
 
@@ -220,7 +232,7 @@ test("creates the closed administrator settings hub evidence run", async ({ page
       for (const width of widths) {
         await page.setViewportSize({ width, height: 1000 });
         await page.goto(`${baseUrl}/admin/settings`);
-        await expect(page.locator("#appearance")).toBeVisible();
+        await expect(page.locator("#sec-appearance")).toBeVisible();
         await page.evaluate(async () => document.fonts.ready);
         await page.evaluate((themeId) => { document.documentElement.dataset.theme = themeId; }, theme);
         await page.emulateMedia({ reducedMotion: "reduce" });
@@ -243,10 +255,18 @@ test("creates the closed administrator settings hub evidence run", async ({ page
     "src/auth/supported-exchange-currency.ts",
     "src/app/admin/settings/page.tsx",
     "src/app/admin/settings/settings-surface.tsx",
+    "src/app/admin/settings/exchange-currencies-section.tsx",
+    "src/app/admin/settings/catalog-records-section.tsx",
+    "src/app/admin/settings/payment-settings-section.tsx",
+    "src/app/admin/settings/appearance-section.tsx",
+    "src/app/admin/settings/language-section.tsx",
+    "src/app/admin/settings/confirm-toggle.tsx",
     "src/app/admin/settings/default-theme/route.ts",
     "src/app/admin/admin-submit.tsx",
     "src/i18n/dictionaries/administration/en.ts",
     "src/i18n/dictionaries/administration/pt-BR.ts",
+    "src/i18n/dictionaries/shared/en.ts",
+    "src/i18n/dictionaries/shared/pt-BR.ts",
     "tests/admin-settings.evidence.spec.ts",
     "scripts/run-admin-evidence.mjs",
     "scripts/run-admin-settings-evidence.mjs",

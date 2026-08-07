@@ -7,6 +7,7 @@ import { getPaymentLinkV2ViewService } from "@/auth/payment-link-v2-view";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { GitBranchIcon } from "lucide-react";
 
 import { requireMerchantShellContext } from "../../../../shell-context";
 import { linkV2FormCopy } from "../../../link-v2-form-copy";
@@ -44,13 +45,33 @@ export default async function EditPaymentLinkPage({ params }: Readonly<{ params:
   const products = data.activeProducts.map((product) => ({ id: product.id, titlePtBr: product.titlePtBr, titleEn: product.titleEn }));
 
   return (
-    <>
+    <div className="space-y-4">
+      <nav aria-label="breadcrumb" className="flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
+        <Link className="inline-flex min-h-11 items-center text-foreground underline-offset-4 hover:underline" href="/links">{dictionary.shellLinks}</Link>
+        <span aria-hidden>›</span>
+        <Link className="inline-flex min-h-11 items-center font-mono text-foreground underline-offset-4 hover:underline" href={`/links/v2/${link.id}`}>#{link.identifier}</Link>
+        <span aria-hidden>›</span>
+        <span className="text-foreground">{dictionary.paymentLinkEditTitle}</span>
+      </nav>
+
       <WorkspaceHeading description={dictionary.paymentLinkEditDescription} eyebrow={dictionary.shellMerchantEyebrow} title={dictionary.paymentLinkEditTitle} />
-      <div className="flex flex-wrap gap-3">
-        <Button asChild data-ds-hit-target variant="outline">
-          <Link href={`/links/v2/${link.id}`}>{dictionary.paymentLinkBackToDetail}</Link>
-        </Button>
-      </div>
+
+      <Alert variant="warning">
+        <AlertTitle>{dictionary.paymentLinkLockTitle}</AlertTitle>
+        <AlertDescription>{dictionary.paymentLinkLockDescription}</AlertDescription>
+      </Alert>
+
+      <Alert variant="default">
+        <GitBranchIcon aria-hidden className="size-4" />
+        <AlertTitle>{dictionary.paymentLinkNewVersion}</AlertTitle>
+        <AlertDescription>{dictionary.paymentLinkNewVersionDescription}</AlertDescription>
+        <div className="mt-3">
+          <Button asChild data-ds-hit-target variant="outline">
+            <Link href={`/links/new?from=${link.id}`}>{dictionary.paymentLinkNewVersion}</Link>
+          </Button>
+        </div>
+      </Alert>
+
       <Card>
         <CardHeader>
           <CardTitle>{dictionary.paymentLinkEditTitle}</CardTitle>
@@ -58,17 +79,7 @@ export default async function EditPaymentLinkPage({ params }: Readonly<{ params:
             {linkKindLabel(dictionary, link.compositionKind)} · {linkTypeLabel(dictionary, link.linkType)} · {link.currencyPairLabel}
           </CardDescription>
         </CardHeader>
-        <CardContent className="flex flex-col gap-5">
-          <Alert variant="warning">
-            <AlertTitle>{dictionary.paymentLinkLockTitle}</AlertTitle>
-            <AlertDescription>{dictionary.paymentLinkLockDescription}</AlertDescription>
-          </Alert>
-          <div>
-            <Button asChild data-ds-hit-target variant="outline">
-              <Link href={`/links/new?from=${link.id}`}>{dictionary.paymentLinkNewVersion}</Link>
-            </Button>
-            <p className="mt-2 text-sm text-muted-foreground">{dictionary.paymentLinkNewVersionDescription}</p>
-          </div>
+        <CardContent>
           <LinkV2Form
             action={`/payment-links-v2/${link.id}`}
             copy={linkV2FormCopy(dictionary, dictionary.paymentLinkEditSubmit)}
@@ -88,6 +99,12 @@ export default async function EditPaymentLinkPage({ params }: Readonly<{ params:
           />
         </CardContent>
       </Card>
-    </>
+
+      <div className="flex flex-wrap gap-3">
+        <Button asChild data-ds-hit-target variant="outline">
+          <Link href={`/links/v2/${link.id}`}>{dictionary.paymentLinkBackToDetail}</Link>
+        </Button>
+      </div>
+    </div>
   );
 }

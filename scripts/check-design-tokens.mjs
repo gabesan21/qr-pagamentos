@@ -11,6 +11,7 @@ const allowedAccentStyles = [
   { path: "src/app/store/[slug]/pay/page.tsx", pattern: /style=\{\{ "--storefront-accent": storefront\.accentColor \} as CSSProperties\}/g },
   { path: "src/app/storefront-preview.tsx", pattern: /style=\{\{ "--storefront-accent": accentColor \} as CSSProperties\}/g },
   { path: "src/app/pay/[identifier]/public-checkout-v2-page.tsx", pattern: /style=\{\{ "--storefront-accent": presentation\.branding\.accentColor \} as CSSProperties\}/g },
+  { path: "src/app/admin/accounts/[id]/page.tsx", pattern: /style=\{\{ "--storefront-accent": editor\.storefrontAccentColor \?\? "transparent" \} as CSSProperties\}/g },
 ];
 
 function authoredUiFiles(directory) {
@@ -26,6 +27,10 @@ function removeTokenSource(path, source) {
   const withoutGeneratedTokens = path.endsWith("globals.css")
     ? source.replace(/\/\* generated-theme-tokens:start \*\/[\s\S]*?\/\* generated-theme-tokens:end \*\//, "")
     : source;
+  if (path.endsWith("globals.css")) {
+    return withoutGeneratedTokens
+      .replaceAll("(min-width: 900px)", "(min-width: var(--breakpoint-auth))");
+  }
   if (!path.endsWith("app-shell.css")) return withoutGeneratedTokens;
   return withoutGeneratedTokens
     .replaceAll("(max-width: 48rem)", "(max-width: var(--shell-mobile-breakpoint))")

@@ -3,12 +3,15 @@
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
 
+import { QrDisplay } from "@/components/ui/qr-display";
+
 type TotpQrCodeProps = {
   provisioningUri: string;
   label: string;
+  caption?: string;
 };
 
-export function TotpQrCode({ provisioningUri, label }: Readonly<TotpQrCodeProps>) {
+export function TotpQrCode({ provisioningUri, label, caption }: TotpQrCodeProps) {
   const [svg, setSvg] = useState<string | null>(null);
 
   useEffect(() => {
@@ -23,14 +26,13 @@ export function TotpQrCode({ provisioningUri, label }: Readonly<TotpQrCodeProps>
     return () => { cancelled = true; };
   }, [provisioningUri]);
 
-  if (!svg) return <div aria-busy="true" className="totp-qr-placeholder" role="status" />;
-
   return (
-    <div
-      aria-label={label}
-      className="totp-qr-code"
-      dangerouslySetInnerHTML={{ __html: svg }}
-      role="img"
+    <QrDisplay
+      caption={caption}
+      className="max-w-xs"
+      graphic={svg ? <div dangerouslySetInnerHTML={{ __html: svg }} /> : <div aria-busy="true" className="size-full" role="status" />}
+      graphicLabel={label}
+      pending={!svg}
     />
   );
 }
