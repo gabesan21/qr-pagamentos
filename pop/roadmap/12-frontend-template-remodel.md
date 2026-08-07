@@ -10,7 +10,7 @@
 
 - [[researches/frontend-template-remodel/frontend-template-remodel|Frontend template remodel recon]] - maps the template, current route tree, visual contracts, stack differences, public-route gaps, and migration boundaries.
 - [x] RECON RESOLVED: task `12.1.1-establish-template-parity-contract` fixed the screenshot-diff browser, viewport, tolerance, and independent assertion matrix.
-- [ ] RECON NEEDED: confirm production provenance and self-hosting sources for Sora, Inter, IBM Plex Mono, the template logo, and its illustrations - check: inventory licenses and approved source files in task `12.2.2-reconcile-template-identity-and-assets` before runtime installation.
+- [x] RECON RESOLVED 2026-08-07: production provenance and self-hosting sources for Sora, Inter, IBM Plex Mono, the template logo, and its illustrations approved by the user at epoch closing (PR #10 human verification).
 - Fork: if a template interaction conflicts with an existing business, ownership, security, or exact-decimal contract, preserve the current contract and plan the narrowest separately approved API change only when presentation-layer adaptation is proven insufficient.
 - Fork: because the template omits `/store/[slug]` and `/store/[slug]/pay`, extrapolate those pages from the approved template tokens, components, responsive rules, and public-checkout language without copying the template's incorrect slug-to-payment-link shortcut.
 - Fork: if the template identity assets are not approved to replace the canonical brand family, retain the current generated identity geometry inside the new layout and migrate only the surrounding visual system.
