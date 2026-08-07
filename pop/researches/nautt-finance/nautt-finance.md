@@ -67,9 +67,7 @@
 
 ## Contradictions and inconsistencies
 
-> Contradiz: [[specs/nautt-finance-integration|Nautt Finance integration]] - the current "only" boundary omits pricing, but pricing is a mandatory preparatory call because onramp creation requires its `quote_uuid`.
-
-> Contradiz: [[notes/decisions/2026-07-13-project-foundation|Project foundation decisions]] - the original boundary lists order opening/query and webhooks only; the later UUID decision explicitly admits pricing as a required preparatory operation.
+> Resolvido: a inclusão de pricing como operação preparatória foi incorporada em [[specs/nautt-finance-integration|Nautt Finance integration]] e registrada em [[notes/decisions/2026-07-13-project-foundation|Project foundation decisions]].
 
 - The sandbox guide says `api-stage.nauttfinance.com`, while webhook examples use `stage.nauttfinance.com`; the correct host requires confirmation (`raw/index.md:5-8`; `raw/webhook-registering.md:107-124`).
 - The webhook-registration docs claim a `success: true` envelope with message "Webhook created successfully", but the live production 201 on 2026-07-20 omits `success` entirely and returns the placeholder message "Missing translation: order.webhook_created" (`raw/webhook-registering.md:65` vs. live evidence).

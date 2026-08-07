@@ -12,7 +12,6 @@
 - Never create or consume Nautt-hosted payment links.
 - Validate operator-selected callback URLs before provider dispatch; require absolute HTTPS without embedded credentials or fragments.
 - Keep documented request and response fields explicit; reject incomplete or contradictory success payloads. For `POST /client-webhooks`, "documented" tracks observed production behavior: the 201 envelope may omit `success` (accept absent or strictly `true`, reject any other present value), `data` remains fully strict, and `code`/`message` are ignored.
-
 ## Non-idempotent webhook registration
 
 - Never automatically retry `POST /client-webhooks`; provider idempotency and pre-commit error classes are undocumented.
@@ -34,10 +33,9 @@
 - Never release a quote after dispatch starts. Persist `INDETERMINATE` even when the provider UUID is unknown; only a durable known UUID authorizes explicit one-read recovery.
 - Poll and recover only by trusted owner plus local order UUID. Final rows and unknown-ID ambiguity perform zero decryption/GET; versioned reconciliation discards stale responses without a second GET.
 - The Commerce V2 attach is additive: `claimForCreation` accepts an optional `orderV2Id` (never reusing `paymentLinkOrderId`), and `createOrder` validates it pre-claim. After the authoritative owner-bound webhook GET reconciliation persists status/version, the injected settlement hook settles a V2-attached provider order via `orderV2Service.settle` with exact persisted identities/versions plus the fresh local lifecycle fence; the V1 settle path stays unwired (open question), and poll/recover never invoke the hook.
-
 ## Webhook intake
 
-- BETA(M-5.1) OVERRIDE (human decision 2026-07-25, MUST be reversed before production): HMAC signature verification is suspended for the closed beta — the signature gate, `loadCandidates`, and `verifyOwner` are skipped entirely behind the `BETA(M-5.1)` marker in `webhook-intake.ts`; missing, malformed, and wrong signatures are all accepted. Owner attribution uses the injected `resolveOwner(providerOrderUuid)` over the globally unique `provider_order.providerOrderUuid`; `401` is suspended (protocol narrows to `204`/`400`/`503`); an unknown order UUID is acknowledged `204` with no evidence; a malformed body with an unresolvable owner is `400` with no evidence. `webhook-signature.ts`, `webhook-secret-candidates.ts`, and their tests stay intact as the reversal target; never delete them to hide the bypass. Reversal instructions: `pop/notes/decisions/2026-07-25-beta-unverified-webhook-intake.md`; gate: `pop/open_questions/2026-07-25-pre-production-gate-restore-webhook-hmac.md`. The rules below are the permanent post-beta contract.
+- BETA(M-5.1) OVERRIDE (human decision 2026-07-25, MUST be reversed before production): HMAC verification is suspended for the closed beta — see `pop/notes/decisions/2026-07-25-beta-unverified-webhook-intake.md`; reversal gate: `pop/open_questions/2026-07-25-pre-production-gate-restore-webhook-hmac.md`. The rules below are the permanent post-beta contract.
 - Bound the body at 256 KiB while streaming once; never parse, decode, concatenate an oversized stream, or call `arrayBuffer()`/`json()` before authentication.
 - Accept only one lowercase `sha256=<64 hex>` signature and compare the exact raw bytes against every active encrypted owner secret without early exit; zero or multiple matches disclose nothing and change no state.
 - Persist normalized delivery/attempt evidence only after authentication. The processing lease must exceed the 14.5-second accepted-work budget with a safety margin; terminal replay, unknown/final order, and a live lease perform zero API-key decryption and provider GETs.

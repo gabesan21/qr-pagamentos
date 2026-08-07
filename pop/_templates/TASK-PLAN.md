@@ -6,6 +6,7 @@
 
 > O planejador é separado do executor. Este arquivo guarda o resultado do planejamento: um brief suficiente para orientar agentes capazes, sem reasoning, pseudocódigo, trechos de implementação ou edição passo a passo.
 > **Teto: 80 linhas, em qualquer `size`** (validado por `pop_validate`). Esta é a fatia que todos leem, então ela não cresce com a task — o que cresce é o número de arquivos de frente. Não couber significa **modularizar** em `subtasks/`, nunca comprimir a ponto de perder decisão. Dividir a task por `depends_on` é exceção, para quando as frentes não compartilham objetivo.
+> **Task `yolo: true` e (`size: L` ou `critical: true`)**: o 002 entrega **também** `<id>.defense.md` ([[_templates/TASK-DEFENSE|TASK-DEFENSE]], ≤30 linhas) — sem ela a configuração A do ato 1 não roda e a task volta para cá.
 
 ## Objetivo e resultado esperado
 

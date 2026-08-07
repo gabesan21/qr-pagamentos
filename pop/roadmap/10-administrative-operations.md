@@ -6,7 +6,7 @@
 - **Yolo:** yes
 - **Description:** Deliver administrator analytics and read-only global order/link directories plus user lifecycle and system settings management.
 - **Pause if:** global reads cannot keep payer data, owner identity, soft-deleted history, and administrator-only authorization within explicit redaction contracts.
-- **Release gate (2026-07-27):** every phase task is integrated in `develop` and PR #9 (`develop` → `main`, "Epoch 10: Administrative operations") is open, awaiting human testing and merge. This roadmap has no "delivered, awaiting merge" status, so the phases below read `concluída` while that human merge stays pending.
+- **Release gate (2026-07-31):** every phase task is integrated in `develop` and PR #9 (`develop` → `main`, "Epochs 10–11") was merged on 2026-07-31.
 
 ## Recon and forks
 

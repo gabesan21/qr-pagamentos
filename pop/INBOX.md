@@ -73,6 +73,9 @@ SORT claimed_at ASC
 
 Relatórios da skill `weekly-review` são linkados aqui, mais recente primeiro.
 
+- [[notes/weekly-review-2026-08-01|Weekly review 2026-08-01]]
+- [[notes/weekly-review-2026-07-21|Weekly review 2026-07-21]]
+
 
 ---
 
