@@ -637,7 +637,8 @@ def check_worktrees(root, projects, warnings):
 MEMORY_TASK_ID = re.compile(
     r"^(?:\d+\.\d+\.\d+-[a-z0-9][a-z0-9-]*"
     r"|M-\d+\.\d+-[a-z0-9][a-z0-9-]*"
-    r"|D-\d{8}-[a-z0-9][a-z0-9-]*)$")
+    r"|D-\d{8}-[a-z0-9][a-z0-9-]*"
+    r"|F-\d{8}-[a-z0-9][a-z0-9-]*)$")
 
 
 def _memory_entry_of(stem, ledger_stems):
