@@ -4,7 +4,7 @@ project: applications/qr-pagamentos
 started: 2026-08-10
 finished: 2026-08-10
 status: concluída
-commit: pending
+commit: 878d880
 pr:
 authorization: F-20260810-agentes-nativos — direct harness maintenance requested by the human
 ---
