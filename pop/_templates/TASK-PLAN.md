@@ -2,10 +2,8 @@
 
 > Blockquotes deste template são instruções de preenchimento — **apague-os ao preencher**.
 
-- **Etapa:** 002_planning · **Responsável:** agent planejador
-
-> O planejador é separado do executor. Este arquivo guarda o resultado do planejamento: um brief suficiente para orientar agentes capazes, sem reasoning, pseudocódigo, trechos de implementação ou edição passo a passo.
-> **Teto: 80 linhas, em qualquer `size`** (validado por `pop_validate`). Esta é a fatia que todos leem, então ela não cresce com a task — o que cresce é o número de arquivos de frente. Não couber significa **modularizar** em `subtasks/`, nunca comprimir a ponto de perder decisão. Dividir a task por `depends_on` é exceção, para quando as frentes não compartilham objetivo.
+- **Etapa:** 002_planning · **Papel:** `pop-planner` (separado da execução)
+> **Teto: 80 linhas, em qualquer `size`** (validado por `pop_validate`). O `pop-planner` escreve esta origem; papéis posteriores recebem seu path no envelope e leem só as seções autorizadas. Não couber significa modularizar em `subtasks/`.
 
 ## Objetivo e resultado esperado
 
@@ -20,29 +18,29 @@ Poucos parágrafos sobre a abordagem base, decisões que restringem a execução
 
 - `<subtree, módulo ou artefato>` — por que pode mudar.
 
-## Lacunas e preflight (somente se aplicável)
-
-- **RECON NEEDED:** <suposição> — check: <leitura/comando exato>.
-- **Preflight:** `<comando>` → <ambiente necessário observado>.
-
 ## Frentes de execução
 
-> Uma frente é uma unidade de ownership, não uma lista de edições. **Toda frente que for para um contexto separado ganha arquivo próprio** em `subtasks/` ([[_templates/SUBTASKS|SUBTASKS]], ≤50 linhas) — é a fatia de leitura daquele executor; aqui fica só a linha de resumo e o link. Task de frente única não tem `subtasks/`: o executor lê o plano, que já é curto. Frentes sem dependência lógica **e** sem sobreposição de escrita podem rodar em paralelo; as demais rodam em ondas.
+> Toda frente enviada a contexto separado ganha arquivo em `subtasks/` ([[_templates/SUBTASKS|SUBTASKS]], ≤50 linhas). Task de frente única usa este plano; paralelismo exige independência lógica e de escrita.
 
 ### <F01> — <nome>
 
 - **Entrega:** <resultado desta frente>.
 - **Contrato:** [[<id>-<slug>.g01-<slug-da-frente>]] — *siga como fatia única de execução desta frente* (omita quando a task tem uma frente só: os campos abaixo bastam).
+- **Papel:** `pop-executor` | `pop-execution-orchestrator`.
 - **Escopo:** <limite funcional>.
+- **Paths de entrada:** `<card, seções deste plano, fatia, specs/skills>`.
 - **Owns:** `<arquivos ou padrões que pode alterar>`.
-- **May read:** `<contexto permitido/recomendado>`.
+- **May read:** `<paths autorizados somente para leitura>`.
 - **Must not edit:** `<fronteiras de escrita>`.
 - **Depends on:** `<Fxx>` | nenhuma.
 - **Entrada esperada:** <contrato ou artefato produzido pela dependência> | nenhuma.
 - **Skills:** [[pop/skills/<skill>|<skill>]] — *use para <gatilho>*.
+- **Web:** deny | allow read-only oficial (somente exceção cumulativa elegível).
+- **Gate/delta:** <gate aplicável ou paths/frentes da reentrada> | nenhum.
+- **Saída:** <artefato/formato>, teto <N>, evidência <tipo>, status `concluída | BLOCKED`.
 - **Critérios:** <IDs dos critérios abaixo atendidos por esta frente>.
 
-> Dependência ou entrada esperada ausente/incompatível → reporte `BLOCKED` ao orquestrador. Nunca implemente, simule ou corrija a dependência por conta própria.
+> Dependência ou entrada esperada ausente/incompatível → reporte `BLOCKED` ao agente principal. Nunca implemente, simule ou corrija a dependência.
 
 ## Ordem e paralelismo
 
@@ -50,11 +48,9 @@ Poucos parágrafos sobre a abordagem base, decisões que restringem a execução
 
 1. **Onda 1:** F01.
 2. **Onda 2:** F02 e F03 em paralelo após F01.
-3. **Integração:** orquestrador valida ownership, integra resultados e confere os critérios `agent` de inspeção.
+3. **Integração:** o agente principal valida ownership, integra e confere os critérios `agent`.
 
 ## Riscos e condições de aborto
-
-> Registre apenas riscos materiais e condições objetivas que exigem parar; não enumere falha/contra-jogada para cada ação.
 
 - **Risco:** <impacto> — mitigação: <controle>.
 - **Abortar se:** <condição objetiva> — sinalizar `blocked: true` com <evidência>.
@@ -78,6 +74,5 @@ Poucos parágrafos sobre a abordagem base, decisões que restringem a execução
 
 ## Topologia de execução
 
-- **Forma:** executor único | especialistas sequenciais | especialistas paralelos | ondas híbridas.
-- **Justificativa:** <skills, dependências e limites de escrita que determinam a forma>.
-- **Modelo/tier por papel:** <somente quando houver escolha relevante>.
+- **Forma/justificativa:** executor único | especialistas sequenciais | paralelos | ondas híbridas — <skills, dependências e write sets>.
+- **Perfis:** fixos por papel nativo; `size` altera só orçamento/profundidade.

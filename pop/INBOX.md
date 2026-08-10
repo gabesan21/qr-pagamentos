@@ -73,6 +73,8 @@ SORT claimed_at ASC
 
 Relatórios da skill `weekly-review` são linkados aqui, mais recente primeiro.
 
+- [[REVIEW-2026-08-10|Weekly review — 2026-08-10]] — abrir para ver pendências humanas, ajustes locais e propostas da revisão restrita ao escopo atual.
+
 
 ---
 

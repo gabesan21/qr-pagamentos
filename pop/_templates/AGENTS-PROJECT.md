@@ -34,6 +34,8 @@ _Sem repositório externo: o trabalho vive no repositório que hospeda este harn
 
 Toda alteração no projeto passa pelo kanban em `pop/kanban/`, com tasks vindas do roadmap (`<n>.<m>.<t>-<slug>`) ou das modifications (`M-<n>.<t>-<slug>`).
 
+- **Principal delegation-first:** não existe custom agent `pop-orchestrator`; o agente principal **sempre delega** planejamento, recon, execução, julgamento e verificação aos seis especialistas, salvo trabalho pontual e simples abaixo do piso.
+- Cada especialista adquire o contexto diretamente nos paths autorizados; o principal envia só o envelope de autorização e conserva roteamento, gates, transições e integração.
 - Pedido de alteração sem card aciona `new-task` → `advance-task`; “iniciar o fluxo em yolo” materializa/libera a task e percorre a rota yolo inteira, nunca execução direta.
 - **Entrega:** o PR da task aponta para a **branch de PR declarada** na tabela de repositórios acima; o merge é sempre do humano.
 - **Estágios, gates, rota yolo e protocolo de contexto:** [[WORKFLOW|WORKFLOW]] é a fonte única — leia antes de criar, avançar, verificar ou fechar qualquer task deste projeto, e não replique nada dele aqui.

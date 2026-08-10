@@ -20,6 +20,8 @@ Yolo scopes integrate task branches into `develop`; the final `develop` -> `main
 
 Every change goes through `pop/kanban/` (`001_initial_task` -> `005_closing`); read [[WORKFLOW|WORKFLOW]] for stages, gates, yolo route, and return paths.
 
+**Principal delegation-first (`sempre delega`):** there is no materialized `pop-orchestrator`; the main agent delegates to `pop-planner`, `pop-recon`, `pop-execution-orchestrator`, `pop-executor`, `pop-judge-dredd`, and `pop-phase-verifier`, except for direct work that is punctual and simple. Each specialist acquires its own context from the envelope paths, and only the main agent integrates results.
+
 - **Delivery:** task branches integrate into `develop`; the scope closes with the `develop` -> `main` PR.
 - **Gates:** tests run only in each phase's final `phase-verification` task, always via **direct pnpm** (`pnpm check`) — ordinary tasks are judged by reading, without test runs ([[WORKFLOW|WORKFLOW]] › phase verification). Docker-dependent checks are user-exclusive (see Project verification).
 - **Context:** read the affected `pop/specs/` documents and walk the DOX tree before editing code; unresolved uncertainty is `RECON NEEDED` or `blocked`, never a guess.

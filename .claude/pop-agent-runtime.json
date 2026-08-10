@@ -1,0 +1,7 @@
+{
+  "availableModels": ["opus", "sonnet"],
+  "invocationModels": {},
+  "maxSpawnDepth": 2,
+  "nesting": {},
+  "parentPermissionMode": "dontAsk"
+}

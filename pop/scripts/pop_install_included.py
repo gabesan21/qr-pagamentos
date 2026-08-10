@@ -8,12 +8,12 @@ seja verificável, cada instalação carimba em `.included-harness.json` o
 fechado quando o alvo ficou atrás. Sem carimbo não há como distinguir um clone
 atual de um clone parado numa versão antiga do fluxo.
 
-Manifest v2 (`harness_root: "pop"`): files/directories/anatomy/keep_files são
-relativos ao harness_root e vão para `target/pop/`; o `.included-harness.json`
+Manifest v3 (`harness_root: "pop"`): files/directories/anatomy/keep_files são
+relativos ao harness_root e vão para `target/pop/`; `root_files`, skills,
+AGENTS.md e CLAUDE.md ficam na raiz do target. O `.included-harness.json`
 também mora em `pop/` (é o marcador que `poplib.vault_root` e o
-`pop_validate --standalone` usam para detectar a anatomia nova). Skills,
-AGENTS.md e CLAUDE.md ficam sempre na raiz do target. Manifest v1 (sem
-`harness_root`) mantém o layout legado na raiz — zero regressão.
+`pop_validate --standalone` usam para detectar a anatomia nova). Manifest v1
+(sem `harness_root`) mantém o layout legado na raiz — zero regressão.
 """
 from __future__ import annotations
 
@@ -33,6 +33,12 @@ SKILLS_SOURCE = (SOURCE.parent / ".agents" / "skills"
 EXTERNAL_LINK = re.compile(r"\[\[categories/[^/]+/[^/]+/([^\]|#]+)([^\]]*)\]\]")
 # Fallback do manifest: o alvo recebe o harness, não o ferramental do pai.
 DEFAULT_EXCLUDE = ("__pycache__", "tests", ".pytest_cache")
+
+
+def root_source(name: str) -> Path:
+    """Resolve artefato de raiz tanto na origem quanto na cópia installed."""
+    base = SOURCE.parent if (SOURCE / ".included-harness.json").is_file() else SOURCE
+    return base / name
 
 
 def manifest():
@@ -87,6 +93,8 @@ def managed_sources(data):
             label = f"{name}/{relative.as_posix()}"
             if path.is_file() and not excluded(data, relative, label):
                 yield label, path
+    for name in data.get("root_files", []):
+        yield f"root/{name}", root_source(name)
     for name in data["skills"]:
         base = SKILLS_SOURCE / name
         for path in sorted(base.rglob("*")):
@@ -298,9 +306,31 @@ def audit() -> list[str]:
         if not (SOURCE / name).is_file(): missing.append(name)
     for name in data["directories"]:
         if not (SOURCE / name).is_dir(): missing.append(name)
+    for name in data.get("root_files", []):
+        if not root_source(name).is_file(): missing.append(f"root:{name}")
     for name in data["skills"]:
         if not (SKILLS_SOURCE / name / "SKILL.md").is_file(): missing.append(f"skill:{name}")
     return missing
+
+
+def preflight_root_files(target: Path, data: dict, previous: list[str]) -> None:
+    """Recusa colisão local antes de escrever qualquer parte da instalação.
+
+    Um root file só pode ser criado ou atualizado quando o inventário anterior
+    prova que este instalador já o geria. A mera presença no manifesto novo não
+    autoriza tomar posse silenciosamente de configuração existente do projeto.
+    """
+    managed_before = set(previous)
+    collisions = []
+    for name in data.get("root_files", []):
+        destination = target / name
+        if destination.is_symlink():
+            collisions.append(name)
+        elif destination.exists() and name not in managed_before:
+            collisions.append(name)
+    if collisions:
+        raise RuntimeError(
+            "colisão com root_file local não gerido: " + ", ".join(collisions))
 
 
 def install(target: Path) -> None:
@@ -319,6 +349,7 @@ def install(target: Path) -> None:
     hr = data.get("harness_root", "") or ""
     hb = target / hr if hr else target
     _, previous = installed_stamp(target, key="installed")
+    preflight_root_files(target, data, previous or [])
     # Preflight: somente caminhos explicitamente geridos podem ser escritos.
     written = []
     for name in data["files"]:
@@ -327,6 +358,10 @@ def install(target: Path) -> None:
     for name in data["directories"]:
         written += copy_tree(SOURCE / name, hb / name, included_paths=True,
                              data=data, label_prefix=f"{name}/")
+    for name in data.get("root_files", []):
+        destination = target / name
+        copy_file(root_source(name), destination, included_paths=True)
+        written.append(destination)
     for name in data["skills"]:
         written += copy_tree(SKILLS_SOURCE / name,
                              target / ".agents/skills" / name,
