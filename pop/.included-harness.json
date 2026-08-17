@@ -147,7 +147,7 @@
     "pop/kanban",
     "pop/worktrees/.gitkeep"
   ],
-  "content_sha": "41702b19076c94010842bb32211d4063738d5092df2a7a4111ec8024d106f6d1",
+  "content_sha": "12e62c5a7b6134cef1b18f485321c260ff1bd95795974ebca843f5c12f3aa640",
   "installed": [
     ".agents/agents/pop-execution-orchestrator.md",
     ".agents/agents/pop-executor.md",

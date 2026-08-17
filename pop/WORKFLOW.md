@@ -12,7 +12,7 @@ Regras gerais do escopo: [[AGENTS|AGENTS]] · Caixa de entrada: [[INBOX|INBOX]]
 - **Três classes de arquivo, três rotas — e só uma delas é o kanban.** A classe decide como se conserta; nenhuma delas se decide por rótulo de card:
   1. **Harness gerido** (`WORKFLOW.md`, `_templates/`, `pop/scripts/`, `.agents/skills/`): **não se edita aqui.** Corrige-se na origem que instalou e o escopo **reinstala** — editar a cópia local produz drift que a próxima instalação apaga. Achado nessa classe é relato.
   2. **Harness próprio do escopo** (`AGENTS.md`, `PROJECT.md`, `roadmap/`, `modifications/`, `specs/`, `notes/`, `skills/`, `researches/`, `memory/`): **ajuste direto, sem card, sem branch/worktree/PR de task.** É o material que o kanban consulta; submetê-lo ao kanban é pedir que o processo se aprove a si mesmo. Manutenção periódica é a [[.agents/skills/weekly-review/SKILL|weekly-review]] (e a [[.agents/skills/optimize-memory/SKILL|optimize-memory]] para `memory/`), ambas fora do fluxo de task.
-  3. **Conteúdo** (código, manuscrito, o trabalho real): por task que chegou legitimamente a `004_processing`, **ou** por **fix direto** aprovado na triagem da regra 13 (seção "Fix direto" abaixo). É esta classe — e nenhuma outra — que a regra 13 protege.
+  3. **Conteúdo** (código, manuscrito, o trabalho real): por task que chegou legitimamente a `004_processing`, **ou** por **fix direto** aprovado na triagem da regra 13 (seção "Fix direto" abaixo), **ou** pela **rota sem kanban** — plan mode do coding agent — quando o usuário opta por ela na triagem (seção "Rota sem kanban" abaixo). É esta classe — e nenhuma outra — que a regra 13 protege.
 - **A rota de entrega vem da anatomia, nunca de um rótulo.** Escopo com o kanban na **própria raiz** (sem `pop/`) é **escopo local**: entrega direto em `main`, sem branch, worktree ou PR por task. Escopo com o harness em `pop/` — todo harness instalado — é **escopo versionado**: branch/worktree por task e merge humano por PR. `pop/scripts/pop_delivery.py` é a fonte da rota; nenhum campo do card a sobrescreve.
 
 Toda task é uma pasta com id `<epoch>.<phase>.<task>-<slug>` (roadmap) ou `M-<n>.<t>-<slug>` (modifications) que se move inteira entre os estágios do `kanban/` do projeto.
@@ -70,7 +70,7 @@ Templates: [[_templates/TASK|TASK]] · [[_templates/TASK-PLAN|TASK-PLAN]] · [[_
 
 ### 001_initial_task — nascimento (agent, + user libera)
 
-- Pedido de alteração sem card ativo entra por `new-task` e depois `advance-task`; ausência de card nunca autoriza editar. “Iniciar o fluxo em yolo” materializa e libera a task, registra `yolo: true` e percorre esta mesma máquina de estados.
+- Pedido de alteração cuja triagem (regra 13 do [[AGENTS|AGENTS]]) decidiu pelo kanban entra por `new-task` e depois `advance-task`; yolo e itens do roadmap/modifications entram pelo kanban por default, com aviso. Ausência de card nunca autoriza editar fora das rotas fix direto e sem kanban. “Iniciar o fluxo em yolo” materializa e libera a task, registra `yolo: true` e percorre esta mesma máquina de estados.
 - Crie card mínimo: frontmatter, “O quê / Por quê”, phase ou modification de origem, dependências e links com gatilho. Tasks de modification usam id `M-<n>.<t>-<slug>` e `origin: modifications` (fronteira roadmap × modifications no [[AGENTS|AGENTS]]).
 - O card é do humano até `- [x] Pronto para planejar`. Comando explícito permite ao agente marcar com Log; `yolo: true` herda a liberação do roadmap/modifications.
 - Declare `depends_on:`. Vazio significa que a task pode concorrer com outras, respeitando WIP.
@@ -167,9 +167,9 @@ Teste não roda por task: **roda uma vez por phase**, concentrado na última tas
 
 ## Regras transversais
 
-- **Comando explícito do humano vence somente no alcance nomeado:** obedeça sem reinterpretar o que ele efetivamente sobrescreveu e registre o desvio. “Aplique”, “execute”, “urgente”, “até finalizar” e “em yolo” não dispensam card, kanban ou continuidade; “iniciar o fluxo em yolo” exige a rota yolo inteira. Só uma dispensa literal e inequívoca ativa o protocolo abaixo; ambiguidade/destrutividade admite uma única pergunta.
+- **Comando explícito do humano vence somente no alcance nomeado:** obedeça sem reinterpretar o que ele efetivamente sobrescreveu e registre o desvio. “Aplique”, “execute”, “urgente” e “até finalizar” não decidem a triagem por você. **O kanban é opcional** (regra 13 do [[AGENTS|AGENTS]]): “em yolo” ou item do roadmap/modifications implica kanban por default — avise e siga — e a rota sem kanban nunca dispensa memory, specs ou as skills do projeto.
 - **Uma execução vai até a parada legítima:** fora de yolo valem os gates humanos; em yolo só bloqueio técnico, item `(user)` ou `circuit_breaker` interrompem antes do merge final. Subagente de estágio é colhido.
-- **Nenhum trabalho fora de rota:** conteúdo do projeto muda em 004 (após 003 ou pela transição legítima 002→004 do yolo não crítico, na worktree apropriada) **ou** pela rota de fix direto aprovada na triagem da regra 13. Pedido que reprova na triagem e não tem card executa `new-task` → `advance-task`; não improvise.
+- **Nenhum trabalho fora de rota:** conteúdo do projeto muda em 004 (após 003 ou pela transição legítima 002→004 do yolo não crítico, na worktree apropriada), pela rota de fix direto aprovada na triagem da regra 13 **ou pela rota sem kanban (plan mode) escolhida pelo usuário na triagem**. Pedido que a triagem manda ao kanban executa `new-task` → `advance-task`; não improvise.
 - **Paralelismo exige duas independências:** lógica (não depende do resultado alheio) e escrita (não disputa arquivos/contratos). Especialização pode ser sequencial.
 - **Claim é por task:** `pop_claim.py` protege a pasta contra outro orquestrador; ownership de frentes protege workers dentro dela.
 - **Telemetria mínima:** por estágio registre contextos lançados, nº de devoluções, testes/estratégia, resultado e **duração** (diferença entre as linhas de Log do `pop_move`); nunca reasoning, prompts ou transcrição. **Watchdog:** task em 004 sem commit, ref ou linha de Log nova há mais de ~2h é anomalia — o orquestrador registra `blocked_reason` ou justifica no Log; janela morta silenciosa é bug de orquestração.
@@ -186,18 +186,20 @@ A triagem da regra 13 do [[AGENTS|AGENTS]] decide na entrada. Fix direto quando 
 3. Prova durável: ledger `memory/<AAAA-MM-DD>/F-AAAAMMDD-<slug>.md` ([[_templates/MEMORY|MEMORY]], `authorization: triagem de fix direto`) + uma entrada por coisa feita, e sync das specs/DOX afetados. **Nenhuma linha em roadmap ou MODIFICATIONS** — o registro é memory + specs.
 4. Cresceu no meio (segundo objetivo, contrato durável tocado)? **Pare**: materialize a task e relate no card o que já foi feito.
 
-### Protocolo de desvio sem kanban
+### Rota sem kanban — plan mode do coding agent
 
-Somente ordem humana literal como “não use o kanban” ou “faça fora do PoP” dispensa os estágios. O waiver é específico: nenhuma outra regra ou proteção fica dispensada por inferência.
+O kanban é **opcional**: o agente o recomenda quando a alteração é grande, e ele é default subentendido (com aviso ao usuário) quando o pedido é yolo ou cobre item do roadmap/modifications. Quando o usuário opta por não usar o kanban, a rota é o **plan mode do próprio coding agent** — planejamento e aprovação acontecem ali, sem card, estágios ou `pop_move`. A rota dispensa cerimônia, **nunca continuidade**:
 
-1. Antes de escrever, registre o comando autorizador e o alcance no ledger `memory/<AAAA-MM-DD>/D-AAAAMMDD-<slug>.md`, usando [[_templates/MEMORY|MEMORY]]; o ID `D-` identifica desvio sem card e preenche `authorization`.
-2. Preserve as regras de repositório, segurança, ownership e merge que não foram explicitamente sobrescritas.
-3. Antes de encerrar, complete o ledger com commit/PR, resultado e verificação, e abra uma entrada por coisa feita e por desvio; registre a avaliação de impacto em specs e DOX e atualize somente os contratos realmente afetados.
-4. Sem autorização inequívoca ou sem rota para essa prova durável, não edite: materialize uma task normal.
+1. Antes de escrever, registre o pedido e a escolha no ledger `memory/<AAAA-MM-DD>/D-AAAAMMDD-<slug>.md`, usando [[_templates/MEMORY|MEMORY]]; o ID `D-` identifica trabalho sem card e preenche `authorization`.
+2. Planeje no plan mode do coding agent e só execute com o plano aprovado; a entrega segue a rota do escopo (local: direto em `main`; versionado: branch curta + PR, como qualquer entrega).
+3. **Agentes e skills do projeto continuam valendo:** delegation-first, os seis especialistas, `clean-code-*`, `ui-*` e as demais skills aplicáveis — a rota muda o tracking, não o padrão de trabalho.
+4. Antes de encerrar, complete o ledger com commit/PR, resultado e verificação, abra uma entrada por coisa feita e registre a avaliação de impacto em specs e DOX, atualizando somente os contratos realmente afetados.
+5. Sem rota para essa prova durável, não edite. Se o trabalho crescer além do plano aprovado (segundo objetivo, contrato durável novo), **pare** e volte à triagem.
+6. A rota sem kanban **não tem modo yolo**: sem card não há `pop-judge-dredd`, circuit breaker nem gates — quem aprova o plano e o resultado é o humano.
 
 ## Yolo mode
 
-`yolo: true` delega o julgamento ao `pop-judge-dredd` e mantém a mesma máquina de estados, com **gate único de qualidade no `005_closing`**. Fora de yolo esse gate não existe — o gate é o PR humano.
+`yolo: true` delega o julgamento ao `pop-judge-dredd` e mantém a mesma máquina de estados, com **gate único de qualidade no `005_closing`**. Fora de yolo esse gate não existe — o gate é o PR humano. **Pedir yolo subentende kanban:** o agente avisa (“isso vai pelo kanban”) e materializa a task; a rota sem kanban não tem modo yolo.
 
 - A marca vem do roadmap/modifications, pode ser herdada ou ser definida pelo humano ao pedir “iniciar o fluxo em yolo”. Nesse pedido sem card, `new-task` materializa, registra a origem conversacional e libera a task; yolo nunca é waiver. O escopo auto-materializa waves de até três tasks independentes: dependências satisfeitas e escrita/repos isolados; colisão serializa.
 - **Gate único:** task yolo não crítica vai de 002 direto a 004. No `005_closing`, `pop-judge-dredd` nasce em sessão limpa e perfil fixo, adquire as origens do envelope, verifica primeiro o pedido original e julga por leitura; `size`/`critical` alteram apenas `differential|full`. Aprovando, escreve a memory antes de devolver ao agente principal.

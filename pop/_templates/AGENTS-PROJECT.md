@@ -17,7 +17,7 @@ Fonte única: o que está no harness não se copia para cá, porque duplicata é
 
 - narração dos estágios do kanban (nomes, ordem, o que cada um faz) — só [[WORKFLOW|WORKFLOW]];
 - protocolo de contexto e qualquer heurística de leitura/busca — [[WORKFLOW|WORKFLOW]] e as skills;
-- regras gerais do fluxo (kanban obrigatório, memory/roadmap enxuto, soberania do comando humano) — "Regras transversais" do [[WORKFLOW|WORKFLOW]], que o instalador entrega junto do harness;
+- regras gerais do fluxo (kanban opcional com tracking sempre, memory/roadmap enxuto, soberania do comando humano) — "Regras transversais" do [[WORKFLOW|WORKFLOW]], que o instalador entrega junto do harness;
 - qualquer trecho copiável do [[WORKFLOW|WORKFLOW]] — linke com gatilho em vez de reproduzir.
 
 Aqui entra só o que é **deste projeto**: idioma, repos e branch de PR, skills e comandos de verificação, DOX. **Teto: ~60 linhas** — a única exceção é a seção DOX das aplicações.
@@ -32,7 +32,7 @@ _Sem repositório externo: o trabalho vive no repositório que hospeda este harn
 
 ## Workflow
 
-Toda alteração no projeto passa pelo kanban em `pop/kanban/`, com tasks vindas do roadmap (`<n>.<m>.<t>-<slug>`) ou das modifications (`M-<n>.<t>-<slug>`).
+Alterações de conteúdo entram por triagem: fix direto, **rota sem kanban** (plan mode do coding agent, memory `D-` obrigatória) ou kanban em `pop/kanban/` — recomendado para alterações grandes e default para yolo e itens do roadmap (`<n>.<m>.<t>-<slug>`) ou das modifications (`M-<n>.<t>-<slug>`).
 
 - **Principal delegation-first:** não existe custom agent `pop-orchestrator`; o agente principal **sempre delega** planejamento, recon, execução, julgamento e verificação aos seis especialistas, salvo trabalho pontual e simples abaixo do piso.
 - Cada especialista adquire o contexto diretamente nos paths autorizados; o principal envia só o envelope de autorização e conserva roteamento, gates, transições e integração.
@@ -72,4 +72,4 @@ Toda alteração no projeto passa pelo kanban em `pop/kanban/`, com tasks vindas
 - Conteúdo no idioma declarado acima; wikilinks para referências internas; arquivos ≤~150 linhas; datas AAAA-MM-DD.
 - **Nunca** marcar `- [ ] Feito` nem executar itens `(user)` — são exclusivos do humano.
 - **Nunca** fazer merge de PR de task — o merge é do humano (ou comandado por ele na rodada de merge).
-- **Regras gerais do fluxo** — kanban obrigatório para tocar o projeto, memory + roadmap enxuto no fechamento, soberania do comando humano sem waiver implícito: seção "Regras transversais" do [[WORKFLOW|WORKFLOW]], que acompanha o harness instalado. *Leia antes de agir fora de uma task ou de interpretar um pedido como dispensa do fluxo.*
+- **Regras gerais do fluxo** — kanban opcional com tracking sempre, memory + roadmap enxuto no fechamento, soberania do comando humano sem waiver implícito: seção "Regras transversais" do [[WORKFLOW|WORKFLOW]], que acompanha o harness instalado. *Leia antes de agir fora de uma task ou de interpretar um pedido como dispensa do fluxo.*

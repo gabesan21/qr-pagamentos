@@ -53,7 +53,7 @@ Por estágio, atualize a tabela do card com contextos realmente lançados, conta
 ## Cuidados (desta skill; os do fluxo estão nas Regras transversais)
 
 - **Nunca pule estágios nem gates.** Retornos permitidos: 003→002, 004→002, `005_closing`→004 (bloqueante de execução) e `005_closing`→002 (defeito de plano) — o orquestrador decide o retorno; o subagente só reporta. **Exceção yolo:** task yolo não crítica transita 002 → 004 direto — não é pulo, é o fluxo.
-- **Não infira waiver:** “aplique”, “execute”, “urgente”, “até finalizar” ou “em yolo” não dispensam card, kanban, memory, specs ou DOX. Só dispensa humana literal segue o protocolo de desvio sem kanban do WORKFLOW e apenas no alcance nomeado.
+- **Não infira waiver:** “aplique”, “execute”, “urgente” e “até finalizar” não decidem a triagem por você — ela é da regra 13. “Em yolo” ou item do roadmap/modifications implica kanban por default (avise e siga); fora do kanban, só as rotas fix direto e sem kanban (plan mode) do WORKFLOW, e nenhuma dispensa memory, specs ou DOX.
 - **Claim ativo de outro agente cobre a pasta inteira da task** (card, `.plan.md`, `.verify.md`, `subtasks/`): leitura ok, escrita proibida — o `pop_move` também recusa a transição.
 - Subagente reportou aborto, item `(user)` ou descoberta que muda o plano → pare/retorne conforme o WORKFLOW; **não improvise na janela principal**.
 - Agente de uma frente do 004 encontrou dependência ausente, arquivo fora de `owns` ou contrato incompatível → trate como `BLOCKED`/retorno ao orquestrador de execução; **nunca autorize que complete a frente alheia**.
