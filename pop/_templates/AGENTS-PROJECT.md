@@ -7,6 +7,10 @@
 - **Escopo:** este diretório é o escopo inteiro do fluxo — o harness viaja com ele e **nada acima desta raiz faz parte dele**, mesmo que a ferramenta carregue sozinha um `AGENTS.md` de diretório ancestral (seção "Escopo corrente" do [[WORKFLOW|WORKFLOW]]).
 - **Idioma do projeto:** <pt-BR> — specs, notes, pesquisas, comentários de código e todo o fluxo do kanban seguem este idioma.
 - **Idiomas suportados (i18n):** <lista de idiomas que a aplicação deve suportar — tratados no roadmap e nas specs. Só para aplicações; remova se não se aplica.>
+- **Type:** <uni-repo | multi-repo> — `uni-repo`: esta pasta **é** o próprio repositório — ou raiz livre sem repo, versionada no repositório que a hospeda — com o `pop/` inteiro aqui dentro | `multi-repo`: esta pasta é a **mãe sem harness** — só este AGENTS.md, INDEX.md e o ROADMAP.md geral; cada repo clonado na raiz carrega o próprio `pop/` completo e declara `type: uni-repo`.
+
+> **Mãe de `multi-repo`:** sem `pop/` — remova as seções que dependem do harness (Workflow, Skills, DOX); o arquivo fica com type, repositórios e os links de INDEX/ROADMAP geral.
+
 - **Ficha:** [[pop/PROJECT|PROJECT]] · **Roadmap:** [[pop/ROADMAP|ROADMAP]] · **Modifications:** [[pop/MODIFICATIONS|MODIFICATIONS]] (criado sob demanda)
 
 ## O que NÃO entra neste arquivo

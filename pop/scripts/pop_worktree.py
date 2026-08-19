@@ -6,11 +6,11 @@ na anatomia nova, `worktrees/<task-id>` na legada), com a branch
 `task/<task-id>`. A rota vem de `poplib.delivery_route`: meta PoP recusa
 worktree e fica em `main`; task yolo externa parte de `develop` e declara PR
 final para `main`. Repositório alvo: `--repo`, ou a própria pasta do projeto
-quando ela é um repo git (clone `included` / repo embutido de
-`full-multi-repo`), senão a raiz do vault. `--repo <nome>` que case com um
+quando ela é um repo git (projeto uni-repo / repo de multi-repo), senão a
+raiz do vault. `--repo <nome>` que case com um
 clone do projeto — `<nome>/` na anatomia nova, `project/<nome>/` na legada —
 usa esse clone e aninha a worktree em `.../worktrees/<task-id>/<nome>/` (task
-cross de `multi-repo`/`full-multi-repo` — repita o comando para cada repo
+cross de `multi-repo` — repita o comando para cada repo
 afetado). `remove` desfaz a worktree e apaga a branch se já estiver mergeada
 (`--delete-branch` força a exclusão).
 
@@ -139,7 +139,7 @@ def main():
         else:
             repo = poplib.vault_root(args.repo)
     elif (project / ".git").exists():
-        repo = project  # clone included ou repo embutido de full-multi-repo
+        repo = project  # projeto uni-repo ou repo de multi-repo
     else:
         repo = root
     if not (repo / ".git").exists():

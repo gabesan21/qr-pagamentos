@@ -136,7 +136,7 @@
     ".opencode/pop-agent-profiles.json",
     ".pop-opencode-builder.json",
     "opencode.json",
-    "pop/.included-harness.json",
+    "pop/.unirepo-harness.json",
     "pop/roadmap/.gitkeep",
     "pop/specs/.gitkeep",
     "pop/researches/.gitkeep",

@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
-"""Instala e **atualiza** o harness standalone de um repositório com PoP embutido.
+"""Instala e **atualiza** o harness standalone de um repositório uni-repo.
 
 O PoP raiz é a fonte única do harness: nenhum projeto evolui WORKFLOW, templates
 ou scripts por conta própria — recebe deles uma cópia gerida. Para que "atualizar"
-seja verificável, cada instalação carimba em `.included-harness.json` o
+seja verificável, cada instalação carimba em `pop/.unirepo-harness.json` o
 `content_sha` do conjunto gerido na origem; `--check-fresh` recomputa e falha
 fechado quando o alvo ficou atrás. Sem carimbo não há como distinguir um clone
 atual de um clone parado numa versão antiga do fluxo.
 
-Manifest v3 (`harness_root: "pop"`): files/directories/anatomy/keep_files são
+Manifest (`harness_root: "pop"`): files/directories/anatomy/keep_files são
 relativos ao harness_root e vão para `target/pop/`; `root_files`, skills,
-AGENTS.md e CLAUDE.md ficam na raiz do target. O `.included-harness.json`
-também mora em `pop/` (é o marcador que `poplib.vault_root` e o
-`pop_validate --standalone` usam para detectar a anatomia nova). Manifest v1
-(sem `harness_root`) mantém o layout legado na raiz — zero regressão.
+AGENTS.md e CLAUDE.md ficam na raiz do target. O `.unirepo-harness.json`
+também mora em `pop/` — é o único marcador reconhecido (sem fallback de
+layout legado) e é ele que `poplib.vault_root` e o `pop_validate --standalone`
+usam para detectar o escopo instalado.
 """
 from __future__ import annotations
 
@@ -26,18 +26,18 @@ import sys
 from pathlib import Path
 
 SOURCE = Path(__file__).resolve().parent.parent
-MANIFEST = SOURCE / "_templates" / "included-manifest.json"
+MANIFEST = SOURCE / "_templates" / "unirepo-manifest.json"
 SKILLS_SOURCE = (SOURCE.parent / ".agents" / "skills"
-                 if (SOURCE / ".included-harness.json").is_file()
+                 if (SOURCE / ".unirepo-harness.json").is_file()
                  else SOURCE / ".agents" / "skills")
-EXTERNAL_LINK = re.compile(r"\[\[categories/[^/]+/[^/]+/([^\]|#]+)([^\]]*)\]\]")
+EXTERNAL_LINK = re.compile(r"\[\[projects/[^/]+/([^\]|#]+)([^\]]*)\]\]")
 # Fallback do manifest: o alvo recebe o harness, não o ferramental do pai.
 DEFAULT_EXCLUDE = ("__pycache__", "tests", ".pytest_cache")
 
 
 def root_source(name: str) -> Path:
     """Resolve artefato de raiz tanto na origem quanto na cópia installed."""
-    base = SOURCE.parent if (SOURCE / ".included-harness.json").is_file() else SOURCE
+    base = SOURCE.parent if (SOURCE / ".unirepo-harness.json").is_file() else SOURCE
     return base / name
 
 
@@ -119,9 +119,7 @@ def content_sha(data=None) -> str:
 
 def installed_stamp(target: Path, key: str = "content_sha"):
     """`(caminho do marcador, campo gravado)` do alvo; `None` se ausente."""
-    marker = target / "pop" / ".included-harness.json"
-    if not marker.is_file():
-        marker = target / ".included-harness.json"
+    marker = target / "pop" / ".unirepo-harness.json"
     if not marker.is_file():
         return None, None
     try:
@@ -138,20 +136,20 @@ def is_vendored() -> bool:
     responde o que sabe de si — a versão carimbada — e para aí. Mandar procurar
     a origem seria transformar uma pergunta local em travessia de fronteira.
     """
-    return (SOURCE / ".included-harness.json").is_file()
+    return (SOURCE / ".unirepo-harness.json").is_file()
 
 
-def localize(text: str, *, included_paths: bool = False) -> str:
-    """Remove o prefixo de vault pai de wikilinks de um projeto included."""
+def localize(text: str, *, harness_paths: bool = False) -> str:
+    """Remove o prefixo `projects/<projeto>/` dos wikilinks de um uni-repo."""
     rendered = EXTERNAL_LINK.sub(
         lambda m: "[[" + m.group(1) + m.group(2) + "]]", text)
-    if included_paths:
+    if harness_paths:
         rendered = re.sub(r"(?<!pop/)scripts/", "pop/scripts/", rendered)
     return rendered
 
 
 def copy_file(source: Path, dest: Path, *, overwrite: bool = True,
-              included_paths: bool = False) -> None:
+              harness_paths: bool = False) -> None:
     if dest.exists() and dest.is_dir():
         raise RuntimeError(f"colisão com diretório: {dest}")
     if dest.exists() and not overwrite:
@@ -163,13 +161,13 @@ def copy_file(source: Path, dest: Path, *, overwrite: bool = True,
                               ensure_ascii=False) + "\n"
         else:
             text = source.read_text(encoding="utf-8")
-        dest.write_text(localize(text, included_paths=(included_paths and source.suffix == ".md")),
+        dest.write_text(localize(text, harness_paths=(harness_paths and source.suffix == ".md")),
                         encoding="utf-8")
     else:
         shutil.copy2(source, dest)
 
 
-def copy_tree(source: Path, dest: Path, *, included_paths: bool = False,
+def copy_tree(source: Path, dest: Path, *, harness_paths: bool = False,
               data=None, label_prefix: str = "") -> list:
     """Copia `source` em `dest` e devolve os arquivos escritos.
 
@@ -187,7 +185,7 @@ def copy_tree(source: Path, dest: Path, *, included_paths: bool = False,
         if path.is_dir() or excluded(data, relative, label):
             continue
         target_file = dest / relative
-        copy_file(path, target_file, included_paths=included_paths)
+        copy_file(path, target_file, harness_paths=harness_paths)
         written.append(target_file)
     return written
 
@@ -221,14 +219,14 @@ def preserve_worktree_marker(target: Path, prefix: str = "") -> None:
     if not ignore.exists():
         return
     wt = f"{prefix}worktrees"
-    block = (f"# included-harness: preservar a anatomia standalone no Git\n"
+    block = (f"# unirepo-harness: preservar a anatomia standalone no Git\n"
              f"!{wt}/\n{wt}/*\n!{wt}/.gitkeep\n")
     text = ignore.read_text(encoding="utf-8")
     if f"!{wt}/.gitkeep" not in text:
         text = text.rstrip() + "\n\n" + block
     if "__pycache__/" not in text:
         text = (text.rstrip() +
-                "\n# included-harness: bytecode dos scripts\n__pycache__/\n")
+                "\n# unirepo-harness: bytecode dos scripts\n__pycache__/\n")
     ignore.write_text(text, encoding="utf-8")
 
 
@@ -236,11 +234,11 @@ def preserve_worktree_marker(target: Path, prefix: str = "") -> None:
 # chega ao alvo, o harness instalado volta a ensinar o agente a subir — a falha
 # que `exclude_files` e esta trava existem para impedir. O gate é sobre o texto
 # que o agente lê como instrução.
-BOUNDARY_TOKENS = ("vault", "categories/", "meta-projeto", "pop raiz",
+BOUNDARY_TOKENS = ("vault", "projects/", "meta-projeto", "pop raiz",
                    "pop pai", "vault pai", "drafts/", "external-repository",
-                   "repositórios agregados", "projeto-mãe", "full-multi-repo")
+                   "repositórios agregados", "projeto-mãe")
 # Em código, identificador e glob não são instrução: `vault_root`, `--vault` e
-# o padrão `categories/*/*` são mecânica interna e ficam. O que não pode é
+# o padrão `projects/*` são mecânica interna e ficam. O que não pode é
 # **texto dito ao agente** mandando-o sair do escopo — por isso o gate de `.py`
 # olha só as mensagens (print, help, erro), não comentários nem regex.
 BOUNDARY_TOKENS_CODE = ("meta-projeto", "pop raiz", "pop pai", "vault pai")
@@ -285,9 +283,10 @@ def boundary_violations() -> list[str]:
         if path.suffix not in {".md", ".py"}:
             continue
         # Audita o que **chega** ao alvo: `localize` já reescreve os wikilinks
-        # com prefixo de categoria, e reprovar por eles seria falso positivo.
+        # com prefixo `projects/<projeto>/`, e reprovar por eles seria falso
+        # positivo.
         text = localize(path.read_text(encoding="utf-8"),
-                        included_paths=path.suffix == ".md")
+                        harness_paths=path.suffix == ".md")
         if path.suffix == ".md":
             haystacks, tokens = [text], BOUNDARY_TOKENS
         else:
@@ -345,7 +344,7 @@ def install(target: Path) -> None:
         raise RuntimeError("conjunto gerido cita o escopo hospedeiro: "
                            + "; ".join(leaks))
     data = manifest()
-    # harness_root: "pop" no manifest v2; "" (raiz do target) no v1 legado.
+    # harness_root: "pop" no manifest vigente.
     hr = data.get("harness_root", "") or ""
     hb = target / hr if hr else target
     _, previous = installed_stamp(target, key="installed")
@@ -353,19 +352,19 @@ def install(target: Path) -> None:
     # Preflight: somente caminhos explicitamente geridos podem ser escritos.
     written = []
     for name in data["files"]:
-        copy_file(SOURCE / name, hb / name, included_paths=True)
+        copy_file(SOURCE / name, hb / name, harness_paths=True)
         written.append(hb / name)
     for name in data["directories"]:
-        written += copy_tree(SOURCE / name, hb / name, included_paths=True,
+        written += copy_tree(SOURCE / name, hb / name, harness_paths=True,
                              data=data, label_prefix=f"{name}/")
     for name in data.get("root_files", []):
         destination = target / name
-        copy_file(root_source(name), destination, included_paths=True)
+        copy_file(root_source(name), destination, harness_paths=True)
         written.append(destination)
     for name in data["skills"]:
         written += copy_tree(SKILLS_SOURCE / name,
                              target / ".agents/skills" / name,
-                             included_paths=True, data=data,
+                             harness_paths=True, data=data,
                              label_prefix=f"skills/{name}/")
     inventory = sorted(path.relative_to(target).as_posix() for path in written)
     prune(target, previous or [], [path.relative_to(target).as_posix()
@@ -374,7 +373,7 @@ def install(target: Path) -> None:
     # instalação — o inventário é o que autoriza a poda da próxima.
     stamp = dict(installed_manifest(data), content_sha=content_sha(data),
                  installed=inventory)
-    (hb / ".included-harness.json").write_text(
+    (hb / ".unirepo-harness.json").write_text(
         json.dumps(stamp, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     for rel in data["anatomy"]:
         (hb / rel).mkdir(parents=True, exist_ok=True)
@@ -459,7 +458,7 @@ def main() -> int:
         if stamped != current:
             print(f"harness DEFASADO em {args.target}: alvo {stamped[:12]} "
                   f"≠ origem {current[:12]} — rode "
-                  f"`pop_install_included.py {args.target}`", file=sys.stderr)
+                  f"`pop_install_unirepo.py {args.target}`", file=sys.stderr)
             return 1
         print(f"harness atual ({current[:12]})"); return 0
     try:

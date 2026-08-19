@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """pop_validate — valida os limites e invariantes do vault PoP.
 
-Checa: descrições do INDEX.md raiz (<=144 chars) e dos INDEX.md de categoria
-(<=600 chars); notas de harness com <=150 linhas, raiz de plano com <=80 e
+Checa: descrições do INDEX.md raiz (<=144 chars); notas de harness com
+<=150 linhas, raiz de plano com <=80 e
 arquivo de frente em `subtasks/` com <=50 (whitelist
 positiva — só as pastas de harness, nunca o código do produto); anatomia
-`pop/` obrigatória nos projetos de `categories/` (harness na raiz da pasta —
-`kanban/` ou `.included-harness.json` fora de `pop/` — é violação, a
+`pop/` obrigatória nos projetos de `projects/` (harness na raiz da pasta —
+`kanban/` ou `.unirepo-harness.json` fora de `pop/` — é violação, a
 fronteira da regra 13); frontmatter
 obrigatório dos cards de task e coerência do `stage:` com a pasta; tetos dos
 artefatos do gate adversarial (defesa 30, acusação 50, julgamento 40) e a
@@ -38,7 +38,6 @@ import poplib
 import pop_roadmap
 
 MAX_ROOT_DESC = 144
-MAX_CAT_DESC = 600
 MAX_NOTE_LINES = 150
 MAX_PLAN_LINES = 80      # raiz do plano (`<id>.plan.md`), independente de size
 MAX_FRONT_LINES = 50     # arquivo de frente em `subtasks/`: fatia de 1 executor
@@ -65,7 +64,7 @@ MAX_MEMORY_LEDGER = 1200
 MAX_MEMORY_ENTRY = 800
 # Data em que o layout `memory/<AAAA-MM-DD>/` passou a ser obrigatório. Memory
 # plana anterior a ela é legado tolerado — é o que mantém válidos os clones
-# `included`, cujas memories este vault não reescreve.
+# uni-repo, cujas memories este vault não reescreve.
 MEMORY_LAYOUT_SINCE = "2026-07-27"
 MEMORY_DATE_DIR = pop_roadmap.MEMORY_DATE_DIR
 # Entrada: `<id>.<nn>-<slug>.md` na mesma pasta do ledger `<id>.md`. O `.`
@@ -116,7 +115,7 @@ LINK_SKIP_PARTS = {"external-repository", ".obsidian", ".git", "worktrees",
 # `_stage_artifact_base` remove dos dois lados da comparação.
 STAGE_ARTIFACT_SUFFIXES = (".plan", ".approval", ".verify",
                            ".defense", ".accusation", ".judgment")
-EXTERNAL_PROJECT_LINK = re.compile(r"\[\[categories/[^/]+/[^/]+/")
+EXTERNAL_PROJECT_LINK = re.compile(r"\[\[projects/[^/]+/")
 
 
 def _spec_links(path):
@@ -358,31 +357,6 @@ def check_root_index(root, violations):
                               f"chars (máx. {MAX_ROOT_DESC})")
 
 
-def check_category_indexes(root, categories, violations):
-    """(b) INDEX.md de categoria: descrição de projeto <=600 chars."""
-    for category in sorted(categories):
-        index = root / "categories" / category / "INDEX.md"
-        if not index.is_file():
-            continue
-        entry_start, desc = None, []
-
-        def flush():
-            if entry_start and len(" ".join(desc)) > MAX_CAT_DESC:
-                violations.append(
-                    f"{index}:{entry_start}: descrição com "
-                    f"{len(' '.join(desc))} chars (máx. {MAX_CAT_DESC})")
-
-        for n, line in lines_outside_fences(index):
-            stripped = line.strip()
-            if stripped.startswith("#"):
-                flush()
-                entry_start = n if stripped.startswith("### ") else None
-                desc = []
-            elif entry_start and stripped and not stripped.startswith("- **Status:**"):
-                desc.append(stripped)
-        flush()
-
-
 def note_limit(path):
     """Limite de linhas do arquivo, ou None se isento.
 
@@ -413,7 +387,7 @@ def check_note_sizes(root, projects, violations):
     Whitelist positiva (`poplib.iter_harness_markdown`): a régua só alcança as
     pastas de harness de cada escopo descoberto — nunca arquivos do projeto
     (código, docs do repo, `project/`, vendor, `node_modules`). Cada repo
-    embutido de `full-multi-repo` entra como escopo próprio, então seu harness
+    de multi-repo entra como escopo próprio, então seu harness
     é coberto, mas seu código não. A raiz (meta-projeto `pop`) é só mais um
     escopo, coberta pelas suas próprias pastas de planejamento.
     """
@@ -729,7 +703,7 @@ def check_memory(root, projects, violations):
     anterior a `MEMORY_LAYOUT_SINCE`, e a exigência do layout só alcança o
     **escopo corrente** (`scope == root`). Escopo aninhado valida a própria
     memory quando roda o seu `pop_validate`: cobrar aqui o layout de um clone
-    `included` seria mandar este vault reescrever memory que não é dele — e a
+    uni-repo seria mandar este vault reescrever memory que não é dele — e a
     régua nasceria reprovando trabalho em voo lá dentro. O conteúdo das pastas
     de data, quando existem, é validado em qualquer escopo: aí o layout já foi
     adotado e o que se checa é coerência, não migração.
@@ -761,7 +735,7 @@ def check_roadmap_residuals(root, violations):
     modifications (no MODIFICATIONS.md o resíduo é o wikilink da task)."""
     for scope, path, number, task_id in pop_roadmap.residuals(root):
         memory = pop_roadmap.memory_path(root, scope, task_id)
-        # O escopo raiz é o próprio repo validado (meta PoP ou included
+        # O escopo raiz é o próprio repo validado (meta PoP ou uni-repo
         # standalone). Escopos aninhados só contam com prova versionada pelo
         # vault, evitando mutar clones externos gitignorados.
         if scope != root and not pop_roadmap.tracked(root, memory):
@@ -773,12 +747,12 @@ def check_roadmap_residuals(root, violations):
 
 
 # Marcadores inequívocos de harness do PoP fora de `pop/`: um projeto legado
-# sempre tem `kanban/` na raiz (qualquer type) ou, se included, o manifesto na
+# sempre tem `kanban/` na raiz (qualquer type) ou, se uni-repo, o marcador na
 # raiz. Uma pasta `project/` sem harness é scaffold ainda-não-importado (não é
 # projeto do PoP) — fica de fora, não é violação de anatomia. Nomes genéricos
 # (`scripts/`, `docs/`) que o código do produto pode ter legitimamente também
 # ficam de fora, como manda a whitelist positiva.
-LEGACY_MARKERS = ("kanban", ".included-harness.json")
+LEGACY_MARKERS = ("kanban", ".unirepo-harness.json")
 
 
 def _scan_legacy_markers(scope, root, violations):
@@ -791,24 +765,26 @@ def _scan_legacy_markers(scope, root, violations):
 
 
 def check_strict_anatomy(root, violations):
-    """(i) anatomia `pop/` obrigatória nos projetos de `categories/`.
+    """(i) anatomia `pop/` obrigatória nos projetos de `projects/`.
 
-    Num projeto sob `categories/` (e em cada repo embutido de full-multi-repo),
-    nenhum artefato inequívoco de harness do PoP pode estar na raiz da pasta:
-    `kanban/` ou `.included-harness.json` fora de `pop/` é violação — o harness
-    inteiro mora em `pop/`. A raiz do vault (meta-projeto) é isenta: sua
-    anatomia mora na raiz por exceção documentada.
+    Num projeto sob `projects/` (e em cada repo de um multi-repo), nenhum
+    artefato inequívoco de harness do PoP pode estar na raiz da pasta:
+    `kanban/` ou `.unirepo-harness.json` fora de `pop/` é violação — o harness
+    inteiro mora em `pop/`. A mãe de multi-repo não tem harness por construção
+    (TYPES.md): sem marcador na raiz, nada a reportar — ela é legítima, não
+    exceção. A raiz do vault (meta-projeto) é isenta: sua anatomia mora na
+    raiz por exceção documentada.
     """
-    categories = root / "categories"
-    if not categories.is_dir():
+    projects = root / "projects"
+    if not projects.is_dir():
         return
-    for project in sorted(categories.glob("*/*")):
+    for project in sorted(projects.glob("*")):
         if not project.is_dir():
             continue
         if any(part.startswith(".") for part in project.relative_to(root).parts):
             continue
         _scan_legacy_markers(project, root, violations)
-        # um nível a mais: repo embutido de full-multi-repo
+        # um nível a mais: repo de multi-repo
         for sub in sorted(project.glob("*")):
             if sub.is_dir() and sub.name != "pop" and not sub.name.startswith("."):
                 _scan_legacy_markers(sub, root, violations)
@@ -960,14 +936,14 @@ def check_project_agents(root, projects, violations, warnings):
 def check_harness_freshness(root, projects, violations):
     """(i) harness instalado num projeto está na versão da origem.
 
-    O PoP raiz é a fonte única: um projeto com `pop/.included-harness.json`
+    O PoP raiz é a fonte única: um projeto com `pop/.unirepo-harness.json`
     recebeu uma cópia gerida do WORKFLOW, dos templates e dos scripts. Se o
     carimbo `content_sha` divergir, aquele projeto está operando um fluxo que
     o vault já abandonou — falha fechada, porque o remédio é um comando só.
     Só o vault que **é** a origem faz esta checagem (o clone não se audita).
     """
     try:
-        import pop_install_included as installer
+        import pop_install_unirepo as installer
     except ImportError:
         return
     if installer.SOURCE != root or not installer.MANIFEST.is_file():
@@ -981,23 +957,23 @@ def check_harness_freshness(root, projects, violations):
         if stamped is None:
             violations.append(
                 f"{marker}: harness sem carimbo `content_sha` — reinstale com "
-                f"`python3 scripts/pop_install_included.py {label}`")
+                f"`python3 scripts/pop_install_unirepo.py {label}`")
         elif stamped != current:
             violations.append(
                 f"{marker}: harness DEFASADO ({stamped[:12]} ≠ origem "
                 f"{current[:12]}) — reinstale com "
-                f"`python3 scripts/pop_install_included.py {label}`")
+                f"`python3 scripts/pop_install_unirepo.py {label}`")
 
 
 def check_standalone(root, violations):
-    """Contrato estrito para um clone included, sem fallback ao vault pai.
+    """Contrato estrito para um clone uni-repo, sem fallback ao vault pai.
 
-    O harness mora em `pop/` (`hb`), com o `.included-harness.json` dentro
+    O harness mora em `pop/` (`hb`), com o `.unirepo-harness.json` dentro
     dele; skills ficam sempre na raiz do repo. Sem `pop/` a checagem falha
     fechada (manifesto ausente).
     """
     hb = root / "pop"
-    manifest_path = hb / ".included-harness.json"
+    manifest_path = hb / ".unirepo-harness.json"
     if not manifest_path.is_file():
         violations.append(f"{manifest_path}: manifesto standalone ausente")
         return
@@ -1034,24 +1010,21 @@ def check_standalone(root, violations):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Valida limites do vault: 144/600 chars, 150 linhas, "
+        description="Valida limites do vault: 144 chars, 150 linhas, "
                     "frontmatter dos cards, worktrees órfãs, wikilinks "
                     "quebrados, specs adotadas e anotações pop-hash de "
                     "citação de código.")
     parser.add_argument("--scope", "--vault", dest="vault", metavar="DIR",
                         help="raiz do vault (default: pasta acima de scripts/)")
     parser.add_argument("--standalone", action="store_true",
-                        help="falha fechada para o contrato included local")
+                        help="falha fechada para o contrato uni-repo local")
     args = parser.parse_args()
 
     root = poplib.vault_root(args.vault)
     projects = poplib.discover_projects(root)
-    categories = {poplib.project_label(root, p).split("/")[0]
-                  for p in projects if p != root}
 
     violations, warnings = [], []
     check_root_index(root, violations)
-    check_category_indexes(root, categories, violations)
     check_note_sizes(root, projects, violations)
     check_cards(root, projects, violations)
     check_gate_artifacts(root, projects, violations)

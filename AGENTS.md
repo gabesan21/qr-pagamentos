@@ -6,6 +6,7 @@
 - **Project language:** English — specs, notes, research, code comments, and kanban artifacts use English.
 - **Vendored PoP language:** copied core workflow files and skills remain in upstream pt-BR; do not translate the shared source during project work.
 - **Supported application languages (i18n):** Brazilian Portuguese (`pt-BR`) and English (`en`).
+- **Type:** uni-repo — this folder **is** the repository itself, with the whole `pop/` harness committed to it.
 - **Project brief:** [[PROJECT|PROJECT]] · **Roadmap:** [[ROADMAP|ROADMAP]] · **Modifications:** [[MODIFICATIONS|MODIFICATIONS]]
 
 ## Repository

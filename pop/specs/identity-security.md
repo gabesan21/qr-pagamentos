@@ -1,6 +1,6 @@
 ---
 id: identity-security
-project: applications/qr-pagamentos
+project: qr-pagamentos
 domain: identity-security
 kind: contract
 status: active

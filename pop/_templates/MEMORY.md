@@ -1,6 +1,6 @@
 ---
 task: <id>-<slug>
-project: <categoria>/<projeto>
+project: <projeto>
 started: AAAA-MM-DD
 finished: AAAA-MM-DD
 commit: <hash do commit final>

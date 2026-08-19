@@ -1,6 +1,6 @@
 ---
 id: application-frontend-system
-project: applications/qr-pagamentos
+project: qr-pagamentos
 domain: frontend
 kind: contract
 status: active

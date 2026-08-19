@@ -361,7 +361,7 @@ def validate_corpus(root: Path, check: Check) -> None:
     scripts_root = harness_root(root) / "scripts"
     validator_path = scripts_root / "validate_kanban_agents.py"
     corpus_root = scripts_root / "tests/fixtures/kanban-agents"
-    if not corpus_root.is_dir() and (root / "pop/.included-harness.json").is_file():
+    if not corpus_root.is_dir() and (root / "pop/.unirepo-harness.json").is_file():
         return
     validator = load_module(validator_path, "pop_validate_kanban_agents")
     loaded, errors, counts = validator.validate(corpus_root, root)
@@ -433,15 +433,15 @@ def validate(root: Path) -> ValidationReport:
 
 
 def harness_root(root: Path) -> Path:
-    """Raiz física do harness; em included, os scripts moram em `pop/`."""
+    """Raiz física do harness; em uni-repo, os scripts moram em `pop/`."""
     candidate = root / "pop"
-    return candidate if (candidate / ".included-harness.json").is_file() else root
+    return candidate if (candidate / ".unirepo-harness.json").is_file() else root
 
 
 def default_root() -> Path:
     """Raiz do repositório que contém o harness, original ou instalado."""
     scripts_parent = Path(__file__).resolve().parents[1]
-    if (scripts_parent / ".included-harness.json").is_file():
+    if (scripts_parent / ".unirepo-harness.json").is_file():
         return scripts_parent.parent
     return scripts_parent
 

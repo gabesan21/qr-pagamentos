@@ -3,8 +3,8 @@
 Fornece: detecção da raiz do vault, descoberta de projetos, parser simples de
 frontmatter YAML (chave: valor, listas `[a, b]` e listas em bloco `- item`) e
 helpers de cards de task. Suporte dual de anatomia: na **nova**, o harness mora
-em `pop/` (`categories/<c>/<p>/pop/kanban`, repo embutido em
-`<c>/<p>/<repo>/pop/kanban`); na **legada**, na raiz da pasta do projeto
+em `pop/` (`projects/<proj>/pop/kanban`, repo de multi-repo em
+`projects/<proj>/<repo>/pop/kanban`); na **legada**, na raiz da pasta do projeto
 (`kanban/` direto, repo embutido em `project/<repo>/`). `harness_root()` decide
 por escopo. Apenas stdlib (Python >= 3.9).
 """
@@ -78,7 +78,7 @@ def vault_root(override: Optional[str] = None) -> Path:
     `scripts/`.
 
     Em harness instalado os scripts moram em `pop/scripts/`: se a pasta acima
-    chama `pop` e carrega `.included-harness.json`, a raiz é a pasta acima dela
+    chama `pop` e carrega `.unirepo-harness.json`, a raiz é a pasta acima dela
     (a raiz do repo) — e a busca **para ali**. O marcador é a fronteira: nenhum
     script sobe além dele procurando um escopo maior, mesmo que exista um no
     disco. Harness instalado é um mundo completo.
@@ -86,7 +86,7 @@ def vault_root(override: Optional[str] = None) -> Path:
     if override:
         return Path(override).resolve()
     base = Path(__file__).resolve().parent.parent
-    if base.name == "pop" and (base / ".included-harness.json").is_file():
+    if base.name == "pop" and (base / ".unirepo-harness.json").is_file():
         return base.parent
     return base
 
@@ -94,15 +94,15 @@ def vault_root(override: Optional[str] = None) -> Path:
 def is_installed_scope(root: Path) -> bool:
     """O escopo recebeu o harness de uma origem (não é ele a origem).
 
-    Marcado por `pop/.included-harness.json` na raiz. Um escopo instalado não
+    Marcado por `pop/.unirepo-harness.json` na raiz. Um escopo instalado não
     hospeda outros projetos, não mantém índices de agregação e não responde
     sobre a versão da origem.
     """
-    return (root / "pop" / ".included-harness.json").is_file()
+    return (root / "pop" / ".unirepo-harness.json").is_file()
 
 
 def harness_root(project: Path) -> Path:
-    """Raiz do harness do escopo: `pop/` nos projetos de `categories/`; o
+    """Raiz do harness do escopo: `pop/` nos projetos de `projects/`; o
     próprio escopo só na raiz do vault (meta-projeto, kanban na raiz)."""
     return project / "pop" if (project / "pop" / "kanban").is_dir() else project
 
@@ -180,17 +180,18 @@ def parse_frontmatter(text: str) -> Tuple[dict, str]:
 def discover_projects(root: Path) -> list:
     """Escopos de projeto do vault, todos na anatomia `pop/`: a raiz
     (meta-projeto `pop` — kanban na raiz, por exceção documentada — ou clone
-    included, com `pop/kanban`), projetos em `categories/<c>/<p>/pop/kanban`
-    e repos embutidos de `full-multi-repo` em `categories/<c>/<p>/<repo>/pop/kanban`.
-    Anatomia legada (harness na raiz) não é mais reconhecida — o validador a
+    uni-repo, com `pop/kanban`), projetos em `projects/<proj>/pop/kanban`
+    e repos de multi-repo em `projects/<proj>/<repo>/pop/kanban`. A mãe de
+    multi-repo não tem `pop/` nem kanban (TYPES.md): não é escopo. Anatomia
+    legada (harness na raiz) não é mais reconhecida — o validador a
     reporta como violação (ver `check_strict_anatomy`)."""
     scopes = set()
     if (root / "kanban").is_dir() or (root / "pop" / "kanban").is_dir():
         scopes.add(root)
     # (pattern, nº de níveis do kanban até o escopo)
     patterns = (
-        ("categories/*/*/pop/kanban", 2),      # projeto
-        ("categories/*/*/*/pop/kanban", 2),    # repo embutido (full-multi-repo)
+        ("projects/*/pop/kanban", 2),      # projeto uni-repo
+        ("projects/*/*/pop/kanban", 2),    # repo de multi-repo
     )
     for pattern, up in patterns:
         for kanban in root.glob(pattern):
@@ -206,10 +207,10 @@ def discover_projects(root: Path) -> list:
 
 # Pastas de harness do PoP dentro de um escopo de projeto: são as ÚNICAS que as
 # réguas de tamanho/wikilink alcançam. Whitelist positiva — o que é do projeto
-# (código, docs do repo, clones, `project/`, repo embutido, vendor) fica de fora
+# (código, docs do repo, clones, `project/`, repo de multi-repo, vendor) fica de fora
 # por construção, sem depender do type. Os nomes são invariantes por type
 # (ver TYPES.md): só a localização do código muda, e `discover_projects` já
-# entrega o escopo certo, inclusive cada repo embutido de full-multi-repo.
+# entrega o escopo certo, inclusive cada repo de multi-repo.
 HARNESS_DIRS = ("roadmap", "specs", "researches", "skills", "notes",
                 "memory", "open_questions", "drafts", "kanban")
 HARNESS_ROOT_FILES = ("PROJECT.md", "ROADMAP.md")  # INDEX.md tem régua própria (144/600)
@@ -249,8 +250,8 @@ def iter_all_harness_markdown(root: Path) -> Iterator[Path]:
 
 
 def project_label(root: Path, project: Path) -> str:
-    """Nome curto `<categoria>/<projeto>` de uma pasta de projeto — ou
-    `<categoria>/<projeto>/<repo>` para repo embutido de full-multi-repo.
+    """Nome curto `<projeto>` de uma pasta de projeto — ou
+    `<projeto>/<repo>` para repo de multi-repo.
 
     A raiz só se chama `pop` quando é o escopo que hospeda os outros (kanban
     na própria raiz). Escopo instalado também tem `project == root`, mas usar
@@ -259,27 +260,27 @@ def project_label(root: Path, project: Path) -> str:
     """
     if project == root:
         return "pop" if (root / "kanban").is_dir() else root.name
-    parts = project.relative_to(root / "categories").parts
+    parts = project.relative_to(root / "projects").parts
     return "/".join(parts)
 
 
 def project_dir(root: Path, label: str) -> Path:
     """Inverso de `project_label`: pasta do projeto a partir do rótulo.
 
-    `<cat>/<proj>` -> `categories/<cat>/<proj>`;
-    `<cat>/<proj>/<repo>` -> `categories/<cat>/<proj>/<repo>` (repo embutido
-    de full-multi-repo, anatomia `pop/`);
+    `<proj>` -> `projects/<proj>`;
+    `<proj>/<repo>` -> `projects/<proj>/<repo>` (repo de multi-repo,
+    anatomia `pop/`);
     rótulo da própria raiz -> a raiz do escopo corrente.
     """
     if label == project_label(root, root):
         return root
     parts = [p for p in label.split("/") if p]
-    return root.joinpath("categories", *parts)
+    return root.joinpath("projects", *parts)
 
 
 def delivery_route(root: Path, project: Path, *, yolo: bool) -> dict:
     """Rota Git invariável; só o fluxo não-yolo usa target configurável."""
-    # Meta PoP é a exceção com kanban na raiz. Um clone included aberto como
+    # Meta PoP é a exceção com kanban na raiz. Um clone uni-repo aberto como
     # vault também tem project == root, mas seu kanban vive em `pop/` e segue
     # a rota externa develop → main.
     if project.resolve() == root.resolve() and (root / "kanban").is_dir():
