@@ -67,6 +67,7 @@
     "sync-specs",
     "weekly-review",
     "optimize-memory",
+    "update-harness",
     "judge-dredd",
     "recon-project",
     "clean-code-change",
@@ -147,7 +148,7 @@
     "pop/kanban",
     "pop/worktrees/.gitkeep"
   ],
-  "content_sha": "a61ec7794561c9962320fd8a3f91f0a6337665d3e6915f2133ebb92d07a7a793",
+  "content_sha": "dbe180ef82e53bdf4e76505a8ed66861a1c4239aead817e2bac8923532b36aa6",
   "installed": [
     ".agents/agents/pop-execution-orchestrator.md",
     ".agents/agents/pop-executor.md",
@@ -185,6 +186,7 @@
     ".agents/skills/run-droid/SKILL.md",
     ".agents/skills/run-opencode/SKILL.md",
     ".agents/skills/sync-specs/SKILL.md",
+    ".agents/skills/update-harness/SKILL.md",
     ".agents/skills/weekly-review/SKILL.md",
     ".agents/skills/write-spec/SKILL.md",
     ".claude/agents/.pop-agent-builder.json",

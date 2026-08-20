@@ -67,6 +67,7 @@
     "sync-specs",
     "weekly-review",
     "optimize-memory",
+    "update-harness",
     "judge-dredd",
     "recon-project",
     "clean-code-change",
