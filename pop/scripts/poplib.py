@@ -282,14 +282,17 @@ def delivery_route(root: Path, project: Path, *, yolo: bool) -> dict:
     """Rota Git invariável; só o fluxo não-yolo usa target configurável."""
     # Meta PoP é a exceção com kanban na raiz. Um clone uni-repo aberto como
     # vault também tem project == root, mas seu kanban vive em `pop/` e segue
-    # a rota externa develop → main.
+    # a rota externa.
     if project.resolve() == root.resolve() and (root / "kanban").is_dir():
         return {"task_branch": "main", "scope_pr": False,
                 "target_branch": "main", "worktree": False,
                 "merge_owner": "none"}
+    # Yolo externo: worktree e integração na branch corrente de trabalho
+    # (resolvida no momento do add/integrate, por isso task_branch=None);
+    # PR final só a pedido explícito do humano.
     if yolo:
-        return {"task_branch": "develop", "scope_pr": True,
-                "target_branch": "main", "worktree": True,
+        return {"task_branch": None, "scope_pr": False,
+                "target_branch": None, "worktree": True,
                 "merge_owner": "user"}
     return {"task_branch": "task", "scope_pr": False,
             "target_branch": None, "worktree": True,
