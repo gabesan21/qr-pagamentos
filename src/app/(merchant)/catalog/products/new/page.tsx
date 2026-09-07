@@ -7,10 +7,25 @@ import { Button } from "@/components/ui/button";
 
 import { requireMerchantShellContext } from "../../../shell-context";
 import { Breadcrumb, SectionCard } from "../../catalog-fields";
+import { ProductNotice } from "../../catalog-notices";
 import { ProductForm } from "../../product-form";
 
-export default async function NewProductPage() {
+const PRODUCT_FAILURE_NOTICES = ["conflict", "failed"] as const;
+type ProductFailureNotice = (typeof PRODUCT_FAILURE_NOTICES)[number];
+
+function resolveProductNotice(value: string | string[] | undefined): ProductFailureNotice | undefined {
+  return typeof value === "string" && (PRODUCT_FAILURE_NOTICES as readonly string[]).includes(value)
+    ? (value as ProductFailureNotice)
+    : undefined;
+}
+
+export default async function NewProductPage({
+  searchParams = Promise.resolve({}),
+}: Readonly<{
+  searchParams?: Promise<Readonly<Record<string, string | string[] | undefined>>>;
+}> = {}) {
   const { dictionary, locale, principal } = await requireMerchantShellContext();
+  const notice = resolveProductNotice((await searchParams).products);
   const [categories, choices] = await Promise.all([
     getProductCategoryService().listForOwner(principal),
     getSupportedExchangeCurrencyService().listActiveChoices(principal),
@@ -29,6 +44,7 @@ export default async function NewProductPage() {
         eyebrow={dictionary.shellMerchantEyebrow}
         title={dictionary.catalogProductNewTitle}
       />
+      {notice ? <ProductNotice dictionary={dictionary} notice={notice} /> : null}
       <SectionCard description={dictionary.catalogProductNewDescription} title={dictionary.catalogProductNewTitle}>
         <ProductForm
           categories={categories}
@@ -38,12 +54,9 @@ export default async function NewProductPage() {
           locale={locale}
         />
       </SectionCard>
-      <div className="flex justify-end gap-3">
+      <div className="flex justify-end">
         <Button asChild variant="outline">
           <Link href="/catalog">{dictionary.catalogProductBackToCatalog}</Link>
-        </Button>
-        <Button form="product-create" type="submit">
-          {dictionary.adminProductCreate}
         </Button>
       </div>
     </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 
 import type { OwnerProduct } from "@/auth/product";
 import type { OwnerProductCategory } from "@/auth/product-category";
@@ -16,6 +16,7 @@ import type { getDictionary } from "@/i18n/dictionaries";
 import type { SupportedLocale } from "@/i18n/locales";
 
 import { CatalogSubmit } from "./catalog-submit";
+import { clearCatalogDraft, hasFailureNotice, readCatalogDraft, saveCatalogDraft } from "./catalog-draft";
 import {
   Banner,
   DirtyNativeSelect,
@@ -25,6 +26,9 @@ import {
   SectionCard,
 } from "./catalog-fields";
 import { formatCatalogPrice } from "./price-format";
+
+const PRODUCT_NOTICE_KEY = "products";
+const PRODUCT_FAILURE_NOTICES = ["conflict", "failed"] as const;
 
 type Dictionary = ReturnType<typeof getDictionary>;
 
@@ -178,6 +182,30 @@ export function ProductForm({
   const [imageMediaId, setImageMediaId] = useState(product?.imageMediaId ?? null);
   const [imageDirty, setImageDirty] = useState(false);
 
+  const draftKey = creating ? "product-create" : `product-edit-${product.id}`;
+
+  useEffect(() => {
+    if (readOnly) return;
+    if (!hasFailureNotice(PRODUCT_NOTICE_KEY, PRODUCT_FAILURE_NOTICES)) {
+      clearCatalogDraft(draftKey);
+      return;
+    }
+    const draft = readCatalogDraft(draftKey);
+    if (!draft) return;
+    // sessionStorage is a client-only external system unavailable during the
+    // server render, so seeding these fields cannot happen before mount; a
+    // lazy `useState` initializer would instead read it during hydration and
+    // desync from the server-rendered markup.
+    /* eslint-disable react-hooks/set-state-in-effect */
+    if (typeof draft.internalName === "string") setInternalName(draft.internalName);
+    if (typeof draft.titlePtBr === "string") setTitlePtBr(draft.titlePtBr);
+    if (typeof draft.titleEn === "string") setTitleEn(draft.titleEn);
+    if (typeof draft.descriptionPtBr === "string") setDescriptionPtBr(draft.descriptionPtBr);
+    if (typeof draft.descriptionEn === "string") setDescriptionEn(draft.descriptionEn);
+    if (typeof draft.price === "string") setPrice(draft.price);
+    /* eslint-enable react-hooks/set-state-in-effect */
+  }, [draftKey, readOnly]);
+
   const imageCopy: ImageFieldCopy = {
     add: dictionary.catalogProductImageUpload,
     alt: dictionary.catalogProductImageAlt,
@@ -201,8 +229,191 @@ export function ProductForm({
     [dictionary],
   );
 
+  const fields = (
+    <div className="grid gap-6 lg:grid-cols-12">
+      <div className="space-y-5 lg:col-span-8">
+        <SectionCard description={dictionary.catalogProductSectionBasicDescription} title={dictionary.catalogProductSectionBasicTitle}>
+          <FieldGroup>
+            <Field>
+              <FieldLabel htmlFor={`${formId}-internal-name`}>{dictionary.adminProductInternalName}</FieldLabel>
+              <Input
+                disabled={readOnly}
+                id={`${formId}-internal-name`}
+                onChange={(event) => setInternalName(event.target.value)}
+                required
+                value={internalName}
+              />
+              <FieldDescription>{dictionary.catalogProductInternalNameHelp}</FieldDescription>
+            </Field>
+
+            <LocalizedFieldGroup
+              disabled={readOnly}
+              fields={{
+                "pt-BR": {
+                  localeLabel: "PT-BR",
+                  label: dictionary.adminProductTitlePtBr,
+                  value: titlePtBr,
+                },
+                en: {
+                  localeLabel: "EN",
+                  label: dictionary.adminProductTitleEn,
+                  value: titleEn,
+                },
+              }}
+              groupLabel={dictionary.catalogProductTitleGroupLabel}
+              id={`${formId}-title`}
+              onValueChange={(locale, value) => {
+                if (locale === "pt-BR") setTitlePtBr(value);
+                else setTitleEn(value);
+              }}
+              required
+            />
+
+            <LocalizedFieldGroup
+              disabled={readOnly}
+              fields={{
+                "pt-BR": {
+                  localeLabel: "PT-BR",
+                  label: dictionary.adminProductDescriptionPtBr,
+                  value: descriptionPtBr,
+                },
+                en: {
+                  localeLabel: "EN",
+                  label: dictionary.adminProductDescriptionEn,
+                  value: descriptionEn,
+                },
+              }}
+              groupLabel={dictionary.catalogProductDescriptionGroupLabel}
+              id={`${formId}-description`}
+              multiline
+              onValueChange={(locale, value) => {
+                if (locale === "pt-BR") setDescriptionPtBr(value);
+                else setDescriptionEn(value);
+              }}
+            />
+          </FieldGroup>
+        </SectionCard>
+
+        <SectionCard description={dictionary.catalogProductSectionPricingDescription} title={dictionary.catalogProductSectionPricingTitle}>
+          <div className="grid gap-5 sm:grid-cols-2">
+            <Field>
+              <FieldLabel htmlFor={`${formId}-price`}>{dictionary.adminProductPrice}</FieldLabel>
+              <Input
+                disabled={readOnly}
+                id={`${formId}-price`}
+                inputMode="decimal"
+                onChange={(event) => setPrice(event.target.value)}
+                placeholder="0.00"
+                required
+                value={price}
+              />
+              <FieldDescription>{dictionary.adminProductPriceHelp}</FieldDescription>
+            </Field>
+            <CurrencyField
+              choices={choices}
+              defaultValue={product?.currencyCode}
+              dictionary={dictionary}
+              formId={formId}
+              readOnly={readOnly}
+              stored={product?.currencyCode ?? null}
+            />
+          </div>
+        </SectionCard>
+
+        <SectionCard description={dictionary.catalogProductSectionOrganizationDescription} title={dictionary.catalogProductSectionOrganizationTitle}>
+          <FieldGroup>
+            <Field>
+              <FieldLabel htmlFor={`${formId}-category`}>{dictionary.catalogProductCategoryLabel}</FieldLabel>
+              <DirtyNativeSelect
+                defaultValue={product?.categoryId ?? ""}
+                disabled={readOnly || activeCategories.length === 0}
+                fieldName="categoryId"
+                id={`${formId}-category`}
+              >
+                <NativeSelectOption value="">{dictionary.catalogProductCategoryNone}</NativeSelectOption>
+                {activeCategories.map((category) => (
+                  <NativeSelectOption key={category.id} value={category.id}>
+                    {category.namePtBr} / {category.nameEn}
+                  </NativeSelectOption>
+                ))}
+              </DirtyNativeSelect>
+              {activeCategories.length === 0 ? (
+                <Banner tone="info">
+                  {dictionary.catalogProductNoCategory}{" "}
+                  <Link className="font-medium underline" href="/catalog/categories">
+                    {dictionary.catalogCategoriesTitle}
+                  </Link>
+                </Banner>
+              ) : null}
+            </Field>
+
+            {!creating && !readOnly ? (
+              <Field>
+                <FieldLabel>{dictionary.catalogProductStateLabel}</FieldLabel>
+                <SegmentedControl
+                  ariaLabel={dictionary.catalogProductStateLabel}
+                  onChange={(value) => onActiveChange?.(value === "active")}
+                  options={activeStateOptions}
+                  value={product?.active ? "active" : "inactive"}
+                />
+              </Field>
+            ) : null}
+          </FieldGroup>
+        </SectionCard>
+
+        <SectionCard description={dictionary.catalogProductImageHelp} title={dictionary.catalogProductImageLabel}>
+          <ImageField
+            copy={imageCopy}
+            disabled={readOnly}
+            initialIdentifier={product?.imageMediaId ?? null}
+            inputId={`${formId}-image`}
+            onChange={(identifier) => {
+              setImageMediaId(identifier);
+              setImageDirty(true);
+            }}
+            placeholder={<BrandIdentity variant="merchant-fallback" />}
+          />
+        </SectionCard>
+
+        {!readOnly ? (
+          <div className="flex justify-end">
+            <CatalogSubmit form={formId} label={creating ? dictionary.adminProductCreate : dictionary.adminProductSave} />
+          </div>
+        ) : null}
+      </div>
+
+      <ProductPreview
+        currencyCode={product?.currencyCode ?? null}
+        description={previewDescription}
+        dictionary={dictionary}
+        imageMediaId={imageMediaId}
+        locale={locale}
+        price={price}
+        title={previewTitle}
+      />
+    </div>
+  );
+
+  if (readOnly) {
+    return <div id={formId}>{fields}</div>;
+  }
+
   return (
-    <form action="/products" id={formId} method="post">
+    <form
+      action="/products"
+      id={formId}
+      method="post"
+      onSubmit={() =>
+        saveCatalogDraft(draftKey, {
+          internalName,
+          titlePtBr,
+          titleEn,
+          descriptionPtBr,
+          descriptionEn,
+          price,
+        })
+      }
+    >
       <Input name="action" type="hidden" value={creating ? "create" : "update"} />
       {product ? (
         <>
@@ -217,169 +428,7 @@ export function ProductForm({
       <Input name="descriptionEn" type="hidden" value={descriptionEn} />
       <Input name="price" type="hidden" value={price} />
       {imageDirty ? <Input name="imageMediaId" type="hidden" value={imageMediaId ?? ""} /> : null}
-
-      <div className="grid gap-6 lg:grid-cols-12">
-        <div className="space-y-5 lg:col-span-8">
-          <SectionCard description={dictionary.catalogProductSectionBasicDescription} title={dictionary.catalogProductSectionBasicTitle}>
-            <FieldGroup>
-              <Field>
-                <FieldLabel htmlFor={`${formId}-internal-name`}>{dictionary.adminProductInternalName}</FieldLabel>
-                <Input
-                  disabled={readOnly}
-                  id={`${formId}-internal-name`}
-                  onChange={(event) => setInternalName(event.target.value)}
-                  required
-                  value={internalName}
-                />
-                <FieldDescription>{dictionary.catalogProductInternalNameHelp}</FieldDescription>
-              </Field>
-
-              <LocalizedFieldGroup
-                disabled={readOnly}
-                fields={{
-                  "pt-BR": {
-                    localeLabel: "PT-BR",
-                    label: dictionary.adminProductTitlePtBr,
-                    value: titlePtBr,
-                  },
-                  en: {
-                    localeLabel: "EN",
-                    label: dictionary.adminProductTitleEn,
-                    value: titleEn,
-                  },
-                }}
-                groupLabel={dictionary.catalogProductTitleGroupLabel}
-                id={`${formId}-title`}
-                onValueChange={(locale, value) => {
-                  if (locale === "pt-BR") setTitlePtBr(value);
-                  else setTitleEn(value);
-                }}
-                required
-              />
-
-              <LocalizedFieldGroup
-                disabled={readOnly}
-                fields={{
-                  "pt-BR": {
-                    localeLabel: "PT-BR",
-                    label: dictionary.adminProductDescriptionPtBr,
-                    value: descriptionPtBr,
-                  },
-                  en: {
-                    localeLabel: "EN",
-                    label: dictionary.adminProductDescriptionEn,
-                    value: descriptionEn,
-                  },
-                }}
-                groupLabel={dictionary.catalogProductDescriptionGroupLabel}
-                id={`${formId}-description`}
-                multiline
-                onValueChange={(locale, value) => {
-                  if (locale === "pt-BR") setDescriptionPtBr(value);
-                  else setDescriptionEn(value);
-                }}
-              />
-            </FieldGroup>
-          </SectionCard>
-
-          <SectionCard description={dictionary.catalogProductSectionPricingDescription} title={dictionary.catalogProductSectionPricingTitle}>
-            <div className="grid gap-5 sm:grid-cols-2">
-              <Field>
-                <FieldLabel htmlFor={`${formId}-price`}>{dictionary.adminProductPrice}</FieldLabel>
-                <Input
-                  disabled={readOnly}
-                  id={`${formId}-price`}
-                  inputMode="decimal"
-                  onChange={(event) => setPrice(event.target.value)}
-                  placeholder="0.00"
-                  required
-                  value={price}
-                />
-                <FieldDescription>{dictionary.adminProductPriceHelp}</FieldDescription>
-              </Field>
-              <CurrencyField
-                choices={choices}
-                defaultValue={product?.currencyCode}
-                dictionary={dictionary}
-                formId={formId}
-                readOnly={readOnly}
-                stored={product?.currencyCode ?? null}
-              />
-            </div>
-          </SectionCard>
-
-          <SectionCard description={dictionary.catalogProductSectionOrganizationDescription} title={dictionary.catalogProductSectionOrganizationTitle}>
-            <FieldGroup>
-              <Field>
-                <FieldLabel htmlFor={`${formId}-category`}>{dictionary.catalogProductCategoryLabel}</FieldLabel>
-                <DirtyNativeSelect
-                  defaultValue={product?.categoryId ?? ""}
-                  disabled={readOnly || activeCategories.length === 0}
-                  fieldName="categoryId"
-                  id={`${formId}-category`}
-                >
-                  <NativeSelectOption value="">{dictionary.catalogProductCategoryNone}</NativeSelectOption>
-                  {activeCategories.map((category) => (
-                    <NativeSelectOption key={category.id} value={category.id}>
-                      {category.namePtBr} / {category.nameEn}
-                    </NativeSelectOption>
-                  ))}
-                </DirtyNativeSelect>
-                {activeCategories.length === 0 ? (
-                  <Banner tone="info">
-                    {dictionary.catalogProductNoCategory}{" "}
-                    <Link className="font-medium underline" href="/catalog/categories">
-                      {dictionary.catalogCategoriesTitle}
-                    </Link>
-                  </Banner>
-                ) : null}
-              </Field>
-
-              {!creating && !readOnly ? (
-                <Field>
-                  <FieldLabel>{dictionary.catalogProductStateLabel}</FieldLabel>
-                  <SegmentedControl
-                    ariaLabel={dictionary.catalogProductStateLabel}
-                    onChange={(value) => onActiveChange?.(value === "active")}
-                    options={activeStateOptions}
-                    value={product?.active ? "active" : "inactive"}
-                  />
-                </Field>
-              ) : null}
-            </FieldGroup>
-          </SectionCard>
-
-          <SectionCard description={dictionary.catalogProductImageHelp} title={dictionary.catalogProductImageLabel}>
-            <ImageField
-              copy={imageCopy}
-              disabled={readOnly}
-              initialIdentifier={product?.imageMediaId ?? null}
-              inputId={`${formId}-image`}
-              onChange={(identifier) => {
-                setImageMediaId(identifier);
-                setImageDirty(true);
-              }}
-              placeholder={<BrandIdentity variant="merchant-fallback" />}
-            />
-          </SectionCard>
-
-          {!readOnly ? (
-            <div className="flex justify-end">
-              <CatalogSubmit form={formId} label={creating ? dictionary.adminProductCreate : dictionary.adminProductSave} />
-            </div>
-          ) : null}
-        </div>
-
-        <ProductPreview
-          currencyCode={product?.currencyCode ?? null}
-          description={previewDescription}
-          dictionary={dictionary}
-          imageMediaId={imageMediaId}
-          locale={locale}
-          price={price}
-          title={previewTitle}
-        />
-      </div>
+      {fields}
     </form>
   );
 }

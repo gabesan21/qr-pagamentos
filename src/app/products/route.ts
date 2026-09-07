@@ -20,15 +20,30 @@ function productValues(form: FormData) {
   };
 }
 
+// The failing form is derived only from the submitted action/id, never from
+// client-supplied path: create returns to the create form, update/active/
+// archive return to the same product's detail form, and every other action
+// falls back to the catalog list as before.
+function productFailureTarget(action: FormDataEntryValue | null, id: FormDataEntryValue | null): `/${string}` {
+  if (action === "create") return "/catalog/products/new";
+  if ((action === "update" || action === "active" || action === "archive") && typeof id === "string" && id) {
+    return `/catalog/products/${id}`;
+  }
+  return "/catalog";
+}
+
 export async function POST(request: Request) {
   return withServerRequestLog(request.headers.get("x-request-id"), { method: "POST", route: serverRequestRoutes.products }, async () => {
     const crossOrigin = rejectCrossOrigin(request);
     if (crossOrigin) return crossOrigin;
+    let action: FormDataEntryValue | null = null;
+    let id: FormDataEntryValue | null = null;
     try {
       const actor = await requireOwnerFromCookie();
       const form = await request.formData();
       const service = getProductService();
-      const action = form.get("action");
+      action = form.get("action");
+      id = form.get("id");
       if (action === "create") await service.create(actor, productValues(form));
       else if (action === "update") await service.update(actor, form.get("id"), form.get("version"), productValues(form));
       else if (action === "active") await service.setActive(actor, form.get("id"), form.get("version"), form.get("active"));
@@ -39,7 +54,8 @@ export async function POST(request: Request) {
     } catch (error) {
       const protectedResponse = ownerProtectedMutationResponse(error);
       if (protectedResponse) return protectedResponse;
-      return relativeRedirect(error instanceof ProductConflictError ? "/catalog?products=conflict" : "/catalog?products=failed");
+      const notice = error instanceof ProductConflictError ? "conflict" : "failed";
+      return relativeRedirect(`${productFailureTarget(action, id)}?products=${notice}`);
     }
   });
 }

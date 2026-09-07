@@ -11,6 +11,7 @@ import { DataDirectory, type DataDirectoryColumn, type DataDirectoryState } from
 import type { getDictionary } from "@/i18n/dictionaries";
 
 import { requireMerchantShellContext } from "../../shell-context";
+import { CatalogDraftGuard } from "../catalog-draft";
 import { CategoryNotice } from "../catalog-notices";
 import { Breadcrumb, SectionCard } from "../catalog-fields";
 import { catalogDirectoryCopy } from "../directory-copy";
@@ -21,11 +22,19 @@ import { CategoryRowActions } from "./category-row-actions";
 type Dictionary = ReturnType<typeof getDictionary>;
 
 const CATEGORY_NOTICE_VALUES = ["create", "edit", "deactivate", "conflict", "failed"] as const;
+const CATEGORY_FAILURE_NOTICES = ["conflict", "failed"] as const;
 const STATE_FILTER_VALUES = ["active", "inactive"] as const;
 
 function CreateCategoryCard({ dictionary }: Readonly<{ dictionary: Dictionary }>) {
   return (
     <SectionCard title={dictionary.catalogCategoryCreateHeading}>
+      <CatalogDraftGuard
+        draftKey="category-create"
+        fieldNames={["namePtBr", "nameEn"]}
+        formId="category-create"
+        noticeKey="categories"
+        noticeValues={CATEGORY_FAILURE_NOTICES}
+      />
       <form action="/product-categories" id="category-create" method="post">
         <input name="action" type="hidden" value="create" />
         <div className="grid items-end gap-3 sm:grid-cols-[1fr_1fr_auto]">
