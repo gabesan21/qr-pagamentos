@@ -7,7 +7,7 @@ import type { StorefrontSettingsData } from "@/auth/storefront-settings";
 import { BrandIdentity } from "@/brand/brand-identity";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -29,6 +29,7 @@ type StorefrontSettingsManagementProps = Readonly<{
   dictionary: Dictionary;
   locale: SupportedLocale;
   logoNotice?: string;
+  notice?: string;
   settings: StorefrontSettingsData;
   stagedLogoMediaIdentifier: string | null;
 }>;
@@ -41,6 +42,7 @@ export function StorefrontSettingsManagement({
   dictionary,
   locale,
   logoNotice,
+  notice,
   settings,
   stagedLogoMediaIdentifier,
 }: StorefrontSettingsManagementProps) {
@@ -134,6 +136,7 @@ export function StorefrontSettingsManagement({
   const previewName = localizedName === "" ? dictionary.storefrontFallbackName : localizedName;
   const previewAccent = ACCENT_COLOR_PATTERN.test(accent) ? accent : null;
   const currencyDisabled = currencyChoices.length === 0;
+  const noticeFailed = notice === "failed" || notice === "conflict";
 
   return (
     <>
@@ -143,8 +146,13 @@ export function StorefrontSettingsManagement({
             <section aria-labelledby="settings-identity-heading" className="settings-surface__section" id="settings-identity">
               <h2 className="settings-surface__section-heading" id="settings-identity-heading">{dictionary.storefrontIdentityHeading}</h2>
               <p className="settings-surface__section-description">{dictionary.storefrontIdentityDescription}</p>
+              {notice ? (
+                <Alert role={noticeFailed ? "alert" : "status"} variant={noticeFailed ? "destructive" : "success"}>
+                  <AlertTitle>{noticeFailed ? dictionary.adminErrorHeading : dictionary.adminSuccessHeading}</AlertTitle>
+                  <AlertDescription>{noticeFailed ? dictionary.ownerSettingsFailed : dictionary.ownerSettingsUpdated}</AlertDescription>
+                </Alert>
+              ) : null}
               <Card>
-                <CardHeader><CardTitle>{dictionary.storefrontIdentityHeading}</CardTitle><CardDescription>{dictionary.storefrontIdentityDescription}</CardDescription></CardHeader>
                 <CardContent>
                   <FieldGroup>
                     <Field>
@@ -168,7 +176,6 @@ export function StorefrontSettingsManagement({
               <h2 className="settings-surface__section-heading" id="settings-store-heading">{dictionary.storefrontAppearanceHeading}</h2>
               <p className="settings-surface__section-description">{dictionary.storefrontAppearanceDescription}</p>
               <Card>
-                <CardHeader><CardTitle>{dictionary.storefrontAppearanceHeading}</CardTitle><CardDescription>{dictionary.storefrontAppearanceDescription}</CardDescription></CardHeader>
                 <CardContent>
                   <FieldGroup>
                     <Field>
@@ -234,7 +241,6 @@ export function StorefrontSettingsManagement({
               <h2 className="settings-surface__section-heading" id="settings-payments-heading">{dictionary.storefrontPaymentsHeading}</h2>
               <p className="settings-surface__section-description">{dictionary.storefrontPaymentsDescription}</p>
               <Card>
-                <CardHeader><CardTitle>{dictionary.storefrontPaymentsHeading}</CardTitle><CardDescription>{dictionary.storefrontPaymentsDescription}</CardDescription></CardHeader>
                 <CardContent>
                   <FieldGroup>
                     <Field orientation="horizontal">
@@ -255,7 +261,6 @@ export function StorefrontSettingsManagement({
               <h2 className="settings-surface__section-heading" id="settings-currency-heading">{dictionary.storefrontCurrencyHeading}</h2>
               <p className="settings-surface__section-description">{dictionary.storefrontCurrencyDescription}</p>
               <Card>
-                <CardHeader><CardTitle>{dictionary.storefrontCurrencyHeading}</CardTitle><CardDescription>{dictionary.storefrontCurrencyDescription}</CardDescription></CardHeader>
                 <CardContent>
                   <FieldGroup>
                     <Field>
