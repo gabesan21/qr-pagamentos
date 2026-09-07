@@ -18,6 +18,7 @@ Project brief: [[PROJECT|QR Pagamentos]]
 | 11 | [[roadmap/11-identity-security-and-release|Identity security and release]] | Add password recovery and 2FA, then prove role isolation, visual quality, and production upgrade/recovery readiness. | concluída |
 | 12 | [[roadmap/12-frontend-template-remodel|Frontend template remodel]] | Replace the complete application frontend with the supplied professional template while preserving the current stack and business contracts. | concluída |
 | 13 | Pre-production hardening | Restore production security gates and close remaining release-blocking lifecycle gaps before deployment. | pendente |
+| 14 | [[roadmap/14-template-fidelity-convergence|Template fidelity convergence]] | Converge every surface onto the template interaction model, vocabulary and states, proven by rendered comparison (proposed 2026-09-07). | pendente |
 
 **Epoch/phase status:** pendente | em andamento | concluída
 
