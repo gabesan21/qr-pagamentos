@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { type ReactNode, useId, useState } from "react";
-import { ChevronDownIcon, ExternalLinkIcon, MenuIcon, UserIcon, XIcon } from "lucide-react";
+import { ChevronDownIcon, ExternalLinkIcon, LogOutIcon, MenuIcon, UserIcon, XIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Monogram } from "@/components/ui/monogram";
@@ -80,7 +80,7 @@ function AccountMenu({
   roleLabel,
   username,
 }: Readonly<{
-  labels: Pick<ShellLabels, "accountMenu" | "profile">;
+  labels: Pick<ShellLabels, "accountMenu" | "profile" | "signOut">;
   profileLink?: Readonly<{ href: string; label: string }>;
   roleLabel: string;
   username: string;
@@ -114,6 +114,12 @@ function AccountMenu({
               <span>{profileLink.label}</span>
             </Link>
           ) : null}
+          <form action="/logout" className="app-shell__account-panel-signout" method="post">
+            <button className="app-shell__account-panel-item" role="menuitem" type="submit">
+              <LogOutIcon aria-hidden="true" />
+              <span>{labels.signOut}</span>
+            </button>
+          </form>
         </div>
       ) : null}
     </div>
@@ -268,7 +274,7 @@ export function TopBarShellControls({
           </Link>
         ) : null}
         <AccountMenu
-          labels={{ accountMenu: labels.accountMenu, profile: labels.profile }}
+          labels={{ accountMenu: labels.accountMenu, profile: labels.profile, signOut: labels.signOut }}
           profileLink={accountLink}
           roleLabel={roleLabel}
           username={username}
