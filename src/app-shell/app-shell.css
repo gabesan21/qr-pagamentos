@@ -256,18 +256,34 @@
 
 .app-shell__account-panel-item {
   align-items: center;
+  background: none;
+  border: none;
   border-radius: var(--radius-control);
   color: var(--text-secondary);
+  cursor: pointer;
   display: flex;
+  font: inherit;
   gap: var(--space-3);
   min-height: var(--control-min-height);
   padding: var(--space-2) var(--space-3);
+  text-align: start;
   text-decoration: none;
+  width: 100%;
 }
 
 .app-shell__account-panel-item:hover {
   background: var(--surface-subtle);
   color: var(--text-primary);
+}
+
+.app-shell__account-panel-signout {
+  display: flex;
+}
+
+.app-shell__account-panel-item + .app-shell__account-panel-signout {
+  border-block-start: thin solid var(--border-subtle);
+  margin-block-start: var(--space-1);
+  padding-block-start: var(--space-1);
 }
 
 .app-shell__content {
