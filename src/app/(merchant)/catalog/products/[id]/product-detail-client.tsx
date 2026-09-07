@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { Archive } from "lucide-react";
 
 import { WorkspaceHeading } from "@/app-shell/workspace-heading";
@@ -16,7 +16,13 @@ import type { SupportedLocale } from "@/i18n/locales";
 
 import { CatalogSubmit } from "../../catalog-submit";
 import { Banner, Breadcrumb } from "../../catalog-fields";
+import { ProductNotice } from "../../catalog-notices";
 import { ProductForm } from "../../product-form";
+
+function submitFormById(formId: string) {
+  const form = document.getElementById(formId);
+  if (form instanceof HTMLFormElement) form.requestSubmit();
+}
 
 type Dictionary = ReturnType<typeof getDictionary>;
 
@@ -105,19 +111,19 @@ export function ProductDetailClient({
   choices,
   dictionary,
   locale,
+  notice,
   product,
 }: Readonly<{
   categories: readonly OwnerProductCategory[];
   choices: readonly { code: string; label: string }[];
   dictionary: Dictionary;
   locale: SupportedLocale;
+  notice?: "conflict" | "failed";
   product: OwnerProduct | undefined;
 }>) {
   const [archiveOpen, setArchiveOpen] = useState(false);
   const [activeDialogOpen, setActiveDialogOpen] = useState(false);
   const [pendingActive, setPendingActive] = useState(product?.active ?? true);
-  const activeFormRef = useRef<HTMLFormElement>(null);
-  const archiveFormRef = useRef<HTMLFormElement>(null);
 
   if (!product) {
     return (
@@ -152,9 +158,11 @@ export function ProductDetailClient({
       />
       <ProductHeader dictionary={dictionary} product={product} />
 
+      {notice ? <ProductNotice dictionary={dictionary} notice={notice} /> : null}
+
       {archived ? <ArchivedBanner dictionary={dictionary} /> : null}
 
-      {!archived ? (
+      <div className={archived ? "rounded-lg border border-border bg-muted/40 p-5 saturate-50 sm:p-6" : ""}>
         <ProductForm
           categories={categories}
           choices={choices}
@@ -166,8 +174,9 @@ export function ProductDetailClient({
             setActiveDialogOpen(true);
           }}
           product={product}
+          readOnly={archived}
         />
-      ) : null}
+      </div>
 
       {!archived ? (
         <>
@@ -202,7 +211,7 @@ export function ProductDetailClient({
                 : dictionary.catalogProductDeactivateConfirmDescription
             }
             failureMessage={dictionary.adminProductMutationFailed}
-            onConfirm={() => activeFormRef.current?.requestSubmit()}
+            onConfirm={() => submitFormById("product-active-toggle")}
             onOpenChange={setActiveDialogOpen}
             open={activeDialogOpen}
             pendingLabel={dictionary.loading}
@@ -214,7 +223,7 @@ export function ProductDetailClient({
             description={dictionary.catalogProductArchiveDescription}
             destructive
             failureMessage={dictionary.adminProductMutationFailed}
-            onConfirm={() => archiveFormRef.current?.requestSubmit()}
+            onConfirm={() => submitFormById("product-archive")}
             onOpenChange={setArchiveOpen}
             open={archiveOpen}
             pendingLabel={dictionary.loading}
