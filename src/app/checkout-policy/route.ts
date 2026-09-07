@@ -12,9 +12,9 @@ export async function POST(request: Request) {
       const actor = await requireOwnerFromCookie();
       const policy = (await request.formData()).get("checkoutDataPolicy");
       await getCheckoutPolicyService().update(actor, policy);
-      return relativeRedirect("/?checkout-policy=changed");
+      return relativeRedirect("/settings?checkout-policy=changed#settings-policy");
     } catch (error) {
-      return ownerProtectedMutationResponse(error) ?? relativeRedirect("/?checkout-policy=failed");
+      return ownerProtectedMutationResponse(error) ?? relativeRedirect("/settings?checkout-policy=failed#settings-policy");
     }
   });
 }

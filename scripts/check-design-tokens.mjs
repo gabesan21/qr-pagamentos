@@ -29,7 +29,8 @@ function removeTokenSource(path, source) {
     : source;
   if (path.endsWith("globals.css")) {
     return withoutGeneratedTokens
-      .replaceAll("(min-width: 900px)", "(min-width: var(--breakpoint-auth))");
+      .replaceAll("(min-width: 900px)", "(min-width: var(--breakpoint-auth))")
+      .replaceAll("(min-width: 64rem)", "(min-width: var(--breakpoint-lg))");
   }
   if (!path.endsWith("app-shell.css")) return withoutGeneratedTokens;
   return withoutGeneratedTokens

@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 import type { CheckoutDataPolicy } from "@/auth/checkout-policy";
 import type { StorefrontSettingsData } from "@/auth/storefront-settings";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -11,7 +13,7 @@ import { CheckoutPolicyManagement } from "@/app/checkout-policy-management";
 import { LanguagePreferenceSubmit } from "@/app/language-preference/language-preference-form";
 import { NauttCredentialSurface } from "@/app/nautt-credential-surface";
 import { StorefrontSettingsManagement, type StorefrontCurrencyChoice } from "@/app/storefront-settings-management";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 
@@ -57,30 +59,30 @@ export function SettingsSurface({
   storefrontSettings: StorefrontSettingsData;
   stagedLogoMediaIdentifier: string | null;
 }>) {
-  const ownerNotice = notices["checkout-policy"] ?? notices.storefront;
-  const failed = ownerNotice === "failed" || ownerNotice === "conflict";
+  const [activeId, setActiveId] = useState<SectionId>(SECTIONS[0].id);
+
+  useEffect(() => {
+    const elements = SECTIONS.map(({ id }) => document.getElementById(`settings-${id}`)).filter(
+      (element): element is HTMLElement => element !== null,
+    );
+    if (elements.length === 0) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) setActiveId(entry.target.id.replace("settings-", "") as SectionId);
+        }
+      },
+      { rootMargin: "-30% 0% -60% 0%" },
+    );
+    for (const element of elements) observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
+
+  const checkoutPolicyFailed = notices["checkout-policy"] === "failed";
 
   return (
     <div className="settings-surface">
-      {ownerNotice ? (
-        <Alert role={failed ? "alert" : "status"} variant={failed ? "destructive" : "success"}>
-          <AlertTitle>{failed ? dictionary.adminErrorHeading : dictionary.adminSuccessHeading}</AlertTitle>
-          <AlertDescription>{failed ? dictionary.ownerSettingsFailed : dictionary.ownerSettingsUpdated}</AlertDescription>
-        </Alert>
-      ) : null}
       {notices.nautt ? <NauttNotice code={notices.nautt} dictionary={dictionary} /> : null}
-      {notices.language === "saved" ? (
-        <Alert role="status" variant="success">
-          <AlertTitle>{dictionary.languageHeading}</AlertTitle>
-          <AlertDescription>{dictionary.languageSaved}</AlertDescription>
-        </Alert>
-      ) : null}
-      {notices.language === "error" ? (
-        <Alert variant="destructive">
-          <AlertTitle>{dictionary.languageHeading}</AlertTitle>
-          <AlertDescription>{dictionary.languageError}</AlertDescription>
-        </Alert>
-      ) : null}
 
       <div className="settings-surface__layout">
         <nav aria-label={dictionary.settingsNavLabel} className="settings-surface__nav">
@@ -88,6 +90,7 @@ export function SettingsSurface({
             {SECTIONS.map(({ id, labelKey }) => (
               <a
                 key={id}
+                aria-current={activeId === id ? "true" : undefined}
                 className="settings-surface__nav-link"
                 href={`#settings-${id}`}
               >
@@ -111,6 +114,12 @@ export function SettingsSurface({
               {dictionary.checkoutPolicyHeading}
             </h2>
             <p className="settings-surface__section-description">{dictionary.checkoutPolicyDescription}</p>
+            {notices["checkout-policy"] ? (
+              <Alert role={checkoutPolicyFailed ? "alert" : "status"} variant={checkoutPolicyFailed ? "destructive" : "success"}>
+                <AlertTitle>{checkoutPolicyFailed ? dictionary.adminErrorHeading : dictionary.adminSuccessHeading}</AlertTitle>
+                <AlertDescription>{checkoutPolicyFailed ? dictionary.ownerSettingsFailed : dictionary.ownerSettingsUpdated}</AlertDescription>
+              </Alert>
+            ) : null}
             <CheckoutPolicyManagement dictionary={dictionary} policy={checkoutPolicy} />
           </section>
 
@@ -119,16 +128,29 @@ export function SettingsSurface({
             dictionary={dictionary}
             locale={locale}
             logoNotice={notices["storefront-logo"]}
+            notice={notices.storefront}
             settings={storefrontSettings}
             stagedLogoMediaIdentifier={stagedLogoMediaIdentifier}
           />
 
           <section aria-labelledby="settings-language-heading" className="settings-surface__section" id="settings-language">
+            <h2 className="settings-surface__section-heading" id="settings-language-heading">
+              {dictionary.languageHeading}
+            </h2>
+            <p className="settings-surface__section-description">{dictionary.settingsLanguageDescription}</p>
+            {notices.language === "saved" ? (
+              <Alert role="status" variant="success">
+                <AlertTitle>{dictionary.languageHeading}</AlertTitle>
+                <AlertDescription>{dictionary.languageSaved}</AlertDescription>
+              </Alert>
+            ) : null}
+            {notices.language === "error" ? (
+              <Alert variant="destructive">
+                <AlertTitle>{dictionary.languageHeading}</AlertTitle>
+                <AlertDescription>{dictionary.languageError}</AlertDescription>
+              </Alert>
+            ) : null}
             <Card>
-              <CardHeader>
-                <CardTitle>{dictionary.languageHeading}</CardTitle>
-                <CardDescription>{dictionary.adminLanguageDescription}</CardDescription>
-              </CardHeader>
               <CardContent>
                 <form action="/language-preference" method="post">
                   <FieldGroup>

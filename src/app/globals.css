@@ -1423,6 +1423,23 @@ p { text-wrap: pretty; }
 .storefront-preview__price span { color: var(--text-secondary); font-size: var(--type-small); font-weight: var(--font-weight-strong); }
 .storefront-preview__card { width: 100%; }
 .storefront-error__retry { min-inline-size: var(--target-min-size); }
+.settings-surface { display: grid; gap: var(--space-6); }
+.settings-surface__layout { display: grid; gap: var(--space-6); }
+.settings-surface__nav { display: none; }
+.settings-surface__nav-inner { display: flex; flex-direction: column; gap: var(--space-1); }
+.settings-surface__nav-link { align-items: center; border-inline-start: var(--focus-width) solid transparent; border-radius: var(--radius-control); color: var(--text-secondary); display: flex; font-size: var(--type-small); min-height: var(--control-min-height); padding-inline: var(--space-3); text-decoration: none; transition: background-color var(--motion-duration) var(--motion-ease), border-color var(--motion-duration) var(--motion-ease), color var(--motion-duration) var(--motion-ease); }
+.settings-surface__nav-link:hover { background: var(--surface-subtle); color: var(--text-primary); }
+.settings-surface__nav-link:focus-visible { outline: var(--focus-width) solid var(--focus-color); outline-offset: var(--focus-offset); }
+.settings-surface__nav-link[aria-current="true"] { background: var(--surface-subtle); border-inline-start-color: var(--action-primary); color: var(--text-primary); font-weight: var(--font-weight-strong); }
+.settings-surface__sections { display: grid; gap: var(--space-8); min-width: 0; }
+.settings-surface__section { display: grid; gap: var(--space-4); scroll-margin-block-start: calc(var(--top-bar-height) + var(--space-6)); }
+.settings-surface__section-heading { margin: 0; }
+.settings-surface__section-description { color: var(--text-secondary); margin: 0; max-width: var(--layout-max); }
+@media (min-width: 64rem) {
+  .settings-surface__layout { align-items: start; grid-template-columns: calc(var(--space-12) * 4) 1fr; }
+  .settings-surface__nav { display: block; }
+  .settings-surface__nav-inner { position: sticky; top: calc(var(--top-bar-height) + var(--space-6)); }
+}
 .storefront-cart__empty [data-slot="empty"] { border-color: transparent; padding-block: var(--space-6); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto; transition: none; animation: none; }
