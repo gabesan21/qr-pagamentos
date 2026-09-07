@@ -17,6 +17,7 @@ import type { SupportedLocale } from "@/i18n/locales";
 
 import { requireAdminShellContext } from "../shell-context";
 import { adminAccountsDirectoryCopy } from "./directory-copy";
+import { DestructiveActionForm } from "./destructive-confirm";
 import {
   adminAccountsCanonicalTarget,
   resolveAdminAccountsDirectoryQuery,
@@ -116,11 +117,20 @@ function RowActions({ dictionary, row }: Readonly<{ dictionary: Dictionary; row:
       <Button asChild data-ds-hit-target variant="outline">
         <Link href={`/admin/accounts/${row.id}`}>{dictionary.adminUsersDirectoryEdit}</Link>
       </Button>
-      <form action={`/admin/users/${row.id}/delete`} method="post">
-        <Button data-ds-hit-target type="submit" variant="destructive">
-          {dictionary.adminUsersDirectoryDelete}
-        </Button>
-      </form>
+      <DestructiveActionForm
+        action={`/admin/users/${row.id}/delete`}
+        cancelLabel={dictionary.cancel}
+        confirmLabel={dictionary.adminUsersDirectoryDelete}
+        confirmation={{
+          expectedValue: row.username,
+          label: dictionary.adminUsersDirectoryDeleteConfirmFieldLabel,
+        }}
+        dialogDescription={dictionary.adminUsersDirectoryDeleteConfirmDescription}
+        dialogTitle={dictionary.adminUsersDirectoryDeleteConfirmTitle}
+        failureMessage={dictionary.adminUsersDirectoryDeleteConfirmFailure}
+        pendingLabel={dictionary.loading}
+        triggerLabel={dictionary.adminUsersDirectoryDelete}
+      />
     </span>
   );
 }

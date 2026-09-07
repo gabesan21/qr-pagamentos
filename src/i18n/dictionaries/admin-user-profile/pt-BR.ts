@@ -30,6 +30,9 @@ export const adminUserProfilePtBR = {
   adminUserProfileStoreUnavailable: "A loja pública está indisponível: a vitrine está desativada ou sem endereço.",
   adminUserProfileDeleteHeading: "Exclusão da conta",
   adminUserProfileDeleteDescription: "A exclusão é definitiva: bloqueia o acesso, encerra todas as sessões, desativa a vitrine e desativa todos os links de pagamento. Os identificadores permanecem reservados.",
+  adminUserProfileDeleteConfirmTitle: "Excluir conta",
+  adminUserProfileDeleteConfirmFieldLabel: "Digite o nome de usuário para confirmar",
+  adminUserProfileDeleteConfirmFailure: "Não foi possível excluir a conta. Tente novamente.",
   adminUserProfilePasswordResetHeading: "Redefinição de senha",
   adminUserProfilePasswordResetDescription: "Envie um link de uso único para o e-mail de contato da conta.",
   adminUserProfilePasswordResetSend: "Enviar e-mail de redefinição",
@@ -42,4 +45,6 @@ export const adminUserProfilePtBR = {
   adminUserProfileTotpDisable: "Remover autenticação em dois fatores",
   adminUserProfileTotpDisabled: "Autenticação em dois fatores removida.",
   adminUserProfileTotpDisableFailed: "Não foi possível remover a autenticação em dois fatores. Tente novamente.",
+  adminUserProfileTotpDisableConfirmTitle: "Remover autenticação em dois fatores",
+  adminUserProfileTotpDisableConfirmDescription: "Isso remove imediatamente a autenticação em dois fatores. A conta precisará configurá-la novamente para usá-la.",
 } as const;

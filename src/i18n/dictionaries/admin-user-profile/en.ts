@@ -30,6 +30,9 @@ export const adminUserProfileEn = {
   adminUserProfileStoreUnavailable: "The public store is unavailable: the storefront is disabled or has no address.",
   adminUserProfileDeleteHeading: "Account deletion",
   adminUserProfileDeleteDescription: "Deletion is terminal: it blocks sign-in, ends every session, disables the storefront, and deactivates every payment link. Identifiers stay reserved.",
+  adminUserProfileDeleteConfirmTitle: "Delete account",
+  adminUserProfileDeleteConfirmFieldLabel: "Type the username to confirm",
+  adminUserProfileDeleteConfirmFailure: "The account could not be deleted. Try again.",
   adminUserProfilePasswordResetHeading: "Password reset",
   adminUserProfilePasswordResetDescription: "Send a single-use reset link to the account's contact email.",
   adminUserProfilePasswordResetSend: "Send reset email",
@@ -42,4 +45,6 @@ export const adminUserProfileEn = {
   adminUserProfileTotpDisable: "Remove two-factor authentication",
   adminUserProfileTotpDisabled: "Two-factor authentication removed.",
   adminUserProfileTotpDisableFailed: "Could not remove two-factor authentication. Try again.",
+  adminUserProfileTotpDisableConfirmTitle: "Remove two-factor authentication",
+  adminUserProfileTotpDisableConfirmDescription: "This immediately removes two-factor authentication. The account must set it up again to use it.",
 } as const;

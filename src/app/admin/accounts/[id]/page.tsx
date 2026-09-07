@@ -24,6 +24,7 @@ import type { getDictionary } from "@/i18n/dictionaries";
 import type { SupportedLocale } from "@/i18n/locales";
 
 import { requireAdminShellContext } from "../../shell-context";
+import { DestructiveActionForm } from "../destructive-confirm";
 import { formatAccountInstant } from "../instant";
 
 type Dictionary = ReturnType<typeof getDictionary>;
@@ -301,11 +302,18 @@ function TotpRecoveryCard({
         <p>{configured ? dictionary.adminUserProfileTotpConfigured : dictionary.adminUserProfileTotpNotConfigured}</p>
       </div>
       {configured && (
-        <form action={`/admin/users/${detail.id}/totp-disable`} className="mt-4" method="post">
-          <Button data-ds-hit-target type="submit" variant="destructive">
-            {dictionary.adminUserProfileTotpDisable}
-          </Button>
-        </form>
+        <div className="mt-4">
+          <DestructiveActionForm
+            action={`/admin/users/${detail.id}/totp-disable`}
+            cancelLabel={dictionary.cancel}
+            confirmLabel={dictionary.adminUserProfileTotpDisable}
+            dialogDescription={dictionary.adminUserProfileTotpDisableConfirmDescription}
+            dialogTitle={dictionary.adminUserProfileTotpDisableConfirmTitle}
+            failureMessage={dictionary.adminUserProfileTotpDisableFailed}
+            pendingLabel={dictionary.loading}
+            triggerLabel={dictionary.adminUserProfileTotpDisable}
+          />
+        </div>
       )}
     </div>
   );
@@ -491,11 +499,20 @@ function DeleteCard({ detail, dictionary }: Readonly<{ detail: AdminUserDetail; 
         <CardDescription>{dictionary.adminUserProfileDeleteDescription}</CardDescription>
       </CardHeader>
       <CardContent>
-        <form action={`/admin/users/${detail.id}/delete`} method="post">
-          <Button data-ds-hit-target type="submit" variant="destructive">
-            {dictionary.adminUsersDirectoryDelete}
-          </Button>
-        </form>
+        <DestructiveActionForm
+          action={`/admin/users/${detail.id}/delete`}
+          cancelLabel={dictionary.cancel}
+          confirmLabel={dictionary.adminUsersDirectoryDelete}
+          confirmation={{
+            expectedValue: detail.username,
+            label: dictionary.adminUserProfileDeleteConfirmFieldLabel,
+          }}
+          dialogDescription={dictionary.adminUserProfileDeleteDescription}
+          dialogTitle={dictionary.adminUserProfileDeleteConfirmTitle}
+          failureMessage={dictionary.adminUserProfileDeleteConfirmFailure}
+          pendingLabel={dictionary.loading}
+          triggerLabel={dictionary.adminUsersDirectoryDelete}
+        />
       </CardContent>
     </Card>
   );
