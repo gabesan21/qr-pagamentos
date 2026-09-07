@@ -34,7 +34,7 @@ export default async function AdminPaymentLinkV2DetailPage({ params }: Readonly<
               showShareUrl={false}
             />
             <Button asChild data-ds-hit-target variant="outline">
-              <Link href={`/admin/orders?link=${result.link.identifier}`}>{dictionary.paymentLinkOrdersView}</Link>
+              <Link href={`/admin/orders?filter.link=${encodeURIComponent(result.link.identifier)}`}>{dictionary.paymentLinkOrdersView}</Link>
             </Button>
           </div>
         )
