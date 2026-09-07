@@ -25,7 +25,7 @@
 | Task | Description | Status |
 |------|-------------|--------|
 | [[14.1.2-return-settings-saves-to-settings]] | Storefront, checkout-policy, language and logo saves return to the originating page/anchor; style the settings two-column nav; remove duplicated section headings and the admin-language description. · size: M | 002_planning |
-| `14.1.4-phase-verification` | Run `pnpm check` via direct pnpm, add regression tests for the three repairs, and repair what it catches; depends on all 14.1 tasks. · size: S | não iniciada |
+| [[14.1.4-phase-verification]] | Run `pnpm check` via direct pnpm, add regression tests for the three repairs, and repair what it catches; depends on all 14.1 tasks. · size: S | 001_initial_task |
 
 ## Phase 14.2 - Template vocabulary, theme, feedback
 
