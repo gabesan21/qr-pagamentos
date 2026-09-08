@@ -7,11 +7,23 @@
 - Shell props are inert labels, links, identity content, username, locale,
   theme options (an id from the closed registry plus its localized name), and
   children. Never pass a business DTO, credential, provider value, or service.
+- The top-bar title is resolved inside the shell from `titleRoutes` (a
+  route→label list each role layout supplies, matched with `isActiveRoute`)
+  plus a `titleFallback`; an unmatched route always falls back to the role's
+  dashboard label. Never hard-code a page name in the shell or a layout.
+- An optional `storefrontLink` (`{href, label}`) renders in the merchant top
+  bar only when the caller resolved an enabled storefront with a slug; the
+  shell never resolves storefront settings itself and never renders the link
+  for the administrator shell.
 - Keep administrator and merchant navigation inventories separate and fixed at
   five entries; never infer one role's fallback routes from the other.
 - The username block opens an account menu that always offers Sign out (native
   POST to `/logout`) and, for merchants only, the secondary `/profile` link; never
   count either as primary navigation and never render the menu empty.
+- The persistent rail footer is presentation only: a `Monogram`, username,
+  role pill, and the `by Nautt Finance` caption. Sign out is owned solely by
+  the account menu and must never be duplicated in the rail footer (the
+  mobile drawer panel keeps its own separate sign-out control).
 - Dashboard roots match exactly. Other active states match exact routes or a
   slash-delimited descendant, never a string prefix.
 - Two shell client boundaries exist, each narrow and isolated:

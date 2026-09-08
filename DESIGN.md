@@ -246,10 +246,28 @@ storage]]; template assets do not bypass that lifecycle.
 
 ### Authentication
 
-- Center one bordered card up to `720px`. At `900px` and above, show the exact
-  `300px` brand panel beside the form; below it, omit the panel rather than
-  compressing it. The form remains at most `420px` with `24px`/`32px` responsive
-  padding and an accessible language control.
+- The shared `src/app/auth-card.tsx` composes every auth surface (login, MFA
+  challenge, reset password): a centered `720px` card whose leading `300px`
+  brand panel (tagline, product caption, six-swatch strip generated from the
+  closed theme-id registry, `aria-hidden`) shows at `900px` and above and is
+  omitted below it rather than compressed; the trailing form column caps at
+  `420px` with `24px`/`32px` responsive padding, a fixed top-right language
+  control, and either an interactive form or a state-only panel as content.
+- Login adds a forgot-password link to `/reset-password` noting that a valid
+  administrator-issued link is required (self-service reset does not exist),
+  show/hide password, and inline required-field errors as progressive
+  enhancement over the native `required` attributes and POST. The MFA
+  challenge is a six-cell `InputOTP` with native paste fill, submit on
+  completion, a Back link to `/login`, and the existing recovery-code toggle.
+- Reset password proves only the two unusable-link states the service can
+  distinguish — missing/blank token and a token the service rejects — each
+  with the generated `unavailable` illustration and a back-to-login action;
+  the three-way invalid/expired/used split is an open contract limit
+  (`validateResetChallenge`/`findValidToken` fold every rejection into one
+  `null`, `src/auth/password-reset.ts:94-96,159-173`) requiring a new service
+  outcome, not a presentation change. The form keeps the 12–128 requirement
+  hint, a live length meter, and client-side mismatch feedback; success
+  renders on `/reset-password?status=changed` instead of leaving the page.
 - Preserve credential, MFA, recovery, and unavailable semantics from
   [[pop/specs/identity-security|Identity security]] and the administrative
   foundation. Username and password are the only login credentials; email is
@@ -265,6 +283,19 @@ storage]]; template assets do not bypass that lifecycle.
 - The sticky `56px` top bar contains page identity, locale, and the role-safe
   account menu. Main content is centered to `1280px` with `16px` padding below
   `lg` and `24px` from `lg`.
+- The top-bar title is resolved from an inert route→label registry each role
+  layout supplies (`titleRoutes`, matched with the shared `isActiveRoute`
+  rule); the merchant registry also matches `/profile`, and an unmatched
+  route falls back to the role's dashboard label. Static per-role eyebrow
+  strings no longer name the page.
+- The persistent rail footer shows a `Monogram`, username, role pill, and the
+  `by Nautt Finance` caption; sign-out is owned solely by the account menu and
+  is never duplicated in the rail (the mobile drawer footer keeps its own
+  sign-out).
+- The merchant top bar links `View storefront` only when the owner's
+  storefront settings resolve `storefrontEnabled` with a non-null slug,
+  targeting `/store/<slug>` — never the template's `/pay/<slug>` shortcut —
+  and the link is always absent for the administrator shell.
 - Administrator and merchant inventories remain separate fixed five-entry
   lists. Active state uses `aria-current="page"` plus a non-color marker.
   Shells receive inert labels, links, identity, username, locale, and children;
@@ -390,9 +421,12 @@ them. Mark a state non-applicable instead of simulating it.
   generic invalid credentials, MFA challenge, TOTP/recovery-code modes, wrong
   proof, lock/recovery, success, cancellation, and opaque unavailable states as
   allowed by the identity contract.
-- Password recovery covers token loading, valid form, validation, request error,
-  invalid/expired/used token, pending, and success. Presentation does not invent
-  email delivery or expose token validity beyond the existing route contract.
+- Password recovery covers missing/blank token, an unusable (rejected) token,
+  valid form, client validation, request error, pending, and success on
+  `/reset-password?status=changed`. The service cannot distinguish invalid,
+  expired, and used tokens, so those three collapse into the one rejected
+  state; presentation does not invent email delivery or a finer split beyond
+  the existing route contract.
 - Checkout and standalone payment cover initial form, policy-exact validation,
   submitting/disabled, reserved/creating/preparing, QR and copy, pending and
   indeterminate waiting, visibility-aware polling, status error with manual

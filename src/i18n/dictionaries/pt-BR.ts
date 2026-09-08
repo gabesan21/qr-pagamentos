@@ -1,6 +1,7 @@
 import { sharedPtBR } from "./shared/pt-BR";
 import { settingsPtBR } from "./settings/pt-BR";
 import { nauttPtBR } from "./nautt/pt-BR";
+import { notFoundPtBR } from "./not-found/pt-BR";
 import { designSystemPtBR } from "./design-system/pt-BR";
 import { administrationPtBR } from "./administration/pt-BR";
 import { productsPtBR } from "./products/pt-BR";
@@ -31,6 +32,7 @@ export const ptBR = {
   ...adminUserProfilePtBR,
   ...sharedPtBR,
   ...nauttPtBR,
+  ...notFoundPtBR,
   ...designSystemPtBR,
   ...dataDirectoryPtBR,
   ...administrationPtBR,

@@ -35,6 +35,7 @@ function removeTokenSource(path, source) {
   if (!path.endsWith("app-shell.css")) return withoutGeneratedTokens;
   return withoutGeneratedTokens
     .replaceAll("(max-width: 48rem)", "(max-width: var(--shell-mobile-breakpoint))")
+    .replaceAll("(max-width: 63.9375rem)", "(max-width: var(--shell-mobile-breakpoint))")
     .replaceAll("(max-width: 23.4375rem)", "(max-width: var(--shell-compact-breakpoint))");
 }
 

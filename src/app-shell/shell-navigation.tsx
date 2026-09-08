@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Monogram } from "@/components/ui/monogram";
 
 import { ShellThemePicker } from "./shell-theme-picker";
-import type { ShellLabels, ShellNavigationItem, ShellThemeOption } from "./shell-types";
+import type { ShellLabels, ShellNavigationItem, ShellThemeOption, ShellTitleRoute } from "./shell-types";
 
 function isActiveRoute(pathname: string, href: string) {
   if (href === "/" || href === "/admin") return pathname === href;
@@ -238,10 +238,11 @@ export function TopBarShellControls({
   labels,
   locale,
   mobileNavigation,
-  pageTitle,
   roleLabel,
   storefrontLink,
   themeOptions = [],
+  titleFallback,
+  titleRoutes = [],
   username,
 }: Readonly<{
   accountLink?: Readonly<{ href: string; label: string }>;
@@ -249,12 +250,16 @@ export function TopBarShellControls({
   labels: ShellLabels;
   locale: string;
   mobileNavigation: Readonly<Pick<NavigationProps, "items"> & { label: string }>;
-  pageTitle: string;
   roleLabel: string;
   storefrontLink?: Readonly<{ href: string; label: string }>;
   themeOptions?: readonly ShellThemeOption[];
+  titleFallback?: string;
+  titleRoutes?: readonly ShellTitleRoute[];
   username: string;
 }>) {
+  const pathname = usePathname();
+  const pageTitle = titleRoutes.find((route) => isActiveRoute(pathname, route.href))?.label ?? titleFallback ?? "";
+
   return (
     <header className="app-shell__top-bar">
       <div className="app-shell__top-bar-start">
