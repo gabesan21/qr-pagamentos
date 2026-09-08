@@ -33,7 +33,6 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[14.2.1-wire-template-utilities-into-theme]] | `bg-surface/-2`, `text-text-2/3`, `rounded-card/pill`, `shadow-card`, `font-display/money`, `max-w-app/checkout`, `*-soft` feedback tokens and strong `accent` as Tailwind utilities. · size: M | 004_processing |
 | [[14.2.2-add-authenticated-theme-switcher]] | Cookie-persisted `data-theme` on `<html>` for the six ids, instant client switch in the shell user menu, storefront/checkout preview untouched. · size: M | 004_processing |
 | [[14.2.3-mount-toasts-and-origin-locale-switch]] | Mount `ToastViewport` in the root layout, turn query-string notices into toasts, and make the locale POST redirect to its origin page (auth pages included). · size: M | 002_planning |
 | [[14.2.4-build-domain-badge-and-inventory-parity]] | Domain badge families with soft tints, `ImageUploader`, compact `CopyField`, `Monogram` 48, QR generation with identity cut, `StatCard` sparkline. · size: L | 004_processing |
