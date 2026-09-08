@@ -6,7 +6,7 @@ import { AdminSubmit } from "@/app/admin/admin-submit";
 import { Button } from "@/components/ui/button";
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { StatusBadge } from "@/components/ui/status-badge";
+import { EntityStateBadge } from "@/components/ui/status-badge";
 import {
   Table,
   TableBody,
@@ -18,6 +18,7 @@ import {
 
 import { ConfirmToggleButton } from "./confirm-toggle";
 import type { Dictionary, ExchangeCurrencyMapping } from "./settings-surface";
+import { SettingsSectionNotice, type SectionNotice } from "./settings-section-notice";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const CODE_RE = /^[A-Z]{3}$/;
@@ -25,7 +26,8 @@ const CODE_RE = /^[A-Z]{3}$/;
 export function ExchangeCurrenciesSection({
   dictionary,
   mappings,
-}: Readonly<{ dictionary: Dictionary; mappings: ExchangeCurrencyMapping[] }>) {
+  notice,
+}: Readonly<{ dictionary: Dictionary; mappings: ExchangeCurrencyMapping[]; notice: SectionNotice }>) {
   const [mode, setMode] = useState<"closed" | "register" | "replace">("closed");
   const [editing, setEditing] = useState<ExchangeCurrencyMapping | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
@@ -82,6 +84,14 @@ export function ExchangeCurrenciesSection({
 
   return (
     <div className="space-y-4">
+      <SettingsSectionNotice
+        dictionary={dictionary}
+        notice={notice}
+        toastEntries={[
+          { param: "success", value: "exchange-currency", kind: "success", message: dictionary.adminExchangeCurrencySaved },
+          { param: "error", value: "exchange-currency-failed", kind: "error", message: dictionary.adminExchangeCurrencyFailed },
+        ]}
+      />
       {mappings.length === 0 ? (
         <p className="py-6 text-center text-sm text-muted-foreground">{dictionary.adminEmptyCurrencies}</p>
       ) : (
@@ -103,7 +113,10 @@ export function ExchangeCurrenciesSection({
                   <span className="text-sm text-muted-foreground">{mapping.label}</span>
                 </TableCell>
                 <TableCell>
-                  <StatusBadge label={dictionary.adminStatusActive} tone="success" />
+                  <EntityStateBadge
+                    labels={{ active: dictionary.adminStatusActive, archived: dictionary.adminStatusInactive, inactive: dictionary.adminStatusInactive }}
+                    state="active"
+                  />
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">

@@ -16,6 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import type { SupportedLocale } from "@/i18n/locales";
 
 import { ConfirmToggleButton } from "./confirm-toggle";
 import type { Dictionary } from "./settings-surface";
@@ -36,7 +37,8 @@ export function CatalogRecordsSection({
   formAction,
   items,
   kind,
-}: Readonly<{ dictionary: Dictionary; formAction: string; items: CatalogItem[]; kind: "pair" | "method" }>) {
+  locale,
+}: Readonly<{ dictionary: Dictionary; formAction: string; items: CatalogItem[]; kind: "pair" | "method"; locale: SupportedLocale }>) {
   const [adding, setAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
@@ -92,7 +94,13 @@ export function CatalogRecordsSection({
                     </form>
                   ) : (
                     <div className="space-y-1">
-                      <span className="font-medium">{item.label}</span>
+                      {kind === "pair" ? (
+                        <span className="inline-flex rounded-pill bg-accent-soft px-2.5 py-0.5 font-money text-xs font-medium text-accent-on-soft">
+                          {item.label}
+                        </span>
+                      ) : (
+                        <span className="font-medium">{item.label}</span>
+                      )}
                       <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
                         <CopyField className="max-w-40" labels={copyLabels} value={item.detailValue} />
                         {item.secondaryValue ? (
@@ -103,7 +111,7 @@ export function CatalogRecordsSection({
                   )}
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground">
-                  {new Date(item.createdAt).toLocaleDateString()}
+                  {new Date(item.createdAt).toLocaleDateString(locale)}
                 </TableCell>
                 <TableCell>
                   {item.active ? (
