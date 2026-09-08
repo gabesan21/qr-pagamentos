@@ -44,8 +44,8 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| `14.3.1-live-directory-toolbar-and-rows` | `DataDirectory` filters/search/page size update the URL on change with transition skeletons, chips render everywhere, rows are clickable, invalid params are ignored with a toast; revise `src/data-directory/AGENTS.md`. · size: L | não iniciada |
-| `14.3.2-keep-mutations-on-page` | Order comments/outcomes, link edits/lifecycle, category and product saves redirect back to the detail page with a toast and preserve input on failure. · size: L | não iniciada |
+| [[14.3.1-live-directory-toolbar-and-rows]] | `DataDirectory` filters/search/page size update the URL on change with transition skeletons, chips render everywhere, rows are clickable, invalid params are ignored with a toast; revise `src/data-directory/AGENTS.md`. · size: L | 001_initial_task |
+| [[14.3.2-keep-mutations-on-page]] | Order comments/outcomes, link edits/lifecycle, category and product saves redirect back to the detail page with a toast and preserve input on failure. · size: L | 001_initial_task |
 | `14.3.3-phase-verification` | Run `pnpm check`, add directory/mutation tests, repair what it catches; depends on all 14.3 tasks. · size: S | não iniciada |
 
 ## Phase 14.4 - Shell, authentication and administrator convergence
