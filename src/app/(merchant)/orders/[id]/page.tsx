@@ -20,6 +20,6 @@ export default async function OrderDetailPage({ params }: Readonly<{ params: Pro
   const dictionary = getDictionary(locale);
 
   return result.kind === "found"
-    ? <OrderDetailCard backHref="/orders" backLabel={dictionary.orderBackToList} dictionary={dictionary} locale={locale} order={result.order} />
+    ? <OrderDetailCard backHref="/orders" backLabel={dictionary.orderBackToList} dictionary={dictionary} locale={locale} order={result.order} showV2Details />
     : <OrderUnavailableCard backHref="/orders" dictionary={dictionary} />;
 }
