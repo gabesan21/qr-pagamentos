@@ -2,10 +2,16 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { formatCatalogPrice } from "@/app/(merchant)/catalog/price-format";
+import { dataDirectoryCopy, DirectoryInvalidFiltersNotice } from "@/app/directory-support";
 import { WorkspaceHeading } from "@/app-shell/workspace-heading";
 import { getPaymentLinkV2ViewService } from "@/auth/payment-link-v2-view";
 import { ArrowLeftIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  DIRECTORY_INVALID_FILTERS_PARAM,
+  DIRECTORY_INVALID_FILTERS_VALUE,
+  directoryInvalidFiltersLocation,
+} from "@/data-directory/server/notice";
 import { DataDirectory, type DataDirectoryColumn, type DataDirectoryState } from "@/data-directory/ui/data-directory";
 import type { getDictionary } from "@/i18n/dictionaries";
 import type { SupportedLocale } from "@/i18n/locales";
@@ -15,7 +21,6 @@ import type { OrderV2Summary } from "@/orders/order-v2-view";
 import { requireMerchantShellContext } from "../../../../shell-context";
 import type { LinksSearchParams } from "../../../directory-query";
 import { formatLinkInstant, LinkStateBadge, PaymentLinkV2UnavailableCard } from "../../../link-v2-views";
-import { linkOrdersDirectoryCopy } from "./directory-copy";
 import { OrderV2LocalOutcomeBadge, OrderV2StateBadge, orderV2SummaryLabel } from "./order-v2-views";
 
 type Dictionary = ReturnType<typeof getDictionary>;
@@ -28,6 +33,10 @@ function drilldownRequestTarget(searchParams: LinksSearchParams, identifier: str
   let bound = false;
   for (const [key, value] of Object.entries(searchParams)) {
     if (value === undefined) continue;
+    // The reserved invalid-filters notice pair is a redirect artifact, not a
+    // directory param: dropping it here is what keeps the reset redirect
+    // from looping back into another invalid-query resolution.
+    if (key === DIRECTORY_INVALID_FILTERS_PARAM) continue;
     const values = typeof value === "string" ? [value] : value;
     for (const item of values) {
       if (key === "filter.link") {
@@ -61,9 +70,12 @@ function LinkOrderDirectory({
   locale: SupportedLocale;
   path: string;
   requestTarget: string;
-  result: Exclude<OrderV2DirectoryResult, { status: "redirect" }> | null;
+  result: Extract<OrderV2DirectoryResult, { status: "ready" }> | null;
 }>) {
-  const copy = linkOrdersDirectoryCopy(dictionary);
+  const copy = dataDirectoryCopy(dictionary, {
+    title: dictionary.paymentLinkOrdersEmpty,
+    description: dictionary.paymentLinkOrdersEmptyDescription,
+  });
   const columns: readonly DataDirectoryColumn<OrderV2Summary>[] = [
     {
       id: "order",
@@ -81,7 +93,7 @@ function LinkOrderDirectory({
     { id: "created", label: dictionary.orderCreated, value: (row) => <span className="text-xs">{formatLinkInstant(row.createdAt, locale)}</span> },
   ];
 
-  if (result === null || result.status === "invalid-query") {
+  if (result === null) {
     return (
       <DataDirectory
         caption={dictionary.paymentLinkOrdersHeading}
@@ -90,10 +102,10 @@ function LinkOrderDirectory({
         formAction={path}
         idPrefix="payment-link-v2-orders"
         resetUrl={path}
+        retryUrl={path}
         rowKey={(row) => row.id}
         rows={[]}
-        state={result === null ? "error" : "invalid-query"}
-        {...(result === null ? { retryUrl: path } : {})}
+        state="error"
       />
     );
   }
@@ -118,6 +130,7 @@ function LinkOrderDirectory({
           <Link href={`${path}/${row.id}`}>{dictionary.ordersView}</Link>
         </Button>
       )}
+      getRowHref={(row) => `${path}/${row.id}`}
       idPrefix="payment-link-v2-orders"
       {...(result.nextCursor ? { nextUrl: pageUrl(path, canonicalQuery, result.nextCursor) } : {})}
       pageSize={result.pageSize}
@@ -153,7 +166,9 @@ export default async function PaymentLinkV2OrdersPage({
 
   const link = linkResult.link;
   const path = `/links/v2/${link.id}/orders`;
-  const requestTarget = drilldownRequestTarget(await searchParams, link.identifier, path);
+  const resolvedSearchParams = await searchParams;
+  const invalidFiltersNotice = resolvedSearchParams[DIRECTORY_INVALID_FILTERS_PARAM] === DIRECTORY_INVALID_FILTERS_VALUE;
+  const requestTarget = drilldownRequestTarget(resolvedSearchParams, link.identifier, path);
   let result: OrderV2DirectoryResult | null = null;
   try {
     result = await queryOwnerOrderV2Directory(requestTarget, path);
@@ -161,10 +176,12 @@ export default async function PaymentLinkV2OrdersPage({
     result = null;
   }
   if (result?.status === "redirect") redirect(result.location);
+  if (result?.status === "invalid-query") redirect(directoryInvalidFiltersLocation(path));
 
   return (
     <div className="space-y-4">
       <WorkspaceHeading description={dictionary.paymentLinkOrdersDescription} eyebrow={dictionary.shellMerchantEyebrow} title={dictionary.paymentLinkOrdersHeading} />
+      {invalidFiltersNotice ? <DirectoryInvalidFiltersNotice dictionary={dictionary} /> : null}
 
       <div className="flex flex-wrap items-center gap-3">
         <span className="font-mono text-sm">#{link.identifier}</span>

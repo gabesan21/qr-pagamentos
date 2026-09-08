@@ -2,6 +2,7 @@ import "server-only";
 
 import type { Principal } from "@/auth/authorization";
 import { canonicalizeDirectoryRequest, type CanonicalDirectoryRequest } from "@/data-directory/server/canonical-request";
+import { DIRECTORY_INVALID_FILTERS_PARAM } from "@/data-directory/server/notice";
 import { createDirectoryCursorCodec, type DirectoryCursorCodec, type DirectoryCursorEnvelope } from "@/data-directory/server/cursor";
 import {
   ORDER_V2_DIRECTORY_FILTERS,
@@ -51,6 +52,10 @@ export function resolveOrdersDirectoryQuery(
   const entries: Array<[string, string]> = [];
   for (const [key, value] of Object.entries(input.searchParams)) {
     if (value === undefined) continue;
+    // The reserved invalid-filters notice pair is a redirect artifact, not a
+    // directory param: dropping it here is what keeps the reset redirect from
+    // looping back into another invalid-query resolution.
+    if (key === DIRECTORY_INVALID_FILTERS_PARAM) continue;
     if (key === ORDERS_NOTICE_KEY) {
       if (typeof value !== "string" || notice !== undefined) return { status: "invalid-query" };
       if (!(ORDERS_NOTICE_VALUES as readonly string[]).includes(value)) return { status: "invalid-query" };

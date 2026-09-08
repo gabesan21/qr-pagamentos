@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { ListOrderedIcon, PlusIcon, Share2Icon } from "lucide-react";
 
 import { OwnerPaymentLinkManagement } from "@/app/admin/payment-link-management";
+import { dataDirectoryCopy, DirectoryInvalidFiltersNotice } from "@/app/directory-support";
 import { WorkspaceHeading } from "@/app-shell/workspace-heading";
 import { getPaymentLinkService } from "@/auth/payment-link";
 import {
@@ -19,12 +20,16 @@ import {
   type DirectoryOrderField,
   type DirectoryPage,
 } from "@/data-directory/server/directory-page";
+import {
+  DIRECTORY_INVALID_FILTERS_PARAM,
+  DIRECTORY_INVALID_FILTERS_VALUE,
+  directoryInvalidFiltersLocation,
+} from "@/data-directory/server/notice";
 import { DataDirectory, type DataDirectoryColumn, type DataDirectoryState } from "@/data-directory/ui/data-directory";
 import type { getDictionary } from "@/i18n/dictionaries";
 import type { SupportedLocale } from "@/i18n/locales";
 
 import { requireMerchantShellContext } from "../shell-context";
-import { linksDirectoryCopy } from "./directory-copy";
 import {
   LINKS_DIRECTORY_ID,
   LINKS_DIRECTORY_ORDER_ID,
@@ -64,9 +69,12 @@ function PaymentLinkDirectory({
   dictionary: Dictionary;
   locale: SupportedLocale;
   page: DirectoryPage<PaymentLinkV2DirectoryRow> | null;
-  query: Extract<ReturnType<typeof resolveLinksDirectoryQuery>, { status: "ready" | "invalid-query" }>;
+  query: Extract<ReturnType<typeof resolveLinksDirectoryQuery>, { status: "ready" }>;
 }>) {
-  const copy = linksDirectoryCopy(dictionary);
+  const copy = dataDirectoryCopy(dictionary, {
+    title: dictionary.paymentLinkDirectoryEmpty,
+    description: dictionary.paymentLinkDirectoryEmptyDescription,
+  });
   const columns: readonly DataDirectoryColumn<PaymentLinkV2DirectoryRow>[] = [
     {
       id: "identifier",
@@ -105,22 +113,6 @@ function PaymentLinkDirectory({
     },
   ];
 
-  if (query.status === "invalid-query") {
-    return (
-      <DataDirectory
-        caption={dictionary.paymentLinkDirectoryHeading}
-        columns={columns}
-        copy={copy}
-        formAction={LINKS_DIRECTORY_PATH}
-        idPrefix="payment-links-v2"
-        resetUrl={LINKS_DIRECTORY_PATH}
-        rowKey={(row) => row.id}
-        rows={[]}
-        state="invalid-query"
-      />
-    );
-  }
-
   const rows = page?.rows ?? [];
   const filtering = Boolean(query.query.q) || Object.keys(query.query.filters).length > 0 || query.cursor !== undefined;
   const state: DataDirectoryState = page === null
@@ -132,6 +124,7 @@ function PaymentLinkDirectory({
   return (
     <DataDirectory
       actionsLabel={dictionary.paymentLinkDirectoryColumnActions}
+      canonicalFilterQuery={query.query.canonicalFilterQuery}
       caption={dictionary.paymentLinkDirectoryHeading}
       columns={columns}
       copy={copy}
@@ -187,6 +180,7 @@ function PaymentLinkDirectory({
           </Button>
         </span>
       )}
+      getRowHref={(row) => `/links/v2/${row.id}`}
       idPrefix="payment-links-v2"
       {...(page?.nextCursor ? { nextUrl: pageUrl(query.query, page.nextCursor) } : {})}
       pageSize={query.query.pageSize}
@@ -207,29 +201,30 @@ export default async function MerchantLinksPage({
   searchParams?: Promise<LinksSearchParams>;
 }> = {}) {
   const { dictionary, locale, principal } = await requireMerchantShellContext();
-  const query = resolveLinksDirectoryQuery({ searchParams: await searchParams, principal });
+  const resolvedSearchParams = await searchParams;
+  const invalidFiltersNotice = resolvedSearchParams[DIRECTORY_INVALID_FILTERS_PARAM] === DIRECTORY_INVALID_FILTERS_VALUE;
+  const query = resolveLinksDirectoryQuery({ searchParams: resolvedSearchParams, principal });
   if (query.status === "redirect") redirect(query.location);
+  if (query.status === "invalid-query") redirect(directoryInvalidFiltersLocation(LINKS_DIRECTORY_PATH));
 
   // The frozen V1 section keeps its exact behavior, including its own failure
   // propagation; only the V2 directory read degrades into the error state.
   const data = await getPaymentLinkService().listForOwner(principal);
   let page: DirectoryPage<PaymentLinkV2DirectoryRow> | null = null;
-  if (query.status === "ready") {
-    try {
-      page = await queryMerchantDirectory({
-        principal,
-        directory: LINKS_DIRECTORY_ID,
-        orderId: LINKS_DIRECTORY_ORDER_ID,
-        order: DIRECTORY_ORDER,
-        filters: { ...query.query.filters, ...(query.query.q ? { q: query.query.q } : {}) },
-        canonicalFilterQuery: query.query.canonicalFilterQuery,
-        pageSize: query.query.pageSize,
-        ...(query.cursor ? { cursor: query.cursor } : {}),
-        adapter: getPaymentLinkV2DirectoryAdapter(),
-      });
-    } catch {
-      page = null;
-    }
+  try {
+    page = await queryMerchantDirectory({
+      principal,
+      directory: LINKS_DIRECTORY_ID,
+      orderId: LINKS_DIRECTORY_ORDER_ID,
+      order: DIRECTORY_ORDER,
+      filters: { ...query.query.filters, ...(query.query.q ? { q: query.query.q } : {}) },
+      canonicalFilterQuery: query.query.canonicalFilterQuery,
+      pageSize: query.query.pageSize,
+      ...(query.cursor ? { cursor: query.cursor } : {}),
+      adapter: getPaymentLinkV2DirectoryAdapter(),
+    });
+  } catch {
+    page = null;
   }
 
   return (
@@ -240,7 +235,8 @@ export default async function MerchantLinksPage({
           <Link href="/links/new"><PlusIcon aria-hidden /> {dictionary.paymentLinkCreateTitle}</Link>
         </Button>
       </div>
-      {query.status === "ready" && query.notice ? <PaymentLinkV2Notice dictionary={dictionary} notice={query.notice} /> : null}
+      {invalidFiltersNotice ? <DirectoryInvalidFiltersNotice dictionary={dictionary} /> : null}
+      {query.notice ? <PaymentLinkV2Notice dictionary={dictionary} notice={query.notice} /> : null}
       <PaymentLinkDirectory dictionary={dictionary} locale={locale} page={page} query={query} />
       <Separator />
       <section aria-labelledby="legacy-payment-links-heading" className="flex flex-col gap-6">

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { dataDirectoryCopy, DirectoryInvalidFiltersNotice } from "@/app/directory-support";
 import { OrderListCard } from "@/app/orders/order-views";
 import {
   formatOrderV2Instant,
@@ -16,6 +17,11 @@ import { Button } from "@/components/ui/button";
 import { CopyField } from "@/components/ui/copy-field";
 import { MoneyText } from "@/components/ui/money-text";
 import { Separator } from "@/components/ui/separator";
+import {
+  DIRECTORY_INVALID_FILTERS_PARAM,
+  DIRECTORY_INVALID_FILTERS_VALUE,
+  directoryInvalidFiltersLocation,
+} from "@/data-directory/server/notice";
 import { DataDirectory, type DataDirectoryColumn, type DataDirectoryState } from "@/data-directory/ui/data-directory";
 import type { getDictionary } from "@/i18n/dictionaries";
 import type { SupportedLocale } from "@/i18n/locales";
@@ -29,7 +35,6 @@ import {
 import type { OrderV2Summary } from "@/orders/order-v2-view";
 
 import { requireMerchantShellContext } from "../shell-context";
-import { ordersDirectoryCopy } from "./directory-copy";
 import {
   ORDERS_NOTICE_KEY,
   ordersCanonicalTarget,
@@ -68,15 +73,13 @@ function OrderV2Directory({
   locale,
   page,
   query,
-  serviceInvalid = false,
 }: Readonly<{
   dictionary: Dictionary;
   locale: SupportedLocale;
   page: Extract<OrderV2DirectoryResult, { status: "ready" }> | null;
-  query: Extract<ReturnType<typeof resolveOrdersDirectoryQuery>, { status: "ready" | "invalid-query" }>;
-  serviceInvalid?: boolean;
+  query: Extract<ReturnType<typeof resolveOrdersDirectoryQuery>, { status: "ready" }>;
 }>) {
-  const copy = ordersDirectoryCopy(dictionary);
+  const copy = dataDirectoryCopy(dictionary, { title: dictionary.orderV2DirectoryEmpty, description: dictionary.orderV2DirectoryEmptyDescription });
   const columns: readonly DataDirectoryColumn<OrderV2Summary>[] = [
     { id: "payer", label: dictionary.orderV2DirectoryColumnPayer, value: (row) => <OrderV2PayerFacts dictionary={dictionary} payer={row.payer} /> },
     { id: "source", label: dictionary.orderV2DirectoryColumnSource, value: (row) => <Badge variant="outline">{orderV2SourceLabel(dictionary, row.source)}</Badge> },
@@ -93,22 +96,6 @@ function OrderV2Directory({
     { id: "created", label: dictionary.orderV2DirectoryColumnCreated, numeric: true, value: (row) => formatOrderV2Instant(row.createdAt, locale) },
   ];
 
-  if (query.status === "invalid-query" || serviceInvalid) {
-    return (
-      <DataDirectory
-        caption={dictionary.orderV2DirectoryHeading}
-        columns={columns}
-        copy={copy}
-        formAction={ORDER_V2_DIRECTORY_PATH}
-        idPrefix="orders-v2"
-        resetUrl={ORDER_V2_DIRECTORY_PATH}
-        rowKey={(row) => row.id}
-        rows={[]}
-        state="invalid-query"
-      />
-    );
-  }
-
   const rows = page?.rows ?? [];
   const filtering = Boolean(query.query.q) || Object.keys(query.query.filters).length > 0 || query.cursor !== undefined;
   const state: DataDirectoryState = page === null
@@ -120,7 +107,7 @@ function OrderV2Directory({
   return (
     <DataDirectory
       actionsLabel={dictionary.orderV2DirectoryColumnActions}
-      canonicalFilterQuery={query.status === "ready" && !serviceInvalid ? query.query.canonicalFilterQuery : undefined}
+      canonicalFilterQuery={query.query.canonicalFilterQuery}
       caption={dictionary.orderV2DirectoryHeading}
       columns={columns}
       copy={copy}
@@ -154,6 +141,7 @@ function OrderV2Directory({
           <Link href={`/orders/v2/${row.id}`}>{dictionary.orderV2DirectoryView}</Link>
         </Button>
       )}
+      getRowHref={(row) => `/orders/v2/${row.id}`}
       idPrefix="orders-v2"
       {...(page?.nextCursor ? { nextUrl: pageUrl(query.query, page.nextCursor) } : {})}
       pageSize={query.query.pageSize}
@@ -195,43 +183,42 @@ export default async function MerchantOrdersPage({
   searchParams?: Promise<OrdersSearchParams>;
 }> = {}) {
   const { dictionary, locale, principal } = await requireMerchantShellContext();
-  const query = resolveOrdersDirectoryQuery({ searchParams: await searchParams, principal });
+  const resolvedSearchParams = await searchParams;
+  const invalidFiltersNotice = resolvedSearchParams[DIRECTORY_INVALID_FILTERS_PARAM] === DIRECTORY_INVALID_FILTERS_VALUE;
+  const query = resolveOrdersDirectoryQuery({ searchParams: resolvedSearchParams, principal });
   if (query.status === "redirect") redirect(query.location);
+  if (query.status === "invalid-query") redirect(directoryInvalidFiltersLocation(ORDER_V2_DIRECTORY_PATH));
 
   // The frozen V1 section keeps its exact behavior, including its own failure
   // propagation; only the V2 directory read degrades into the error state.
   const data = await getOrderViewService().listForOwner(principal);
   let page: Extract<OrderV2DirectoryResult, { status: "ready" }> | null = null;
   // The delivered service rejects ungrammatical calendar days after
-  // canonicalization; that is the same zero-I/O invalid-query state.
-  let serviceInvalid = false;
+  // canonicalization; that resolves through the same reset-with-notice route.
   let serviceRedirect: string | null = null;
-  if (query.status === "ready") {
-    try {
-      const result = await queryOwnerOrderV2Directory(ordersCanonicalTarget(query));
-      if (result.status === "ready") page = result;
-      else if (result.status === "invalid-query") serviceInvalid = true;
-      else serviceRedirect = result.location;
-    } catch {
-      page = null;
-    }
+  try {
+    const result = await queryOwnerOrderV2Directory(ordersCanonicalTarget(query));
+    if (result.status === "ready") page = result;
+    else if (result.status === "invalid-query") serviceRedirect = directoryInvalidFiltersLocation(ORDER_V2_DIRECTORY_PATH);
+    else serviceRedirect = result.location;
+  } catch {
+    page = null;
   }
   if (serviceRedirect !== null) redirect(serviceRedirect);
 
   return (
     <>
       <WorkspaceHeading description={dictionary.orderV2DirectoryDescription} eyebrow={dictionary.shellMerchantEyebrow} title={dictionary.ordersHeading} />
-      {query.status === "ready" && query.notice ? <OrderV2Notice dictionary={dictionary} notice={query.notice} /> : null}
-      {query.status === "ready" ? (
-        <OrderV2PageSizePreference
-          defaultSize={ORDER_V2_DIRECTORY_PAGE_SIZE_POLICY.defaultSize}
-          noticeKey={ORDERS_NOTICE_KEY}
-          registeredSizes={ORDER_V2_DIRECTORY_PAGE_SIZE_POLICY.sizes}
-          selectId="orders-v2-page-size"
-          storageKey="qr-orders-v2-page-size"
-        />
-      ) : null}
-      <OrderV2Directory dictionary={dictionary} locale={locale} page={page} query={query} serviceInvalid={serviceInvalid} />
+      {invalidFiltersNotice ? <DirectoryInvalidFiltersNotice dictionary={dictionary} /> : null}
+      {query.notice ? <OrderV2Notice dictionary={dictionary} notice={query.notice} /> : null}
+      <OrderV2PageSizePreference
+        defaultSize={ORDER_V2_DIRECTORY_PAGE_SIZE_POLICY.defaultSize}
+        noticeKey={ORDERS_NOTICE_KEY}
+        registeredSizes={ORDER_V2_DIRECTORY_PAGE_SIZE_POLICY.sizes}
+        selectId="orders-v2-page-size"
+        storageKey="qr-orders-v2-page-size"
+      />
+      <OrderV2Directory dictionary={dictionary} locale={locale} page={page} query={query} />
       <Separator />
       <section aria-labelledby="legacy-orders-heading" className="flex flex-col gap-6">
         <header className="workspace-heading">

@@ -2,11 +2,17 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Plus } from "lucide-react";
 
+import { dataDirectoryCopy, DirectoryInvalidFiltersNotice } from "@/app/directory-support";
 import { WorkspaceHeading } from "@/app-shell/workspace-heading";
 import { getProductService, type OwnerProduct } from "@/auth/product";
 import { getProductCategoryService } from "@/auth/product-category";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  DIRECTORY_INVALID_FILTERS_PARAM,
+  DIRECTORY_INVALID_FILTERS_VALUE,
+  directoryInvalidFiltersLocation,
+} from "@/data-directory/server/notice";
 import { DataDirectory, type DataDirectoryColumn, type DataDirectoryState } from "@/data-directory/ui/data-directory";
 import { MoneyText } from "@/components/ui/money-text";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -16,7 +22,6 @@ import { BrandIdentity } from "@/brand/brand-identity";
 
 import { requireMerchantShellContext } from "../shell-context";
 import { ProductNotice } from "./catalog-notices";
-import { catalogDirectoryCopy } from "./directory-copy";
 import { resolveCatalogDirectoryQuery, type CatalogSearchParams } from "./directory-query";
 import { formatCatalogPrice } from "./price-format";
 
@@ -108,7 +113,7 @@ function ProductDirectory({
   dictionary: Dictionary;
   locale: SupportedLocale;
   products: readonly OwnerProduct[];
-  query: Extract<ReturnType<typeof resolveCatalogDirectoryQuery>, { status: "ready" | "invalid-query" }>;
+  query: Extract<ReturnType<typeof resolveCatalogDirectoryQuery>, { status: "ready" }>;
 }>) {
   const categoryNames = new Map(
     categories.map((category) => [category.id, locale === "pt-BR" ? category.namePtBr : category.nameEn]),
@@ -145,22 +150,6 @@ function ProductDirectory({
     },
   ];
 
-  if (query.status === "invalid-query") {
-    return (
-      <DataDirectory
-        caption={dictionary.shellProducts}
-        columns={columns}
-        copy={catalogDirectoryCopy(dictionary, { title: dictionary.catalogProductsEmpty, description: dictionary.catalogProductsEmptyDescription })}
-        formAction="/catalog"
-        idPrefix="catalog-products"
-        resetUrl="/catalog"
-        rowKey={(row) => row.id}
-        rows={[]}
-        state="invalid-query"
-      />
-    );
-  }
-
   const stateFilter = typeof query.filters.state === "string" ? query.filters.state : query.filters.state?.[0];
   const categoryFilter = typeof query.filters.category === "string" ? [query.filters.category] : query.filters.category;
   const filtered = products.filter(
@@ -181,7 +170,8 @@ function ProductDirectory({
         actionsLabel={dictionary.catalogProductActionsColumn}
         caption={dictionary.shellProducts}
         columns={columns}
-        copy={catalogDirectoryCopy(dictionary, { title: dictionary.catalogProductsEmpty, description: dictionary.catalogProductsEmptyDescription })}
+        canonicalFilterQuery={query.canonicalFilterQuery}
+        copy={dataDirectoryCopy(dictionary, { title: dictionary.catalogProductsEmpty, description: dictionary.catalogProductsEmptyDescription })}
         emptyAction={{ href: "/catalog/products/new", label: dictionary.adminProductCreate }}
         filters={[
           {
@@ -222,6 +212,7 @@ function ProductDirectory({
             </Link>
           </Button>
         )}
+        getRowHref={(row) => `/catalog/products/${row.id}`}
         idPrefix="catalog-products"
         pageSize={query.pageSize}
         resetUrl="/catalog"
@@ -243,6 +234,7 @@ export default async function MerchantCatalogPage({
 }> = {}) {
   const { dictionary, locale, principal } = await requireMerchantShellContext();
   const params = await searchParams;
+  const invalidFiltersNotice = params[DIRECTORY_INVALID_FILTERS_PARAM] === DIRECTORY_INVALID_FILTERS_VALUE;
   let products: readonly OwnerProduct[];
   let categories: readonly { id: string; namePtBr: string; nameEn: string; active: boolean }[];
   let loadFailed = false;
@@ -270,6 +262,7 @@ export default async function MerchantCatalogPage({
     noticeValues: PRODUCT_NOTICE_VALUES,
   });
   if (query.status === "redirect") redirect(query.location);
+  if (query.status === "invalid-query") redirect(directoryInvalidFiltersLocation("/catalog"));
 
   return (
     <div className="space-y-6">
@@ -291,12 +284,13 @@ export default async function MerchantCatalogPage({
           </Button>
         </div>
       </div>
-      {query.status === "ready" && query.notice ? <ProductNotice dictionary={dictionary} notice={query.notice} /> : null}
+      {invalidFiltersNotice ? <DirectoryInvalidFiltersNotice dictionary={dictionary} /> : null}
+      {query.notice ? <ProductNotice dictionary={dictionary} notice={query.notice} /> : null}
       {loadFailed ? (
         <DataDirectory
           caption={dictionary.shellProducts}
           columns={[]}
-          copy={catalogDirectoryCopy(dictionary, { title: dictionary.catalogProductsEmpty, description: dictionary.catalogProductsEmptyDescription })}
+          copy={dataDirectoryCopy(dictionary, { title: dictionary.catalogProductsEmpty, description: dictionary.catalogProductsEmptyDescription })}
           formAction="/catalog"
           idPrefix="catalog-products"
           resetUrl="/catalog"
