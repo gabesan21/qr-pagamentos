@@ -16,6 +16,14 @@ const { requireContext, getForOwner, getSettings } = vi.hoisted(() => ({
 vi.mock("./shell-context", () => ({ requireMerchantShellContext: requireContext }));
 vi.mock("@/orders/merchant-analytics", () => ({ getMerchantAnalyticsService: () => ({ getForOwner }) }));
 vi.mock("@/auth/storefront-settings", () => ({ getStorefrontSettingsService: () => ({ getForOwner: getSettings }) }));
+// The 14.5.1 period control (`./period-control.tsx`) is a client component
+// reading the app router directly, mirroring the admin dashboard's own
+// mock (`src/app/admin/page.test.tsx`).
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ replace: vi.fn(), push: vi.fn() }),
+  usePathname: () => "/",
+  useSearchParams: () => new URLSearchParams(),
+}));
 
 import MerchantDashboardPage from "./page";
 
@@ -50,6 +58,8 @@ function readyView(overrides: Partial<MerchantAnalyticsView> = {}): MerchantAnal
       metrics: [{ identifier: "abcdefghijklmnopqrstuvwx", descriptionPtBr: "Doação mensal", descriptionEn: "Monthly donation", attempts: 4, confirmedOrders: 2, confirmedVolume: [{ currency: brl, amount: "34.90" }] }],
     },
     recentActivity: [{
+      id: "660e8400-e29b-41d4-a716-446655440066",
+      payerName: "Bianca",
       source: "LINK",
       descriptionPtBr: "Doação mensal",
       descriptionEn: "Monthly donation",
@@ -88,14 +98,18 @@ describe("merchant dashboard", () => {
     expect(requireContext).toHaveBeenCalledOnce();
     expect(getForOwner).toHaveBeenCalledWith(principal, undefined);
     expect(html).toContain(ptBR.merchantDashboardGreeting.replace("{username}", principal.username));
-    expect(html).toContain(ptBR.merchantDashboardCheckoutAttempts);
+    expect(html).toContain(ptBR.merchantDashboardOrdersInPeriod);
     expect(html).toContain(ptBR.merchantDashboardConfirmedSales);
     expect(html).toContain(ptBR.merchantDashboardLocallyFinalizedSales);
     expect(html).toContain("34,90 BRL");
     expect(html).toContain("10 BRL");
     expect(html).not.toContain("44,90");
     expect(html).toContain("Café expresso");
-    expect(html).toContain("Doação mensal");
+    // The recent-activity row shows the owner's own order id and the
+    // redacted payer display name, not the bilingual link description
+    // (checkout-and-order-lifecycle, "Merchant analytics definitions").
+    expect(html).toContain("Bianca");
+    expect(html).toContain('href="/orders/v2/660e8400-e29b-41d4-a716-446655440066"');
     expect(html).toContain(ptBR.checkoutStateConfirmed);
     expect(html).toContain("66,66%");
     expect(html).toContain("33,33%");
@@ -123,7 +137,7 @@ describe("merchant dashboard", () => {
 
     expect(getForOwner).toHaveBeenNthCalledWith(1, principal, "bogus");
     expect(getForOwner).toHaveBeenNthCalledWith(2, principal, "7d");
-    expect(html).toContain("merchant-dashboard__period--current");
+    expect(html).toContain("aria-current=\"page\"");
     expect(html).toContain(ptBR.merchantDashboardPeriod7d);
   });
 
@@ -140,7 +154,6 @@ describe("merchant dashboard", () => {
     const html = await render();
 
     expect(html).toContain(ptBR.merchantDashboardNoSales);
-    expect(html).toContain(ptBR.merchantDashboardSalesEmpty);
     expect(html).toContain(ptBR.merchantDashboardFunnelEmpty);
     expect(html).toContain(ptBR.merchantDashboardBestSellersEmpty);
     expect(html).toContain(ptBR.merchantDashboardRecentEmpty);
@@ -168,7 +181,7 @@ describe("merchant dashboard", () => {
     expect(html).toContain(en.merchantDashboardLocallyFinalizedSales);
     expect(html).toContain("34.90 BRL");
     expect(html).toContain("Espresso shot");
-    expect(html).toContain("Monthly donation");
+    expect(html).toContain("Bianca");
     expect(html).toContain("66.66%");
   });
 
