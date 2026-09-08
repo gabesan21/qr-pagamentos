@@ -44,16 +44,15 @@
 
 ## Phase 14.4 - Shell, authentication and administrator convergence
 
-- **Status:** em andamento
+- **Status:** concluída
 - **Description:** Reproduce template shell/menu/auth compositions and every administrator page per the admin family audit.
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[14.4.4-phase-verification]] | Run `pnpm check`, add admin/shell tests, repair what it catches; depends on all 14.4 tasks. · size: S | 004_processing |
 
 ## Phase 14.5 - Merchant convergence
 
-- **Status:** pendente
+- **Status:** em andamento
 - **Description:** Reproduce dashboard, orders, links, catalog, settings and profile compositions, forms, lifecycle rules and states per the merchant family audits.
 
 | Task | Description | Status |
