@@ -373,6 +373,14 @@ them. Mark a state non-applicable instead of simulating it.
   explained rather than deceptively enabled.
 - Loading preserves final geometry. Motion conveys no essential information,
   and focused elements do not move unexpectedly.
+- `ToastViewport` mounts once in the root layout, bottom-right, and reaches
+  every route. Mutation outcomes raise a toast instead of a server banner: success
+  auto-dismisses at 5s, error and warning stay sticky with an optional retry
+  action, and motion stays inside the global `prefers-reduced-motion`
+  collapse — no toast introduces its own animation or transition. Each
+  migrated site keeps its original server `Alert` (same `role` and variant)
+  inside `<noscript>` as the no-JS fallback; sonner's own live region is the
+  single announcer, so the fallback never duplicates it.
 
 ## Business and security precedence
 

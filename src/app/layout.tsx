@@ -3,8 +3,11 @@ import { cookies } from "next/headers";
 
 import { getAuthorizationService } from "../auth/authorization";
 import { resolveThemePreference, THEME_PREFERENCE_COOKIE_NAME } from "../design-system/theme-preference";
+import { getDictionary } from "../i18n/dictionaries";
 import { getLocalePreferenceService } from "../i18n/locale-preference";
 import { localeFromPreferenceCookie, localePreferenceCookieName } from "../i18n/locales";
+import { NoticeToast, type NoticeToastEntry } from "./notice-toast";
+import { ToastViewport } from "../components/ui/toast";
 import "./globals.css";
 import "../app-shell/app-shell.css";
 
@@ -28,9 +31,22 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const themeId = principal
     ? resolveThemePreference(requestCookies.get(THEME_PREFERENCE_COOKIE_NAME)?.value)
     : undefined;
+  const dictionary = getDictionary(locale);
+  // The `/language-preference` redirect appends `?language=saved|error` to
+  // whatever page it returns to; mounting this registry here (rather than in
+  // each page) is what keeps that outcome visible on pages that render no
+  // language banner of their own.
+  const languageNotices: readonly NoticeToastEntry[] = [
+    { param: "language", value: "saved", kind: "success", message: dictionary.languageSaved },
+    { param: "language", value: "error", kind: "error", message: dictionary.languageError },
+  ];
   return (
     <html data-theme={themeId} lang={locale}>
-      <body>{children}</body>
+      <body>
+        {children}
+        <ToastViewport label={dictionary.toastRegionLabel} />
+        <NoticeToast notices={languageNotices} />
+      </body>
     </html>
   );
 }

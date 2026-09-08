@@ -6,7 +6,7 @@ import { getAuthorizationService } from "@/auth/authorization";
 import { BrandIdentity } from "@/brand/brand-identity";
 import { getDictionary } from "@/i18n/dictionaries";
 import { getLocalePreferenceService } from "@/i18n/locale-preference";
-import { defaultLocale } from "@/i18n/locales";
+import { localeFromPreferenceCookie, localePreferenceCookieName } from "@/i18n/locales";
 import { getPublicStorefrontService } from "@/storefront/public-storefront";
 
 import { StandalonePaymentExperience, StandalonePaymentUnavailable } from "./standalone-payment-experience";
@@ -21,9 +21,12 @@ export const dynamic = "force-dynamic";
 // client revalidates it against the canonical amount grammar and 9.2.1
 // validates it again server-side.
 export default async function StandalonePaymentPage({ params, searchParams }: Readonly<{ params: Promise<{ slug: string }>; searchParams: Promise<{ amount?: string | string[] }> }>) {
-  const token = (await cookies()).get("qr_session")?.value;
+  const cookieStore = await cookies();
+  const token = cookieStore.get("qr_session")?.value;
   const principal = token ? await getAuthorizationService().resolve(token) : null;
-  const locale = principal ? await getLocalePreferenceService().resolve(principal.id) : defaultLocale;
+  const locale = principal
+    ? await getLocalePreferenceService().resolve(principal.id)
+    : localeFromPreferenceCookie(cookieStore.get(localePreferenceCookieName)?.value);
   const dictionary = getDictionary(locale);
   const slug = (await params).slug;
   const storefront = await getPublicStorefrontService().read(slug, locale);

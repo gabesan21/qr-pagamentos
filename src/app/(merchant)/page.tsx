@@ -74,16 +74,20 @@ export default async function MerchantDashboardPage({
         </Alert>
       ) : null}
       {notices.language === "saved" ? (
-        <Alert role="status" variant="success">
-          <AlertTitle>{dictionary.languageHeading}</AlertTitle>
-          <AlertDescription>{dictionary.languageSaved}</AlertDescription>
-        </Alert>
+        <noscript>
+          <Alert role="status" variant="success">
+            <AlertTitle>{dictionary.languageHeading}</AlertTitle>
+            <AlertDescription>{dictionary.languageSaved}</AlertDescription>
+          </Alert>
+        </noscript>
       ) : null}
       {notices.language === "error" ? (
-        <Alert variant="destructive">
-          <AlertTitle>{dictionary.languageHeading}</AlertTitle>
-          <AlertDescription>{dictionary.languageError}</AlertDescription>
-        </Alert>
+        <noscript>
+          <Alert variant="destructive">
+            <AlertTitle>{dictionary.languageHeading}</AlertTitle>
+            <AlertDescription>{dictionary.languageError}</AlertDescription>
+          </Alert>
+        </noscript>
       ) : null}
       <MerchantDashboard dictionary={dictionary} locale={locale} view={view} />
     </div>

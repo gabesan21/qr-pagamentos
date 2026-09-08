@@ -24,6 +24,7 @@ export const sharedEn = {
   languageSave: "Save language",
   languageSaved: "Language preference saved.",
   languageError: "Choose a supported language.",
+  toastRegionLabel: "Notifications",
   cancel: "Cancel",
   save: "Save",
   close: "Close",

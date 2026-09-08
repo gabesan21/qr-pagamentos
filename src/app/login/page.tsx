@@ -1,12 +1,13 @@
 import { cookies } from "next/headers";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { BrandIdentity } from "@/brand/brand-identity";
 import { getDictionary } from "@/i18n/dictionaries";
 import { localeFromPreferenceCookie, localePreferenceCookieName } from "@/i18n/locales";
+import { LanguageSwitcher } from "@/app/language-preference/language-switcher";
 
 import { LoginSubmit } from "./login-submit";
 import { TotpChallengeForm } from "./totp-challenge-form";
@@ -30,6 +31,9 @@ export default async function LoginPage({ searchParams }: Readonly<{ searchParam
             <div className="auth-card__form">
               <CardHeader>
                 <BrandIdentity className="auth-brand" variant="product-lockup" />
+                <CardAction>
+                  <LanguageSwitcher label={dictionary.languageLabel} locale={locale} />
+                </CardAction>
                 <CardTitle>{dictionary.mfaHeading}</CardTitle>
                 <CardDescription>{dictionary.mfaIntroduction}</CardDescription>
               </CardHeader>
@@ -46,6 +50,9 @@ export default async function LoginPage({ searchParams }: Readonly<{ searchParam
             <form action="/login/submit" className="auth-card__form login-form" id="login-form" method="post">
               <CardHeader>
                 <BrandIdentity className="auth-brand" variant="product-lockup" />
+                <CardAction>
+                  <LanguageSwitcher label={dictionary.languageLabel} locale={locale} />
+                </CardAction>
                 <CardTitle>{dictionary.loginHeading}</CardTitle>
                 <CardDescription>{dictionary.loginIntroduction}</CardDescription>
               </CardHeader>

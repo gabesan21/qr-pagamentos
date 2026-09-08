@@ -139,16 +139,20 @@ export function SettingsSurface({
             </h2>
             <p className="settings-surface__section-description">{dictionary.settingsLanguageDescription}</p>
             {notices.language === "saved" ? (
-              <Alert role="status" variant="success">
-                <AlertTitle>{dictionary.languageHeading}</AlertTitle>
-                <AlertDescription>{dictionary.languageSaved}</AlertDescription>
-              </Alert>
+              <noscript>
+                <Alert role="status" variant="success">
+                  <AlertTitle>{dictionary.languageHeading}</AlertTitle>
+                  <AlertDescription>{dictionary.languageSaved}</AlertDescription>
+                </Alert>
+              </noscript>
             ) : null}
             {notices.language === "error" ? (
-              <Alert variant="destructive">
-                <AlertTitle>{dictionary.languageHeading}</AlertTitle>
-                <AlertDescription>{dictionary.languageError}</AlertDescription>
-              </Alert>
+              <noscript>
+                <Alert variant="destructive">
+                  <AlertTitle>{dictionary.languageHeading}</AlertTitle>
+                  <AlertDescription>{dictionary.languageError}</AlertDescription>
+                </Alert>
+              </noscript>
             ) : null}
             <Card>
               <CardContent>
