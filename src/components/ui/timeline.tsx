@@ -1,4 +1,4 @@
-import type { ComponentType, SVGProps } from "react";
+import type { ComponentType, ReactNode, SVGProps } from "react";
 import { CheckIcon, CircleIcon, InfoIcon, TriangleAlertIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -6,6 +6,10 @@ import { cn } from "@/lib/utils";
 export type TimelineTone = "danger" | "default" | "info" | "success";
 
 export type TimelineEntry = Readonly<{
+  // Additive, optional: an inline control (e.g. an author-only edit
+  // disclosure) rendered under the entry's timestamp. Absent by default, so
+  // every existing caller renders exactly as delivered.
+  action?: ReactNode;
   body?: string;
   dateTime?: string;
   formattedAt: string;
@@ -48,6 +52,7 @@ export function Timeline({ className, entries }: Readonly<{ className?: string; 
               <time className="mt-1 block font-mono text-xs text-muted-foreground tabular-nums" dateTime={entry.dateTime}>
                 {entry.formattedAt}
               </time>
+              {entry.action ? <div className="mt-2">{entry.action}</div> : null}
             </div>
           </li>
         );

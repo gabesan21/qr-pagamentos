@@ -166,6 +166,7 @@ export function OrderDetailCard({
   locale,
   order,
   owner,
+  showV2Details,
 }: Readonly<{
   backHref: string;
   backLabel?: string;
@@ -173,6 +174,7 @@ export function OrderDetailCard({
   locale: SupportedLocale;
   order: OrderView;
   owner?: Readonly<{ username: string; deletedAt: Date | null }>;
+  showV2Details?: boolean;
 }>) {
   const title = locale === "pt-BR" ? order.productTitlePtBr : order.productTitleEn;
   const timeline = buildTimeline(dictionary, order);
@@ -206,6 +208,14 @@ export function OrderDetailCard({
                   <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{dictionary.checkoutPolicyHeading}</p>
                   <p className="mt-1.5 text-sm">{orderPolicyLabel(dictionary, order.checkoutDataPolicy)}</p>
                 </div>
+                {showV2Details ? (
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{dictionary.orderV2DirectoryColumnSource}</p>
+                    <div className="mt-1.5">
+                      <StatusBadge label={dictionary.orderV2DirectorySourceLink} tone="success" />
+                    </div>
+                  </div>
+                ) : null}
               </div>
               {owner ? (
                 <>
@@ -251,13 +261,17 @@ export function OrderDetailCard({
               <CardTitle>{dictionary.orderState}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div>
-                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{dictionary.orderPaymentLink}</p>
-                <div className="mt-1.5">
-                  <CopyField labels={copyLabels(dictionary)} truncate={false} value={order.paymentLinkIdentifier} />
-                </div>
-              </div>
-              <Separator />
+              {showV2Details ? null : (
+                <>
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{dictionary.orderPaymentLink}</p>
+                    <div className="mt-1.5">
+                      <CopyField labels={copyLabels(dictionary)} truncate={false} value={order.paymentLinkIdentifier} />
+                    </div>
+                  </div>
+                  <Separator />
+                </>
+              )}
               <div>
                 <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{dictionary.orderState}</p>
                 <div className="mt-1.5 flex items-center gap-2">
@@ -267,6 +281,17 @@ export function OrderDetailCard({
               </div>
             </CardContent>
           </Card>
+
+          {showV2Details ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>{dictionary.orderPaymentLink}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CopyField labels={copyLabels(dictionary)} truncate={false} value={order.paymentLinkIdentifier} />
+              </CardContent>
+            </Card>
+          ) : null}
 
           <Card>
             <CardHeader>

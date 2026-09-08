@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Store } from "lucide-react";
 
 import type { Principal } from "@/auth/authorization";
 import { getStorefrontSettingsService } from "@/auth/storefront-settings";
@@ -8,7 +8,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { getMerchantAnalyticsService, type MerchantAnalyticsView } from "@/orders/merchant-analytics";
 
-import { DashboardPeriodNavigation, MerchantDashboard } from "./dashboard";
+import { MerchantDashboard } from "./dashboard";
+import { MerchantDashboardPeriodControl } from "./period-control";
 import { requireMerchantShellContext } from "./shell-context";
 
 // The period controls emit only the closed set; an absent or hand-edited value
@@ -62,9 +63,18 @@ export default async function MerchantDashboardPage({
               </Link>
             </Button>
           ) : null}
-          <DashboardPeriodNavigation current={view.period.id} dictionary={dictionary} />
+          <MerchantDashboardPeriodControl current={view.period.id} dictionary={dictionary} />
         </div>
       </div>
+      {viewStore === null ? (
+        <div className="flex flex-wrap items-center gap-3 rounded-lg border border-info/30 bg-info-soft px-4 py-3 text-sm text-info-on-soft">
+          <Store aria-hidden className="size-4 shrink-0" />
+          <span className="min-w-0 flex-1">{dictionary.merchantDashboardStorefrontBanner}</span>
+          <Button asChild size="sm" variant="secondary">
+            <Link href="/settings#storefront-enabled">{dictionary.merchantDashboardStorefrontBannerCta}</Link>
+          </Button>
+        </div>
+      ) : null}
       {notices.language === "saved" ? (
         <noscript>
           <Alert role="status" variant="success">

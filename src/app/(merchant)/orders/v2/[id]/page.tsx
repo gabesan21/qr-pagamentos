@@ -1,10 +1,11 @@
-import { WorkspaceHeading } from "@/app-shell/workspace-heading";
 import {
   OrderV2CommentsCard,
   OrderV2DetailCard,
   OrderV2OutcomeCard,
   OrderV2UnavailableCard,
 } from "@/app/orders/order-v2-views";
+import type { LinkLifecycle } from "@/components/ui/status-badge";
+import { getPaymentLinkV2ViewService } from "@/auth/payment-link-v2-view";
 import { getOrderV2ViewService } from "@/orders/order-v2-view";
 
 import { requireMerchantShellContext } from "../../../shell-context";
@@ -19,6 +20,8 @@ function resolveOrderV2DetailNotice(value: OrdersSearchParams[string]): OrdersNo
   return raw !== undefined && (ORDERS_NOTICE_VALUES as readonly string[]).includes(raw) ? (raw as OrdersNotice) : null;
 }
 
+// The order's own breadcrumb (via `backLabel`) is the page's only heading; no
+// `WorkspaceHeading` duplicates it above (14.5.1 F03).
 export default async function OrderV2DetailPage({
   params,
   searchParams = Promise.resolve({}),
@@ -27,17 +30,27 @@ export default async function OrderV2DetailPage({
   const result = await getOrderV2ViewService().getForOwner(principal, (await params).id);
   const notice = resolveOrderV2DetailNotice((await searchParams)[ORDERS_NOTICE_KEY]);
 
+  // The link card's lifecycle badge and drill-down: resolved through F03's
+  // additive owner-scoped identifier lookup, never a new directory read. A
+  // miss here simply omits the badge; the order itself still renders.
+  let link: Readonly<{ href: string; lifecycle: LinkLifecycle }> | undefined;
+  if (result.kind === "found" && result.order.paymentLinkV2Identifier !== null) {
+    const linkResult = await getPaymentLinkV2ViewService().getForOwnerByIdentifier(principal, result.order.paymentLinkV2Identifier);
+    if (linkResult.kind === "found") {
+      link = { href: `/links/v2/${linkResult.link.id}`, lifecycle: linkResult.link.state };
+    }
+  }
+
   return (
     <>
-      <WorkspaceHeading description={dictionary.orderV2DirectoryDescription} eyebrow={dictionary.shellMerchantEyebrow} title={dictionary.ordersHeading} />
       {notice ? <OrderV2Notice dictionary={dictionary} notice={notice} /> : null}
       {result.kind === "found"
         ? (
           <>
-            <OrderV2DetailCard backHref="/orders" backLabel={dictionary.orderV2DetailBack} dictionary={dictionary} locale={locale} order={result.order} />
+            <OrderV2DetailCard backHref="/orders" backLabel={dictionary.orderV2DetailBack} dictionary={dictionary} link={link} locale={locale} order={result.order} />
             <div className="grid gap-4 lg:grid-cols-12">
               <div className="space-y-4 lg:col-span-8">
-                <OrderV2CommentsCard dictionary={dictionary} locale={locale} order={result.order} />
+                <OrderV2CommentsCard composerName={principal.username} dictionary={dictionary} locale={locale} order={result.order} />
                 <OrderV2OutcomeCard dictionary={dictionary} order={result.order} />
               </div>
             </div>

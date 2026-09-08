@@ -29,6 +29,7 @@ import {
   type OrderV2Summary,
   type OrderV2SummaryRow,
 } from "./order-v2-view";
+import { PAYMENT_LINK_ORDER_STATES } from "./payment-link-order";
 
 // Owner-scoped Commerce V2 order directory (8.3.1): the bounded query contract
 // of src/data-directory/server over order_v2, read-only. Mutations stay with
@@ -43,8 +44,21 @@ export const ORDER_V2_DIRECTORY_PAGE_SIZE_POLICY = {
   defaultSize: 20,
 } as const satisfies DirectoryPageSizePolicy;
 
+// The explicit stateless option the template's provider-state select needs
+// beside the eight PaymentLinkOrderState members: STANDALONE and AD_HOC
+// orders with no provider attempt yet carry `state: null`, and this value is
+// the only registered filter member that maps to that null column. Mirrors
+// the administrator directory's registration (10.2.1) on the owner scope.
+export const ORDER_V2_DIRECTORY_STATELESS_FILTER_VALUE = "STATELESS";
+
+export const ORDER_V2_DIRECTORY_STATE_FILTER_VALUES = [
+  ...PAYMENT_LINK_ORDER_STATES,
+  ORDER_V2_DIRECTORY_STATELESS_FILTER_VALUE,
+] as const;
+
 export const ORDER_V2_DIRECTORY_FILTERS = [
   { name: "source", kind: "enum", values: ["AD_HOC", "LINK", "STANDALONE"] },
+  { name: "state", kind: "enum", values: ORDER_V2_DIRECTORY_STATE_FILTER_VALUES },
   { name: "money", kind: "enum", values: ["FIAT", "USD"] },
   { name: "from", kind: "text" },
   { name: "to", kind: "text" },
@@ -149,6 +163,11 @@ async function readWindow(
 
   const source = input.filters.source;
   if (Array.isArray(source) && source.length === 1) and.push({ source: source[0] });
+
+  const state = input.filters.state;
+  if (Array.isArray(state) && state.length === 1) {
+    and.push({ state: state[0] === ORDER_V2_DIRECTORY_STATELESS_FILTER_VALUE ? null : state[0] });
+  }
 
   const money = input.filters.money;
   if (Array.isArray(money) && money.length === 1) {
