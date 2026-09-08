@@ -20,14 +20,15 @@ const GENERATED_PASSWORD_LENGTH = 18;
 const PASSWORD_CHARSET = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789!@#$%";
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+// `crypto.getRandomValues` fills the whole typed array (or throws) — it never
+// leaves an entry `undefined` — so there is no reachable fallback branch once
+// the guard above confirms the API exists.
 function generatePassword() {
   const randomValues = new Uint32Array(GENERATED_PASSWORD_LENGTH);
   if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") crypto.getRandomValues(randomValues);
   let password = "";
   for (let index = 0; index < GENERATED_PASSWORD_LENGTH; index += 1) {
-    const fallback = Math.floor(Math.random() * PASSWORD_CHARSET.length);
-    const random = randomValues[index] ?? fallback;
-    password += PASSWORD_CHARSET[random % PASSWORD_CHARSET.length];
+    password += PASSWORD_CHARSET[randomValues[index] % PASSWORD_CHARSET.length];
   }
   return password;
 }

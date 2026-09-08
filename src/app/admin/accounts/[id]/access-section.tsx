@@ -208,7 +208,7 @@ export function AccessSection({
       <div className="flex items-center justify-between border-t border-border pt-4">
         <div>
           <p className="text-sm font-medium">{dictionary.adminChangePassword}</p>
-          <p className="text-xs text-muted-foreground">{dictionary.adminPasswordHelp}</p>
+          <p className="text-xs text-muted-foreground" id={`password-help-${detail.id}`}>{dictionary.adminPasswordHelp}</p>
         </div>
         <form action={`/admin/users/${detail.id}/password`} method="post">
           <FieldGroup className="flex items-end gap-3">

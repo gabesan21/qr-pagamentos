@@ -37,10 +37,11 @@ type RequiredFieldErrors = Readonly<{ username?: boolean; password?: boolean }>;
 
 /**
  * The credentials form panel for `/login`, rendered inside the shared
- * `AuthCard`. Client-side progressive enhancement only: native `required`
- * and the native POST to `/login/submit` keep working with JavaScript
- * disabled, and this component only suppresses the native validation
- * bubbles in favor of the localized inline message.
+ * `AuthCard`. Client-side progressive enhancement only: the native POST to
+ * `/login/submit` keeps working with JavaScript disabled, but the form sets
+ * `noValidate`, so the "required" copy shown inline is a client-side check —
+ * with JS disabled, a blank submit reaches the server, which returns the
+ * same generic invalid-credentials error.
  */
 export function LoginForm({ dictionary, invalidCredentials, passwordChanged }: LoginFormProps) {
   const [showPassword, setShowPassword] = useState(false);

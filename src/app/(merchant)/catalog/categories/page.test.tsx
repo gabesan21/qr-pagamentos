@@ -14,6 +14,7 @@ vi.mock("next/navigation", () => ({ redirect, useSearchParams: () => new URLSear
 vi.mock("server-only", () => ({}));
 vi.mock("@/app/owner-guard", () => ({ requireOwnerFromCookie, ownerProtectedMutationResponse: vi.fn() }));
 vi.mock("@/i18n/locale-preference", () => ({ getLocalePreferenceService: () => ({ resolve: resolveLocale }) }));
+vi.mock("@/auth/storefront-settings", () => ({ getStorefrontSettingsService: () => ({ getForOwner: () => Promise.resolve({ storefrontEnabled: false, storefrontSlug: null }) }) }));
 vi.mock("@/auth/product-category", () => ({ getProductCategoryService: () => ({ listForOwner: listCategories }) }));
 vi.mock("@/auth/product", () => ({ getProductService: () => ({ listForOwner: listProducts }) }));
 

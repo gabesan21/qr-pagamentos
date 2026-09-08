@@ -16,6 +16,7 @@ vi.mock("next/navigation", () => ({ redirect, useSearchParams: () => new URLSear
 vi.mock("server-only", () => ({}));
 vi.mock("@/app/owner-guard", () => ({ requireOwnerFromCookie, ownerProtectedMutationResponse: vi.fn() }));
 vi.mock("@/i18n/locale-preference", () => ({ getLocalePreferenceService: () => ({ resolve: resolveLocale }) }));
+vi.mock("@/auth/storefront-settings", () => ({ getStorefrontSettingsService: () => ({ getForOwner: () => Promise.resolve({ storefrontEnabled: false, storefrontSlug: null }) }) }));
 vi.mock("@/orders/order-view", () => ({ getOrderViewService: () => ({ listForOwner: listV1 }) }));
 vi.mock("@/app/admin/product-management", () => ({ formatProductPrice: (price: string) => `BRL ${price}` }));
 vi.mock("@/orders/order-v2-directory", async (importActual) => ({

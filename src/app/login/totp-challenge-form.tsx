@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { REGEXP_ONLY_DIGITS } from "input-otp";
 import { Spinner } from "@/components/ui/spinner";
 
 const TOTP_CODE_LENGTH = 6;
@@ -86,6 +87,7 @@ export function TotpChallengeForm({ dictionary, failed }: Readonly<TotpChallenge
               name="code"
               onChange={setCode}
               onComplete={() => formRef.current?.requestSubmit()}
+              pattern={REGEXP_ONLY_DIGITS}
               required
               value={code}
             >

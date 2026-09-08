@@ -5,7 +5,10 @@ import { CheckCircle2Icon } from "lucide-react";
 
 import { AdminSubmit } from "@/app/admin/admin-submit";
 import { SegmentedControl } from "@/app/admin/admin-controls";
-import { CHECKOUT_DATA_POLICIES, type CheckoutDataPolicy } from "@/auth/checkout-policy";
+// Type-only: this client boundary must never pull `@/auth/checkout-policy`'s
+// runtime module (it imports the database client) into the browser bundle —
+// `CHECKOUT_POLICY_LABELS` below is the client-safe closed enumeration.
+import type { CheckoutDataPolicy } from "@/auth/checkout-policy";
 import type { AdminUserDetail } from "@/auth/admin-user-directory";
 import { Field } from "@/components/ui/field";
 import type { getDictionary } from "@/i18n/dictionaries";
@@ -59,7 +62,7 @@ function CheckoutPolicyField({ detail, dictionary }: Readonly<{ detail: AdminUse
     <form action={`/admin/users/${detail.id}/checkout-policy`} method="post">
       <p className="text-sm font-medium" id={labelId}>{dictionary.checkoutPolicyLabel}</p>
       <div aria-labelledby={labelId} className="mt-2 grid gap-3 sm:grid-cols-2" role="radiogroup">
-        {CHECKOUT_DATA_POLICIES.map((value) => {
+        {(Object.keys(CHECKOUT_POLICY_LABELS) as readonly CheckoutDataPolicy[]).map((value) => {
           const selected = value === policy;
           return (
             <button

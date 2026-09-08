@@ -55,7 +55,7 @@ export function AdminDashboardPeriodControl({
         onValueChange={commit}
         value={current}
       >
-        <TabsList>
+        <TabsList aria-label={dictionary.adminDashboardPeriodLabel}>
           {DASHBOARD_PERIODS.map((period) => (
             <TabsTrigger key={period.id} value={period.id}>
               {period.label(dictionary)}

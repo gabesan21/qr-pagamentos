@@ -15,6 +15,7 @@ vi.mock("next/navigation", () => ({ redirect }));
 vi.mock("server-only", () => ({}));
 vi.mock("@/app/owner-guard", () => ({ requireOwnerFromCookie, ownerProtectedMutationResponse: vi.fn() }));
 vi.mock("@/i18n/locale-preference", () => ({ getLocalePreferenceService: () => ({ resolve: resolveLocale }) }));
+vi.mock("@/auth/storefront-settings", () => ({ getStorefrontSettingsService: () => ({ getForOwner: () => Promise.resolve({ storefrontEnabled: false, storefrontSlug: null }) }) }));
 vi.mock("@/orders/order-v2-view", async (importActual) => ({
   ...(await importActual<typeof import("@/orders/order-v2-view")>()),
   getOrderV2ViewService: () => ({ getForOwner }),
@@ -90,6 +91,9 @@ describe("merchant V2 order detail page", () => {
     expect(markup).toContain('href="/orders"');
     expect(markup).not.toContain(productUuid);
     expect(markup).not.toContain("990e8400-e29b-41d4-a716-446655440099");
+    // The CPF is null and the NAME_EMAIL policy never required it: the hint
+    // reads as policy compliance, never a bare em dash or a missing capture.
+    expect(markup).toContain("Not required by this link&#x27;s data policy");
   });
 
   it("renders the comment thread with author edit CAS and the append form grammar", async () => {

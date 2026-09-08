@@ -62,13 +62,15 @@ function sha256(value: Buffer | string) {
 test("exposes pending state for native click and Enter submission", async ({ page }) => {
   for (const path of ["click", "enter"] as const) {
     await page.goto("/login", { waitUntil: "domcontentloaded" });
-    await page.getByLabel("Nome de usuário").fill("pending-admin");
-    await page.getByLabel("Senha").fill("pending-password");
+    await page.getByLabel("Nome de usuário", { exact: true }).fill("pending-admin");
+    // Exact match: the show/hide toggle's own "Mostrar senha" aria-label
+    // otherwise resolves as a second, ambiguous match for "Senha".
+    await page.getByLabel("Senha", { exact: true }).fill("pending-password");
     await observePendingNativeSubmission(page, async () => {
       if (path === "click") {
         await page.getByRole("button", { name: "Entrar" }).click({ noWaitAfter: true });
       } else {
-        await page.getByLabel("Senha").press("Enter", { noWaitAfter: true });
+        await page.getByLabel("Senha", { exact: true }).press("Enter", { noWaitAfter: true });
       }
     });
   }
@@ -108,27 +110,36 @@ test("creates current, responsive login evidence", async ({ page }) => {
       const focusOrder: string[] = [];
       const focusTraversal = [];
       await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
-      for (let index = 0; index < 3; index += 1) {
+      // The fixed language-slot select leads the tab order (AuthCard renders
+      // it ahead of the form column), and the show/hide password toggle
+      // (14.4.1) sits between the password field and the submit button, so
+      // the sequence now spans five stops; the toggle and the native select
+      // express their focus indicator through the global
+      // `button/select:focus-visible` outline rule rather than the shadcn
+      // ring box-shadow the Input/Button controls use, so a visible
+      // indicator is either mechanism, never neither.
+      for (let index = 0; index < 5; index += 1) {
         await page.keyboard.press("Tab");
         const focusState = await page.evaluate(() => {
           const element = document.activeElement as HTMLElement | null;
-          if (!element) return { id: "", visible: false, focusVisible: false, ring: "" };
+          if (!element) return { id: "", visible: false, focusVisible: false, outline: "", ring: "" };
           const rectangle = element.getBoundingClientRect();
           const styles = getComputedStyle(element);
           return {
             id: element.id || element.getAttribute("data-slot") || element.tagName,
             visible: rectangle.width > 0 && rectangle.height > 0 && rectangle.bottom > 0 && rectangle.top < window.innerHeight,
             focusVisible: element.matches(":focus-visible"),
+            outline: styles.outlineStyle,
             ring: styles.boxShadow,
           };
         });
         focusOrder.push(focusState.id);
         expect(focusState.visible).toBe(true);
         expect(focusState.focusVisible).toBe(true);
-        expect(focusState.ring).not.toBe("none");
+        expect(focusState.ring !== "none" || focusState.outline !== "none", `visible focus indicator for ${focusState.id}`).toBe(true);
         focusTraversal.push(focusState);
       }
-      expect(focusOrder).toEqual(["username", "password", "button"]);
+      expect(focusOrder).toEqual(["SELECT", "username", "password", "BUTTON", "button"]);
 
       const measured = await page.evaluate(() => {
         const element = <T extends Element>(selector: string) => document.querySelector<T>(selector);
@@ -152,9 +163,16 @@ test("creates current, responsive login evidence", async ({ page }) => {
         const username = element<HTMLInputElement>("#username");
         const password = element<HTMLInputElement>("#password");
         const submit = element<HTMLElement>('[data-slot="button"]');
-        const form = element<HTMLFormElement>("form");
-        const brand = element<HTMLElement>('[data-brand-identity="product-lockup"]');
-        const brandMark = element<SVGSVGElement>("[data-brand-mark]");
+        // The language-slot form (fixed in the auth-card header) now leads
+        // the login credentials form in DOM order; select the credentials
+        // form by its own id, never the first `<form>` on the page.
+        const form = element<HTMLFormElement>("#login-form");
+        // `document.querySelector` returns DOM order, and the AuthCard's own
+        // decorative leading-panel brand mark (hidden below the auth
+        // breakpoint) now precedes the visible form-column one; select the
+        // visible header mark by its own class, never the first match.
+        const brand = element<HTMLElement>(".auth-brand[data-brand-identity]");
+        const brandMark = element<SVGSVGElement>(".auth-brand [data-brand-mark]");
         const card = element<HTMLElement>('[data-slot="card"]');
         return {
           bodyFont: getComputedStyle(document.body).fontFamily,

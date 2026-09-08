@@ -20,6 +20,7 @@ const labels: ShellLabels = {
   openNavigation: "Open navigation",
   privacy: "Privacy",
   profile: "Profile",
+  railCaption: "by Nautt Finance",
   signOut: "Sign out",
   skipToContent: "Skip to content",
   storefront: "Storefront",
@@ -33,7 +34,7 @@ function renderShell(accountLink?: Readonly<{ href: string; label: string }>) {
       labels={labels}
       locale="en"
       mobileNavigation={{ items: [], label: "Navigation" }}
-      pageTitle="Dashboard"
+      titleFallback="Dashboard"
       roleLabel="Merchant"
       username="merchant.one"
     />,

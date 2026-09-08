@@ -16,6 +16,7 @@ vi.mock("next/navigation", () => ({ redirect }));
 vi.mock("server-only", () => ({}));
 vi.mock("@/app/owner-guard", () => ({ requireOwnerFromCookie, ownerProtectedMutationResponse: vi.fn() }));
 vi.mock("@/i18n/locale-preference", () => ({ getLocalePreferenceService: () => ({ resolve: resolveLocale }) }));
+vi.mock("@/auth/storefront-settings", () => ({ getStorefrontSettingsService: () => ({ getForOwner: () => Promise.resolve({ storefrontEnabled: false, storefrontSlug: null }) }) }));
 vi.mock("@/auth/payment-link", () => ({ getPaymentLinkService: () => ({ listForOwner: listV1 }) }));
 vi.mock("@/auth/payment-link-v2-view", () => ({ getPaymentLinkV2ViewService: () => ({ getForOwner }) }));
 vi.mock("@/auth/payment-link-v2-prefill", () => ({ getPaymentLinkV2PrefillService: () => ({ getForOwner: getPrefill }) }));
