@@ -53,7 +53,7 @@
 | [[14.4.1-converge-shell-and-auth-pages]] | Route title, `lg` rail breakpoint, monogram footer, storefront link, auth brand panel on the left with tagline/swatches, forgot-password, show/hide, 6-cell TOTP, distinct reset states, bilingual 404. · size: L | 002_planning |
 | [[14.4.2-converge-admin-dashboard-and-directories]] | Segmented period control, 5/4/3 grid, delta chip, merchant-filtered links, orders/links directories with the template's filters and columns, single unified V1+V2 table. · size: L | 002_planning |
 | [[14.4.3-converge-admin-accounts-and-settings]] | Create-account modal with status/generator/strength, tabbed account editor with segmented/grid/swatch controls, functional global payment settings, currency UUID columns, per-section banners. · size: L | 002_planning |
-| `14.4.4-phase-verification` | Run `pnpm check`, add admin/shell tests, repair what it catches; depends on all 14.4 tasks. · size: S | não iniciada |
+| [[14.4.4-phase-verification]] | Run `pnpm check`, add admin/shell tests, repair what it catches; depends on all 14.4 tasks. · size: S | 001_initial_task |
 
 ## Phase 14.5 - Merchant convergence
 
