@@ -15,4 +15,7 @@ export const ordersEn = {
   orderSettled: "Settled",
   orderUnavailableHeading: "This order is unavailable",
   orderUnavailableDescription: "The order does not exist or is not available for this account.",
+  orderV2OutcomeSelectLabel: "Local outcome",
+  orderV2OutcomePrecedenceCaption: "A local outcome is your own record. It never writes, masks, or shadows the payment state.",
+  orderV2OutcomeFailed: "Could not record the local outcome. Please try again.",
 } as const;

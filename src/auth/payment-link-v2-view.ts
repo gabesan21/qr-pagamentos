@@ -76,9 +76,14 @@ export type PaymentLinkV2WindowQuery = Readonly<{
 export type PaymentLinkV2ViewStore = Readonly<{
   listWindow(query: PaymentLinkV2WindowQuery): Promise<StoredPaymentLinkV2View[]>;
   findForOwner(ownerId: string, id: string): Promise<StoredPaymentLinkV2View | null>;
+  // Additive, owner-scoped: the order detail's link card resolves its own
+  // link by the 24-character public identifier the order carries, never by
+  // the internal UUID.
+  findForOwnerByIdentifier(ownerId: string, identifier: string): Promise<StoredPaymentLinkV2View | null>;
 }>;
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const LINK_IDENTIFIER_PATTERN = /^[A-Za-z0-9_-]{24}$/;
 const LINK_TYPES = ["SINGLE_USE", "REUSABLE"] as const satisfies readonly PaymentLinkType[];
 const COMPOSITION_KINDS = ["PRODUCT_LINES", "FIXED_AMOUNT"] as const satisfies readonly PaymentLinkV2CompositionKind[];
 
@@ -167,6 +172,17 @@ export function createPaymentLinkV2ViewService(
       requireUserPrincipal(actor);
       if (typeof id !== "string" || !UUID_PATTERN.test(id)) return { kind: "unavailable" };
       const stored = await store.findForOwner(actor.id, id.toLowerCase());
+      return stored
+        ? { kind: "found", link: toPaymentLinkV2DirectoryRow(stored, now()) }
+        : { kind: "unavailable" };
+    },
+    // Additive, consumed by the order detail's link card (14.5.1): re-authorized
+    // owner, owner-scoped by identifier, one opaque unavailable outcome for a
+    // malformed or missing 24-character identifier or a cross-owner link.
+    async getForOwnerByIdentifier(actor: Principal, identifier: unknown): Promise<PaymentLinkV2ViewResult> {
+      requireUserPrincipal(actor);
+      if (typeof identifier !== "string" || !LINK_IDENTIFIER_PATTERN.test(identifier)) return { kind: "unavailable" };
+      const stored = await store.findForOwnerByIdentifier(actor.id, identifier);
       return stored
         ? { kind: "found", link: toPaymentLinkV2DirectoryRow(stored, now()) }
         : { kind: "unavailable" };
@@ -307,6 +323,10 @@ function createPrismaPaymentLinkV2ViewStore(prisma: PrismaClient): PaymentLinkV2
     },
     async findForOwner(ownerId, id) {
       const row = await prisma.paymentLinkV2.findFirst({ where: { id, ownerId }, select: viewSelect });
+      return row ? toStored(row as unknown as PrismaPaymentLinkV2ViewRow) : null;
+    },
+    async findForOwnerByIdentifier(ownerId, identifier) {
+      const row = await prisma.paymentLinkV2.findFirst({ where: { identifier, ownerId }, select: viewSelect });
       return row ? toStored(row as unknown as PrismaPaymentLinkV2ViewRow) : null;
     },
   };

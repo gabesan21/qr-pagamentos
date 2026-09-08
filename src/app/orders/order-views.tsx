@@ -206,6 +206,12 @@ export function OrderDetailCard({
                   <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{dictionary.checkoutPolicyHeading}</p>
                   <p className="mt-1.5 text-sm">{orderPolicyLabel(dictionary, order.checkoutDataPolicy)}</p>
                 </div>
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{dictionary.orderV2DirectoryColumnSource}</p>
+                  <div className="mt-1.5">
+                    <StatusBadge label={dictionary.orderV2DirectorySourceLink} tone="success" />
+                  </div>
+                </div>
               </div>
               {owner ? (
                 <>
@@ -252,19 +258,21 @@ export function OrderDetailCard({
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{dictionary.orderPaymentLink}</p>
-                <div className="mt-1.5">
-                  <CopyField labels={copyLabels(dictionary)} truncate={false} value={order.paymentLinkIdentifier} />
-                </div>
-              </div>
-              <Separator />
-              <div>
                 <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{dictionary.orderState}</p>
                 <div className="mt-1.5 flex items-center gap-2">
                   <OrderStateBadge dictionary={dictionary} state={order.state} />
                   <time className="font-mono text-xs text-muted-foreground">{formatOrderInstant(order.updatedAt, locale)}</time>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>{dictionary.orderPaymentLink}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CopyField labels={copyLabels(dictionary)} truncate={false} value={order.paymentLinkIdentifier} />
             </CardContent>
           </Card>
 
