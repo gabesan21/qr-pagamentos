@@ -28,21 +28,21 @@
 
 ## Phase 14.2 - Template vocabulary, theme, feedback
 
-- **Status:** pendente
+- **Status:** em andamento
 - **Description:** Wire the template utilities and soft tokens into `@theme`, give authenticated surfaces a persisted theme switcher, mount toasts, and make locale switching return to the origin page.
 - **Specs:** [[specs/application-frontend-system|Application frontend system]], [[specs/administrative-foundation|Administrative foundation]]
 
 | Task | Description | Status |
 |------|-------------|--------|
-| `14.2.1-wire-template-utilities-into-theme` | `bg-surface/-2`, `text-text-2/3`, `rounded-card/pill`, `shadow-card`, `font-display/money`, `max-w-app/checkout`, `*-soft` feedback tokens and strong `accent` as Tailwind utilities. · size: M | não iniciada |
-| `14.2.2-add-authenticated-theme-switcher` | Cookie-persisted `data-theme` on `<html>` for the six ids, instant client switch in the shell user menu, storefront/checkout preview untouched. · size: M | não iniciada |
-| `14.2.3-mount-toasts-and-origin-locale-switch` | Mount `ToastViewport` in the root layout, turn query-string notices into toasts, and make the locale POST redirect to its origin page (auth pages included). · size: M | não iniciada |
-| `14.2.4-build-domain-badge-and-inventory-parity` | Domain badge families with soft tints, `ImageUploader`, compact `CopyField`, `Monogram` 48, QR generation with identity cut, `StatCard` sparkline. · size: L | não iniciada |
+| [[14.2.1-wire-template-utilities-into-theme]] | `bg-surface/-2`, `text-text-2/3`, `rounded-card/pill`, `shadow-card`, `font-display/money`, `max-w-app/checkout`, `*-soft` feedback tokens and strong `accent` as Tailwind utilities. · size: M | 002_planning |
+| [[14.2.2-add-authenticated-theme-switcher]] | Cookie-persisted `data-theme` on `<html>` for the six ids, instant client switch in the shell user menu, storefront/checkout preview untouched. · size: M | 002_planning |
+| [[14.2.3-mount-toasts-and-origin-locale-switch]] | Mount `ToastViewport` in the root layout, turn query-string notices into toasts, and make the locale POST redirect to its origin page (auth pages included). · size: M | 002_planning |
+| [[14.2.4-build-domain-badge-and-inventory-parity]] | Domain badge families with soft tints, `ImageUploader`, compact `CopyField`, `Monogram` 48, QR generation with identity cut, `StatCard` sparkline. · size: L | 002_planning |
 | `14.2.5-phase-verification` | Run `pnpm check`, add tests for tokens/theme/toast/badges, repair what it catches; depends on all 14.2 tasks. · size: S | não iniciada |
 
 ## Phase 14.3 - Client interaction layer under server-first
 
-- **Status:** pendente
+- **Status:** em andamento
 - **Description:** URL-state filters and page size without Apply, row click, table skeletons, and mutations that stay on their page across every directory and detail.
 
 | Task | Description | Status |
@@ -53,7 +53,7 @@
 
 ## Phase 14.4 - Shell, authentication and administrator convergence
 
-- **Status:** pendente
+- **Status:** em andamento
 - **Description:** Reproduce template shell/menu/auth compositions and every administrator page per the admin family audit.
 
 | Task | Description | Status |
@@ -65,7 +65,7 @@
 
 ## Phase 14.5 - Merchant convergence
 
-- **Status:** pendente
+- **Status:** em andamento
 - **Description:** Reproduce dashboard, orders, links, catalog, settings and profile compositions, forms, lifecycle rules and states per the merchant family audits.
 
 | Task | Description | Status |
@@ -77,7 +77,7 @@
 
 ## Phase 14.6 - Public checkout and storefront convergence
 
-- **Status:** pendente
+- **Status:** em andamento
 - **Description:** Eight outcome views, payment-phase handoff, branded V1, format validation, expiry, privacy modal, footer and language switcher; extrapolate to `/store/**`.
 
 | Task | Description | Status |
@@ -88,7 +88,7 @@
 
 ## Phase 14.7 - Proof and BEM retirement
 
-- **Status:** pendente
+- **Status:** em andamento
 - **Description:** Delete remaining route-scoped BEM CSS, refresh specs/DOX/DESIGN.md, and close with the full `pnpm check` plus the human rendered checklist.
 
 | Task | Description | Status |
