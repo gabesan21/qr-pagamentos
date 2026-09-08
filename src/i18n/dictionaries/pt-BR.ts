@@ -7,6 +7,7 @@ import { administrationPtBR } from "./administration/pt-BR";
 import { productsPtBR } from "./products/pt-BR";
 import { paymentLinksPtBR } from "./payment-links/pt-BR";
 import { paymentLinksDirectoryPtBR } from "./payment-links-directory/pt-BR";
+import { paymentLinksFormPtBR } from "./payment-links-form/pt-BR";
 import { checkoutPolicyPtBR } from "./checkout-policy/pt-BR";
 import { storefrontPtBR } from "./storefront/pt-BR";
 import { checkoutPtBR } from "./checkout/pt-BR";
@@ -39,6 +40,7 @@ export const ptBR = {
   ...productsPtBR,
   ...paymentLinksPtBR,
   ...paymentLinksDirectoryPtBR,
+  ...paymentLinksFormPtBR,
   ...checkoutPolicyPtBR,
   ...storefrontPtBR,
   ...checkoutPtBR,
