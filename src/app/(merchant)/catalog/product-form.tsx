@@ -181,6 +181,7 @@ function ProductPreview({
 export function ProductForm({
   categories,
   choices,
+  defaultCurrencyCode,
   dictionary,
   formId,
   locale,
@@ -190,6 +191,7 @@ export function ProductForm({
 }: Readonly<{
   categories: readonly OwnerProductCategory[];
   choices: readonly ExchangeCurrencyChoice[];
+  defaultCurrencyCode?: string | null;
   dictionary: Dictionary;
   formId: string;
   locale: SupportedLocale;
@@ -199,6 +201,10 @@ export function ProductForm({
 }>) {
   const creating = !product;
   const activeCategories = categories.filter((category) => category.active);
+  const preselectedCurrencyCode =
+    creating && defaultCurrencyCode && choices.some((choice) => choice.code === defaultCurrencyCode)
+      ? defaultCurrencyCode
+      : null;
 
   const [internalName, setInternalName] = useState(product?.internalName ?? "");
   const [titlePtBr, setTitlePtBr] = useState(product?.titlePtBr ?? "");
@@ -208,7 +214,7 @@ export function ProductForm({
   const [price, setPrice] = useState(product?.price ?? "");
   const [imageMediaId, setImageMediaId] = useState(product?.imageMediaId ?? null);
   const [imageDirty, setImageDirty] = useState(false);
-  const [selectedCurrency, setSelectedCurrency] = useState<string | null>(product?.currencyCode ?? null);
+  const [selectedCurrency, setSelectedCurrency] = useState<string | null>(product?.currencyCode ?? preselectedCurrencyCode);
   const [errors, setErrors] = useState<ProductFormErrors>({});
 
   const draftKey = creating ? "product-create" : `product-edit-${product.id}`;
@@ -349,7 +355,7 @@ export function ProductForm({
             formId={formId}
             onSelectedCurrencyChange={setSelectedCurrency}
             readOnly={readOnly}
-            stored={product?.currencyCode ?? null}
+            stored={product?.currencyCode ?? preselectedCurrencyCode}
           />
         </div>
 
