@@ -188,6 +188,25 @@ describe("payment-link V2 owner detail view", () => {
     });
   });
 
+  it("carries the owner-only confirmed count/volume and per-line product availability", async () => {
+    const detail = {
+      ...stored({ lines: [{ position: 1, quantity: 2, titlePtBr: "Café", titleEn: "Coffee", unitPrice: "9.9" }] }),
+    };
+    const withConfirmed: StoredPaymentLinkV2OwnerDetail = {
+      ...detail,
+      lines: detail.lines.map((line) => ({ ...line, available: false })),
+      confirmedOrderCount: 4,
+      confirmedVolume: "39.60",
+    };
+    const { store } = createStore([], withConfirmed);
+    const service = createPaymentLinkV2ViewService(store, now);
+    const result = await service.getForOwner(merchant, detail.id);
+    if (result.kind !== "found") throw new Error("expected found");
+    expect(result.link.confirmedOrderCount).toBe(4);
+    expect(result.link.confirmedVolume).toBe("39.60");
+    expect(result.link.lines[0].available).toBe(false);
+  });
+
   it("shares one opaque unavailable outcome for malformed, missing, and cross-owner identities", async () => {
     const { store, findForOwner } = createStore();
     const service = createPaymentLinkV2ViewService(store, now);
