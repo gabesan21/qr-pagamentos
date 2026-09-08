@@ -418,6 +418,21 @@ inventory: an admin-local table for the byte-frozen V1 ledger reusing the
 owned `Table` primitives, and an admin-local associated-orders card on the
 link detail composing `Card`/`StatusBadge`/`MoneyText`.
 
+Task `14.5.1` converges the merchant dashboard, `/orders`, and the V2 order
+detail routes to the template's operations model, also without adding to
+`owners`: `timeline.tsx` gains one additive, optional per-entry `action` slot
+(absent by default) so the author-only comment-edit CAS control rides the
+newest-first thread instead of its own article; the merchant dashboard's
+segmented period control (`today`/`7d`/`30d`) is a route-local client
+composition of the owned `Tabs`/`TabsList` pill variant, committing `?period=`
+through `router.replace` inside a transition — the same pattern as the
+`14.4.2` admin period control, kept as a second, independent route-local
+wrapper rather than a promoted shared owner, because moving the admin file
+would falsify tests `14.4.4` just verified for no contract gain; a third
+consumer promotes both to one route-neutral owner. The dashboard grid retires
+the `.merchant-dashboard__*` BEM block from `globals.css` in favor of the same
+utility-class approach as `14.4.2`.
+
 ## State contract
 
 Every component documents the baseline states **default**, **loading** when

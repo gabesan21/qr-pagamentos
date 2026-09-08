@@ -29,9 +29,11 @@
   `AccountStateBadge`, `EntityStateBadge`) over one owned tone map; `copy-field.tsx`
   adds a compact chip `variant`, `monogram.tsx` adds an `xl` accent-soft size,
   `qr-display.tsx` accepts an optional `payload` and generates the QR itself
-  with the pinned `qrcode` package, and `stat-card.tsx` accepts an optional
-  `sparkline`. Every family and prop is additive; callers still supply their
-  own localized `labels` and no shared owner imports a domain enum.
+  with the pinned `qrcode` package, `stat-card.tsx` accepts an optional
+  `sparkline`, and `timeline.tsx` accepts an optional per-entry `action` slot
+  (14.5.1, e.g. an author-only edit control) absent by default. Every family
+  and prop is additive; callers still supply their own localized `labels` and
+  no shared owner imports a domain enum.
 - A genuinely new component that a template obligation excludes as
   `excluded-unreachable-generated-ui` (e.g. `ImageUploader`) is recorded in
   `inventory.json`'s `localAdditions` section — owner, public API, states, and
