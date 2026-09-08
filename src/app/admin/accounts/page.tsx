@@ -28,7 +28,7 @@ import {
   resolveAdminAccountsDirectoryQuery,
   type AdminAccountsSearchParams,
 } from "./directory-query";
-import { formatAccountInstant } from "./instant";
+import { formatAccountInstant, formatRelativeAccountActivity } from "./instant";
 
 type Dictionary = ReturnType<typeof getDictionary>;
 
@@ -162,7 +162,21 @@ function AdminUserDirectory({
     { id: "state", label: dictionary.adminUsersDirectoryColumnState, value: (row) => <StateBadge dictionary={dictionary} row={row} /> },
     { id: "store", label: dictionary.adminUsersDirectoryColumnStore, value: (row) => <StoreBadge dictionary={dictionary} row={row} /> },
     { id: "created", label: dictionary.adminUsersDirectoryColumnCreated, numeric: true, value: (row) => <span className="font-mono">{formatAccountInstant(row.createdAt, locale)}</span> },
-    { id: "lastActivity", label: dictionary.adminUsersDirectoryColumnLastActivity, numeric: true, value: (row) => <span className="font-mono">{row.lastActivityAt ? formatAccountInstant(row.lastActivityAt, locale) : dictionary.adminUsersDirectoryLastActivityNever}</span> },
+    {
+      id: "lastActivity",
+      label: dictionary.adminUsersDirectoryColumnLastActivity,
+      numeric: true,
+      value: (row) => row.lastActivityAt ? (
+        <span className="font-mono">
+          {formatAccountInstant(row.lastActivityAt, locale)}{" "}
+          <span className="text-muted-foreground">
+            ({formatRelativeAccountActivity(row.lastActivityAt, locale, dictionary.adminUsersDirectoryLastActivityToday)})
+          </span>
+        </span>
+      ) : (
+        <span className="font-mono">{dictionary.adminUsersDirectoryLastActivityNever}</span>
+      ),
+    },
   ];
 
   const rows = page?.rows ?? [];
@@ -265,6 +279,7 @@ export default async function AdminAccountsPage({
   const notice = query.status === "ready" && query.notice
     ? {
         tone: query.notice.tone,
+        value: query.notice.value,
         text: query.notice.value === "created"
           ? dictionary.adminCreated
           : query.notice.value === "changed"
