@@ -4,6 +4,7 @@ import type {
   DirectoryAdapter,
   DirectoryReadInput,
 } from "../data-directory/server/directory-page";
+import type { DirectoryFilterDefinition } from "../data-directory/server/query-contract";
 import { getDatabaseClient } from "../db/client";
 import type { Prisma, PrismaClient } from "../generated/prisma/client";
 import { requireUserPrincipal, type Principal } from "./authorization";
@@ -16,11 +17,29 @@ import type { PaymentLinkV2CompositionKind } from "./payment-link-v2";
 export const PAYMENT_LINK_V2_DERIVED_STATES = ["active", "inactive", "expired", "paid"] as const;
 export type PaymentLinkV2DerivedState = (typeof PAYMENT_LINK_V2_DERIVED_STATES)[number];
 
-export const PAYMENT_LINK_V2_DIRECTORY_FILTER_DEFINITIONS = [
-  { name: "state", kind: "enum", values: PAYMENT_LINK_V2_DERIVED_STATES },
-  { name: "type", kind: "enum", values: ["SINGLE_USE", "REUSABLE"] },
-  { name: "kind", kind: "enum", values: ["PRODUCT_LINES", "FIXED_AMOUNT"] },
-] as const;
+// The two eras `/links` partitions into: `v2` (this directory's own keyset
+// window) and `legacy` (the frozen V1 list, rendered through the same
+// `DataDirectory` composition with no cursor). Never blended into one page.
+export const PAYMENT_LINK_V2_DIRECTORY_ERA_VALUES = ["v2", "legacy"] as const;
+export type PaymentLinkV2DirectoryEra = (typeof PAYMENT_LINK_V2_DIRECTORY_ERA_VALUES)[number];
+
+// Registered filter set for the merchant `/links` directory (era/state/
+// type/kind/from/to, plus the additive `pair` enum built from the owner's
+// own active pairs when any exist) — at most seven of the eight-filter cap.
+export function buildLinksDirectoryFilterDefinitions(
+  ownerPairIds: readonly string[] = [],
+): readonly DirectoryFilterDefinition[] {
+  const definitions: DirectoryFilterDefinition[] = [
+    { name: "era", kind: "enum", values: PAYMENT_LINK_V2_DIRECTORY_ERA_VALUES },
+    { name: "state", kind: "enum", values: PAYMENT_LINK_V2_DERIVED_STATES },
+    { name: "type", kind: "enum", values: ["SINGLE_USE", "REUSABLE"] },
+    { name: "kind", kind: "enum", values: ["PRODUCT_LINES", "FIXED_AMOUNT"] },
+    { name: "from", kind: "text" },
+    { name: "to", kind: "text" },
+  ];
+  if (ownerPairIds.length > 0) definitions.push({ name: "pair", kind: "enum", values: ownerPairIds });
+  return definitions;
+}
 
 export type PaymentLinkV2LineSummary = Readonly<{
   position: number;
@@ -54,12 +73,33 @@ export type PaymentLinkV2DirectoryRow = Readonly<{
 
 export type PaymentLinkV2View = PaymentLinkV2DirectoryRow;
 
+export type StoredPaymentLinkV2View = Omit<PaymentLinkV2DirectoryRow, "sharePath" | "state">;
+
+// Owner-detail-only additive line fact: whether the line's product is still
+// an active, orderable owner row. Read-time only, never stored, and never
+// exposed on `listWindow` rows or the administrator reuse.
+export type PaymentLinkV2OwnerLineSummary = PaymentLinkV2LineSummary & Readonly<{ available: boolean }>;
+
+// Additive `findForOwner`-only projection: the confirmed LINK-order count and
+// its exact confirmed volume (a canonical decimal string, summed in exact
+// BigInt micro-units) over the orders already related in this one read, plus
+// the per-line availability flag above. `listWindow`, the row DTO it feeds,
+// and the administrator reuse of `StoredPaymentLinkV2View` stay unchanged.
+export type StoredPaymentLinkV2OwnerDetail = Omit<StoredPaymentLinkV2View, "lines"> & Readonly<{
+  lines: ReadonlyArray<PaymentLinkV2OwnerLineSummary>;
+  confirmedOrderCount: number;
+  confirmedVolume: string;
+}>;
+
+export type PaymentLinkV2OwnerDetailView = StoredPaymentLinkV2OwnerDetail & Readonly<{
+  sharePath: string;
+  state: PaymentLinkV2DerivedState;
+}>;
+
 // Cross-owner, malformed, and missing link identities share this one outcome.
 export type PaymentLinkV2ViewResult =
-  | Readonly<{ kind: "found"; link: PaymentLinkV2View }>
+  | Readonly<{ kind: "found"; link: PaymentLinkV2OwnerDetailView }>
   | Readonly<{ kind: "unavailable" }>;
-
-export type StoredPaymentLinkV2View = Omit<PaymentLinkV2DirectoryRow, "sharePath" | "state">;
 
 export type PaymentLinkV2WindowQuery = Readonly<{
   ownerId: string;
@@ -67,6 +107,12 @@ export type PaymentLinkV2WindowQuery = Readonly<{
   linkTypes: readonly PaymentLinkType[];
   compositionKinds: readonly PaymentLinkV2CompositionKind[];
   search?: string;
+  // Additive: the exact currency-pair id from the `pair` filter, and the
+  // inclusive/exclusive calendar-day bounds from `from`/`to` (already
+  // grammar-validated by the query resolver before this window ever runs).
+  currencyPairId?: string;
+  createdFrom?: Date;
+  createdBefore?: Date;
   direction: "forward" | "backward";
   seek?: Readonly<{ createdAtMs: number; id: string }>;
   limit: number;
@@ -75,7 +121,7 @@ export type PaymentLinkV2WindowQuery = Readonly<{
 
 export type PaymentLinkV2ViewStore = Readonly<{
   listWindow(query: PaymentLinkV2WindowQuery): Promise<StoredPaymentLinkV2View[]>;
-  findForOwner(ownerId: string, id: string): Promise<StoredPaymentLinkV2View | null>;
+  findForOwner(ownerId: string, id: string): Promise<StoredPaymentLinkV2OwnerDetail | null>;
 }>;
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -95,7 +141,14 @@ export function derivePaymentLinkV2State(
   return "active";
 }
 
-export function toPaymentLinkV2DirectoryRow(stored: StoredPaymentLinkV2View, now: Date): PaymentLinkV2DirectoryRow {
+// Generic over the stored shape so the one `findForOwner`-only additive
+// projection (`StoredPaymentLinkV2OwnerDetail`) rides the same conversion as
+// the base `listWindow`/administrator shape, with zero signature change for
+// either existing caller.
+export function toPaymentLinkV2DirectoryRow<T extends StoredPaymentLinkV2View>(
+  stored: T,
+  now: Date,
+): T & Readonly<{ sharePath: string; state: PaymentLinkV2DerivedState }> {
   return {
     ...stored,
     sharePath: `/pay/${stored.identifier}`,
@@ -124,6 +177,28 @@ function readEnumFilter<T extends string>(
   return values.filter((entry): entry is T => (allowed as readonly string[]).includes(entry));
 }
 
+function firstFilterValue(value: string | readonly string[] | undefined): string | undefined {
+  return typeof value === "string" ? value : value?.[0];
+}
+
+const CALENDAR_DAY_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+// Exact UTC calendar-day start, or `null` for an ungrammatical or
+// nonexistent day; the query resolver rejects the latter before this window
+// ever runs, so a caller reaching this function always passes a valid day.
+function calendarDayStartUtc(value: string): Date | null {
+  const match = CALENDAR_DAY_PATTERN.exec(value);
+  if (!match) return null;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const start = new Date(Date.UTC(year, month - 1, day));
+  if (start.getUTCFullYear() !== year || start.getUTCMonth() !== month - 1 || start.getUTCDate() !== day) return null;
+  return start;
+}
+
+export { calendarDayStartUtc as validCalendarDayStartUtc };
+
 export function createPaymentLinkV2DirectoryAdapter(
   store: PaymentLinkV2ViewStore,
   now: () => Date = () => new Date(),
@@ -141,12 +216,20 @@ export function createPaymentLinkV2DirectoryAdapter(
         seek = { createdAtMs: input.seek[0] as number, id: (input.seek[1] as string).toLowerCase() };
       }
       const search = typeof input.filters.q === "string" && input.filters.q !== "" ? input.filters.q : undefined;
+      const pair = firstFilterValue(input.filters.pair);
+      const from = firstFilterValue(input.filters.from);
+      const to = firstFilterValue(input.filters.to);
+      const createdFrom = from ? calendarDayStartUtc(from) : null;
+      const createdToStart = to ? calendarDayStartUtc(to) : null;
       const stored = await store.listWindow({
         ownerId: input.scope.ownerId,
         states: readEnumFilter(input.filters.state, PAYMENT_LINK_V2_DERIVED_STATES),
         linkTypes: readEnumFilter(input.filters.type, LINK_TYPES),
         compositionKinds: readEnumFilter(input.filters.kind, COMPOSITION_KINDS),
         ...(search ? { search } : {}),
+        ...(pair ? { currencyPairId: pair } : {}),
+        ...(createdFrom ? { createdFrom } : {}),
+        ...(createdToStart ? { createdBefore: new Date(createdToStart.getTime() + 24 * 60 * 60 * 1000) } : {}),
         direction: input.direction,
         ...(seek ? { seek } : {}),
         limit: input.limit,
@@ -272,6 +355,15 @@ function windowWhere(query: PaymentLinkV2WindowQuery): Prisma.PaymentLinkV2Where
   if (query.compositionKinds.length > 0) and.push({ compositionKind: { in: [...query.compositionKinds] } });
   if (query.linkTypes.length > 0) and.push({ linkType: { in: [...query.linkTypes] } });
   if (query.states.length > 0) and.push({ OR: query.states.map((state) => stateCondition(state, query.now)) });
+  if (query.currencyPairId) and.push({ currencyPairId: query.currencyPairId });
+  if (query.createdFrom || query.createdBefore) {
+    and.push({
+      createdAt: {
+        ...(query.createdFrom ? { gte: query.createdFrom } : {}),
+        ...(query.createdBefore ? { lt: query.createdBefore } : {}),
+      },
+    });
+  }
   if (query.search) {
     and.push({
       OR: [
@@ -292,6 +384,77 @@ function windowWhere(query: PaymentLinkV2WindowQuery): Prisma.PaymentLinkV2Where
   return and.length === 0 ? { ownerId: query.ownerId } : { ownerId: query.ownerId, AND: and };
 }
 
+// `findForOwner`-only select: the same base projection plus every confirmed
+// LINK order's exact amount (not just the first, unlike the `paid`-flag probe
+// above) and each line's product `active` flag.
+const ownerDetailSelect = {
+  ...viewSelect,
+  lines: {
+    select: {
+      position: true,
+      quantity: true,
+      product: { select: { titlePtBr: true, titleEn: true, price: true, active: true } },
+    },
+    orderBy: { position: "asc" as const },
+  },
+  orders: { where: { source: "LINK", state: "CONFIRMED" }, select: { id: true, amount: true } },
+} satisfies Prisma.PaymentLinkV2Select;
+
+type PrismaPaymentLinkV2OwnerDetailRow = Omit<PrismaPaymentLinkV2ViewRow, "lines" | "orders"> & {
+  lines: Array<{
+    position: number;
+    quantity: number;
+    product: { titlePtBr: string; titleEn: string; price: string; active: boolean };
+  }>;
+  orders: Array<{ id: string; amount: string }>;
+};
+
+const MICRO_UNIT_SCALE = BigInt(1_000_000);
+const MICRO_UNIT_DIGITS = 6;
+
+// The store's own exact-decimal sum for the confirmed volume: independent of
+// the client-safe `link-money.ts` module the app pages use, since this layer
+// never imports from `src/app/**`.
+function sumExactAmounts(amounts: readonly string[]): string {
+  const total = amounts.reduce((sum, amount) => {
+    const [integerPart, fractionPart = ""] = amount.split(".");
+    const fraction = fractionPart.padEnd(MICRO_UNIT_DIGITS, "0");
+    return sum + BigInt(integerPart) * MICRO_UNIT_SCALE + BigInt(fraction || "0");
+  }, BigInt(0));
+  const integer = total / MICRO_UNIT_SCALE;
+  const fraction = (total % MICRO_UNIT_SCALE).toString().padStart(MICRO_UNIT_DIGITS, "0").replace(/0+$/, "");
+  return fraction === "" ? integer.toString() : `${integer}.${fraction}`;
+}
+
+function toOwnerDetailStored(row: PrismaPaymentLinkV2OwnerDetailRow): StoredPaymentLinkV2OwnerDetail {
+  return {
+    id: row.id,
+    identifier: row.identifier,
+    compositionKind: row.compositionKind as PaymentLinkV2CompositionKind,
+    descriptionPtBr: row.descriptionPtBr,
+    descriptionEn: row.descriptionEn,
+    amount: row.amount,
+    currencyPairLabel: row.currencyPair.label,
+    linkType: row.linkType as PaymentLinkType,
+    expiresAt: row.expiresAt,
+    active: row.active,
+    paid: row.linkType === "SINGLE_USE" ? row.singleUseSettlement !== null : row.orders.length > 0,
+    orderCount: row._count.orders,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+    lines: row.lines.map((line) => ({
+      position: line.position,
+      quantity: line.quantity,
+      titlePtBr: line.product.titlePtBr,
+      titleEn: line.product.titleEn,
+      unitPrice: line.product.price,
+      available: line.product.active,
+    })),
+    confirmedOrderCount: row.orders.length,
+    confirmedVolume: sumExactAmounts(row.orders.map((order) => order.amount)),
+  };
+}
+
 function createPrismaPaymentLinkV2ViewStore(prisma: PrismaClient): PaymentLinkV2ViewStore {
   return {
     async listWindow(query) {
@@ -306,8 +469,8 @@ function createPrismaPaymentLinkV2ViewStore(prisma: PrismaClient): PaymentLinkV2
       return rows.map((row) => toStored(row as unknown as PrismaPaymentLinkV2ViewRow));
     },
     async findForOwner(ownerId, id) {
-      const row = await prisma.paymentLinkV2.findFirst({ where: { id, ownerId }, select: viewSelect });
-      return row ? toStored(row as unknown as PrismaPaymentLinkV2ViewRow) : null;
+      const row = await prisma.paymentLinkV2.findFirst({ where: { id, ownerId }, select: ownerDetailSelect });
+      return row ? toOwnerDetailStored(row as unknown as PrismaPaymentLinkV2OwnerDetailRow) : null;
     },
   };
 }
@@ -322,4 +485,22 @@ export function getPaymentLinkV2ViewService() {
 
 export function getPaymentLinkV2DirectoryAdapter() {
   return createPaymentLinkV2DirectoryAdapter(createDefaultStore());
+}
+
+export type PaymentLinkV2OwnerCurrencyPairOption = Readonly<{ id: string; label: string }>;
+
+// The owner's active pairs for the additive `pair` directory filter: the
+// distinct currency pairs actually used across this owner's V2 links, never
+// the full catalog registry — so every registered option always matches at
+// least one row.
+export async function listOwnerActiveCurrencyPairs(ownerId: string): Promise<PaymentLinkV2OwnerCurrencyPairOption[]> {
+  const prisma = getDatabaseClient();
+  const rows = await prisma.paymentLinkV2.findMany({
+    where: { ownerId },
+    distinct: ["currencyPairId"],
+    select: { currencyPairId: true, currencyPair: { select: { label: true } } },
+  });
+  return rows
+    .map((row) => ({ id: row.currencyPairId, label: row.currencyPair.label }))
+    .sort((a, b) => a.label.localeCompare(b.label));
 }
