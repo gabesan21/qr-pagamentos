@@ -18,13 +18,12 @@
 
 ## Phase 14.1 - Blocking functional defects
 
-- **Status:** em andamento
+- **Status:** concluída
 - **Description:** Make every template-designed action reachable and correct before any visual convergence.
 - **Specs:** [[specs/catalog-and-payment-links|Catalog and payment links]], [[specs/storefront-and-customization|Storefront and customization]], [[specs/administrative-foundation|Administrative foundation]], [[specs/identity-security|Identity security]]
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[14.1.4-phase-verification]] | Run `pnpm check` via direct pnpm, add regression tests for the three repairs, and repair what it catches; depends on all 14.1 tasks. · size: S | 004_processing |
 
 ## Phase 14.2 - Template vocabulary, theme, feedback
 
