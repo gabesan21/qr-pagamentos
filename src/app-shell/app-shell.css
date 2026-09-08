@@ -107,6 +107,12 @@
 }
 
 .app-shell__rail-principal {
+  align-items: center;
+  display: flex;
+  gap: var(--space-3);
+}
+
+.app-shell__rail-principal-text {
   color: var(--text-secondary);
   display: flex;
   flex-direction: column;
@@ -115,8 +121,19 @@
   overflow-wrap: anywhere;
 }
 
-.app-shell__rail-sign-out {
-  width: 100%;
+.app-shell__rail-role-pill {
+  background: var(--surface-subtle);
+  border-radius: var(--radius-pill);
+  color: var(--text-secondary);
+  display: inline-block;
+  font-size: var(--type-small);
+  padding: 0 var(--space-2);
+  width: fit-content;
+}
+
+.app-shell__rail-caption {
+  color: var(--text-tertiary);
+  font-size: var(--type-small);
 }
 
 .app-shell__username {
@@ -480,7 +497,7 @@
   max-width: var(--layout-max);
 }
 
-@media (max-width: 48rem) {
+@media (max-width: 63.9375rem) {
   .app-shell__rail {
     display: none;
   }
