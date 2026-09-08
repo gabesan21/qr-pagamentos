@@ -6,8 +6,6 @@ export const sharedEn = {
   usernameLabel: "Username",
   passwordLabel: "Password",
   fieldRequired: "Required field",
-  showPassword: "Show password",
-  hidePassword: "Hide password",
   forgotPassword: "Forgot password",
   forgotPasswordNote: "Resetting your password requires a link issued by an administrator.",
   signIn: "Sign in",

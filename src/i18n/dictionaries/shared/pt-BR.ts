@@ -6,8 +6,6 @@ export const sharedPtBR = {
   usernameLabel: "Nome de usuário",
   passwordLabel: "Senha",
   fieldRequired: "Campo obrigatório",
-  showPassword: "Mostrar senha",
-  hidePassword: "Ocultar senha",
   forgotPassword: "Esqueci minha senha",
   forgotPasswordNote: "A redefinição de senha exige um link emitido por um administrador.",
   signIn: "Entrar",
