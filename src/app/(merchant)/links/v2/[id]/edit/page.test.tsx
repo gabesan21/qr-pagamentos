@@ -58,7 +58,7 @@ function ready(locale: "pt-BR" | "en" = "en") {
     activeCurrencyPairs: [{ id: "440e8400-e29b-41d4-a716-446655440020", label: "BRL/USDT" }],
   });
   getForOwner.mockResolvedValue(fixedFound);
-  getPrefill.mockResolvedValue({ version: 5, lineProductIds: [] });
+  getPrefill.mockResolvedValue({ version: 5, lineProductIds: [], hasCheckoutAttempt: false });
 }
 
 beforeEach(() => { vi.clearAllMocks(); });
@@ -103,11 +103,25 @@ describe("merchant V2 payment-link edit page", () => {
 
   it("carries the bilingual attempt-lock explanation and the supersede affordance", async () => {
     ready("pt-BR");
+    // The lock banner and supersede affordance render only when the prefill's
+    // additive `hasCheckoutAttempt` flag is true (14.5.2 F02).
+    getPrefill.mockResolvedValue({ version: 5, lineProductIds: [], hasCheckoutAttempt: true });
     const markup = renderToStaticMarkup(await EditPaymentLinkPage({ params: Promise.resolve({ id: linkId }) }));
     expect(markup).toContain("A composição bloqueia após a primeira tentativa de checkout");
     expect(markup).toContain(`href="/links/new?from=${linkId}"`);
     expect(markup).toContain("Criar uma nova versão");
     expect(markup).toContain(`href="/links/v2/${linkId}"`);
+  });
+
+  // 14.5.2 F02 regression: without a genuine checkout attempt, the edit page
+  // shows neither the lock banner nor the supersede affordance.
+  it("omits the attempt-lock banner and the supersede affordance without a checkout attempt", async () => {
+    ready("pt-BR");
+    getPrefill.mockResolvedValue({ version: 5, lineProductIds: [], hasCheckoutAttempt: false });
+    const markup = renderToStaticMarkup(await EditPaymentLinkPage({ params: Promise.resolve({ id: linkId }) }));
+    expect(markup).not.toContain("A composição bloqueia após a primeira tentativa de checkout");
+    expect(markup).not.toContain(`href="/links/new?from=${linkId}"`);
+    expect(markup).not.toContain("Criar uma nova versão");
   });
 
   it("prefills ordered line product identifiers from the seam over the redacted view", async () => {
