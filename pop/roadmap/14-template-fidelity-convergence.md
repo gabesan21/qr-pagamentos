@@ -41,7 +41,7 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[14.3.4-phase-verification]] | Run `pnpm check`, add directory/mutation/contrast tests, repair what it catches; depends on all 14.3 tasks. · size: S | 002_planning |
+| [[14.3.4-phase-verification]] | Run `pnpm check`, add directory/mutation/contrast tests, repair what it catches; depends on all 14.3 tasks. · size: S | 004_processing |
 
 ## Phase 14.4 - Shell, authentication and administrator convergence
 
