@@ -33,7 +33,7 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[14.2.5-phase-verification]] | Run `pnpm check`, add tests for tokens/theme/toast/badges, repair what it catches; depends on all 14.2 tasks. · size: S | 002_planning |
+| [[14.2.5-phase-verification]] | Run `pnpm check`, add tests for tokens/theme/toast/badges, repair what it catches; depends on all 14.2 tasks. · size: S | 004_processing |
 
 ## Phase 14.3 - Client interaction layer under server-first
 
