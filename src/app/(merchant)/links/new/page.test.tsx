@@ -53,9 +53,9 @@ describe("merchant V2 payment-link create page", () => {
   });
 
   it.each([
-    ["en", "New payment link", "Espresso shot", "BRL/USDT"],
-    ["pt-BR", "Novo link de pagamento", "Café expresso", "BRL/USDT"],
-  ] as const)("renders the bilingual create form posting the delivered field grammar in %s", async (locale, title, productTitle, pairLabel) => {
+    ["en", "New payment link", "Espresso shot", "BRL/USDT", "Search active products…"],
+    ["pt-BR", "Novo link de pagamento", "Café expresso", "BRL/USDT", "Buscar produtos ativos…"],
+  ] as const)("renders the bilingual create form posting the delivered field grammar in %s", async (locale, title, productTitle, pairLabel, searchPlaceholder) => {
     ready(locale);
     const markup = renderToStaticMarkup(await NewPaymentLinkPage());
     expect(markup).toContain(title);
@@ -65,7 +65,11 @@ describe("merchant V2 payment-link create page", () => {
     expect(markup).toContain('name="linkType"');
     expect(markup).toContain('name="expiresAt"');
     expect(markup).toContain('name="lines"');
-    expect(markup).toContain(productTitle);
+    // The product picker is search-driven client-side (`link-lines-editor.tsx`):
+    // titles render only once a non-empty query filters `products`, so the
+    // initial static markup carries the search affordance, never the title.
+    expect(markup).toContain(searchPlaceholder);
+    expect(markup).not.toContain(productTitle);
     expect(markup).toContain(pairLabel);
     // The identifier is server-generated; no identifier input exists anywhere.
     expect(markup).not.toContain('name="identifier"');
