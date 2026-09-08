@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { clearFormDraft, hasFailureNotice, readFormDraft, saveFormDraft } from "@/app/form-draft";
 import type { OwnerProductCategory } from "@/auth/product-category";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,7 +10,6 @@ import { ConfirmDialog, Modal } from "@/components/ui/modal";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import type { getDictionary } from "@/i18n/dictionaries";
 
-import { clearCatalogDraft, hasFailureNotice, readCatalogDraft, saveCatalogDraft } from "../catalog-draft";
 import { Banner } from "../catalog-fields";
 
 type Dictionary = ReturnType<typeof getDictionary>;
@@ -41,10 +41,10 @@ export function CategoryRowActions({
 
   useEffect(() => {
     if (!hasFailureNotice(CATEGORY_NOTICE_KEY, CATEGORY_FAILURE_NOTICES)) {
-      clearCatalogDraft(draftKey);
+      clearFormDraft(draftKey);
       return;
     }
-    const draft = readCatalogDraft(draftKey);
+    const draft = readFormDraft(draftKey);
     if (!draft) return;
     // sessionStorage is a client-only external system unavailable during the
     // server render, so reopening the edit form with its draft cannot happen
@@ -72,7 +72,7 @@ export function CategoryRowActions({
         hidden={!editing}
         id={editFormId}
         method="post"
-        onSubmit={() => saveCatalogDraft(draftKey, { namePtBr, nameEn })}
+        onSubmit={() => saveFormDraft(draftKey, { namePtBr, nameEn })}
         ref={editFormRef}
       >
         <input name="action" type="hidden" value="edit" />

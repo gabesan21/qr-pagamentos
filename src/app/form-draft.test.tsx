@@ -5,12 +5,12 @@ import { act, cleanup, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import {
-  CatalogDraftGuard,
-  clearCatalogDraft,
+  clearFormDraft,
+  FormDraftGuard,
   hasFailureNotice,
-  readCatalogDraft,
-  saveCatalogDraft,
-} from "./catalog-draft";
+  readFormDraft,
+  saveFormDraft,
+} from "./form-draft";
 
 afterEach(cleanup);
 
@@ -19,18 +19,18 @@ beforeEach(() => {
   window.history.pushState({}, "", "/catalog/products/new");
 });
 
-describe("catalog draft persistence", () => {
+describe("form draft persistence", () => {
   it("round-trips a saved draft and clears it", () => {
-    expect(readCatalogDraft("product-create")).toBeNull();
-    saveCatalogDraft("product-create", { internalName: "Espresso" });
-    expect(readCatalogDraft("product-create")).toEqual({ internalName: "Espresso" });
-    clearCatalogDraft("product-create");
-    expect(readCatalogDraft("product-create")).toBeNull();
+    expect(readFormDraft("product-create")).toBeNull();
+    saveFormDraft("product-create", { internalName: "Espresso" });
+    expect(readFormDraft("product-create")).toEqual({ internalName: "Espresso" });
+    clearFormDraft("product-create");
+    expect(readFormDraft("product-create")).toBeNull();
   });
 
   it("returns null for malformed stored JSON instead of throwing", () => {
-    window.sessionStorage.setItem("qr-catalog-draft:product-create", "not-json");
-    expect(readCatalogDraft("product-create")).toBeNull();
+    window.sessionStorage.setItem("qr-form-draft:product-create", "not-json");
+    expect(readFormDraft("product-create")).toBeNull();
   });
 });
 
@@ -47,12 +47,12 @@ describe("hasFailureNotice", () => {
   });
 });
 
-describe("CatalogDraftGuard", () => {
+describe("FormDraftGuard", () => {
   function Harness({ draftKey = "product-create" }: { draftKey?: string }) {
     return (
       <form id="product-form">
         <input defaultValue="" name="internalName" />
-        <CatalogDraftGuard
+        <FormDraftGuard
           draftKey={draftKey}
           fieldNames={["internalName"]}
           formId="product-form"
@@ -73,11 +73,11 @@ describe("CatalogDraftGuard", () => {
       form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
     });
 
-    expect(readCatalogDraft("product-create")).toEqual({ internalName: "Corn cake" });
+    expect(readFormDraft("product-create")).toEqual({ internalName: "Corn cake" });
   });
 
   it("restores the draft into the form only under the failure notice", () => {
-    saveCatalogDraft("product-create", { internalName: "Corn cake" });
+    saveFormDraft("product-create", { internalName: "Corn cake" });
     window.history.pushState({}, "", "/catalog/products/new?products=failed");
 
     const { container } = render(<Harness />);
@@ -86,12 +86,12 @@ describe("CatalogDraftGuard", () => {
   });
 
   it("clears a stale draft on a load without the failure notice", () => {
-    saveCatalogDraft("product-create", { internalName: "Corn cake" });
+    saveFormDraft("product-create", { internalName: "Corn cake" });
     window.history.pushState({}, "", "/catalog/products/new");
 
     const { container } = render(<Harness />);
     const input = container.querySelector("input") as HTMLInputElement;
     expect(input.value).toBe("");
-    expect(readCatalogDraft("product-create")).toBeNull();
+    expect(readFormDraft("product-create")).toBeNull();
   });
 });

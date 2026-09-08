@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { Plus } from "lucide-react";
 
 import { WorkspaceHeading } from "@/app-shell/workspace-heading";
+import { FormDraftGuard } from "@/app/form-draft";
 import { getProductService, type OwnerProduct } from "@/auth/product";
 import { getProductCategoryService, type OwnerProductCategory } from "@/auth/product-category";
 import { Badge } from "@/components/ui/badge";
@@ -11,7 +12,6 @@ import { DataDirectory, type DataDirectoryColumn, type DataDirectoryState } from
 import type { getDictionary } from "@/i18n/dictionaries";
 
 import { requireMerchantShellContext } from "../../shell-context";
-import { CatalogDraftGuard } from "../catalog-draft";
 import { CategoryNotice } from "../catalog-notices";
 import { Breadcrumb, SectionCard } from "../catalog-fields";
 import { catalogDirectoryCopy } from "../directory-copy";
@@ -28,7 +28,7 @@ const STATE_FILTER_VALUES = ["active", "inactive"] as const;
 function CreateCategoryCard({ dictionary }: Readonly<{ dictionary: Dictionary }>) {
   return (
     <SectionCard title={dictionary.catalogCategoryCreateHeading}>
-      <CatalogDraftGuard
+      <FormDraftGuard
         draftKey="category-create"
         fieldNames={["namePtBr", "nameEn"]}
         formId="category-create"
