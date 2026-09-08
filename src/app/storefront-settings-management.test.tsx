@@ -64,15 +64,19 @@ describe("storefront settings management", () => {
     expect(markup).toContain(dictionary.storefrontCurrencyHeading);
   });
 
-  it("resolves the stored-null theme and layout to the design-system fallbacks and lists all six themes", () => {
+  it("resolves the stored-null theme and layout to the design-system fallbacks and lists all six themes as swatches", () => {
     const markup = render();
-    expect(markup).toContain('name="storefrontThemeId"');
-    expect(markup).toContain('name="storefrontLayout"');
+    // The theme is a swatch `radiogroup` (`role="radio"` buttons) carrying
+    // the selection through one read-only hidden input, not a native
+    // `<select>` with per-option `value`s; the layout is a `SegmentedControl`
+    // mirrored the same way.
     for (const id of ["pix-paper", "cashier-daylight", "settlement-sand", "midnight-clearing", "vault-blue", "terminal-amber"]) {
-      expect(markup).toContain(`value="${id}"`);
+      expect(markup).toContain(`theme-swatch-${id}.svg`);
     }
-    expect(markup).toContain('value="pix-paper" selected=""');
-    expect(markup).toContain('value="boxed" selected=""');
+    expect(markup).toContain('name="storefrontThemeId" value="pix-paper"');
+    expect(markup).toContain('name="storefrontLayout" value="boxed"');
+    expect(markup).toContain('role="radiogroup"');
+    expect(markup).toContain('role="radio"');
   });
 
   it("lists only the active redacted currency choices plus the no-default option", () => {
