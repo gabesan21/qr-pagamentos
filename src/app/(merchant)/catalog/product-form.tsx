@@ -215,6 +215,7 @@ export function ProductForm({
   const [imageMediaId, setImageMediaId] = useState(product?.imageMediaId ?? null);
   const [imageDirty, setImageDirty] = useState(false);
   const [selectedCurrency, setSelectedCurrency] = useState<string | null>(product?.currencyCode ?? preselectedCurrencyCode);
+  const [currencyTouched, setCurrencyTouched] = useState(false);
   const [errors, setErrors] = useState<ProductFormErrors>({});
 
   const draftKey = creating ? "product-create" : `product-edit-${product.id}`;
@@ -353,10 +354,16 @@ export function ProductForm({
             choices={choices}
             dictionary={dictionary}
             formId={formId}
-            onSelectedCurrencyChange={setSelectedCurrency}
+            onSelectedCurrencyChange={(code) => {
+              setSelectedCurrency(code);
+              setCurrencyTouched(true);
+            }}
             readOnly={readOnly}
             stored={product?.currencyCode ?? preselectedCurrencyCode}
           />
+          {creating && !currencyTouched ? (
+            <Input name="currencyCode" type="hidden" value={selectedCurrency ?? ""} />
+          ) : null}
         </div>
 
         <FieldGroup>

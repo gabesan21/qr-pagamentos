@@ -74,6 +74,7 @@ export function StorefrontSettingsManagement({
   stagedLogoMediaIdentifier,
 }: StorefrontSettingsManagementProps) {
   const formId = "storefront-settings";
+  const uploadFormId = "storefront-logo-upload";
   const fieldsetRef = useRef<HTMLFieldSetElement>(null);
 
   const prefill: StorefrontExtendedPrefill = {
@@ -178,7 +179,8 @@ export function StorefrontSettingsManagement({
   }
 
   return (
-    <form action="/storefront" id={formId} method="post">
+    <>
+      <form action="/storefront" id={formId} method="post">
       <fieldset aria-busy={pending || undefined} className="contents" ref={fieldsetRef}>
         <div className="space-y-8">
           <section aria-labelledby="settings-identity-heading" className="settings-surface__section" id="settings-identity">
@@ -323,10 +325,8 @@ export function StorefrontSettingsManagement({
                     ) : null}
                     <FieldDescription id="storefront-logo-help">{dictionary.storefrontLogoHelp}</FieldDescription>
                     <noscript>
-                      <form action="/storefront/logo" encType="multipart/form-data" method="post">
-                        <Input accept="image/jpeg,image/png,image/webp" name="logo" required type="file" />
-                        <Button type="submit" variant="secondary">{dictionary.storefrontLogoUpload}</Button>
-                      </form>
+                      <Input accept="image/jpeg,image/png,image/webp" form={uploadFormId} name="logo" required type="file" />
+                      <Button form={uploadFormId} type="submit" variant="secondary">{dictionary.storefrontLogoUpload}</Button>
                     </noscript>
                   </Field>
                   <StorefrontPreview
@@ -418,6 +418,8 @@ export function StorefrontSettingsManagement({
         pendingLabel={dictionary.loading}
         title={dictionary.storefrontEnableConfirmTitle}
       />
-    </form>
+      </form>
+      <form action="/storefront/logo" encType="multipart/form-data" id={uploadFormId} method="post" />
+    </>
   );
 }
