@@ -29,7 +29,7 @@ This spec defines the application-wide presentation, composition, interaction-fe
 
 - The single tone is **professional settlement console**: calm neutral work surfaces, compact financial facts, crisp bordered cards, restrained elevation, direct status feedback, and accent color reserved for action, selection, focus, and measured emphasis.
 - The exact authored visual values and responsive occurrences are the parity records, not approximations. Their production form is DTCG audit primitives → semantic aliases → component tokens with stable paths and no raw page-local visual values. Every snapshot value remains byte-equivalent at `color.primitive.audit.template.<theme>.*`; accessibility may change a rendered semantic alias but never those audit primitives.
-- The fixed semantic palette roles are page, surface, secondary surface, border, three text levels, accent/foreground/soft, success/warning/danger/info with soft companions, focus ring, and elevation. All six themes implement the same paths.
+- The fixed semantic palette roles are page, surface, secondary surface, border, three text levels, accent/foreground/soft/soft-foreground, success/warning/danger/info with soft and soft-foreground companions, focus ring, and elevation. All six themes implement the same paths.
 - The semantic palette is projected as named Tailwind utilities (`bg-surface`, `text-text-2`, `bg-accent`/`bg-accent-soft`, `bg-success`/`-soft`, `rounded-card`, `shadow-card`, `font-display`, `max-w-app`, …) in `src/app/globals.css` `@theme inline`, each bound to a semantic variable, never a literal; `accent` is the strong template accent and `accent-soft` is the pale tint.
 - The exact palette source is the immutable `docs/template/app/src/index.css` snapshot SHA-256 `762edf36239e6472ccfc8eb8faa79d73081633dec69ae4fa0fa5a530ccdcead4`; its complete theme blocks must remain byte-equivalent audit primitives. These anchors make theme identity reviewable without reopening every component:
 
@@ -52,6 +52,40 @@ This spec defines the application-wide presentation, composition, interaction-fe
 | `vault-blue` | 55 | `#7c8cab` | `5.524 / 5.117 / 4.508` |
 | `terminal-amber` | 30 | `#97835f` | `5.288 / 4.943 / 4.545` |
 - The calculation uses WCAG sRGB linearization (`c <= 0.04045 ? c/12.92 : ((c + 0.055)/1.055)^2.4`), luminance `0.2126R + 0.7152G + 0.0722B`, and `(Llighter + 0.05) / (Ldarker + 0.05)`. A `text-3` occurrence on any other background must use a separately validated semantic on-color; it may not fall back to the audit primitive or assume this three-surface proof applies.
+- The same `k`-step method projects text rendered over a soft-tinted surface (`bg-<tone>-soft`, `.text-<tone>-on-soft`): origin `O` is the audit tone hex (`color.primitive.audit.template.<theme>.<tone>` for `success`/`warning`/`danger`/`info`, `.accent` for `action`), target `P` is rendered `color.text.primary`, and the single background is that same tone's rendered soft surface, minimum ratio `4.5:1`. The five roles across all six themes never fall back to `text-<tone>` (the strong role) on a soft surface:
+
+| Theme | Role | `k` | Rendered on-soft hex | Ratio vs soft surface |
+|---|---|---:|---|---:|
+| `pix-paper` | success | 76 | `#1e7b4b` | 4.513 |
+| `pix-paper` | warning | 70 | `#8d6321` | 4.541 |
+| `pix-paper` | danger | 23 | `#b73939` | 4.547 |
+| `pix-paper` | info | 6 | `#2b6aad` | 4.526 |
+| `pix-paper` | action | 111 | `#0d7a6b` | 4.522 |
+| `cashier-daylight` | success | 10 | `#157c3c` | 4.526 |
+| `cashier-daylight` | warning | 14 | `#995e09` | 4.560 |
+| `cashier-daylight` | danger | 0 | `#b91c1c` | 5.105 |
+| `cashier-daylight` | info | 0 | `#0369a1` | 4.967 |
+| `cashier-daylight` | action | 0 | `#2456e6` | 4.909 |
+| `settlement-sand` | success | 14 | `#4b770f` | 4.507 |
+| `settlement-sand` | warning | 0 | `#92400e` | 5.689 |
+| `settlement-sand` | danger | 0 | `#a63535` | 5.021 |
+| `settlement-sand` | info | 0 | `#315c8c` | 5.475 |
+| `settlement-sand` | action | 31 | `#99541d` | 4.522 |
+| `midnight-clearing` | success | 0 | `#34d399` | 6.498 |
+| `midnight-clearing` | warning | 0 | `#fbbf24` | 7.456 |
+| `midnight-clearing` | danger | 0 | `#f87171` | 5.244 |
+| `midnight-clearing` | info | 0 | `#60a5fa` | 5.357 |
+| `midnight-clearing` | action | 0 | `#5eead4` | 8.265 |
+| `vault-blue` | success | 0 | `#3ecf8e` | 6.691 |
+| `vault-blue` | warning | 0 | `#f5b93f` | 7.433 |
+| `vault-blue` | danger | 0 | `#ef6a6a` | 4.909 |
+| `vault-blue` | info | 0 | `#7aa8ff` | 5.873 |
+| `vault-blue` | action | 21 | `#5c95fd` | 4.505 |
+| `terminal-amber` | success | 0 | `#8fcb5c` | 7.221 |
+| `terminal-amber` | warning | 0 | `#ffd166` | 9.045 |
+| `terminal-amber` | danger | 0 | `#ff7a5c` | 5.917 |
+| `terminal-amber` | info | 0 | `#e8b04b` | 7.477 |
+| `terminal-amber` | action | 0 | `#ffb224` | 8.105 |
 - Body copy is Inter at 14px/20px; display copy is Sora with `-0.02em` tracking; money, identifiers, codes, and numeric facts are IBM Plex Mono with tabular numerals. Only template-used weights are admitted: Sora 400/500/600/700, Inter 400/500/600, and IBM Plex Mono 400/500/600.
 - Fonts are pinned, licensed, self-hosted production assets with committed dependency/license provenance and no runtime request to Google Fonts or another host. Fallbacks may preserve usability but do not satisfy parity evidence.
 - The shared radii are 6px, 8px, 10px, and 999px pill; the application cap is 1280px, checkout cap 560px, authentication form cap 420px, desktop rail 248px, top bar 56px, table row 52px, and compact controls 40px unless the interactive-target rule requires 44px or 48px.

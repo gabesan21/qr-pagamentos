@@ -15,6 +15,10 @@
   surface. The legacy shadcn `accent-foreground` is **not** the on-accent
   foreground — use `accent-fg` for text placed on a strong `bg-accent`
   surface.
+- Text over a soft-tinted surface (`bg-<role>-soft` for `success`/`warning`/
+  `danger`/`info`/`accent`) must use the AA-projected `text-<role>-on-soft`
+  (`text-accent-on-soft` for the accent role) — never the strong `text-<role>`,
+  which fails 4.5:1 on several themes; see `pop/specs/application-frontend-system.md`.
 - Keep components server-renderable unless their official primitive requires a
   client boundary. Clipboard, localized-field selection, dialogs, tabs, toast,
   the drop-tile `ImageUploader`, and `QrDisplay`'s client-side QR generation

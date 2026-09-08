@@ -7,11 +7,11 @@ export type StatusTone = "danger" | "info" | "neutral" | "success" | "warning";
 type StatusIcon = ComponentType<SVGProps<SVGSVGElement>>;
 
 const toneClasses: Readonly<Record<StatusTone, string>> = {
-  danger: "bg-danger-soft text-danger",
-  info: "bg-info-soft text-info",
+  danger: "bg-danger-soft text-danger-on-soft",
+  info: "bg-info-soft text-info-on-soft",
   neutral: "bg-surface-2 text-text-2",
-  success: "bg-success-soft text-success",
-  warning: "bg-warning-soft text-warning",
+  success: "bg-success-soft text-success-on-soft",
+  warning: "bg-warning-soft text-warning-on-soft",
 };
 
 type StatusPillProps = Readonly<{
