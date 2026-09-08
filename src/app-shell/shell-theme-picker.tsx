@@ -26,6 +26,9 @@ export function ShellThemePicker({
   themeOptions,
 }: Readonly<{ groupLabel?: string; themeOptions: readonly ShellThemeOption[] }>) {
   const [activeThemeId, setActiveThemeId] = useState<StorefrontThemeId | undefined>(undefined);
+  // No point rendering an empty, unlabeled `role="group"` — the account menu
+  // has nothing to show when the registry resolves no options.
+  const hasOptions = themeOptions.length > 0;
 
   // The server-stamped `data-theme` attribute is a client-only external
   // system unavailable during the server render, so reading it back cannot
@@ -49,6 +52,8 @@ export function ShellThemePicker({
     document.cookie = buildThemePreferenceCookie(themeId, window.location.protocol === "https:");
     setActiveThemeId(themeId);
   }
+
+  if (!hasOptions) return null;
 
   return (
     <div aria-label={groupLabel} className="app-shell__theme-group" role="group">

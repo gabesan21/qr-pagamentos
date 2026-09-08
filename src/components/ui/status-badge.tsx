@@ -19,7 +19,6 @@ type StatusPillProps = Readonly<{
   className?: string;
   icon?: StatusIcon;
   label: string;
-  strikethrough?: boolean;
   tone?: StatusTone;
 }>;
 
@@ -30,7 +29,7 @@ type StatusPillProps = Readonly<{
  * struck-through label when archived or explicitly requested. Color never
  * carries meaning alone.
  */
-function StatusPill({ archived = false, className, icon: Icon, label, strikethrough = false, tone = "neutral" }: StatusPillProps) {
+function StatusPill({ archived = false, className, icon: Icon, label, tone = "neutral" }: StatusPillProps) {
   const marker = archived ? (
     <ArchiveIcon aria-hidden className="size-3" />
   ) : Icon ? (
@@ -41,7 +40,7 @@ function StatusPill({ archived = false, className, icon: Icon, label, strikethro
   return (
     <span className={cn("inline-flex items-center gap-1.5 rounded-pill px-2.5 py-0.5 text-xs font-medium", toneClasses[tone], className)}>
       {marker}
-      <span className={cn((archived || strikethrough) && "line-through")}>{label}</span>
+      <span className={cn(archived && "line-through")}>{label}</span>
     </span>
   );
 }

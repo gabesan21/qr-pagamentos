@@ -258,7 +258,7 @@ storage]]; template assets do not bypass that lifecycle.
   repaints instantly by mutating `<html data-theme>` and persists through a
   client-written, non-`HttpOnly` `qr_theme` cookie with no authorization
   effect; the root layout only trusts it for a resolved principal and only
-  when it names one of the six ids, so public surfaces stay untouched and
+  when it names one of the six ids, so unauthenticated public surfaces stay untouched and
   `data-theme-preview` keeps governing storefront/checkout.
 
 ### Public payment and storefront surfaces
