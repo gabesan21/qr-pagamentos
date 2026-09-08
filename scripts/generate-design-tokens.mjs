@@ -104,10 +104,10 @@ const THEME_PROJECTION = {
   "color-action-accent": "color.action.accent", "color-action-foreground": "color.action.foreground", "color-action-soft": "color.action.soft",
   "color-button-primary-background": "component.button.primary.background", "color-button-primary-hover-background": "component.button.primary.hover-background",
   "color-button-primary-active-background": "component.button.primary.active-background", "color-button-primary-foreground": "component.button.primary.foreground",
-  "color-feedback-success": "color.feedback.success", "color-feedback-success-foreground": "color.feedback.success.foreground",
-  "color-feedback-warning": "color.feedback.warning", "color-feedback-warning-foreground": "color.feedback.warning.foreground",
-  "color-feedback-danger": "color.feedback.danger", "color-feedback-danger-foreground": "color.feedback.danger.foreground",
-  "color-feedback-info": "color.feedback.info", "color-feedback-info-foreground": "color.feedback.info.foreground",
+  "color-feedback-success": "color.feedback.success", "color-feedback-success-foreground": "color.feedback.success.foreground", "color-feedback-success-soft": "color.feedback.success.soft",
+  "color-feedback-warning": "color.feedback.warning", "color-feedback-warning-foreground": "color.feedback.warning.foreground", "color-feedback-warning-soft": "color.feedback.warning.soft",
+  "color-feedback-danger": "color.feedback.danger", "color-feedback-danger-foreground": "color.feedback.danger.foreground", "color-feedback-danger-soft": "color.feedback.danger.soft",
+  "color-feedback-info": "color.feedback.info", "color-feedback-info-foreground": "color.feedback.info.foreground", "color-feedback-info-soft": "color.feedback.info.soft",
   "color-focus-ring": "color.focus.ring", "shadow-elevation-card": "shadow.elevation.card",
 };
 

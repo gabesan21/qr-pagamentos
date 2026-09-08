@@ -70,6 +70,34 @@ The stable semantic color paths are:
 | Feedback | `color.feedback.success`, `warning`, `danger`, `info` and each `.soft` companion |
 | Focus/depth | `color.focus.ring`; `shadow.elevation.card`; `shadow.elevation.modal` |
 
+### Projected utility vocabulary
+
+`src/app/globals.css` `@theme inline` binds the template's Tailwind names in
+`docs/template/app/tailwind.config.js` to the semantic variables above — never
+to a literal — so every utility works in all six themes and the WCAG `text-3`
+override applies automatically:
+
+| Utility | Bound role |
+| --- | --- |
+| `bg-bg` | `color.surface.page` |
+| `bg-surface` / `bg-surface-2` | `color.surface.raised` / `secondary` |
+| `text-text` / `text-text-2` / `text-text-3` | `color.text.primary` / `secondary` / `tertiary` (AA projection) |
+| `bg-accent` / `text-accent` | `color.action.accent` — the **strong** template accent |
+| `text-accent-fg` | `color.action.foreground` (on-accent text) |
+| `bg-accent-soft` | `color.action.soft` — the pale tint, a distinct name from `accent` |
+| `bg-success` / `bg-warning` / `bg-danger` / `bg-info` | `color.feedback.<role>` |
+| `bg-success-soft` / `bg-warning-soft` / `bg-danger-soft` / `bg-info-soft` | `color.feedback.<role>.soft` |
+| `rounded-card` / `rounded-pill` | `radius.semantic.lg` / `pill` |
+| `shadow-card` | `shadow.elevation.card` |
+| `font-display` / `font-money` | `font.semantic.display` / `numeric` |
+| `max-w-app` / `max-w-checkout` / `max-w-auth-form` | `layout.semantic.app` / `checkout` / `auth-form` |
+
+The legacy shadcn `--color-accent-foreground` stays bound to
+`color.text.primary` and is **not** the on-accent foreground; use
+`text-accent-fg` for text placed on a strong `bg-accent` surface. Existing
+shadcn utilities (`bg-primary`, `bg-muted`, `bg-destructive`, …) keep working
+unchanged alongside this vocabulary.
+
 The exact audit palette is the projection of
 `docs/template/app/src/index.css` at SHA-256
 `762edf36239e6472ccfc8eb8faa79d73081633dec69ae4fa0fa5a530ccdcead4`:

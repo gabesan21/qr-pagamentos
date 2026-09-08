@@ -10,6 +10,11 @@
 - Never branch component classes or geometry by theme identifier; the six
   themes replace semantic color values only and unknown identifiers fall back
   to `pix-paper`.
+- `accent` is the **strong** template accent (`bg-accent`/`text-accent`);
+  `accent-soft` is the pale tint a consumer wants for a hover/checked/active
+  surface. The legacy shadcn `accent-foreground` is **not** the on-accent
+  foreground — use `accent-fg` for text placed on a strong `bg-accent`
+  surface.
 - Keep components server-renderable unless their official primitive requires a
   client boundary. Clipboard, localized-field selection, dialogs, tabs and
   toast are the only composition client boundaries; preserve Radix `asChild`
