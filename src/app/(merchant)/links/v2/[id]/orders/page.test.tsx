@@ -110,12 +110,18 @@ describe("merchant V2 payment-link order drilldown list page", () => {
     expect(queryDirectory).toHaveBeenCalledWith(`${path}?filter.link=${identifier}`, path);
     const [target] = queryDirectory.mock.calls[0];
     expect(target).not.toContain("forged");
-    expect(markup).toContain("Monthly donation");
+    // The row shows the order id (CopyField) and payer, not the link
+    // description, which no longer has a column here.
+    expect(markup).toContain("440e8400-e29b-41d4-a716-446655440020");
+    expect(markup).toContain("Not provided");
     expect(markup).toContain("34.9");
     expect(markup).toContain("Payment confirmed");
     expect(markup).toContain(`href="${path}/440e8400-e29b-41d4-a716-446655440020"`);
     expect(markup).toContain(`action="${path}"`);
     expect(markup).toContain(`href="/links/v2/${linkId}"`);
+    // The parent link's own domain lifecycle badge (14.5.2), distinct from
+    // the order state badge asserted above.
+    expect(markup).toContain(">Paid</");
   });
 
   it("keeps other filters and the search alongside the forced identifier", async () => {
@@ -134,7 +140,7 @@ describe("merchant V2 payment-link order drilldown list page", () => {
       order({ id: "440e8400-e29b-41d4-a716-446655440021", descriptionPtBr: null, descriptionEn: null, state: null }),
     ]);
     const markup = renderToStaticMarkup(await PaymentLinkV2OrdersPage(request()));
-    expect(markup).toContain("Monthly donation");
+    expect(markup).toContain("440e8400-e29b-41d4-a716-446655440020");
     expect(markup).toContain("440e8400-e29b-41d4-a716-446655440021");
     expect(markup).toContain("Not provided");
     expect(markup).not.toContain("440e8400-e29b-41d4-a716-446655440022");
@@ -192,7 +198,7 @@ describe("merchant V2 payment-link order drilldown list page", () => {
     ready("pt-BR", [order({ currentLocalOutcome: { outcome: "LOCAL_FINALIZED", note: "Conferido", createdAt: new Date("2026-07-04T12:00:00.000Z") } })]);
     const markup = renderToStaticMarkup(await PaymentLinkV2OrdersPage(request()));
     expect(markup).toContain("Pedidos do link");
-    expect(markup).toContain("Doação mensal");
+    expect(markup).toContain("440e8400-e29b-41d4-a716-446655440020");
     expect(markup).toContain("Pagamento confirmado");
     expect(markup).toContain("Finalizado localmente");
     expect(markup).toContain("Voltar ao link de pagamento");
