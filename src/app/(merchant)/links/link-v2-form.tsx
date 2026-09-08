@@ -155,7 +155,7 @@ function RadioCard({
 }>) {
   return (
     <label
-      className="flex-1 cursor-pointer rounded-lg border p-4 transition-colors has-[:checked]:border-primary has-[:checked]:bg-accent-soft has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-60"
+      className="flex-1 cursor-pointer rounded-lg border p-4 transition-colors has-[:checked]:border-primary has-[:checked]:bg-accent-soft has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-60 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring has-[:focus-visible]:ring-offset-2"
       htmlFor={id}
     >
       <input checked={checked} className="sr-only" disabled={disabled} id={id} name={name} onChange={onChange} type="radio" value={value} />

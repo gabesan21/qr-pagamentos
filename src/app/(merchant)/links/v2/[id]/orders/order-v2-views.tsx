@@ -2,12 +2,12 @@ import Link from "next/link";
 
 import { formatCatalogPrice } from "@/app/(merchant)/catalog/price-format";
 import { orderStateLabel } from "@/app/orders/order-views";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CopyField } from "@/components/ui/copy-field";
 import { EmptyState } from "@/components/ui/empty-state";
 import { MoneyText } from "@/components/ui/money-text";
+import { LocalOutcomeBadge, ProviderStateBadge, StatusBadge, type LocalOutcome, type ProviderState } from "@/components/ui/status-badge";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { getDictionary } from "@/i18n/dictionaries";
 import type { SupportedLocale } from "@/i18n/locales";
@@ -61,18 +61,34 @@ export function orderV2SummaryLabel(order: OrderV2Summary, locale: SupportedLoca
   return (locale === "pt-BR" ? order.descriptionPtBr : order.descriptionEn) ?? order.id;
 }
 
-export function OrderV2StateBadge({ dictionary, state }: Readonly<{ dictionary: Dictionary; state: OrderV2State | null }>) {
-  if (state === null) return <>{dictionary.adminNotProvided}</>;
-  const variant = state === "CONFIRMED" ? "secondary" : state === "REJECTED" ? "destructive" : "outline";
-  return <Badge variant={variant}>{orderStateLabel(dictionary, state)}</Badge>;
+// The eight registered provider states share the domain badge's closed
+// lowercase union exactly; casing is the only difference from the stored
+// `OrderV2State` vocabulary (`src/app/admin/orders/page.tsx` precedent).
+function providerStateLabels(dictionary: Dictionary): Readonly<Record<ProviderState, string>> {
+  return {
+    created: orderStateLabel(dictionary, "CREATED"),
+    pending: orderStateLabel(dictionary, "PENDING"),
+    confirmed: orderStateLabel(dictionary, "CONFIRMED"),
+    rejected: orderStateLabel(dictionary, "REJECTED"),
+    cancelled: orderStateLabel(dictionary, "CANCELLED"),
+    expired: orderStateLabel(dictionary, "EXPIRED"),
+    indeterminate: orderStateLabel(dictionary, "INDETERMINATE"),
+    refunded: orderStateLabel(dictionary, "REFUNDED"),
+  };
 }
 
+export function OrderV2StateBadge({ dictionary, state }: Readonly<{ dictionary: Dictionary; state: OrderV2State | null }>) {
+  if (state === null) return <>{dictionary.adminNotProvided}</>;
+  return <ProviderStateBadge labels={providerStateLabels(dictionary)} state={state.toLowerCase() as ProviderState} />;
+}
+
+// `LOCAL_CANCELLED` has no member in `LocalOutcome`; it renders through the
+// domain-matching danger `StatusBadge` instead, same precedent as the admin
+// directory.
 export function OrderV2LocalOutcomeBadge({ dictionary, outcome }: Readonly<{ dictionary: Dictionary; outcome: OrderV2LocalOutcomeView | null }>) {
   if (outcome === null) return <>{dictionary.adminNotProvided}</>;
-  const label = outcome.outcome === "LOCAL_FINALIZED"
-    ? dictionary.paymentLinkOrderOutcomeFinalized
-    : dictionary.paymentLinkOrderOutcomeCancelled;
-  return <Badge variant="outline">{label}</Badge>;
+  if (outcome.outcome === "LOCAL_CANCELLED") return <StatusBadge label={dictionary.paymentLinkOrderOutcomeCancelled} tone="danger" />;
+  return <LocalOutcomeBadge labels={{ finalized: dictionary.paymentLinkOrderOutcomeFinalized, "in-progress": dictionary.orderV2DirectoryOutcomeNone, none: dictionary.orderV2DirectoryOutcomeNone } satisfies Readonly<Record<LocalOutcome, string>>} outcome="finalized" />;
 }
 
 function orderPolicyLabel(dictionary: Dictionary, policy: CheckoutDataPolicy) {

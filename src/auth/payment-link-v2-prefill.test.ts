@@ -31,7 +31,8 @@ const ownedLink = {
 describe("payment-link V2 owner prefill read", () => {
   it("requires an active merchant principal before any read", async () => {
     const findOwned = vi.fn();
-    const service = createPaymentLinkV2PrefillService({ findOwned });
+    const hasCheckoutAttempt = vi.fn().mockResolvedValue(false);
+    const service = createPaymentLinkV2PrefillService({ findOwned, hasCheckoutAttempt });
     await expect(service.getForOwner({ ...owner, role: "ADMIN" }, linkId)).rejects.toBeInstanceOf(ForbiddenError);
     await expect(service.getForOwner({ ...owner, status: "DISABLED" }, linkId)).rejects.toBeInstanceOf(ForbiddenError);
     expect(findOwned).not.toHaveBeenCalled();
@@ -39,7 +40,8 @@ describe("payment-link V2 owner prefill read", () => {
 
   it("returns the version and position-ordered line product identifiers only", async () => {
     const findOwned = vi.fn().mockResolvedValue(ownedLink);
-    const service = createPaymentLinkV2PrefillService({ findOwned });
+    const hasCheckoutAttempt = vi.fn().mockResolvedValue(false);
+    const service = createPaymentLinkV2PrefillService({ findOwned, hasCheckoutAttempt });
     const prefill = await service.getForOwner(owner, linkId.toUpperCase());
     expect(findOwned).toHaveBeenCalledWith(owner.id, linkId);
     expect(prefill).toEqual({
@@ -51,7 +53,8 @@ describe("payment-link V2 owner prefill read", () => {
 
   it("shares one opaque null for malformed, missing, and cross-owner identities", async () => {
     const findOwned = vi.fn().mockResolvedValue(null);
-    const service = createPaymentLinkV2PrefillService({ findOwned });
+    const hasCheckoutAttempt = vi.fn().mockResolvedValue(false);
+    const service = createPaymentLinkV2PrefillService({ findOwned, hasCheckoutAttempt });
     await expect(service.getForOwner(owner, "not-a-uuid")).resolves.toBeNull();
     expect(findOwned).not.toHaveBeenCalled();
     await expect(service.getForOwner(owner, linkId)).resolves.toBeNull();
