@@ -23,6 +23,16 @@ function block(source: string, openMarker: string): string {
 
 describe("globals.css @theme inline template utilities", () => {
   const themeBlock = block(css, "@theme inline {");
+  // The `@theme inline` block mixes the shadcn compatibility entries (kept
+  // for the vendored ui/ primitives) with the template's own utility
+  // vocabulary (docs/template/app/tailwind.config.js). Isolate the
+  // vocabulary sub-block by its start anchor so the "exactly N" count below
+  // never silently drifts by counting the shadcn entries too.
+  const vocabularyStart = themeBlock.indexOf("--color-bg:");
+  expect(vocabularyStart, "expected the template utility vocabulary section").toBeGreaterThanOrEqual(0);
+  const vocabularyBlock = themeBlock.slice(vocabularyStart);
+  const declaredNames = [...vocabularyBlock.matchAll(/^\s*(--[\w-]+):/gmu)].map((match) => match[1]);
+
   const utilityNames = [
     "--color-bg",
     "--color-surface",
@@ -38,6 +48,11 @@ describe("globals.css @theme inline template utilities", () => {
     "--color-warning-soft",
     "--color-danger-soft",
     "--color-info-soft",
+    "--color-success-on-soft",
+    "--color-warning-on-soft",
+    "--color-danger-on-soft",
+    "--color-info-on-soft",
+    "--color-accent-on-soft",
     "--radius-card",
     "--radius-pill",
     "--shadow-card",
@@ -48,9 +63,11 @@ describe("globals.css @theme inline template utilities", () => {
     "--container-auth-form",
   ];
 
-  it("declares exactly the 22 template utility entries, each resolving to a generated variable", () => {
+  it("declares exactly the 27 template utility entries, each resolving to a generated variable", () => {
+    expect(declaredNames).toHaveLength(27);
+    expect(new Set(declaredNames)).toStrictEqual(new Set(utilityNames));
     for (const name of utilityNames) {
-      const match = themeBlock.match(new RegExp(`${name.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&")}:\\s*([^;]+);`, "u"));
+      const match = vocabularyBlock.match(new RegExp(`${name.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&")}:\\s*([^;]+);`, "u"));
       expect(match, name).not.toBeNull();
       const value = match![1].trim();
       expect(value, name).toMatch(/^var\(--[\w-]+\)$/u);
@@ -59,7 +76,7 @@ describe("globals.css @theme inline template utilities", () => {
 
   it("never lets a template utility resolve to a literal color or length", () => {
     for (const name of utilityNames) {
-      const match = themeBlock.match(new RegExp(`${name.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&")}:\\s*([^;]+);`, "u"));
+      const match = vocabularyBlock.match(new RegExp(`${name.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&")}:\\s*([^;]+);`, "u"));
       const value = match![1].trim();
       expect(value, name).not.toMatch(/#[\da-f]{3,8}\b/iu);
       expect(value, name).not.toMatch(/^\d/u);
