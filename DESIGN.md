@@ -418,6 +418,29 @@ inventory: an admin-local table for the byte-frozen V1 ledger reusing the
 owned `Table` primitives, and an admin-local associated-orders card on the
 link detail composing `Card`/`StatusBadge`/`MoneyText`.
 
+Task `14.5.3` converges `/catalog`, `/settings`, and `/profile` without adding
+to `owners`. `SegmentedControl` gains a second **merchant-local** home in
+`src/app/(merchant)/merchant-controls.tsx` — the merchant counterpart of
+`14.4.3`'s admin-local control, same six-state contract, imported by the
+catalog product-state toggle and the settings appearance layout picker; it
+stays outside `src/components/ui/` for the identical reason (a frozen `owners`
+set with no insufficiency finding, and the template itself keeps the control
+page-local). The owned `ImageUploader` (`14.2.4`'s `localAdditions` entry) gets
+its second and third call sites: the catalog product form (replacing the
+legacy `ImageField`) and the settings logo block (replacing the plain
+multipart input, which survives only as the `<noscript>` fallback). `/profile`
+converges to one `max-w-3xl` single-column stack, retiring the two-card
+grid. The TOTP enrollment composition follows the template's three-step order
+— QR/manual-secret, inline-error code confirm, recovery codes with copy-all
+and download — over `Modal`/`ConfirmDialog`/`CopyField`, adding no new shared
+component. This task also retires the merchant-only BEM it obsoletes:
+`.storefront-workspace*`, `.storefront-logo-{block,current,actions,staged}`,
+`.storefront-preview*`, `.profile-workspace*`, and `.profile-form__fieldset`
+are gone from `globals.css` (public `.storefront-*` rules and `.settings-surface*`
+stay, serving `/store/**` and the settings shell respectively); the two
+skeleton `loading.tsx` files that used the retired classes move to plain
+`grid`/`grid-cols-[…]` utilities with no visual change.
+
 ## State contract
 
 Every component documents the baseline states **default**, **loading** when
