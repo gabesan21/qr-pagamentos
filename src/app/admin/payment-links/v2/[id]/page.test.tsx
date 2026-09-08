@@ -80,7 +80,7 @@ describe("administrator payment-link V2 detail page", () => {
     expect(markup).toContain('href="/admin/payment-links"');
     // The drill-down navigates to the administrator orders directory filtered
     // by this link's identifier.
-    expect(markup).toContain('href="/admin/orders?link=abcdefghijklmnopqrstuvwx"');
+    expect(markup).toContain('href="/admin/orders?filter.link=abcdefghijklmnopqrstuvwx"');
     // Read-only: no owner mutation surface, no edit or lifecycle actions, no public share URL.
     expect(markup).not.toContain("/links/v2/");
     expect(markup).not.toContain('method="post"');

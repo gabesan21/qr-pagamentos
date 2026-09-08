@@ -97,6 +97,9 @@ describe("administrator accounts directory page", () => {
     expect(markup).toContain(">Deleted</");
     expect(markup).toContain('href="/admin/accounts/440e8400-e29b-41d4-a716-446655440010"');
     expect(markup).toContain('action="/admin/users/440e8400-e29b-41d4-a716-446655440010/delete"');
+    // The delete action is a real POST form gated by DestructiveActionForm's
+    // confirmation dialog, not a bare link or an inert placeholder.
+    expect(markup).toContain('action="/admin/users/440e8400-e29b-41d4-a716-446655440010/delete" method="post"');
     expect(markup).not.toContain('href="/admin/accounts/440e8400-e29b-41d4-a716-446655440011"');
     expect(markup).not.toContain('action="/admin/users/440e8400-e29b-41d4-a716-446655440011/delete"');
     // The legacy inline role/status/password forms retired from the page;

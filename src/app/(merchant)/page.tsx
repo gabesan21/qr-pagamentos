@@ -28,11 +28,9 @@ export default async function MerchantDashboardPage({
   searchParams = Promise.resolve({}),
 }: Readonly<{
   searchParams?: Promise<{
-    "checkout-policy"?: string;
     "payment-links"?: string;
     language?: string;
     period?: string;
-    storefront?: string;
   }>;
 }> = {}) {
   const { dictionary, locale, principal } = await requireMerchantShellContext();
@@ -41,7 +39,8 @@ export default async function MerchantDashboardPage({
     readDashboardView(principal, notices.period),
     getStorefrontSettingsService().getForOwner(principal),
   ]);
-  const ownerNotice = notices["payment-links"] ?? notices["checkout-policy"] ?? notices.storefront;
+  // storefront and checkout-policy saves now return to /settings, never here.
+  const ownerNotice = notices["payment-links"];
   const failed = ownerNotice === "failed" || ownerNotice === "conflict";
   const viewStore = storefrontSettings.storefrontEnabled && storefrontSettings.storefrontSlug !== null
     ? `/store/${storefrontSettings.storefrontSlug}`

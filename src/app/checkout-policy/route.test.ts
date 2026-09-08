@@ -16,6 +16,6 @@ describe("owner checkout-policy route", () => {
     expect(protectedResponse.status).toBe(403); expect(await protectedResponse.text()).toBe(""); expect(formData).not.toHaveBeenCalled(); expect(update).not.toHaveBeenCalled();
     requireOwnerFromCookie.mockResolvedValue(owner); ownerProtectedMutationResponse.mockReturnValue(null);
     const response = await POST(new Request("http://local/checkout-policy", { method: "POST", headers: sameOrigin, body: new URLSearchParams({ checkoutDataPolicy: "EMAIL", ownerId: "forged" }) }));
-    expect(update).toHaveBeenCalledWith(owner, "EMAIL"); expect(response.headers.get("location")).toBe("/?checkout-policy=changed");
+    expect(update).toHaveBeenCalledWith(owner, "EMAIL"); expect(response.headers.get("location")).toBe("/settings?checkout-policy=changed#settings-policy");
   });
 });

@@ -30,4 +30,37 @@ describe("POST /language-preference", () => {
     const response = await POST(new Request("https://example.test/language-preference", { method: "POST", headers: { origin: "https://example.test", host: "example.test" }, body: new URLSearchParams({ locale: "es" }) }));
     expect(response.headers.get("location")).toBe("/?language=error");
   });
+
+  it("returns to /settings with the section anchor when the switcher posted from there", async () => {
+    resolvePrincipal.mockResolvedValueOnce({ id: "principal" });
+    set.mockResolvedValueOnce(undefined);
+    const response = await POST(new Request("http://local/language-preference", {
+      method: "POST",
+      headers: { origin: "http://local", host: "local", referer: "http://local/settings" },
+      body: new URLSearchParams({ locale: "en" }),
+    }));
+    expect(response.headers.get("location")).toBe("/settings?language=saved#settings-language");
+  });
+
+  it("returns to / with no anchor when the switcher posted from the dashboard", async () => {
+    resolvePrincipal.mockResolvedValueOnce({ id: "principal" });
+    set.mockResolvedValueOnce(undefined);
+    const response = await POST(new Request("http://local/language-preference", {
+      method: "POST",
+      headers: { origin: "http://local", host: "local", referer: "http://local/" },
+      body: new URLSearchParams({ locale: "en" }),
+    }));
+    expect(response.headers.get("location")).toBe("/?language=saved");
+  });
+
+  it("falls back to / for a foreign-host Referer, never trusting it as an open redirect", async () => {
+    resolvePrincipal.mockResolvedValueOnce({ id: "principal" });
+    set.mockResolvedValueOnce(undefined);
+    const response = await POST(new Request("http://local/language-preference", {
+      method: "POST",
+      headers: { origin: "http://local", host: "local", referer: "https://evil.example/settings" },
+      body: new URLSearchParams({ locale: "en" }),
+    }));
+    expect(response.headers.get("location")).toBe("/?language=saved");
+  });
 });

@@ -68,6 +68,10 @@ describe("merchant product detail page", () => {
     expect(markup).toContain('value="archive"');
     expect(markup).toContain("Archive product permanently");
     expect(markup).toContain("Currency selection is unavailable");
+    // The confirmation dialogs resolve the real lifecycle forms by id, not a
+    // detached ref: both must be reachable via getElementById.
+    expect(markup).toContain('id="product-active-toggle"');
+    expect(markup).toContain('id="product-archive"');
   });
 
   it("renders archived products read-only with the terminal explanation and no mutation control", async () => {
@@ -79,5 +83,13 @@ describe("merchant product detail page", () => {
     expect(markup).toContain("Archival is permanent");
     expect(markup).not.toContain('action="/products"');
     expect(markup).not.toContain("Archive product permanently");
+    // No lingering mutation surface: no hidden action/id/version field and no
+    // submitting control survives archival.
+    expect(markup).not.toContain('name="action"');
+    expect(markup).not.toContain('name="id"');
+    expect(markup).not.toContain('name="version"');
+    expect(markup).not.toContain('type="submit"');
+    expect(markup).not.toContain('id="product-active-toggle"');
+    expect(markup).not.toContain('id="product-archive"');
   });
 });
