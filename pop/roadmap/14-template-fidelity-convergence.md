@@ -41,7 +41,6 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[14.3.2-keep-mutations-on-page]] | Order comments/outcomes, link edits/lifecycle, category and product saves redirect back to the detail page with a toast and preserve input on failure. · size: L | 004_processing |
 | [[14.3.4-phase-verification]] | Run `pnpm check`, add directory/mutation/contrast tests, repair what it catches; depends on all 14.3 tasks. · size: S | 001_initial_task |
 
 ## Phase 14.4 - Shell, authentication and administrator convergence
