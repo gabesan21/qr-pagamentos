@@ -1,12 +1,10 @@
 "use client";
 
-import { useRef, useState, type ComponentProps, type ReactNode } from "react";
-import { AlertCircle, CheckCircle2, ChevronRight, ImagePlus, Info } from "lucide-react";
+import { useState, type ComponentProps, type ReactNode } from "react";
+import { AlertCircle, CheckCircle2, ChevronRight, Info } from "lucide-react";
 
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
+import { Alert } from "@/components/ui/alert";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
-import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
 
 type BannerTone = "info" | "success" | "warning" | "danger";
@@ -50,47 +48,6 @@ export function Breadcrumb({ items }: Readonly<{ items: readonly BreadcrumbItem[
         </span>
       ))}
     </nav>
-  );
-}
-
-export function SegmentedControl({
-  ariaLabel,
-  disabled,
-  onChange,
-  options,
-  value,
-}: Readonly<{
-  ariaLabel: string;
-  disabled?: boolean;
-  onChange: (value: string) => void;
-  options: readonly Readonly<{ label: string; value: string }>[];
-  value: string;
-}>) {
-  return (
-    <div aria-label={ariaLabel} className="inline-flex gap-1 rounded-md bg-muted p-1" role="radiogroup">
-      {options.map((option) => {
-        const selected = option.value === value;
-        return (
-          <button
-            aria-checked={selected}
-            className={cn(
-              "rounded px-3 py-1.5 text-label font-medium transition-colors",
-              selected
-                ? "bg-background text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground",
-              disabled && "opacity-50",
-            )}
-            disabled={disabled}
-            key={option.value}
-            onClick={() => onChange(option.value)}
-            role="radio"
-            type="button"
-          >
-            {option.label}
-          </button>
-        );
-      })}
-    </div>
   );
 }
 
@@ -144,146 +101,6 @@ export function DirtyNativeSelect({
         onChange?.(event);
       }}
     />
-  );
-}
-
-const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
-const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
-
-export type ImageFieldCopy = Readonly<{
-  add: string;
-  alt: string;
-  failed: string;
-  failedTitle: string;
-  remove: string;
-  replace: string;
-  retry: string;
-  upload: string;
-  uploading: string;
-}>;
-
-type CurrentImage = Readonly<{ identifier: string; staged: boolean }>;
-
-export function ImageField({
-  copy,
-  disabled,
-  initialIdentifier,
-  inputId,
-  onChange,
-  placeholder,
-}: Readonly<{
-  copy: ImageFieldCopy;
-  disabled?: boolean;
-  initialIdentifier?: string | null;
-  inputId: string;
-  onChange: (identifier: string | null) => void;
-  placeholder: ReactNode;
-}>) {
-  const [current, setCurrent] = useState<CurrentImage | null>(
-    initialIdentifier ? { identifier: initialIdentifier, staged: false } : null,
-  );
-  const [removed, setRemoved] = useState(false);
-  const [pending, setPending] = useState(false);
-  const [failed, setFailed] = useState(false);
-  const picker = useRef<HTMLInputElement>(null);
-
-  async function stage(file: File) {
-    if (!ACCEPTED_TYPES.includes(file.type as (typeof ACCEPTED_TYPES)[number]) || file.size > MAX_IMAGE_BYTES) {
-      setFailed(true);
-      return;
-    }
-    setFailed(false);
-    setPending(true);
-    try {
-      const body = new FormData();
-      body.set("image", file);
-      const response = await fetch("/products/images", { method: "POST", body });
-      if (!response.ok) throw new Error("staging unavailable");
-      const payload: unknown = await response.json();
-      const identifier =
-        typeof payload === "object" && payload !== null && "identifier" in payload
-          ? (payload as { identifier: unknown }).identifier
-          : null;
-      if (typeof identifier !== "string" || identifier.length === 0) throw new Error("staging unavailable");
-      setCurrent({ identifier, staged: true });
-      setRemoved(false);
-      onChange(identifier);
-    } catch {
-      setFailed(true);
-      onChange(null);
-    } finally {
-      setPending(false);
-    }
-  }
-
-  function handleRemove() {
-    setRemoved(true);
-    setFailed(false);
-    onChange(null);
-  }
-
-  const showCurrent = current && !removed;
-
-  return (
-    <div aria-busy={pending || undefined} className="space-y-3">
-      {showCurrent ? (
-        <div className="flex items-start gap-3">
-          <img
-            alt={copy.alt}
-            className="size-32 rounded-lg border border-border object-cover"
-            height={128}
-            src={`/media/${current.identifier}`}
-            width={128}
-          />
-          {!disabled ? (
-            <div className="flex flex-col gap-2 pt-1">
-              <Button disabled={pending} onClick={() => picker.current?.click()} type="button" variant="outline">
-                {copy.replace}
-              </Button>
-              <Button className="text-destructive" onClick={handleRemove} type="button" variant="ghost">
-                {copy.remove}
-              </Button>
-            </div>
-          ) : null}
-        </div>
-      ) : (
-        <button
-          className={cn(
-            "flex size-32 flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-muted text-muted-foreground transition-colors",
-            (disabled || pending) && "opacity-50",
-          )}
-          disabled={disabled || pending}
-          onClick={() => picker.current?.click()}
-          type="button"
-        >
-          {pending ? <Spinner aria-hidden className="size-6" /> : <ImagePlus aria-hidden className="size-6" />}
-          <span className="px-2 text-center text-xs">{pending ? copy.uploading : copy.add}</span>
-        </button>
-      )}
-      {failed ? (
-        <Banner tone="danger">
-          <div className="flex items-center justify-between gap-3">
-            <span>{copy.failed}</span>
-            <Button onClick={() => picker.current?.click()} type="button" variant="ghost">
-              {copy.retry}
-            </Button>
-          </div>
-        </Banner>
-      ) : null}
-      <input
-        accept="image/jpeg,image/png,image/webp"
-        className="sr-only"
-        id={inputId}
-        onChange={(event) => {
-          const file = event.target.files?.[0];
-          if (file) void stage(file);
-          event.target.value = "";
-        }}
-        ref={picker}
-        tabIndex={-1}
-        type="file"
-      />
-    </div>
   );
 }
 

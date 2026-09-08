@@ -45,7 +45,7 @@ export default async function NewProductPage({
         title={dictionary.catalogProductNewTitle}
       />
       {notice ? <ProductNotice dictionary={dictionary} notice={notice} /> : null}
-      <SectionCard description={dictionary.catalogProductNewDescription} title={dictionary.catalogProductNewTitle}>
+      <SectionCard title={dictionary.catalogProductNewTitle}>
         <ProductForm
           categories={categories}
           choices={choices}

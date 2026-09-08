@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Plus } from "lucide-react";
@@ -15,10 +16,9 @@ import {
 } from "@/data-directory/server/notice";
 import { DataDirectory, type DataDirectoryColumn, type DataDirectoryState } from "@/data-directory/ui/data-directory";
 import { MoneyText } from "@/components/ui/money-text";
-import { StatusBadge } from "@/components/ui/status-badge";
+import { EntityStateBadge } from "@/components/ui/status-badge";
 import type { getDictionary } from "@/i18n/dictionaries";
 import type { SupportedLocale } from "@/i18n/locales";
-import { BrandIdentity } from "@/brand/brand-identity";
 
 import { requireMerchantShellContext } from "../shell-context";
 import { ProductNotice } from "./catalog-notices";
@@ -36,24 +36,14 @@ function productState(product: OwnerProduct): "active" | "inactive" | "archived"
 }
 
 function ProductThumbnail({ product }: Readonly<{ product: OwnerProduct }>) {
-  if (product.imageMediaId) {
-    return (
-      <img
-        alt=""
-        className="size-10 rounded-md border border-border object-cover"
-        height={40}
-        src={`/media/${product.imageMediaId}`}
-        width={40}
-      />
-    );
-  }
   return (
-    <span
-      aria-hidden="true"
-      className="flex size-10 items-center justify-center rounded-md border border-dashed border-border text-muted-foreground"
-    >
-      <BrandIdentity variant="mark-only" />
-    </span>
+    <Image
+      alt=""
+      className="size-10 rounded-md border border-border object-cover"
+      height={40}
+      src={product.imageMediaId ? `/media/${product.imageMediaId}` : "/application-assets/product-fallback.svg"}
+      width={40}
+    />
   );
 }
 
@@ -73,14 +63,16 @@ function ProductTitle({
 }
 
 function ProductStateBadge({ dictionary, product }: Readonly<{ dictionary: Dictionary; product: OwnerProduct }>) {
-  const state = productState(product);
-  if (state === "archived") {
-    return <StatusBadge archived label={dictionary.catalogProductStateArchived} tone="danger" />;
-  }
-  if (state === "inactive") {
-    return <StatusBadge label={dictionary.catalogProductStateInactive} tone="neutral" />;
-  }
-  return <StatusBadge label={dictionary.catalogProductStateActive} tone="success" />;
+  return (
+    <EntityStateBadge
+      labels={{
+        active: dictionary.catalogProductStateActive,
+        archived: dictionary.catalogProductStateArchived,
+        inactive: dictionary.catalogProductStateInactive,
+      }}
+      state={productState(product)}
+    />
+  );
 }
 
 function CategoryPill({

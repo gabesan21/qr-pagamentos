@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { Archive } from "lucide-react";
 
 import { WorkspaceHeading } from "@/app-shell/workspace-heading";
@@ -10,7 +11,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ConfirmDialog } from "@/components/ui/modal";
-import { StatusBadge } from "@/components/ui/status-badge";
+import { EntityStateBadge } from "@/components/ui/status-badge";
 import type { getDictionary } from "@/i18n/dictionaries";
 import type { SupportedLocale } from "@/i18n/locales";
 
@@ -42,25 +43,25 @@ function ProductHeader({
   dictionary: Dictionary;
   product: OwnerProduct;
 }>) {
+  const state = product.archivedAt !== null ? "archived" : product.active ? "active" : "inactive";
   return (
     <div className="flex flex-wrap items-center gap-3">
-      {product.imageMediaId ? (
-        <img
-          alt=""
-          className="size-12 rounded-md border border-border object-cover"
-          height={48}
-          src={`/media/${product.imageMediaId}`}
-          width={48}
-        />
-      ) : null}
+      <Image
+        alt=""
+        className="size-12 rounded-md border border-border object-cover"
+        height={48}
+        src={product.imageMediaId ? `/media/${product.imageMediaId}` : "/application-assets/product-fallback.svg"}
+        width={48}
+      />
       <h1 className="font-heading text-2xl leading-snug font-medium text-foreground">{product.internalName}</h1>
-      {product.archivedAt !== null ? (
-        <StatusBadge archived label={dictionary.catalogProductStateArchived} tone="danger" />
-      ) : product.active ? (
-        <StatusBadge label={dictionary.catalogProductStateActive} tone="success" />
-      ) : (
-        <StatusBadge label={dictionary.catalogProductStateInactive} tone="neutral" />
-      )}
+      <EntityStateBadge
+        labels={{
+          active: dictionary.catalogProductStateActive,
+          archived: dictionary.catalogProductStateArchived,
+          inactive: dictionary.catalogProductStateInactive,
+        }}
+        state={state}
+      />
     </div>
   );
 }

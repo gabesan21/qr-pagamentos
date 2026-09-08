@@ -15,6 +15,8 @@ import {
   directoryInvalidFiltersLocation,
 } from "@/data-directory/server/notice";
 import { DataDirectory, type DataDirectoryColumn, type DataDirectoryState } from "@/data-directory/ui/data-directory";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
 import type { getDictionary } from "@/i18n/dictionaries";
 
 import { requireMerchantShellContext } from "../../shell-context";
@@ -42,34 +44,20 @@ function CreateCategoryCard({ dictionary }: Readonly<{ dictionary: Dictionary }>
       />
       <form action="/product-categories" id="category-create" method="post">
         <input name="action" type="hidden" value="create" />
-        <div className="grid items-end gap-3 sm:grid-cols-[1fr_1fr_auto]">
-          <div>
-            <label className="text-sm font-medium" htmlFor="category-create-name-pt-br">
-              {dictionary.catalogCategoryNamePtBr}
-            </label>
-            <input
-              className="mt-1.5 h-11 w-full rounded-md border border-input bg-background px-3 text-base text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring"
-              id="category-create-name-pt-br"
-              name="namePtBr"
-              required
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium" htmlFor="category-create-name-en">
-              {dictionary.catalogCategoryNameEn}
-            </label>
-            <input
-              className="mt-1.5 h-11 w-full rounded-md border border-input bg-background px-3 text-base text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring"
-              id="category-create-name-en"
-              name="nameEn"
-              required
-            />
-          </div>
+        <FieldGroup className="grid items-end gap-3 sm:grid-cols-[1fr_1fr_auto]">
+          <Field>
+            <FieldLabel htmlFor="category-create-name-pt-br">{dictionary.catalogCategoryNamePtBr}</FieldLabel>
+            <Input id="category-create-name-pt-br" name="namePtBr" required />
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="category-create-name-en">{dictionary.catalogCategoryNameEn}</FieldLabel>
+            <Input id="category-create-name-en" name="nameEn" required />
+          </Field>
           <Button type="submit">
             <Plus aria-hidden className="size-4" />
             {dictionary.catalogCategoryCreate}
           </Button>
-        </div>
+        </FieldGroup>
       </form>
     </SectionCard>
   );
@@ -88,6 +76,7 @@ function CategoryDirectory({
 }>) {
   const referenceCount = new Map<string, number>();
   for (const product of products) {
+    if (product.archivedAt !== null) continue;
     if (product.categoryId) referenceCount.set(product.categoryId, (referenceCount.get(product.categoryId) ?? 0) + 1);
   }
   const copy = dataDirectoryCopy(dictionary, {
@@ -166,7 +155,9 @@ function CategoryDirectory({
               dictionary={dictionary}
               references={referenceCount.get(row.id) ?? 0}
             />
-          ) : null
+          ) : (
+            <span className="text-xs text-muted-foreground">{dictionary.catalogCategoryInactiveNoEdit}</span>
+          )
         }
         idPrefix="catalog-categories"
         pageSize={query.pageSize}

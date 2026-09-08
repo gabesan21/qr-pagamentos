@@ -5,7 +5,6 @@ import { useEffect, useRef, useState } from "react";
 import { clearFormDraft, hasFailureNotice, readFormDraft, saveFormDraft } from "@/app/form-draft";
 import type { OwnerProductCategory } from "@/auth/product-category";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { ConfirmDialog, Modal } from "@/components/ui/modal";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import type { getDictionary } from "@/i18n/dictionaries";
@@ -149,7 +148,7 @@ export function CategoryRowActions({
         />
       ) : (
         <Modal
-          closeLabel={dictionary.dataDirectoryResetFilters}
+          closeLabel={dictionary.close}
           footer={
             <>
               <Button onClick={() => setDialogOpen(false)} type="button" variant="ghost">
