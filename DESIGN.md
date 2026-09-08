@@ -433,6 +433,28 @@ consumer promotes both to one route-neutral owner. The dashboard grid retires
 the `.merchant-dashboard__*` BEM block from `globals.css` in favor of the same
 utility-class approach as `14.4.2`.
 
+Task `14.5.2` converges the merchant `/links` directory, composition form, detail,
+and order drilldowns to the template without adding to `owners`. The directory
+answers the template's single merged table with an **era partition** instead
+of a blend: `era=v2` (default) keeps the existing keyset `DataDirectory` page,
+while `era=legacy` renders the byte-frozen V1 list through the same shell with
+a legacy chip, a read-only `Modal` detail, and the restyled V1 create/revoke
+forms — a keyset page cannot span a cursorless byte-frozen source, so the two
+eras never share one page. The create/edit form composes a route-local radio-card
+group (`Card`/`Button` states, not a new inventory owner) for composition/type,
+a searchable product picker with `Button` steppers and an exact running total,
+and a sticky preview panel in the existing 8+4 grid; the bilingual description
+`Field`s render for every composition but stay read-only with a caption for
+`PRODUCT_LINES` — a documented deviation from `LocalizedFieldGroup` (that
+primitive omits `name`, breaking the no-JS `<form>` submission this page
+requires), so the plain named `Input` pair stays the owner here. Lifecycle
+guards on the detail render from the derived model: deactivate while
+persisted-active, activate only for `inactive`, a disabled control with
+caption for a settled single-use link, and a reopen caption scoped to
+`expired`+`REUSABLE`. `link-money.ts` is the one BigInt-micro-unit money module
+for every arithmetic result in this subtree (subtotal, line totals, running
+total, confirmed volume); no `Number()` touches an amount here.
+
 ## State contract
 
 Every component documents the baseline states **default**, **loading** when

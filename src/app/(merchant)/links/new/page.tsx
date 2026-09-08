@@ -6,7 +6,6 @@ import { getPaymentLinkV2PrefillService } from "@/auth/payment-link-v2-prefill";
 import { getPaymentLinkV2ViewService } from "@/auth/payment-link-v2-view";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { GitBranchIcon } from "lucide-react";
 
 import { requireMerchantShellContext } from "../../shell-context";
@@ -62,14 +61,21 @@ export default async function NewPaymentLinkPage({
     if (link.compositionKind === "PRODUCT_LINES") {
       initialLines = link.lines.flatMap((line, index) => {
         const productId = prefill.lineProductIds[index];
-        return productId === undefined ? [] : [{ productId, quantity: line.quantity }];
+        return productId === undefined ? [] : [{
+          available: line.available,
+          productId,
+          quantity: line.quantity,
+          titleEn: line.titleEn,
+          titlePtBr: line.titlePtBr,
+          unitPrice: line.unitPrice,
+        }];
       });
     } else if (link.descriptionPtBr !== null && link.descriptionEn !== null && link.amount !== null) {
       fixedValues = { descriptionPtBr: link.descriptionPtBr, descriptionEn: link.descriptionEn, amount: link.amount };
     }
   }
 
-  const products = data.activeProducts.map((product) => ({ id: product.id, titlePtBr: product.titlePtBr, titleEn: product.titleEn }));
+  const products = data.activeProducts.map((product) => ({ id: product.id, price: product.price, titleEn: product.titleEn, titlePtBr: product.titlePtBr }));
   const pairs = data.activeCurrencyPairs.map((pair) => ({ id: pair.id, label: pair.label }));
   const description = from === undefined ? dictionary.paymentLinkCreateDescription : dictionary.paymentLinkCreateFromDescription;
 
@@ -93,32 +99,24 @@ export default async function NewPaymentLinkPage({
         </Alert>
       ) : null}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{dictionary.paymentLinkCreateTitle}</CardTitle>
-          <CardDescription>{description}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <LinkV2Form
-            action="/payment-links-v2"
-            copy={linkV2FormCopy(dictionary, dictionary.paymentLinkCreateSubmit)}
-            formId="payment-link-v2-create"
-            {...(from !== undefined ? { from } : {})}
-            {...(initialKind ? { initialKind } : {})}
-            {...(initialLinkType ? { initialLinkType } : {})}
-            {...(initialLines ? { initialLines } : {})}
-            {...(fixedValues ? {
-              initialAmount: fixedValues.amount,
-              initialDescriptionEn: fixedValues.descriptionEn,
-              initialDescriptionPtBr: fixedValues.descriptionPtBr,
-            } : {})}
-            locale={locale}
-            mode="create"
-            pairs={pairs}
-            products={products}
-          />
-        </CardContent>
-      </Card>
+      <LinkV2Form
+        action="/payment-links-v2"
+        copy={linkV2FormCopy(dictionary, dictionary.paymentLinkCreateSubmit)}
+        formId="payment-link-v2-create"
+        {...(from !== undefined ? { from } : {})}
+        {...(initialKind ? { initialKind } : {})}
+        {...(initialLinkType ? { initialLinkType } : {})}
+        {...(initialLines ? { initialLines } : {})}
+        {...(fixedValues ? {
+          initialAmount: fixedValues.amount,
+          initialDescriptionEn: fixedValues.descriptionEn,
+          initialDescriptionPtBr: fixedValues.descriptionPtBr,
+        } : {})}
+        locale={locale}
+        mode="create"
+        pairs={pairs}
+        products={products}
+      />
 
       <div className="flex flex-wrap gap-3">
         <Button asChild data-ds-hit-target variant="outline">

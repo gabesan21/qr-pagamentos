@@ -2,19 +2,21 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ListOrderedIcon, PlusIcon, Share2Icon } from "lucide-react";
 
-import { OwnerPaymentLinkManagement } from "@/app/admin/payment-link-management";
 import { dataDirectoryCopy, DirectoryInvalidFiltersNotice } from "@/app/directory-support";
 import { WorkspaceHeading } from "@/app-shell/workspace-heading";
-import { getPaymentLinkService } from "@/auth/payment-link";
+import { getPaymentLinkService, type PaymentLinkOwnerData } from "@/auth/payment-link";
 import {
   getPaymentLinkV2DirectoryAdapter,
+  listOwnerActiveCurrencyPairs,
   PAYMENT_LINK_V2_DERIVED_STATES,
+  PAYMENT_LINK_V2_DIRECTORY_ERA_VALUES,
+  type PaymentLinkV2DirectoryEra,
   type PaymentLinkV2DirectoryRow,
 } from "@/auth/payment-link-v2-view";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CopyField } from "@/components/ui/copy-field";
-import { Separator } from "@/components/ui/separator";
+import { LinkLifecycleBadge, type LinkLifecycle } from "@/components/ui/status-badge";
 import {
   queryMerchantDirectory,
   type DirectoryOrderField,
@@ -25,7 +27,12 @@ import {
   DIRECTORY_INVALID_FILTERS_VALUE,
   directoryInvalidFiltersLocation,
 } from "@/data-directory/server/notice";
-import { DataDirectory, type DataDirectoryColumn, type DataDirectoryState } from "@/data-directory/ui/data-directory";
+import {
+  DataDirectory,
+  type DataDirectoryColumn,
+  type DataDirectoryEnumFilter,
+  type DataDirectoryState,
+} from "@/data-directory/ui/data-directory";
 import type { getDictionary } from "@/i18n/dictionaries";
 import type { SupportedLocale } from "@/i18n/locales";
 
@@ -37,8 +44,9 @@ import {
   resolveLinksDirectoryQuery,
   type LinksSearchParams,
 } from "./directory-query";
+import { LegacyLinksDirectory } from "./legacy-links";
 import { PaymentLinkLegacyNotice, PaymentLinkV2Notice } from "./links-notices";
-import { copyLabels, formatLinkInstant, LinkStateBadge, linkKindLabel, linkSummary, linkTypeLabel } from "./link-v2-views";
+import { copyLabels, formatLinkInstant, linkKindLabel, linkSummary, linkTypeLabel } from "./link-v2-views";
 
 type Dictionary = ReturnType<typeof getDictionary>;
 
@@ -60,14 +68,43 @@ function pageUrl(query: Readonly<{ canonicalFilterQuery: string; pageSize: numbe
   return parameters ? `${LINKS_DIRECTORY_PATH}?${parameters}` : LINKS_DIRECTORY_PATH;
 }
 
+function lifecycleLabels(dictionary: Dictionary): Readonly<Record<LinkLifecycle, string>> {
+  return {
+    active: dictionary.paymentLinkDirectoryStateActive,
+    inactive: dictionary.paymentLinkDirectoryStateInactive,
+    expired: dictionary.paymentLinkDirectoryStateExpired,
+    paid: dictionary.paymentLinkDirectoryStatePaid,
+  };
+}
+
+// The `era` toggle is registered on both eras' toolbars so switching stays a
+// single native GET; it never changes the row set on its own render pass —
+// the page picks which directory to query before either table renders.
+function eraFilter(dictionary: Dictionary, era: PaymentLinkV2DirectoryEra): DataDirectoryEnumFilter {
+  return {
+    name: "era",
+    label: dictionary.paymentLinkDirectoryFilterEra,
+    allLabel: dictionary.paymentLinkDirectoryEraV2,
+    selected: era,
+    options: PAYMENT_LINK_V2_DIRECTORY_ERA_VALUES.map((value) => ({
+      value,
+      label: value === "v2" ? dictionary.paymentLinkDirectoryEraV2 : dictionary.paymentLinkDirectoryEraLegacy,
+    })),
+  };
+}
+
 function PaymentLinkDirectory({
   dictionary,
+  era,
   locale,
+  ownerPairs,
   page,
   query,
 }: Readonly<{
   dictionary: Dictionary;
+  era: PaymentLinkV2DirectoryEra;
   locale: SupportedLocale;
+  ownerPairs: ReadonlyArray<Readonly<{ id: string; label: string }>>;
   page: DirectoryPage<PaymentLinkV2DirectoryRow> | null;
   query: Extract<ReturnType<typeof resolveLinksDirectoryQuery>, { status: "ready" }>;
 }>) {
@@ -97,9 +134,14 @@ function PaymentLinkDirectory({
       value: (row) => <Badge variant="outline">{linkTypeLabel(dictionary, row.linkType)}</Badge>,
     },
     {
+      id: "currency",
+      label: dictionary.paymentLinkDirectoryColumnCurrency,
+      value: (row) => <Badge variant="outline">{row.currencyPairLabel}</Badge>,
+    },
+    {
       id: "state",
       label: dictionary.paymentLinkDirectoryColumnState,
-      value: (row) => <LinkStateBadge dictionary={dictionary} state={row.state} />,
+      value: (row) => <LinkLifecycleBadge labels={lifecycleLabels(dictionary)} lifecycle={row.state} />,
     },
     {
       id: "dates",
@@ -129,6 +171,7 @@ function PaymentLinkDirectory({
       columns={columns}
       copy={copy}
       filters={[
+        eraFilter(dictionary, era),
         {
           name: "state",
           label: dictionary.paymentLinkDirectoryFilterState,
@@ -165,6 +208,17 @@ function PaymentLinkDirectory({
             { value: "FIXED_AMOUNT", label: dictionary.paymentLinkDirectoryKindFixedAmount },
           ],
         },
+        // Only registered when the owner actually has links on at least one
+        // pair — an owner with none never sees a control with no effect.
+        ...(ownerPairs.length > 0
+          ? [{
+              name: "pair",
+              label: dictionary.paymentLinkDirectoryFilterPair,
+              allLabel: dictionary.paymentLinkDirectoryFilterAllPairs,
+              ...(firstValue(query.query.filters.pair) ? { selected: firstValue(query.query.filters.pair) } : {}),
+              options: ownerPairs.map((pair) => ({ value: pair.id, label: pair.label })),
+            } satisfies DataDirectoryEnumFilter]
+          : []),
       ]}
       formAction={LINKS_DIRECTORY_PATH}
       getRowActions={(row) => (
@@ -191,6 +245,10 @@ function PaymentLinkDirectory({
       rows={rows}
       {...(query.query.q ? { search: query.query.q } : {})}
       state={state}
+      textFilters={[
+        { name: "from", label: dictionary.paymentLinkDirectoryFilterFrom, calendarDay: true, ...(firstValue(query.query.filters.from) ? { selected: firstValue(query.query.filters.from) } : {}) },
+        { name: "to", label: dictionary.paymentLinkDirectoryFilterTo, calendarDay: true, ...(firstValue(query.query.filters.to) ? { selected: firstValue(query.query.filters.to) } : {}) },
+      ]}
     />
   );
 }
@@ -203,29 +261,42 @@ export default async function MerchantLinksPage({
   const { dictionary, locale, principal } = await requireMerchantShellContext();
   const resolvedSearchParams = await searchParams;
   const invalidFiltersNotice = resolvedSearchParams[DIRECTORY_INVALID_FILTERS_PARAM] === DIRECTORY_INVALID_FILTERS_VALUE;
-  const query = resolveLinksDirectoryQuery({ searchParams: resolvedSearchParams, principal });
+  const ownerPairs = await listOwnerActiveCurrencyPairs(principal.id);
+  const ownerPairIds = ownerPairs.map((pair) => pair.id);
+  const query = resolveLinksDirectoryQuery({ searchParams: resolvedSearchParams, principal, ownerPairIds });
   if (query.status === "redirect") redirect(query.location);
   if (query.status === "invalid-query") redirect(directoryInvalidFiltersLocation(LINKS_DIRECTORY_PATH));
 
-  // The frozen V1 section keeps its exact behavior, including its own failure
-  // propagation; only the V2 directory read degrades into the error state.
-  const data = await getPaymentLinkService().listForOwner(principal);
+  const era: PaymentLinkV2DirectoryEra = firstValue(query.query.filters.era) === "legacy" ? "legacy" : "v2";
+
+  // Eras are a partition: only the selected era's store is ever read, so one
+  // keyset page never blends V1 and V2 rows.
   let page: DirectoryPage<PaymentLinkV2DirectoryRow> | null = null;
-  try {
-    page = await queryMerchantDirectory({
-      principal,
-      directory: LINKS_DIRECTORY_ID,
-      orderId: LINKS_DIRECTORY_ORDER_ID,
-      order: DIRECTORY_ORDER,
-      filters: { ...query.query.filters, ...(query.query.q ? { q: query.query.q } : {}) },
-      canonicalFilterQuery: query.query.canonicalFilterQuery,
-      pageSize: query.query.pageSize,
-      ...(query.cursor ? { cursor: query.cursor } : {}),
-      adapter: getPaymentLinkV2DirectoryAdapter(),
-    });
-  } catch {
-    page = null;
+  let legacyData: PaymentLinkOwnerData | null = null;
+  if (era === "legacy") {
+    legacyData = await getPaymentLinkService().listForOwner(principal);
+  } else {
+    try {
+      page = await queryMerchantDirectory({
+        principal,
+        directory: LINKS_DIRECTORY_ID,
+        orderId: LINKS_DIRECTORY_ORDER_ID,
+        order: DIRECTORY_ORDER,
+        filters: { ...query.query.filters, ...(query.query.q ? { q: query.query.q } : {}) },
+        canonicalFilterQuery: query.query.canonicalFilterQuery,
+        pageSize: query.query.pageSize,
+        ...(query.cursor ? { cursor: query.cursor } : {}),
+        adapter: getPaymentLinkV2DirectoryAdapter(),
+      });
+    } catch {
+      page = null;
+    }
   }
+
+  const copy = dataDirectoryCopy(dictionary, {
+    title: dictionary.adminPaymentLinksEmpty,
+    description: dictionary.adminPaymentLinksEmptyDescription,
+  });
 
   return (
     <div className="space-y-6">
@@ -238,15 +309,27 @@ export default async function MerchantLinksPage({
       {invalidFiltersNotice ? <DirectoryInvalidFiltersNotice dictionary={dictionary} /> : null}
       {query.status === "ready" && query.notice ? <PaymentLinkV2Notice dictionary={dictionary} notice={query.notice} /> : null}
       {query.status === "ready" && query.legacyNotice ? <PaymentLinkLegacyNotice dictionary={dictionary} notice={query.legacyNotice} /> : null}
-      <PaymentLinkDirectory dictionary={dictionary} locale={locale} page={page} query={query} />
-      <Separator />
-      <section aria-labelledby="legacy-payment-links-heading" className="flex flex-col gap-6">
-        <header className="workspace-heading">
-          <h2 id="legacy-payment-links-heading">{dictionary.paymentLinkDirectoryLegacyHeading}</h2>
-          <p>{dictionary.paymentLinkDirectoryLegacyDescription}</p>
-        </header>
-        <OwnerPaymentLinkManagement data={data} dictionary={dictionary} locale={locale} />
-      </section>
+      {era === "legacy" && legacyData ? (
+        <LegacyLinksDirectory
+          canonicalFilterQuery={query.query.canonicalFilterQuery}
+          copy={copy}
+          data={legacyData}
+          dictionary={dictionary}
+          eraOptions={[eraFilter(dictionary, era)]}
+          filters={{
+            ...(query.query.q ? { q: query.query.q } : {}),
+            ...(firstValue(query.query.filters.state) ? { state: firstValue(query.query.filters.state) } : {}),
+            ...(firstValue(query.query.filters.type) ? { type: firstValue(query.query.filters.type) } : {}),
+            ...(firstValue(query.query.filters.from) ? { from: firstValue(query.query.filters.from) } : {}),
+            ...(firstValue(query.query.filters.to) ? { to: firstValue(query.query.filters.to) } : {}),
+          }}
+          formAction={LINKS_DIRECTORY_PATH}
+          locale={locale}
+          resetUrl={LINKS_DIRECTORY_PATH}
+        />
+      ) : (
+        <PaymentLinkDirectory dictionary={dictionary} era={era} locale={locale} ownerPairs={ownerPairs} page={page} query={query} />
+      )}
     </div>
   );
 }

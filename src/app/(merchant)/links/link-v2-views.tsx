@@ -1,6 +1,7 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 
-import type { PaymentLinkV2DerivedState, PaymentLinkV2View } from "@/auth/payment-link-v2-view";
+import type { PaymentLinkV2DerivedState, PaymentLinkV2LineSummary, PaymentLinkV2View } from "@/auth/payment-link-v2-view";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,8 +17,18 @@ import type { getDictionary } from "@/i18n/dictionaries";
 import type { SupportedLocale } from "@/i18n/locales";
 
 import { formatCatalogPrice } from "../catalog/price-format";
+import { linkMoneyMultiply, linkMoneySum } from "./link-money";
 
 type Dictionary = ReturnType<typeof getDictionary>;
+
+// The base `PaymentLinkV2View` line carries no availability fact; the
+// owner-only `findForOwner` projection adds it per line. Optional here keeps
+// this shared file accepting both the owner detail (available always set)
+// and the administrator's redacted reuse (field absent) with zero prop drift
+// for either caller.
+type PaymentLinkV2DetailLine = PaymentLinkV2LineSummary & Readonly<{ available?: boolean }>;
+
+type PaymentLinkV2DetailLink = Omit<PaymentLinkV2View, "lines"> & Readonly<{ lines: ReadonlyArray<PaymentLinkV2DetailLine> }>;
 
 export function formatLinkInstant(value: Date, locale: SupportedLocale) {
   return new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short", timeZone: "UTC" }).format(value);
@@ -169,7 +180,7 @@ function CompositionCard({
   dictionary,
   link,
   locale,
-}: Readonly<{ dictionary: Dictionary; link: PaymentLinkV2View; locale: SupportedLocale }>) {
+}: Readonly<{ dictionary: Dictionary; link: PaymentLinkV2DetailLink; locale: SupportedLocale }>) {
   if (link.compositionKind === "FIXED_AMOUNT") {
     return (
       <Card>
@@ -186,10 +197,10 @@ function CompositionCard({
     );
   }
 
-  const subtotal = link.lines.reduce((sum, line) => {
-    const amount = Number(line.unitPrice);
-    return sum + (Number.isNaN(amount) ? 0 : amount * line.quantity);
-  }, 0);
+  // Exact-decimal line totals and subtotal: BigInt micro-units end to end,
+  // never `Number()` on a money amount.
+  const lineTotals = link.lines.map((line) => linkMoneyMultiply(line.unitPrice, line.quantity));
+  const subtotal = linkMoneySum(lineTotals);
 
   return (
     <Card>
@@ -208,23 +219,24 @@ function CompositionCard({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {link.lines.map((line) => {
-              const unit = Number(line.unitPrice);
-              const total = Number.isNaN(unit) ? 0 : unit * line.quantity;
-              return (
-                <TableRow key={line.position}>
-                  <TableCell>{locale === "pt-BR" ? line.titlePtBr : line.titleEn}</TableCell>
-                  <TableCell className="text-right font-mono tabular-nums">{line.quantity}</TableCell>
-                  <TableCell className="text-right font-mono tabular-nums">{formatCatalogPrice(line.unitPrice, null, locale)}</TableCell>
-                  <TableCell className="text-right font-mono tabular-nums">{formatCatalogPrice(String(total), null, locale)}</TableCell>
-                </TableRow>
-              );
-            })}
+            {link.lines.map((line, index) => (
+              <TableRow key={line.position}>
+                <TableCell>
+                  {locale === "pt-BR" ? line.titlePtBr : line.titleEn}
+                  {line.available === false ? (
+                    <Badge className="ml-2" variant="outline">{dictionary.paymentLinkDetailLineUnavailable}</Badge>
+                  ) : null}
+                </TableCell>
+                <TableCell className="text-right font-mono tabular-nums">{line.quantity}</TableCell>
+                <TableCell className="text-right font-mono tabular-nums">{formatCatalogPrice(line.unitPrice, null, locale)}</TableCell>
+                <TableCell className="text-right font-mono tabular-nums">{formatCatalogPrice(lineTotals[index], null, locale)}</TableCell>
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
         <div className="flex items-center justify-between border-t border-border pt-3">
           <span className="text-sm font-medium text-muted-foreground">{dictionary.paymentLinkDetailSubtotal}</span>
-          <MoneyText className="justify-start" pairLabel={link.currencyPairLabel} size="large" value={formatCatalogPrice(String(subtotal), null, locale)} />
+          <MoneyText className="justify-start" pairLabel={link.currencyPairLabel} size="large" value={formatCatalogPrice(subtotal, null, locale)} />
         </div>
       </CardContent>
     </Card>
@@ -327,6 +339,7 @@ function TimelineCard({ dictionary, link }: Readonly<{ dictionary: Dictionary; l
 }
 
 export function PaymentLinkV2DetailCard({
+  actions,
   backHref,
   backLabel,
   dictionary,
@@ -336,10 +349,14 @@ export function PaymentLinkV2DetailCard({
   owner,
   showShareUrl = true,
 }: Readonly<{
+  // Owner-only action row (open checkout, edit, new version, view orders,
+  // lifecycle control): renders directly under the header badge row, above
+  // the summary/composition grid. The administrator reuse never passes it.
+  actions?: ReactNode;
   backHref: string;
   backLabel?: string;
   dictionary: Dictionary;
-  link: PaymentLinkV2View;
+  link: PaymentLinkV2DetailLink;
   locale: SupportedLocale;
   orders?: Readonly<{ total: number; confirmed: number; volume: string }>;
   owner?: Readonly<{ username: string; deletedAt: Date | null }>;
@@ -355,6 +372,8 @@ export function PaymentLinkV2DetailCard({
         <Badge variant="outline">{linkTypeLabel(dictionary, link.linkType)}</Badge>
         <Badge variant="outline">{linkKindLabel(dictionary, link.compositionKind)}</Badge>
       </div>
+
+      {actions}
 
       <div className="grid gap-4 lg:grid-cols-12">
         <div className="space-y-4 lg:col-span-8">

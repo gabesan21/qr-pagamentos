@@ -57,6 +57,14 @@
 - The toolbar's page-size options and labelled text/calendar-day filter fields
   are optional registered props (defaults 25/50/100, enum-only filters);
   never hardcode a concrete directory's sizes or filters into the composition.
+- **Byte-frozen, cursorless source exception (14.5.2):** a consumer whose only
+  data source is a byte-frozen list with no cursor (merchant `/links`'
+  legacy V1 era) may render its full owner-scoped list through this
+  composition's UI shell with query-param filtering applied client-side
+  instead of a `server/` adapter. This is the one authorized exception to
+  "never add ... client-side full-list filtering" above; it never extends to
+  any source with a registered adapter or cursor, and it never blends with a
+  keyset page from another source on the same directory render.
 
 ## Related contracts
 

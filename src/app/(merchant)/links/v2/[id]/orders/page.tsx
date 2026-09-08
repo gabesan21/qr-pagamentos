@@ -7,6 +7,7 @@ import { WorkspaceHeading } from "@/app-shell/workspace-heading";
 import { getPaymentLinkV2ViewService } from "@/auth/payment-link-v2-view";
 import { ArrowLeftIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { CopyField } from "@/components/ui/copy-field";
 import {
   DIRECTORY_INVALID_FILTERS_PARAM,
   DIRECTORY_INVALID_FILTERS_VALUE,
@@ -20,8 +21,8 @@ import type { OrderV2Summary } from "@/orders/order-v2-view";
 
 import { requireMerchantShellContext } from "../../../../shell-context";
 import type { LinksSearchParams } from "../../../directory-query";
-import { formatLinkInstant, LinkStateBadge, PaymentLinkV2UnavailableCard } from "../../../link-v2-views";
-import { OrderV2LocalOutcomeBadge, OrderV2StateBadge, orderV2SummaryLabel } from "./order-v2-views";
+import { copyLabels, formatLinkInstant, LinkStateBadge, PaymentLinkV2UnavailableCard } from "../../../link-v2-views";
+import { OrderV2BreadcrumbTrail, OrderV2LocalOutcomeBadge, OrderV2StateBadge, payerColumnLabel } from "./order-v2-views";
 
 type Dictionary = ReturnType<typeof getDictionary>;
 
@@ -80,13 +81,9 @@ function LinkOrderDirectory({
     {
       id: "order",
       label: dictionary.paymentLinkOrderDetailHeading,
-      value: (row) => (
-        <span className="flex flex-col gap-1">
-          <span className="font-mono text-xs">{row.id}</span>
-          <span className="text-xs text-muted-foreground">{orderV2SummaryLabel(row, locale)}</span>
-        </span>
-      ),
+      value: (row) => <CopyField labels={copyLabels(dictionary)} value={row.id} variant="compact" />,
     },
+    { id: "payer", label: dictionary.paymentLinkOrdersColumnPayer, value: (row) => <span className="text-xs">{payerColumnLabel(dictionary, row.payer)}</span> },
     { id: "amount", label: dictionary.orderAmount, numeric: true, value: (row) => <span className="font-mono tabular-nums">{formatCatalogPrice(row.amount, null, locale)}</span> },
     { id: "state", label: dictionary.orderState, value: (row) => <OrderV2StateBadge dictionary={dictionary} state={row.state} /> },
     { id: "outcome", label: dictionary.paymentLinkOrderLocalOutcome, value: (row) => <OrderV2LocalOutcomeBadge dictionary={dictionary} outcome={row.currentLocalOutcome} /> },
@@ -190,6 +187,14 @@ export default async function PaymentLinkV2OrdersPage({
 
   return (
     <div className="space-y-4">
+      <OrderV2BreadcrumbTrail
+        items={[
+          { href: "/links", label: dictionary.shellLinks },
+          { href: `/links/v2/${link.id}`, label: `#${link.identifier}`, mono: true },
+          { label: dictionary.paymentLinkOrdersHeading },
+        ]}
+      />
+
       <WorkspaceHeading description={dictionary.paymentLinkOrdersDescription} eyebrow={dictionary.shellMerchantEyebrow} title={dictionary.paymentLinkOrdersHeading} />
       {invalidFiltersNotice ? <DirectoryInvalidFiltersNotice dictionary={dictionary} /> : null}
 
