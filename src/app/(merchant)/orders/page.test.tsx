@@ -12,7 +12,7 @@ const { requireOwnerFromCookie, resolveLocale, listV1, queryDirectory, redirect 
   redirect: vi.fn((location: string) => { throw new Error(`redirect:${location}`); }),
 }));
 
-vi.mock("next/navigation", () => ({ redirect, useSearchParams: () => new URLSearchParams() }));
+vi.mock("next/navigation", () => ({ redirect, useSearchParams: () => new URLSearchParams(), useRouter: () => ({ replace: vi.fn(), push: vi.fn() }) }));
 vi.mock("server-only", () => ({}));
 vi.mock("@/app/owner-guard", () => ({ requireOwnerFromCookie, ownerProtectedMutationResponse: vi.fn() }));
 vi.mock("@/i18n/locale-preference", () => ({ getLocalePreferenceService: () => ({ resolve: resolveLocale }) }));
@@ -133,23 +133,19 @@ describe("merchant orders directory page", () => {
     expect(filtered).toContain("No matching records");
   });
 
-  it("renders the invalid-query state without directory I/O and without echoing input", async () => {
+  it("resets to the reset redirect without directory I/O and without echoing input", async () => {
     ready("en");
-    const markup = renderToStaticMarkup(await MerchantOrdersPage({ searchParams: Promise.resolve({ forged: "1" }) }));
-    expect(markup).toContain("The directory request is unavailable");
-    expect(markup).not.toContain("forged");
+    await expect(MerchantOrdersPage({ searchParams: Promise.resolve({ forged: "1" }) })).rejects.toThrow("redirect:/orders?filters=ignored");
     expect(queryDirectory).not.toHaveBeenCalled();
   });
 
-  it("renders the invalid-query state when the delivered service rejects a calendar day", async () => {
+  it("resets to the reset redirect when the delivered service rejects a calendar day", async () => {
     requireOwnerFromCookie.mockResolvedValue(principal);
     resolveLocale.mockResolvedValue("en");
     listV1.mockResolvedValue([]);
     queryDirectory.mockResolvedValue({ status: "invalid-query" });
 
-    const markup = renderToStaticMarkup(await MerchantOrdersPage({ searchParams: Promise.resolve({ "filter.from": "2026-13-99" }) }));
-    expect(markup).toContain("The directory request is unavailable");
-    expect(markup).not.toContain("2026-13-99");
+    await expect(MerchantOrdersPage({ searchParams: Promise.resolve({ "filter.from": "2026-13-99" }) })).rejects.toThrow("redirect:/orders?filters=ignored");
   });
 
   it("resets non-canonical queries before any read", async () => {
@@ -199,9 +195,7 @@ describe("merchant orders directory page", () => {
     const failed = renderToStaticMarkup(await MerchantOrdersPage({ searchParams: Promise.resolve({ "orders-v2": "failed" }) }));
     expect(failed).toContain("The order change could not be saved.");
 
-    const forged = renderToStaticMarkup(await MerchantOrdersPage({ searchParams: Promise.resolve({ "orders-v2": "deleted" }) }));
-    expect(forged).toContain("The directory request is unavailable");
-    expect(forged).not.toContain("deleted");
+    await expect(MerchantOrdersPage({ searchParams: Promise.resolve({ "orders-v2": "deleted" }) })).rejects.toThrow("redirect:/orders?filters=ignored");
     expect(queryDirectory).toHaveBeenCalledTimes(4);
   });
 });

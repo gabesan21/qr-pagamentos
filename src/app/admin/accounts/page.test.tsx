@@ -11,7 +11,7 @@ const { requireAdminFromCookie, resolveLocale, queryDirectory, redirect } = vi.h
   redirect: vi.fn((location: string) => { throw new Error(`redirect:${location}`); }),
 }));
 
-vi.mock("next/navigation", () => ({ redirect }));
+vi.mock("next/navigation", () => ({ redirect, useRouter: () => ({ replace: vi.fn(), push: vi.fn() }) }));
 vi.mock("server-only", () => ({}));
 vi.mock("@/app/admin/guard", () => ({ requireAdminFromCookie, protectedMutationResponse: vi.fn() }));
 vi.mock("@/i18n/locale-preference", () => ({ getLocalePreferenceService: () => ({ resolve: resolveLocale }) }));
@@ -136,29 +136,23 @@ describe("administrator accounts directory page", () => {
     expect(filtered).toContain("No matching records");
   });
 
-  it("renders the invalid-query state without directory I/O and without echoing input", async () => {
+  it("resets to the reset redirect without directory I/O and without echoing input", async () => {
     ready("en");
-    const markup = renderToStaticMarkup(await AdminAccountsPage({ searchParams: Promise.resolve({ forged: "1" }) }));
-    expect(markup).toContain("The directory request is unavailable");
-    expect(markup).not.toContain("forged");
+    await expect(AdminAccountsPage({ searchParams: Promise.resolve({ forged: "1" }) })).rejects.toThrow("redirect:/admin/accounts?filters=ignored");
     expect(queryDirectory).not.toHaveBeenCalled();
   });
 
-  it("renders the invalid-query state for a forged notice without directory I/O", async () => {
+  it("resets to the reset redirect for a forged notice without directory I/O", async () => {
     ready("en");
-    const markup = renderToStaticMarkup(await AdminAccountsPage({ searchParams: Promise.resolve({ success: "deleted" }) }));
-    expect(markup).toContain("The directory request is unavailable");
-    expect(markup).not.toContain("deleted");
+    await expect(AdminAccountsPage({ searchParams: Promise.resolve({ success: "deleted" }) })).rejects.toThrow("redirect:/admin/accounts?filters=ignored");
     expect(queryDirectory).not.toHaveBeenCalled();
   });
 
-  it("renders the invalid-query state when the delivered service rejects a calendar day", async () => {
+  it("resets to the reset redirect when the delivered service rejects a calendar day", async () => {
     ready("en");
     queryDirectory.mockResolvedValue({ status: "invalid-query" });
 
-    const markup = renderToStaticMarkup(await AdminAccountsPage({ searchParams: Promise.resolve({ "filter.from": "2026-13-99" }) }));
-    expect(markup).toContain("The directory request is unavailable");
-    expect(markup).not.toContain("2026-13-99");
+    await expect(AdminAccountsPage({ searchParams: Promise.resolve({ "filter.from": "2026-13-99" }) })).rejects.toThrow("redirect:/admin/accounts?filters=ignored");
   });
 
   it("renders the delivered notice strip inside a canonical query", async () => {

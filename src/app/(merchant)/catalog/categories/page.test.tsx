@@ -10,7 +10,7 @@ const { requireOwnerFromCookie, resolveLocale, listCategories, listProducts, red
 }));
 
 vi.mock("next/headers", () => ({ cookies: async () => ({ get: () => ({ value: "opaque-session" }) }) }));
-vi.mock("next/navigation", () => ({ redirect, useSearchParams: () => new URLSearchParams() }));
+vi.mock("next/navigation", () => ({ redirect, useSearchParams: () => new URLSearchParams(), useRouter: () => ({ replace: vi.fn(), push: vi.fn() }) }));
 vi.mock("server-only", () => ({}));
 vi.mock("@/app/owner-guard", () => ({ requireOwnerFromCookie, ownerProtectedMutationResponse: vi.fn() }));
 vi.mock("@/i18n/locale-preference", () => ({ getLocalePreferenceService: () => ({ resolve: resolveLocale }) }));

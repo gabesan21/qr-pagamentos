@@ -12,7 +12,7 @@ const { requireOwnerFromCookie, resolveLocale, listV1, queryDirectory, redirect 
   redirect: vi.fn((location: string) => { throw new Error(`redirect:${location}`); }),
 }));
 
-vi.mock("next/navigation", () => ({ redirect, useSearchParams: () => new URLSearchParams() }));
+vi.mock("next/navigation", () => ({ redirect, useSearchParams: () => new URLSearchParams(), useRouter: () => ({ replace: vi.fn(), push: vi.fn() }) }));
 vi.mock("server-only", () => ({}));
 vi.mock("@/app/owner-guard", () => ({ requireOwnerFromCookie, ownerProtectedMutationResponse: vi.fn() }));
 vi.mock("@/i18n/locale-preference", () => ({ getLocalePreferenceService: () => ({ resolve: resolveLocale }) }));
@@ -119,11 +119,9 @@ describe("merchant links directory page", () => {
     expect(filtered).toContain("No matching records");
   });
 
-  it("renders the invalid-query state without adapter I/O and without echoing input", async () => {
+  it("resets to the reset redirect without adapter I/O and without echoing input", async () => {
     ready("en");
-    const markup = renderToStaticMarkup(await MerchantLinksPage({ searchParams: Promise.resolve({ forged: "1" }) }));
-    expect(markup).toContain("The directory request is unavailable");
-    expect(markup).not.toContain("forged");
+    await expect(MerchantLinksPage({ searchParams: Promise.resolve({ forged: "1" }) })).rejects.toThrow("redirect:/links?filters=ignored");
     expect(queryDirectory).not.toHaveBeenCalled();
   });
 
@@ -184,8 +182,6 @@ describe("merchant links directory page", () => {
     const failed = renderToStaticMarkup(await MerchantLinksPage({ searchParams: Promise.resolve({ "payment-links-v2": "failed" }) }));
     expect(failed).toContain("The payment-link change could not be saved.");
 
-    const forged = renderToStaticMarkup(await MerchantLinksPage({ searchParams: Promise.resolve({ "payment-links-v2": "deleted" }) }));
-    expect(forged).toContain("The directory request is unavailable");
-    expect(forged).not.toContain("deleted");
+    await expect(MerchantLinksPage({ searchParams: Promise.resolve({ "payment-links-v2": "deleted" }) })).rejects.toThrow("redirect:/links?filters=ignored");
   });
 });

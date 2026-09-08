@@ -92,6 +92,21 @@ describe("ImageUploader", () => {
     await waitFor(() => expect(onChange).toHaveBeenCalledWith("media-2"))
   })
 
+  it("never pairs the soft accent background with plain danger text while failed", async () => {
+    const stage = vi.fn().mockRejectedValueOnce(new Error("network"))
+    render(<ImageUploader accept={["image/png"]} labels={labels} maxBytes={1_000_000} onChange={vi.fn()} stage={stage} />)
+
+    const input = screen.getByLabelText(labels.selectFile) as HTMLInputElement
+    fireEvent.change(input, { target: { files: [file()] } })
+    await screen.findByText(labels.uploadFailed)
+
+    const label = screen.getByLabelText(labels.selectFile).closest("label") as HTMLLabelElement
+    fireEvent.dragOver(label)
+    expect(label.className).not.toContain("bg-accent-soft")
+    expect(label.className).toContain("text-danger")
+    expect(label.className).not.toContain("text-accent-on-soft")
+  })
+
   it("rejects an unsupported type or oversized file client-side without calling stage", async () => {
     const stage = vi.fn()
     render(<ImageUploader accept={["image/png"]} labels={labels} maxBytes={10} onChange={vi.fn()} stage={stage} />)

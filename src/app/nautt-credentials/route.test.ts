@@ -47,15 +47,15 @@ describe("owner Nautt credential route", () => {
     const response = await POST(new Request("http://local/nautt-credentials", { method: "POST", headers: sameOrigin, body: form }));
     expect(onboard).toHaveBeenCalledWith(principal, principal.id, "private-key", "https://payments.example/api/nautt/webhooks");
     expect(response.status).toBe(303);
-    expect(response.headers.get("location")).toBe("/settings?nautt=configured");
+    expect(response.headers.get("location")).toBe("/settings?nautt=configured#settings-connection");
     expect(`${await response.text()}${response.headers.get("location")}`).not.toMatch(/private-key|forged-owner|evil|credentialRevision/);
   });
 
   it.each([
-    [new OwnerOnboardingInvalidKeyError(), "/settings?nautt=invalid"],
-    [new OwnerOnboardingChangedError(), "/settings?nautt=changed"],
-    [new OwnerOnboardingRecoveryRequiredError(), "/settings?nautt=recovery"],
-    [new Error("provider detail"), "/settings?nautt=unavailable"],
+    [new OwnerOnboardingInvalidKeyError(), "/settings?nautt=invalid#settings-connection"],
+    [new OwnerOnboardingChangedError(), "/settings?nautt=changed#settings-connection"],
+    [new OwnerOnboardingRecoveryRequiredError(), "/settings?nautt=recovery#settings-connection"],
+    [new Error("provider detail"), "/settings?nautt=unavailable#settings-connection"],
   ])("maps onboarding failures to the opaque Settings result %s", async (error, location) => {
     requireUser.mockResolvedValue(principal);
     onboard.mockRejectedValue(error);

@@ -12,7 +12,7 @@ const { requireOwnerFromCookie, resolveLocale, getForOwner, queryDirectory, redi
   redirect: vi.fn((location: string) => { throw new Error(`redirect:${location}`); }),
 }));
 
-vi.mock("next/navigation", () => ({ redirect }));
+vi.mock("next/navigation", () => ({ redirect, useRouter: () => ({ replace: vi.fn(), push: vi.fn() }) }));
 vi.mock("server-only", () => ({}));
 vi.mock("@/app/owner-guard", () => ({ requireOwnerFromCookie, ownerProtectedMutationResponse: vi.fn() }));
 vi.mock("@/i18n/locale-preference", () => ({ getLocalePreferenceService: () => ({ resolve: resolveLocale }) }));
@@ -159,15 +159,13 @@ describe("merchant V2 payment-link order drilldown list page", () => {
     await expect(PaymentLinkV2OrdersPage(request())).rejects.toThrow(`redirect:${path}?filter.link=${identifier}`);
   });
 
-  it("renders the invalid-query state without echoing input", async () => {
+  it("resets to the reset redirect without echoing input", async () => {
     requireOwnerFromCookie.mockResolvedValue(principal);
     resolveLocale.mockResolvedValue("en");
     getForOwner.mockResolvedValue({ kind: "found", link });
     queryDirectory.mockResolvedValue({ status: "invalid-query" });
 
-    const markup = renderToStaticMarkup(await PaymentLinkV2OrdersPage(request({ forged: "1" })));
-    expect(markup).toContain("The directory request is unavailable");
-    expect(markup).not.toContain("forged");
+    await expect(PaymentLinkV2OrdersPage(request({ forged: "1" }))).rejects.toThrow(`redirect:${path}?filters=ignored`);
   });
 
   it("renders the empty and filtered-empty states", async () => {
