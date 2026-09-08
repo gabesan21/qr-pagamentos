@@ -16,7 +16,7 @@ import { SimpleTabs } from "@/components/ui/simple-tabs";
 import { Spinner } from "@/components/ui/spinner";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { showToast, ToastViewport } from "@/components/ui/toast";
+import { showToast } from "@/components/ui/toast";
 
 import { SpecimenBinding } from "./specimen-binding";
 import "./specimen-state.module.css";
@@ -286,7 +286,6 @@ export function DesignSystemInteractiveSpecimens({ dictionary }: Readonly<{ dict
       <ConfirmDialog cancelLabel={dictionary.designSystemCancel} confirmLabel={dictionary.designSystemConfirm} description={dictionary.designSystemConfirmDescription} failureMessage={dictionary.designSystemConfirmFailure} onConfirm={() => Promise.resolve()} onOpenChange={setConfirmOpen} open={confirmOpen} pendingLabel={dictionary.designSystemPending} title={dictionary.designSystemConfirmTitle} />
       <ConfirmDialog cancelLabel={dictionary.designSystemCancel} confirmLabel={dictionary.designSystemConfirm} description={dictionary.designSystemConfirmDescription} failureMessage={dictionary.designSystemConfirmFailure} onConfirm={() => new Promise<void>((resolve) => { setTimeout(resolve, 2_000); })} onOpenChange={setPendingOpen} open={pendingOpen} pendingLabel={dictionary.designSystemPending} title={dictionary.designSystemConfirmTitle} />
       <ConfirmDialog cancelLabel={dictionary.designSystemCancel} confirmLabel={dictionary.designSystemConfirm} description={dictionary.designSystemConfirmDescription} failureMessage={dictionary.designSystemConfirmFailure} onConfirm={() => Promise.reject(new Error("deterministic fixture"))} onOpenChange={setFailureOpen} open={failureOpen} pendingLabel={dictionary.designSystemPending} title={dictionary.designSystemConfirmTitle} />
-      <ToastViewport label={dictionary.designSystemToastRegion} />
     </>
   );
 }

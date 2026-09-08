@@ -133,4 +133,19 @@ describe("reset password page contract", () => {
       expect(importedNames.has(required)).toBe(true);
     }
   });
+
+  it("renders the labelled PT/EN language switcher posting to /language-preference, ≥44px, on both the form and the invalid-token state", async () => {
+    const validMarkup = renderToStaticMarkup(await ResetPasswordPage({ searchParams: Promise.resolve({ token: "valid-token" }) }));
+    expect(validMarkup).toContain('action="/language-preference"');
+    expect(validMarkup).toContain('name="locale"');
+    expect(validMarkup).toMatch(/aria-label="[^"]+"/);
+    expect(validMarkup).toContain(">PT<");
+    expect(validMarkup).toContain(">EN<");
+    expect(validMarkup).toContain("h-11");
+
+    validateResetChallenge.mockResolvedValue(null);
+    const invalidMarkup = renderToStaticMarkup(await ResetPasswordPage({ searchParams: Promise.resolve({}) }));
+    expect(invalidMarkup).toContain('action="/language-preference"');
+    expect(readCookie).not.toHaveBeenCalledWith("qr_session");
+  });
 });

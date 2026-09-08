@@ -40,8 +40,10 @@ export function QrDisplay({
 }: QrDisplayProps) {
   const errorCorrectionLevel = identity ? "H" : "M";
   const [generated, setGenerated] = useState<{ svg: string; forPayload: string; forLevel: string } | null>(null);
+  const [failed, setFailed] = useState<{ forPayload: string; forLevel: string } | null>(null);
   const generatedSvg =
     generated && generated.forPayload === payload && generated.forLevel === errorCorrectionLevel ? generated.svg : null;
+  const hasFailed = Boolean(failed && failed.forPayload === payload && failed.forLevel === errorCorrectionLevel);
 
   useEffect(() => {
     if (graphic || !payload) {
@@ -58,7 +60,9 @@ export function QrDisplay({
         if (!cancelled) setGenerated({ svg, forPayload: payload, forLevel: errorCorrectionLevel });
       })
       .catch(() => {
-        if (!cancelled) setGenerated(null);
+        // A rejected generation must clear aria-busy, not pulse forever: mark this
+        // exact (payload, level) pair as failed instead of leaving it "still generating".
+        if (!cancelled) setFailed({ forPayload: payload, forLevel: errorCorrectionLevel });
       });
 
     return () => {
@@ -66,7 +70,7 @@ export function QrDisplay({
     };
   }, [errorCorrectionLevel, graphic, payload]);
 
-  const isGenerating = Boolean(payload) && !graphic && !generatedSvg;
+  const isGenerating = Boolean(payload) && !graphic && !generatedSvg && !hasFailed;
   const isPending = pending || isGenerating;
   const resolvedGraphic =
     graphic ??

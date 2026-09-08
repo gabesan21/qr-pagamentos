@@ -36,6 +36,12 @@ describe("role shell contract", () => {
     expect(source).not.toMatch(/@\/auth|@\/orders|@\/integrations|@\/media/);
   });
 
+  it("keeps the second client boundary (shell-theme-picker.tsx) free of authentication and business imports", () => {
+    const source = readFileSync(`${root}/src/app-shell/shell-theme-picker.tsx`, "utf8");
+    expect(source).toContain('"use client"');
+    expect(source).not.toMatch(/@\/auth|@\/orders|@\/integrations|@\/media/);
+  });
+
   it("fixes five distinct routes with icons for each persona", () => {
     const admin = readFileSync(`${root}/src/app/admin/layout.tsx`, "utf8");
     const merchant = readFileSync(`${root}/src/app/(merchant)/layout.tsx`, "utf8");

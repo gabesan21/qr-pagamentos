@@ -40,7 +40,7 @@ function showToast({
 }
 
 function ToastViewport({ label }: { label: string }) {
-  return <Toaster aria-label={label} closeButton />
+  return <Toaster aria-label={label} closeButton position="top-right" />
 }
 
 export { showToast, ToastViewport }
