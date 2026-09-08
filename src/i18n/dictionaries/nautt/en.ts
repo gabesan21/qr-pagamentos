@@ -23,4 +23,10 @@ export const nauttEn = {
   nauttToken: "Token",
   nauttNetwork: "Network",
   nauttBalance: "Balance",
+  nauttValidate: "Validate",
+  nauttValidating: "Validating…",
+  nauttLastUpdated: "Credential last updated {date}",
+  nauttReplaceBlockedActive: "Replacing this API key isn't available while the connection is active. Recovery is limited to the pending/uncertain setup states; this is a known limitation.",
+  nauttResetConfirmTitle: "Reset webhook setup?",
+  nauttResetConfirmFailed: "The setup could not be reset. Try again.",
 } as const;

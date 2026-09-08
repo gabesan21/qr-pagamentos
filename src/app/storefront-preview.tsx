@@ -25,7 +25,9 @@ export type StorefrontPreviewProps = Readonly<{
 // Miniature storefront mock driven by the workspace controls: the scoped
 // data-theme-preview selector recolors semantic tokens without touching the
 // page theme, sample copy is fixture text, and the sample action is an inert
-// owned-Button composition so the preview adds no tab stop.
+// owned-Button composition so the preview adds no tab stop. Design-vocabulary
+// utilities only (14.5.3 F02): the retired `.storefront-preview*` BEM block
+// is removed with F04, so this component stops referencing it now.
 export function StorefrontPreview({
   accentColor,
   displayName,
@@ -44,20 +46,20 @@ export function StorefrontPreview({
 }: StorefrontPreviewProps) {
   const action = <Button asChild><span>{sampleAction}</span></Button>;
   return (
-    <div className="storefront-preview-block">
-      <h3 className="storefront-preview__heading" id="storefront-preview-heading">{heading}</h3>
+    <div className="space-y-3">
+      <h3 className="text-sm font-semibold text-foreground" id="storefront-preview-heading">{heading}</h3>
       <section
         aria-labelledby="storefront-preview-heading"
-        className="storefront-preview"
+        className="grid gap-5 rounded-lg border border-border bg-card p-5 text-card-foreground"
         data-layout={layout}
         data-theme-preview={themeId}
         style={{ "--storefront-accent": accentColor } as CSSProperties}
       >
-        <header className="storefront-preview__rail">
+        <header className="flex flex-wrap items-center gap-3 border-b-2 border-[color:var(--storefront-accent,var(--action-primary))] py-3">
           {logoMediaIdentifier
-            ? <img alt={logoAlt} className="storefront-preview__logo" src={`/media/${logoMediaIdentifier}`} />
+            ? <img alt={logoAlt} className="size-8 object-contain" src={`/media/${logoMediaIdentifier}`} />
             : <span aria-label={fallbackAlt} role="img"><BrandIdentity variant="merchant-fallback" /></span>}
-          <p className="storefront-preview__name">{displayName}</p>
+          <p className="truncate text-lg font-semibold leading-tight text-foreground">{displayName}</p>
         </header>
         {layout === "table" ? (
           <Table>
@@ -71,18 +73,18 @@ export function StorefrontPreview({
             <TableBody>
               <TableRow>
                 <TableCell>
-                  <p className="storefront-preview__product">{sampleTitle}</p>
-                  <p className="storefront-preview__description">{sampleDescription}</p>
+                  <p className="font-medium text-foreground">{sampleTitle}</p>
+                  <p className="text-sm text-muted-foreground">{sampleDescription}</p>
                 </TableCell>
-                <TableCell className="storefront-preview__price">{samplePrice}</TableCell>
+                <TableCell className="tabular-nums">{samplePrice}</TableCell>
                 <TableCell>{action}</TableCell>
               </TableRow>
             </TableBody>
           </Table>
         ) : (
-          <Card className="storefront-preview__card">
+          <Card>
             <CardHeader><CardTitle>{sampleTitle}</CardTitle><CardDescription>{sampleDescription}</CardDescription></CardHeader>
-            <CardContent><p className="storefront-preview__price"><span>{priceLabel}</span> {samplePrice}</p></CardContent>
+            <CardContent><p className="tabular-nums"><span className="text-sm font-medium text-muted-foreground">{priceLabel}</span> {samplePrice}</p></CardContent>
             <CardFooter>{action}</CardFooter>
           </Card>
         )}
