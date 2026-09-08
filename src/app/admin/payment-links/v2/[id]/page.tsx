@@ -32,7 +32,7 @@ export default async function AdminPaymentLinkV2DetailPage({ params }: Readonly<
               locale={locale}
               owner={result.link.owner}
             />
-            <AssociatedOrdersCard dictionary={dictionary} linkIdentifier={result.link.identifier} />
+            <AssociatedOrdersCard dictionary={dictionary} linkIdentifier={result.link.identifier} locale={locale} />
           </div>
         )
         : <PaymentLinkV2UnavailableCard backHref="/admin/payment-links" dictionary={dictionary} />}
