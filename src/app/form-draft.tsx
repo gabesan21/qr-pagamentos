@@ -45,6 +45,19 @@ export function hasFailureNotice(noticeKey: string, noticeValues: readonly strin
   return value !== null && noticeValues.includes(value);
 }
 
+// Fields whose value can be captured as plain text: excludes file/password
+// inputs (never worth persisting to sessionStorage) and checkbox/radio
+// inputs (their meaningful state is `checked`, not `value`).
+type DraftableField = HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
+
+function isDraftableField(field: Element | RadioNodeList | null): field is DraftableField {
+  if (field instanceof HTMLTextAreaElement || field instanceof HTMLSelectElement) return true;
+  if (field instanceof HTMLInputElement) {
+    return !["file", "password", "checkbox", "radio"].includes(field.type);
+  }
+  return false;
+}
+
 // Draft guard for a server-rendered, uncontrolled native form: it never
 // reads or intercepts the submit event's default action, only observes it.
 export function FormDraftGuard({
@@ -69,7 +82,7 @@ export function FormDraftGuard({
       if (draft) {
         for (const name of fieldNames) {
           const field = form.elements.namedItem(name);
-          if (field instanceof HTMLInputElement && typeof draft[name] === "string") field.value = draft[name];
+          if (isDraftableField(field) && typeof draft[name] === "string") field.value = draft[name];
         }
       }
     } else {
@@ -80,7 +93,7 @@ export function FormDraftGuard({
       const values: Record<string, string> = {};
       for (const name of fieldNames) {
         const field = form.elements.namedItem(name);
-        if (field instanceof HTMLInputElement) values[name] = field.value;
+        if (isDraftableField(field)) values[name] = field.value;
       }
       saveFormDraft(draftKey, values);
     };
