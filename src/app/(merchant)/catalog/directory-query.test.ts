@@ -2,6 +2,8 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 
+import { DIRECTORY_INVALID_FILTERS_PARAM, DIRECTORY_INVALID_FILTERS_VALUE, directoryInvalidFiltersLocation } from "@/data-directory/server/notice";
+
 import { resolveCatalogDirectoryQuery } from "./directory-query";
 
 const definitions = [
@@ -59,5 +61,33 @@ describe("catalog directory query", () => {
       status: "redirect",
       location: `/catalog?${new URLSearchParams({ "filter.category": "cat-1" }).toString()}&${new URLSearchParams({ "filter.category": "cat-2" }).toString()}`,
     });
+  });
+});
+
+describe("catalog directory query reserved invalid-filters pair", () => {
+  it("strips the reserved pair before canonicalization and resolves the canonical result for the remaining params", () => {
+    const withPair = resolve({ [DIRECTORY_INVALID_FILTERS_PARAM]: DIRECTORY_INVALID_FILTERS_VALUE, "filter.state": "active" });
+    const withoutPair = resolve({ "filter.state": "active" });
+    expect(withPair).toEqual(withoutPair);
+    expect(withPair).toEqual({ status: "ready", filters: { state: ["active"] }, pageSize: 25, canonicalFilterQuery: "filter.state=active" });
+  });
+
+  it("never redirects back to a URL carrying the reserved pair", () => {
+    const bare = resolve({ [DIRECTORY_INVALID_FILTERS_PARAM]: DIRECTORY_INVALID_FILTERS_VALUE });
+    expect(bare.status).toBe("ready");
+    const forcedRedirect = resolve({ [DIRECTORY_INVALID_FILTERS_PARAM]: DIRECTORY_INVALID_FILTERS_VALUE, q: "  coffee  " });
+    expect(forcedRedirect).toEqual({ status: "redirect", location: "/catalog?q=coffee" });
+    if (forcedRedirect.status === "redirect") expect(forcedRedirect.location).not.toContain(DIRECTORY_INVALID_FILTERS_PARAM);
+  });
+
+  it("redirects an otherwise-invalid request to directoryInvalidFiltersLocation(path) exactly once, and resolving that redirect location never loops", () => {
+    expect(resolve({ unknown: "1" }).status).toBe("invalid-query");
+    const location = directoryInvalidFiltersLocation("/catalog");
+    expect(location).toBe("/catalog?filters=ignored");
+
+    const [, query] = location.split("?");
+    const searchParams = Object.fromEntries(new URLSearchParams(query));
+    const resolved = resolve(searchParams);
+    expect(resolved).toEqual({ status: "ready", filters: {}, pageSize: 25, canonicalFilterQuery: "" });
   });
 });
