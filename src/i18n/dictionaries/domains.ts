@@ -29,6 +29,8 @@ import { ordersDirectoryPtBR } from "./orders-directory/pt-BR";
 import { paymentLinksEn } from "./payment-links/en";
 import { paymentLinksDirectoryEn } from "./payment-links-directory/en";
 import { paymentLinksDirectoryPtBR } from "./payment-links-directory/pt-BR";
+import { paymentLinksFormEn } from "./payment-links-form/en";
+import { paymentLinksFormPtBR } from "./payment-links-form/pt-BR";
 import { paymentLinksPtBR } from "./payment-links/pt-BR";
 import { productsEn } from "./products/en";
 import { productsPtBR } from "./products/pt-BR";
@@ -60,6 +62,7 @@ export const dictionaryDomains = {
   ordersDirectory: { en: ordersDirectoryEn, "pt-BR": ordersDirectoryPtBR },
   paymentLinks: { en: paymentLinksEn, "pt-BR": paymentLinksPtBR },
   paymentLinksDirectory: { en: paymentLinksDirectoryEn, "pt-BR": paymentLinksDirectoryPtBR },
+  paymentLinksForm: { en: paymentLinksFormEn, "pt-BR": paymentLinksFormPtBR },
   products: { en: productsEn, "pt-BR": productsPtBR },
   profile: { en: profileEn, "pt-BR": profilePtBR },
   passwordReset: { en: passwordResetEn, "pt-BR": passwordResetPtBR },
