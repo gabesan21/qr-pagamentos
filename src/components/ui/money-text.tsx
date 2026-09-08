@@ -1,4 +1,3 @@
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 type MoneyTextProps = Readonly<{
@@ -20,7 +19,11 @@ export function MoneyText({ className, pairLabel, size = "default", value }: Mon
       >
         {value}
       </span>
-      {pairLabel ? <Badge variant="secondary">{pairLabel}</Badge> : null}
+      {pairLabel ? (
+        <span className="rounded-pill bg-surface-2 px-2 py-0.5 text-xs font-medium text-text-2">
+          {pairLabel}
+        </span>
+      ) : null}
     </span>
   );
 }
