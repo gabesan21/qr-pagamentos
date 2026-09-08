@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { AlertCircle, ImagePlus, ImageOff, LoaderCircleIcon } from "lucide-react"
+import { AlertCircle, ArrowDownToLine, ImagePlus, ImageOff, LoaderCircleIcon } from "lucide-react"
 
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button, buttonVariants } from "@/components/ui/button"
@@ -203,12 +203,16 @@ export function ImageUploader({
           />
           <div className="flex flex-col items-start gap-2 pt-1">
             <label
-              className={cn(buttonVariants({ variant: "outline" }), !interactive && "pointer-events-none opacity-50")}
+              className={cn(
+                buttonVariants({ variant: "outline" }),
+                "has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring has-[:focus-visible]:ring-offset-2",
+                !interactive && "pointer-events-none opacity-50",
+              )}
               htmlFor={inputId}
             >
               {labels.replace}
+              {picker}
             </label>
-            {picker}
             <Button disabled={!interactive} onClick={handleRemove} type="button" variant="ghost">
               {labels.remove}
             </Button>
@@ -219,7 +223,7 @@ export function ImageUploader({
           aria-disabled={!interactive || undefined}
           className={cn(
             tile,
-            dragOver && interactive && "border-accent bg-accent-soft text-accent",
+            dragOver && interactive && "border-solid border-accent bg-accent-soft text-accent",
             status === "failed" && "border-danger text-danger",
             !interactive && "opacity-50",
           )}
@@ -232,6 +236,8 @@ export function ImageUploader({
             <LoaderCircleIcon aria-hidden className="size-6 animate-spin" />
           ) : status === "failed" ? (
             <ImageOff aria-hidden className="size-6" />
+          ) : dragOver && interactive ? (
+            <ArrowDownToLine aria-hidden className="size-6" />
           ) : (
             <ImagePlus aria-hidden className="size-6" />
           )}
