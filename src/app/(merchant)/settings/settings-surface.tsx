@@ -82,8 +82,6 @@ export function SettingsSurface({
 
   return (
     <div className="settings-surface">
-      {notices.nautt ? <NauttNotice code={notices.nautt} dictionary={dictionary} /> : null}
-
       <div className="settings-surface__layout">
         <nav aria-label={dictionary.settingsNavLabel} className="settings-surface__nav">
           <div className="settings-surface__nav-inner">
@@ -174,30 +172,5 @@ export function SettingsSurface({
         </div>
       </div>
     </div>
-  );
-}
-
-function NauttNotice({ code, dictionary }: Readonly<{ code: string; dictionary: Dictionary }>) {
-  const copy =
-    code === "configured"
-      ? dictionary.nauttConfigured
-      : code === "invalid"
-        ? dictionary.nauttInvalid
-        : code === "changed"
-          ? dictionary.nauttChanged
-          : code === "recovery"
-            ? dictionary.nauttRecoveryRequired
-            : code === "reset"
-              ? dictionary.nauttResetDone
-              : code === "unavailable"
-                ? dictionary.nauttUnavailable
-                : null;
-  if (!copy) return null;
-  const success = code === "configured" || code === "reset";
-  return (
-    <Alert role={success ? "status" : "alert"} variant={success ? "success" : "destructive"}>
-      <AlertTitle>{dictionary.nauttHeading}</AlertTitle>
-      <AlertDescription>{copy}</AlertDescription>
-    </Alert>
   );
 }

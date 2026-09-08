@@ -5,13 +5,26 @@ import { Input } from "@/components/ui/input";
 import type { MerchantProfile } from "@/auth/profile";
 import type { getDictionary } from "@/i18n/dictionaries";
 
+import { FormDraftGuard } from "@/app/form-draft";
+import { NoticeToast, type NoticeToastEntry } from "@/app/notice-toast";
+
 import { PasswordFields } from "./password-fields";
 import { ProfileFormBody } from "./profile-form";
 import { TotpSection } from "./totp-section";
 
 type Dictionary = ReturnType<typeof getDictionary>;
-export type ProfileNotice = "identity-changed" | "identity-conflict" | "identity-failed" | "password-failed" | null;
+export type ProfileNotice =
+  | "identity-changed"
+  | "identity-conflict"
+  | "identity-failed"
+  | "password-changed"
+  | "password-failed"
+  | null;
 export type TotpNotice = "totp-enrolled" | "totp-confirmed" | "totp-disabled" | "totp-failed" | "totp-conflict" | null;
+
+const IDENTITY_FORM_ID = "profile-identity-form";
+const IDENTITY_DRAFT_FIELDS = ["username", "email"] as const;
+const IDENTITY_FAILURE_NOTICES = ["conflict", "failed"] as const;
 
 export function ProfileManagement({
   dictionary,
@@ -26,43 +39,50 @@ export function ProfileManagement({
   totpNotice?: TotpNotice;
   totpStatus?: "none" | "pending" | "active";
 }>) {
-  const noticeCopy = notice === "identity-changed"
+  const identityCopy = notice === "identity-changed"
     ? dictionary.profileIdentityChanged
     : notice === "identity-conflict"
       ? dictionary.profileIdentityConflict
       : notice === "identity-failed"
         ? dictionary.profileIdentityFailed
-        : notice === "password-failed"
-          ? dictionary.profilePasswordFailed
-          : null;
-  const noticeFailed = notice !== null && notice !== "identity-changed";
+        : null;
+  const identityFailed = notice === "identity-conflict" || notice === "identity-failed";
+  const identityValue = notice === "identity-changed" ? "changed" : notice === "identity-conflict" ? "conflict" : notice === "identity-failed" ? "failed" : null;
 
-  const totpNoticeCopy = totpNotice === "totp-enrolled"
-    ? dictionary.totpEnrolled
-    : totpNotice === "totp-confirmed"
-      ? dictionary.totpConfirmed
-      : totpNotice === "totp-disabled"
-        ? dictionary.totpDisabled
-        : totpNotice === "totp-failed"
-          ? dictionary.totpFailed
-          : totpNotice === "totp-conflict"
-            ? dictionary.totpConflict
-            : null;
-  const totpNoticeFailed = totpNotice === "totp-failed" || totpNotice === "totp-conflict";
+  const passwordCopy = notice === "password-changed"
+    ? dictionary.passwordChangedSuccess
+    : notice === "password-failed"
+      ? dictionary.profilePasswordFailed
+      : null;
+  const passwordFailed = notice === "password-failed";
+  const passwordValue = notice === "password-changed" ? "changed" : notice === "password-failed" ? "failed" : null;
+
+  const noticeEntries: NoticeToastEntry[] = [];
+  if (identityCopy && identityValue) {
+    noticeEntries.push({ param: "identity", value: identityValue, kind: identityFailed ? "error" : "success", message: identityCopy });
+  }
+  if (passwordCopy && passwordValue) {
+    noticeEntries.push({ param: "password", value: passwordValue, kind: passwordFailed ? "error" : "success", message: passwordCopy });
+  }
 
   return (
     <div className="profile-workspace">
-      {noticeCopy ? (
-        <Alert role={noticeFailed ? "alert" : "status"} variant={noticeFailed ? "destructive" : "success"}>
-          <AlertTitle>{noticeFailed ? dictionary.adminErrorHeading : dictionary.adminSuccessHeading}</AlertTitle>
-          <AlertDescription>{noticeCopy}</AlertDescription>
-        </Alert>
+      <NoticeToast notices={noticeEntries} />
+      {identityCopy ? (
+        <noscript>
+          <Alert role={identityFailed ? "alert" : "status"} variant={identityFailed ? "destructive" : "success"}>
+            <AlertTitle>{identityFailed ? dictionary.adminErrorHeading : dictionary.adminSuccessHeading}</AlertTitle>
+            <AlertDescription>{identityCopy}</AlertDescription>
+          </Alert>
+        </noscript>
       ) : null}
-      {totpNoticeCopy ? (
-        <Alert role={totpNoticeFailed ? "alert" : "status"} variant={totpNoticeFailed ? "destructive" : "success"}>
-          <AlertTitle>{dictionary.profileTotpTitle}</AlertTitle>
-          <AlertDescription>{totpNoticeCopy}</AlertDescription>
-        </Alert>
+      {passwordCopy ? (
+        <noscript>
+          <Alert role={passwordFailed ? "alert" : "status"} variant={passwordFailed ? "destructive" : "success"}>
+            <AlertTitle>{passwordFailed ? dictionary.adminErrorHeading : dictionary.adminSuccessHeading}</AlertTitle>
+            <AlertDescription>{passwordCopy}</AlertDescription>
+          </Alert>
+        </noscript>
       ) : null}
       <div className="profile-workspace__cards">
         <Card>
@@ -70,7 +90,14 @@ export function ProfileManagement({
             <CardTitle>{dictionary.profileIdentityTitle}</CardTitle>
             <CardDescription>{dictionary.profileIdentityDescription}</CardDescription>
           </CardHeader>
-          <form action="/profile/identity" method="post">
+          <FormDraftGuard
+            draftKey="profile-identity"
+            fieldNames={IDENTITY_DRAFT_FIELDS}
+            formId={IDENTITY_FORM_ID}
+            noticeKey="identity"
+            noticeValues={IDENTITY_FAILURE_NOTICES}
+          />
+          <form action="/profile/identity" id={IDENTITY_FORM_ID} method="post">
             <ProfileFormBody label={dictionary.profileSaveIdentity} pendingLabel={dictionary.profileSavingIdentity}>
               <FieldGroup>
                 <Field>
