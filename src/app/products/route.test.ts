@@ -6,6 +6,8 @@ const { requireOwnerFromCookie, ownerProtectedMutationResponse, create, update, 
 vi.mock("@/app/owner-guard", () => ({ requireOwnerFromCookie, ownerProtectedMutationResponse }));
 vi.mock("@/auth/product", async (original) => ({ ...(await original<typeof import("@/auth/product")>()), getProductService: () => ({ create, update, setActive, archive, delete: remove }) }));
 
+import { ProductConflictError } from "@/auth/product";
+
 import { POST } from "./route";
 
 const owner = { id: "owner", username: "owner", email: null, role: "USER" as const, status: "ACTIVE" as const, createdAt: new Date() };
@@ -53,5 +55,40 @@ describe("owner product route", () => {
     expect(values).not.toHaveProperty("currencyCode");
     expect(values).not.toHaveProperty("imageMediaId");
     expect(values).not.toHaveProperty("categoryId");
+  });
+
+  it("returns a failed create to the create form, never the catalog list", async () => {
+    requireOwnerFromCookie.mockResolvedValue(owner); ownerProtectedMutationResponse.mockReturnValue(null);
+    create.mockRejectedValueOnce(new Error("invalid"));
+    const response = await POST(request({ action: "create", internalName: "Donation" }));
+    expect(response.headers.get("location")).toBe("/catalog/products/new?products=failed");
+  });
+
+  it("returns update/active/archive failures to the product's own detail form, percent-encoding the id", async () => {
+    requireOwnerFromCookie.mockResolvedValue(owner); ownerProtectedMutationResponse.mockReturnValue(null);
+    const id = "prod/uct id";
+    const encoded = encodeURIComponent(id);
+
+    update.mockRejectedValueOnce(new ProductConflictError("stale version"));
+    const conflict = await POST(request({ action: "update", id, version: "1" }));
+    expect(conflict.headers.get("location")).toBe(`/catalog/products/${encoded}?products=conflict`);
+
+    update.mockRejectedValueOnce(new Error("invalid"));
+    const updateFailed = await POST(request({ action: "update", id, version: "1" }));
+    expect(updateFailed.headers.get("location")).toBe(`/catalog/products/${encoded}?products=failed`);
+
+    setActive.mockRejectedValueOnce(new Error("invalid"));
+    const activeFailed = await POST(request({ action: "active", id, version: "1", active: "true" }));
+    expect(activeFailed.headers.get("location")).toBe(`/catalog/products/${encoded}?products=failed`);
+
+    archive.mockRejectedValueOnce(new Error("invalid"));
+    const archiveFailed = await POST(request({ action: "archive", id, version: "1" }));
+    expect(archiveFailed.headers.get("location")).toBe(`/catalog/products/${encoded}?products=failed`);
+  });
+
+  it("returns an unknown or missing action to the catalog list", async () => {
+    requireOwnerFromCookie.mockResolvedValue(owner); ownerProtectedMutationResponse.mockReturnValue(null);
+    const response = await POST(request({ action: "delete-everything", id: "product-id" }));
+    expect(response.headers.get("location")).toBe("/catalog?products=failed");
   });
 });

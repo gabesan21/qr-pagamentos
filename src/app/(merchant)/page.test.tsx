@@ -185,12 +185,22 @@ describe("merchant dashboard", () => {
     expect(await render()).not.toContain(ptBR.merchantDashboardViewStore);
   });
 
-  it("keeps the existing notice handling untouched", async () => {
+  it("keeps the payment-links notice handling untouched", async () => {
     arrange("pt-BR", readyView());
 
-    const html = await render({ storefront: "failed" });
+    const html = await render({ "payment-links": "failed" });
 
     expect(html).toContain(ptBR.ownerSettingsFailed);
+  });
+
+  it("no longer reacts to storefront or checkout-policy codes: both saves return to /settings now", async () => {
+    arrange("pt-BR", readyView());
+
+    const storefrontCode = await render({ storefront: "failed" });
+    expect(storefrontCode).not.toContain(ptBR.ownerSettingsFailed);
+
+    const checkoutPolicyCode = await render({ "checkout-policy": "changed" });
+    expect(checkoutPolicyCode).not.toContain(ptBR.ownerSettingsUpdated);
   });
 });
 

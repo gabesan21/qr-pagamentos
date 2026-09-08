@@ -4,12 +4,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ForbiddenError, UnauthenticatedError } from "@/auth/authorization";
 import type { AdminUserDetail } from "@/auth/admin-user-directory";
 
-const { requireAdminFromCookie, resolveLocale, getDetail, listActiveCurrencyChoices, redirect } = vi.hoisted(() => ({
+const { requireAdminFromCookie, resolveLocale, getDetail, listActiveCurrencyChoices, redirect, getTotpStatus } = vi.hoisted(() => ({
   requireAdminFromCookie: vi.fn(),
   resolveLocale: vi.fn(),
   getDetail: vi.fn(),
   listActiveCurrencyChoices: vi.fn(),
   redirect: vi.fn((location: string) => { throw new Error(`redirect:${location}`); }),
+  getTotpStatus: vi.fn((): Promise<"none" | "pending" | "active"> => Promise.resolve("none")),
 }));
 
 vi.mock("next/navigation", () => ({ redirect }));
@@ -24,7 +25,7 @@ vi.mock("@/auth/admin-user-profile", async (importActual) => ({
   ...(await importActual<typeof import("@/auth/admin-user-profile")>()),
   getAdminUserProfileService: () => ({ listActiveCurrencyChoices }),
 }));
-vi.mock("@/auth/totp-store", () => ({ getTotpService: () => ({ getStatus: vi.fn(() => Promise.resolve("none" as const)) }) }));
+vi.mock("@/auth/totp-store", () => ({ getTotpService: () => ({ getStatus: getTotpStatus }) }));
 
 import AdminAccountDetailPage from "./page";
 
@@ -110,11 +111,22 @@ describe("administrator account editor page", () => {
     expect(markup).toContain(`action="/admin/users/${targetId}/checkout-policy"`);
     expect(markup).toContain(`action="/admin/users/${targetId}/storefront"`);
     expect(markup).toContain(`action="/admin/users/${targetId}/delete"`);
+    // The delete action is a real POST form gated by DestructiveActionForm's
+    // confirmation dialog, not a bare link or an inert placeholder.
+    expect(markup).toContain(`action="/admin/users/${targetId}/delete" method="post"`);
     // The safe public-store link points at the sessionless storefront route.
     expect(markup).toContain('href="/store/padaria"');
     // The owner-fenced logo media field never renders.
     expect(markup).not.toContain("storefrontLogoMediaIdentifier");
     expect(markup).not.toContain("Logo");
+    // Two-factor not configured for this account: no disable form renders.
+    expect(markup).not.toContain("totp-disable");
+  });
+
+  it("renders the TOTP disable form as a real POST gated by confirmation when a factor is configured", async () => {
+    getTotpStatus.mockResolvedValueOnce("active");
+    const markup = renderToStaticMarkup(await render(targetId));
+    expect(markup).toContain(`action="/admin/users/${targetId}/totp-disable" method="post"`);
   });
 
   it("renders the current editable values as form defaults", async () => {
