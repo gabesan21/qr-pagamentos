@@ -2,8 +2,8 @@ import Link from "next/link";
 
 import { CatalogSubmit } from "@/app/(merchant)/catalog/catalog-submit";
 import { FormDraftGuard } from "@/app/form-draft";
+import { OrderOutcomeEditor } from "@/app/(merchant)/orders/order-outcome-editor";
 import { formatCatalogPrice } from "@/app/(merchant)/catalog/price-format";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -188,9 +188,9 @@ export function OrderV2DetailCard({
   backHref: string;
   backLabel?: string;
   dictionary: Dictionary;
-  // Additive, administrator-only: the resolved payment link's href and
-  // derived lifecycle. Every merchant call site omits it, so the link card
-  // renders exactly as before there.
+  // Additive: the resolved payment link's href and derived lifecycle,
+  // scoped by the caller (owner or administrator identifier lookup). A
+  // caller that omits it renders the link card exactly as before.
   link?: Readonly<{ href: string; lifecycle: LinkLifecycle }>;
   locale: SupportedLocale;
   order: OrderV2View;
@@ -409,141 +409,110 @@ export function OrderV2DetailCard({
   );
 }
 
-function CommentEntry({
+// The author-only CAS edit is unchanged: same fields, same route action; it
+// now rides the additive `Timeline` `action` slot instead of its own article.
+function CommentEditDisclosure({
   comment,
   dictionary,
-  locale,
   orderId,
 }: Readonly<{
   comment: OrderV2CommentView;
   dictionary: Dictionary;
-  locale: SupportedLocale;
   orderId: string;
 }>) {
   return (
-    <article className="flex flex-col gap-3 border-b border-border pb-4 last:border-b-0 last:pb-0">
-      <p className="m-0 whitespace-pre-line">{comment.body}</p>
-      <p className="m-0 text-sm text-muted-foreground">
-        {formatOrderV2Instant(comment.createdAt, locale)}
-        {comment.editedAt ? ` · ${dictionary.orderV2CommentEdited} ${formatOrderV2Instant(comment.editedAt, locale)}` : ""}
-      </p>
-      <details>
-        <summary>{dictionary.orderV2CommentEditAction}</summary>
-        <FormDraftGuard
-          draftKey={`order-v2-comment-edit-${orderId}-${comment.id}`}
-          fieldNames={["body"]}
-          formId={`comment-edit-form-${comment.id}`}
-          noticeKey={ORDER_V2_NOTICE_KEY}
-          noticeValues={ORDER_V2_FAILURE_NOTICES}
-        />
-        <form action={`/orders-v2/${orderId}`} className="flex flex-col gap-3 pt-3" id={`comment-edit-form-${comment.id}`} method="post">
-          <Input name="action" type="hidden" value="edit-comment" />
-          <Input name="commentId" type="hidden" value={comment.id} />
-          <Input name="commentVersion" type="hidden" value={comment.version} />
-          <Field>
-            <FieldLabel htmlFor={`comment-edit-${comment.id}`}>{dictionary.orderV2CommentEditAction}</FieldLabel>
-            <Textarea data-ds-hit-target defaultValue={comment.body} id={`comment-edit-${comment.id}`} maxLength={2000} minLength={1} name="body" required />
-          </Field>
-          <div className="flex flex-wrap gap-3">
-            <CatalogSubmit label={dictionary.orderV2CommentEditSubmit} tone="secondary" />
-          </div>
-        </form>
-      </details>
-    </article>
-  );
-}
-
-export function OrderV2CommentsCard({
-  dictionary,
-  locale,
-  order,
-}: Readonly<{
-  dictionary: Dictionary;
-  locale: SupportedLocale;
-  order: OrderV2View;
-}>) {
-  return (
-    <Card>
-      <CardHeader><CardTitle>{dictionary.orderV2CommentsHeading}</CardTitle></CardHeader>
-      <CardContent className="flex flex-col gap-5">
-        {order.comments.length === 0 ? <p>{dictionary.orderV2CommentsEmpty}</p> : (
-          <div className="flex flex-col gap-4">
-            {order.comments.map((comment) => (
-              <CommentEntry comment={comment} dictionary={dictionary} key={comment.id} locale={locale} orderId={order.id} />
-            ))}
-          </div>
-        )}
-        <FormDraftGuard
-          draftKey={`order-v2-comment-append-${order.id}`}
-          fieldNames={["body"]}
-          formId={`comment-append-form-${order.id}`}
-          noticeKey={ORDER_V2_NOTICE_KEY}
-          noticeValues={ORDER_V2_FAILURE_NOTICES}
-        />
-        <form action={`/orders-v2/${order.id}`} className="flex flex-col gap-3" id={`comment-append-form-${order.id}`} method="post">
-          <Input name="action" type="hidden" value="append-comment" />
-          <Field>
-            <FieldLabel htmlFor="comment-append-body">{dictionary.orderV2CommentAddLabel}</FieldLabel>
-            <Textarea data-ds-hit-target id="comment-append-body" maxLength={2000} minLength={1} name="body" required />
-          </Field>
-          <div className="flex flex-wrap gap-3">
-            <CatalogSubmit label={dictionary.orderV2CommentAddSubmit} />
-          </div>
-        </form>
-      </CardContent>
-    </Card>
-  );
-}
-
-function OutcomeForm({
-  confirm,
-  description,
-  dictionary,
-  label,
-  order,
-  outcome,
-  tone,
-}: Readonly<{
-  confirm: string;
-  description: string;
-  dictionary: Dictionary;
-  label: string;
-  order: OrderV2View;
-  outcome: OrderV2LocalOutcome;
-  tone: "secondary" | "destructive";
-}>) {
-  return (
     <details>
-      <summary>{confirm}</summary>
-      <Alert variant="warning">
-        <AlertTitle>{confirm}</AlertTitle>
-        <AlertDescription>{description}</AlertDescription>
-      </Alert>
+      <summary>{dictionary.orderV2CommentEditAction}</summary>
       <FormDraftGuard
-        draftKey={`order-v2-outcome-${order.id}-${outcome}`}
-        fieldNames={["note"]}
-        formId={`outcome-form-${order.id}-${outcome}`}
+        draftKey={`order-v2-comment-edit-${orderId}-${comment.id}`}
+        fieldNames={["body"]}
+        formId={`comment-edit-form-${comment.id}`}
         noticeKey={ORDER_V2_NOTICE_KEY}
         noticeValues={ORDER_V2_FAILURE_NOTICES}
       />
-      <form action={`/orders-v2/${order.id}`} className="flex flex-col gap-3 pt-3" id={`outcome-form-${order.id}-${outcome}`} method="post">
-        <Input name="action" type="hidden" value="set-outcome" />
-        <Input name="version" type="hidden" value={order.lifecycleVersion} />
-        <Input name="outcome" type="hidden" value={outcome} />
+      <form action={`/orders-v2/${orderId}`} className="flex flex-col gap-3 pt-3" id={`comment-edit-form-${comment.id}`} method="post">
+        <Input name="action" type="hidden" value="edit-comment" />
+        <Input name="commentId" type="hidden" value={comment.id} />
+        <Input name="commentVersion" type="hidden" value={comment.version} />
         <Field>
-          <FieldLabel htmlFor={`outcome-note-${outcome}`}>{dictionary.orderV2OutcomeNoteLabel}</FieldLabel>
-          <Textarea data-ds-hit-target id={`outcome-note-${outcome}`} maxLength={2000} name="note" />
+          <FieldLabel htmlFor={`comment-edit-${comment.id}`}>{dictionary.orderV2CommentEditAction}</FieldLabel>
+          <Textarea data-ds-hit-target defaultValue={comment.body} id={`comment-edit-${comment.id}`} maxLength={2000} minLength={1} name="body" required />
         </Field>
         <div className="flex flex-wrap gap-3">
-          <CatalogSubmit label={label} tone={tone} />
+          <CatalogSubmit label={dictionary.orderV2CommentEditSubmit} tone="secondary" />
         </div>
       </form>
     </details>
   );
 }
 
+// Newest-first thread through `Timeline`: the comment body is the entry's
+// title, the edited caption its optional body, and the author-only CAS edit
+// rides the additive `action` slot.
+function commentTimelineEntries(dictionary: Dictionary, locale: SupportedLocale, order: OrderV2View): TimelineEntry[] {
+  return [...order.comments]
+    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+    .map((comment) => ({
+      id: comment.id,
+      title: comment.body,
+      body: comment.editedAt ? `${dictionary.orderV2CommentEdited} ${formatOrderV2Instant(comment.editedAt, locale)}` : undefined,
+      formattedAt: formatOrderV2Instant(comment.createdAt, locale),
+      dateTime: comment.createdAt.toISOString(),
+      tone: "default",
+      action: <CommentEditDisclosure comment={comment} dictionary={dictionary} orderId={order.id} />,
+    }));
+}
+
+export function OrderV2CommentsCard({
+  composerName,
+  dictionary,
+  locale,
+  order,
+}: Readonly<{
+  // The signed-in owner's own username: paired with the composer as the
+  // template's avatar. Every call site is the owner's own detail page.
+  composerName: string;
+  dictionary: Dictionary;
+  locale: SupportedLocale;
+  order: OrderV2View;
+}>) {
+  const timelineEntries = commentTimelineEntries(dictionary, locale, order);
+  return (
+    <Card>
+      <CardHeader><CardTitle>{dictionary.orderV2CommentsHeading}</CardTitle></CardHeader>
+      <CardContent className="flex flex-col gap-5">
+        <div className="flex items-start gap-3">
+          <Monogram name={composerName} />
+          <div className="min-w-0 flex-1">
+            <FormDraftGuard
+              draftKey={`order-v2-comment-append-${order.id}`}
+              fieldNames={["body"]}
+              formId={`comment-append-form-${order.id}`}
+              noticeKey={ORDER_V2_NOTICE_KEY}
+              noticeValues={ORDER_V2_FAILURE_NOTICES}
+            />
+            <form action={`/orders-v2/${order.id}`} className="flex flex-col gap-3" id={`comment-append-form-${order.id}`} method="post">
+              <Input name="action" type="hidden" value="append-comment" />
+              <Field>
+                <FieldLabel htmlFor="comment-append-body">{dictionary.orderV2CommentAddLabel}</FieldLabel>
+                <Textarea data-ds-hit-target id="comment-append-body" maxLength={2000} minLength={1} name="body" required />
+              </Field>
+              <div className="flex flex-wrap justify-end gap-3">
+                <CatalogSubmit label={dictionary.orderV2CommentAddSubmit} />
+              </div>
+            </form>
+          </div>
+        </div>
+        {order.comments.length === 0 ? <p>{dictionary.orderV2CommentsEmpty}</p> : <Timeline entries={timelineEntries} />}
+      </CardContent>
+    </Card>
+  );
+}
+
 // The local outcome is append-only history under the lifecycle CAS; it never
-// writes, masks, or shadows the payment state, so both actions stay available.
+// writes, masks, or shadows the payment state, so both actions stay available
+// through one select + note + confirmation (14.5.1 F03), never gated on a
+// `confirmed` payment state.
 export function OrderV2OutcomeCard({
   dictionary,
   order,
@@ -554,25 +523,8 @@ export function OrderV2OutcomeCard({
   return (
     <Card>
       <CardHeader><CardTitle>{dictionary.orderV2OutcomeHeading}</CardTitle></CardHeader>
-      <CardContent className="flex flex-col gap-5">
-        <OutcomeForm
-          confirm={dictionary.orderV2OutcomeFinalizeConfirm}
-          description={dictionary.orderV2OutcomeFinalizeDescription}
-          dictionary={dictionary}
-          label={dictionary.orderV2OutcomeFinalize}
-          order={order}
-          outcome="LOCAL_FINALIZED"
-          tone="secondary"
-        />
-        <OutcomeForm
-          confirm={dictionary.orderV2OutcomeCancelConfirm}
-          description={dictionary.orderV2OutcomeCancelDescription}
-          dictionary={dictionary}
-          label={dictionary.orderV2OutcomeCancel}
-          order={order}
-          outcome="LOCAL_CANCELLED"
-          tone="destructive"
-        />
+      <CardContent>
+        <OrderOutcomeEditor dictionary={dictionary} orderId={order.id} version={order.lifecycleVersion} />
       </CardContent>
     </Card>
   );

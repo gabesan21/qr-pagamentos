@@ -15,4 +15,7 @@ export const ordersPtBR = {
   orderSettled: "Liquidado em",
   orderUnavailableHeading: "Este pedido está indisponível",
   orderUnavailableDescription: "O pedido não existe ou não está disponível para esta conta.",
+  orderV2OutcomeSelectLabel: "Resultado local",
+  orderV2OutcomePrecedenceCaption: "Um resultado local é um registro seu. Ele nunca grava, mascara ou substitui o estado de pagamento.",
+  orderV2OutcomeFailed: "Não foi possível registrar o resultado local. Tente novamente.",
 } as const;
