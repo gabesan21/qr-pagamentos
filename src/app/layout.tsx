@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { cookies } from "next/headers";
 
 import { getAuthorizationService } from "../auth/authorization";
+import { resolveThemePreference, THEME_PREFERENCE_COOKIE_NAME } from "../design-system/theme-preference";
 import { getLocalePreferenceService } from "../i18n/locale-preference";
 import { localeFromPreferenceCookie, localePreferenceCookieName } from "../i18n/locales";
 import "./globals.css";
@@ -19,8 +20,16 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const locale = principal
     ? await getLocalePreferenceService().resolve(principal.id)
     : localeFromPreferenceCookie(requestCookies.get(localePreferenceCookieName)?.value);
+  // The theme cookie is client-writable and carries no authorization effect,
+  // so it is only trusted for a resolved principal and only when it names
+  // one of the six theme ids; anything else stamps no attribute and the
+  // existing prefers-color-scheme fallback in globals.css keeps applying.
+  // Public, unauthenticated surfaces never receive this attribute.
+  const themeId = principal
+    ? resolveThemePreference(requestCookies.get(THEME_PREFERENCE_COOKIE_NAME)?.value)
+    : undefined;
   return (
-    <html lang={locale}>
+    <html data-theme={themeId} lang={locale}>
       <body>{children}</body>
     </html>
   );

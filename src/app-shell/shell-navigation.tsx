@@ -8,7 +8,8 @@ import { ChevronDownIcon, ExternalLinkIcon, LogOutIcon, MenuIcon, UserIcon, XIco
 import { Button } from "@/components/ui/button";
 import { Monogram } from "@/components/ui/monogram";
 
-import type { ShellLabels, ShellNavigationItem } from "./shell-types";
+import { ShellThemePicker } from "./shell-theme-picker";
+import type { ShellLabels, ShellNavigationItem, ShellThemeOption } from "./shell-types";
 
 function isActiveRoute(pathname: string, href: string) {
   if (href === "/" || href === "/admin") return pathname === href;
@@ -78,11 +79,13 @@ function AccountMenu({
   labels,
   profileLink,
   roleLabel,
+  themeOptions,
   username,
 }: Readonly<{
-  labels: Pick<ShellLabels, "accountMenu" | "profile" | "signOut">;
+  labels: Pick<ShellLabels, "accountMenu" | "profile" | "signOut" | "themeMenu">;
   profileLink?: Readonly<{ href: string; label: string }>;
   roleLabel: string;
+  themeOptions: readonly ShellThemeOption[];
   username: string;
 }>) {
   const menuId = useId();
@@ -114,6 +117,7 @@ function AccountMenu({
               <span>{profileLink.label}</span>
             </Link>
           ) : null}
+          <ShellThemePicker groupLabel={labels.themeMenu} themeOptions={themeOptions} />
           <form action="/logout" className="app-shell__account-panel-signout" method="post" role="none">
             <button className="app-shell__account-panel-item" role="menuitem" type="submit">
               <LogOutIcon aria-hidden="true" />
@@ -237,6 +241,7 @@ export function TopBarShellControls({
   pageTitle,
   roleLabel,
   storefrontLink,
+  themeOptions = [],
   username,
 }: Readonly<{
   accountLink?: Readonly<{ href: string; label: string }>;
@@ -247,6 +252,7 @@ export function TopBarShellControls({
   pageTitle: string;
   roleLabel: string;
   storefrontLink?: Readonly<{ href: string; label: string }>;
+  themeOptions?: readonly ShellThemeOption[];
   username: string;
 }>) {
   return (
@@ -274,9 +280,15 @@ export function TopBarShellControls({
           </Link>
         ) : null}
         <AccountMenu
-          labels={{ accountMenu: labels.accountMenu, profile: labels.profile, signOut: labels.signOut }}
+          labels={{
+            accountMenu: labels.accountMenu,
+            profile: labels.profile,
+            signOut: labels.signOut,
+            themeMenu: labels.themeMenu,
+          }}
           profileLink={accountLink}
           roleLabel={roleLabel}
+          themeOptions={themeOptions}
           username={username}
         />
       </div>

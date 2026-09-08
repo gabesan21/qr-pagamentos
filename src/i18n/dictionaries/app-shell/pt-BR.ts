@@ -25,6 +25,7 @@ export const appShellPtBR = {
   shellWorkspaceEmptyTitle: "Ainda não há informações para mostrar",
   shellWorkspaceEmptyDescription: "Esta área está pronta para a capacidade aprovada. Nenhum dado foi inferido ou inventado.",
   shellAccountMenu: "Menu da conta",
+  shellThemeMenu: "Tema",
   shellProfile: "Perfil",
   shellStorefront: "Loja",
   shellPrivacy: "Privacidade",

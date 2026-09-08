@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 
 import { DesktopShellNavigation, TopBarShellControls } from "./shell-navigation";
-import type { ShellLabels, ShellNavigationItem } from "./shell-types";
+import type { ShellLabels, ShellNavigationItem, ShellThemeOption } from "./shell-types";
 
 export function AppShell({
   children,
@@ -15,6 +15,7 @@ export function AppShell({
   profileLink,
   roleLabel,
   storefrontLink,
+  themeOptions,
   username,
 }: Readonly<{
   children: ReactNode;
@@ -26,6 +27,7 @@ export function AppShell({
   profileLink?: Readonly<{ href: string; label: string }>;
   roleLabel: string;
   storefrontLink?: Readonly<{ href: string; label: string }>;
+  themeOptions?: readonly ShellThemeOption[];
   username: string;
 }>) {
   return (
@@ -57,6 +59,7 @@ export function AppShell({
         pageTitle={pageTitle}
         roleLabel={roleLabel}
         storefrontLink={storefrontLink}
+        themeOptions={themeOptions}
         username={username}
       />
       <main className="app-shell__content" id="app-shell-content" tabIndex={-1}>

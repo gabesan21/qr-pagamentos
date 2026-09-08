@@ -225,6 +225,13 @@ storage]]; template assets do not bypass that lifecycle.
   no business DTO or service crosses into `src/app-shell/`.
 - A skip link precedes sticky chrome. Drawer disclosure, close, account menu,
   locale, and logout meet the target minimum and preserve keyboard focus.
+- The account menu also holds a six-swatch theme picker (`role="group"` of
+  `menuitemradio` buttons, check icon as the non-color marker). Picking one
+  repaints instantly by mutating `<html data-theme>` and persists through a
+  client-written, non-`HttpOnly` `qr_theme` cookie with no authorization
+  effect; the root layout only trusts it for a resolved principal and only
+  when it names one of the six ids, so public surfaces stay untouched and
+  `data-theme-preview` keeps governing storefront/checkout.
 
 ### Public payment and storefront surfaces
 
