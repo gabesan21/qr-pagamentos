@@ -14,6 +14,6 @@ describe("owner payment-link revocation route", () => {
     expect(protectedResponse.status).toBe(403); expect(await protectedResponse.text()).toBe(""); expect(deactivate).not.toHaveBeenCalled();
     requireOwnerFromCookie.mockResolvedValue(owner); ownerProtectedMutationResponse.mockReturnValue(null);
     const response = await POST(new Request("http://local/payment-links/secret", { method: "POST", headers: sameOrigin }), { params: Promise.resolve({ id: "foreign" }) });
-    expect(deactivate).toHaveBeenCalledWith(owner, "foreign"); expect(response.headers.get("location")).toBe("/?payment-links=revoked");
+    expect(deactivate).toHaveBeenCalledWith(owner, "foreign"); expect(response.headers.get("location")).toBe("/links?payment-links=revoked");
   });
 });

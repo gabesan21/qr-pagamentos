@@ -12,7 +12,7 @@ const { requireOwnerFromCookie, resolveLocale, listProducts, listCategories, red
 }));
 
 vi.mock("next/headers", () => ({ cookies: async () => ({ get: () => ({ value: "opaque-session" }) }) }));
-vi.mock("next/navigation", () => ({ redirect, useSearchParams: () => new URLSearchParams() }));
+vi.mock("next/navigation", () => ({ redirect, useSearchParams: () => new URLSearchParams(), useRouter: () => ({ replace: vi.fn(), push: vi.fn() }) }));
 vi.mock("server-only", () => ({}));
 vi.mock("@/app/owner-guard", () => ({ requireOwnerFromCookie, ownerProtectedMutationResponse: vi.fn() }));
 vi.mock("@/i18n/locale-preference", () => ({ getLocalePreferenceService: () => ({ resolve: resolveLocale }) }));
@@ -95,14 +95,12 @@ describe("merchant catalog directory page", () => {
     expect(markup).toContain("/catalog/products/new");
   });
 
-  it("renders the invalid-query state without echoing input", async () => {
+  it("resets to the reset redirect without echoing input", async () => {
     ready("en");
     listProducts.mockResolvedValue([product]);
     listCategories.mockResolvedValue([category]);
 
-    const markup = renderToStaticMarkup(await CatalogPage({ searchParams: Promise.resolve({ bogus: "1" }) }));
-    expect(markup).toContain("The directory request is unavailable");
-    expect(markup).not.toContain("bogus");
+    await expect(CatalogPage({ searchParams: Promise.resolve({ bogus: "1" }) })).rejects.toThrow("redirect:/catalog?filters=ignored");
   });
 
   it("resets non-canonical queries with a redirect before rendering", async () => {

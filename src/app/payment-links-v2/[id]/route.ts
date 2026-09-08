@@ -20,6 +20,7 @@ export async function POST(request: Request, { params }: Readonly<{ params: Prom
     const crossOrigin = rejectCrossOrigin(request);
     if (crossOrigin) return crossOrigin;
     const id = (await params).id;
+    const encodedId = encodeURIComponent(id);
     let action: FormDataEntryValue | null = null;
     try {
       const actor = await requireOwnerFromCookie();
@@ -37,13 +38,13 @@ export async function POST(request: Request, { params }: Readonly<{ params: Prom
         await service.setActive(actor, id, form.get("version"), "false");
         outcome = "deactivated";
       } else {
-        return relativeRedirect(`/links/v2/${id}?payment-links-v2=failed`);
+        return relativeRedirect(`/links/v2/${encodedId}?payment-links-v2=failed`);
       }
-      return relativeRedirect(`/links/v2/${id}?payment-links-v2=${outcome}`);
+      return relativeRedirect(`/links/v2/${encodedId}?payment-links-v2=${outcome}`);
     } catch (error) {
       const protectedResponse = ownerProtectedMutationResponse(error);
       if (protectedResponse) return protectedResponse;
-      const target: `/${string}` = action === "edit" ? `/links/v2/${id}/edit` : `/links/v2/${id}`;
+      const target: `/${string}` = action === "edit" ? `/links/v2/${encodedId}/edit` : `/links/v2/${encodedId}`;
       return relativeRedirect(`${target}?payment-links-v2=failed`);
     }
   });

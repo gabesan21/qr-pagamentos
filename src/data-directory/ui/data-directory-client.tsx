@@ -697,6 +697,14 @@ export function DataDirectoryClient(props: DataDirectoryClientProps) {
               </Card>
             ))}
           </div>
+        </>
+      ) : null}
+      {
+        // The footer (page-size select + pagination) stays mounted across a
+        // pending commit even though `effectiveState` flips to "loading": it
+        // gates on the last committed `props.state` instead, so the select
+        // that triggered the transition never unmounts under focus.
+        props.state === "ready" ? (
           <DirectoryFooter
             copy={props.copy}
             formId={formId}
@@ -708,8 +716,8 @@ export function DataDirectoryClient(props: DataDirectoryClientProps) {
             pageSizes={props.pageSizes}
             previousUrl={props.previousUrl}
           />
-        </>
-      ) : null}
+        ) : null
+      }
     </section>
   );
 }

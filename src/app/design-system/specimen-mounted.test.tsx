@@ -14,6 +14,7 @@ import { designSystemCoverage, primitiveBindingId, primitiveCoverage } from "./c
 import { DesignSystemInteractiveSpecimens } from "./interactive-specimens";
 
 vi.mock("next/headers", () => ({ cookies: async () => ({ get: () => ({ value: "en" }) }) }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ replace: vi.fn(), push: vi.fn() }) }));
 
 beforeAll(() => {
   Object.defineProperty(window, "matchMedia", { configurable: true, value: vi.fn(() => ({ addEventListener: vi.fn(), matches: false, removeEventListener: vi.fn() })) });

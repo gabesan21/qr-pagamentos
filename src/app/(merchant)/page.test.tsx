@@ -185,12 +185,12 @@ describe("merchant dashboard", () => {
     expect(await render()).not.toContain(ptBR.merchantDashboardViewStore);
   });
 
-  it("keeps the payment-links notice handling untouched", async () => {
+  it("ignores the legacy payment-links notice param, now handled on /links", async () => {
     arrange("pt-BR", readyView());
 
     const html = await render({ "payment-links": "failed" });
 
-    expect(html).toContain(ptBR.ownerSettingsFailed);
+    expect(html).not.toContain(ptBR.ownerSettingsFailed);
   });
 
   it("no longer reacts to storefront or checkout-policy codes: both saves return to /settings now", async () => {

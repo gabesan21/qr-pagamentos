@@ -18,6 +18,6 @@ describe("owner payment-link route", () => {
     requireOwnerFromCookie.mockResolvedValue(owner); ownerProtectedMutationResponse.mockReturnValue(null);
     const response = await POST(new Request("http://local/payment-links", { method: "POST", headers: sameOrigin, body: new URLSearchParams({ productId: "product", currencyPairId: "pair", linkType: "REUSABLE", ownerId: "forged" }) }));
     expect(create).toHaveBeenCalledWith(owner, { productId: "product", currencyPairId: "pair", linkType: "REUSABLE", expiresAt: null });
-    expect(response.headers.get("location")).toBe("/?payment-links=created");
+    expect(response.headers.get("location")).toBe("/links?payment-links=created");
   });
 });

@@ -22,11 +22,11 @@ function resolve(searchParams: Record<string, string | string[] | undefined>) {
 
 describe("catalog directory query", () => {
   it("accepts an empty request as ready with defaults", () => {
-    expect(resolve({})).toEqual({ status: "ready", filters: {}, pageSize: 25 });
+    expect(resolve({})).toEqual({ status: "ready", filters: {}, pageSize: 25, canonicalFilterQuery: "" });
   });
 
   it("accepts a lone canonical notice without touching directory state", () => {
-    expect(resolve({ products: "update" })).toEqual({ status: "ready", filters: {}, pageSize: 25, notice: "update" });
+    expect(resolve({ products: "update" })).toEqual({ status: "ready", filters: {}, pageSize: 25, canonicalFilterQuery: "", notice: "update" });
   });
 
   it("rejects unknown or duplicated notices with zero I/O", () => {
@@ -47,6 +47,7 @@ describe("catalog directory query", () => {
       q: "coffee",
       filters: { state: ["active"], category: ["cat-1", "cat-2"] },
       pageSize: 50,
+      canonicalFilterQuery: "q=coffee&filter.state=active&filter.category=cat-1&filter.category=cat-2",
     });
   });
 
