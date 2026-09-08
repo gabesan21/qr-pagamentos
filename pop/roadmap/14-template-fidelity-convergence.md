@@ -33,7 +33,7 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[14.2.3-mount-toasts-and-origin-locale-switch]] | Mount `ToastViewport` in the root layout, turn query-string notices into toasts, and make the locale POST redirect to its origin page (auth pages included). · size: M | 002_planning |
+| [[14.2.3-mount-toasts-and-origin-locale-switch]] | Mount `ToastViewport` in the root layout, turn query-string notices into toasts, and make the locale POST redirect to its origin page (auth pages included). · size: M | 004_processing |
 | [[14.2.4-build-domain-badge-and-inventory-parity]] | Domain badge families with soft tints, `ImageUploader`, compact `CopyField`, `Monogram` 48, QR generation with identity cut, `StatCard` sparkline. · size: L | 004_processing |
 | [[14.2.5-phase-verification]] | Run `pnpm check`, add tests for tokens/theme/toast/badges, repair what it catches; depends on all 14.2 tasks. · size: S | 001_initial_task |
 
