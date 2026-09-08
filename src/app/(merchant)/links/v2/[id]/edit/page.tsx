@@ -1,6 +1,5 @@
 import Link from "next/link";
 
-import { FormDraftGuard } from "@/app/form-draft";
 import { WorkspaceHeading } from "@/app-shell/workspace-heading";
 import { getPaymentLinkService } from "@/auth/payment-link";
 import { getPaymentLinkV2PrefillService } from "@/auth/payment-link-v2-prefill";
@@ -67,13 +66,6 @@ export default async function EditPaymentLinkPage({
       <WorkspaceHeading description={dictionary.paymentLinkEditDescription} eyebrow={dictionary.shellMerchantEyebrow} title={dictionary.paymentLinkEditTitle} />
 
       {notice ? <PaymentLinkV2Notice dictionary={dictionary} notice={notice} /> : null}
-      <FormDraftGuard
-        draftKey="payment-link-v2-edit"
-        fieldNames={["descriptionPtBr", "descriptionEn", "amount", "expiresAt"]}
-        formId="payment-link-v2-edit"
-        noticeKey={LINKS_NOTICE_KEY}
-        noticeValues={["failed"]}
-      />
 
       <Alert variant="warning">
         <AlertTitle>{dictionary.paymentLinkLockTitle}</AlertTitle>
