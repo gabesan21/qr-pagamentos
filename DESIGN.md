@@ -360,6 +360,19 @@ implementation candidate and is never added merely because it exists — a
 genuinely needed local owner is recorded in `localAdditions`, never in
 `owners`.
 
+Task `14.4.3` adds `src/app/admin/admin-controls.tsx`'s `SegmentedControl` as
+an **admin-local** control outside `src/components/ui/` and outside
+`inventory.json`: the admin route group may not import the merchant
+`catalog-fields.tsx` twin (the role boundary in
+[[pop/specs/administrative-foundation|administrative foundation]] forbids
+cross-role component sharing as much as cross-role data), and the template
+itself keeps this control page-local. It is a `role="radiogroup"` of
+`role="radio"` buttons with six applicable states — default, hover, visible
+focus, selected/active (`aria-checked` plus an elevated background, never
+color alone), disabled, and an optional hidden-input bridge so a caller's
+native form POST needs no extra state wiring. Consolidating it with the
+merchant twin is a tracked follow-up, not this task's scope.
+
 ## State contract
 
 Every component documents the baseline states **default**, **loading** when
@@ -403,6 +416,14 @@ them. Mark a state non-applicable instead of simulating it.
   spec-owned archived/deleted, immutable-version, exact-period, empty-prerequisite,
   conflict, staged-media, credential, and provider-recovery states. Parity never
   authorizes a new projection or mutation to fill a visual gap.
+- The admin account editor (`14.4.3`) persists its active `SimpleTabs` panel
+  through the URL hash across a reload instead of a client navigation, and
+  each `/admin/settings` section (exchange currencies, payment settings,
+  default theme, language) raises its own toast/`<noscript>` pair from the
+  query string that section's own route already returns, rather than one
+  page-level banner; a destructive segmented value (role demotion, account
+  disablement, deactivating a payment-settings row) still routes through the
+  shared `ConfirmDialog` before the unchanged byte-frozen POST.
 
 ## Accessibility and feedback
 
