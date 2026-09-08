@@ -114,7 +114,7 @@ function AccountMenu({
               <span>{profileLink.label}</span>
             </Link>
           ) : null}
-          <form action="/logout" className="app-shell__account-panel-signout" method="post">
+          <form action="/logout" className="app-shell__account-panel-signout" method="post" role="none">
             <button className="app-shell__account-panel-item" role="menuitem" type="submit">
               <LogOutIcon aria-hidden="true" />
               <span>{labels.signOut}</span>

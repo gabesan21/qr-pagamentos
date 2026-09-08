@@ -27,7 +27,7 @@ function productValues(form: FormData) {
 function productFailureTarget(action: FormDataEntryValue | null, id: FormDataEntryValue | null): `/${string}` {
   if (action === "create") return "/catalog/products/new";
   if ((action === "update" || action === "active" || action === "archive") && typeof id === "string" && id) {
-    return `/catalog/products/${id}`;
+    return `/catalog/products/${encodeURIComponent(id)}`;
   }
   return "/catalog";
 }
