@@ -101,6 +101,12 @@ export type PaymentLinkV2ViewResult =
   | Readonly<{ kind: "found"; link: PaymentLinkV2OwnerDetailView }>
   | Readonly<{ kind: "unavailable" }>;
 
+// The identifier lookup (order detail's link card) resolves the base row, not
+// the owner detail projection; it shares the single unavailable outcome.
+export type PaymentLinkV2ViewRowResult =
+  | Readonly<{ kind: "found"; link: PaymentLinkV2DirectoryRow }>
+  | Readonly<{ kind: "unavailable" }>;
+
 export type PaymentLinkV2WindowQuery = Readonly<{
   ownerId: string;
   states: readonly PaymentLinkV2DerivedState[];
@@ -262,7 +268,7 @@ export function createPaymentLinkV2ViewService(
     // Additive, consumed by the order detail's link card (14.5.1): re-authorized
     // owner, owner-scoped by identifier, one opaque unavailable outcome for a
     // malformed or missing 24-character identifier or a cross-owner link.
-    async getForOwnerByIdentifier(actor: Principal, identifier: unknown): Promise<PaymentLinkV2ViewResult> {
+    async getForOwnerByIdentifier(actor: Principal, identifier: unknown): Promise<PaymentLinkV2ViewRowResult> {
       requireUserPrincipal(actor);
       if (typeof identifier !== "string" || !LINK_IDENTIFIER_PATTERN.test(identifier)) return { kind: "unavailable" };
       const stored = await store.findForOwnerByIdentifier(actor.id, identifier);
