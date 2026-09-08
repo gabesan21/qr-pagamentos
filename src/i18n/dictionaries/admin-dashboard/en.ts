@@ -9,6 +9,7 @@ export const adminDashboardEn = {
   adminDashboardUsersDescription: "Registered, active, and deleted accounts across the platform.",
   adminDashboardUsersRegistered: "Registered",
   adminDashboardUsersActiveNow: "Active now",
+  adminDashboardUsersActiveNowTrendSuffix: "online now",
   adminDashboardUsersDeleted: "Deleted",
   adminDashboardUsersDeletedCaption: "Soft-deleted accounts are still retained in aggregates.",
   adminDashboardOrdersHeading: "Orders",
