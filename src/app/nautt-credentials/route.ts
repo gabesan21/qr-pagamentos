@@ -25,14 +25,14 @@ export async function POST(request: Request) {
         typeof apiKey === "string" ? apiKey : "",
         loadNauttWebhookCallbackUrl(),
       );
-      return relativeRedirect("/settings?nautt=configured");
+      return relativeRedirect("/settings?nautt=configured#settings-connection");
     } catch (error) {
       if (error instanceof UnauthenticatedError) return new Response(null, { status: 401 });
       if (error instanceof ForbiddenError) return new Response(null, { status: 403 });
-      if (error instanceof OwnerOnboardingInvalidKeyError) return relativeRedirect("/settings?nautt=invalid");
-      if (error instanceof OwnerOnboardingChangedError) return relativeRedirect("/settings?nautt=changed");
-      if (error instanceof OwnerOnboardingRecoveryRequiredError) return relativeRedirect("/settings?nautt=recovery");
-      return relativeRedirect("/settings?nautt=unavailable");
+      if (error instanceof OwnerOnboardingInvalidKeyError) return relativeRedirect("/settings?nautt=invalid#settings-connection");
+      if (error instanceof OwnerOnboardingChangedError) return relativeRedirect("/settings?nautt=changed#settings-connection");
+      if (error instanceof OwnerOnboardingRecoveryRequiredError) return relativeRedirect("/settings?nautt=recovery#settings-connection");
+      return relativeRedirect("/settings?nautt=unavailable#settings-connection");
     }
   });
 }
