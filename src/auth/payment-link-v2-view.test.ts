@@ -58,8 +58,11 @@ function detailStored(base: StoredPaymentLinkV2View): StoredPaymentLinkV2OwnerDe
 function createStore(rows: StoredPaymentLinkV2View[] = [], detail: StoredPaymentLinkV2OwnerDetail | null = null) {
   const listWindow = vi.fn<(query: PaymentLinkV2WindowQuery) => Promise<StoredPaymentLinkV2View[]>>(async () => rows);
   const findForOwner = vi.fn<(ownerId: string, id: string) => Promise<StoredPaymentLinkV2OwnerDetail | null>>(async () => detail);
-  const store: PaymentLinkV2ViewStore = { listWindow, findForOwner };
-  return { store, listWindow, findForOwner };
+  // Additive (14.5.2 F03): the order detail's link-badge lookup by public
+  // identifier, unused by the directory/detail suites above.
+  const findForOwnerByIdentifier = vi.fn<(ownerId: string, identifier: string) => Promise<StoredPaymentLinkV2OwnerDetail | null>>(async () => null);
+  const store: PaymentLinkV2ViewStore = { listWindow, findForOwner, findForOwnerByIdentifier };
+  return { store, listWindow, findForOwner, findForOwnerByIdentifier };
 }
 
 function readInput(overrides: Partial<DirectoryReadInput<PaymentLinkV2DirectoryRow>> = {}): DirectoryReadInput<PaymentLinkV2DirectoryRow> {

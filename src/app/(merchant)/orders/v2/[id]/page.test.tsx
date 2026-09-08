@@ -2,13 +2,14 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ForbiddenError, UnauthenticatedError } from "@/auth/authorization";
+import type { PaymentLinkV2ViewRowResult } from "@/auth/payment-link-v2-view";
 import type { OrderV2View } from "@/orders/order-v2-view";
 
 const { requireOwnerFromCookie, resolveLocale, getForOwner, getForOwnerByIdentifier, redirect } = vi.hoisted(() => ({
   requireOwnerFromCookie: vi.fn(),
   resolveLocale: vi.fn(),
   getForOwner: vi.fn(),
-  getForOwnerByIdentifier: vi.fn(async () => ({ kind: "unavailable" as const })),
+  getForOwnerByIdentifier: vi.fn<() => Promise<PaymentLinkV2ViewRowResult>>(async () => ({ kind: "unavailable" })),
   redirect: vi.fn((location: string) => { throw new Error(`redirect:${location}`); }),
 }));
 
@@ -154,7 +155,25 @@ describe("merchant V2 order detail page", () => {
     const resolvedLinkId = "330e8400-e29b-41d4-a716-446655440033";
     getForOwnerByIdentifier.mockResolvedValueOnce({
       kind: "found",
-      link: { id: resolvedLinkId, state: "active" },
+      link: {
+        id: resolvedLinkId,
+        identifier: "abcdefghijklmnopqrstuvwx",
+        sharePath: "/pay/abcdefghijklmnopqrstuvwx",
+        compositionKind: "FIXED_AMOUNT",
+        descriptionPtBr: null,
+        descriptionEn: null,
+        amount: "34.90",
+        currencyPairLabel: "BRL/USDT",
+        linkType: "REUSABLE",
+        expiresAt: null,
+        active: true,
+        paid: true,
+        orderCount: 1,
+        state: "active",
+        createdAt: new Date("2026-07-01T12:00:00.000Z"),
+        updatedAt: new Date("2026-07-02T12:00:00.000Z"),
+        lines: [],
+      },
     });
     const withBadge = renderToStaticMarkup(await OrderV2DetailPage({ params: Promise.resolve({ id: orderId }) }));
     expect(getForOwnerByIdentifier).toHaveBeenCalledWith(principal, "abcdefghijklmnopqrstuvwx");

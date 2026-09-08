@@ -2,14 +2,14 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ForbiddenError, UnauthenticatedError } from "@/auth/authorization";
-import type { PaymentLinkV2DirectoryRow } from "@/auth/payment-link-v2-view";
+import type { PaymentLinkV2DirectoryRow, PaymentLinkV2OwnerCurrencyPairOption } from "@/auth/payment-link-v2-view";
 
 const { requireOwnerFromCookie, resolveLocale, listV1, queryDirectory, listOwnerActiveCurrencyPairs, redirect } = vi.hoisted(() => ({
   requireOwnerFromCookie: vi.fn(),
   resolveLocale: vi.fn(),
   listV1: vi.fn(),
   queryDirectory: vi.fn(),
-  listOwnerActiveCurrencyPairs: vi.fn(async () => []),
+  listOwnerActiveCurrencyPairs: vi.fn<() => Promise<PaymentLinkV2OwnerCurrencyPairOption[]>>(async () => []),
   redirect: vi.fn((location: string) => { throw new Error(`redirect:${location}`); }),
 }));
 
