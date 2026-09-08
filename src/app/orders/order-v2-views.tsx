@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { CatalogSubmit } from "@/app/(merchant)/catalog/catalog-submit";
+import { FormDraftGuard } from "@/app/form-draft";
 import { formatCatalogPrice } from "@/app/(merchant)/catalog/price-format";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -30,6 +31,12 @@ type Dictionary = ReturnType<typeof getDictionary>;
 // Commerce V2 order views (8.3.3): server-rendered list/detail facts, the
 // comment thread, and the guarded local-outcome forms. Currency pair UUIDs,
 // line product UUIDs, and internal lifecycle fields never render.
+
+// The detail page carries the closed notice under this key; only "failed"
+// means the posted body/note was lost, so drafts restore under that value
+// alone.
+const ORDER_V2_NOTICE_KEY = "orders-v2";
+const ORDER_V2_FAILURE_NOTICES = ["failed"] as const;
 
 export function formatOrderV2Instant(value: Date, locale: SupportedLocale) {
   return new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short", timeZone: "UTC" }).format(value);
@@ -380,7 +387,14 @@ function CommentEntry({
       </p>
       <details>
         <summary>{dictionary.orderV2CommentEditAction}</summary>
-        <form action={`/orders-v2/${orderId}`} className="flex flex-col gap-3 pt-3" method="post">
+        <FormDraftGuard
+          draftKey={`order-v2-comment-edit-${orderId}-${comment.id}`}
+          fieldNames={["body"]}
+          formId={`comment-edit-form-${comment.id}`}
+          noticeKey={ORDER_V2_NOTICE_KEY}
+          noticeValues={ORDER_V2_FAILURE_NOTICES}
+        />
+        <form action={`/orders-v2/${orderId}`} className="flex flex-col gap-3 pt-3" id={`comment-edit-form-${comment.id}`} method="post">
           <Input name="action" type="hidden" value="edit-comment" />
           <Input name="commentId" type="hidden" value={comment.id} />
           <Input name="commentVersion" type="hidden" value={comment.version} />
@@ -417,7 +431,14 @@ export function OrderV2CommentsCard({
             ))}
           </div>
         )}
-        <form action={`/orders-v2/${order.id}`} className="flex flex-col gap-3" method="post">
+        <FormDraftGuard
+          draftKey={`order-v2-comment-append-${order.id}`}
+          fieldNames={["body"]}
+          formId={`comment-append-form-${order.id}`}
+          noticeKey={ORDER_V2_NOTICE_KEY}
+          noticeValues={ORDER_V2_FAILURE_NOTICES}
+        />
+        <form action={`/orders-v2/${order.id}`} className="flex flex-col gap-3" id={`comment-append-form-${order.id}`} method="post">
           <Input name="action" type="hidden" value="append-comment" />
           <Field>
             <FieldLabel htmlFor="comment-append-body">{dictionary.orderV2CommentAddLabel}</FieldLabel>
@@ -456,7 +477,14 @@ function OutcomeForm({
         <AlertTitle>{confirm}</AlertTitle>
         <AlertDescription>{description}</AlertDescription>
       </Alert>
-      <form action={`/orders-v2/${order.id}`} className="flex flex-col gap-3 pt-3" method="post">
+      <FormDraftGuard
+        draftKey={`order-v2-outcome-${order.id}-${outcome}`}
+        fieldNames={["note"]}
+        formId={`outcome-form-${order.id}-${outcome}`}
+        noticeKey={ORDER_V2_NOTICE_KEY}
+        noticeValues={ORDER_V2_FAILURE_NOTICES}
+      />
+      <form action={`/orders-v2/${order.id}`} className="flex flex-col gap-3 pt-3" id={`outcome-form-${order.id}-${outcome}`} method="post">
         <Input name="action" type="hidden" value="set-outcome" />
         <Input name="version" type="hidden" value={order.lifecycleVersion} />
         <Input name="outcome" type="hidden" value={outcome} />

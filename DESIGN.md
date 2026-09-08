@@ -428,6 +428,9 @@ them. Mark a state non-applicable instead of simulating it.
   migrated site keeps its original server `Alert` (same `role` and variant)
   inside `<noscript>` as the no-JS fallback; sonner's own live region is the
   single announcer, so the fallback never duplicates it.
+- A mutation returns to the page that submitted it. The destination is always
+  derived server-side from data the route already trusts — the route param
+  or the submitted `action`/`id` — never from a client-supplied path.
 
 ## Business and security precedence
 

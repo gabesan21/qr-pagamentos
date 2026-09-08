@@ -13,6 +13,8 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import { Spinner } from "@/components/ui/spinner";
 import { StatusBadge } from "@/components/ui/status-badge";
 
+import { NoticeToast, type NoticeToastEntry } from "@/app/notice-toast";
+
 import { RecoveryCodes } from "./recovery-codes";
 import { TotpQrCode } from "./totp-qr-code";
 
@@ -110,6 +112,13 @@ export function TotpSection({ dictionary, status, notice }: TotpSectionProps) {
           : notice === "totp-conflict"
             ? dictionary.totpConflict
             : null;
+  const noticeFailed = notice === "totp-failed" || notice === "totp-conflict";
+  // `notice` mirrors the `/profile?totp=<value>` query the page resolved;
+  // recover the raw value by dropping the "totp-" prefix so the bridge
+  // matches the exact param the server redirected with.
+  const noticeEntries: NoticeToastEntry[] = notice
+    ? [{ param: "totp", value: notice.slice("totp-".length), kind: noticeFailed ? "error" : "success", message: noticeCopy ?? "" }]
+    : [];
 
   async function postJson(url: string): Promise<unknown> {
     const response = await fetch(url, {
@@ -181,11 +190,14 @@ export function TotpSection({ dictionary, status, notice }: TotpSectionProps) {
         <CardDescription>{dictionary.profileTotpDescription}</CardDescription>
       </CardHeader>
       <CardContent>
+        <NoticeToast notices={noticeEntries} />
         {noticeCopy && (
-          <Alert className="mb-5" role={notice === "totp-failed" || notice === "totp-conflict" ? "alert" : "status"} variant={notice === "totp-failed" || notice === "totp-conflict" ? "destructive" : "success"}>
-            <AlertTitle>{notice === "totp-failed" || notice === "totp-conflict" ? dictionary.profileTotpTitle : dictionary.profileTotpTitle}</AlertTitle>
-            <AlertDescription>{noticeCopy}</AlertDescription>
-          </Alert>
+          <noscript>
+            <Alert className="mb-5" role={noticeFailed ? "alert" : "status"} variant={noticeFailed ? "destructive" : "success"}>
+              <AlertTitle>{dictionary.profileTotpTitle}</AlertTitle>
+              <AlertDescription>{noticeCopy}</AlertDescription>
+            </Alert>
+          </noscript>
         )}
         {resolvedStatus === "none" && (
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

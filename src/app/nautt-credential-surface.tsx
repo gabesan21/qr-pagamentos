@@ -12,6 +12,8 @@ import { Input } from "@/components/ui/input";
 import { StatusBadge } from "@/components/ui/status-badge";
 import Link from "next/link";
 
+import { NoticeToast, type NoticeToastEntry } from "@/app/notice-toast";
+
 import { NauttCredentialSubmit } from "./nautt-credential-submit";
 import { NauttPendingScope } from "./nautt-pending-scope";
 
@@ -47,11 +49,17 @@ function Notice({ code, dictionary }: Readonly<{ code?: string; dictionary: Dict
                 : null;
   if (!copy) return null;
   const success = code === "configured" || code === "reset";
+  const entry: NoticeToastEntry = { param: "nautt", value: code!, kind: success ? "success" : "error", message: copy };
   return (
-    <Alert role={success ? "status" : "alert"} variant={success ? "success" : "destructive"}>
-      <AlertTitle>{dictionary.nauttHeading}</AlertTitle>
-      <AlertDescription>{copy}</AlertDescription>
-    </Alert>
+    <>
+      <NoticeToast notices={[entry]} />
+      <noscript>
+        <Alert role={success ? "status" : "alert"} variant={success ? "success" : "destructive"}>
+          <AlertTitle>{dictionary.nauttHeading}</AlertTitle>
+          <AlertDescription>{copy}</AlertDescription>
+        </Alert>
+      </noscript>
+    </>
   );
 }
 

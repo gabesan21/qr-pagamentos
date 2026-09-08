@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 
+import { clearFormDraft, hasFailureNotice, readFormDraft, saveFormDraft } from "@/app/form-draft";
 import type { OwnerProduct } from "@/auth/product";
 import type { OwnerProductCategory } from "@/auth/product-category";
 import type { ExchangeCurrencyChoice } from "@/auth/supported-exchange-currency";
@@ -16,7 +17,6 @@ import type { getDictionary } from "@/i18n/dictionaries";
 import type { SupportedLocale } from "@/i18n/locales";
 
 import { CatalogSubmit } from "./catalog-submit";
-import { clearCatalogDraft, hasFailureNotice, readCatalogDraft, saveCatalogDraft } from "./catalog-draft";
 import {
   Banner,
   DirtyNativeSelect,
@@ -187,10 +187,10 @@ export function ProductForm({
   useEffect(() => {
     if (readOnly) return;
     if (!hasFailureNotice(PRODUCT_NOTICE_KEY, PRODUCT_FAILURE_NOTICES)) {
-      clearCatalogDraft(draftKey);
+      clearFormDraft(draftKey);
       return;
     }
-    const draft = readCatalogDraft(draftKey);
+    const draft = readFormDraft(draftKey);
     if (!draft) return;
     // sessionStorage is a client-only external system unavailable during the
     // server render, so seeding these fields cannot happen before mount; a
@@ -404,7 +404,7 @@ export function ProductForm({
       id={formId}
       method="post"
       onSubmit={() =>
-        saveCatalogDraft(draftKey, {
+        saveFormDraft(draftKey, {
           internalName,
           titlePtBr,
           titleEn,

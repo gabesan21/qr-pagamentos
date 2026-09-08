@@ -25,19 +25,36 @@ export const LINKS_NOTICE_KEY = "payment-links-v2";
 export const LINKS_NOTICE_VALUES = ["created", "edited", "activated", "deactivated", "failed"] as const;
 export type LinksNotice = (typeof LINKS_NOTICE_VALUES)[number];
 
+// The frozen legacy V1 create/revoke redirects land on this same directory
+// with their own closed key, resolved and stripped exactly like the V2 key
+// so strict canonicalization never sees either as a stray param.
+export const LEGACY_LINKS_NOTICE_KEY = "payment-links";
+export const LEGACY_LINKS_NOTICE_VALUES = ["created", "revoked", "failed"] as const;
+export type LegacyLinksNotice = (typeof LEGACY_LINKS_NOTICE_VALUES)[number];
+
 export type LinksSearchParams = Readonly<Record<string, string | readonly string[] | undefined>>;
 
 type ReadyDirectoryRequest = Extract<CanonicalDirectoryRequest, { status: "ready" }>;
 
 export type LinksDirectoryQuery =
-  | (ReadyDirectoryRequest & Readonly<{ notice?: LinksNotice }>)
+  | (ReadyDirectoryRequest & Readonly<{ notice?: LinksNotice; legacyNotice?: LegacyLinksNotice }>)
   | Exclude<CanonicalDirectoryRequest, ReadyDirectoryRequest>;
+
+// Shared by the non-directory link pages (`/links/new`, `/links/v2/[id]`, its
+// `/edit`) that only need to read the closed V2 notice off their own query
+// string, with none of the directory canonicalization above.
+export function parseLinksNotice(value: string | readonly string[] | undefined): LinksNotice | undefined {
+  return typeof value === "string" && (LINKS_NOTICE_VALUES as readonly string[]).includes(value)
+    ? (value as LinksNotice)
+    : undefined;
+}
 
 export function resolveLinksDirectoryQuery(
   input: Readonly<{ searchParams: LinksSearchParams; principal: Principal }>,
   codec: DirectoryCursorCodec = createDirectoryCursorCodec(),
 ): LinksDirectoryQuery {
   let notice: LinksNotice | undefined;
+  let legacyNotice: LegacyLinksNotice | undefined;
   const entries: Array<[string, string]> = [];
   for (const [key, value] of Object.entries(input.searchParams)) {
     if (value === undefined) continue;
@@ -49,6 +66,12 @@ export function resolveLinksDirectoryQuery(
       if (typeof value !== "string" || notice !== undefined) return { status: "invalid-query" };
       if (!(LINKS_NOTICE_VALUES as readonly string[]).includes(value)) return { status: "invalid-query" };
       notice = value as LinksNotice;
+      continue;
+    }
+    if (key === LEGACY_LINKS_NOTICE_KEY) {
+      if (typeof value !== "string" || legacyNotice !== undefined) return { status: "invalid-query" };
+      if (!(LEGACY_LINKS_NOTICE_VALUES as readonly string[]).includes(value)) return { status: "invalid-query" };
+      legacyNotice = value as LegacyLinksNotice;
       continue;
     }
     const values = typeof value === "string" ? [value] : value;
@@ -66,6 +89,8 @@ export function resolveLinksDirectoryQuery(
     orderId: LINKS_DIRECTORY_ORDER_ID,
     validateTuple: validatePaymentLinkV2DirectoryTuple,
   }, codec);
-  if (resolved.status === "ready" && notice !== undefined) return { ...resolved, notice };
+  if (resolved.status === "ready") {
+    return { ...resolved, ...(notice !== undefined ? { notice } : {}), ...(legacyNotice !== undefined ? { legacyNotice } : {}) };
+  }
   return resolved;
 }

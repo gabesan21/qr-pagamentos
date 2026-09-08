@@ -13,12 +13,12 @@ export async function POST(request: Request) {
     try {
       const principal = await getAuthorizationService().requireUser((await cookies()).get("qr_session")?.value);
       await getOwnerOnboardingService().resetRegistration(principal);
-      return relativeRedirect("/settings?nautt=reset");
+      return relativeRedirect("/settings?nautt=reset#settings-connection");
     } catch (error) {
       if (error instanceof UnauthenticatedError) return new Response(null, { status: 401 });
       if (error instanceof ForbiddenError) return new Response(null, { status: 403 });
-      if (error instanceof OwnerOnboardingChangedError) return relativeRedirect("/settings?nautt=changed");
-      return relativeRedirect("/settings?nautt=unavailable");
+      if (error instanceof OwnerOnboardingChangedError) return relativeRedirect("/settings?nautt=changed#settings-connection");
+      return relativeRedirect("/settings?nautt=unavailable#settings-connection");
     }
   });
 }
