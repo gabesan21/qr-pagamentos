@@ -52,9 +52,15 @@ describe("FormDraftGuard", () => {
     return (
       <form id="product-form">
         <input defaultValue="" name="internalName" />
+        <textarea defaultValue="" name="description" />
+        <select defaultValue="" name="category">
+          <option value="">Select…</option>
+          <option value="drinks">Drinks</option>
+          <option value="food">Food</option>
+        </select>
         <FormDraftGuard
           draftKey={draftKey}
-          fieldNames={["internalName"]}
+          fieldNames={["internalName", "description", "category"]}
           formId="product-form"
           noticeKey="products"
           noticeValues={["conflict", "failed"]}
@@ -73,7 +79,7 @@ describe("FormDraftGuard", () => {
       form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
     });
 
-    expect(readFormDraft("product-create")).toEqual({ internalName: "Corn cake" });
+    expect(readFormDraft("product-create")).toMatchObject({ internalName: "Corn cake" });
   });
 
   it("restores the draft into the form only under the failure notice", () => {
@@ -93,5 +99,43 @@ describe("FormDraftGuard", () => {
     const input = container.querySelector("input") as HTMLInputElement;
     expect(input.value).toBe("");
     expect(readFormDraft("product-create")).toBeNull();
+  });
+
+  it("round-trips a textarea value through save and restore", () => {
+    const { container, unmount } = render(<Harness />);
+    const form = container.querySelector("form") as HTMLFormElement;
+    const textarea = container.querySelector("textarea") as HTMLTextAreaElement;
+    textarea.value = "Long comment body";
+
+    act(() => {
+      form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+    });
+
+    expect(readFormDraft("product-create")).toMatchObject({ description: "Long comment body" });
+
+    unmount();
+    window.history.pushState({}, "", "/catalog/products/new?products=failed");
+    const { container: restored } = render(<Harness />);
+    const restoredTextarea = restored.querySelector("textarea") as HTMLTextAreaElement;
+    expect(restoredTextarea.value).toBe("Long comment body");
+  });
+
+  it("round-trips a select value through save and restore", () => {
+    const { container, unmount } = render(<Harness />);
+    const form = container.querySelector("form") as HTMLFormElement;
+    const select = container.querySelector("select") as HTMLSelectElement;
+    select.value = "drinks";
+
+    act(() => {
+      form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+    });
+
+    expect(readFormDraft("product-create")).toMatchObject({ category: "drinks" });
+
+    unmount();
+    window.history.pushState({}, "", "/catalog/products/new?products=failed");
+    const { container: restored } = render(<Harness />);
+    const restoredSelect = restored.querySelector("select") as HTMLSelectElement;
+    expect(restoredSelect.value).toBe("drinks");
   });
 });
