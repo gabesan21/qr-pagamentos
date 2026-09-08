@@ -2,20 +2,18 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { dataDirectoryCopy, DirectoryInvalidFiltersNotice } from "@/app/directory-support";
-import { OrderListCard } from "@/app/orders/order-views";
 import {
   formatOrderV2Instant,
-  OrderV2OutcomeBadge,
   OrderV2PayerFacts,
-  OrderV2StateBadge,
-  orderV2SourceLabel,
+  OrderV2SourceBadge,
 } from "@/app/orders/order-v2-views";
+import { orderStateLabel } from "@/app/orders/order-views";
 import { WorkspaceHeading } from "@/app-shell/workspace-heading";
 import { formatCatalogPrice } from "@/app/(merchant)/catalog/price-format";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CopyField } from "@/components/ui/copy-field";
 import { MoneyText } from "@/components/ui/money-text";
+import { LocalOutcomeBadge, ProviderStateBadge, StatusBadge, type LocalOutcome, type ProviderState } from "@/components/ui/status-badge";
 import { Separator } from "@/components/ui/separator";
 import {
   DIRECTORY_INVALID_FILTERS_PARAM,
@@ -29,6 +27,8 @@ import { getOrderViewService } from "@/orders/order-view";
 import {
   ORDER_V2_DIRECTORY_PAGE_SIZE_POLICY,
   ORDER_V2_DIRECTORY_PATH,
+  ORDER_V2_DIRECTORY_STATE_FILTER_VALUES,
+  ORDER_V2_DIRECTORY_STATELESS_FILTER_VALUE,
   queryOwnerOrderV2Directory,
   type OrderV2DirectoryResult,
 } from "@/orders/order-v2-directory";
@@ -41,6 +41,7 @@ import {
   resolveOrdersDirectoryQuery,
   type OrdersSearchParams,
 } from "./directory-query";
+import { MerchantLegacyOrderTable } from "./legacy-order-table";
 import { OrderV2Notice } from "./orders-notices";
 import { OrderV2PageSizePreference } from "./page-size-preference";
 
@@ -68,6 +69,53 @@ function pageUrl(query: Readonly<{ canonicalFilterQuery: string; pageSize: numbe
   return parameters ? `${ORDER_V2_DIRECTORY_PATH}?${parameters}` : ORDER_V2_DIRECTORY_PATH;
 }
 
+// The eight registered `state` filter members share the domain badge's
+// closed lowercase union exactly; only the stateless member and casing
+// differ from the stored `PaymentLinkOrderState` vocabulary. Mirrors the
+// administrator directory's local presentation (10.2.1) on the owner scope.
+function providerStateLabels(dictionary: Dictionary): Readonly<Record<ProviderState, string>> {
+  return {
+    created: orderStateLabel(dictionary, "CREATED"),
+    pending: orderStateLabel(dictionary, "PENDING"),
+    confirmed: orderStateLabel(dictionary, "CONFIRMED"),
+    rejected: orderStateLabel(dictionary, "REJECTED"),
+    cancelled: orderStateLabel(dictionary, "CANCELLED"),
+    expired: orderStateLabel(dictionary, "EXPIRED"),
+    indeterminate: orderStateLabel(dictionary, "INDETERMINATE"),
+    refunded: orderStateLabel(dictionary, "REFUNDED"),
+  };
+}
+
+// The registered `state` filter's label, including the explicit stateless
+// option the eight `PaymentLinkOrderState` members do not carry.
+function orderStateFilterLabel(
+  dictionary: Dictionary,
+  value: (typeof ORDER_V2_DIRECTORY_STATE_FILTER_VALUES)[number],
+) {
+  return value === ORDER_V2_DIRECTORY_STATELESS_FILTER_VALUE
+    ? dictionary.orderV2DirectoryStateNone
+    : orderStateLabel(dictionary, value);
+}
+
+// A null provider state has no member in `ProviderState`; it renders through
+// the neutral `StatusBadge` instead, same as the state filter's stateless
+// option.
+function ProviderStateCell({ dictionary, row }: Readonly<{ dictionary: Dictionary; row: OrderV2Summary }>) {
+  if (row.state === null) return <StatusBadge label={dictionary.orderV2DirectoryStateNone} tone="neutral" />;
+  return <ProviderStateBadge labels={providerStateLabels(dictionary)} state={row.state.toLowerCase() as ProviderState} />;
+}
+
+// `LOCAL_CANCELLED` has no member in `LocalOutcome`; it renders through the
+// domain-matching danger `StatusBadge` instead, mirroring the tone
+// `orderV2OutcomeTone` already assigns it.
+function LocalOutcomeCell({ dictionary, row }: Readonly<{ dictionary: Dictionary; row: OrderV2Summary }>) {
+  if (row.currentLocalOutcome === null) {
+    return <LocalOutcomeBadge labels={{ finalized: dictionary.orderV2DirectoryOutcomeFinalized, "in-progress": dictionary.orderV2DirectoryOutcomeNone, none: dictionary.orderV2DirectoryOutcomeNone } satisfies Readonly<Record<LocalOutcome, string>>} outcome="none" />;
+  }
+  if (row.currentLocalOutcome.outcome === "LOCAL_CANCELLED") return <StatusBadge label={dictionary.orderV2DirectoryOutcomeCancelled} tone="danger" />;
+  return <LocalOutcomeBadge labels={{ finalized: dictionary.orderV2DirectoryOutcomeFinalized, "in-progress": dictionary.orderV2DirectoryOutcomeNone, none: dictionary.orderV2DirectoryOutcomeNone } satisfies Readonly<Record<LocalOutcome, string>>} outcome="finalized" />;
+}
+
 function OrderV2Directory({
   dictionary,
   locale,
@@ -82,16 +130,16 @@ function OrderV2Directory({
   const copy = dataDirectoryCopy(dictionary, { title: dictionary.orderV2DirectoryEmpty, description: dictionary.orderV2DirectoryEmptyDescription });
   const columns: readonly DataDirectoryColumn<OrderV2Summary>[] = [
     { id: "payer", label: dictionary.orderV2DirectoryColumnPayer, value: (row) => <OrderV2PayerFacts dictionary={dictionary} payer={row.payer} /> },
-    { id: "source", label: dictionary.orderV2DirectoryColumnSource, value: (row) => <Badge variant="outline">{orderV2SourceLabel(dictionary, row.source)}</Badge> },
+    { id: "source", label: dictionary.orderV2DirectoryColumnSource, value: (row) => <OrderV2SourceBadge dictionary={dictionary} source={row.source} /> },
     {
       id: "link",
       label: dictionary.orderV2DirectoryColumnLink,
       value: (row) => row.paymentLinkV2Identifier
-        ? <CopyField labels={copyLabels(dictionary)} truncate={false} value={row.paymentLinkV2Identifier} />
+        ? <CopyField labels={copyLabels(dictionary)} value={row.paymentLinkV2Identifier} variant="compact" />
         : dictionary.orderV2DirectoryLinkNone,
     },
-    { id: "state", label: dictionary.orderV2DirectoryColumnState, value: (row) => <OrderV2StateBadge dictionary={dictionary} state={row.state} /> },
-    { id: "outcome", label: dictionary.orderV2DirectoryColumnOutcome, value: (row) => <OrderV2OutcomeBadge dictionary={dictionary} outcome={row.currentLocalOutcome} /> },
+    { id: "state", label: dictionary.orderV2DirectoryColumnState, value: (row) => <ProviderStateCell dictionary={dictionary} row={row} /> },
+    { id: "outcome", label: dictionary.orderV2DirectoryColumnOutcome, value: (row) => <LocalOutcomeCell dictionary={dictionary} row={row} /> },
     { id: "amount", label: dictionary.orderV2DirectoryColumnAmount, numeric: true, value: (row) => <MoneyText value={formatCatalogPrice(row.amount, null, locale)} /> },
     { id: "created", label: dictionary.orderV2DirectoryColumnCreated, numeric: true, value: (row) => formatOrderV2Instant(row.createdAt, locale) },
   ];
@@ -123,6 +171,16 @@ function OrderV2Directory({
             { value: "AD_HOC", label: dictionary.orderV2DirectorySourceAdHoc },
             { value: "STANDALONE", label: dictionary.orderV2DirectorySourceStandalone },
           ],
+        },
+        {
+          name: "state",
+          label: dictionary.orderV2DirectoryFilterState,
+          allLabel: dictionary.orderV2DirectoryFilterAllStates,
+          ...(firstValue(query.query.filters.state) ? { selected: firstValue(query.query.filters.state) } : {}),
+          options: ORDER_V2_DIRECTORY_STATE_FILTER_VALUES.map((value) => ({
+            value,
+            label: orderStateFilterLabel(dictionary, value),
+          })),
         },
         {
           name: "money",
@@ -225,7 +283,7 @@ export default async function MerchantOrdersPage({
           <h2 id="legacy-orders-heading">{dictionary.orderV2DirectoryLegacyHeading}</h2>
           <p>{dictionary.orderV2DirectoryLegacyDescription}</p>
         </header>
-        <OrderListCard detailHref={(orderId) => `/orders/${orderId}`} dictionary={dictionary} locale={locale} orders={data} />
+        <MerchantLegacyOrderTable detailHref={(orderId) => `/orders/${orderId}`} dictionary={dictionary} locale={locale} orders={data} />
       </section>
     </>
   );
