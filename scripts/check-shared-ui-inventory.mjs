@@ -59,6 +59,25 @@ export async function checkSharedUiInventory(candidateRoot = process.cwd()) {
   assert(exclusions.some(({ source }) => source.path.endsWith("/ImageUploader.tsx")), "ImageUploader exclusion disappeared");
   assert(!inventory.owners.some(({ templateSource }) => exclusions.some(({ source }) => source.path === templateSource)), "excluded source entered reachable ownership");
 
+  const ownerProductionPaths = new Set(inventory.owners.map(({ owner }) => owner));
+  const exclusionTemplatePaths = new Set(exclusions.map(({ source }) => source.path));
+  assert(Array.isArray(inventory.localAdditions) && inventory.localAdditions.length > 0, "localAdditions section missing or empty");
+  const localAdditionOwners = new Set();
+  for (const addition of inventory.localAdditions) {
+    assert(!localAdditionOwners.has(addition.owner), `duplicate local addition ${addition.owner}`);
+    assert(await exists(root, addition.owner), `missing local addition source ${addition.owner}`);
+    assert(addition.responsibility && addition.publicApi?.length > 0, `incomplete local addition public contract ${addition.owner}`);
+    assert(addition.states?.length > 0 && addition.notApplicable, `incomplete local addition state disposition ${addition.owner}`);
+    assert(addition.insufficiency?.length > 20, `missing local addition insufficiency finding ${addition.owner}`);
+    assert(!ownerProductionPaths.has(addition.owner), `local addition collides with a reachable owner ${addition.owner}`);
+    assert(!exclusionTemplatePaths.has(addition.owner), `local addition collides with an excluded source ${addition.owner}`);
+    if (addition.templateSource) {
+      assert(exclusionTemplatePaths.has(addition.templateSource), `local addition templateSource is not a recorded exclusion ${addition.owner}`);
+      assert(!owners.has(addition.templateSource), `local addition templateSource collides with a reachable owner ${addition.owner}`);
+    }
+    localAdditionOwners.add(addition.owner);
+  }
+
   assert(inventory.officialAdditions.length === 9, `expected 9 focused official additions, found ${inventory.officialAdditions.length}`);
   for (const addition of inventory.officialAdditions) {
     assert(await exists(root, addition.source), `missing official addition ${addition.source}`);

@@ -292,12 +292,35 @@ page-number, arbitrary sorting, or client-list behavior. The executable map is
 and all 49 unreachable generated sources remain exclusions. Official supporting
 sources are recorded with one insufficiency finding each.
 
+Task `14.2.4` brings `owners` to template parity without adding to that
+20-entry set: `status-badge.tsx` renders a soft-tint pill with a `bg-current`
+dot (or `Archive` icon when archived, struck-through label when archived or
+deleted) and exports `StatusBadge` plus five closed-union domain families —
+`ProviderStateBadge`, `LocalOutcomeBadge`, `LinkLifecycleBadge`,
+`AccountStateBadge`, `EntityStateBadge` — over one shared tone map, with tone,
+shape, and labels owned centrally while every caller still supplies its own
+localized `labels`; `copy-field.tsx` adds a `compact` chip variant;
+`monogram.tsx` adds an `xl` (48px) accent-soft size; `qr-display.tsx` accepts
+an optional `payload` and generates the QR client-side with the pinned
+`qrcode` package (error correction `H` when an `identity` centre-cut is
+present) while still honoring an explicitly passed `graphic`; `stat-card.tsx`
+accepts an optional `sparkline` rendered as an `aria-hidden` accent SVG
+polyline. A genuinely new component that a template obligation marks
+`excluded-unreachable-generated-ui` — the accessible drop-tile `ImageUploader`
+(idle, drag-over, staging, staged with preview/replace/remove, failed with
+retry, disabled) — is recorded in `inventory.json`'s `localAdditions` section
+instead of `owners`: owner, public API, states, and a one-line insufficiency
+finding, never counted against the 20 reachable template sources.
+
 Before adding a component:
 
 1. Search the production inventory and the reachable parity graph.
 2. Reuse or extend the single owner when its responsibility matches.
-3. If genuinely new, record one owner/import path, public props, complete
-   applicable states, and a one-line insufficiency finding for the inventory.
+3. If genuinely new **and reachable**, record one owner/import path, public
+   props, complete applicable states, and a one-line insufficiency finding in
+   `owners`. If genuinely new but the template marks its source
+   `excluded-unreachable-generated-ui`, record the same contract in
+   `localAdditions` instead — it never enters `owners`.
 4. Update the executable inventory with the owner, public props, applicable
    states, and insufficiency finding. The closed `/design-system` specimen
    exercises every reachable shared owner and its applicable state across both
@@ -305,7 +328,9 @@ Before adding a component:
 
 Every `excluded-unreachable-generated-ui` obligation remains excluded. An
 unreachable generated template file, including a registry component, is not an
-implementation candidate and is never added merely because it exists.
+implementation candidate and is never added merely because it exists — a
+genuinely needed local owner is recorded in `localAdditions`, never in
+`owners`.
 
 ## State contract
 
@@ -321,10 +346,11 @@ them. Mark a state non-applicable instead of simulating it.
 | Data directories | ready, loading with geometry-preserving skeleton, empty, filtered-empty with reset, invalid-query reset, request error with retry, pagination/filter selection; desktop table and narrow facts expose one action set |
 | Empty/unavailable | localized illustration, title, optional body and one recovery/CTA; empty is never destructive and unavailable discloses no cause |
 | Filters and tabs | default, active/selected with non-color marker, clear/reset, hover/focus, disabled; URL and native GET behavior remain server-authoritative |
-| Identity | image or initial fallback, meaningful or decorative naming, and size variants; bytes and lifecycle remain media-authoritative |
+| Identity | image or initial fallback, meaningful or decorative naming, and size variants including the `xl` accent-soft `Monogram`; bytes and lifecycle remain media-authoritative |
 | Modal/confirmation | closed/open, initial focus, keyboard loop, escape/overlay dismissal when allowed, destructive confirmation, pending/disabled, failure without accidental close, focus restoration |
-| Copy and QR | ready, copy pending, copied success announced politely, copy failure/retry; QR preparing, available, waiting/recovery, and terminal states preserve alternative text and exact payload boundaries |
-| Status, money, timeline, stats | ready, empty where data-driven, loading skeleton, unavailable/error; text/icon/shape accompanies color and numeric facts use mono tabular type |
+| Copy and QR | ready, copy pending, copied success announced politely, copy failure/retry, in either the button or compact chip `CopyField` variant; QR preparing, available, waiting/recovery, and terminal states preserve alternative text and exact payload boundaries whether the caller supplies a `graphic` or `QrDisplay` generates it from `payload` |
+| Upload | idle, drag-over, staging, staged with preview/replace/remove, failed with retry, and disabled, each visually distinguishable without relying on color alone; staging boundary and identifiers stay caller-owned |
+| Status, money, timeline, stats | ready, empty where data-driven, loading skeleton, unavailable/error; text/icon/shape accompanies color, numeric facts use mono tabular type, `StatusBadge`'s five domain families share one tone map, and `StatCard`'s optional sparkline is a decorative `aria-hidden` accent trend, never the sole trend indicator |
 | Toast/alert | info, success, warning, destructive error, dismiss, retry, auto-dismiss only where safe; use polite/assertive live semantics appropriate to urgency |
 
 ### Page and journey states
