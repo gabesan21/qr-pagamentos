@@ -225,4 +225,15 @@ describe("administrator dashboard", () => {
     expect(html).not.toMatch(/[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i);
     expect(html).not.toMatch(/verifier|capability|nonce|credential|provider order/i);
   });
+
+  it("uses the grid-token layout, not the retired admin-dashboard BEM", async () => {
+    arrange("pt-BR", readyView());
+
+    const html = await render();
+
+    expect(html).not.toContain("admin-dashboard");
+    expect(html).toContain("lg:col-span-5");
+    expect(html).toContain("lg:col-span-4");
+    expect(html).toContain("lg:col-span-3");
+  });
 });

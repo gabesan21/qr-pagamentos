@@ -89,6 +89,7 @@ describe("role shell contract", () => {
     expect(merchant).not.toContain('href: "/admin"');
     expect(merchant).toContain('profileLink={{ href: "/profile"');
     expect(admin).not.toContain("profileLink=");
+    expect(admin).not.toContain("storefrontLink=");
   });
 
   it("resolves the top-bar title from the registry for a matching route", () => {
@@ -159,5 +160,9 @@ describe("role shell contract", () => {
     expect(rail?.querySelector(".app-shell__rail-caption")?.textContent).toBe("by Nautt Finance");
     expect(rail?.querySelector("form[action='/logout']")).toBeNull();
     expect(rail?.querySelector("button")).toBeNull();
+
+    const monogram = rail?.querySelector(".app-shell__rail-principal > span");
+    expect(monogram?.className).toContain("rounded-full");
+    expect(monogram?.textContent).toBe("M");
   });
 });
