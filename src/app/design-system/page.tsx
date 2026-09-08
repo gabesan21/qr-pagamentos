@@ -63,6 +63,7 @@ function directoryCopy(dictionary: Record<string, string>): DataDirectoryCopy {
     pageSizeLabel: dictionary.dataDirectoryPageSizeLabel,
     applyFilters: dictionary.dataDirectoryApplyFilters,
     resetFilters: dictionary.dataDirectoryResetFilters,
+    clearFilters: dictionary.dataDirectoryClearFilters,
     previousPage: dictionary.dataDirectoryPreviousPage,
     nextPage: dictionary.dataDirectoryNextPage,
     paginationLabel: dictionary.dataDirectoryPaginationLabel,
@@ -130,6 +131,7 @@ function DirectoryTableSpecimen({ dictionary, state }: Readonly<{ dictionary: Re
         }]}
         formAction="/design-system"
         idPrefix={`specimen-table-${state}`}
+        interactive={false}
         nextUrl="/design-system?pageSize=25&cursor=synthetic-next"
         previousUrl={state === "ready" ? "/design-system?pageSize=25&cursor=synthetic-previous" : undefined}
         resetUrl="/design-system"
@@ -166,6 +168,7 @@ function DirectoryFilterSpecimen({ dictionary, state }: Readonly<{ dictionary: R
       }]}
       formAction="/design-system"
       idPrefix={`specimen-filter-${state}`}
+      interactive={false}
       resetUrl="/design-system"
       rowKey={(row) => row.id}
       rows={rows}

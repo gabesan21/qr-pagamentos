@@ -310,7 +310,10 @@ Task `12.2.3` delivers the reachable shared compositions `CopyField`,
 `Monogram`, `QrDisplay`, `SimpleTabs`, the five `Skeletons`, `StatCard`,
 `StatusBadge`, `Timeline`, and `ToastViewport`/`showToast`. `DataDirectory` is
 the single owner for the reachable `DataTable` and `FilterBar` responsibilities;
-it composes canonical previous/next pagination and never adds total-count,
+its client shell is a live URL-state controller (debounced search, on-change
+filters/page size, geometry-preserving skeleton while pending) over the native
+GET form, renders removable localized chips and clickable rows with a
+template previous/next pagination footer, and never adds total-count,
 page-number, arbitrary sorting, or client-list behavior. The executable map is
 `src/components/ui/inventory.json`, checked by
 `scripts/check-shared-ui-inventory.mjs`: all 187 assigned obligations map once,
@@ -368,7 +371,7 @@ them. Mark a state non-applicable instead of simulating it.
 | Owner | Required applicable states and feedback |
 | --- | --- |
 | Actions and controls | default, populated where value-bearing, invalid with associated message, hover, visible focus, pending/loading, disabled; label remains associated and above the control |
-| Data directories | ready, loading with geometry-preserving skeleton, empty, filtered-empty with reset, invalid-query reset, request error with retry, pagination/filter selection; desktop table and narrow facts expose one action set |
+| Data directories | ready, loading with geometry-preserving skeleton while a URL-state commit is pending, empty, filtered-empty with reset, invalid input redirected to reset with an informational notice (no production `invalid-query` render), request error with retry, live debounced search and on-change filters/page size, removable localized chips, clickable rows with the explicit action preserved as the keyboard path, keyset pagination; desktop table and narrow facts expose one action set |
 | Empty/unavailable | localized illustration, title, optional body and one recovery/CTA; empty is never destructive and unavailable discloses no cause |
 | Filters and tabs | default, active/selected with non-color marker, clear/reset, hover/focus, disabled; URL and native GET behavior remain server-authoritative |
 | Identity | image or initial fallback, meaningful or decorative naming, and size variants including the `xl` accent-soft `Monogram`; bytes and lifecycle remain media-authoritative |

@@ -11,12 +11,18 @@ import {
 } from "@/app/orders/order-v2-views";
 import { WorkspaceHeading } from "@/app-shell/workspace-heading";
 import { formatCatalogPrice } from "@/app/(merchant)/catalog/price-format";
+import { dataDirectoryCopy, DirectoryInvalidFiltersNotice } from "@/app/directory-support";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CopyField } from "@/components/ui/copy-field";
 import { MoneyText } from "@/components/ui/money-text";
 import { Monogram } from "@/components/ui/monogram";
 import { Separator } from "@/components/ui/separator";
+import {
+  DIRECTORY_INVALID_FILTERS_PARAM,
+  DIRECTORY_INVALID_FILTERS_VALUE,
+  directoryInvalidFiltersLocation,
+} from "@/data-directory/server/notice";
 import { DataDirectory, type DataDirectoryColumn, type DataDirectoryState } from "@/data-directory/ui/data-directory";
 import type { getDictionary } from "@/i18n/dictionaries";
 import type { SupportedLocale } from "@/i18n/locales";
@@ -30,7 +36,6 @@ import {
 import { getOrderViewService } from "@/orders/order-view";
 
 import { requireAdminShellContext } from "../shell-context";
-import { adminOrdersDirectoryCopy } from "./directory-copy";
 import {
   adminOrdersCanonicalTarget,
   resolveAdminOrdersDirectoryQuery,
@@ -82,15 +87,16 @@ function AdminOrderV2Directory({
   locale,
   page,
   query,
-  serviceInvalid = false,
 }: Readonly<{
   dictionary: Dictionary;
   locale: SupportedLocale;
   page: Extract<AdminOrderV2DirectoryResult, { status: "ready" }> | null;
-  query: Extract<ReturnType<typeof resolveAdminOrdersDirectoryQuery>, { status: "ready" | "invalid-query" }>;
-  serviceInvalid?: boolean;
+  query: Extract<ReturnType<typeof resolveAdminOrdersDirectoryQuery>, { status: "ready" }>;
 }>) {
-  const copy = adminOrdersDirectoryCopy(dictionary);
+  const copy = dataDirectoryCopy(dictionary, {
+    title: dictionary.adminOrderV2DirectoryEmpty,
+    description: dictionary.adminOrderV2DirectoryEmptyDescription,
+  });
   const columns: readonly DataDirectoryColumn<AdminOrderV2Summary>[] = [
     { id: "owner", label: dictionary.adminOrderV2DirectoryColumnOwner, value: (row) => <OwnerCell dictionary={dictionary} owner={row.owner} /> },
     { id: "payer", label: dictionary.orderV2DirectoryColumnPayer, value: (row) => <OrderV2PayerFacts dictionary={dictionary} payer={row.payer} /> },
@@ -108,22 +114,6 @@ function AdminOrderV2Directory({
     { id: "created", label: dictionary.orderV2DirectoryColumnCreated, numeric: true, value: (row) => formatOrderV2Instant(row.createdAt, locale) },
   ];
 
-  if (query.status === "invalid-query" || serviceInvalid) {
-    return (
-      <DataDirectory
-        caption={dictionary.adminOrderV2DirectoryHeading}
-        columns={columns}
-        copy={copy}
-        formAction={ADMIN_ORDER_V2_DIRECTORY_PATH}
-        idPrefix="admin-orders-v2"
-        resetUrl={ADMIN_ORDER_V2_DIRECTORY_PATH}
-        rowKey={(row) => row.id}
-        rows={[]}
-        state="invalid-query"
-      />
-    );
-  }
-
   const rows = page?.rows ?? [];
   const filtering = Boolean(query.query.q) || Object.keys(query.query.filters).length > 0 || query.cursor !== undefined;
   const state: DataDirectoryState = page === null
@@ -135,7 +125,7 @@ function AdminOrderV2Directory({
   return (
     <DataDirectory
       actionsLabel={dictionary.orderV2DirectoryColumnActions}
-      canonicalFilterQuery={query.status === "ready" && !serviceInvalid ? query.query.canonicalFilterQuery : undefined}
+      canonicalFilterQuery={query.query.canonicalFilterQuery}
       caption={dictionary.adminOrderV2DirectoryHeading}
       columns={columns}
       copy={copy}
@@ -167,6 +157,7 @@ function AdminOrderV2Directory({
           <Link href={`/admin/orders/v2/${row.id}`}>{dictionary.orderV2DirectoryView}</Link>
         </Button>
       )}
+      getRowHref={(row) => `/admin/orders/v2/${row.id}`}
       idPrefix="admin-orders-v2"
       {...(page?.nextCursor ? { nextUrl: pageUrl(query.query, page.nextCursor) } : {})}
       pageSize={query.query.pageSize}
@@ -208,33 +199,35 @@ export default async function AdminOrdersPage({
   searchParams?: Promise<AdminOrdersSearchParams>;
 }> = {}) {
   const { dictionary, locale, principal } = await requireAdminShellContext();
-  const query = resolveAdminOrdersDirectoryQuery({ searchParams: await searchParams, principal });
+  const params = await searchParams;
+  const invalidFiltersNotice = params[DIRECTORY_INVALID_FILTERS_PARAM] === DIRECTORY_INVALID_FILTERS_VALUE;
+  const query = resolveAdminOrdersDirectoryQuery({ searchParams: params, principal });
   if (query.status === "redirect") redirect(query.location);
+  if (query.status === "invalid-query") redirect(directoryInvalidFiltersLocation(ADMIN_ORDER_V2_DIRECTORY_PATH));
 
   // The frozen V1 ledger keeps its exact behavior, including its own failure
   // propagation; only the V2 directory read degrades into the error state.
   const data = await getOrderViewService().listForAdmin(principal);
   let page: Extract<AdminOrderV2DirectoryResult, { status: "ready" }> | null = null;
-  // The delivered service rejects ungrammatical calendar days after
-  // canonicalization; that is the same zero-I/O invalid-query state.
-  let serviceInvalid = false;
   let serviceRedirect: string | null = null;
-  if (query.status === "ready") {
-    try {
-      const result = await queryAdminOrderV2Directory(adminOrdersCanonicalTarget(query));
-      if (result.status === "ready") page = result;
-      else if (result.status === "invalid-query") serviceInvalid = true;
-      else serviceRedirect = result.location;
-    } catch {
-      page = null;
-    }
+  try {
+    const result = await queryAdminOrderV2Directory(adminOrdersCanonicalTarget(query));
+    // The delivered service rejects ungrammatical calendar days after
+    // canonicalization; that is the same zero-I/O invalid-query state, routed
+    // the same way as a page-level invalid query.
+    if (result.status === "ready") page = result;
+    else if (result.status === "invalid-query") serviceRedirect = directoryInvalidFiltersLocation(ADMIN_ORDER_V2_DIRECTORY_PATH);
+    else serviceRedirect = result.location;
+  } catch {
+    page = null;
   }
   if (serviceRedirect !== null) redirect(serviceRedirect);
 
   return (
     <>
       <WorkspaceHeading description={dictionary.adminOrderV2DirectoryDescription} eyebrow={dictionary.shellAdminEyebrow} title={dictionary.ordersHeading} />
-      <AdminOrderV2Directory dictionary={dictionary} locale={locale} page={page} query={query} serviceInvalid={serviceInvalid} />
+      {invalidFiltersNotice ? <DirectoryInvalidFiltersNotice dictionary={dictionary} /> : null}
+      <AdminOrderV2Directory dictionary={dictionary} locale={locale} page={page} query={query} />
       <Separator />
       <section aria-labelledby="legacy-orders-heading">
         <header className="workspace-heading">

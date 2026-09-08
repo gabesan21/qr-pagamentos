@@ -7,6 +7,7 @@ import {
 } from "@/auth/payment-link-v2-view";
 import { canonicalizeDirectoryRequest, type CanonicalDirectoryRequest } from "@/data-directory/server/canonical-request";
 import { createDirectoryCursorCodec, type DirectoryCursorCodec } from "@/data-directory/server/cursor";
+import { DIRECTORY_INVALID_FILTERS_PARAM } from "@/data-directory/server/notice";
 
 // The merchant V2 link directory rides the full foundation contract, cursor
 // included: canonical `307` resets, stale-cursor drops, and zero-I/O invalid
@@ -40,6 +41,10 @@ export function resolveLinksDirectoryQuery(
   const entries: Array<[string, string]> = [];
   for (const [key, value] of Object.entries(input.searchParams)) {
     if (value === undefined) continue;
+    // The reserved invalid-filters notice pair is a redirect artifact, not a
+    // directory param: dropping it here is what keeps the reset redirect from
+    // looping back into another invalid-query resolution.
+    if (key === DIRECTORY_INVALID_FILTERS_PARAM) continue;
     if (key === LINKS_NOTICE_KEY) {
       if (typeof value !== "string" || notice !== undefined) return { status: "invalid-query" };
       if (!(LINKS_NOTICE_VALUES as readonly string[]).includes(value)) return { status: "invalid-query" };

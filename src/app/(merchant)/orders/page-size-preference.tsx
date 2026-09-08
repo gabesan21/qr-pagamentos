@@ -2,12 +2,15 @@
 
 import { useEffect } from "react";
 
+import { DIRECTORY_INVALID_FILTERS_PARAM } from "@/data-directory/server/notice";
+
 // Observation-only page-size preference (8.3.3): it never intercepts the
 // native GET form. A change of the toolbar control stores the choice; on
-// mount, only when the URL carries no explicit `pageSize` and no mutation
-// notice, it navigates once to the canonical URL with the stored registered
-// size. An explicit URL value always wins and is re-stored, so the stored
-// default never navigates and no redirect loop can form.
+// mount, only when the URL carries no explicit `pageSize`, no mutation
+// notice and no reserved invalid-filters pair, it navigates once to the
+// canonical URL with the stored registered size. An explicit URL value
+// always wins and is re-stored, so the stored default never navigates and no
+// redirect loop can form.
 export function OrderV2PageSizePreference({
   defaultSize,
   noticeKey,
@@ -41,7 +44,7 @@ export function OrderV2PageSizePreference({
     const explicit = parameters.get("pageSize");
     if (explicit !== null) {
       if (registeredSizes.includes(Number(explicit))) store(explicit);
-    } else if (!parameters.has(noticeKey)) {
+    } else if (!parameters.has(noticeKey) && !parameters.has(DIRECTORY_INVALID_FILTERS_PARAM)) {
       let stored: string | null = null;
       try {
         stored = window.localStorage.getItem(storageKey);
