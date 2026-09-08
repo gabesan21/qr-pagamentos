@@ -57,9 +57,9 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[14.5.1-converge-merchant-dashboard-and-orders]] | By-state/by-source chart, four inventory cards, clickable recent orders/products with ids, storefront banner, first-run state, provider/outcome filters, outcome editor with dialog and gating, comment composer. · size: L | 002_planning |
-| [[14.5.2-converge-merchant-payment-links]] | Radio-card composition/type, searchable product lines with prices and running total, descriptions for every link, live preview, locked fields on edit, lifecycle guards, real orders summary, currency column and filters. · size: L | 002_planning |
-| [[14.5.3-converge-catalog-settings-profile]] | Flat product form with state control and default currency, drag-drop uploader, inline category edit for all rows, theme swatches/layout segmented/color picker/logo uploader, Nautt validate/replace, template TOTP enrollment order with secret/download and regenerate confirm. · size: L | 002_planning |
+| [[14.5.1-converge-merchant-dashboard-and-orders]] | By-state/by-source chart, four inventory cards, clickable recent orders/products with ids, storefront banner, first-run state, provider/outcome filters, outcome editor with dialog and gating, comment composer. · size: L | 004_processing |
+| [[14.5.2-converge-merchant-payment-links]] | Radio-card composition/type, searchable product lines with prices and running total, descriptions for every link, live preview, locked fields on edit, lifecycle guards, real orders summary, currency column and filters. · size: L | 004_processing |
+| [[14.5.3-converge-catalog-settings-profile]] | Flat product form with state control and default currency, drag-drop uploader, inline category edit for all rows, theme swatches/layout segmented/color picker/logo uploader, Nautt validate/replace, template TOTP enrollment order with secret/download and regenerate confirm. · size: L | 004_processing |
 | [[14.5.4-phase-verification]] | Run `pnpm check`, add merchant tests, repair what it catches; depends on all 14.5 tasks. · size: S | 001_initial_task |
 
 ## Phase 14.6 - Public checkout and storefront convergence
