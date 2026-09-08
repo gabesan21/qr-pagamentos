@@ -3,7 +3,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function SettingsLoading() {
   return (
-    <div aria-busy="true" className="storefront-workspace" role="status">
+    <div aria-busy="true" className="grid gap-6" role="status">
       {[0, 1, 2, 3].map((card) => (
         <Card key={card}>
           <CardHeader><Skeleton className="h-6 w-1/2" /><Skeleton className="h-4 w-3/4" /></CardHeader>

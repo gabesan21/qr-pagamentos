@@ -3,8 +3,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ProfileLoading() {
   return (
-    <div aria-busy="true" className="profile-workspace" role="status">
-      <div className="profile-workspace__cards">
+    <div aria-busy="true" className="grid gap-6" role="status">
+      <div className="grid items-start gap-6 grid-cols-[repeat(auto-fit,minmax(min(100%,var(--layout-max)),1fr))]">
         {[0, 1, 2].map((card) => (
           <Card key={card}>
             <CardHeader>

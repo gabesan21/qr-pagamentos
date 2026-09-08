@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { WorkspaceHeading } from "@/app-shell/workspace-heading";
 import { getProductCategoryService } from "@/auth/product-category";
+import { getStorefrontSettingsService } from "@/auth/storefront-settings";
 import { getSupportedExchangeCurrencyService } from "@/auth/supported-exchange-currency";
 import { Button } from "@/components/ui/button";
 
@@ -30,6 +31,10 @@ export default async function NewProductPage({
     getProductCategoryService().listForOwner(principal),
     getSupportedExchangeCurrencyService().listActiveChoices(principal),
   ]);
+  const defaultCurrencyCode = await getStorefrontSettingsService()
+    .getForOwner(principal)
+    .then((settings) => settings.storefrontDefaultCurrencyCode)
+    .catch(() => null);
 
   return (
     <div className="space-y-6">
@@ -45,10 +50,11 @@ export default async function NewProductPage({
         title={dictionary.catalogProductNewTitle}
       />
       {notice ? <ProductNotice dictionary={dictionary} notice={notice} /> : null}
-      <SectionCard description={dictionary.catalogProductNewDescription} title={dictionary.catalogProductNewTitle}>
+      <SectionCard title={dictionary.catalogProductNewTitle}>
         <ProductForm
           categories={categories}
           choices={choices}
+          defaultCurrencyCode={defaultCurrencyCode}
           dictionary={dictionary}
           formId="product-create"
           locale={locale}
