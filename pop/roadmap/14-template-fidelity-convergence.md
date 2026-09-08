@@ -41,9 +41,9 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[14.3.1-live-directory-toolbar-and-rows]] | `DataDirectory` filters/search/page size update the URL on change with transition skeletons, chips render everywhere, rows are clickable, invalid params are ignored with a toast; revise `src/data-directory/AGENTS.md`. · size: L | 002_planning |
-| [[14.3.2-keep-mutations-on-page]] | Order comments/outcomes, link edits/lifecycle, category and product saves redirect back to the detail page with a toast and preserve input on failure. · size: L | 002_planning |
-| [[14.3.3-project-aa-soft-tone-foregrounds]] | Add AA-projected on-soft foreground tokens (`k`-step method) for success/warning/danger/info in all six themes, wire them through generator/`@theme`, use them in every soft consumer, and rerun the design-system evidence. · size: S | 002_planning |
+| [[14.3.1-live-directory-toolbar-and-rows]] | `DataDirectory` filters/search/page size update the URL on change with transition skeletons, chips render everywhere, rows are clickable, invalid params are ignored with a toast; revise `src/data-directory/AGENTS.md`. · size: L | 004_processing |
+| [[14.3.2-keep-mutations-on-page]] | Order comments/outcomes, link edits/lifecycle, category and product saves redirect back to the detail page with a toast and preserve input on failure. · size: L | 004_processing |
+| [[14.3.3-project-aa-soft-tone-foregrounds]] | Add AA-projected on-soft foreground tokens (`k`-step method) for success/warning/danger/info in all six themes, wire them through generator/`@theme`, use them in every soft consumer, and rerun the design-system evidence. · size: S | 004_processing |
 | `14.3.4-phase-verification` | Run `pnpm check`, add directory/mutation/contrast tests, repair what it catches; depends on all 14.3 tasks. · size: S | não iniciada |
 
 ## Phase 14.4 - Shell, authentication and administrator convergence
