@@ -223,7 +223,7 @@ export function ImageUploader({
           aria-disabled={!interactive || undefined}
           className={cn(
             tile,
-            dragOver && interactive && "border-solid border-accent bg-accent-soft text-accent",
+            dragOver && interactive && "border-solid border-accent bg-accent-soft text-accent-on-soft",
             status === "failed" && "border-danger text-danger",
             !interactive && "opacity-50",
           )}

@@ -66,8 +66,8 @@ The stable semantic color paths are:
 | --- | --- |
 | Surfaces | `color.surface.page`, `raised`, `secondary`; `color.border.default` |
 | Text | `color.text.primary`, `secondary`, `tertiary` |
-| Action | `color.action.accent`, `foreground`, `soft` |
-| Feedback | `color.feedback.success`, `warning`, `danger`, `info` and each `.soft` companion |
+| Action | `color.action.accent`, `foreground`, `soft`, `soft-foreground` |
+| Feedback | `color.feedback.success`, `warning`, `danger`, `info` and each `.soft` / `.soft-foreground` companion |
 | Focus/depth | `color.focus.ring`; `shadow.elevation.card`; `shadow.elevation.modal` |
 
 ### Projected utility vocabulary
@@ -85,8 +85,10 @@ override applies automatically:
 | `bg-accent` / `text-accent` | `color.action.accent` — the **strong** template accent |
 | `text-accent-fg` | `color.action.foreground` (on-accent text) |
 | `bg-accent-soft` | `color.action.soft` — the pale tint, a distinct name from `accent` |
+| `text-accent-on-soft` | `color.action.soft-foreground` (AA text over `bg-accent-soft`) |
 | `bg-success` / `bg-warning` / `bg-danger` / `bg-info` | `color.feedback.<role>` |
 | `bg-success-soft` / `bg-warning-soft` / `bg-danger-soft` / `bg-info-soft` | `color.feedback.<role>.soft` |
+| `text-success-on-soft` / `text-warning-on-soft` / `text-danger-on-soft` / `text-info-on-soft` | `color.feedback.<role>.soft-foreground` (AA text over `bg-<role>-soft`, never `text-<role>`) |
 | `rounded-card` / `rounded-pill` | `radius.semantic.lg` / `pill` |
 | `shadow-card` | `shadow.elevation.card` |
 | `font-display` / `font-money` | `font.semantic.display` / `numeric` |
@@ -128,6 +130,22 @@ surfaces: page, raised, and secondary. These are the fixed outputs:
 | `midnight-clearing` | 54 | `#808ca0` | `5.556 / 5.069 / 4.518` |
 | `vault-blue` | 55 | `#7c8cab` | `5.524 / 5.117 / 4.508` |
 | `terminal-amber` | 30 | `#97835f` | `5.288 / 4.943 / 4.545` |
+
+The same `k`-step method projects text rendered over a soft-tinted surface
+(`text-<role>-on-soft` on `bg-<role>-soft`): origin `O` is the audit tone hex
+(`success`/`warning`/`danger`/`info`, or `accent` for `action`), target `P` is
+rendered `color.text.primary`, and the single background is that same tone's
+rendered soft surface, minimum ratio `4.5:1`. These roles never fall back to
+the strong `text-<role>` on a soft surface:
+
+| Theme | Role | `k` | On-soft hex | Ratio vs soft surface |
+| --- | --- | ---: | --- | ---: |
+| `pix-paper` | success/warning/danger/info/action | 76/70/23/6/111 | `#1e7b4b` / `#8d6321` / `#b73939` / `#2b6aad` / `#0d7a6b` | 4.513 / 4.541 / 4.547 / 4.526 / 4.522 |
+| `cashier-daylight` | success/warning/danger/info/action | 10/14/0/0/0 | `#157c3c` / `#995e09` / `#b91c1c` / `#0369a1` / `#2456e6` | 4.526 / 4.560 / 5.105 / 4.967 / 4.909 |
+| `settlement-sand` | success/warning/danger/info/action | 14/0/0/0/31 | `#4b770f` / `#92400e` / `#a63535` / `#315c8c` / `#99541d` | 4.507 / 5.689 / 5.021 / 5.475 / 4.522 |
+| `midnight-clearing` | success/warning/danger/info/action | 0/0/0/0/0 | `#34d399` / `#fbbf24` / `#f87171` / `#60a5fa` / `#5eead4` | 6.498 / 7.456 / 5.244 / 5.357 / 8.265 |
+| `vault-blue` | success/warning/danger/info/action | 0/0/0/0/21 | `#3ecf8e` / `#f5b93f` / `#ef6a6a` / `#7aa8ff` / `#5c95fd` | 6.691 / 7.433 / 4.909 / 5.873 / 4.505 |
+| `terminal-amber` | success/warning/danger/info/action | 0/0/0/0/0 | `#8fcb5c` / `#ffd166` / `#ff7a5c` / `#e8b04b` / `#ffb224` | 7.221 / 9.045 / 5.917 / 7.477 / 8.105 |
 
 The verifier linearizes normalized sRGB with
 `c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ^ 2.4`, calculates
