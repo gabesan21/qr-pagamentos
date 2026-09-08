@@ -36,16 +36,15 @@
 
 ## Phase 14.3 - Client interaction layer under server-first
 
-- **Status:** em andamento
+- **Status:** concluída
 - **Description:** URL-state filters and page size without Apply, row click, table skeletons, and mutations that stay on their page across every directory and detail.
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[14.3.4-phase-verification]] | Run `pnpm check`, add directory/mutation/contrast tests, repair what it catches; depends on all 14.3 tasks. · size: S | 004_processing |
 
 ## Phase 14.4 - Shell, authentication and administrator convergence
 
-- **Status:** pendente
+- **Status:** em andamento
 - **Description:** Reproduce template shell/menu/auth compositions and every administrator page per the admin family audit.
 
 | Task | Description | Status |
