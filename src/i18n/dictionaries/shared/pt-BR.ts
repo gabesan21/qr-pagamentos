@@ -24,6 +24,7 @@ export const sharedPtBR = {
   languageSave: "Salvar idioma",
   languageSaved: "Preferência de idioma salva.",
   languageError: "Escolha um idioma compatível.",
+  toastRegionLabel: "Notificações",
   cancel: "Cancelar",
   save: "Salvar",
   close: "Fechar",
