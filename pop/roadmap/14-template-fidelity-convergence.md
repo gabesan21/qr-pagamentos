@@ -49,8 +49,7 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[14.4.2-converge-admin-dashboard-and-directories]] | Segmented period control, 5/4/3 grid, delta chip, merchant-filtered links, orders/links directories with the template's filters and columns, single unified V1+V2 table. · size: L | 004_processing |
-| [[14.4.4-phase-verification]] | Run `pnpm check`, add admin/shell tests, repair what it catches; depends on all 14.4 tasks. · size: S | 001_initial_task |
+| [[14.4.4-phase-verification]] | Run `pnpm check`, add admin/shell tests, repair what it catches; depends on all 14.4 tasks. · size: S | 002_planning |
 
 ## Phase 14.5 - Merchant convergence
 
