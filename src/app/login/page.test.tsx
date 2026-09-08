@@ -128,4 +128,16 @@ describe("login page contract", () => {
     expect(markup).toContain(dictionary.mfaFailed);
     expect(markup).toContain('action="/login/totp-challenge"');
   });
+
+  it("renders the labelled PT/EN language switcher posting to /language-preference, ≥44px, with no principal read added", async () => {
+    const markup = renderToStaticMarkup(await LoginPage({ searchParams: Promise.resolve({}) }));
+
+    expect(markup).toContain('action="/language-preference"');
+    expect(markup).toContain('name="locale"');
+    expect(markup).toMatch(/aria-label="[^"]+"/);
+    expect(markup).toContain(">PT<");
+    expect(markup).toContain(">EN<");
+    expect(markup).toContain("h-11");
+    expect(readCookie).not.toHaveBeenCalledWith("qr_session");
+  });
 });
