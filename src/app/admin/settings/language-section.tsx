@@ -21,14 +21,11 @@ export function LanguageSection({
 }: Readonly<{ dictionary: Dictionary; locale: SupportedLocale; notice: SectionNotice }>) {
   return (
     <form action="/language-preference" method="post">
-      <SettingsSectionNotice
-        dictionary={dictionary}
-        notice={notice}
-        toastEntries={[
-          { param: "language", value: "saved", kind: "success", message: dictionary.languageSaved },
-          { param: "language", value: "error", kind: "error", message: dictionary.languageError },
-        ]}
-      />
+      {/* The global `language=saved|error` toast pair is already registered
+          once in the root layout; this section only needs the `<noscript>`
+          Alert fallback, so it passes no toast entries of its own to avoid
+          stacking a duplicate toast on every language change. */}
+      <SettingsSectionNotice dictionary={dictionary} notice={notice} toastEntries={[]} />
       <div className="inline-flex gap-1 rounded-md bg-muted p-1">
         {LOCALES.map((item) => {
           const active = locale === item.id;

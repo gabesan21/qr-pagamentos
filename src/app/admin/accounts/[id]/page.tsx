@@ -7,6 +7,7 @@ import { getAdminUserDirectoryService, type AdminUserDetail } from "@/auth/admin
 import { getAdminUserProfileService } from "@/auth/admin-user-profile";
 import { getTotpService } from "@/auth/totp-store";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { NoticeToast, type NoticeToastEntry } from "@/app/notice-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
@@ -27,40 +28,48 @@ import { PreferencesSection } from "./preferences-section";
 import { StorefrontSection } from "./storefront-section";
 
 type Dictionary = ReturnType<typeof getDictionary>;
-type Notice = Readonly<{ tone: "success" | "error"; text: string }>;
+type Notice = Readonly<{ tone: "success" | "error"; param: string; value: string; text: string }>;
 
 // The closed editor notice set: unknown values render nothing (no echo).
 function resolveEditorNotice(dictionary: Dictionary, value: string | readonly string[] | undefined): Notice | null {
   const notice = typeof value === "string" ? value : value?.[0];
-  if (notice === "changed") return { tone: "success", text: dictionary.adminUserProfileChanged };
-  if (notice === "conflict") return { tone: "error", text: dictionary.adminUserProfileConflict };
-  if (notice === "failed") return { tone: "error", text: dictionary.adminUserProfileFailed };
+  if (notice === "changed") return { tone: "success", param: "editor", value: "changed", text: dictionary.adminUserProfileChanged };
+  if (notice === "conflict") return { tone: "error", param: "editor", value: "conflict", text: dictionary.adminUserProfileConflict };
+  if (notice === "failed") return { tone: "error", param: "editor", value: "failed", text: dictionary.adminUserProfileFailed };
   return null;
 }
 
 function resolveResetNotice(dictionary: Dictionary, value: string | readonly string[] | undefined): Notice | null {
   const notice = typeof value === "string" ? value : value?.[0];
-  if (notice === "requested") return { tone: "success", text: dictionary.adminUserProfilePasswordResetRequested };
-  if (notice === "failed") return { tone: "error", text: dictionary.adminUserProfilePasswordResetFailed };
+  if (notice === "requested") return { tone: "success", param: "reset", value: "requested", text: dictionary.adminUserProfilePasswordResetRequested };
+  if (notice === "failed") return { tone: "error", param: "reset", value: "failed", text: dictionary.adminUserProfilePasswordResetFailed };
   return null;
 }
 
 function resolveTotpNotice(dictionary: Dictionary, value: string | readonly string[] | undefined): Notice | null {
   const notice = typeof value === "string" ? value : value?.[0];
-  if (notice === "totp-disabled") return { tone: "success", text: dictionary.adminUserProfileTotpDisabled };
-  if (notice === "failed") return { tone: "error", text: dictionary.adminUserProfileTotpDisableFailed };
+  if (notice === "totp-disabled") return { tone: "success", param: "editor", value: "totp-disabled", text: dictionary.adminUserProfileTotpDisabled };
+  if (notice === "failed") return { tone: "error", param: "editor", value: "failed", text: dictionary.adminUserProfileTotpDisableFailed };
   return null;
 }
 
+// Toast plus the same `<noscript>` Alert fallback (the `admin-surface.tsx`
+// bridge pattern): the visible always-rendered top `Alert` retires in favor
+// of the one-shot toast the resolved notice already carries.
 function EditorNotice({ dictionary, notice }: Readonly<{ dictionary: Dictionary; notice: Notice }>) {
   const success = notice.tone === "success";
-  const Icon = success ? CircleCheckIcon : TriangleAlertIcon;
+  const entry: NoticeToastEntry = { param: notice.param, value: notice.value, kind: notice.tone, message: notice.text };
   return (
-    <Alert aria-live={success ? "polite" : "assertive"} role={success ? "status" : "alert"} variant={success ? "success" : "destructive"}>
-      <Icon aria-hidden="true" />
-      <AlertTitle>{success ? dictionary.adminSuccessHeading : dictionary.adminErrorHeading}</AlertTitle>
-      <AlertDescription>{notice.text}</AlertDescription>
-    </Alert>
+    <>
+      <NoticeToast notices={[entry]} />
+      <noscript>
+        <Alert role={success ? "status" : "alert"} variant={success ? "success" : "destructive"}>
+          {success ? <CircleCheckIcon aria-hidden="true" /> : <TriangleAlertIcon aria-hidden="true" />}
+          <AlertTitle>{success ? dictionary.adminSuccessHeading : dictionary.adminErrorHeading}</AlertTitle>
+          <AlertDescription>{notice.text}</AlertDescription>
+        </Alert>
+      </noscript>
+    </>
   );
 }
 
