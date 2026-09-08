@@ -27,17 +27,16 @@
 
 ## Phase 14.2 - Template vocabulary, theme, feedback
 
-- **Status:** em andamento
+- **Status:** concluída
 - **Description:** Wire the template utilities and soft tokens into `@theme`, give authenticated surfaces a persisted theme switcher, mount toasts, and make locale switching return to the origin page.
 - **Specs:** [[specs/application-frontend-system|Application frontend system]], [[specs/administrative-foundation|Administrative foundation]]
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[14.2.5-phase-verification]] | Run `pnpm check`, add tests for tokens/theme/toast/badges, repair what it catches; depends on all 14.2 tasks. · size: S | 004_processing |
 
 ## Phase 14.3 - Client interaction layer under server-first
 
-- **Status:** pendente
+- **Status:** em andamento
 - **Description:** URL-state filters and page size without Apply, row click, table skeletons, and mutations that stay on their page across every directory and detail.
 
 | Task | Description | Status |
