@@ -123,6 +123,7 @@ export function LinkV2Form({
   action,
   copy,
   formId,
+  from,
   initialAmount,
   initialDescriptionEn,
   initialDescriptionPtBr,
@@ -139,6 +140,7 @@ export function LinkV2Form({
   action: string;
   copy: LinkV2FormCopy;
   formId: string;
+  from?: string;
   initialAmount?: string;
   initialDescriptionEn?: string;
   initialDescriptionPtBr?: string;
@@ -166,6 +168,7 @@ export function LinkV2Form({
           <Input name="version" type="hidden" value={version ?? 0} />
         </>
       ) : null}
+      {!editing && from !== undefined ? <Input name="from" type="hidden" value={from} /> : null}
       <FieldGroup className="space-y-4">
         {editing ? null : (
           <Card>

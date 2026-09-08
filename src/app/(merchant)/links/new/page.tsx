@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { FormDraftGuard } from "@/app/form-draft";
 import { WorkspaceHeading } from "@/app-shell/workspace-heading";
 import { getPaymentLinkService } from "@/auth/payment-link";
 import { getPaymentLinkV2PrefillService } from "@/auth/payment-link-v2-prefill";
@@ -10,11 +11,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { GitBranchIcon } from "lucide-react";
 
 import { requireMerchantShellContext } from "../../shell-context";
+import { LINKS_NOTICE_KEY, parseLinksNotice, type LinksSearchParams } from "../directory-query";
 import { linkV2FormCopy } from "../link-v2-form-copy";
 import { LinkV2Form } from "../link-v2-form";
 import type { LinkLineValue } from "../link-lines-editor";
+import { PaymentLinkV2Notice } from "../links-notices";
 import { PaymentLinkV2UnavailableCard } from "../link-v2-views";
-import type { LinksSearchParams } from "../directory-query";
 
 function firstValue(value: string | readonly string[] | undefined) {
   return typeof value === "string" ? value : value?.[0];
@@ -32,7 +34,9 @@ export default async function NewPaymentLinkPage({
   searchParams?: Promise<LinksSearchParams>;
 }> = {}) {
   const { dictionary, locale, principal } = await requireMerchantShellContext();
-  const from = firstValue((await searchParams).from);
+  const resolvedSearchParams = await searchParams;
+  const from = firstValue(resolvedSearchParams.from);
+  const notice = parseLinksNotice(resolvedSearchParams[LINKS_NOTICE_KEY]);
 
   const data = await getPaymentLinkService().listForOwner(principal);
 
@@ -80,6 +84,15 @@ export default async function NewPaymentLinkPage({
 
       <WorkspaceHeading description={description} eyebrow={dictionary.shellMerchantEyebrow} title={dictionary.paymentLinkCreateTitle} />
 
+      {notice ? <PaymentLinkV2Notice dictionary={dictionary} notice={notice} /> : null}
+      <FormDraftGuard
+        draftKey="payment-link-v2-create"
+        fieldNames={["descriptionPtBr", "descriptionEn", "amount", "expiresAt"]}
+        formId="payment-link-v2-create"
+        noticeKey={LINKS_NOTICE_KEY}
+        noticeValues={["failed"]}
+      />
+
       {from !== undefined ? (
         <Alert variant="default">
           <GitBranchIcon aria-hidden className="size-4" />
@@ -98,6 +111,7 @@ export default async function NewPaymentLinkPage({
             action="/payment-links-v2"
             copy={linkV2FormCopy(dictionary, dictionary.paymentLinkCreateSubmit)}
             formId="payment-link-v2-create"
+            {...(from !== undefined ? { from } : {})}
             {...(initialKind ? { initialKind } : {})}
             {...(initialLinkType ? { initialLinkType } : {})}
             {...(initialLines ? { initialLines } : {})}

@@ -32,7 +32,7 @@ import {
   resolveLinksDirectoryQuery,
   type LinksSearchParams,
 } from "./directory-query";
-import { PaymentLinkV2Notice } from "./links-notices";
+import { PaymentLinkLegacyNotice, PaymentLinkV2Notice } from "./links-notices";
 import { copyLabels, formatLinkInstant, LinkStateBadge, linkKindLabel, linkSummary, linkTypeLabel } from "./link-v2-views";
 
 type Dictionary = ReturnType<typeof getDictionary>;
@@ -241,6 +241,7 @@ export default async function MerchantLinksPage({
         </Button>
       </div>
       {query.status === "ready" && query.notice ? <PaymentLinkV2Notice dictionary={dictionary} notice={query.notice} /> : null}
+      {query.status === "ready" && query.legacyNotice ? <PaymentLinkLegacyNotice dictionary={dictionary} notice={query.legacyNotice} /> : null}
       <PaymentLinkDirectory dictionary={dictionary} locale={locale} page={page} query={query} />
       <Separator />
       <section aria-labelledby="legacy-payment-links-heading" className="flex flex-col gap-6">

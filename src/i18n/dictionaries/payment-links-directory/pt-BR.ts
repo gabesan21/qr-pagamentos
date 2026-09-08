@@ -48,6 +48,7 @@ export const paymentLinksDirectoryPtBR = {
   paymentLinkNoticeActivated: "O link de pagamento foi ativado.",
   paymentLinkNoticeDeactivated: "O link de pagamento foi desativado.",
   paymentLinkNoticeFailed: "A alteração do link de pagamento não pôde ser salva. Revise os valores e tente novamente.",
+  paymentLinkNoticeRevoked: "O link de pagamento foi revogado.",
   paymentLinkCreateTitle: "Novo link de pagamento",
   paymentLinkCreateDescription: "Componha um link Commerce V2 a partir de produtos ativos ou de um valor fixo.",
   paymentLinkCreateFromDescription: "Nova versão: a composição está pré-preenchida; escolha novamente o par de moedas e a expiração.",
