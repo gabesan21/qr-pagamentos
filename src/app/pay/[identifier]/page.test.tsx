@@ -162,7 +162,7 @@ describe("public checkout page", () => {
     expect(markup).toContain("--storefront-accent:#125448");
     expect(markup).toContain("/media/logo-media-identifier-00000000000000000");
     expect(markup).toContain("Café da Ana");
-    expect(markup).toContain('data-slot="badge"');
+    expect(markup).toContain("bg-success-soft text-success");
     expect(markup).toContain("Pago");
     expect(markup).toContain("Este link de pagamento já foi pago");
     expect(markup).toContain("Este link de uso único já foi utilizado e não aceita um novo pagamento.");

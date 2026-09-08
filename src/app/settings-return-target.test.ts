@@ -34,8 +34,13 @@ describe("resolveSettingsReturnTarget", () => {
     expect(target).toBe("/");
   });
 
-  it("falls back to / for an unlisted same-host path", () => {
-    const target = resolveSettingsReturnTarget(request({ host: "local", referer: "http://local/catalog" }));
+  it("returns any same-host path as-is, not a closed allowlist", () => {
+    const target = resolveSettingsReturnTarget(request({ host: "local", referer: "http://local/catalog?tab=links" }));
+    expect(target).toBe("/catalog?tab=links");
+  });
+
+  it("falls back to / for a backslash-prefixed hostile Referer", () => {
+    const target = resolveSettingsReturnTarget(request({ host: "local", referer: "\\\\evil.example/settings" }));
     expect(target).toBe("/");
   });
 
@@ -54,10 +59,10 @@ describe("resolveSettingsReturnTarget", () => {
     expect(target).toBe("/");
   });
 
-  it("discards query and fragment from an allowed Referer path", () => {
+  it("keeps the query but discards the fragment from an allowed Referer path", () => {
     const target = resolveSettingsReturnTarget(
       request({ host: "local", referer: "http://local/settings?foo=bar#section" }),
     );
-    expect(target).toBe("/settings");
+    expect(target).toBe("/settings?foo=bar");
   });
 });

@@ -149,7 +149,8 @@ describe("standalone payment view", () => {
     const markup = renderView({ payment: { state }, submittedAmount: "12.5" });
 
     expect(markup).toContain(label);
-    expect(markup.includes("bg-destructive")).toBe(destructive);
+    expect(markup.includes("bg-danger-soft text-danger")).toBe(destructive);
+    expect(markup).not.toContain("bg-destructive");
     expect(markup).not.toContain("Payment details are still being prepared.");
     expect(markup).toContain('href="/store/ana-store"');
   });
