@@ -7,7 +7,7 @@ status: active
 implementation: partial
 origin: "roadmap/12-frontend-template-remodel"
 created: 2026-08-02
-updated: 2026-08-03
+updated: 2026-09-07
 supersedes: [administrative-design-system]
 superseded_by:
 ---
@@ -61,7 +61,7 @@ This spec defines the application-wide presentation, composition, interaction-fe
 
 ## Theme, locale, identity, and assets
 
-- The stored theme identifiers remain exactly `pix-paper`, `cashier-daylight`, `settlement-sand`, `midnight-clearing`, `vault-blue`, and `terminal-amber`; identifiers are never renamed or branched inside components. `pix-paper` is the safe light fallback and `midnight-clearing` the dark-system fallback unless an established stored selection wins.
+- The stored theme identifiers remain exactly `pix-paper`, `cashier-daylight`, `settlement-sand`, `midnight-clearing`, `vault-blue`, and `terminal-amber`; identifiers are never renamed or branched inside components. `pix-paper` is the safe light fallback and `midnight-clearing` the dark-system fallback unless an established stored selection wins. Since 14.2.2 the established selection for authenticated surfaces is the `qr_theme` cookie: the root layout stamps `data-theme` on `<html>` only when a principal resolved and the cookie holds one of the six ids, and the shell account menu offers the instant six-swatch picker that writes it; unauthenticated public surfaces keep `data-theme-preview`.
 - The supported locales remain exactly `pt-BR` and `en` on the existing unprefixed-route preference contract. All labels, validation, notices, empty/error/retry states, metadata, accessible names, and public copy are equivalent in both locales.
 - The supplied logo, texture, illustrations, fallbacks, and theme swatches are approved presentation targets. Production use must flow through the existing safe-SVG, generated-derivative, hash, inventory, accessibility, and provenance controls; no page-local copy, live-font static lockup, or remote asset is allowed.
 - Task `12.2.2` installed the deterministic replacement family as runtime truth: 17 approved sources produce 28 closed derivatives through the safe-SVG, hash, inventory, accessibility, and provenance controls without weakening merchant-logo ownership, media lifecycle, fallback attribution, or accessible-name rules.
