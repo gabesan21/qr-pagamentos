@@ -72,7 +72,7 @@
 |------|-------------|--------|
 | [[14.6.1-converge-public-checkout]] | Merchant header and theme for V1, form yields to payment phase, format validation with masks, expiry/single-use badge, amount on submit, eight distinct outcome views, privacy modal, footer with language switcher, 560px single column. · size: L | 002_planning |
 | [[14.6.2-converge-storefront-and-standalone-pay]] | Same header/rail, unavailable and error vocabulary, badge tones and footer as the checkout; retire `storefront-*`/`receipt-rail*` BEM. · size: M | 002_planning |
-| `14.6.3-phase-verification` | Run `pnpm check`, add checkout/storefront tests, repair what it catches; depends on all 14.6 tasks. · size: S | não iniciada |
+| [[14.6.3-phase-verification]] | Run `pnpm check`, add checkout/storefront tests, repair what it catches; depends on all 14.6 tasks. · size: S | 001_initial_task |
 
 ## Phase 14.7 - Proof and BEM retirement
 
@@ -81,8 +81,8 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| `14.7.1-retire-bem-and-refresh-contracts` | Remove `.admin-*`, `.merchant-dashboard__*`, `.checkout-*`, `.storefront-*`, `.auth-*` route CSS; align DESIGN.md, frontend spec and DOX contracts with the converged system. · size: M | não iniciada |
-| `14.7.2-phase-verification` | Full `pnpm check`, evidence-runner human checklist, final PR `develop` → `main`; depends on all 14.7 tasks. · size: S | não iniciada |
+| [[14.7.1-retire-bem-and-refresh-contracts]] | Remove `.admin-*`, `.merchant-dashboard__*`, `.checkout-*`, `.storefront-*`, `.auth-*` route CSS; align DESIGN.md, frontend spec and DOX contracts with the converged system. · size: M | 001_initial_task |
+| [[14.7.2-phase-verification]] | Full `pnpm check`, evidence-runner human checklist, final PR `develop` → `main`; depends on all 14.7 tasks. · size: S | 001_initial_task |
 
 ## Dependency and parallel-wave map
 
