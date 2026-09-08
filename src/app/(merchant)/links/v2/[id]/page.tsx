@@ -7,12 +7,21 @@ import { Button } from "@/components/ui/button";
 import { ExternalLinkIcon, GitBranchIcon, ListOrderedIcon, PencilIcon } from "lucide-react";
 
 import { requireMerchantShellContext } from "../../../shell-context";
+import { LINKS_NOTICE_KEY, parseLinksNotice, type LinksSearchParams } from "../../directory-query";
 import { PaymentLinkV2LifecycleCard } from "../../link-v2-actions";
 import { PaymentLinkV2DetailCard, PaymentLinkV2UnavailableCard } from "../../link-v2-views";
+import { PaymentLinkV2Notice } from "../../links-notices";
 
-export default async function PaymentLinkV2DetailPage({ params }: Readonly<{ params: Promise<{ id: string }> }>) {
+export default async function PaymentLinkV2DetailPage({
+  params,
+  searchParams = Promise.resolve({}),
+}: Readonly<{
+  params: Promise<{ id: string }>;
+  searchParams?: Promise<LinksSearchParams>;
+}>) {
   const { dictionary, locale, principal } = await requireMerchantShellContext();
   const id = (await params).id;
+  const notice = parseLinksNotice((await searchParams)[LINKS_NOTICE_KEY]);
   const [result, prefill] = await Promise.all([
     getPaymentLinkV2ViewService().getForOwner(principal, id),
     getPaymentLinkV2PrefillService().getForOwner(principal, id),
@@ -33,6 +42,8 @@ export default async function PaymentLinkV2DetailPage({ params }: Readonly<{ par
   return (
     <div className="space-y-4">
       <WorkspaceHeading description={dictionary.paymentLinkDirectoryDescription} eyebrow={dictionary.shellMerchantEyebrow} title={dictionary.shellLinks} />
+
+      {notice ? <PaymentLinkV2Notice dictionary={dictionary} notice={notice} /> : null}
 
       <PaymentLinkV2DetailCard
         backHref="/links"

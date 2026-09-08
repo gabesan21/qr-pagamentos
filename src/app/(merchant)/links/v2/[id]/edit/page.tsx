@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { FormDraftGuard } from "@/app/form-draft";
 import { WorkspaceHeading } from "@/app-shell/workspace-heading";
 import { getPaymentLinkService } from "@/auth/payment-link";
 import { getPaymentLinkV2PrefillService } from "@/auth/payment-link-v2-prefill";
@@ -10,18 +11,27 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { GitBranchIcon } from "lucide-react";
 
 import { requireMerchantShellContext } from "../../../../shell-context";
+import { LINKS_NOTICE_KEY, parseLinksNotice, type LinksSearchParams } from "../../../directory-query";
 import { linkV2FormCopy } from "../../../link-v2-form-copy";
 import { LinkV2Form } from "../../../link-v2-form";
 import type { LinkLineValue } from "../../../link-lines-editor";
 import { linkKindLabel, linkTypeLabel, PaymentLinkV2UnavailableCard } from "../../../link-v2-views";
+import { PaymentLinkV2Notice } from "../../../links-notices";
 
 function expiryInputValue(expiresAt: Date | null) {
   return expiresAt === null ? "" : expiresAt.toISOString().slice(0, 16);
 }
 
-export default async function EditPaymentLinkPage({ params }: Readonly<{ params: Promise<{ id: string }> }>) {
+export default async function EditPaymentLinkPage({
+  params,
+  searchParams = Promise.resolve({}),
+}: Readonly<{
+  params: Promise<{ id: string }>;
+  searchParams?: Promise<LinksSearchParams>;
+}>) {
   const { dictionary, locale, principal } = await requireMerchantShellContext();
   const id = (await params).id;
+  const notice = parseLinksNotice((await searchParams)[LINKS_NOTICE_KEY]);
   const [view, prefill, data] = await Promise.all([
     getPaymentLinkV2ViewService().getForOwner(principal, id),
     getPaymentLinkV2PrefillService().getForOwner(principal, id),
@@ -55,6 +65,15 @@ export default async function EditPaymentLinkPage({ params }: Readonly<{ params:
       </nav>
 
       <WorkspaceHeading description={dictionary.paymentLinkEditDescription} eyebrow={dictionary.shellMerchantEyebrow} title={dictionary.paymentLinkEditTitle} />
+
+      {notice ? <PaymentLinkV2Notice dictionary={dictionary} notice={notice} /> : null}
+      <FormDraftGuard
+        draftKey="payment-link-v2-edit"
+        fieldNames={["descriptionPtBr", "descriptionEn", "amount", "expiresAt"]}
+        formId="payment-link-v2-edit"
+        noticeKey={LINKS_NOTICE_KEY}
+        noticeValues={["failed"]}
+      />
 
       <Alert variant="warning">
         <AlertTitle>{dictionary.paymentLinkLockTitle}</AlertTitle>

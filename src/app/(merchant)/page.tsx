@@ -28,7 +28,6 @@ export default async function MerchantDashboardPage({
   searchParams = Promise.resolve({}),
 }: Readonly<{
   searchParams?: Promise<{
-    "payment-links"?: string;
     language?: string;
     period?: string;
   }>;
@@ -39,9 +38,8 @@ export default async function MerchantDashboardPage({
     readDashboardView(principal, notices.period),
     getStorefrontSettingsService().getForOwner(principal),
   ]);
-  // storefront and checkout-policy saves now return to /settings, never here.
-  const ownerNotice = notices["payment-links"];
-  const failed = ownerNotice === "failed" || ownerNotice === "conflict";
+  // storefront, checkout-policy, and payment-link saves now return to their
+  // own page, never here.
   const viewStore = storefrontSettings.storefrontEnabled && storefrontSettings.storefrontSlug !== null
     ? `/store/${storefrontSettings.storefrontSlug}`
     : null;
@@ -67,12 +65,6 @@ export default async function MerchantDashboardPage({
           <DashboardPeriodNavigation current={view.period.id} dictionary={dictionary} />
         </div>
       </div>
-      {ownerNotice ? (
-        <Alert role={failed ? "alert" : "status"} variant={failed ? "destructive" : "success"}>
-          <AlertTitle>{failed ? dictionary.adminErrorHeading : dictionary.adminSuccessHeading}</AlertTitle>
-          <AlertDescription>{failed ? dictionary.ownerSettingsFailed : dictionary.ownerSettingsUpdated}</AlertDescription>
-        </Alert>
-      ) : null}
       {notices.language === "saved" ? (
         <noscript>
           <Alert role="status" variant="success">

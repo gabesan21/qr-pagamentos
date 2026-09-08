@@ -12,9 +12,9 @@ export async function POST(request: Request) {
       const actor = await requireOwnerFromCookie();
       const form = await request.formData();
       await getPaymentLinkService().create(actor, { productId: form.get("productId"), currencyPairId: form.get("currencyPairId"), linkType: form.get("linkType"), expiresAt: form.get("expiresAt") });
-      return relativeRedirect("/?payment-links=created");
+      return relativeRedirect("/links?payment-links=created");
     } catch (error) {
-      return ownerProtectedMutationResponse(error) ?? relativeRedirect("/?payment-links=failed");
+      return ownerProtectedMutationResponse(error) ?? relativeRedirect("/links?payment-links=failed");
     }
   });
 }
