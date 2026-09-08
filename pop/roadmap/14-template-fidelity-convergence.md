@@ -49,7 +49,7 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[14.4.4-phase-verification]] | Run `pnpm check`, add admin/shell tests, repair what it catches; depends on all 14.4 tasks. · size: S | 002_planning |
+| [[14.4.4-phase-verification]] | Run `pnpm check`, add admin/shell tests, repair what it catches; depends on all 14.4 tasks. · size: S | 004_processing |
 
 ## Phase 14.5 - Merchant convergence
 
