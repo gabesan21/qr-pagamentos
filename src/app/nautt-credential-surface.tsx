@@ -1,16 +1,20 @@
-import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+"use client";
+
+import { useRef, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { Eye, EyeOff, LoaderCircleIcon } from "lucide-react";
+import Link from "next/link";
 
 import type { getDictionary } from "@/i18n/dictionaries";
+import type { SupportedLocale } from "@/i18n/locales";
 import type { OwnerNauttStatus } from "@/integrations/nautt/owner-onboarding";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { ConfirmDialog } from "@/components/ui/modal";
 import { StatusBadge } from "@/components/ui/status-badge";
-import Link from "next/link";
 
 import { NoticeToast, type NoticeToastEntry } from "@/app/notice-toast";
 
@@ -103,19 +107,75 @@ function CredentialForm({ dictionary, idPrefix, secondary = false }: Readonly<{ 
   );
 }
 
+// The reset mutation only ever recovers a stuck REGISTERING/INDETERMINATE row
+// (see pop/specs/nautt-finance-integration.md); it is gated behind
+// ConfirmDialog because it discloses a real orphan-webhook risk the owner
+// must read before confirming.
+function ResetAction({ dictionary, idPrefix }: Readonly<{ dictionary: Dictionary; idPrefix: string }>) {
+  const formId = `${idPrefix}-reset-form`;
+  const formRef = useRef<HTMLFormElement>(null);
+  const [open, setOpen] = useState(false);
+  const [pending, setPending] = useState(false);
+
+  return (
+    <form action="/nautt-credentials/reset" id={formId} method="post" onSubmit={() => setPending(true)} ref={formRef}>
+      <Button aria-busy={pending || undefined} disabled={pending} onClick={() => setOpen(true)} type="button" variant="outline">
+        {pending ? <LoaderCircleIcon aria-hidden className="size-4 animate-spin" /> : null}
+        {pending ? dictionary.nauttResetting : dictionary.nauttReset}
+      </Button>
+      <ConfirmDialog
+        cancelLabel={dictionary.cancel}
+        confirmLabel={dictionary.nauttReset}
+        description={dictionary.nauttResetDisclosure}
+        failureMessage={dictionary.nauttResetConfirmFailed}
+        onConfirm={() => formRef.current?.requestSubmit()}
+        onOpenChange={setOpen}
+        open={open}
+        pendingLabel={dictionary.nauttResetting}
+        title={dictionary.nauttResetConfirmTitle}
+      />
+    </form>
+  );
+}
+
+function ValidateAction({ dictionary }: Readonly<{ dictionary: Dictionary }>) {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  return (
+    <Button
+      aria-busy={isPending || undefined}
+      data-ds-hit-target
+      disabled={isPending}
+      onClick={() => startTransition(() => router.refresh())}
+      type="button"
+      variant="outline"
+    >
+      {isPending ? <LoaderCircleIcon aria-hidden className="size-4 animate-spin" /> : null}
+      {isPending ? dictionary.nauttValidating : dictionary.nauttValidate}
+    </Button>
+  );
+}
+
 export function NauttCredentialSurface({
   dictionary,
   idPrefix = "nautt",
+  locale,
   notice,
   status,
 }: Readonly<{
   dictionary: Dictionary;
   idPrefix?: string;
+  locale: SupportedLocale;
   notice?: string;
   status: OwnerNauttStatus;
 }>) {
   const state = status.credential.webhookRegistrationState;
   const hasCredential = status.credential.hasCredential;
+  const lastUpdated = status.credential.updatedAt
+    ? new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short", timeZone: "UTC" }).format(
+        new Date(status.credential.updatedAt),
+      )
+    : null;
 
   return (
     <NauttPendingScope>
@@ -173,14 +233,7 @@ export function NauttCredentialSurface({
             </Alert>
           </CardContent>
           <CardFooter>
-            <form action="/nautt-credentials/reset" id={`${idPrefix}-reset-form`} method="post">
-              <NauttCredentialSubmit
-                form={`${idPrefix}-reset-form`}
-                label={dictionary.nauttReset}
-                pendingLabel={dictionary.nauttResetting}
-                variant="outline"
-              />
-            </form>
+            <ResetAction dictionary={dictionary} idPrefix={idPrefix} />
           </CardFooter>
         </Card>
       ) : null}
@@ -193,8 +246,11 @@ export function NauttCredentialSurface({
               <StatusIntro dictionary={dictionary} state={state} />
             </div>
             <CardDescription>{dictionary.nauttConfigured}</CardDescription>
+            {lastUpdated ? (
+              <p className="text-sm text-muted-foreground">{dictionary.nauttLastUpdated.replace("{date}", lastUpdated)}</p>
+            ) : null}
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
             {status.balance ? (
               <dl className="nautt-facts">
                 <div>
@@ -220,14 +276,21 @@ export function NauttCredentialSurface({
                 <AlertDescription>{dictionary.nauttUnavailable}</AlertDescription>
               </Alert>
             )}
+            {/* Replacement is contract-blocked outside UNREGISTERED (see
+                pop/specs/nautt-finance-integration.md); this is a recorded
+                gap, not a dead control. */}
+            <Alert variant="warning">
+              <AlertDescription>{dictionary.nauttReplaceBlockedActive}</AlertDescription>
+            </Alert>
           </CardContent>
-          {status.balanceUnavailable ? (
-            <CardFooter>
+          <CardFooter className="flex flex-wrap gap-2">
+            <ValidateAction dictionary={dictionary} />
+            {status.balanceUnavailable ? (
               <Button asChild data-ds-hit-target variant="outline">
                 <Link href="/settings">{dictionary.nauttRetryBalance}</Link>
               </Button>
-            </CardFooter>
-          ) : null}
+            ) : null}
+          </CardFooter>
         </Card>
       ) : null}
     </NauttPendingScope>

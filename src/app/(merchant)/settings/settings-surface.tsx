@@ -104,7 +104,7 @@ export function SettingsSurface({
               {dictionary.nauttHeading}
             </h2>
             <p className="settings-surface__section-description">{dictionary.nauttDescription}</p>
-            <NauttCredentialSurface dictionary={dictionary} notice={notices.nautt} status={nauttStatus} />
+            <NauttCredentialSurface dictionary={dictionary} locale={locale} notice={notices.nautt} status={nauttStatus} />
           </section>
 
           <section aria-labelledby="settings-policy-heading" className="settings-surface__section" id="settings-policy">
