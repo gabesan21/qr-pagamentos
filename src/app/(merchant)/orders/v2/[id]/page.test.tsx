@@ -4,10 +4,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ForbiddenError, UnauthenticatedError } from "@/auth/authorization";
 import type { OrderV2View } from "@/orders/order-v2-view";
 
-const { requireOwnerFromCookie, resolveLocale, getForOwner, redirect } = vi.hoisted(() => ({
+const { requireOwnerFromCookie, resolveLocale, getForOwner, getForOwnerByIdentifier, redirect } = vi.hoisted(() => ({
   requireOwnerFromCookie: vi.fn(),
   resolveLocale: vi.fn(),
   getForOwner: vi.fn(),
+  getForOwnerByIdentifier: vi.fn(async () => ({ kind: "unavailable" as const })),
   redirect: vi.fn((location: string) => { throw new Error(`redirect:${location}`); }),
 }));
 
@@ -19,6 +20,12 @@ vi.mock("@/auth/storefront-settings", () => ({ getStorefrontSettingsService: () 
 vi.mock("@/orders/order-v2-view", async (importActual) => ({
   ...(await importActual<typeof import("@/orders/order-v2-view")>()),
   getOrderV2ViewService: () => ({ getForOwner }),
+}));
+// The detail page's link card resolves the owner-scoped domain badge and
+// drill-down through this additive lookup (F03); the default resolves to
+// "unavailable" so existing suites keep asserting the link-less baseline.
+vi.mock("@/auth/payment-link-v2-view", () => ({
+  getPaymentLinkV2ViewService: () => ({ getForOwnerByIdentifier }),
 }));
 
 import OrderV2DetailPage from "./page";
@@ -115,8 +122,13 @@ describe("merchant V2 order detail page", () => {
     expect(markup).toContain('name="version" value="3"');
     expect(markup).toContain('value="LOCAL_FINALIZED"');
     expect(markup).toContain('value="LOCAL_CANCELLED"');
-    expect(markup).toContain("Confirm local finalization");
-    expect(markup).toContain("Confirm local cancellation");
+    // The select+confirm editor is one control: the confirmation dialog
+    // (`ConfirmDialog`, "Confirm local finalization"/"Confirm local
+    // cancellation") only mounts client-side once opened, so its copy is
+    // unreachable from static markup — the select still exposes both
+    // outcome labels server-side.
+    expect(markup).toContain("Finalize locally");
+    expect(markup).toContain("Cancel locally");
     expect(markup).toContain('name="note"');
   });
 
@@ -126,7 +138,7 @@ describe("merchant V2 order detail page", () => {
     expect(markup).toContain("Doação mensal");
     expect(markup).toContain(">Aguardando pagamento</");
     expect(markup).toContain(">Finalizado localmente</");
-    expect(markup).toContain("Confirmar cancelamento local");
+    expect(markup).toContain("Finalizar localmente");
     expect(markup).toContain("Novo comentário");
   });
 
@@ -135,6 +147,24 @@ describe("merchant V2 order detail page", () => {
     const markup = renderToStaticMarkup(await OrderV2DetailPage({ params: Promise.resolve({ id: orderId }) }));
     expect(markup).toContain("No comments yet.");
     expect(markup).toContain(">No local outcome</");
+  });
+
+  it("renders the resolved link's domain lifecycle badge and drill-down href, and omits both on a miss (14.5.2 F03)", async () => {
+    ready("en");
+    const resolvedLinkId = "330e8400-e29b-41d4-a716-446655440033";
+    getForOwnerByIdentifier.mockResolvedValueOnce({
+      kind: "found",
+      link: { id: resolvedLinkId, state: "active" },
+    });
+    const withBadge = renderToStaticMarkup(await OrderV2DetailPage({ params: Promise.resolve({ id: orderId }) }));
+    expect(getForOwnerByIdentifier).toHaveBeenCalledWith(principal, "abcdefghijklmnopqrstuvwx");
+    expect(withBadge).toContain(`href="/links/v2/${resolvedLinkId}"`);
+    expect(withBadge).toContain("View link");
+    expect(withBadge).toContain(">Active<");
+
+    const withoutBadge = renderToStaticMarkup(await OrderV2DetailPage({ params: Promise.resolve({ id: orderId }) }));
+    expect(withoutBadge).not.toContain(`/links/v2/${resolvedLinkId}`);
+    expect(withoutBadge).not.toContain("View link");
   });
 
   it("shares one opaque unavailable view for cross-owner, malformed, and missing identities", async () => {
