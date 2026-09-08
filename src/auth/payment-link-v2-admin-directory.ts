@@ -58,7 +58,14 @@ export const ADMIN_PAYMENT_LINK_V2_DIRECTORY_FILTERS = [
   { name: "kind", kind: "enum", values: ["PRODUCT_LINES", "FIXED_AMOUNT"] },
   { name: "from", kind: "text" },
   { name: "to", kind: "text" },
+  { name: "merchant", kind: "text" },
+  { name: "money", kind: "enum", values: ["USD", "FIAT"] },
 ] as const satisfies readonly DirectoryFilterDefinition[];
+
+// The USD bucket is the active registry mapping for code "USD"; every other
+// link (any other active pair, or a deactivated/unmapped pair) is FIAT. Same
+// read-only registry resolution as the admin order directory's money filter.
+const USD_EXCHANGE_CURRENCY_CODE = "USD";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const LINK_IDENTIFIER_PATTERN = /^[A-Za-z0-9_-]{24}$/;
@@ -132,8 +139,10 @@ export type AdminStoredPaymentLinkV2 = Readonly<{
 }>;
 
 export type AdminPaymentLinkV2DirectoryStore = Readonly<{
+  findActiveUsdPairId(): Promise<string | null>;
   readWindow(input: AdminPaymentLinkV2DirectoryRead): Promise<AdminStoredPaymentLinkV2[]>;
   findForAdmin(id: string): Promise<AdminStoredPaymentLinkV2 | null>;
+  findForAdminByIdentifier(identifier: string): Promise<AdminStoredPaymentLinkV2 | null>;
 }>;
 
 function readEnumFilter<T extends string>(
@@ -216,6 +225,22 @@ async function readWindow(
   }
   if (createdBounds.gte !== undefined || createdBounds.lt !== undefined) {
     and.push({ createdAt: createdBounds });
+  }
+
+  // Exact, case-insensitive owner-username equality: the same semantics the
+  // admin order directory registers for its own `merchant` filter.
+  const merchant = textFilter(input.filters, "merchant");
+  if (merchant !== undefined) and.push({ owner: { is: { username: { equals: merchant, mode: "insensitive" } } } });
+
+  const money = input.filters.money;
+  if (Array.isArray(money) && money.length === 1) {
+    const usdPairId = await store.findActiveUsdPairId();
+    if (money[0] === "USD") {
+      if (!usdPairId) return [];
+      and.push({ currencyPairId: usdPairId });
+    } else if (usdPairId) {
+      and.push({ NOT: { currencyPairId: usdPairId } });
+    }
   }
 
   // An exact 24-character identifier matches the link identity; anything else
@@ -318,6 +343,19 @@ export function createAdminPaymentLinkV2DirectoryService(dependencies: Readonly<
         ? { kind: "found", link: { ...toPaymentLinkV2DirectoryRow(stored.link, now()), owner: stored.owner } }
         : { kind: "unavailable" };
     },
+    // Additive bounded global read consumed by the administrator order
+    // detail (10.2.1) to resolve its link card: re-authorized administrator,
+    // no owner scoping, one opaque outcome for a malformed or missing
+    // 24-character identifier, the same admin select and found/unavailable
+    // shape as getForAdmin — id and the derived lifecycle ride on `link`.
+    async getForAdminByIdentifier(actor: Principal, identifier: unknown): Promise<AdminPaymentLinkV2ViewResult> {
+      requireAdministrator(actor);
+      if (typeof identifier !== "string" || !LINK_IDENTIFIER_PATTERN.test(identifier)) return { kind: "unavailable" };
+      const stored = await dependencies.store.findForAdminByIdentifier(identifier);
+      return stored
+        ? { kind: "found", link: { ...toPaymentLinkV2DirectoryRow(stored.link, now()), owner: stored.owner } }
+        : { kind: "unavailable" };
+    },
   };
 }
 
@@ -400,6 +438,13 @@ function toAdminStored(row: PrismaAdminPaymentLinkV2Row): AdminStoredPaymentLink
 
 function createPrismaAdminPaymentLinkV2DirectoryStore(prisma: PrismaClient): AdminPaymentLinkV2DirectoryStore {
   return {
+    async findActiveUsdPairId() {
+      const pointer = await prisma.supportedExchangeCurrency.findUnique({
+        where: { code: USD_EXCHANGE_CURRENCY_CODE },
+        select: { pairId: true },
+      });
+      return pointer?.pairId ?? null;
+    },
     async readWindow({ where, ascending, take }) {
       const direction = ascending ? "asc" : "desc";
       const rows = await prisma.paymentLinkV2.findMany({
@@ -412,6 +457,10 @@ function createPrismaAdminPaymentLinkV2DirectoryStore(prisma: PrismaClient): Adm
     },
     async findForAdmin(id) {
       const row = await prisma.paymentLinkV2.findUnique({ where: { id }, select: adminViewSelect });
+      return row ? toAdminStored(row as unknown as PrismaAdminPaymentLinkV2Row) : null;
+    },
+    async findForAdminByIdentifier(identifier) {
+      const row = await prisma.paymentLinkV2.findUnique({ where: { identifier }, select: adminViewSelect });
       return row ? toAdminStored(row as unknown as PrismaAdminPaymentLinkV2Row) : null;
     },
   };

@@ -3,16 +3,16 @@ import {
   PaymentLinkV2DetailCard,
   PaymentLinkV2UnavailableCard,
 } from "@/app/(merchant)/links/link-v2-views";
-import { Button } from "@/components/ui/button";
 import { getAdminPaymentLinkV2DirectoryService } from "@/auth/payment-link-v2-admin-directory";
-import Link from "next/link";
 
 import { requireAdminShellContext } from "../../../shell-context";
+import { AssociatedOrdersCard } from "../../associated-orders-card";
 
 // The read-only administrator V2 payment-link detail: one bounded global read
 // with owner attribution, the redacted composition facts, and the drill-down
 // into the administrator orders directory filtered by this link's identifier.
-// Owner-only surfaces (edit/activate/deactivate forms) never render.
+// Owner-only surfaces (edit/activate/deactivate forms) never render. The
+// public URL is already public sharing, so it renders unhidden here.
 export default async function AdminPaymentLinkV2DetailPage({ params }: Readonly<{ params: Promise<{ id: string }> }>) {
   const { dictionary, locale, principal } = await requireAdminShellContext();
   const id = (await params).id;
@@ -31,11 +31,8 @@ export default async function AdminPaymentLinkV2DetailPage({ params }: Readonly<
               link={result.link}
               locale={locale}
               owner={result.link.owner}
-              showShareUrl={false}
             />
-            <Button asChild data-ds-hit-target variant="outline">
-              <Link href={`/admin/orders?filter.link=${encodeURIComponent(result.link.identifier)}`}>{dictionary.paymentLinkOrdersView}</Link>
-            </Button>
+            <AssociatedOrdersCard dictionary={dictionary} linkIdentifier={result.link.identifier} />
           </div>
         )
         : <PaymentLinkV2UnavailableCard backHref="/admin/payment-links" dictionary={dictionary} />}
