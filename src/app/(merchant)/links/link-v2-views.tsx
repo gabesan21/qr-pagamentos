@@ -1,11 +1,11 @@
 import Link from "next/link";
 
 import type { PaymentLinkV2DerivedState, PaymentLinkV2View } from "@/auth/payment-link-v2-view";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CopyField } from "@/components/ui/copy-field";
+import { EmptyState } from "@/components/ui/empty-state";
 import { MoneyText } from "@/components/ui/money-text";
 import { Monogram } from "@/components/ui/monogram";
 import { Separator } from "@/components/ui/separator";
@@ -381,12 +381,12 @@ export function PaymentLinkV2DetailCard({
 
 export function PaymentLinkV2UnavailableCard({ backHref, dictionary }: Readonly<{ backHref: string; dictionary: Dictionary }>) {
   return (
-    <div className="space-y-4">
-      <Alert variant="destructive">
-        <AlertTitle>{dictionary.paymentLinkDirectoryUnavailable}</AlertTitle>
-        <AlertDescription>{dictionary.paymentLinkDirectoryUnavailableDescription}</AlertDescription>
-      </Alert>
-      <Button asChild data-ds-hit-target variant="outline"><Link href={backHref}>{dictionary.paymentLinkDirectoryBack}</Link></Button>
-    </div>
+    <EmptyState
+      action={<Button asChild data-ds-hit-target variant="outline"><Link href={backHref}>{dictionary.paymentLinkDirectoryBack}</Link></Button>}
+      body={dictionary.paymentLinkDirectoryUnavailableDescription}
+      illustration="unavailable"
+      kind="unavailable"
+      title={dictionary.paymentLinkDirectoryUnavailable}
+    />
   );
 }
