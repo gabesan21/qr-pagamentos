@@ -46,11 +46,15 @@ const primitiveNames = [
 
 const sharedInventory = JSON.parse(
   readFileSync(new URL("./inventory.json", import.meta.url), "utf8"),
-) as { owners: Array<{ owner: string }> };
+) as { owners: Array<{ owner: string }>; localAdditions?: Array<{ owner: string }> };
 
 const compositionNames = sharedInventory.owners
   .map(({ owner }) => owner.match(/^src\/components\/ui\/(.+)\.tsx$/u)?.[1])
   .filter((name): name is string => Boolean(name) && !primitiveNames.includes(name as (typeof primitiveNames)[number]));
+
+const localAdditionNames = (sharedInventory.localAdditions ?? [])
+  .map(({ owner }) => owner.match(/^src\/components\/ui\/(.+)\.tsx$/u)?.[1])
+  .filter((name): name is string => Boolean(name));
 
 function source(name: (typeof primitiveNames)[number]) {
   return readFileSync(new URL(`./${name}.tsx`, import.meta.url), "utf8");
@@ -63,7 +67,7 @@ describe("shared primitive inventory", () => {
       .map((name) => name.replace(/\.tsx$/u, ""))
       .sort();
 
-    expect(actual).toEqual([...new Set([...primitiveNames, ...compositionNames])].sort());
+    expect(actual).toEqual([...new Set([...primitiveNames, ...compositionNames, ...localAdditionNames])].sort());
     expect(compositionNames).toHaveLength(13);
   });
 
