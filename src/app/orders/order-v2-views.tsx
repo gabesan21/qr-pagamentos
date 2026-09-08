@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { MoneyText } from "@/components/ui/money-text";
 import { Monogram } from "@/components/ui/monogram";
 import { Separator } from "@/components/ui/separator";
-import { StatusBadge } from "@/components/ui/status-badge";
+import { LinkLifecycleBadge, StatusBadge, type LinkLifecycle } from "@/components/ui/status-badge";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { Timeline, type TimelineEntry } from "@/components/ui/timeline";
@@ -96,6 +96,15 @@ function orderV2PolicyLabel(dictionary: Dictionary, policy: CheckoutDataPolicy) 
   return dictionary.checkoutPolicyNone;
 }
 
+// Whether the order's own checkout data policy requires this payer field;
+// an unmet non-required field is policy compliance, not a missing capture.
+function payerFieldRequired(policy: CheckoutDataPolicy, field: "address" | "cpf" | "email" | "name"): boolean {
+  if (field === "email") return policy !== "NONE";
+  if (field === "name") return policy === "NAME_EMAIL" || policy === "NAME_EMAIL_CPF" || policy === "NAME_EMAIL_CPF_ADDRESS";
+  if (field === "cpf") return policy === "NAME_EMAIL_CPF" || policy === "NAME_EMAIL_CPF_ADDRESS";
+  return policy === "NAME_EMAIL_CPF_ADDRESS";
+}
+
 // The policy-exact payer tuple, most identifying fact first.
 export function OrderV2PayerFacts({ dictionary, payer }: Readonly<{ dictionary: Dictionary; payer: CustomerSnapshotV1 }>) {
   const facts = [payer.name, payer.email, payer.cpf].filter((fact): fact is string => fact !== null);
@@ -107,11 +116,16 @@ export function OrderV2PayerFacts({ dictionary, payer }: Readonly<{ dictionary: 
   );
 }
 
-function FieldRow({ dictionary, label, value }: Readonly<{ dictionary: Dictionary; label: string; value: string | null | undefined }>) {
+// Not-required fields under the order's own checkout data policy render this
+// hint instead of a bare em dash, so an empty payer fact reads as policy
+// compliance rather than a missing capture.
+function FieldRow({ dictionary, hint, label, value }: Readonly<{ dictionary: Dictionary; hint?: string; label: string; value: string | null | undefined }>) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 py-1.5">
       <span className="text-sm text-muted-foreground">{label}</span>
-      {value ? <CopyField labels={{ copy: dictionary.orderV2DirectoryCopy, pending: dictionary.orderV2DirectoryCopy, copied: dictionary.orderV2DirectoryCopied, failed: dictionary.orderV2DirectoryCopyFailed }} truncate={false} value={value} /> : <span className="text-sm text-muted-foreground">—</span>}
+      {value
+        ? <CopyField labels={{ copy: dictionary.orderV2DirectoryCopy, pending: dictionary.orderV2DirectoryCopy, copied: dictionary.orderV2DirectoryCopied, failed: dictionary.orderV2DirectoryCopyFailed }} truncate={false} value={value} />
+        : <span className="text-sm text-muted-foreground">{hint ?? "—"}</span>}
     </div>
   );
 }
@@ -166,6 +180,7 @@ export function OrderV2DetailCard({
   backHref,
   backLabel,
   dictionary,
+  link,
   locale,
   order,
   owner,
@@ -173,6 +188,10 @@ export function OrderV2DetailCard({
   backHref: string;
   backLabel?: string;
   dictionary: Dictionary;
+  // Additive, administrator-only: the resolved payment link's href and
+  // derived lifecycle. Every merchant call site omits it, so the link card
+  // renders exactly as before there.
+  link?: Readonly<{ href: string; lifecycle: LinkLifecycle }>;
   locale: SupportedLocale;
   order: OrderV2View;
   owner?: Readonly<{ username: string; deletedAt: Date | null }>;
@@ -286,16 +305,23 @@ export function OrderV2DetailCard({
             </CardHeader>
             <CardContent>
               <div className="divide-y">
-                <FieldRow dictionary={dictionary} label={dictionary.checkoutNameLabel} value={order.customer.name} />
-                <FieldRow dictionary={dictionary} label={dictionary.checkoutEmailLabel} value={order.customer.email} />
-                <FieldRow dictionary={dictionary} label={dictionary.checkoutCpfLabel} value={order.customer.cpf} />
+                <FieldRow dictionary={dictionary} hint={payerFieldRequired(order.checkoutDataPolicy, "name") ? undefined : dictionary.orderV2DetailPayerNotRequired} label={dictionary.checkoutNameLabel} value={order.customer.name} />
+                <FieldRow dictionary={dictionary} hint={payerFieldRequired(order.checkoutDataPolicy, "email") ? undefined : dictionary.orderV2DetailPayerNotRequired} label={dictionary.checkoutEmailLabel} value={order.customer.email} />
+                <FieldRow dictionary={dictionary} hint={payerFieldRequired(order.checkoutDataPolicy, "cpf") ? undefined : dictionary.orderV2DetailPayerNotRequired} label={dictionary.checkoutCpfLabel} value={order.customer.cpf} />
                 {order.customer.address ? (
                   <FieldRow
                     dictionary={dictionary}
                     label={dictionary.checkoutAddressLegend}
                     value={`${order.customer.address.street}, ${order.customer.address.number}${order.customer.address.complement ? ` — ${order.customer.address.complement}` : ""}`}
                   />
-                ) : <FieldRow dictionary={dictionary} label={dictionary.checkoutAddressLegend} value={null} />}
+                ) : (
+                  <FieldRow
+                    dictionary={dictionary}
+                    hint={payerFieldRequired(order.checkoutDataPolicy, "address") ? undefined : dictionary.orderV2DetailPayerNotRequired}
+                    label={dictionary.checkoutAddressLegend}
+                    value={null}
+                  />
+                )}
               </div>
             </CardContent>
           </Card>
@@ -343,6 +369,22 @@ export function OrderV2DetailCard({
                   truncate={false}
                   value={order.paymentLinkV2Identifier}
                 />
+                {link ? (
+                  <div className="flex flex-wrap items-center gap-3">
+                    <LinkLifecycleBadge
+                      labels={{
+                        active: dictionary.orderV2DetailLinkLifecycleActive,
+                        inactive: dictionary.orderV2DetailLinkLifecycleInactive,
+                        expired: dictionary.orderV2DetailLinkLifecycleExpired,
+                        paid: dictionary.orderV2DetailLinkLifecyclePaid,
+                      }}
+                      lifecycle={link.lifecycle}
+                    />
+                    <Button asChild data-ds-hit-target size="sm" variant="outline">
+                      <Link href={link.href}>{dictionary.orderV2DetailViewLink}</Link>
+                    </Button>
+                  </div>
+                ) : null}
               </CardContent>
             </Card>
           ) : null}

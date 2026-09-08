@@ -404,6 +404,20 @@ color alone), disabled, and an optional hidden-input bridge so a caller's
 native form POST needs no extra state wiring. Consolidating it with the
 merchant twin is a tracked follow-up, not this task's scope.
 
+Task `14.4.2` converges the `/admin` dashboard and the `/admin/orders**` and
+`/admin/payment-links**` directories to the template's operations model
+without adding to `owners`: the dashboard's segmented period control is a
+route-local client composition of the owned `Tabs`/`TabsList` (pill variant),
+committing `?period=` through `router.replace` inside a transition with a
+`<noscript>` three-link fallback; the dashboard grid moves from the retired
+`.admin-dashboard__*` BEM block to plain `lg:col-span-{5,4,3}` utilities, and
+the active-users `StatCard` renders `trend` (not `sparkline` — the analytics
+projection carries no series). Both admin directories keep the single
+`DataDirectory` shell and gain route-local read-only pieces instead of new
+inventory: an admin-local table for the byte-frozen V1 ledger reusing the
+owned `Table` primitives, and an admin-local associated-orders card on the
+link detail composing `Card`/`StatusBadge`/`MoneyText`.
+
 ## State contract
 
 Every component documents the baseline states **default**, **loading** when

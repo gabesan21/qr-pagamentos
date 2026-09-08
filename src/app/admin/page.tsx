@@ -5,7 +5,8 @@ import { getAdminAnalyticsService, type AdminAnalyticsView } from "@/orders/admi
 
 import { NoticeToast, type NoticeToastEntry } from "@/app/notice-toast";
 
-import { AdminDashboard, AdminDashboardPeriodNavigation } from "./dashboard";
+import { AdminDashboard } from "./dashboard";
+import { AdminDashboardPeriodControl } from "./period-control";
 import { requireAdminShellContext } from "./shell-context";
 
 // The period controls emit only the closed set; an absent or hand-edited value
@@ -46,13 +47,15 @@ export default async function AdminPage({
 
   return (
     <>
-      <div className="admin-dashboard__header">
-        <WorkspaceHeading
-          description={dictionary.shellAdminDashboardDescription}
-          eyebrow={dictionary.shellAdminEyebrow}
-          title={dictionary.shellAdminDashboardTitle}
-        />
-        <AdminDashboardPeriodNavigation current={view.period.id} dictionary={dictionary} />
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="min-w-[min(100%,calc(var(--space-12)*7))] flex-1">
+          <WorkspaceHeading
+            description={dictionary.shellAdminDashboardDescription}
+            eyebrow={dictionary.shellAdminEyebrow}
+            title={dictionary.shellAdminDashboardTitle}
+          />
+        </div>
+        <AdminDashboardPeriodControl current={view.period.id} dictionary={dictionary} />
       </div>
       {noticeEntry ? <NoticeToast notices={[noticeEntry]} /> : null}
       {succeeded || failed ? (

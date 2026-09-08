@@ -9,6 +9,7 @@ export const adminDashboardPtBR = {
   adminDashboardUsersDescription: "Contas registradas, ativas e excluídas em toda a plataforma.",
   adminDashboardUsersRegistered: "Registradas",
   adminDashboardUsersActiveNow: "Ativas agora",
+  adminDashboardUsersActiveNowTrendSuffix: "on-line agora",
   adminDashboardUsersDeleted: "Excluídas",
   adminDashboardUsersDeletedCaption: "Contas excluídas por exclusão lógica ainda entram nos agregados.",
   adminDashboardOrdersHeading: "Pedidos",
