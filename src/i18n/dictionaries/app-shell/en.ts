@@ -25,6 +25,7 @@ export const appShellEn = {
   shellWorkspaceEmptyTitle: "No information to show yet",
   shellWorkspaceEmptyDescription: "This area is ready for its approved capability. No data has been inferred or fabricated.",
   shellAccountMenu: "Account menu",
+  shellThemeMenu: "Theme",
   shellProfile: "Profile",
   shellStorefront: "Storefront",
   shellPrivacy: "Privacy",
