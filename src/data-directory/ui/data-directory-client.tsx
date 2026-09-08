@@ -50,8 +50,14 @@ const SEARCH_DEBOUNCE_MS = 350;
 
 const INTERACTIVE_DESCENDANT_SELECTOR = "a, button, input, select, textarea, label, [role]";
 
-function isInteractiveDescendant(target: EventTarget | null) {
-  return target instanceof Element && target.closest(INTERACTIVE_DESCENDANT_SELECTOR) !== null;
+// Bounded to `boundary` (the row itself): an unbounded `target.closest(...)`
+// climbs past the row into ancestors — the desktop table's own
+// `role="region"` wrapper matches `[role]` — and would treat every row click
+// as landing on an interactive descendant, never navigating.
+function isInteractiveDescendant(target: EventTarget | null, boundary: Element) {
+  if (!(target instanceof Element)) return false;
+  const match = target.closest(INTERACTIVE_DESCENDANT_SELECTOR);
+  return match !== null && boundary.contains(match);
 }
 
 function removeQueryParam(query: string, key: string, value?: string) {
@@ -589,7 +595,7 @@ export function DataDirectoryClient(props: DataDirectoryClientProps) {
 
   const handleRowNavigate = useCallback(
     (href: string) => (event: ReactMouseEvent<HTMLElement>) => {
-      if (isInteractiveDescendant(event.target)) return;
+      if (isInteractiveDescendant(event.target, event.currentTarget)) return;
       router.push(href);
     },
     [router],
