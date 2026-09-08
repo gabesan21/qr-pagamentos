@@ -11,8 +11,14 @@ import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import type { SupportedLocale } from "@/i18n/locales";
 
 import { CatalogSubmit } from "../catalog/catalog-submit";
-import { LINKS_NOTICE_KEY } from "./directory-query";
 import { LinkLinesEditor, type LinkLineProduct, type LinkLineValue } from "./link-lines-editor";
+
+// `./directory-query` starts with `import "server-only"`, so this client
+// component keeps its own copy of the notice key instead of importing it
+// (precedent: `catalog/product-form.tsx` `PRODUCT_NOTICE_KEY`,
+// `orders/order-v2-views.tsx` `ORDER_V2_NOTICE_KEY`) — must match the
+// `LINKS_NOTICE_KEY` value in `./directory-query`.
+const LINKS_NOTICE_KEY = "payment-links-v2";
 
 // The description/amount/expiry fields are named only after the merchant
 // dirties them (see `fieldName` below), and the composition kind is a select
@@ -204,25 +210,26 @@ export function LinkV2Form({
     if (typeof draft.descriptionPtBr === "string") setFixedDescriptionPtBr(draft.descriptionPtBr);
     if (typeof draft.descriptionEn === "string") setFixedDescriptionEn(draft.descriptionEn);
     if (typeof draft.amount === "string") setFixedAmount(draft.amount);
-    if (draft.descriptionPtBr !== undefined || draft.descriptionEn !== undefined || draft.amount !== undefined) {
-      setFixedDirty(true);
-    }
-    if (typeof draft.expiresAt === "string") {
-      setExpiresAtValue(draft.expiresAt);
-      if (editing) setExpiresAtDirty(true);
-    }
+    if (draft.fixedDirty === "true") setFixedDirty(true);
+    if (typeof draft.expiresAt === "string") setExpiresAtValue(draft.expiresAt);
+    if (draft.expiresAtDirty === "true") setExpiresAtDirty(true);
     /* eslint-enable react-hooks/set-state-in-effect */
     clearFormDraft(draftKey);
   }, [draftKey, editing]);
 
   const handleSubmit = () => {
-    const draft: Record<string, string> = {
-      amount: fixedAmount,
-      descriptionEn: fixedDescriptionEn,
-      descriptionPtBr: fixedDescriptionPtBr,
-      expiresAt: expiresAtValue,
-    };
+    const draft: Record<string, string> = {};
     if (!editing) draft.compositionKind = kind;
+    if (!editing || fixedDirty) {
+      draft.amount = fixedAmount;
+      draft.descriptionEn = fixedDescriptionEn;
+      draft.descriptionPtBr = fixedDescriptionPtBr;
+      draft.fixedDirty = "true";
+    }
+    if (expiresAtDirty) {
+      draft.expiresAt = expiresAtValue;
+      draft.expiresAtDirty = "true";
+    }
     saveFormDraft(draftKey, draft);
   };
 
