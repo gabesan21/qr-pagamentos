@@ -113,7 +113,7 @@ export const paymentLinksDirectoryPtBR = {
   adminPaymentLinkV2DirectoryOwnerDeleted: "Excluída",
   adminPaymentLinkV2DetailOwnerHeading: "Proprietário do link",
   adminPaymentLinkV2DetailOwnerAccount: "Ver contas",
-  paymentLinkDirectoryFilterMerchant: "Vendedor",
+  paymentLinkDirectoryFilterMerchant: "Lojista",
   paymentLinkDirectoryFilterMoney: "Moeda",
   paymentLinkDirectoryFilterAllMoney: "Todas as moedas",
   paymentLinkDirectoryMoneyUsd: "USD",

@@ -17,6 +17,14 @@ import {
 
 type Dictionary = ReturnType<typeof getDictionary>;
 
+// Next's `redirect()`/`notFound()` control-flow helpers work by throwing an
+// error carrying a `digest`; a blanket `catch` here must let those through
+// instead of swallowing the navigation and rendering an empty card.
+function isNextControlFlowError(error: unknown): boolean {
+  const digest = (error as { digest?: unknown } | null)?.digest;
+  return typeof digest === "string" && (digest.startsWith("NEXT_REDIRECT") || digest === "NEXT_NOT_FOUND");
+}
+
 // Mirrors the admin orders directory's own provider-state label map
 // (src/app/admin/orders/page.tsx): same eight `PaymentLinkOrderState`
 // members, same localized labels, kept local because the directory page
@@ -77,7 +85,8 @@ export async function AssociatedOrdersCard({
   try {
     const result = await queryAdminOrderV2Directory(requestTarget);
     if (result.status === "ready") rows = result.rows;
-  } catch {
+  } catch (error) {
+    if (isNextControlFlowError(error)) throw error;
     rows = [];
   }
   const visible = rows.slice(0, ASSOCIATED_ORDERS_TAKE);

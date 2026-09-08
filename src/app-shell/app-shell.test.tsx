@@ -1,12 +1,42 @@
+// @vitest-environment jsdom
+
 import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
-import { describe, expect, it } from "vitest";
+import { cleanup, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { dictionaryDomains } from "@/i18n/dictionaries/domains";
 
-import { isActiveRoute } from "./shell-navigation";
+import { isActiveRoute, TopBarShellControls } from "./shell-navigation";
+import { AppShell } from "./app-shell";
+import type { ShellLabels, ShellTitleRoute } from "./shell-types";
 
-const root = fileURLToPath(new URL("../..", import.meta.url));
+const root = process.cwd();
+
+afterEach(cleanup);
+
+const labels: ShellLabels = {
+  accountMenu: "Account menu",
+  closeNavigation: "Close navigation",
+  copyright: "Copyright",
+  language: "Language",
+  locale: "Locale",
+  navigation: "Navigation",
+  openNavigation: "Open navigation",
+  privacy: "Privacy",
+  profile: "Profile",
+  railCaption: "by Nautt Finance",
+  signOut: "Sign out",
+  skipToContent: "Skip to content",
+  storefront: "Storefront",
+};
+
+const titleRoutes: readonly ShellTitleRoute[] = [
+  { href: "/orders", label: "Orders" },
+  { href: "/admin/orders", label: "Orders" },
+];
+
+const { usePathname } = vi.hoisted(() => ({ usePathname: vi.fn(() => "/") }));
+vi.mock("next/navigation", () => ({ usePathname }));
 
 describe("role shell contract", () => {
   it("matches dashboard roots exactly and descendants on segment boundaries", () => {
@@ -59,5 +89,75 @@ describe("role shell contract", () => {
     expect(merchant).not.toContain('href: "/admin"');
     expect(merchant).toContain('profileLink={{ href: "/profile"');
     expect(admin).not.toContain("profileLink=");
+  });
+
+  it("resolves the top-bar title from the registry for a matching route", () => {
+    usePathname.mockReturnValue("/admin/orders");
+    render(
+      <TopBarShellControls
+        identity={<span>Identity</span>}
+        labels={labels}
+        locale="en"
+        mobileNavigation={{ items: [], label: "Navigation" }}
+        roleLabel="Administrator"
+        titleFallback="Dashboard"
+        titleRoutes={titleRoutes}
+        username="admin.one"
+      />,
+    );
+
+    expect(screen.getByText("Orders")).not.toBeNull();
+    expect(screen.queryByText("Dashboard")).toBeNull();
+  });
+
+  it("falls back to the dashboard label when the active route matches no registered title route", () => {
+    usePathname.mockReturnValue("/admin/settings");
+    render(
+      <TopBarShellControls
+        identity={<span>Identity</span>}
+        labels={labels}
+        locale="en"
+        mobileNavigation={{ items: [], label: "Navigation" }}
+        roleLabel="Administrator"
+        titleFallback="Dashboard"
+        titleRoutes={titleRoutes}
+        username="admin.one"
+      />,
+    );
+
+    expect(screen.getByText("Dashboard")).not.toBeNull();
+  });
+
+  it("keeps the rail/drawer switch pinned to the lg law (63.9375rem) and not the retired 768px/48rem breakpoint", () => {
+    const css = readFileSync(`${root}/src/app-shell/app-shell.css`, "utf8");
+    expect(css).toContain("@media (max-width: 63.9375rem)");
+    expect(css).not.toContain("768px");
+    expect(css).not.toContain("48rem)");
+  });
+
+  it("renders the rail footer as monogram, username, role pill, and the Nautt Finance caption, with no sign-out in the rail", () => {
+    usePathname.mockReturnValue("/");
+    render(
+      <AppShell
+        identity={<span>Identity</span>}
+        labels={labels}
+        locale="en"
+        navigation={[]}
+        roleLabel="Merchant"
+        titleFallback="Dashboard"
+        titleRoutes={[]}
+        username="merchant.one"
+      >
+        <div>content</div>
+      </AppShell>,
+    );
+
+    const rail = document.querySelector(".app-shell__rail");
+    expect(rail).not.toBeNull();
+    expect(rail?.querySelector(".app-shell__username")?.textContent).toBe("merchant.one");
+    expect(rail?.querySelector(".app-shell__rail-role-pill")?.textContent).toBe("Merchant");
+    expect(rail?.querySelector(".app-shell__rail-caption")?.textContent).toBe("by Nautt Finance");
+    expect(rail?.querySelector("form[action='/logout']")).toBeNull();
+    expect(rail?.querySelector("button")).toBeNull();
   });
 });

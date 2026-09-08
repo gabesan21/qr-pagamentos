@@ -12,6 +12,11 @@ const { requireContext, getGlobal } = vi.hoisted(() => ({
 
 vi.mock("./shell-context", () => ({ requireAdminShellContext: requireContext }));
 vi.mock("@/orders/admin-analytics", () => ({ getAdminAnalyticsService: () => ({ getGlobal }) }));
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ replace: vi.fn(), push: vi.fn() }),
+  usePathname: () => "/admin",
+  useSearchParams: () => new URLSearchParams(),
+}));
 
 import AdminPage from "./page";
 
@@ -108,10 +113,11 @@ describe("administrator dashboard", () => {
 
     const html = await render();
 
-    expect(html).toContain("admin-dashboard__progress");
-    expect(html).toContain("admin-dashboard__source-bar--link");
-    expect(html).toContain("admin-dashboard__source-bar--ad-hoc");
-    expect(html).toContain("admin-dashboard__origin-row");
+    expect(html).toMatch(/aria-label="[^"]*: 6"[^>]*role="img"/);
+    expect(html).toContain("bg-primary");
+    expect(html).toContain("bg-muted-foreground");
+    expect(html).toContain(ptBR.adminDashboardSourceLink);
+    expect(html).toContain(ptBR.adminDashboardSourceAdHoc);
   });
 
   it("renders the deleted-owner badge on leaderboard rows without changing aggregates", async () => {
@@ -124,13 +130,13 @@ describe("administrator dashboard", () => {
     expect(html).toContain(ptBR.adminDashboardDeletedOwnerBadge);
   });
 
-  it("links top owners to the accounts directory", async () => {
+  it("drills top owners into the orders directory filtered by merchant", async () => {
     arrange("pt-BR", readyView());
 
     const html = await render();
 
-    expect(html).toContain('href="/admin/accounts"');
-    expect(html).toContain("admin-dashboard__leaderboard-row");
+    expect(html).toContain('href="/admin/orders?filter.merchant=lojista"');
+    expect(html).not.toContain('href="/admin/accounts"');
   });
 
   it("passes a closed-set period through to the service", async () => {
@@ -153,7 +159,7 @@ describe("administrator dashboard", () => {
 
     expect(getGlobal).toHaveBeenNthCalledWith(1, principal, "bogus");
     expect(getGlobal).toHaveBeenNthCalledWith(2, principal, "7d");
-    expect(html).toContain("admin-dashboard__period--current");
+    expect(html).toMatch(/data-state="active"[^>]*trigger-7d/);
     expect(html).toContain(ptBR.adminDashboardPeriod7d);
   });
 

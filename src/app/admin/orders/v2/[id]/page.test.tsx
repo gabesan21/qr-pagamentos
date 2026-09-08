@@ -2,13 +2,15 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ForbiddenError, UnauthenticatedError } from "@/auth/authorization";
+import type { AdminPaymentLinkV2ViewResult } from "@/auth/payment-link-v2-admin-directory";
 import type { OrderV2View } from "@/orders/order-v2-view";
 
-const { requireAdminFromCookie, resolveLocale, getForAdmin, readOwnerAttribution, redirect } = vi.hoisted(() => ({
+const { requireAdminFromCookie, resolveLocale, getForAdmin, readOwnerAttribution, getForAdminByIdentifier, redirect } = vi.hoisted(() => ({
   requireAdminFromCookie: vi.fn(),
   resolveLocale: vi.fn(),
   getForAdmin: vi.fn(),
   readOwnerAttribution: vi.fn(),
+  getForAdminByIdentifier: vi.fn<() => Promise<AdminPaymentLinkV2ViewResult>>(() => Promise.resolve({ kind: "unavailable" })),
   redirect: vi.fn((location: string) => { throw new Error(`redirect:${location}`); }),
 }));
 
@@ -20,6 +22,10 @@ vi.mock("@/orders/order-v2-view", () => ({ getOrderV2ViewService: () => ({ getFo
 vi.mock("@/orders/order-v2-admin-directory", async (importActual) => ({
   ...(await importActual<typeof import("@/orders/order-v2-admin-directory")>()),
   getAdminOrderV2DirectoryService: () => ({ readOwnerAttribution }),
+}));
+vi.mock("@/auth/payment-link-v2-admin-directory", async (importActual) => ({
+  ...(await importActual<typeof import("@/auth/payment-link-v2-admin-directory")>()),
+  getAdminPaymentLinkV2DirectoryService: () => ({ getForAdminByIdentifier }),
 }));
 vi.mock("@/app/admin/product-management", () => ({ formatProductPrice: (price: string) => `BRL ${price}` }));
 
@@ -96,6 +102,48 @@ describe("administrator order V2 detail page", () => {
     const markup = renderToStaticMarkup(await AdminOrderV2DetailPage({ params: Promise.resolve({ id: order.id }) }));
     expect(markup).toContain("gone.owner");
     expect(markup).toContain(">Deleted</");
+  });
+
+  it("resolves the payment-link lifecycle badge and drill-down via the additive identifier lookup, never a new read", async () => {
+    found("en");
+    getForAdminByIdentifier.mockResolvedValueOnce({
+      kind: "found",
+      link: {
+        id: "440e8400-e29b-41d4-a716-446655440010",
+        identifier: order.paymentLinkV2Identifier ?? "",
+        sharePath: `/pay/${order.paymentLinkV2Identifier}`,
+        compositionKind: "FIXED_AMOUNT",
+        descriptionPtBr: null,
+        descriptionEn: null,
+        amount: "34.90",
+        currencyPairLabel: "BRL/USDT",
+        linkType: "REUSABLE",
+        expiresAt: null,
+        active: true,
+        paid: false,
+        orderCount: 1,
+        state: "active",
+        createdAt: new Date("2026-07-01T12:00:00.000Z"),
+        updatedAt: new Date("2026-07-01T12:00:00.000Z"),
+        lines: [],
+        owner: { username: "merchant.one", deletedAt: null },
+      },
+    });
+
+    const markup = renderToStaticMarkup(await AdminOrderV2DetailPage({ params: Promise.resolve({ id: order.id }) }));
+
+    expect(getForAdminByIdentifier).toHaveBeenCalledWith(admin, order.paymentLinkV2Identifier);
+    expect(markup).toContain('href="/admin/payment-links/v2/440e8400-e29b-41d4-a716-446655440010"');
+  });
+
+  it("omits the link badge when the identifier lookup misses, without failing the order render", async () => {
+    found("en");
+    getForAdminByIdentifier.mockResolvedValueOnce({ kind: "unavailable" });
+
+    const markup = renderToStaticMarkup(await AdminOrderV2DetailPage({ params: Promise.resolve({ id: order.id }) }));
+
+    expect(markup).not.toContain("/admin/payment-links/v2/");
+    expect(markup).toContain("Monthly donation");
   });
 
   it("renders the one opaque unavailable outcome for a missing order without an attribution read", async () => {

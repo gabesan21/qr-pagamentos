@@ -80,8 +80,10 @@ describe("administrator accounts directory page", () => {
 
     const markup = renderToStaticMarkup(await AdminAccountsPage());
     expect(markup).toContain("User directory");
-    // The unchanged create-account section posts to the delivered route.
-    expect(markup).toContain('action="/admin/users"');
+    // Create moved into a header modal, closed by default; its trigger is
+    // the only always-visible surface — the form itself is covered by
+    // create-account-modal.test.tsx (byte-identical action/method/fields).
+    expect(markup).toContain(">Create account<");
     // Row facts: usernames, email redaction fallback, role/state/store facts.
     expect(markup).toContain("merchant.one");
     expect(markup).toContain("merchant.one@example.com");

@@ -123,7 +123,10 @@ export function StorefrontSection({
             <FieldDescription>{dictionary.storefrontThemeHelp}</FieldDescription>
           </Field>
           <Field>
-            <FieldLabel htmlFor={`storefront-layout-${detail.id}`}>{dictionary.storefrontLayoutLabel}</FieldLabel>
+            {/* `SegmentedControl` renders its own `role="radiogroup"` with
+                `aria-label`; it exposes no element carrying this id, so the
+                label stays a plain group caption, not a dangling `htmlFor`. */}
+            <FieldLabel>{dictionary.storefrontLayoutLabel}</FieldLabel>
             <SegmentedControl
               ariaLabel={dictionary.storefrontLayoutLabel}
               name="storefrontLayout"

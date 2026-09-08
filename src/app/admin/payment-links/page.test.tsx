@@ -104,9 +104,10 @@ describe("administrator payment-links directory page", () => {
     // Both renderers (ruled facts and table) carry the badge; CSS leaves
     // exactly one in the accessibility tree, and only the deleted owner has it.
     expect(markup.match(/>Deleted</g)).toHaveLength(2);
-    // Directory facts from the owner projection.
-    expect(markup).toContain("Monthly donation");
-    expect(markup).toContain("Coffee");
+    // Directory facts from the owner projection: identifier, amount for the
+    // fixed-amount link, and the localized product count for the other.
+    expect(markup).toContain("abcdefghijklmnopqrstuvwx");
+    expect(markup).toContain("1 products");
     expect(markup).toContain(">Fixed amount</");
     expect(markup).toContain(">Product lines</");
     expect(markup).toContain(">Reusable</");
