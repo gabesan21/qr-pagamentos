@@ -12,7 +12,11 @@ import {
 } from "@/auth/admin-user-directory";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
-import { directoryInvalidFiltersLocation } from "@/data-directory/server/notice";
+import {
+  DIRECTORY_INVALID_FILTERS_PARAM,
+  DIRECTORY_INVALID_FILTERS_VALUE,
+  directoryInvalidFiltersLocation,
+} from "@/data-directory/server/notice";
 import { DataDirectory, type DataDirectoryColumn, type DataDirectoryState } from "@/data-directory/ui/data-directory";
 import type { getDictionary } from "@/i18n/dictionaries";
 import type { SupportedLocale } from "@/i18n/locales";
@@ -237,7 +241,9 @@ export default async function AdminAccountsPage({
   searchParams?: Promise<AdminAccountsSearchParams>;
 }> = {}) {
   const { dictionary, locale, principal } = await requireAdminShellContext();
-  const query = resolveAdminAccountsDirectoryQuery({ searchParams: await searchParams, principal });
+  const params = await searchParams;
+  const invalidFiltersNotice = params[DIRECTORY_INVALID_FILTERS_PARAM] === DIRECTORY_INVALID_FILTERS_VALUE;
+  const query = resolveAdminAccountsDirectoryQuery({ searchParams: params, principal });
   if (query.status === "redirect") redirect(query.location);
   if (query.status === "invalid-query") redirect(directoryInvalidFiltersLocation(ADMIN_USER_DIRECTORY_PATH));
 
@@ -271,7 +277,7 @@ export default async function AdminAccountsPage({
 
   return (
     <AdminAccountsSurface dictionary={dictionary} notice={notice}>
-      <DirectoryInvalidFiltersNotice dictionary={dictionary} />
+      {invalidFiltersNotice ? <DirectoryInvalidFiltersNotice dictionary={dictionary} /> : null}
       <AdminUserDirectory dictionary={dictionary} locale={locale} page={page} query={query} />
     </AdminAccountsSurface>
   );

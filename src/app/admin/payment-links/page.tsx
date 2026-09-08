@@ -21,7 +21,11 @@ import { PAYMENT_LINK_V2_DERIVED_STATES } from "@/auth/payment-link-v2-view";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Monogram } from "@/components/ui/monogram";
-import { directoryInvalidFiltersLocation } from "@/data-directory/server/notice";
+import {
+  DIRECTORY_INVALID_FILTERS_PARAM,
+  DIRECTORY_INVALID_FILTERS_VALUE,
+  directoryInvalidFiltersLocation,
+} from "@/data-directory/server/notice";
 import { DataDirectory, type DataDirectoryColumn, type DataDirectoryState } from "@/data-directory/ui/data-directory";
 import type { getDictionary } from "@/i18n/dictionaries";
 import type { SupportedLocale } from "@/i18n/locales";
@@ -191,7 +195,9 @@ export default async function AdminPaymentLinksPage({
   searchParams?: Promise<AdminPaymentLinksSearchParams>;
 }> = {}) {
   const { dictionary, locale, principal } = await requireAdminShellContext();
-  const query = resolveAdminPaymentLinksDirectoryQuery({ searchParams: await searchParams, principal });
+  const params = await searchParams;
+  const invalidFiltersNotice = params[DIRECTORY_INVALID_FILTERS_PARAM] === DIRECTORY_INVALID_FILTERS_VALUE;
+  const query = resolveAdminPaymentLinksDirectoryQuery({ searchParams: params, principal });
   if (query.status === "redirect") redirect(query.location);
   if (query.status === "invalid-query") redirect(directoryInvalidFiltersLocation(ADMIN_PAYMENT_LINK_V2_DIRECTORY_PATH));
 
@@ -213,7 +219,7 @@ export default async function AdminPaymentLinksPage({
   return (
     <>
       <WorkspaceHeading description={dictionary.adminPaymentLinkV2DirectoryDescription} eyebrow={dictionary.shellAdminEyebrow} title={dictionary.shellAdminLinksTitle} />
-      <DirectoryInvalidFiltersNotice dictionary={dictionary} />
+      {invalidFiltersNotice ? <DirectoryInvalidFiltersNotice dictionary={dictionary} /> : null}
       <AdminPaymentLinkV2Directory dictionary={dictionary} locale={locale} page={page} query={query} />
     </>
   );

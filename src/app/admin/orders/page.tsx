@@ -18,7 +18,11 @@ import { CopyField } from "@/components/ui/copy-field";
 import { MoneyText } from "@/components/ui/money-text";
 import { Monogram } from "@/components/ui/monogram";
 import { Separator } from "@/components/ui/separator";
-import { directoryInvalidFiltersLocation } from "@/data-directory/server/notice";
+import {
+  DIRECTORY_INVALID_FILTERS_PARAM,
+  DIRECTORY_INVALID_FILTERS_VALUE,
+  directoryInvalidFiltersLocation,
+} from "@/data-directory/server/notice";
 import { DataDirectory, type DataDirectoryColumn, type DataDirectoryState } from "@/data-directory/ui/data-directory";
 import type { getDictionary } from "@/i18n/dictionaries";
 import type { SupportedLocale } from "@/i18n/locales";
@@ -195,7 +199,9 @@ export default async function AdminOrdersPage({
   searchParams?: Promise<AdminOrdersSearchParams>;
 }> = {}) {
   const { dictionary, locale, principal } = await requireAdminShellContext();
-  const query = resolveAdminOrdersDirectoryQuery({ searchParams: await searchParams, principal });
+  const params = await searchParams;
+  const invalidFiltersNotice = params[DIRECTORY_INVALID_FILTERS_PARAM] === DIRECTORY_INVALID_FILTERS_VALUE;
+  const query = resolveAdminOrdersDirectoryQuery({ searchParams: params, principal });
   if (query.status === "redirect") redirect(query.location);
   if (query.status === "invalid-query") redirect(directoryInvalidFiltersLocation(ADMIN_ORDER_V2_DIRECTORY_PATH));
 
@@ -220,7 +226,7 @@ export default async function AdminOrdersPage({
   return (
     <>
       <WorkspaceHeading description={dictionary.adminOrderV2DirectoryDescription} eyebrow={dictionary.shellAdminEyebrow} title={dictionary.ordersHeading} />
-      <DirectoryInvalidFiltersNotice dictionary={dictionary} />
+      {invalidFiltersNotice ? <DirectoryInvalidFiltersNotice dictionary={dictionary} /> : null}
       <AdminOrderV2Directory dictionary={dictionary} locale={locale} page={page} query={query} />
       <Separator />
       <section aria-labelledby="legacy-orders-heading">

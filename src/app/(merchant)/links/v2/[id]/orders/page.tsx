@@ -114,6 +114,15 @@ function LinkOrderDirectory({
   const parameters = new URLSearchParams(canonicalQuery);
   const search = parameters.get("q");
   const filtering = [...parameters.keys()].some((key) => key !== "filter.link" && key !== "pageSize");
+  // Chips must reflect only client-visible filters: the server-bound
+  // `filter.link` and the pagination keys are dropped so the drill-down
+  // never renders a removable chip for state it does not own.
+  const filterParameters = new URLSearchParams();
+  for (const [key, value] of parameters.entries()) {
+    if (key === "filter.link" || key === "pageSize" || key === "cursor") continue;
+    filterParameters.append(key, value);
+  }
+  const canonicalFilterQuery = filterParameters.toString();
   const state: DataDirectoryState = result.rows.length === 0
     ? filtering ? "filtered-empty" : "empty"
     : "ready";
@@ -121,6 +130,7 @@ function LinkOrderDirectory({
   return (
     <DataDirectory
       actionsLabel={dictionary.paymentLinkDirectoryColumnActions}
+      canonicalFilterQuery={canonicalFilterQuery}
       caption={dictionary.paymentLinkOrdersHeading}
       columns={columns}
       copy={copy}
