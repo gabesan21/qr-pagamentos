@@ -6,7 +6,7 @@ import { getPublicCheckoutPresentationService } from "@/checkout/public-checkout
 import { getPublicCheckoutV2PresentationService } from "@/checkout/public-checkout-v2-presentation";
 import { getDictionary } from "@/i18n/dictionaries";
 import { getLocalePreferenceService } from "@/i18n/locale-preference";
-import { defaultLocale } from "@/i18n/locales";
+import { localeFromPreferenceCookie, localePreferenceCookieName } from "@/i18n/locales";
 
 import { PublicCheckoutForm } from "./public-checkout-form";
 import { PublicCheckoutV2Page, PublicCheckoutV2PaidPage } from "./public-checkout-v2-page";
@@ -14,9 +14,12 @@ import { PublicCheckoutV2Page, PublicCheckoutV2PaidPage } from "./public-checkou
 export const dynamic = "force-dynamic";
 
 export default async function PublicCheckoutPage({ params }: Readonly<{ params: Promise<{ identifier: string }> }>) {
-  const token = (await cookies()).get("qr_session")?.value;
+  const cookieStore = await cookies();
+  const token = cookieStore.get("qr_session")?.value;
   const principal = token ? await getAuthorizationService().resolve(token) : null;
-  const locale = principal ? await getLocalePreferenceService().resolve(principal.id) : defaultLocale;
+  const locale = principal
+    ? await getLocalePreferenceService().resolve(principal.id)
+    : localeFromPreferenceCookie(cookieStore.get(localePreferenceCookieName)?.value);
   const dictionary = getDictionary(locale);
   const identifier = (await params).identifier;
 

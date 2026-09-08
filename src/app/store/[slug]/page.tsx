@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { getDictionary } from "@/i18n/dictionaries";
 import { getLocalePreferenceService } from "@/i18n/locale-preference";
-import { defaultLocale } from "@/i18n/locales";
+import { localeFromPreferenceCookie, localePreferenceCookieName } from "@/i18n/locales";
 import { getPublicStorefrontService } from "@/storefront/public-storefront";
 
 import { StorefrontExperience } from "./storefront-experience";
@@ -17,9 +17,12 @@ import { StorefrontExperience } from "./storefront-experience";
 export const dynamic = "force-dynamic";
 
 export default async function PublicStorefrontPage({ params }: Readonly<{ params: Promise<{ slug: string }> }>) {
-  const token = (await cookies()).get("qr_session")?.value;
+  const cookieStore = await cookies();
+  const token = cookieStore.get("qr_session")?.value;
   const principal = token ? await getAuthorizationService().resolve(token) : null;
-  const locale = principal ? await getLocalePreferenceService().resolve(principal.id) : defaultLocale;
+  const locale = principal
+    ? await getLocalePreferenceService().resolve(principal.id)
+    : localeFromPreferenceCookie(cookieStore.get(localePreferenceCookieName)?.value);
   const dictionary = getDictionary(locale);
   const slug = (await params).slug;
   const storefront = await getPublicStorefrontService().read(slug, locale);
