@@ -39,6 +39,14 @@ describe("public checkout V2 form", () => {
     expect(markup("NONE")).toContain('role="status"');
   });
 
+  // C03.c (14.6.1 round-1 repair 508e21d8): the V2 form was the other
+  // component that used to emit the retired classes — pin by exact class
+  // name, never by prefix.
+  it("never emits a retired checkout-card/-form/-payment/-description class in the form phase", () => {
+    const rendered = markup("NAME_EMAIL_CPF_ADDRESS");
+    expect(rendered).not.toMatch(/\bcheckout-(card|form|payment|description)\b/);
+  });
+
   it.each([
     ["RESERVED", { state: "RESERVED" }],
     ["CREATING", { state: "CREATING" }],
