@@ -2,7 +2,7 @@
 
 - **Project:** [[PROJECT|QR Pagamentos]]
 - **Roadmap:** [[ROADMAP|Roadmap]]
-- **Status:** em andamento
+- **Status:** concluída
 - **Description:** Converge every application surface onto the supplied template's interaction model, vocabulary, compositions and states, functional defects first.
 - **Yolo:** sim — user command 2026-09-07 ("faça tudo o que precisa fazer em yolo mode, deixe o sistema funcional").
 - **Pause if:** convergence would require replacing the fixed Next.js stack, weakening authorization/security/redaction/exact-decimal contracts, or a phase gate cannot pass `pnpm check` via direct pnpm.
@@ -68,12 +68,11 @@
 
 ## Phase 14.7 - Proof and BEM retirement
 
-- **Status:** em andamento
+- **Status:** concluída
 - **Description:** Delete remaining route-scoped BEM CSS, refresh specs/DOX/DESIGN.md, and close with the full `pnpm check` plus the human rendered checklist.
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[14.7.2-phase-verification]] | Full `pnpm check`, evidence-runner human checklist, final PR `develop` → `main`; depends on all 14.7 tasks. · size: S | 001_initial_task |
 
 ## Dependency and parallel-wave map
 
