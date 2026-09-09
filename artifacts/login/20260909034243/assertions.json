@@ -1,0 +1,626 @@
+[
+  {
+    "colorScheme": "light",
+    "width": 320,
+    "screenshot": "artifacts/login/20260909034243/login-light-320.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "overflow": false,
+      "formAction": "/login/submit",
+      "formMethod": "post",
+      "username": {
+        "autocomplete": "username",
+        "required": true,
+        "labels": 1,
+        "height": 44
+      },
+      "password": {
+        "autocomplete": "current-password",
+        "required": true,
+        "type": "password",
+        "labels": 1,
+        "height": 44
+      },
+      "submit": {
+        "height": 44,
+        "disabled": false
+      },
+      "brand": {
+        "name": "QR Pagamentos",
+        "decorativeMark": "true",
+        "markSize": 32,
+        "width": 156.375,
+        "contrast": 14.847518818118555
+      }
+    },
+    "focusTraversal": [
+      {
+        "id": "SELECT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": "solid",
+        "ring": "none"
+      },
+      {
+        "id": "username",
+        "visible": true,
+        "focusVisible": true,
+        "outline": "solid",
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(6, 154, 135) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      },
+      {
+        "id": "password",
+        "visible": true,
+        "focusVisible": true,
+        "outline": "solid",
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(6, 154, 135) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      },
+      {
+        "id": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": "solid",
+        "ring": "none"
+      },
+      {
+        "id": "button",
+        "visible": true,
+        "focusVisible": true,
+        "outline": "solid",
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(6, 154, 135) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      }
+    ],
+    "recovery": {
+      "text": "Nome de usuário ou senha inválidos.",
+      "visible": true
+    },
+    "severeAxe": [],
+    "severeRecoveryAxe": []
+  },
+  {
+    "colorScheme": "light",
+    "width": 375,
+    "screenshot": "artifacts/login/20260909034243/login-light-375.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "overflow": false,
+      "formAction": "/login/submit",
+      "formMethod": "post",
+      "username": {
+        "autocomplete": "username",
+        "required": true,
+        "labels": 1,
+        "height": 44
+      },
+      "password": {
+        "autocomplete": "current-password",
+        "required": true,
+        "type": "password",
+        "labels": 1,
+        "height": 44
+      },
+      "submit": {
+        "height": 44,
+        "disabled": false
+      },
+      "brand": {
+        "name": "QR Pagamentos",
+        "decorativeMark": "true",
+        "markSize": 32,
+        "width": 156.375,
+        "contrast": 14.847518818118555
+      }
+    },
+    "focusTraversal": [
+      {
+        "id": "SELECT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": "solid",
+        "ring": "none"
+      },
+      {
+        "id": "username",
+        "visible": true,
+        "focusVisible": true,
+        "outline": "solid",
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(6, 154, 135) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      },
+      {
+        "id": "password",
+        "visible": true,
+        "focusVisible": true,
+        "outline": "solid",
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(6, 154, 135) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      },
+      {
+        "id": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": "solid",
+        "ring": "none"
+      },
+      {
+        "id": "button",
+        "visible": true,
+        "focusVisible": true,
+        "outline": "solid",
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(6, 154, 135) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      }
+    ],
+    "recovery": {
+      "text": "Nome de usuário ou senha inválidos.",
+      "visible": true
+    },
+    "severeAxe": [],
+    "severeRecoveryAxe": []
+  },
+  {
+    "colorScheme": "light",
+    "width": 768,
+    "screenshot": "artifacts/login/20260909034243/login-light-768.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "overflow": false,
+      "formAction": "/login/submit",
+      "formMethod": "post",
+      "username": {
+        "autocomplete": "username",
+        "required": true,
+        "labels": 1,
+        "height": 44
+      },
+      "password": {
+        "autocomplete": "current-password",
+        "required": true,
+        "type": "password",
+        "labels": 1,
+        "height": 44
+      },
+      "submit": {
+        "height": 44,
+        "disabled": false
+      },
+      "brand": {
+        "name": "QR Pagamentos",
+        "decorativeMark": "true",
+        "markSize": 32,
+        "width": 156.375,
+        "contrast": 14.847518818118555
+      }
+    },
+    "focusTraversal": [
+      {
+        "id": "SELECT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": "solid",
+        "ring": "none"
+      },
+      {
+        "id": "username",
+        "visible": true,
+        "focusVisible": true,
+        "outline": "solid",
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(6, 154, 135) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      },
+      {
+        "id": "password",
+        "visible": true,
+        "focusVisible": true,
+        "outline": "solid",
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(6, 154, 135) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      },
+      {
+        "id": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": "solid",
+        "ring": "none"
+      },
+      {
+        "id": "button",
+        "visible": true,
+        "focusVisible": true,
+        "outline": "solid",
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(6, 154, 135) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      }
+    ],
+    "recovery": {
+      "text": "Nome de usuário ou senha inválidos.",
+      "visible": true
+    },
+    "severeAxe": [],
+    "severeRecoveryAxe": []
+  },
+  {
+    "colorScheme": "light",
+    "width": 1440,
+    "screenshot": "artifacts/login/20260909034243/login-light-1440.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "overflow": false,
+      "formAction": "/login/submit",
+      "formMethod": "post",
+      "username": {
+        "autocomplete": "username",
+        "required": true,
+        "labels": 1,
+        "height": 44
+      },
+      "password": {
+        "autocomplete": "current-password",
+        "required": true,
+        "type": "password",
+        "labels": 1,
+        "height": 44
+      },
+      "submit": {
+        "height": 44,
+        "disabled": false
+      },
+      "brand": {
+        "name": "QR Pagamentos",
+        "decorativeMark": "true",
+        "markSize": 32,
+        "width": 156.375,
+        "contrast": 14.847518818118555
+      }
+    },
+    "focusTraversal": [
+      {
+        "id": "SELECT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": "solid",
+        "ring": "none"
+      },
+      {
+        "id": "username",
+        "visible": true,
+        "focusVisible": true,
+        "outline": "solid",
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(6, 154, 135) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      },
+      {
+        "id": "password",
+        "visible": true,
+        "focusVisible": true,
+        "outline": "solid",
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(6, 154, 135) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      },
+      {
+        "id": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": "solid",
+        "ring": "none"
+      },
+      {
+        "id": "button",
+        "visible": true,
+        "focusVisible": true,
+        "outline": "solid",
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(6, 154, 135) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      }
+    ],
+    "recovery": {
+      "text": "Nome de usuário ou senha inválidos.",
+      "visible": true
+    },
+    "severeAxe": [],
+    "severeRecoveryAxe": []
+  },
+  {
+    "colorScheme": "dark",
+    "width": 320,
+    "screenshot": "artifacts/login/20260909034243/login-dark-320.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "overflow": false,
+      "formAction": "/login/submit",
+      "formMethod": "post",
+      "username": {
+        "autocomplete": "username",
+        "required": true,
+        "labels": 1,
+        "height": 44
+      },
+      "password": {
+        "autocomplete": "current-password",
+        "required": true,
+        "type": "password",
+        "labels": 1,
+        "height": 44
+      },
+      "submit": {
+        "height": 44,
+        "disabled": false
+      },
+      "brand": {
+        "name": "QR Pagamentos",
+        "decorativeMark": "true",
+        "markSize": 32,
+        "width": 156.375,
+        "contrast": 14.92623489825441
+      }
+    },
+    "focusTraversal": [
+      {
+        "id": "SELECT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": "solid",
+        "ring": "none"
+      },
+      {
+        "id": "username",
+        "visible": true,
+        "focusVisible": true,
+        "outline": "solid",
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(94, 234, 212) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      },
+      {
+        "id": "password",
+        "visible": true,
+        "focusVisible": true,
+        "outline": "solid",
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(94, 234, 212) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      },
+      {
+        "id": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": "solid",
+        "ring": "none"
+      },
+      {
+        "id": "button",
+        "visible": true,
+        "focusVisible": true,
+        "outline": "solid",
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(94, 234, 212) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      }
+    ],
+    "recovery": {
+      "text": "Nome de usuário ou senha inválidos.",
+      "visible": true
+    },
+    "severeAxe": [],
+    "severeRecoveryAxe": []
+  },
+  {
+    "colorScheme": "dark",
+    "width": 375,
+    "screenshot": "artifacts/login/20260909034243/login-dark-375.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "overflow": false,
+      "formAction": "/login/submit",
+      "formMethod": "post",
+      "username": {
+        "autocomplete": "username",
+        "required": true,
+        "labels": 1,
+        "height": 44
+      },
+      "password": {
+        "autocomplete": "current-password",
+        "required": true,
+        "type": "password",
+        "labels": 1,
+        "height": 44
+      },
+      "submit": {
+        "height": 44,
+        "disabled": false
+      },
+      "brand": {
+        "name": "QR Pagamentos",
+        "decorativeMark": "true",
+        "markSize": 32,
+        "width": 156.375,
+        "contrast": 14.92623489825441
+      }
+    },
+    "focusTraversal": [
+      {
+        "id": "SELECT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": "solid",
+        "ring": "none"
+      },
+      {
+        "id": "username",
+        "visible": true,
+        "focusVisible": true,
+        "outline": "solid",
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(94, 234, 212) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      },
+      {
+        "id": "password",
+        "visible": true,
+        "focusVisible": true,
+        "outline": "solid",
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(94, 234, 212) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      },
+      {
+        "id": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": "solid",
+        "ring": "none"
+      },
+      {
+        "id": "button",
+        "visible": true,
+        "focusVisible": true,
+        "outline": "solid",
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(94, 234, 212) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      }
+    ],
+    "recovery": {
+      "text": "Nome de usuário ou senha inválidos.",
+      "visible": true
+    },
+    "severeAxe": [],
+    "severeRecoveryAxe": []
+  },
+  {
+    "colorScheme": "dark",
+    "width": 768,
+    "screenshot": "artifacts/login/20260909034243/login-dark-768.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "overflow": false,
+      "formAction": "/login/submit",
+      "formMethod": "post",
+      "username": {
+        "autocomplete": "username",
+        "required": true,
+        "labels": 1,
+        "height": 44
+      },
+      "password": {
+        "autocomplete": "current-password",
+        "required": true,
+        "type": "password",
+        "labels": 1,
+        "height": 44
+      },
+      "submit": {
+        "height": 44,
+        "disabled": false
+      },
+      "brand": {
+        "name": "QR Pagamentos",
+        "decorativeMark": "true",
+        "markSize": 32,
+        "width": 156.375,
+        "contrast": 14.92623489825441
+      }
+    },
+    "focusTraversal": [
+      {
+        "id": "SELECT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": "solid",
+        "ring": "none"
+      },
+      {
+        "id": "username",
+        "visible": true,
+        "focusVisible": true,
+        "outline": "solid",
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(94, 234, 212) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      },
+      {
+        "id": "password",
+        "visible": true,
+        "focusVisible": true,
+        "outline": "solid",
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(94, 234, 212) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      },
+      {
+        "id": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": "solid",
+        "ring": "none"
+      },
+      {
+        "id": "button",
+        "visible": true,
+        "focusVisible": true,
+        "outline": "solid",
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(94, 234, 212) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      }
+    ],
+    "recovery": {
+      "text": "Nome de usuário ou senha inválidos.",
+      "visible": true
+    },
+    "severeAxe": [],
+    "severeRecoveryAxe": []
+  },
+  {
+    "colorScheme": "dark",
+    "width": 1440,
+    "screenshot": "artifacts/login/20260909034243/login-dark-1440.png",
+    "measured": {
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "overflow": false,
+      "formAction": "/login/submit",
+      "formMethod": "post",
+      "username": {
+        "autocomplete": "username",
+        "required": true,
+        "labels": 1,
+        "height": 44
+      },
+      "password": {
+        "autocomplete": "current-password",
+        "required": true,
+        "type": "password",
+        "labels": 1,
+        "height": 44
+      },
+      "submit": {
+        "height": 44,
+        "disabled": false
+      },
+      "brand": {
+        "name": "QR Pagamentos",
+        "decorativeMark": "true",
+        "markSize": 32,
+        "width": 156.375,
+        "contrast": 14.92623489825441
+      }
+    },
+    "focusTraversal": [
+      {
+        "id": "SELECT",
+        "visible": true,
+        "focusVisible": true,
+        "outline": "solid",
+        "ring": "none"
+      },
+      {
+        "id": "username",
+        "visible": true,
+        "focusVisible": true,
+        "outline": "solid",
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(94, 234, 212) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      },
+      {
+        "id": "password",
+        "visible": true,
+        "focusVisible": true,
+        "outline": "solid",
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(94, 234, 212) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      },
+      {
+        "id": "BUTTON",
+        "visible": true,
+        "focusVisible": true,
+        "outline": "solid",
+        "ring": "none"
+      },
+      {
+        "id": "button",
+        "visible": true,
+        "focusVisible": true,
+        "outline": "solid",
+        "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(94, 234, 212) 0px 0px 0px 3px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      }
+    ],
+    "recovery": {
+      "text": "Nome de usuário ou senha inválidos.",
+      "visible": true
+    },
+    "severeAxe": [],
+    "severeRecoveryAxe": []
+  }
+]
