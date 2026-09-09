@@ -121,7 +121,7 @@ function QuantityStepper({ copy, onCommit, quantity }: Readonly<{
     if (/^[0-9]{1,4}$/.test(text)) onCommit(Number.parseInt(text, 10));
   };
   return (
-    <div className="storefront-stepper">
+    <div className="flex flex-wrap items-center gap-2">
       <Button
         aria-label={copy.decreaseQuantity}
         disabled={quantity === 0}
@@ -135,7 +135,7 @@ function QuantityStepper({ copy, onCommit, quantity }: Readonly<{
       <Input
         aria-label={copy.quantityLabel}
         autoComplete="off"
-        className="storefront-stepper__input"
+        className="w-12 text-center tabular-nums"
         inputMode="numeric"
         onBlur={() => {
           if (draft !== null) commitDraft(draft);
@@ -181,7 +181,7 @@ function CustomAmountField({
   onChange: (value: string) => void;
 }>) {
   return (
-    <Field className="storefront-custom-amount__field" data-invalid={amountInvalid || undefined}>
+    <Field className="grid max-w-[var(--layout-max)] gap-2" data-invalid={amountInvalid || undefined}>
       <FieldLabel className={layout === "table" ? "sr-only" : undefined} htmlFor="storefront-custom-amount">
         {copy.customAmountLabel}
         {currencyCode ? ` (${currencyCode})` : ""}
@@ -254,7 +254,7 @@ export function StorefrontExperienceView({
   const totals = storefrontCartTotals(items, catalogProducts, standalonePaymentCurrencyCode);
 
   const customAmountActions = (
-    <div className="storefront-custom-amount__actions">
+    <div className="flex flex-wrap gap-3">
       <Button onClick={onAmountSubmit} type="button">
         {customAmountInCart ? copy.customAmountUpdate : copy.customAmountAdd}
       </Button>
@@ -278,9 +278,9 @@ export function StorefrontExperienceView({
   );
 
   return (
-    <div className="storefront-experience">
-      <section aria-label={copy.productsHeading} className="storefront-products" data-layout={layout}>
-        <h2 className="storefront-products__heading">{copy.productsHeading}</h2>
+    <div className="grid gap-8">
+      <section aria-label={copy.productsHeading} className="grid gap-5" data-layout={layout}>
+        <h2 className="m-0 font-[family-name:var(--font-display)] text-lg font-semibold leading-7">{copy.productsHeading}</h2>
         {standalonePayments ? (
           layout === "table" ? (
             <Table>
@@ -299,8 +299,8 @@ export function StorefrontExperienceView({
               <TableBody>
                 <TableRow>
                   <TableCell>
-                    <p className="storefront-product-name">{copy.customAmountTitle}</p>
-                    <p className="storefront-product-description">{copy.customAmountDescription}</p>
+                    <p className="m-0 font-semibold break-words">{copy.customAmountTitle}</p>
+                    <p className="m-0 max-w-[var(--layout-max)] whitespace-pre-wrap">{copy.customAmountDescription}</p>
                   </TableCell>
                   <TableCell>{customAmountField}</TableCell>
                   <TableCell>{customAmountActions}</TableCell>
@@ -308,10 +308,10 @@ export function StorefrontExperienceView({
               </TableBody>
             </Table>
           ) : (
-            <Card className="storefront-card storefront-card--custom-amount">
+            <Card className="w-full">
               <CardHeader>
                 <CardTitle>{copy.customAmountTitle}</CardTitle>
-                <CardDescription className="storefront-product-description">{copy.customAmountDescription}</CardDescription>
+                <CardDescription className="max-w-[var(--layout-max)] whitespace-pre-wrap">{copy.customAmountDescription}</CardDescription>
               </CardHeader>
               <CardContent>{customAmountField}</CardContent>
               <CardFooter>{customAmountActions}</CardFooter>
@@ -319,8 +319,8 @@ export function StorefrontExperienceView({
           )
         ) : null}
         {catalog.map((group) => (
-          <section className="storefront-group" key={group.name ?? "uncategorized"}>
-            <h3 className="storefront-group__heading">{group.name ?? copy.groupUncategorized}</h3>
+          <section className="grid gap-4" key={group.name ?? "uncategorized"}>
+            <h3 className="m-0 break-words text-sm font-semibold">{group.name ?? copy.groupUncategorized}</h3>
             {layout === "table" ? (
               <Table>
                 <TableHeader>
@@ -334,8 +334,8 @@ export function StorefrontExperienceView({
                   {group.products.map((product) => (
                     <TableRow key={product.reference}>
                       <TableCell>
-                        <p className="storefront-product-name">{product.title}</p>
-                        <p className="storefront-product-description">{product.description}</p>
+                        <p className="m-0 font-semibold break-words">{product.title}</p>
+                        <p className="m-0 max-w-[var(--layout-max)] whitespace-pre-wrap">{product.description}</p>
                       </TableCell>
                       <TableCell>
                         <MoneyText
@@ -355,24 +355,24 @@ export function StorefrontExperienceView({
                 </TableBody>
               </Table>
             ) : (
-              <div className="storefront-products__list">
+              <div className="grid gap-5">
                 {group.products.map((product) => (
-                  <Card className="storefront-card" key={product.reference}>
+                  <Card className="w-full" key={product.reference}>
                     {product.imageMediaIdentifier ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
                         alt=""
-                        className="storefront-product-image"
+                        className="aspect-[2/1] w-full rounded-md object-cover"
                         src={`/media/${product.imageMediaIdentifier}`}
                       />
                     ) : null}
                     <CardHeader>
                       <CardTitle>{product.title}</CardTitle>
-                      <CardDescription className="storefront-product-description">{product.description}</CardDescription>
+                      <CardDescription className="max-w-[var(--layout-max)] whitespace-pre-wrap">{product.description}</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <p className="storefront-price">
-                        <span>{copy.priceLabel}</span>{" "}
+                      <p className="m-0 tabular-nums">
+                        <span className="text-xs font-semibold text-muted-foreground">{copy.priceLabel}</span>{" "}
                         <MoneyText pairLabel={product.currencyCode ?? undefined} value={product.price} />
                       </p>
                     </CardContent>
@@ -390,8 +390,8 @@ export function StorefrontExperienceView({
           </section>
         ))}
       </section>
-      <section aria-labelledby="storefront-cart-heading" className="storefront-cart">
-        <h2 className="storefront-cart__heading" id="storefront-cart-heading">{copy.cartHeading}</h2>
+      <section aria-labelledby="storefront-cart-heading" className="grid gap-4 border-t border-border pt-6">
+        <h2 className="m-0 font-[family-name:var(--font-display)] text-lg font-semibold leading-7" id="storefront-cart-heading">{copy.cartHeading}</h2>
         {recovered ? (
           <Alert>
             <AlertDescription>{copy.cartUpdated}</AlertDescription>
@@ -403,24 +403,24 @@ export function StorefrontExperienceView({
           </Alert>
         ) : null}
         {items.length === 0 ? (
-          <EmptyState className="storefront-cart__empty" illustration="products" kind="empty" title={copy.cartEmpty} />
+          <EmptyState className="max-w-[var(--layout-max)] border-transparent py-6" illustration="products" kind="empty" title={copy.cartEmpty} />
         ) : (
           <>
-            <ul className="storefront-cart__lines">
+            <ul className="m-0 grid list-none gap-3 p-0">
               {items.map((item) => {
                 if (item.kind === "product") {
                   const product = productByReference.get(item.reference);
                   if (!product) return null;
                   return (
-                    <li className="storefront-cart__line" key={item.reference}>
-                      <div className="storefront-cart__facts">
-                        <p className="storefront-cart__name">{product.title}</p>
-                        <p className="storefront-cart__detail">
+                    <li className="flex flex-wrap items-center gap-3" key={item.reference}>
+                      <div className="grid min-w-[min(100%,var(--space-12))] flex-1 gap-1">
+                        <p className="m-0 font-semibold break-words">{product.title}</p>
+                        <p className="m-0 text-xs tabular-nums text-muted-foreground">
                           {item.quantity} × {formatAmount(product.price, product.currencyCode)}
                         </p>
                       </div>
                       <MoneyText
-                        className="storefront-cart__amount"
+                        className="font-semibold"
                         pairLabel={product.currencyCode ?? undefined}
                         value={totals.lines.get(item) ?? ""}
                       />
@@ -437,12 +437,12 @@ export function StorefrontExperienceView({
                   );
                 }
                 return (
-                  <li className="storefront-cart__line" key="custom-amount">
-                    <div className="storefront-cart__facts">
-                      <p className="storefront-cart__name">{copy.customAmountTitle}</p>
+                  <li className="flex flex-wrap items-center gap-3" key="custom-amount">
+                    <div className="grid min-w-[min(100%,var(--space-12))] flex-1 gap-1">
+                      <p className="m-0 font-semibold break-words">{copy.customAmountTitle}</p>
                     </div>
                     <MoneyText
-                      className="storefront-cart__amount"
+                      className="font-semibold"
                       pairLabel={standalonePaymentCurrencyCode ?? undefined}
                       value={totals.lines.get(item) ?? ""}
                     />
@@ -459,10 +459,10 @@ export function StorefrontExperienceView({
                 );
               })}
             </ul>
-            <ul className="storefront-cart__totals">
+            <ul className="m-0 grid list-none gap-2 border-t border-border p-0 pt-4">
               {totals.groups.map((group) => (
-                <li className="storefront-cart__total" key={group.currencyCode ?? "unlabeled"}>
-                  <span>
+                <li className="flex flex-wrap items-center justify-between gap-3 tabular-nums" key={group.currencyCode ?? "unlabeled"}>
+                  <span className="text-xs font-semibold text-muted-foreground">
                     {copy.cartTotalLabel}
                     {group.currencyCode ? ` (${group.currencyCode})` : ""}
                   </span>
@@ -475,7 +475,6 @@ export function StorefrontExperienceView({
             {!customAmountInCart ? (
               <Button
                 aria-busy={checkoutPending || undefined}
-                className="storefront-cart__checkout"
                 disabled={checkoutPending}
                 onClick={onCheckout}
                 type="button"
