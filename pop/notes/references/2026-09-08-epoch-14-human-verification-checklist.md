@@ -53,6 +53,8 @@ C09.
   action row and real summary (14.5.2).
 - Password change keeps the session; typed text survives a submit failure
   (14.3.4/14.5.3).
+- A mutation (order/link/profile/settings) returns on its own page with a
+  toast, no redirect (14.3.2).
 - Catalog/category flat forms: pre-selected currency reaches create, logo
   upload `<noscript>` fallback un-nested (14.5.3).
 - Nautt credential surface and profile TOTP flows: keyboard, focus, AA
