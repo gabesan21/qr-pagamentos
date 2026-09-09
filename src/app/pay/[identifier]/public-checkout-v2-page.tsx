@@ -60,7 +60,13 @@ export function PublicCheckoutV2Page({ dictionary, identifier, locale, presentat
             <CheckoutV2Total composition={presentation.composition} currencyCode={presentation.currencyCode} dictionary={dictionary} />
           </CardContent>
         </Card>
-        <PublicCheckoutV2Form dictionary={dictionary} identifier={identifier} policy={presentation.checkoutPolicy} />
+        <PublicCheckoutV2Form
+          currencyLabel={presentation.currencyCode ?? undefined}
+          dictionary={dictionary}
+          identifier={identifier}
+          policy={presentation.checkoutPolicy}
+          total={presentation.composition.kind === "PRODUCT_LINES" ? presentation.composition.total : presentation.composition.amount}
+        />
       </div>
     </CheckoutShell>
   );
