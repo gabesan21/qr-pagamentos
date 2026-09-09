@@ -5,15 +5,7 @@ import ts from "typescript";
 const entrypoints = ["src/app/(merchant)", "src/app/admin", "src/app-shell", "src/app/language-preference"];
 const rawControls = new Set(["button", "input", "select", "textarea"]);
 const allowedClasses = new Set([
-  "admin-account", "admin-account-list", "admin-account__actions", "admin-account__facts",
-  "admin-catalog-item", "admin-catalog-item__facts", "admin-catalog-list",
-  "admin-confirm-actions", "admin-navigation", "admin-shell", "admin-shell__intro", "admin-skeletons",
-  "admin-dashboard", "admin-dashboard__amount", "admin-dashboard__amount-lines", "admin-dashboard__amounts",
-  "admin-dashboard__caption", "admin-dashboard__count", "admin-dashboard__empty", "admin-dashboard__facts",
-  "admin-dashboard__facts-secondary", "admin-dashboard__group", "admin-dashboard__groups",
-  "admin-dashboard__period", "admin-dashboard__period admin-dashboard__period--current", "admin-dashboard__periods",
-  "admin-product", "admin-product-description", "admin-product-list", "admin-product__facts",
-  "h-11 w-full", "receipt-rail", "receipt-rail__facts", "receipt-rail__label",
+  "h-11 w-full",
   "app-shell", "app-shell__content", "app-shell__desktop-navigation", "app-shell__empty-marker",
   "app-shell__identity", "app-shell__mobile-header", "app-shell__mobile-navigation",
   "app-shell__mobile-panel", "app-shell__mobile-trigger", "app-shell__navigation-index",

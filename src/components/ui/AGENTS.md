@@ -49,6 +49,9 @@
   template obligation maps once, excluded generated sources never become
   reachable owners, and each `localAdditions` entry's owner never collides with
   `owners` or an excluded source.
+- Owned primitives style exclusively through the projected Tailwind utility
+  system; a page-scoped BEM class in `../../app/globals.css` never styles an
+  owned primitive.
 - Update [`../../../DESIGN.md`](../../../DESIGN.md) with inventory or state
   changes. `/design-system` is the role-neutral evidence specimen for this
   inventory; it composes these owners but never becomes a production-owner

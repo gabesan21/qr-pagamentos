@@ -66,6 +66,9 @@
   any source with a registered adapter or cursor, and it never blends with a
   keyset page from another source on the same directory render.
 
+- The directory shell and its six states are Tailwind-utility composed; no
+  page-scoped BEM class styles this subtree.
+
 ## Related contracts
 
 - [`../../pop/specs/administrative-foundation.md`](../../pop/specs/administrative-foundation.md) — follow when role scope, query, URL, or cursor behavior changes.

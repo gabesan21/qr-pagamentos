@@ -343,11 +343,11 @@ storage]]; template assets do not bypass that lifecycle.
   keeps its own local phase, but now obeys the same rule the shared
   controller enforces — field/amount edits never touch attempt, payment, or
   capability, only the explicit start-over resets. Every public `storefront-*`/
-  `receipt-rail*` BEM rule this task owned is retired from `globals.css`;
-  `.receipt-rail*` itself survives because `src/app/design-system/page.tsx`
-  still consumes it (out of this task's scope). Cart persistence, exact-money
-  totals, layouts, the cart-checkout/standalone submit bodies, and the
-  sessionless trust boundary are unchanged.
+  `receipt-rail*` BEM rule this task owned is retired from `globals.css`
+  (`.receipt-rail*`'s last consumer, `src/app/design-system/page.tsx`, moved
+  to utilities in `14.7.1`, and the rule is gone — see "BEM retirement"
+  below). Cart persistence, exact-money totals, layouts, the cart-checkout/
+  standalone submit bodies, and the sessionless trust boundary are unchanged.
 - The two extrapolations never copy the template's incorrect shortcut from a
   storefront slug to `/pay/[identifier]`; current routes and commands win.
 
@@ -500,6 +500,35 @@ are gone from `globals.css` (public `.storefront-*` rules and `.settings-surface
 stay, serving `/store/**` and the settings shell respectively); the two
 skeleton `loading.tsx` files that used the retired classes move to plain
 `grid`/`grid-cols-[…]` utilities with no visual change.
+
+## BEM retirement (14.7.1)
+
+The parallel BEM CSS system is retired: `14.7.1` deletes every route-scoped
+`globals.css` rule whose last consumer was migrated to Tailwind utilities by
+this task or an earlier one (`admin-shell*`, `admin-account*`,
+`admin-product*`, `receipt-rail*`, `ds-*`/`[data-ds-prose]`, `nautt-facts*`,
+`settings-surface*`, `auth-page`, `auth-card__{panel-brand,tagline,caption,
+strip,swatch,form--tight,footer}`, `auth-password-field*`, `auth-forgot*`,
+`auth-totp-actions`, `auth-mode-toggle`, `login-page`, `login-form`,
+`reset-password-page`, `reset-password-form`). Below the generated token
+block, `globals.css` now holds only tokens, `@theme inline`, `@layer base`,
+element base rules, and four sanctioned exceptions, each kept for a reason
+that cannot become a utility without breaking a gate or a component
+boundary: **`src/app-shell/app-shell.css`** is the one remaining
+route-neutral BEM stylesheet, reserved for shell chrome (its own DOX line
+above); **the `(min-width: 900px)` auth split-card block** (`.auth-card`,
+`.auth-card__panel`, `.auth-card__form`, `.auth-card__language`) survives
+because `scripts/check-design-tokens.mjs` sanctions that literal only inside
+`globals.css` — `min-[900px]:` in a `.tsx` would be a raw-value gate
+violation and CSS forbids `var()` inside a media query, so the breakpoint
+cannot move; **`.brand-identity*`/`[data-brand-identity]`** is
+component-owned identity geometry (`src/brand/AGENTS.md`), plus the
+`.auth-brand` descendant override it accepts — shrinking `BrandIdentity`'s
+`product-lockup` mark/name without a new size prop is an open gap, not a
+forced refactor (see
+[[pop/researches/template-fidelity-convergence/convergence-outcome|convergence-outcome]]);
+**`.sr-only`** is the one global accessibility utility with no Tailwind
+equivalent that matches it byte-for-byte. No other BEM selector remains.
 
 ## State contract
 

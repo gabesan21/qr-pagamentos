@@ -41,6 +41,10 @@
   a visible non-color active marker, 44px controls, unobscured focus, reduced
   motion, and 320px fit.
 
+- This subtree owns `app-shell.css`, the only remaining route-neutral BEM
+  stylesheet in the application; no other subtree may add a new one — every
+  page-scoped surface composes projected Tailwind utilities instead.
+
 ## Related contracts
 
 - [`../../pop/specs/administrative-foundation.md`](../../pop/specs/administrative-foundation.md)
