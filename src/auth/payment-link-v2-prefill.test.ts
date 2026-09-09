@@ -38,17 +38,30 @@ describe("payment-link V2 owner prefill read", () => {
     expect(findOwned).not.toHaveBeenCalled();
   });
 
-  it("returns the version and position-ordered line product identifiers only", async () => {
+  it("returns the version, position-ordered line product identifiers, and the checkout-attempt flag", async () => {
     const findOwned = vi.fn().mockResolvedValue(ownedLink);
     const hasCheckoutAttempt = vi.fn().mockResolvedValue(false);
     const service = createPaymentLinkV2PrefillService({ findOwned, hasCheckoutAttempt });
     const prefill = await service.getForOwner(owner, linkId.toUpperCase());
     expect(findOwned).toHaveBeenCalledWith(owner.id, linkId);
+    expect(hasCheckoutAttempt).toHaveBeenCalledWith(linkId);
     expect(prefill).toEqual({
       version: 7,
       lineProductIds: ["440e8400-e29b-41d4-a716-446655440030", "440e8400-e29b-41d4-a716-446655440031"],
+      hasCheckoutAttempt: false,
     });
-    expect(Object.keys(prefill ?? {}).sort()).toEqual(["lineProductIds", "version"]);
+    expect(Object.keys(prefill ?? {}).sort()).toEqual(["hasCheckoutAttempt", "lineProductIds", "version"]);
+  });
+
+  // 14.5.2 F02 regression: the flag rides the read as a genuine attempt-
+  // existence check, never a hardcoded false — the financial lock and the
+  // new-version banner would otherwise never render.
+  it("surfaces a true checkout-attempt flag from the store's attempt-existence seam", async () => {
+    const findOwned = vi.fn().mockResolvedValue(ownedLink);
+    const hasCheckoutAttempt = vi.fn().mockResolvedValue(true);
+    const service = createPaymentLinkV2PrefillService({ findOwned, hasCheckoutAttempt });
+    const prefill = await service.getForOwner(owner, linkId);
+    expect(prefill?.hasCheckoutAttempt).toBe(true);
   });
 
   it("shares one opaque null for malformed, missing, and cross-owner identities", async () => {

@@ -58,8 +58,11 @@ function detailStored(base: StoredPaymentLinkV2View): StoredPaymentLinkV2OwnerDe
 function createStore(rows: StoredPaymentLinkV2View[] = [], detail: StoredPaymentLinkV2OwnerDetail | null = null) {
   const listWindow = vi.fn<(query: PaymentLinkV2WindowQuery) => Promise<StoredPaymentLinkV2View[]>>(async () => rows);
   const findForOwner = vi.fn<(ownerId: string, id: string) => Promise<StoredPaymentLinkV2OwnerDetail | null>>(async () => detail);
-  const store: PaymentLinkV2ViewStore = { listWindow, findForOwner };
-  return { store, listWindow, findForOwner };
+  // Additive (14.5.2 F03): the order detail's link-badge lookup by public
+  // identifier, unused by the directory/detail suites above.
+  const findForOwnerByIdentifier = vi.fn<(ownerId: string, identifier: string) => Promise<StoredPaymentLinkV2OwnerDetail | null>>(async () => null);
+  const store: PaymentLinkV2ViewStore = { listWindow, findForOwner, findForOwnerByIdentifier };
+  return { store, listWindow, findForOwner, findForOwnerByIdentifier };
 }
 
 function readInput(overrides: Partial<DirectoryReadInput<PaymentLinkV2DirectoryRow>> = {}): DirectoryReadInput<PaymentLinkV2DirectoryRow> {
@@ -186,6 +189,25 @@ describe("payment-link V2 owner detail view", () => {
         lines: [expect.objectContaining({ quantity: 2, unitPrice: "9.9" })],
       }),
     });
+  });
+
+  it("carries the owner-only confirmed count/volume and per-line product availability", async () => {
+    const detail = {
+      ...stored({ lines: [{ position: 1, quantity: 2, titlePtBr: "Café", titleEn: "Coffee", unitPrice: "9.9" }] }),
+    };
+    const withConfirmed: StoredPaymentLinkV2OwnerDetail = {
+      ...detail,
+      lines: detail.lines.map((line) => ({ ...line, available: false })),
+      confirmedOrderCount: 4,
+      confirmedVolume: "39.60",
+    };
+    const { store } = createStore([], withConfirmed);
+    const service = createPaymentLinkV2ViewService(store, now);
+    const result = await service.getForOwner(merchant, detail.id);
+    if (result.kind !== "found") throw new Error("expected found");
+    expect(result.link.confirmedOrderCount).toBe(4);
+    expect(result.link.confirmedVolume).toBe("39.60");
+    expect(result.link.lines[0].available).toBe(false);
   });
 
   it("shares one opaque unavailable outcome for malformed, missing, and cross-owner identities", async () => {

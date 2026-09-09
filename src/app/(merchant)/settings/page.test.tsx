@@ -19,6 +19,10 @@ const {
 }));
 
 vi.mock("server-only", () => ({}));
+// The Nautt surface's `ValidateAction` reads the app router directly (14.5.3).
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ replace: vi.fn(), push: vi.fn(), refresh: vi.fn() }),
+}));
 vi.mock("../shell-context", () => ({ requireMerchantShellContext: requireContext }));
 vi.mock("@/auth/checkout-policy", () => ({
   getCheckoutPolicyService: () => ({ getForOwner: getCheckoutPolicy }),

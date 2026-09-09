@@ -168,10 +168,10 @@ describe("merchant analytics service", () => {
     if (result.kind !== "ready") throw new Error("expected ready");
     expect(result.view.bestSellers).toEqual([
       {
-        titlePtBr: "Título aa", titleEn: "Title aa", confirmedQuantity: 3,
+        id: productAId, titlePtBr: "Título aa", titleEn: "Title aa", confirmedQuantity: 3,
         revenue: [{ currency: { code: null, label: "Unmapped pair" }, amount: "20" }, { currency: { code: "BRL", label: "BRL via PIX" }, amount: "10.5" }],
       },
-      { titlePtBr: "Título bb", titleEn: "Title bb", confirmedQuantity: 3, revenue: [{ currency: { code: "BRL", label: "BRL via PIX" }, amount: "30" }] },
+      { id: productBId, titlePtBr: "Título bb", titleEn: "Title bb", confirmedQuantity: 3, revenue: [{ currency: { code: "BRL", label: "BRL via PIX" }, amount: "30" }] },
     ]);
   });
 
@@ -249,9 +249,11 @@ describe("merchant analytics service", () => {
     const result = await serviceWith(store).getForOwner(owner, "today");
     if (result.kind !== "ready") throw new Error("expected ready");
     expect(result.view.recentActivity).toEqual([{
+      id: "550e8400-e29b-41d4-a716-446655440055",
       source: "AD_HOC",
       descriptionPtBr: "Doação",
       descriptionEn: "Donation",
+      payerName: "Ana",
       amount: "10",
       currency: { code: "BRL", label: "BRL via PIX" },
       state: null,
@@ -260,8 +262,12 @@ describe("merchant analytics service", () => {
       createdAt: new Date("2026-07-25T11:00:00.000Z"),
       settledAt: null,
     }]);
+    // The owner's own order/product ids and the redacted name-or-email
+    // payer display are additive and legitimate (checkout-and-order-lifecycle,
+    // "Merchant analytics definitions (8.4.1)"); everything else that could
+    // leak a customer's full snapshot or an operator's private note must not.
     const serialized = JSON.stringify(result.view);
-    expect(serialized).not.toMatch(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
+    expect(serialized).not.toContain("ana@example.com");
     expect(serialized).not.toContain("internal note");
   });
 });

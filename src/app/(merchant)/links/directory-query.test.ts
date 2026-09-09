@@ -58,6 +58,20 @@ describe("links directory query", () => {
     });
   });
 
+  // 14.5.2 owed regression: `from`/`to` gained calendar-day validation
+  // (directory-query.ts:99-103), rejecting an ungrammatical or nonexistent
+  // day with the same zero-I/O invalid-query outcome as every other
+  // malformed filter, mirroring the administrator directory's own rule.
+  it("accepts a valid from/to calendar-day pair and rejects a malformed day in either bound", () => {
+    expect(resolve({ "filter.from": "2026-07-01", "filter.to": "2026-07-31" })).toMatchObject({
+      status: "ready",
+      query: { filters: { from: "2026-07-01", to: "2026-07-31" } },
+    });
+    expect(resolve({ "filter.from": "2026-02-30" }).status).toBe("invalid-query");
+    expect(resolve({ "filter.to": "not-a-date" }).status).toBe("invalid-query");
+    expect(resolve({ "filter.from": "2026-13-01" }).status).toBe("invalid-query");
+  });
+
   it("resets non-canonical input to the deterministic canonical location", () => {
     expect(resolve({ pageSize: "25" })).toEqual({ status: "redirect", location: "/links" });
     expect(resolve({ q: "  donation  " })).toEqual({ status: "redirect", location: "/links?q=donation" });
