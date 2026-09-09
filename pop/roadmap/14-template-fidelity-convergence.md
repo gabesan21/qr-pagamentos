@@ -66,7 +66,6 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[14.6.2-converge-storefront-and-standalone-pay]] | Same header/rail, unavailable and error vocabulary, badge tones and footer as the checkout; retire `storefront-*`/`receipt-rail*` BEM. · size: M | 002_planning |
 | [[14.6.3-phase-verification]] | Run `pnpm check`, add checkout/storefront tests, repair what it catches; depends on all 14.6 tasks. · size: S | 001_initial_task |
 
 ## Phase 14.7 - Proof and BEM retirement
