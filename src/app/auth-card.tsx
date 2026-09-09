@@ -37,14 +37,14 @@ export function AuthCard({ caption, children, languageControl, tagline }: AuthCa
   return (
     <Card className="auth-card">
       <div aria-hidden="true" className="auth-card__panel">
-        <BrandIdentity className="auth-card__panel-brand" variant="product-lockup" />
-        <p className="auth-card__tagline">
+        <BrandIdentity variant="product-lockup" />
+        <p className="m-0 font-display text-lg font-semibold leading-[var(--line-height-tight)]">
           {tagline}
-          <span className="auth-card__caption">{caption}</span>
+          <span className="mt-1 block text-xs font-medium text-text-2">{caption}</span>
         </p>
-        <div className="auth-card__strip">
+        <div className="flex gap-1">
           {STOREFRONT_THEME_IDS.map((themeId) => (
-            <img alt="" className="auth-card__swatch" key={themeId} src={`/application-assets/theme-swatch-${themeId}.svg`} />
+            <img alt="" className="h-2 w-8 rounded-sm object-cover" key={themeId} src={`/application-assets/theme-swatch-${themeId}.svg`} />
           ))}
         </div>
       </div>

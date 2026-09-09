@@ -42,7 +42,7 @@ describe("login page contract", () => {
     const dictionary = getDictionary("pt-BR");
     const markup = renderToStaticMarkup(await LoginPage({ searchParams: Promise.resolve({}) }));
 
-    expect(markup).toContain('class="auth-password-field__toggle"');
+    expect(markup).toContain('type="button"');
     expect(markup).toContain(`aria-label="${dictionary.showPassword}"`);
     expect(markup).toContain('href="/reset-password"');
     expect(markup).toContain(dictionary.forgotPassword);
