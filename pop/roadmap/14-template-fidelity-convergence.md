@@ -52,12 +52,11 @@
 
 ## Phase 14.5 - Merchant convergence
 
-- **Status:** em andamento
+- **Status:** concluída
 - **Description:** Reproduce dashboard, orders, links, catalog, settings and profile compositions, forms, lifecycle rules and states per the merchant family audits.
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[14.5.4-phase-verification]] | Run `pnpm check`, add merchant tests, repair what it catches; depends on all 14.5 tasks. · size: S | 001_initial_task |
 
 ## Phase 14.6 - Public checkout and storefront convergence
 
