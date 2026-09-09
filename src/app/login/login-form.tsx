@@ -64,7 +64,7 @@ export function LoginForm({ dictionary, invalidCredentials, passwordChanged }: L
   }
 
   return (
-    <form action="/login/submit" className="login-form" id="login-form" method="post" noValidate onSubmit={handleSubmit}>
+    <form action="/login/submit" className="grid gap-5" id="login-form" method="post" noValidate onSubmit={handleSubmit}>
       <CardHeader>
         <BrandIdentity className="auth-brand" variant="product-lockup" />
         <CardTitle>{dictionary.loginHeading}</CardTitle>
@@ -97,11 +97,11 @@ export function LoginForm({ dictionary, invalidCredentials, passwordChanged }: L
           </Field>
           <Field data-invalid={fieldErrors.password || undefined}>
             <FieldLabel htmlFor="password">{dictionary.passwordLabel}</FieldLabel>
-            <div className="auth-password-field">
+            <div className="relative">
               <Input
                 aria-invalid={fieldErrors.password || undefined}
                 autoComplete="current-password"
-                className="auth-password-field__input"
+                className="pe-10"
                 id="password"
                 name="password"
                 onChange={() => setFieldErrors((previous) => (previous.password ? { ...previous, password: false } : previous))}
@@ -111,7 +111,7 @@ export function LoginForm({ dictionary, invalidCredentials, passwordChanged }: L
               />
               <button
                 aria-label={showPassword ? dictionary.hidePassword : dictionary.showPassword}
-                className="auth-password-field__toggle"
+                className="absolute end-1 top-1/2 flex size-[var(--target-min-size)] -translate-y-1/2 cursor-pointer items-center justify-center border-0 bg-transparent text-text-2 hover:text-text"
                 onClick={() => setShowPassword((value) => !value)}
                 type="button"
               >
@@ -122,13 +122,13 @@ export function LoginForm({ dictionary, invalidCredentials, passwordChanged }: L
           </Field>
         </FieldGroup>
       </CardContent>
-      <CardFooter className="auth-card__footer">
+      <CardFooter className="flex-col items-stretch gap-4">
         <LoginSubmit label={dictionary.signIn} pendingLabel={dictionary.signingIn} />
-        <p className="auth-forgot">
-          <a className="auth-forgot__link" href="/reset-password">
+        <p className="m-0 text-center">
+          <a className="text-sm text-text-2 hover:text-accent" href="/reset-password">
             {dictionary.forgotPassword}
           </a>
-          <span className="auth-forgot__note">{dictionary.forgotPasswordNote}</span>
+          <span className="mt-1 block text-xs text-text-3">{dictionary.forgotPasswordNote}</span>
         </p>
       </CardFooter>
     </form>

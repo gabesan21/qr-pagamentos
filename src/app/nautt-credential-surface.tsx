@@ -252,20 +252,20 @@ export function NauttCredentialSurface({
           </CardHeader>
           <CardContent className="space-y-4">
             {status.balance ? (
-              <dl className="nautt-facts">
-                <div>
-                  <dt>{dictionary.nauttToken}</dt>
-                  <dd>
+              <dl className="flex flex-col gap-4 tabular-nums">
+                <div className="flex flex-col gap-1">
+                  <dt className="text-xs font-semibold text-muted-foreground">{dictionary.nauttToken}</dt>
+                  <dd className="m-0 wrap-anywhere">
                     {status.balance.tokenName} ({status.balance.tokenSymbol})
                   </dd>
                 </div>
-                <div>
-                  <dt>{dictionary.nauttNetwork}</dt>
-                  <dd>{status.balance.networkName}</dd>
+                <div className="flex flex-col gap-1">
+                  <dt className="text-xs font-semibold text-muted-foreground">{dictionary.nauttNetwork}</dt>
+                  <dd className="m-0 wrap-anywhere">{status.balance.networkName}</dd>
                 </div>
-                <div>
-                  <dt>{dictionary.nauttBalance}</dt>
-                  <dd>
+                <div className="flex flex-col gap-1">
+                  <dt className="text-xs font-semibold text-muted-foreground">{dictionary.nauttBalance}</dt>
+                  <dd className="m-0 wrap-anywhere">
                     {status.balance.balance} {status.balance.tokenSymbol}
                   </dd>
                 </div>

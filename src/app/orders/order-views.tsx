@@ -1,7 +1,6 @@
 import Link from "next/link";
 
 import { formatProductPrice } from "@/app/admin/product-management";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,7 +14,7 @@ import { Timeline, type TimelineEntry } from "@/components/ui/timeline";
 import type { getDictionary } from "@/i18n/dictionaries";
 import type { SupportedLocale } from "@/i18n/locales";
 import type { CheckoutDataPolicy, CustomerSnapshotV1, PaymentLinkOrderState } from "@/orders/payment-link-order";
-import type { OrderSummary, OrderView } from "@/orders/order-view";
+import type { OrderView } from "@/orders/order-view";
 
 type Dictionary = ReturnType<typeof getDictionary>;
 
@@ -60,34 +59,6 @@ function copyLabels(dictionary: Dictionary) {
     copied: dictionary.orderV2DirectoryCopied,
     failed: dictionary.orderV2DirectoryCopyFailed,
   };
-}
-
-export function OrderListCard({ detailHref, dictionary, locale, orders }: Readonly<{ detailHref: (orderId: string) => string; dictionary: Dictionary; locale: SupportedLocale; orders: OrderSummary[] }>) {
-  return (
-    <Card>
-      <CardHeader><CardTitle>{dictionary.ordersHeading}</CardTitle><CardDescription>{dictionary.ordersDescription}</CardDescription></CardHeader>
-      <CardContent>
-        {orders.length === 0 ? <Alert><AlertTitle>{dictionary.ordersEmpty}</AlertTitle><AlertDescription>{dictionary.ordersEmptyDescription}</AlertDescription></Alert> : (
-          <div className="admin-account-list">
-            {orders.map((order) => (
-              <section aria-labelledby={`order-${order.id}`} className="admin-account" key={order.id}>
-                <div className="admin-account__facts">
-                  <h3 id={`order-${order.id}`}>{locale === "pt-BR" ? order.productTitlePtBr : order.productTitleEn}</h3>
-                  <dl>
-                    <div><dt>{dictionary.orderState}</dt><dd><OrderStateBadge dictionary={dictionary} state={order.state} /></dd></div>
-                    <div><dt>{dictionary.orderAmount}</dt><dd><MoneyText value={formatProductPrice(order.amount, locale)} /></dd></div>
-                    <div><dt>{dictionary.orderPaymentLink}</dt><dd>{order.paymentLinkIdentifier}</dd></div>
-                    <div><dt>{dictionary.orderCreated}</dt><dd>{formatOrderInstant(order.createdAt, locale)}</dd></div>
-                  </dl>
-                </div>
-                <Button asChild variant="outline"><Link href={detailHref(order.id)}>{dictionary.ordersView}</Link></Button>
-              </section>
-            ))}
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
 }
 
 function FieldRow({ dictionary, label, value }: Readonly<{ dictionary: Dictionary; label: string; value: string | null | undefined }>) {

@@ -28,6 +28,12 @@
   state. They never imply merchant ownership or create upload capability,
   storage identifiers, quota, or media lifecycle state.
 
+- `brand-identity*` (`src/app/globals.css`) is the one sanctioned
+  component-owned BEM exception, plus the `.auth-brand` descendant override
+  it accepts from `src/app/{login,reset-password}/**` — a `BrandIdentity` size
+  prop would retire it (open gap, see
+  [[pop/researches/template-fidelity-convergence/convergence-outcome|convergence-outcome]]).
+
 ## Related contracts
 
 - [`../../DESIGN.md`](../../DESIGN.md) — follow before changing identity

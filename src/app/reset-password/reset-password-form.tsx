@@ -63,7 +63,7 @@ export function ResetPasswordForm({ dictionary, hasError, token }: ResetPassword
   }
 
   return (
-    <form action="/reset-password/submit" className="reset-password-form" id="reset-password-form" method="post" noValidate onSubmit={handleSubmit}>
+    <form action="/reset-password/submit" className="grid gap-5" id="reset-password-form" method="post" noValidate onSubmit={handleSubmit}>
       <CardHeader>
         <BrandIdentity className="auth-brand" variant="product-lockup" />
         <CardTitle>{dictionary.resetPasswordHeading}</CardTitle>
@@ -79,11 +79,11 @@ export function ResetPasswordForm({ dictionary, hasError, token }: ResetPassword
         <FieldGroup>
           <Field>
             <FieldLabel htmlFor="newPassword">{dictionary.resetPasswordNewPasswordLabel}</FieldLabel>
-            <div className="auth-password-field">
+            <div className="relative">
               <Input
                 aria-describedby={`${requirementId} ${meterId}`}
                 autoComplete="new-password"
-                className="auth-password-field__input"
+                className="pe-10"
                 id="newPassword"
                 maxLength={128}
                 minLength={12}
@@ -99,7 +99,7 @@ export function ResetPasswordForm({ dictionary, hasError, token }: ResetPassword
               />
               <button
                 aria-label={showPassword ? dictionary.hidePassword : dictionary.showPassword}
-                className="auth-password-field__toggle"
+                className="absolute end-1 top-1/2 flex size-[var(--target-min-size)] -translate-y-1/2 cursor-pointer items-center justify-center border-0 bg-transparent text-text-2 hover:text-text"
                 onClick={() => setShowPassword((value) => !value)}
                 type="button"
               >
