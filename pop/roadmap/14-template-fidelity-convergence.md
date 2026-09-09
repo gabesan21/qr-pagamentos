@@ -61,16 +61,15 @@
 
 ## Phase 14.6 - Public checkout and storefront convergence
 
-- **Status:** pendente
+- **Status:** concluída
 - **Description:** Eight outcome views, payment-phase handoff, branded V1, format validation, expiry, privacy modal, footer and language switcher; extrapolate to `/store/**`.
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[14.6.3-phase-verification]] | Run `pnpm check`, add checkout/storefront tests, repair what it catches; depends on all 14.6 tasks. · size: S | 001_initial_task |
 
 ## Phase 14.7 - Proof and BEM retirement
 
-- **Status:** pendente
+- **Status:** em andamento
 - **Description:** Delete remaining route-scoped BEM CSS, refresh specs/DOX/DESIGN.md, and close with the full `pnpm check` plus the human rendered checklist.
 
 | Task | Description | Status |
