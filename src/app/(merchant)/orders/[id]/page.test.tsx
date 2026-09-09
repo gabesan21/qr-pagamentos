@@ -82,6 +82,24 @@ describe("owner order detail page", () => {
     expect(markup).not.toContain("lifecycleVersion");
   });
 
+  // 14.5.1 regression (fixed 16726d33): the merchant V1 detail passes
+  // `showV2Details` (page.tsx:23), so it gets the inline source tile plus a
+  // standalone "Payment link" card — the admin V1 detail (no prop) gets
+  // neither and shows the link identifier inline instead (order-views.tsx
+  // showV2Details branches at lines ~211, ~264, ~285). "Payment link" is the
+  // shared label text for both the badge and the standalone card title, so
+  // its count (1 admin vs 2 merchant) is the structural signal.
+  it("shows the V2-style source tile and standalone payment-link card (showV2Details)", async () => {
+    resolvePrincipal.mockResolvedValue(principal);
+    resolveLocale.mockResolvedValue("en");
+    getForOwner.mockResolvedValue(found);
+
+    const markup = renderToStaticMarkup(await OrderDetailPage({ params: Promise.resolve({ id: orderId }) }));
+    expect(markup).toContain("Source");
+    expect(markup.match(/Payment link/g)).toHaveLength(2);
+    expect(markup.match(/link-identifier/g)).toHaveLength(1);
+  });
+
   it.each([
     ["en", "This order is unavailable"],
     ["pt-BR", "Este pedido está indisponível"],

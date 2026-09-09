@@ -133,6 +133,24 @@ describe("storefront settings management", () => {
     expect(markup).toContain('type="file"');
   });
 
+  // 14.5.3 regression (fixed in c26b74c4): the `<noscript>` logo fallback
+  // controls bind to their own upload form through the `form=` attribute
+  // instead of nesting a second `<form>` inside `id="storefront-settings"`
+  // (invalid HTML — nested forms silently break submission). The sibling
+  // form renders as a document-level sibling, after the settings form closes.
+  it("binds the noscript logo fallback to a sibling form, never nested inside the settings form", () => {
+    const markup = render();
+    expect(markup.match(/<form\b/g)).toHaveLength(2);
+    expect(markup).toContain('form="storefront-logo-upload"');
+    expect(markup).toContain('id="storefront-logo-upload"');
+    const settingsFormEnd = markup.indexOf("</form>");
+    const uploadFormStart = markup.indexOf('id="storefront-logo-upload"');
+    const settingsFormStart = markup.indexOf('id="storefront-settings"');
+    expect(settingsFormStart).toBeGreaterThanOrEqual(0);
+    expect(settingsFormEnd).toBeGreaterThan(settingsFormStart);
+    expect(uploadFormStart).toBeGreaterThan(settingsFormEnd);
+  });
+
   it("renders the disabled defaults as an empty, unchecked form", () => {
     const markup = render({
       settings: {

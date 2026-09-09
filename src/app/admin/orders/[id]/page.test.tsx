@@ -73,6 +73,21 @@ describe("admin order detail page", () => {
     expect(markup).not.toContain("<form");
   });
 
+  // 14.5.1 regression counterpart: the admin V1 detail never sets
+  // `showV2Details`, so it keeps the inline payment-link identifier in the
+  // order-state card and never gets the source tile or the standalone card
+  // the merchant detail gained (order-views.tsx OrderDetailCard).
+  it("keeps the inline payment-link identifier without the V2-style source tile or standalone card", async () => {
+    requireAdmin.mockResolvedValue(admin);
+    resolveLocale.mockResolvedValue("en");
+    getForAdmin.mockResolvedValue(found);
+
+    const markup = renderToStaticMarkup(await AdminOrderDetailPage({ params: Promise.resolve({ id: orderId }) }));
+    expect(markup).not.toContain("Source");
+    expect(markup.match(/Payment link/g)).toHaveLength(1);
+    expect(markup).toContain("link-identifier");
+  });
+
   it("renders the opaque unavailable view for a missing order", async () => {
     requireAdmin.mockResolvedValue(admin);
     resolveLocale.mockResolvedValue("en");

@@ -1,11 +1,14 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
-const { requireOwnerFromCookie, resolveLocale, listCategories, listChoices, redirect } = vi.hoisted(() => ({
+const { requireOwnerFromCookie, resolveLocale, listCategories, listChoices, getStorefrontSettings, redirect } = vi.hoisted(() => ({
   requireOwnerFromCookie: vi.fn(),
   resolveLocale: vi.fn(),
   listCategories: vi.fn(),
   listChoices: vi.fn(),
+  getStorefrontSettings: vi.fn<() => Promise<{ storefrontEnabled: boolean; storefrontSlug: string | null; storefrontDefaultCurrencyCode: string | null }>>(
+    async () => ({ storefrontEnabled: false, storefrontSlug: null, storefrontDefaultCurrencyCode: null }),
+  ),
   redirect: vi.fn((location: string) => { throw new Error(`redirect:${location}`); }),
 }));
 
@@ -14,7 +17,7 @@ vi.mock("next/navigation", () => ({ redirect }));
 vi.mock("server-only", () => ({}));
 vi.mock("@/app/owner-guard", () => ({ requireOwnerFromCookie, ownerProtectedMutationResponse: vi.fn() }));
 vi.mock("@/i18n/locale-preference", () => ({ getLocalePreferenceService: () => ({ resolve: resolveLocale }) }));
-vi.mock("@/auth/storefront-settings", () => ({ getStorefrontSettingsService: () => ({ getForOwner: () => Promise.resolve({ storefrontEnabled: false, storefrontSlug: null }) }) }));
+vi.mock("@/auth/storefront-settings", () => ({ getStorefrontSettingsService: () => ({ getForOwner: getStorefrontSettings }) }));
 vi.mock("@/auth/product-category", () => ({ getProductCategoryService: () => ({ listForOwner: listCategories }) }));
 vi.mock("@/auth/supported-exchange-currency", () => ({ getSupportedExchangeCurrencyService: () => ({ listActiveChoices: listChoices }) }));
 
@@ -51,5 +54,29 @@ describe("merchant new product page", () => {
     expect(markup).toContain("BRL — Real");
     expect(markup).toContain("Bebidas / Drinks");
     expect(markup).not.toContain("Currency selection is unavailable");
+  });
+
+  // 14.5.3 regression (fixed in c26b74c4, product-form.tsx:365): the storefront's
+  // default currency is preselected in the visible field, but only the hidden
+  // mirror actually reaches the create POST until the owner touches the
+  // select — without it the submitted product carries no currency at all.
+  it("posts the storefront's preselected currency through a hidden mirror until the select is touched", async () => {
+    ready();
+    listCategories.mockResolvedValue([]);
+    listChoices.mockResolvedValue([{ code: "BRL", label: "Real" }, { code: "USD", label: "US dollar" }]);
+    getStorefrontSettings.mockResolvedValue({ storefrontEnabled: true, storefrontSlug: "loja", storefrontDefaultCurrencyCode: "BRL" });
+
+    const markup = renderToStaticMarkup(await NewProductPage());
+    expect(markup).toContain('name="currencyCode" value="BRL"');
+  });
+
+  it("mirrors an empty value when the storefront's default currency isn't in the owner's mapped choices", async () => {
+    ready();
+    listCategories.mockResolvedValue([]);
+    listChoices.mockResolvedValue([{ code: "USD", label: "US dollar" }]);
+    getStorefrontSettings.mockResolvedValue({ storefrontEnabled: true, storefrontSlug: "loja", storefrontDefaultCurrencyCode: "BRL" });
+
+    const markup = renderToStaticMarkup(await NewProductPage());
+    expect(markup).toContain('name="currencyCode" value=""');
   });
 });
