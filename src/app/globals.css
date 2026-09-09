@@ -1437,7 +1437,6 @@ p { text-wrap: pretty; }
 .login-form { display: grid; gap: var(--space-5); }
 .reset-password-page { display: grid; min-height: 100svh; place-items: center; }
 .reset-password-form { display: grid; gap: var(--space-5); }
-.checkout-description { color: var(--text-secondary); margin: 0; max-width: var(--layout-max); white-space: pre-wrap; }
 .checkout-card { width: 100%; }
 .checkout-form, .checkout-payment { display: grid; gap: var(--space-6); }
 .checkout-copy { align-items: start; display: flex; flex-wrap: wrap; gap: var(--space-3); }

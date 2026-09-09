@@ -1,5 +1,7 @@
 "use client";
 
+import type { ReactNode } from "react";
+
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -52,11 +54,9 @@ function CheckoutField({ autoComplete, dictionary, errors, name, onChange, requi
   );
 }
 
-// `total`/`currencyLabel` are optional (the page call site does not forward
-// them yet — flagged as a follow-up for the main agent, since
-// `public-checkout-v2-page.tsx` is outside this front's `owns`): when absent
-// the submit button falls back to the era's generic label, exactly as before.
-export function PublicCheckoutV2Form({ currencyLabel, dictionary, identifier, policy, total }: Readonly<{ currencyLabel?: string; dictionary: Dictionary; identifier: string; policy: CheckoutDataPolicy; total?: string }>) {
+// `total`/`currencyLabel` are optional: when absent the submit button falls
+// back to the era's generic label, exactly as before.
+export function PublicCheckoutV2Form({ currencyLabel, dictionary, identifier, merchantIdentity, policy, total }: Readonly<{ currencyLabel?: string; dictionary: Dictionary; identifier: string; merchantIdentity?: ReactNode; policy: CheckoutDataPolicy; total?: string }>) {
   const experience = useCheckoutExperience<CheckoutV2PaymentState>({
     currencyLabel,
     dictionary,
@@ -75,30 +75,38 @@ export function PublicCheckoutV2Form({ currencyLabel, dictionary, identifier, po
 
   if (payment) {
     return (
-      <div className="checkout-payment">
-        <CheckoutPaymentView
-          currencyLabel={currencyLabel}
-          dictionary={dictionary}
-          merchantName={dictionary.storefrontFallbackName}
-          onRetryPoll={experience.retryPoll}
-          onStartOver={experience.startOver}
-          pixCopyPaste={payment.pixCopyPaste}
-          pixQrCodeUrl={payment.pixQrCodeUrl}
-          pollFailed={experience.pollFailed}
-          state={payment.state}
-          total={total ?? ""}
-        />
+      <div className="grid gap-6">
+        {unavailable ? (
+          <Alert variant="warning">
+            <AlertTitle>{dictionary.checkoutUnavailableHeading}</AlertTitle>
+            <AlertDescription>{dictionary.checkoutUnavailableDescription}</AlertDescription>
+          </Alert>
+        ) : (
+          <CheckoutPaymentView
+            currencyLabel={currencyLabel}
+            dictionary={dictionary}
+            merchantIdentity={merchantIdentity}
+            merchantName={dictionary.storefrontFallbackName}
+            onRetryPoll={experience.retryPoll}
+            onStartOver={experience.startOver}
+            pixCopyPaste={payment.pixCopyPaste}
+            pixQrCodeUrl={payment.pixQrCodeUrl}
+            pollFailed={experience.pollFailed}
+            state={payment.state}
+            total={total ?? ""}
+          />
+        )}
       </div>
     );
   }
 
   return (
-    <Card className="checkout-card">
+    <Card className="w-full">
       <CardHeader>
         <CardTitle>{dictionary.checkoutCustomerHeading}</CardTitle>
       </CardHeader>
       <CardContent>
-        <form className="checkout-form" noValidate onSubmit={submit}>
+        <form className="grid gap-6" noValidate onSubmit={submit}>
           <FieldGroup>
             {required.length === 0 ? <Alert role="status"><AlertDescription>{dictionary.checkoutNoCustomerData}</AlertDescription></Alert> : null}
             {required.includes("name") ? field("name", "text", "name") : null}

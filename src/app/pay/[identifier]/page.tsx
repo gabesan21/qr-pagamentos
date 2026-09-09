@@ -1,8 +1,11 @@
 import { cookies } from "next/headers";
+import type { ReactNode } from "react";
 
 import { getAuthorizationService } from "@/auth/authorization";
 import { EmptyState } from "@/components/ui/empty-state";
-import { getPublicCheckoutPresentationService } from "@/checkout/public-checkout-presentation";
+import { Monogram } from "@/components/ui/monogram";
+import { BrandIdentity } from "@/brand/brand-identity";
+import { getPublicCheckoutPresentationService, type PublicCheckoutBranding } from "@/checkout/public-checkout-presentation";
 import { getPublicCheckoutV2PresentationService } from "@/checkout/public-checkout-v2-presentation";
 import { getDictionary } from "@/i18n/dictionaries";
 import { getLocalePreferenceService } from "@/i18n/locale-preference";
@@ -13,6 +16,22 @@ import { PublicCheckoutForm } from "./public-checkout-form";
 import { PublicCheckoutV2Page, PublicCheckoutV2PaidPage } from "./public-checkout-v2-page";
 
 export const dynamic = "force-dynamic";
+
+type Dictionary = ReturnType<typeof getDictionary>;
+
+// The QR centre-cut merchant mark (14.6.1 round-1 repair, C06): the same
+// logo/`Monogram`/fallback precedence `CheckoutMerchantHeader` renders for the
+// header, sized for `QrDisplay`'s `identity` slot instead of the page header.
+function merchantIdentityMark(branding: PublicCheckoutBranding, dictionary: Dictionary): ReactNode {
+  if (branding.logoMediaIdentifier) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img alt={dictionary.checkoutMerchantLogoAlt} className="size-7 object-contain" src={`/media/${branding.logoMediaIdentifier}`} />
+    );
+  }
+  if (branding.displayName) return <Monogram name={branding.displayName} size="sm" />;
+  return <span aria-label={dictionary.checkoutMerchantFallbackAlt} role="img"><BrandIdentity variant="merchant-fallback" /></span>;
+}
 
 export default async function PublicCheckoutPage({ params }: Readonly<{ params: Promise<{ identifier: string }> }>) {
   const cookieStore = await cookies();
@@ -35,6 +54,7 @@ export default async function PublicCheckoutPage({ params }: Readonly<{ params: 
         <PublicCheckoutForm
           dictionary={dictionary}
           identifier={identifier}
+          merchantIdentity={merchantIdentityMark(presentation.branding, dictionary)}
           policy={presentation.checkoutPolicy}
           product={presentation.product}
         />

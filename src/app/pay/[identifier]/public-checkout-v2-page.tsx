@@ -1,8 +1,12 @@
+import type { ReactNode } from "react";
+
+import { BrandIdentity } from "@/brand/brand-identity";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Monogram } from "@/components/ui/monogram";
 import { MoneyText } from "@/components/ui/money-text";
 import { Separator } from "@/components/ui/separator";
 import { StatusBadge } from "@/components/ui/status-badge";
-import type { PublicCheckoutV2Composition, PublicCheckoutV2PaidPresentation, PublicCheckoutV2Presentation } from "@/checkout/public-checkout-v2-presentation";
+import type { PublicCheckoutV2Branding, PublicCheckoutV2Composition, PublicCheckoutV2PaidPresentation, PublicCheckoutV2Presentation } from "@/checkout/public-checkout-v2-presentation";
 import type { getDictionary } from "@/i18n/dictionaries";
 import type { SupportedLocale } from "@/i18n/locales";
 
@@ -10,6 +14,20 @@ import { CheckoutShell } from "./checkout-shell";
 import { PublicCheckoutV2Form } from "./public-checkout-v2-form";
 
 type Dictionary = ReturnType<typeof getDictionary>;
+
+// The QR centre-cut merchant mark (14.6.1 round-1 repair, C06): mirrors the
+// V1 `page.tsx` precedence (logo, `Monogram`, fallback) for `QrDisplay`'s
+// `identity` slot.
+function merchantIdentityMark(branding: PublicCheckoutV2Branding, dictionary: Dictionary): ReactNode {
+  if (branding.logoMediaIdentifier) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img alt={dictionary.checkoutMerchantLogoAlt} className="size-7 object-contain" src={`/media/${branding.logoMediaIdentifier}`} />
+    );
+  }
+  if (branding.displayName) return <Monogram name={branding.displayName} size="sm" />;
+  return <span aria-label={dictionary.checkoutMerchantFallbackAlt} role="img"><BrandIdentity variant="merchant-fallback" /></span>;
+}
 
 function CheckoutV2CompositionFacts({ composition }: Readonly<{ composition: PublicCheckoutV2Composition }>) {
   return composition.kind === "PRODUCT_LINES" ? (
@@ -64,6 +82,7 @@ export function PublicCheckoutV2Page({ dictionary, identifier, locale, presentat
           currencyLabel={presentation.currencyCode ?? undefined}
           dictionary={dictionary}
           identifier={identifier}
+          merchantIdentity={merchantIdentityMark(presentation.branding, dictionary)}
           policy={presentation.checkoutPolicy}
           total={presentation.composition.kind === "PRODUCT_LINES" ? presentation.composition.total : presentation.composition.amount}
         />

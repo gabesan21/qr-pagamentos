@@ -1,5 +1,7 @@
 "use client";
 
+import type { ReactNode } from "react";
+
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -113,7 +115,7 @@ function CheckoutField({ autoComplete, dictionary, errors, name, onChange, requi
   );
 }
 
-export function PublicCheckoutForm({ dictionary, identifier, policy, product }: Readonly<{ dictionary: Dictionary; identifier: string; policy: CheckoutDataPolicy; product: { title: string; description: string; price: string } }>) {
+export function PublicCheckoutForm({ dictionary, identifier, merchantIdentity, policy, product }: Readonly<{ dictionary: Dictionary; identifier: string; merchantIdentity?: ReactNode; policy: CheckoutDataPolicy; product: { title: string; description: string; price: string } }>) {
   const experience = useCheckoutExperience<PaymentLinkOrderState>({
     dictionary,
     identifier,
@@ -131,19 +133,27 @@ export function PublicCheckoutForm({ dictionary, identifier, policy, product }: 
 
   if (payment) {
     return (
-      <Card className="checkout-card">
-        <CardContent className="checkout-payment">
-          <CheckoutPaymentView
-            dictionary={dictionary}
-            merchantName={product.title}
-            onRetryPoll={experience.retryPoll}
-            onStartOver={experience.startOver}
-            pixCopyPaste={payment.pixCopyPaste}
-            pixQrCodeUrl={payment.pixQrCodeUrl}
-            pollFailed={experience.pollFailed}
-            state={payment.state}
-            total={product.price}
-          />
+      <Card className="w-full">
+        <CardContent className="grid gap-6">
+          {unavailable ? (
+            <Alert variant="warning">
+              <AlertTitle>{dictionary.checkoutUnavailableHeading}</AlertTitle>
+              <AlertDescription>{dictionary.checkoutUnavailableDescription}</AlertDescription>
+            </Alert>
+          ) : (
+            <CheckoutPaymentView
+              dictionary={dictionary}
+              merchantIdentity={merchantIdentity}
+              merchantName={product.title}
+              onRetryPoll={experience.retryPoll}
+              onStartOver={experience.startOver}
+              pixCopyPaste={payment.pixCopyPaste}
+              pixQrCodeUrl={payment.pixQrCodeUrl}
+              pollFailed={experience.pollFailed}
+              state={payment.state}
+              total={product.price}
+            />
+          )}
         </CardContent>
       </Card>
     );
@@ -151,14 +161,14 @@ export function PublicCheckoutForm({ dictionary, identifier, policy, product }: 
 
   return (
     <>
-      <Card className="checkout-card">
+      <Card className="w-full">
         <CardHeader>
           <CardTitle>{dictionary.checkoutSummaryHeading}</CardTitle>
         </CardHeader>
-        <CardContent className="checkout-form">
+        <CardContent className="grid gap-6">
           <div>
             <h2 className="font-[family-name:var(--font-display)] text-lg font-semibold leading-7">{product.title}</h2>
-            <p className="checkout-description">{product.description}</p>
+            <p className="m-0 max-w-[var(--layout-max)] whitespace-pre-wrap text-muted-foreground">{product.description}</p>
           </div>
           <Separator />
           <div className="flex items-baseline justify-between gap-3">
@@ -168,12 +178,12 @@ export function PublicCheckoutForm({ dictionary, identifier, policy, product }: 
         </CardContent>
       </Card>
 
-      <Card className="checkout-card">
+      <Card className="w-full">
         <CardHeader>
           <CardTitle>{dictionary.checkoutCustomerHeading}</CardTitle>
         </CardHeader>
         <CardContent>
-          <form className="checkout-form" noValidate onSubmit={submit}>
+          <form className="grid gap-6" noValidate onSubmit={submit}>
             <FieldGroup>
               {required.length === 0 ? <Alert role="status"><AlertDescription>{dictionary.checkoutNoCustomerData}</AlertDescription></Alert> : null}
               {required.includes("name") ? field("name", "text", "name") : null}
