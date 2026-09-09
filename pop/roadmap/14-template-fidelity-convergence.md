@@ -74,7 +74,6 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[14.7.1-retire-bem-and-refresh-contracts]] | Remove `.admin-*`, `.merchant-dashboard__*`, `.checkout-*`, `.storefront-*`, `.auth-*` route CSS; align DESIGN.md, frontend spec and DOX contracts with the converged system. · size: M | 001_initial_task |
 | [[14.7.2-phase-verification]] | Full `pnpm check`, evidence-runner human checklist, final PR `develop` → `main`; depends on all 14.7 tasks. · size: S | 001_initial_task |
 
 ## Dependency and parallel-wave map
