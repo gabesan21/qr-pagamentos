@@ -24,7 +24,7 @@ describe("owner webhook completion route", () => {
     requireUser.mockResolvedValue(principal);
     const response = await POST(sameOriginRequest());
     expect(completeRegistration).toHaveBeenCalledWith(principal, "https://payments.example/api/nautt/webhooks");
-    expect(response.headers.get("location")).toBe("/settings?nautt=configured");
+    expect(response.headers.get("location")).toBe("/settings?nautt=configured#settings-connection");
   });
 
   it("returns an empty 401", async () => {
@@ -45,9 +45,9 @@ describe("owner webhook completion route", () => {
   });
 
   it.each([
-    [new OwnerOnboardingChangedError(), "/settings?nautt=changed"],
-    [new OwnerOnboardingRecoveryRequiredError(), "/settings?nautt=recovery"],
-    [new Error("provider detail"), "/settings?nautt=unavailable"],
+    [new OwnerOnboardingChangedError(), "/settings?nautt=changed#settings-connection"],
+    [new OwnerOnboardingRecoveryRequiredError(), "/settings?nautt=recovery#settings-connection"],
+    [new Error("provider detail"), "/settings?nautt=unavailable#settings-connection"],
   ])("maps registration failures to the opaque Settings result %s", async (error, location) => {
     requireUser.mockResolvedValue({ id: "owner" });
     completeRegistration.mockRejectedValue(error);

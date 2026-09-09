@@ -3,37 +3,41 @@ import Link from "next/link";
 
 import { ArrowRight } from "lucide-react";
 
-import { orderStateLabel } from "@/app/orders/order-views";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { MoneyText } from "@/components/ui/money-text";
 import { SimpleTabs } from "@/components/ui/simple-tabs";
 import { StatCard } from "@/components/ui/stat-card";
+import { ProviderStateBadge, StatusBadge, type ProviderState } from "@/components/ui/status-badge";
 import type { getDictionary } from "@/i18n/dictionaries";
 import type { SupportedLocale } from "@/i18n/locales";
 import type {
+  MerchantAnalyticsBestSeller,
   MerchantAnalyticsCurrencyAmount,
   MerchantAnalyticsCurrencyLabel,
-  MerchantAnalyticsPeriod,
   MerchantAnalyticsRecentOrder,
-  MerchantAnalyticsSalesGroup,
   MerchantAnalyticsView,
 } from "@/orders/merchant-analytics";
+import type { OrderV2Source, OrderV2State } from "@/orders/order-v2";
 
 import { formatCatalogPrice } from "./catalog/price-format";
 
 type Dictionary = ReturnType<typeof getDictionary>;
 type CurrencyLabel = MerchantAnalyticsCurrencyLabel;
 
-const DASHBOARD_PERIODS: ReadonlyArray<{
-  id: MerchantAnalyticsPeriod;
-  label: (dictionary: Dictionary) => string;
-}> = [
-  { id: "today", label: (dictionary) => dictionary.merchantDashboardPeriodToday },
-  { id: "7d", label: (dictionary) => dictionary.merchantDashboardPeriod7d },
-  { id: "30d", label: (dictionary) => dictionary.merchantDashboardPeriod30d },
+const PROVIDER_STATE_ORDER: ReadonlyArray<OrderV2State> = [
+  "CREATED",
+  "PENDING",
+  "CONFIRMED",
+  "REJECTED",
+  "CANCELLED",
+  "EXPIRED",
+  "INDETERMINATE",
+  "REFUNDED",
 ];
+const ORIGIN_ORDER: ReadonlyArray<OrderV2Source> = ["LINK", "STANDALONE", "AD_HOC"];
 
 // Progress bars are rendered without inline styles so they stay inside the
 // token boundary. Widths are snapped to the nearest 5 % bucket; the bucket
@@ -68,31 +72,6 @@ function progressWidthClass(percentage: number): string {
   return PROGRESS_WIDTH_BUCKETS[bucket];
 }
 
-export function DashboardPeriodNavigation({
-  current,
-  dictionary,
-}: Readonly<{ current: MerchantAnalyticsPeriod; dictionary: Dictionary }>) {
-  return (
-    <nav aria-label={dictionary.merchantDashboardPeriodLabel} className="merchant-dashboard__periods">
-      {DASHBOARD_PERIODS.map((period) =>
-        period.id === current ? (
-          <span
-            aria-current="page"
-            className="merchant-dashboard__period merchant-dashboard__period--current"
-            key={period.id}
-          >
-            {period.label(dictionary)}
-          </span>
-        ) : (
-          <Link className="merchant-dashboard__period" href={`/?period=${period.id}`} key={period.id}>
-            {period.label(dictionary)}
-          </Link>
-        ),
-      )}
-    </nav>
-  );
-}
-
 // Rates arrive as exact decimals with exactly four fraction digits ("0.5000");
 // the percent rendering shifts the decimal point textually, never through Number.
 export function formatDashboardRate(rate: string, locale: SupportedLocale) {
@@ -120,11 +99,11 @@ function AmountLines({
   locale,
 }: Readonly<{ amounts: ReadonlyArray<MerchantAnalyticsCurrencyAmount>; dictionary: Dictionary; locale: SupportedLocale }>) {
   return (
-    <span className="merchant-dashboard__amount-lines">
+    <span className="flex flex-col gap-1">
       {amounts.map((amount) => (
         <MoneyText
-          className="merchant-dashboard__amount"
           key={`${amount.currency.code ?? "unlabeled"}-${amount.currency.label ?? "unlabeled"}-${amount.amount}`}
+          pairLabel={currencyDetail(dictionary, amount.currency) ?? undefined}
           size="large"
           value={formatAmount(dictionary, amount, locale)}
         />
@@ -133,43 +112,10 @@ function AmountLines({
   );
 }
 
-function SalesGroups({
-  dictionary,
-  emptyLabel,
-  groups,
-  heading,
-  locale,
-}: Readonly<{
-  dictionary: Dictionary;
-  emptyLabel: string;
-  groups: ReadonlyArray<MerchantAnalyticsSalesGroup>;
-  heading: string;
-  locale: SupportedLocale;
-}>) {
-  return (
-    <section className="merchant-dashboard__group">
-      <h3>{heading}</h3>
-      {groups.length === 0 ? (
-        <EmptyState illustration="orders" title={emptyLabel} />
-      ) : (
-        <ul className="merchant-dashboard__amounts">
-          {groups.map((group) => (
-            <li key={`${group.currency.code ?? "unlabeled"}-${group.currency.label ?? "unlabeled"}-${group.amount}`}>
-              <MoneyText
-                className="merchant-dashboard__amount"
-                pairLabel={currencyDetail(dictionary, group.currency) ?? undefined}
-                size="large"
-                value={formatAmount(dictionary, group, locale)}
-              />
-              <span className="text-sm text-muted-foreground">
-                <span className="tabular-nums">{group.orderCount}</span> {dictionary.merchantDashboardOrderCountLabel}
-              </span>
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
-  );
+function sourceLabel(dictionary: Dictionary, source: OrderV2Source) {
+  if (source === "LINK") return dictionary.merchantDashboardSourceLink;
+  if (source === "STANDALONE") return dictionary.merchantDashboardSourceStandalone;
+  return dictionary.merchantDashboardSourceAdHoc;
 }
 
 function KeyStatsGrid({
@@ -177,8 +123,10 @@ function KeyStatsGrid({
   locale,
   view,
 }: Readonly<{ dictionary: Dictionary; locale: SupportedLocale; view: MerchantAnalyticsView }>) {
-  const confirmedOrders = view.confirmedSales.reduce((sum, group) => sum + group.orderCount, 0);
-  const finalizedOrders = view.locallyFinalizedSales.reduce((sum, group) => sum + group.orderCount, 0);
+  const byOrigin = view.byOrigin ?? [];
+  const originCaption = ORIGIN_ORDER
+    .map((source) => `${sourceLabel(dictionary, source)} ${byOrigin.find((row) => row.source === source)?.count ?? 0}`)
+    .join(" · ");
 
   const confirmedValue = view.confirmedSales.length === 0
     ? <span className="text-muted-foreground">{dictionary.merchantDashboardNoSales}</span>
@@ -193,72 +141,114 @@ function KeyStatsGrid({
     : formatDashboardRate(view.funnel.conversionRate, locale);
 
   return (
-    <div className="merchant-dashboard__stat-grid merchant-dashboard__stat-grid--4">
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <StatCard
-        label={dictionary.merchantDashboardCheckoutAttempts}
-        value={view.funnel.attempts}
+        caption={originCaption}
+        label={dictionary.merchantDashboardOrdersInPeriod}
+        value={view.ordersInPeriod ?? 0}
       />
-      <StatCard
-        caption={`${confirmedOrders} ${dictionary.merchantDashboardOrderCountLabel}`}
-        label={dictionary.merchantDashboardConfirmedSales}
-        value={confirmedValue}
-      />
-      <StatCard
-        caption={`${finalizedOrders} ${dictionary.merchantDashboardOrderCountLabel}`}
-        label={dictionary.merchantDashboardLocallyFinalizedSales}
-        value={finalizedValue}
-      />
-      <StatCard
-        label={dictionary.merchantDashboardFunnelConversionRate}
-        value={conversionValue}
-      />
+      <StatCard label={dictionary.merchantDashboardConfirmedSales} value={confirmedValue} />
+      <StatCard label={dictionary.merchantDashboardLocallyFinalizedSales} value={finalizedValue} />
+      <StatCard label={dictionary.merchantDashboardFunnelConversionRate} value={conversionValue} />
     </div>
   );
 }
 
-function SalesBreakdownCard({
+// `OrderV2State` members are the upper-case mirror of `ProviderState`
+// (`payment-link-order.ts`'s `PAYMENT_LINK_ORDER_STATES`); every member has a
+// matching lower-case `ProviderState`, so the cast is total, never partial.
+// Local copy, mirroring `src/app/admin/dashboard.tsx`'s comment: the merchant
+// surface never imports admin modules.
+function toProviderState(state: OrderV2State): ProviderState {
+  return state.toLowerCase() as ProviderState;
+}
+
+function providerStateBadgeLabels(dictionary: Dictionary): Readonly<Record<ProviderState, string>> {
+  return {
+    cancelled: dictionary.checkoutStateCancelled,
+    confirmed: dictionary.checkoutStateConfirmed,
+    created: dictionary.checkoutStateCreated,
+    expired: dictionary.checkoutStateExpired,
+    indeterminate: dictionary.checkoutStateIndeterminate,
+    pending: dictionary.checkoutStatePending,
+    refunded: dictionary.checkoutStateRefunded,
+    rejected: dictionary.checkoutStateRejected,
+  };
+}
+
+function ByBreakdownCard({
   dictionary,
-  locale,
   view,
-}: Readonly<{ dictionary: Dictionary; locale: SupportedLocale; view: MerchantAnalyticsView }>) {
+}: Readonly<{ dictionary: Dictionary; view: MerchantAnalyticsView }>) {
+  const byState = view.byProviderState ?? [];
+  const byOrigin = view.byOrigin ?? [];
+  const stateCounts = new Map(byState.map((row) => [row.state, row.count]));
+  const originCounts = new Map(byOrigin.map((row) => [row.source, row.count]));
+  const stateRows = [
+    ...PROVIDER_STATE_ORDER.map((state) => ({ state: state as OrderV2State | null, count: stateCounts.get(state) ?? 0 })),
+    { state: null, count: stateCounts.get(null) ?? 0 },
+  ];
+  const originRows = ORIGIN_ORDER.map((source) => ({ source, count: originCounts.get(source) ?? 0 }));
+  const stateMax = Math.max(1, ...stateRows.map((row) => row.count));
+  const originMax = Math.max(1, ...originRows.map((row) => row.count));
+  const empty = (view.ordersInPeriod ?? 0) === 0;
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{dictionary.merchantDashboardSalesHeading}</CardTitle>
-        <CardDescription>{dictionary.merchantDashboardSalesDescription}</CardDescription>
+        <CardTitle>{dictionary.merchantDashboardByBreakdownHeading}</CardTitle>
+        <CardDescription>{dictionary.merchantDashboardByBreakdownDescription}</CardDescription>
       </CardHeader>
       <CardContent>
-        <SimpleTabs
-          label={dictionary.merchantDashboardSalesHeading}
-          tabs={[
-            {
-              id: "confirmed",
-              label: dictionary.merchantDashboardConfirmedSales,
-              content: (
-                <SalesGroups
-                  dictionary={dictionary}
-                  emptyLabel={dictionary.merchantDashboardSalesEmpty}
-                  groups={view.confirmedSales}
-                  heading={dictionary.merchantDashboardConfirmedSales}
-                  locale={locale}
-                />
-              ),
-            },
-            {
-              id: "local",
-              label: dictionary.merchantDashboardLocallyFinalizedSales,
-              content: (
-                <SalesGroups
-                  dictionary={dictionary}
-                  emptyLabel={dictionary.merchantDashboardSalesEmpty}
-                  groups={view.locallyFinalizedSales}
-                  heading={dictionary.merchantDashboardLocallyFinalizedSales}
-                  locale={locale}
-                />
-              ),
-            },
-          ]}
-        />
+        {empty ? (
+          <EmptyState illustration="orders" title={dictionary.merchantDashboardByBreakdownEmpty} />
+        ) : (
+          <SimpleTabs
+            label={dictionary.merchantDashboardByBreakdownHeading}
+            tabs={[
+              {
+                id: "state",
+                label: dictionary.merchantDashboardByState,
+                content: (
+                  <div className="space-y-2.5 pt-3">
+                    {stateRows.map((row) => (
+                      <div className="flex items-center gap-3" key={row.state ?? "none"}>
+                        <div className="w-36 shrink-0">
+                          {row.state === null ? (
+                            <StatusBadge label={dictionary.merchantDashboardStateNone} tone="neutral" />
+                          ) : (
+                            <ProviderStateBadge labels={providerStateBadgeLabels(dictionary)} state={toProviderState(row.state)} />
+                          )}
+                        </div>
+                        <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
+                          <div className={`h-full bg-primary transition-all ${progressWidthClass((row.count / stateMax) * 100)}`} />
+                        </div>
+                        <span className="w-8 text-right text-xs tabular-nums text-muted-foreground">{row.count}</span>
+                      </div>
+                    ))}
+                  </div>
+                ),
+              },
+              {
+                id: "source",
+                label: dictionary.merchantDashboardBySource,
+                content: (
+                  <div className="space-y-2.5 pt-3">
+                    {originRows.map((row) => (
+                      <div className="flex items-center gap-3" key={row.source}>
+                        <span className="w-36 shrink-0 truncate text-sm font-medium">{sourceLabel(dictionary, row.source)}</span>
+                        <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
+                          <div className={`h-full bg-primary transition-all ${progressWidthClass((row.count / originMax) * 100)}`} />
+                        </div>
+                        <span className="w-8 text-right text-xs tabular-nums text-muted-foreground">{row.count}</span>
+                      </div>
+                    ))}
+                  </div>
+                ),
+              },
+            ]}
+          />
+        )}
       </CardContent>
     </Card>
   );
@@ -272,13 +262,13 @@ function FunnelBar({
 }: Readonly<{ cls: string; count: number; label: string; total: number }>) {
   const rate = total === 0 ? 0 : Math.round((count / total) * 100);
   return (
-    <div className="merchant-dashboard__funnel-row">
-      <div className="merchant-dashboard__funnel-labels">
+    <div className="grid gap-1">
+      <div className="flex justify-between">
         <span>{label}</span>
         <span className="tabular-nums">{count} · {rate}%</span>
       </div>
-      <div className="merchant-dashboard__progress merchant-dashboard__progress--small">
-        <div className={`${cls} ${progressWidthClass(rate)}`} />
+      <div className="h-2 overflow-hidden rounded-full bg-muted">
+        <div className={`h-full transition-all ${cls} ${progressWidthClass(rate)}`} />
       </div>
     </div>
   );
@@ -302,40 +292,36 @@ function FunnelCard({
         {funnel.attempts === 0 ? (
           <EmptyState illustration="orders" title={dictionary.merchantDashboardFunnelEmpty} />
         ) : (
-          <div className="merchant-dashboard__funnel">
+          <div className="grid gap-4">
             <FunnelBar
-              cls="merchant-dashboard__funnel-bar--converted"
+              cls="bg-success"
               count={funnel.converted}
               label={dictionary.merchantDashboardFunnelConverted}
               total={total}
             />
             <FunnelBar
-              cls="merchant-dashboard__funnel-bar--in-progress"
+              cls="bg-info"
               count={funnel.inProgress}
               label={dictionary.merchantDashboardFunnelInProgress}
               total={total}
             />
             <FunnelBar
-              cls="merchant-dashboard__funnel-bar--abandoned"
+              cls="bg-muted-foreground"
               count={funnel.abandoned}
               label={dictionary.merchantDashboardFunnelAbandoned}
               total={total}
             />
-            <div className="merchant-dashboard__funnel-rates">
-              <div>
+            <div className="grid gap-2 border-t border-border pt-4">
+              <div className="flex justify-between">
                 <span>{dictionary.merchantDashboardFunnelConversionRate}</span>
                 <span className="tabular-nums">
-                  {funnel.conversionRate === null
-                    ? dictionary.merchantDashboardRateUnavailable
-                    : formatDashboardRate(funnel.conversionRate, locale)}
+                  {funnel.conversionRate === null ? dictionary.merchantDashboardRateUnavailable : formatDashboardRate(funnel.conversionRate, locale)}
                 </span>
               </div>
-              <div>
+              <div className="flex justify-between">
                 <span>{dictionary.merchantDashboardFunnelAbandonmentRate}</span>
                 <span className="tabular-nums">
-                  {funnel.abandonmentRate === null
-                    ? dictionary.merchantDashboardRateUnavailable
-                    : formatDashboardRate(funnel.abandonmentRate, locale)}
+                  {funnel.abandonmentRate === null ? dictionary.merchantDashboardRateUnavailable : formatDashboardRate(funnel.abandonmentRate, locale)}
                 </span>
               </div>
             </div>
@@ -350,42 +336,19 @@ function InventoryStatGrid({
   dictionary,
   view,
 }: Readonly<{ dictionary: Dictionary; view: MerchantAnalyticsView }>) {
+  const products = view.products ?? { activeCount: 0, archivedCount: 0 };
   return (
-    <div className="merchant-dashboard__stat-grid merchant-dashboard__stat-grid--4">
-      <StatCard
-        label={dictionary.merchantDashboardLinksActiveCount}
-        value={view.paymentLinks.activeCount}
-      />
-      <StatCard
-        label={dictionary.merchantDashboardLinksWithActivity}
-        value={view.paymentLinks.metrics.length}
-      />
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <StatCard label={dictionary.merchantDashboardLinksActiveCount} value={view.paymentLinks.activeCount} />
+      <StatCard label={dictionary.merchantDashboardLinksTotalCount} value={view.paymentLinks.totalCount ?? view.paymentLinks.activeCount} />
+      <StatCard label={dictionary.merchantDashboardProductsActiveCount} value={products.activeCount} />
+      <StatCard label={dictionary.merchantDashboardProductsArchivedCount} value={products.archivedCount} />
     </div>
   );
 }
 
-function localizedDescription(
-  locale: SupportedLocale,
-  descriptionPtBr: string | null,
-  descriptionEn: string | null,
-) {
-  return (locale === "pt-BR" ? descriptionPtBr : descriptionEn) ?? descriptionPtBr ?? descriptionEn;
-}
-
-function RecentStateBadge({ dictionary, order }: Readonly<{ dictionary: Dictionary; order: MerchantAnalyticsRecentOrder }>) {
-  if (order.state !== null) {
-    const variant = order.state === "CONFIRMED" ? "secondary" : order.state === "REJECTED" ? "destructive" : "outline";
-    return <Badge variant={variant}>{orderStateLabel(dictionary, order.state)}</Badge>;
-  }
-  if (order.currentLocalOutcome !== null) {
-    const finalized = order.currentLocalOutcome.outcome === "LOCAL_FINALIZED";
-    return (
-      <Badge variant={finalized ? "secondary" : "outline"}>
-        {finalized ? dictionary.merchantDashboardOutcomeFinalized : dictionary.merchantDashboardOutcomeCancelled}
-      </Badge>
-    );
-  }
-  return <span className="text-sm text-muted-foreground">{dictionary.merchantDashboardStateUnavailable}</span>;
+function bestSellerKey(seller: MerchantAnalyticsBestSeller) {
+  return seller.id ?? `${seller.titlePtBr}-${seller.titleEn}-${seller.confirmedQuantity}`;
 }
 
 function LeadingProductsCard({
@@ -404,36 +367,68 @@ function LeadingProductsCard({
           <EmptyState illustration="products" title={dictionary.merchantDashboardBestSellersEmpty} />
         ) : (
           <ul className="divide-y divide-border">
-            {view.bestSellers.map((seller) => (
-              <li
-                className="flex items-center gap-3 py-2.5"
-                key={`${seller.titlePtBr}-${seller.titleEn}-${seller.confirmedQuantity}`}
-              >
-                <Image
-                  alt=""
-                  aria-hidden
-                  className="size-10 rounded-md border object-contain"
-                  height={40}
-                  src="/application-assets/product-fallback.svg"
-                  width={40}
-                />
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-medium">
-                    {locale === "pt-BR" ? seller.titlePtBr : seller.titleEn}
+            {view.bestSellers.map((seller) => {
+              const title = locale === "pt-BR" ? seller.titlePtBr : seller.titleEn;
+              const row = (
+                <>
+                  <Image
+                    alt=""
+                    aria-hidden
+                    className="size-10 shrink-0 rounded-md border object-contain"
+                    height={40}
+                    src="/application-assets/product-fallback.svg"
+                    width={40}
+                  />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-medium">{title}</span>
+                    <span className="block text-xs text-muted-foreground">
+                      {dictionary.merchantDashboardBestSellerColumnQuantity}:{" "}
+                      <span className="tabular-nums">{seller.confirmedQuantity}</span>
+                    </span>
                   </span>
-                  <span className="block text-xs text-muted-foreground">
-                    {dictionary.merchantDashboardBestSellerColumnQuantity}:{" "}
-                    <span className="tabular-nums">{seller.confirmedQuantity}</span>
-                  </span>
-                </span>
-                <AmountLines amounts={seller.revenue} dictionary={dictionary} locale={locale} />
-              </li>
-            ))}
+                  <AmountLines amounts={seller.revenue} dictionary={dictionary} locale={locale} />
+                </>
+              );
+              return (
+                <li key={bestSellerKey(seller)}>
+                  {seller.id ? (
+                    <Link className="flex items-center gap-3 rounded-md py-2.5 transition-colors hover:bg-muted/50" href={`/catalog/products/${seller.id}`}>
+                      {row}
+                    </Link>
+                  ) : (
+                    <div className="flex items-center gap-3 py-2.5">{row}</div>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         )}
       </CardContent>
     </Card>
   );
+}
+
+function RecentOrderBadges({ dictionary, order }: Readonly<{ dictionary: Dictionary; order: MerchantAnalyticsRecentOrder }>) {
+  if (order.state === null && order.currentLocalOutcome === null) {
+    return <span className="text-sm text-muted-foreground">{dictionary.merchantDashboardStateUnavailable}</span>;
+  }
+  return (
+    <>
+      {order.state !== null ? (
+        <ProviderStateBadge labels={providerStateBadgeLabels(dictionary)} state={toProviderState(order.state)} />
+      ) : null}
+      {order.currentLocalOutcome !== null ? (
+        <StatusBadge
+          label={order.currentLocalOutcome.outcome === "LOCAL_FINALIZED" ? dictionary.merchantDashboardOutcomeFinalized : dictionary.merchantDashboardOutcomeCancelled}
+          tone={order.currentLocalOutcome.outcome === "LOCAL_FINALIZED" ? "success" : "danger"}
+        />
+      ) : null}
+    </>
+  );
+}
+
+function recentOrderKey(order: MerchantAnalyticsRecentOrder) {
+  return order.id ?? `${order.createdAt.getTime()}-${order.amount}-${order.paymentLinkV2Identifier ?? "direct"}`;
 }
 
 function RecentActivityCard({
@@ -455,26 +450,32 @@ function RecentActivityCard({
           <EmptyState illustration="orders" title={dictionary.merchantDashboardRecentEmpty} />
         ) : (
           <ul className="flex-1 divide-y divide-border">
-            {view.recentActivity.map((order) => (
-              <li
-                className="flex flex-wrap items-center gap-2 py-2.5"
-                key={`${order.createdAt.getTime()}-${order.amount}-${order.paymentLinkV2Identifier ?? "direct"}`}
-              >
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-medium">
-                    {localizedDescription(locale, order.descriptionPtBr, order.descriptionEn)
-                      ?? order.paymentLinkV2Identifier
-                      ?? dictionary.merchantDashboardUntitledOrder}
+            {view.recentActivity.map((order) => {
+              const row = (
+                <>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate font-mono text-xs text-muted-foreground">#{order.id ?? "—"}</span>
+                    <span className="block truncate text-xs text-muted-foreground">
+                      {order.payerName ?? dictionary.merchantDashboardPayerUnknown} · {instant(order.createdAt)}
+                    </span>
                   </span>
-                  <span className="block truncate text-xs text-muted-foreground">{instant(order.createdAt)}</span>
-                </span>
-                <Badge variant="outline">
-                  {order.source === "LINK" ? dictionary.merchantDashboardSourceLink : dictionary.merchantDashboardSourceAdHoc}
-                </Badge>
-                <RecentStateBadge dictionary={dictionary} order={order} />
-                <MoneyText value={formatAmount(dictionary, order, locale)} />
-              </li>
-            ))}
+                  <Badge variant="outline">{sourceLabel(dictionary, order.source)}</Badge>
+                  <RecentOrderBadges dictionary={dictionary} order={order} />
+                  <MoneyText value={formatAmount(dictionary, order, locale)} />
+                </>
+              );
+              return (
+                <li key={recentOrderKey(order)}>
+                  {order.id ? (
+                    <Link className="flex flex-wrap items-center gap-2 rounded-md py-2.5 transition-colors hover:bg-muted/50" href={`/orders/v2/${order.id}`}>
+                      {row}
+                    </Link>
+                  ) : (
+                    <div className="flex flex-wrap items-center gap-2 py-2.5">{row}</div>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         )}
         <Link
@@ -489,17 +490,48 @@ function RecentActivityCard({
   );
 }
 
+function FirstRunState({
+  dictionary,
+}: Readonly<{ dictionary: Dictionary }>) {
+  return (
+    <div className="space-y-6">
+      <Card>
+        <EmptyState
+          action={
+            <Button asChild>
+              <Link href="/links/new">{dictionary.merchantDashboardCreateLinkCta}</Link>
+            </Button>
+          }
+          body={dictionary.merchantDashboardEmptyBody}
+          illustration="links"
+          title={dictionary.merchantDashboardEmptyTitle}
+        />
+      </Card>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard label={dictionary.merchantDashboardOrdersInPeriod} value={0} />
+        <StatCard label={dictionary.merchantDashboardConfirmedSales} value={<span className="text-muted-foreground">{dictionary.merchantDashboardNoSales}</span>} />
+        <StatCard label={dictionary.merchantDashboardLocallyFinalizedSales} value={<span className="text-muted-foreground">{dictionary.merchantDashboardNoSales}</span>} />
+        <StatCard label={dictionary.merchantDashboardFunnelConversionRate} value={dictionary.merchantDashboardRateUnavailable} />
+      </div>
+    </div>
+  );
+}
+
 export function MerchantDashboard({
   dictionary,
   locale,
   view,
 }: Readonly<{ dictionary: Dictionary; locale: SupportedLocale; view: MerchantAnalyticsView }>) {
+  if (view.isFirstRun) {
+    return <FirstRunState dictionary={dictionary} />;
+  }
+
   return (
-    <div className="merchant-dashboard">
+    <div className="space-y-6">
       <KeyStatsGrid dictionary={dictionary} locale={locale} view={view} />
       <div className="grid gap-4 lg:grid-cols-12">
         <div className="lg:col-span-7">
-          <SalesBreakdownCard dictionary={dictionary} locale={locale} view={view} />
+          <ByBreakdownCard dictionary={dictionary} view={view} />
         </div>
         <div className="lg:col-span-5">
           <FunnelCard dictionary={dictionary} locale={locale} view={view} />

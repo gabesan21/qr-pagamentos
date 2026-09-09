@@ -12,16 +12,16 @@ export default function MerchantDashboardLoading() {
         </div>
         <Skeleton className="h-11 w-64 max-w-full" />
       </div>
-      <StatGridSkeleton count={4} label={en.merchantDashboardCheckoutAttempts} />
+      <StatGridSkeleton count={4} label={en.merchantDashboardOrdersInPeriod} />
       <div className="grid gap-4 lg:grid-cols-12">
         <div className="lg:col-span-7">
-          <CardSkeleton label={en.merchantDashboardSalesHeading} />
+          <CardSkeleton label={en.merchantDashboardByBreakdownHeading} />
         </div>
         <div className="lg:col-span-5">
           <CardSkeleton label={en.merchantDashboardFunnelHeading} />
         </div>
       </div>
-      <StatGridSkeleton count={2} label={en.merchantDashboardLinksHeading} />
+      <StatGridSkeleton count={4} label={en.merchantDashboardLinksTotalCount} />
       <div className="grid gap-4 lg:grid-cols-12">
         <div className="lg:col-span-7">
           <CardSkeleton label={en.merchantDashboardBestSellersHeading} />

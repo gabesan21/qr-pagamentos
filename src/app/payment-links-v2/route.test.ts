@@ -28,6 +28,7 @@ describe("owner payment-link-v2 create route", () => {
 
     requireOwnerFromCookie.mockResolvedValue(owner);
     ownerProtectedMutationResponse.mockReturnValue(null);
+    create.mockResolvedValueOnce({ id: "link-id" });
     const response = await POST(request(new URLSearchParams({ compositionKind: "FIXED_AMOUNT", currencyPairId: "pair", linkType: "REUSABLE", descriptionPtBr: "Doação", descriptionEn: "Donation", amount: "10.25", ownerId: "forged" })));
     expect(create).toHaveBeenCalledWith(owner, {
       compositionKind: "FIXED_AMOUNT",
@@ -39,7 +40,7 @@ describe("owner payment-link-v2 create route", () => {
       descriptionEn: "Donation",
       amount: "10.25",
     });
-    expect(response.headers.get("location")).toBe("/links?payment-links-v2=created");
+    expect(response.headers.get("location")).toBe("/links/v2/link-id?payment-links-v2=created");
   });
 
   it("maps any service failure to the opaque failed redirect", async () => {
@@ -48,6 +49,6 @@ describe("owner payment-link-v2 create route", () => {
     create.mockRejectedValueOnce(new Error("validation"));
 
     const response = await POST(request(new URLSearchParams({ compositionKind: "PRODUCT_LINES" })));
-    expect(response.headers.get("location")).toBe("/links?payment-links-v2=failed");
+    expect(response.headers.get("location")).toBe("/links/new?payment-links-v2=failed");
   });
 });

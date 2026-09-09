@@ -2,18 +2,26 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Plus } from "lucide-react";
 
+import { dataDirectoryCopy, DirectoryInvalidFiltersNotice } from "@/app/directory-support";
 import { WorkspaceHeading } from "@/app-shell/workspace-heading";
+import { FormDraftGuard } from "@/app/form-draft";
 import { getProductService, type OwnerProduct } from "@/auth/product";
 import { getProductCategoryService, type OwnerProductCategory } from "@/auth/product-category";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  DIRECTORY_INVALID_FILTERS_PARAM,
+  DIRECTORY_INVALID_FILTERS_VALUE,
+  directoryInvalidFiltersLocation,
+} from "@/data-directory/server/notice";
 import { DataDirectory, type DataDirectoryColumn, type DataDirectoryState } from "@/data-directory/ui/data-directory";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
 import type { getDictionary } from "@/i18n/dictionaries";
 
 import { requireMerchantShellContext } from "../../shell-context";
 import { CategoryNotice } from "../catalog-notices";
 import { Breadcrumb, SectionCard } from "../catalog-fields";
-import { catalogDirectoryCopy } from "../directory-copy";
 import { resolveCatalogDirectoryQuery, type CatalogSearchParams } from "../directory-query";
 
 import { CategoryRowActions } from "./category-row-actions";
@@ -21,41 +29,35 @@ import { CategoryRowActions } from "./category-row-actions";
 type Dictionary = ReturnType<typeof getDictionary>;
 
 const CATEGORY_NOTICE_VALUES = ["create", "edit", "deactivate", "conflict", "failed"] as const;
+const CATEGORY_FAILURE_NOTICES = ["conflict", "failed"] as const;
 const STATE_FILTER_VALUES = ["active", "inactive"] as const;
 
 function CreateCategoryCard({ dictionary }: Readonly<{ dictionary: Dictionary }>) {
   return (
     <SectionCard title={dictionary.catalogCategoryCreateHeading}>
+      <FormDraftGuard
+        draftKey="category-create"
+        fieldNames={["namePtBr", "nameEn"]}
+        formId="category-create"
+        noticeKey="categories"
+        noticeValues={CATEGORY_FAILURE_NOTICES}
+      />
       <form action="/product-categories" id="category-create" method="post">
         <input name="action" type="hidden" value="create" />
-        <div className="grid items-end gap-3 sm:grid-cols-[1fr_1fr_auto]">
-          <div>
-            <label className="text-sm font-medium" htmlFor="category-create-name-pt-br">
-              {dictionary.catalogCategoryNamePtBr}
-            </label>
-            <input
-              className="mt-1.5 h-11 w-full rounded-md border border-input bg-background px-3 text-base text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring"
-              id="category-create-name-pt-br"
-              name="namePtBr"
-              required
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium" htmlFor="category-create-name-en">
-              {dictionary.catalogCategoryNameEn}
-            </label>
-            <input
-              className="mt-1.5 h-11 w-full rounded-md border border-input bg-background px-3 text-base text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring"
-              id="category-create-name-en"
-              name="nameEn"
-              required
-            />
-          </div>
+        <FieldGroup className="grid items-end gap-3 sm:grid-cols-[1fr_1fr_auto]">
+          <Field>
+            <FieldLabel htmlFor="category-create-name-pt-br">{dictionary.catalogCategoryNamePtBr}</FieldLabel>
+            <Input id="category-create-name-pt-br" name="namePtBr" required />
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="category-create-name-en">{dictionary.catalogCategoryNameEn}</FieldLabel>
+            <Input id="category-create-name-en" name="nameEn" required />
+          </Field>
           <Button type="submit">
             <Plus aria-hidden className="size-4" />
             {dictionary.catalogCategoryCreate}
           </Button>
-        </div>
+        </FieldGroup>
       </form>
     </SectionCard>
   );
@@ -70,13 +72,14 @@ function CategoryDirectory({
   categories: readonly OwnerProductCategory[];
   dictionary: Dictionary;
   products: readonly OwnerProduct[];
-  query: Extract<ReturnType<typeof resolveCatalogDirectoryQuery>, { status: "ready" | "invalid-query" }>;
+  query: Extract<ReturnType<typeof resolveCatalogDirectoryQuery>, { status: "ready" }>;
 }>) {
   const referenceCount = new Map<string, number>();
   for (const product of products) {
+    if (product.archivedAt !== null) continue;
     if (product.categoryId) referenceCount.set(product.categoryId, (referenceCount.get(product.categoryId) ?? 0) + 1);
   }
-  const copy = catalogDirectoryCopy(dictionary, {
+  const copy = dataDirectoryCopy(dictionary, {
     title: dictionary.catalogCategoriesEmpty,
     description: dictionary.catalogCategoriesEmptyDescription,
   });
@@ -107,22 +110,6 @@ function CategoryDirectory({
       },
     },
   ];
-
-  if (query.status === "invalid-query") {
-    return (
-      <DataDirectory
-        caption={dictionary.catalogCategoriesTitle}
-        columns={columns}
-        copy={copy}
-        formAction="/catalog/categories"
-        idPrefix="catalog-categories"
-        resetUrl="/catalog/categories"
-        rowKey={(row) => row.id}
-        rows={[]}
-        state="invalid-query"
-      />
-    );
-  }
 
   const stateFilter = typeof query.filters.state === "string" ? query.filters.state : query.filters.state?.[0];
   const needle = query.q?.toLocaleLowerCase();
@@ -158,6 +145,7 @@ function CategoryDirectory({
             })),
           },
         ]}
+        canonicalFilterQuery={query.canonicalFilterQuery}
         formAction="/catalog/categories"
         getRowActions={(row) =>
           row.active ? (
@@ -167,7 +155,9 @@ function CategoryDirectory({
               dictionary={dictionary}
               references={referenceCount.get(row.id) ?? 0}
             />
-          ) : null
+          ) : (
+            <span className="text-xs text-muted-foreground">{dictionary.catalogCategoryInactiveNoEdit}</span>
+          )
         }
         idPrefix="catalog-categories"
         pageSize={query.pageSize}
@@ -190,6 +180,7 @@ export default async function CatalogCategoriesPage({
 }> = {}) {
   const { dictionary, principal } = await requireMerchantShellContext();
   const params = await searchParams;
+  const invalidFiltersNotice = params[DIRECTORY_INVALID_FILTERS_PARAM] === DIRECTORY_INVALID_FILTERS_VALUE;
   let categories: readonly OwnerProductCategory[];
   let products: readonly OwnerProduct[];
   let loadFailed = false;
@@ -212,6 +203,7 @@ export default async function CatalogCategoriesPage({
     noticeValues: CATEGORY_NOTICE_VALUES,
   });
   if (query.status === "redirect") redirect(query.location);
+  if (query.status === "invalid-query") redirect(directoryInvalidFiltersLocation("/catalog/categories"));
 
   return (
     <div className="space-y-6">
@@ -231,13 +223,14 @@ export default async function CatalogCategoriesPage({
           <Link href="/catalog">{dictionary.catalogProductBackToCatalog}</Link>
         </Button>
       </div>
-      {query.status === "ready" && query.notice ? <CategoryNotice dictionary={dictionary} notice={query.notice} /> : null}
+      {invalidFiltersNotice ? <DirectoryInvalidFiltersNotice dictionary={dictionary} /> : null}
+      {query.notice ? <CategoryNotice dictionary={dictionary} notice={query.notice} /> : null}
       <CreateCategoryCard dictionary={dictionary} />
       {loadFailed ? (
         <DataDirectory
           caption={dictionary.catalogCategoriesTitle}
           columns={[]}
-          copy={catalogDirectoryCopy(dictionary, {
+          copy={dataDirectoryCopy(dictionary, {
             title: dictionary.catalogCategoriesEmpty,
             description: dictionary.catalogCategoriesEmptyDescription,
           })}

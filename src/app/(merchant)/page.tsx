@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Store } from "lucide-react";
 
 import type { Principal } from "@/auth/authorization";
 import { getStorefrontSettingsService } from "@/auth/storefront-settings";
@@ -8,7 +8,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { getMerchantAnalyticsService, type MerchantAnalyticsView } from "@/orders/merchant-analytics";
 
-import { DashboardPeriodNavigation, MerchantDashboard } from "./dashboard";
+import { MerchantDashboard } from "./dashboard";
+import { MerchantDashboardPeriodControl } from "./period-control";
 import { requireMerchantShellContext } from "./shell-context";
 
 // The period controls emit only the closed set; an absent or hand-edited value
@@ -28,11 +29,8 @@ export default async function MerchantDashboardPage({
   searchParams = Promise.resolve({}),
 }: Readonly<{
   searchParams?: Promise<{
-    "checkout-policy"?: string;
-    "payment-links"?: string;
     language?: string;
     period?: string;
-    storefront?: string;
   }>;
 }> = {}) {
   const { dictionary, locale, principal } = await requireMerchantShellContext();
@@ -41,8 +39,8 @@ export default async function MerchantDashboardPage({
     readDashboardView(principal, notices.period),
     getStorefrontSettingsService().getForOwner(principal),
   ]);
-  const ownerNotice = notices["payment-links"] ?? notices["checkout-policy"] ?? notices.storefront;
-  const failed = ownerNotice === "failed" || ownerNotice === "conflict";
+  // storefront, checkout-policy, and payment-link saves now return to their
+  // own page, never here.
   const viewStore = storefrontSettings.storefrontEnabled && storefrontSettings.storefrontSlug !== null
     ? `/store/${storefrontSettings.storefrontSlug}`
     : null;
@@ -65,26 +63,33 @@ export default async function MerchantDashboardPage({
               </Link>
             </Button>
           ) : null}
-          <DashboardPeriodNavigation current={view.period.id} dictionary={dictionary} />
+          <MerchantDashboardPeriodControl current={view.period.id} dictionary={dictionary} />
         </div>
       </div>
-      {ownerNotice ? (
-        <Alert role={failed ? "alert" : "status"} variant={failed ? "destructive" : "success"}>
-          <AlertTitle>{failed ? dictionary.adminErrorHeading : dictionary.adminSuccessHeading}</AlertTitle>
-          <AlertDescription>{failed ? dictionary.ownerSettingsFailed : dictionary.ownerSettingsUpdated}</AlertDescription>
-        </Alert>
+      {viewStore === null ? (
+        <div className="flex flex-wrap items-center gap-3 rounded-lg border border-info/30 bg-info-soft px-4 py-3 text-sm text-info-on-soft">
+          <Store aria-hidden className="size-4 shrink-0" />
+          <span className="min-w-0 flex-1">{dictionary.merchantDashboardStorefrontBanner}</span>
+          <Button asChild size="sm" variant="secondary">
+            <Link href="/settings#storefront-enabled">{dictionary.merchantDashboardStorefrontBannerCta}</Link>
+          </Button>
+        </div>
       ) : null}
       {notices.language === "saved" ? (
-        <Alert role="status" variant="success">
-          <AlertTitle>{dictionary.languageHeading}</AlertTitle>
-          <AlertDescription>{dictionary.languageSaved}</AlertDescription>
-        </Alert>
+        <noscript>
+          <Alert role="status" variant="success">
+            <AlertTitle>{dictionary.languageHeading}</AlertTitle>
+            <AlertDescription>{dictionary.languageSaved}</AlertDescription>
+          </Alert>
+        </noscript>
       ) : null}
       {notices.language === "error" ? (
-        <Alert variant="destructive">
-          <AlertTitle>{dictionary.languageHeading}</AlertTitle>
-          <AlertDescription>{dictionary.languageError}</AlertDescription>
-        </Alert>
+        <noscript>
+          <Alert variant="destructive">
+            <AlertTitle>{dictionary.languageHeading}</AlertTitle>
+            <AlertDescription>{dictionary.languageError}</AlertDescription>
+          </Alert>
+        </noscript>
       ) : null}
       <MerchantDashboard dictionary={dictionary} locale={locale} view={view} />
     </div>

@@ -1,13 +1,13 @@
 ---
 id: application-frontend-system
-project: applications/qr-pagamentos
+project: qr-pagamentos
 domain: frontend
 kind: contract
 status: active
 implementation: partial
 origin: "roadmap/12-frontend-template-remodel"
 created: 2026-08-02
-updated: 2026-08-03
+updated: 2026-09-07
 supersedes: [administrative-design-system]
 superseded_by:
 ---
@@ -29,7 +29,8 @@ This spec defines the application-wide presentation, composition, interaction-fe
 
 - The single tone is **professional settlement console**: calm neutral work surfaces, compact financial facts, crisp bordered cards, restrained elevation, direct status feedback, and accent color reserved for action, selection, focus, and measured emphasis.
 - The exact authored visual values and responsive occurrences are the parity records, not approximations. Their production form is DTCG audit primitives → semantic aliases → component tokens with stable paths and no raw page-local visual values. Every snapshot value remains byte-equivalent at `color.primitive.audit.template.<theme>.*`; accessibility may change a rendered semantic alias but never those audit primitives.
-- The fixed semantic palette roles are page, surface, secondary surface, border, three text levels, accent/foreground/soft, success/warning/danger/info with soft companions, focus ring, and elevation. All six themes implement the same paths.
+- The fixed semantic palette roles are page, surface, secondary surface, border, three text levels, accent/foreground/soft/soft-foreground, success/warning/danger/info with soft and soft-foreground companions, focus ring, and elevation. All six themes implement the same paths.
+- The semantic palette is projected as named Tailwind utilities (`bg-surface`, `text-text-2`, `bg-accent`/`bg-accent-soft`, `bg-success`/`-soft`, `rounded-card`, `shadow-card`, `font-display`, `max-w-app`, …) in `src/app/globals.css` `@theme inline`, each bound to a semantic variable, never a literal; `accent` is the strong template accent and `accent-soft` is the pale tint.
 - The exact palette source is the immutable `docs/template/app/src/index.css` snapshot SHA-256 `762edf36239e6472ccfc8eb8faa79d73081633dec69ae4fa0fa5a530ccdcead4`; its complete theme blocks must remain byte-equivalent audit primitives. These anchors make theme identity reviewable without reopening every component:
 
 | Theme | `bg / surface / surface-2 / border` | `text / text-2 / text-3` | `accent / accent-fg / accent-soft` |
@@ -51,16 +52,27 @@ This spec defines the application-wide presentation, composition, interaction-fe
 | `vault-blue` | 55 | `#7c8cab` | `5.524 / 5.117 / 4.508` |
 | `terminal-amber` | 30 | `#97835f` | `5.288 / 4.943 / 4.545` |
 - The calculation uses WCAG sRGB linearization (`c <= 0.04045 ? c/12.92 : ((c + 0.055)/1.055)^2.4`), luminance `0.2126R + 0.7152G + 0.0722B`, and `(Llighter + 0.05) / (Ldarker + 0.05)`. A `text-3` occurrence on any other background must use a separately validated semantic on-color; it may not fall back to the audit primitive or assume this three-surface proof applies.
+- The same `k`-step method projects text rendered over a soft-tinted surface (`bg-<tone>-soft`, `.text-<tone>-on-soft`): origin `O` is the audit tone hex (`color.primitive.audit.template.<theme>.<tone>` for `success`/`warning`/`danger`/`info`, `.accent` for `action`), target `P` is rendered `color.text.primary`, and the single background is that same tone's rendered soft surface, minimum ratio `4.5:1`. The five roles across all six themes never fall back to `text-<tone>` (the strong role) on a soft surface:
+
+| Theme | success · warning · danger · info · action (`k`, hex, ratio vs soft surface) |
+|---|---|
+| `pix-paper` | success k=76 `#1e7b4b` 4.513 · warning k=70 `#8d6321` 4.541 · danger k=23 `#b73939` 4.547 · info k=6 `#2b6aad` 4.526 · action k=111 `#0d7a6b` 4.522 |
+| `cashier-daylight` | success k=10 `#157c3c` 4.526 · warning k=14 `#995e09` 4.560 · danger k=0 `#b91c1c` 5.105 · info k=0 `#0369a1` 4.967 · action k=0 `#2456e6` 4.909 |
+| `settlement-sand` | success k=14 `#4b770f` 4.507 · warning k=0 `#92400e` 5.689 · danger k=0 `#a63535` 5.021 · info k=0 `#315c8c` 5.475 · action k=31 `#99541d` 4.522 |
+| `midnight-clearing` | success k=0 `#34d399` 6.498 · warning k=0 `#fbbf24` 7.456 · danger k=0 `#f87171` 5.244 · info k=0 `#60a5fa` 5.357 · action k=0 `#5eead4` 8.265 |
+| `vault-blue` | success k=0 `#3ecf8e` 6.691 · warning k=0 `#f5b93f` 7.433 · danger k=0 `#ef6a6a` 4.909 · info k=0 `#7aa8ff` 5.873 · action k=21 `#5c95fd` 4.505 |
+| `terminal-amber` | success k=0 `#8fcb5c` 7.221 · warning k=0 `#ffd166` 9.045 · danger k=0 `#ff7a5c` 5.917 · info k=0 `#e8b04b` 7.477 · action k=0 `#ffb224` 8.105 |
 - Body copy is Inter at 14px/20px; display copy is Sora with `-0.02em` tracking; money, identifiers, codes, and numeric facts are IBM Plex Mono with tabular numerals. Only template-used weights are admitted: Sora 400/500/600/700, Inter 400/500/600, and IBM Plex Mono 400/500/600.
 - Fonts are pinned, licensed, self-hosted production assets with committed dependency/license provenance and no runtime request to Google Fonts or another host. Fallbacks may preserve usability but do not satisfy parity evidence.
 - The shared radii are 6px, 8px, 10px, and 999px pill; the application cap is 1280px, checkout cap 560px, authentication form cap 420px, desktop rail 248px, top bar 56px, table row 52px, and compact controls 40px unless the interactive-target rule requires 44px or 48px.
-- Auth uses a 720px split card with a 300px brand panel from 900px upward. Authenticated navigation is a drawer below Tailwind `lg` (1024px) and a persistent rail at or above it. Shell content padding is 16px below `lg` and 24px from `lg`.
+- Auth uses a 720px split card with a leading 300px brand panel from 900px upward, hidden below it rather than compressed; the shared `AuthCard` composes login, MFA, and reset alike. Authenticated navigation is a drawer below Tailwind `lg` (1024px) and a persistent rail at or above it, with the top-bar title resolved from each role's route→label registry (dashboard fallback) and the rail footer showing monogram, username, role pill, and caption. Shell content padding is 16px below `lg` and 24px from `lg`.
 - Cards commonly use 20px internal padding and 16px inter-card gaps. Related items stay within 16px; distinct sections use at least 32px. Labels sit above controls, prose is at most 65ch, and each section has at most one primary action.
 - Page grids may move from one column to two at 640px and to the exact template multi-column composition at 1024px. Every surface must fit at 320px without horizontal page overflow; wide directories provide a deliberate narrow composition rather than shrinking unreadably.
+- The route-scoped BEM CSS system is retired (`14.7.1`): below its token block, `globals.css` holds only base rules and four sanctioned exceptions kept for a stated reason each — `src/app-shell/app-shell.css` (shell chrome), the `900px` auth split-card block (the one literal `check-design-tokens.mjs` sanctions outside a Tailwind variant), `.brand-identity*`/`.auth-brand` (component-owned identity geometry), and `.sr-only`; every other route composes projected Tailwind utilities. See [[DESIGN|DESIGN.md]] for the full rationale and open gaps.
 
 ## Theme, locale, identity, and assets
 
-- The stored theme identifiers remain exactly `pix-paper`, `cashier-daylight`, `settlement-sand`, `midnight-clearing`, `vault-blue`, and `terminal-amber`; identifiers are never renamed or branched inside components. `pix-paper` is the safe light fallback and `midnight-clearing` the dark-system fallback unless an established stored selection wins.
+- The stored theme identifiers remain exactly `pix-paper`, `cashier-daylight`, `settlement-sand`, `midnight-clearing`, `vault-blue`, and `terminal-amber`; identifiers are never renamed or branched inside components. `pix-paper` is the safe light fallback and `midnight-clearing` the dark-system fallback unless an established stored selection wins. Since 14.2.2 the established selection for authenticated surfaces is the `qr_theme` cookie: the root layout stamps `data-theme` on `<html>` only when a principal resolved and the cookie holds one of the six ids, and the shell account menu offers the instant six-swatch picker that writes it; unauthenticated public surfaces keep `data-theme-preview`.
 - The supported locales remain exactly `pt-BR` and `en` on the existing unprefixed-route preference contract. All labels, validation, notices, empty/error/retry states, metadata, accessible names, and public copy are equivalent in both locales.
 - The supplied logo, texture, illustrations, fallbacks, and theme swatches are approved presentation targets. Production use must flow through the existing safe-SVG, generated-derivative, hash, inventory, accessibility, and provenance controls; no page-local copy, live-font static lockup, or remote asset is allowed.
 - Task `12.2.2` installed the deterministic replacement family as runtime truth: 17 approved sources produce 28 closed derivatives through the safe-SVG, hash, inventory, accessibility, and provenance controls without weakening merchant-logo ownership, media lifecycle, fallback attribution, or accessible-name rules.
@@ -68,9 +80,10 @@ This spec defines the application-wide presentation, composition, interaction-fe
 ## Component and page states
 
 - The anti-drift inventory is the reachable template component set plus current production owners. Only demonstrably consumed components may migrate; every `excluded-unreachable-generated-ui` record stays excluded. A genuinely new component requires one owner, import path, public props/states, and a one-line insufficiency finding for the existing inventory.
-- Task `12.2.3` closes its 187 assigned obligations through `src/components/ui/inventory.json`: 20 reachable template sources map exactly once to production owners, while the 49 unreachable generated sources remain exclusions. `DataDirectory` is the sole owner for reachable table/filter responsibilities and canonical previous/next pagination; role-neutral compositions own copy, empty, localized-field, modal/confirmation, formatted-money, monogram, QR, tabs, skeleton, stat, status, timeline, and toast presentation. No upload component is admitted by this inventory.
+- Task `12.2.3` closes its 187 assigned obligations through `src/components/ui/inventory.json`: 20 reachable template sources map exactly once to production owners, while the 49 unreachable generated sources remain exclusions. `DataDirectory` is the sole owner for reachable table/filter responsibilities and canonical previous/next pagination; its client shell commits search, filters, and page size to the URL live (debounced search, on-change controls, geometry-preserving skeleton while pending), renders removable localized filter chips, and gives rows a clickable primary href alongside the explicit keyboard-reachable action, all over the native GET form with no parallel table/filter owner and no invalid-query render (invalid input redirects to the reset path with an informational notice instead); role-neutral compositions own copy, empty, localized-field, modal/confirmation, formatted-money, monogram, QR, tabs, skeleton, stat, status, timeline, and toast presentation. A genuinely new component whose template source is `excluded-unreachable-generated-ui` — such as the owned `ImageUploader` delivered by task `14.2.4` — is recorded in the inventory's `localAdditions` section (owner, public API, states, one-line insufficiency finding) and never enters `owners`, which stays exactly those 20 reachable sources.
 - Components expose default, loading where applicable, empty where applicable, error with descriptive recovery, hover, visible focus, and disabled states; populated, invalid, active, selected, success, and confirmation states are added only where the control contract requires them.
 - Data-driven pages cover ready, loading, empty, filtered-empty, unavailable, validation error, request error, success notice, retry, pending/disabled, and destructive confirmation when applicable. Checkout and recovery journeys also cover preparing, QR/copy, polling recovery, and every existing terminal state.
+- Password reset proves only the two unusable-link states the reset service can distinguish — missing/blank token and a rejected token — because `validateResetChallenge`/`findValidToken` fold invalid, expired, and used tokens into one `null`; the three-way split is an open contract limit requiring a new service outcome, not a presentation gap to paper over.
 - A non-applicable state is documented, never fabricated. Loading preserves final geometry; empty is not an error; filtered-empty preserves reset; unavailable and request errors reveal no identity, submitted value, authorization cause, provider body, or internal detail.
 - Status, active navigation, validation, selection, destructive meaning, and terminal outcomes always combine text/icon/shape or placement with color. Monetary values and provider-confirmed versus locally finalized facts remain separate exactly as their business specs require.
 

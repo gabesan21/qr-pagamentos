@@ -22,7 +22,11 @@ describe("public checkout page", () => {
 
   it("renders the exact projection with policy-driven fields and shared primitives", async () => {
     get.mockReturnValue(undefined);
-    read.mockResolvedValueOnce({ product: { title: "Donation", description: "Support the project.", price: "12.50" }, checkoutPolicy: "NAME_EMAIL_CPF_ADDRESS" });
+    read.mockResolvedValueOnce({
+      product: { title: "Donation", description: "Support the project.", price: "12.50" },
+      checkoutPolicy: "NAME_EMAIL_CPF_ADDRESS",
+      branding: { displayName: "Ana's Shop", accentColor: "#125448", themeId: "vault-blue", logoMediaIdentifier: "logo-media-identifier-00000000000000000" },
+    });
     const markup = renderToStaticMarkup(await PublicCheckoutPage({ params: Promise.resolve({ identifier }) }));
 
     expect(read).toHaveBeenCalledWith(identifier, "pt-BR");
@@ -34,6 +38,7 @@ describe("public checkout page", () => {
     expect(markup).toContain('data-slot="card"');
     expect(markup).toContain('data-slot="field-set"');
     expect(markup).not.toContain("currencyUuid");
+    expect(markup).toContain("/media/logo-media-identifier-00000000000000000");
   });
 
   it("renders a generic unavailable state without a form", async () => {
@@ -49,7 +54,7 @@ describe("public checkout page", () => {
     get.mockReturnValue({ value: "session-token" });
     resolve.mockResolvedValueOnce({ id: "account-id" });
     resolveLocale.mockResolvedValueOnce("en");
-    read.mockResolvedValueOnce({ product: { title: "Donation", description: "Support the project.", price: "12.50" }, checkoutPolicy: "NONE" });
+    read.mockResolvedValueOnce({ product: { title: "Donation", description: "Support the project.", price: "12.50" }, checkoutPolicy: "NONE", branding: { displayName: null, accentColor: null, themeId: "pix-paper", logoMediaIdentifier: null } });
 
     await PublicCheckoutPage({ params: Promise.resolve({ identifier }) });
 
@@ -60,7 +65,7 @@ describe("public checkout page", () => {
 
   it("keeps V1 resolution first and never reads the V2 presentation while V1 resolves", async () => {
     get.mockReturnValue(undefined);
-    read.mockResolvedValueOnce({ product: { title: "Donation", description: "Support the project.", price: "12.50" }, checkoutPolicy: "NONE" });
+    read.mockResolvedValueOnce({ product: { title: "Donation", description: "Support the project.", price: "12.50" }, checkoutPolicy: "NONE", branding: { displayName: null, accentColor: null, themeId: "pix-paper", logoMediaIdentifier: null } });
 
     await PublicCheckoutPage({ params: Promise.resolve({ identifier }) });
 
@@ -162,7 +167,7 @@ describe("public checkout page", () => {
     expect(markup).toContain("--storefront-accent:#125448");
     expect(markup).toContain("/media/logo-media-identifier-00000000000000000");
     expect(markup).toContain("Café da Ana");
-    expect(markup).toContain('data-slot="badge"');
+    expect(markup).toContain("bg-success-soft text-success");
     expect(markup).toContain("Pago");
     expect(markup).toContain("Este link de pagamento já foi pago");
     expect(markup).toContain("Este link de uso único já foi utilizado e não aceita um novo pagamento.");

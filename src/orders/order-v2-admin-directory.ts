@@ -23,6 +23,7 @@ import type {
 } from "../data-directory/server/query-contract";
 import { getDatabaseClient } from "../db/client";
 import type { Prisma, PrismaClient } from "../generated/prisma/client";
+import { PAYMENT_LINK_ORDER_STATES } from "./payment-link-order";
 import type { OrderV2DirectoryUsdPair } from "./order-v2-directory";
 import {
   orderV2SummarySelect,
@@ -47,9 +48,22 @@ export const ADMIN_ORDER_V2_DIRECTORY_PAGE_SIZE_POLICY = {
   defaultSize: 50,
 } as const satisfies DirectoryPageSizePolicy;
 
+// The explicit stateless option the template's provider-state select needs
+// beside the eight PaymentLinkOrderState members: STANDALONE and AD_HOC
+// orders with no provider attempt yet carry `state: null`, and this value is
+// the only registered filter member that maps to that null column.
+export const ADMIN_ORDER_V2_DIRECTORY_STATELESS_FILTER_VALUE = "STATELESS";
+
+export const ADMIN_ORDER_V2_DIRECTORY_STATE_FILTER_VALUES = [
+  ...PAYMENT_LINK_ORDER_STATES,
+  ADMIN_ORDER_V2_DIRECTORY_STATELESS_FILTER_VALUE,
+] as const;
+
 export const ADMIN_ORDER_V2_DIRECTORY_FILTERS = [
   { name: "source", kind: "enum", values: ["AD_HOC", "LINK", "STANDALONE"] },
+  { name: "state", kind: "enum", values: ADMIN_ORDER_V2_DIRECTORY_STATE_FILTER_VALUES },
   { name: "money", kind: "enum", values: ["FIAT", "USD"] },
+  { name: "merchant", kind: "text" },
   { name: "from", kind: "text" },
   { name: "to", kind: "text" },
   { name: "link", kind: "text" },
@@ -162,6 +176,14 @@ async function readWindow(
 
   const source = input.filters.source;
   if (Array.isArray(source) && source.length === 1) and.push({ source: source[0] });
+
+  const state = input.filters.state;
+  if (Array.isArray(state) && state.length === 1) {
+    and.push({ state: state[0] === ADMIN_ORDER_V2_DIRECTORY_STATELESS_FILTER_VALUE ? null : state[0] });
+  }
+
+  const merchant = textFilter(input.filters, "merchant");
+  if (merchant !== undefined) and.push({ owner: { is: { username: { equals: merchant, mode: "insensitive" } } } });
 
   const money = input.filters.money;
   if (Array.isArray(money) && money.length === 1) {

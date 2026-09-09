@@ -1,0 +1,65 @@
+{
+  "roles": {
+    "pop-execution-orchestrator": {
+      "disallowedTools": ["WebFetch", "WebSearch", "Agent"],
+      "effort": "medium",
+      "model": "sonnet",
+      "nesting": false,
+      "permissionMode": "dontAsk",
+      "skills": [],
+      "tools": ["Read", "Glob", "Grep", "Edit", "Write"],
+      "web": false
+    },
+    "pop-executor": {
+      "disallowedTools": ["WebFetch", "WebSearch", "Agent"],
+      "effort": "medium",
+      "model": "sonnet",
+      "nesting": false,
+      "permissionMode": "dontAsk",
+      "skills": [],
+      "tools": ["Read", "Glob", "Grep", "Edit", "Write", "Bash"],
+      "web": false
+    },
+    "pop-judge-dredd": {
+      "disallowedTools": ["WebFetch", "WebSearch", "Agent"],
+      "effort": "high",
+      "model": "opus",
+      "nesting": false,
+      "permissionMode": "dontAsk",
+      "skills": ["judge-dredd"],
+      "tools": ["Read", "Glob", "Grep", "Edit", "Write", "Bash"],
+      "web": false
+    },
+    "pop-phase-verifier": {
+      "disallowedTools": ["WebFetch", "WebSearch", "Agent"],
+      "effort": "medium",
+      "model": "sonnet",
+      "nesting": false,
+      "permissionMode": "dontAsk",
+      "skills": [],
+      "tools": ["Read", "Glob", "Grep", "Edit", "Write", "Bash"],
+      "web": false
+    },
+    "pop-planner": {
+      "disallowedTools": ["WebFetch", "WebSearch", "Agent", "Bash"],
+      "effort": "high",
+      "model": "opus",
+      "nesting": false,
+      "permissionMode": "dontAsk",
+      "skills": [],
+      "tools": ["Read", "Glob", "Grep", "Edit", "Write"],
+      "web": false
+    },
+    "pop-recon": {
+      "disallowedTools": ["WebFetch", "WebSearch", "Agent"],
+      "effort": "medium",
+      "model": "sonnet",
+      "nesting": false,
+      "permissionMode": "dontAsk",
+      "skills": [],
+      "tools": ["Read", "Glob", "Grep", "Edit", "Write", "Bash"],
+      "web": false
+    }
+  },
+  "version": 1
+}

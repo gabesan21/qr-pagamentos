@@ -3,6 +3,7 @@ import "server-only";
 import type { Principal } from "@/auth/authorization";
 import { canonicalizeDirectoryRequest, type CanonicalDirectoryRequest } from "@/data-directory/server/canonical-request";
 import { createDirectoryCursorCodec, type DirectoryCursorCodec, type DirectoryCursorEnvelope } from "@/data-directory/server/cursor";
+import { DIRECTORY_INVALID_FILTERS_PARAM } from "@/data-directory/server/notice";
 import {
   ADMIN_ORDER_V2_DIRECTORY_FILTERS,
   ADMIN_ORDER_V2_DIRECTORY_ID,
@@ -13,7 +14,9 @@ import {
 
 // URL resolution for the administrator global order directory: strict
 // canonicalization against the delivered service contract, bound to the
-// ADMIN_GLOBAL scope purpose. No notice keys exist on this read-only surface.
+// ADMIN_GLOBAL scope purpose. The reserved invalid-filters pair is stripped
+// before canonicalization so a redirect that carries it never loops; no
+// other notice keys exist on this read-only surface.
 export type AdminOrdersSearchParams = Readonly<Record<string, string | readonly string[] | undefined>>;
 
 export type AdminOrdersDirectoryQuery = CanonicalDirectoryRequest;
@@ -40,6 +43,7 @@ export function resolveAdminOrdersDirectoryQuery(
   const entries: Array<[string, string]> = [];
   for (const [key, value] of Object.entries(input.searchParams)) {
     if (value === undefined) continue;
+    if (key === DIRECTORY_INVALID_FILTERS_PARAM) continue;
     const values = typeof value === "string" ? [value] : value;
     if (values.length === 0) return { status: "invalid-query" };
     for (const item of values) entries.push([key, item]);

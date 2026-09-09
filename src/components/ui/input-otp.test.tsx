@@ -25,8 +25,15 @@ Object.defineProperty(document, "elementFromPoint", {
   value: () => null,
 })
 
-afterEach(() => {
+afterEach(async () => {
   cleanup()
+  // input-otp schedules a few uncancelled setTimeout(0/10/50) calls on every
+  // value/focus change (no cleanup return on that effect); without this
+  // flush they can fire after vitest tears down the jsdom window for this
+  // file, throwing "window is not defined" outside of any test.
+  await new Promise((resolve) => {
+    setTimeout(resolve, 100)
+  })
 })
 
 describe("InputOTP focus", () => {

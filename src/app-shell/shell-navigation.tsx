@@ -3,12 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { type ReactNode, useId, useState } from "react";
-import { ChevronDownIcon, ExternalLinkIcon, MenuIcon, UserIcon, XIcon } from "lucide-react";
+import { ChevronDownIcon, ExternalLinkIcon, LogOutIcon, MenuIcon, UserIcon, XIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Monogram } from "@/components/ui/monogram";
 
-import type { ShellLabels, ShellNavigationItem } from "./shell-types";
+import { ShellThemePicker } from "./shell-theme-picker";
+import type { ShellLabels, ShellNavigationItem, ShellThemeOption, ShellTitleRoute } from "./shell-types";
 
 function isActiveRoute(pathname: string, href: string) {
   if (href === "/" || href === "/admin") return pathname === href;
@@ -78,11 +79,13 @@ function AccountMenu({
   labels,
   profileLink,
   roleLabel,
+  themeOptions,
   username,
 }: Readonly<{
-  labels: Pick<ShellLabels, "accountMenu" | "profile">;
+  labels: Pick<ShellLabels, "accountMenu" | "profile" | "signOut" | "themeMenu">;
   profileLink?: Readonly<{ href: string; label: string }>;
   roleLabel: string;
+  themeOptions: readonly ShellThemeOption[];
   username: string;
 }>) {
   const menuId = useId();
@@ -114,6 +117,13 @@ function AccountMenu({
               <span>{profileLink.label}</span>
             </Link>
           ) : null}
+          <ShellThemePicker groupLabel={labels.themeMenu} themeOptions={themeOptions} />
+          <form action="/logout" className="app-shell__account-panel-signout" method="post" role="none">
+            <button className="app-shell__account-panel-item" role="menuitem" type="submit">
+              <LogOutIcon aria-hidden="true" />
+              <span>{labels.signOut}</span>
+            </button>
+          </form>
         </div>
       ) : null}
     </div>
@@ -228,9 +238,11 @@ export function TopBarShellControls({
   labels,
   locale,
   mobileNavigation,
-  pageTitle,
   roleLabel,
   storefrontLink,
+  themeOptions = [],
+  titleFallback,
+  titleRoutes = [],
   username,
 }: Readonly<{
   accountLink?: Readonly<{ href: string; label: string }>;
@@ -238,11 +250,16 @@ export function TopBarShellControls({
   labels: ShellLabels;
   locale: string;
   mobileNavigation: Readonly<Pick<NavigationProps, "items"> & { label: string }>;
-  pageTitle: string;
   roleLabel: string;
   storefrontLink?: Readonly<{ href: string; label: string }>;
+  themeOptions?: readonly ShellThemeOption[];
+  titleFallback?: string;
+  titleRoutes?: readonly ShellTitleRoute[];
   username: string;
 }>) {
+  const pathname = usePathname();
+  const pageTitle = titleRoutes.find((route) => isActiveRoute(pathname, route.href))?.label ?? titleFallback ?? "";
+
   return (
     <header className="app-shell__top-bar">
       <div className="app-shell__top-bar-start">
@@ -268,9 +285,15 @@ export function TopBarShellControls({
           </Link>
         ) : null}
         <AccountMenu
-          labels={{ accountMenu: labels.accountMenu, profile: labels.profile }}
+          labels={{
+            accountMenu: labels.accountMenu,
+            profile: labels.profile,
+            signOut: labels.signOut,
+            themeMenu: labels.themeMenu,
+          }}
           profileLink={accountLink}
           roleLabel={roleLabel}
+          themeOptions={themeOptions}
           username={username}
         />
       </div>

@@ -1,13 +1,13 @@
 ---
 id: identity-security
-project: applications/qr-pagamentos
+project: qr-pagamentos
 domain: identity-security
 kind: contract
 status: active
 implementation: implemented
 origin: "roadmap/11-identity-security-and-release"
 created: 2026-07-28
-updated: 2026-07-28
+updated: 2026-09-08
 supersedes: []
 superseded_by:
 ---
@@ -65,6 +65,8 @@ This spec defines the durable contracts for time-based one-time password (TOTP) 
 
 - `POST /profile/totp/enroll` returns `200` JSON (`{ provisioningUri, recoveryCodes }`) instead of an opaque redirect. The redirect pattern would prevent the UI from obtaining the provisioning URI and recovery codes, so the contract exposes only the public-safe metadata needed for QR-code rendering. The plaintext secret remains server-encrypted.
 - `TOTP_ENCRYPTION_KEY` is a required deployment secret; the installer generates it when absent and stages it alongside `NAUTT_ENCRYPTION_KEY`.
+- **Converged enrollment UI (14.5.3):** `/profile` runs the three-step template order over the unchanged routes above — QR code plus manual-secret `CopyField` from the enroll response, then a code-confirm step with an inline wrong-code error, then recovery codes with copy-all and a client-generated `.txt` download, gated by a "codes saved" checkbox before closing. The confirm step is submitted by `fetch` to the unchanged `/profile/totp/confirm` and branches on the `totp` param of the followed redirect (`confirmed` advances to codes; anything else shows the inline error), so no route byte changed and the codes never leave component state — they are never written to storage. Regenerate opens `ConfirmDialog` before the unchanged `/profile/totp/regenerate` POST. Disable keeps requiring the current password and a code, unchanged.
+- **Enrolled-since gap:** `TotpService.getStatus` (`src/auth/totp.ts:186`) projects only `"none" | "pending" | "active"`, with no enrollment timestamp; the profile UI therefore cannot render an enrolled-since date and does not attempt to fabricate one.
 
 ## Out of scope
 

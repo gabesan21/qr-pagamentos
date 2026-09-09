@@ -4,7 +4,7 @@
 - **Epoch/Phase:** [[roadmap/2-nautt-finance-integration|Epoch 2]]
 - **Status:** implementada
 - **Created:** 2026-07-13
-- **Updated:** 2026-07-25 — task M-5.1 records the beta suspension of webhook HMAC verification (human decision; MUST BE RESOLVED BEFORE PRODUCTION).
+- **Updated:** 2026-09-08 — task 14.5.3 converged the `/settings` credential surface to the template control set (status badge, Validate, confirm-gated reset) and recorded the replace-blocked-outside-`UNREGISTERED` gap. Earlier: 2026-07-25 — task M-5.1 records the beta suspension of webhook HMAC verification (human decision; MUST BE RESOLVED BEFORE PRODUCTION).
 
 ## What it covers
 
@@ -57,6 +57,8 @@ This spec defines the allowed boundary between QR Pagamentos and Nautt Finance f
 - Unlocalized central webhook intake with bounded raw-byte streaming, strict all-owner HMAC verification, durable delivery/attempt deduplication, a fenced 16-second processing lease, empty no-store protocol responses, and one-read owner-bound authoritative reconciliation that excludes notification status from state mutation (task 2.3.1). BETA(M-5.1): the HMAC verification capability is suspended during the closed beta (see the suspension note in Requirements); the remaining capabilities are unchanged.
 - Explicit owner/order-scoped recovery for permanently failed webhook deliveries through an injected eight-field normalized history port, with pre-lease known-UUID dedupe, an application-local 128-record cap, service-owned 10-second cancellation, typed `RECOVERY` evidence, a fenced 30-second lease, atomic collision preservation, terminal safety, and at most one authoritative reconciliation per batch (task 2.3.2).
 - Owner-initiated local-only reset of a stuck `REGISTERING`/`INDETERMINATE` webhook registration to `UNREGISTERED` via one atomic compare-and-swap with zero provider calls and zero decryption, bilingual ambiguity disclosure, opaque re-authorized outcomes, and race-safe loss of any concurrent in-flight claim (task 0.1.2).
+
+- **Converged `/settings` credential surface (task 14.5.3):** a status `StatusBadge` (active/unregistered/indeterminate/not-configured) plus the credential's projected `updatedAt` labelled as a credential update — never a fabricated validation instant, since Validate performs no new provider call — beside a Validate action that only re-reads `readStatus`; a reset action behind `ConfirmDialog` renders only where the contract already allows the local-only reset (`REGISTERING`/`INDETERMINATE`); and one notice per outcome, deduplicated. **Gap recorded:** replacement stays contract-blocked outside `UNREGISTERED`, so the surface offers no replace control while a credential is `ACTIVE`, `REGISTERING`, or `INDETERMINATE` — never a dead form the mutation would reject.
 
 ## Open
 

@@ -1,8 +1,26 @@
 import type { ReactNode } from "react";
 
+import type { StorefrontThemeId } from "@/design-system/themes";
+
 export type ShellNavigationItem = Readonly<{
   href: string;
   icon: ReactNode;
+  label: string;
+}>;
+
+// A route the top-bar title resolves against, matched with the same
+// `isActiveRoute` rule as navigation; carries no icon since it never renders
+// as a link.
+export type ShellTitleRoute = Readonly<{
+  href: string;
+  label: string;
+}>;
+
+// An inert theme choice presented to the account menu: an id from the closed
+// registry plus its already-localized name. No business DTO, no service
+// value.
+export type ShellThemeOption = Readonly<{
+  id: StorefrontThemeId;
   label: string;
 }>;
 
@@ -16,7 +34,11 @@ export type ShellLabels = Readonly<{
   openNavigation: string;
   privacy: string;
   profile: string;
+  railCaption: string;
   signOut: string;
   skipToContent: string;
   storefront: string;
+  // Optional so shells that predate the theme picker keep compiling; every
+  // role layout in this application supplies it.
+  themeMenu?: string;
 }>;

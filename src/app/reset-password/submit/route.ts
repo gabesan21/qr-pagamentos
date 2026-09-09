@@ -26,7 +26,7 @@ export async function POST(request: Request) {
 
     try {
       await getPasswordResetService().consumeResetChallenge(tokenString, newPassword);
-      return relativeRedirect("/login?password=changed");
+      return relativeRedirect("/reset-password?status=changed");
     } catch (error) {
       if (error instanceof PasswordResetValidationError || error instanceof PasswordResetUnavailableError) {
         return failureRedirect;

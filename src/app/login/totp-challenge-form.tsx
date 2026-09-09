@@ -7,10 +7,17 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { REGEXP_ONLY_DIGITS } from "input-otp";
 import { Spinner } from "@/components/ui/spinner";
+
+const TOTP_CODE_LENGTH = 6;
+const RECOVERY_CODE_LENGTH = 64;
+const RECOVERY_CODE_PATTERN = "[0-9a-f]{64}";
 
 type TotpChallengeFormProps = {
   dictionary: {
+    backToCredentials: string;
     mfaHeading: string;
     mfaIntroduction: string;
     mfaCodeLabel: string;
@@ -26,53 +33,90 @@ type TotpChallengeFormProps = {
 
 export function TotpChallengeForm({ dictionary, failed }: Readonly<TotpChallengeFormProps>) {
   const [useRecovery, setUseRecovery] = useState(false);
+  const [code, setCode] = useState("");
   const { pending } = useFormStatus();
-  const inputRef = useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const recoveryRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    inputRef.current?.focus();
+    if (useRecovery) recoveryRef.current?.focus();
   }, [useRecovery]);
 
-  const toggleMode = () => setUseRecovery((previous) => !previous);
+  function toggleMode() {
+    setUseRecovery((previous) => !previous);
+    setCode("");
+  }
 
   return (
-    <form action="/login/totp-challenge" className="login-form" id="totp-challenge-form" method="post">
+    <form action="/login/totp-challenge" className="grid gap-5" id="totp-challenge-form" method="post" ref={formRef}>
       {failed && (
         <Alert variant="destructive">
           <AlertDescription>{dictionary.mfaFailed}</AlertDescription>
         </Alert>
       )}
       <FieldGroup>
-        <Field>
-          <FieldLabel htmlFor="mfa-code">{useRecovery ? dictionary.mfaRecoveryCodeLabel : dictionary.mfaCodeLabel}</FieldLabel>
-          <Input
-            autoComplete="one-time-code"
-            autoFocus
-            id="mfa-code"
-            inputMode={useRecovery ? "text" : "numeric"}
-            maxLength={useRecovery ? 64 : 6}
-            name="code"
-            pattern={useRecovery ? "[0-9a-f]{64}" : "[0-9]{6}"}
-            ref={inputRef}
-            required
-            type="text"
-          />
-        </Field>
+        {useRecovery ? (
+          <Field>
+            <FieldLabel htmlFor="mfa-recovery-code">{dictionary.mfaRecoveryCodeLabel}</FieldLabel>
+            <Input
+              autoComplete="one-time-code"
+              disabled={pending}
+              id="mfa-recovery-code"
+              inputMode="text"
+              maxLength={RECOVERY_CODE_LENGTH}
+              name="code"
+              pattern={RECOVERY_CODE_PATTERN}
+              ref={recoveryRef}
+              required
+              type="text"
+            />
+          </Field>
+        ) : (
+          <Field>
+            <FieldLabel htmlFor="mfa-totp-code">{dictionary.mfaCodeLabel}</FieldLabel>
+            {/* Native paste fill and submit-on-completion come from the
+                owned InputOTP primitive; `name="code"` keeps the field
+                postable through the unchanged native form/route pair. */}
+            <InputOTP
+              aria-label={dictionary.mfaCodeLabel}
+              autoFocus
+              disabled={pending}
+              id="mfa-totp-code"
+              inputMode="numeric"
+              maxLength={TOTP_CODE_LENGTH}
+              name="code"
+              onChange={setCode}
+              onComplete={() => formRef.current?.requestSubmit()}
+              pattern={REGEXP_ONLY_DIGITS}
+              required
+              value={code}
+            >
+              <InputOTPGroup>
+                {Array.from({ length: TOTP_CODE_LENGTH }, (_, index) => (
+                  <InputOTPSlot index={index} key={index} />
+                ))}
+              </InputOTPGroup>
+            </InputOTP>
+          </Field>
+        )}
       </FieldGroup>
-      <div className="flex items-center justify-between gap-4">
-        <Button
-          disabled={pending}
-          onClick={toggleMode}
-          type="button"
-          variant="link"
-        >
-          {useRecovery ? dictionary.mfaTotpLink : dictionary.mfaRecoveryLink}
+      <div className="flex items-center gap-3">
+        <Button asChild disabled={pending} variant="ghost">
+          <a href="/login">{dictionary.backToCredentials}</a>
         </Button>
-        <Button aria-busy={pending || undefined} disabled={pending} type="submit">
+        <Button aria-busy={pending || undefined} className="w-full" disabled={pending} type="submit">
           {pending && <Spinner data-icon="inline-start" />}
           {pending ? dictionary.mfaSubmitting : dictionary.mfaSubmit}
         </Button>
       </div>
+      <button
+        className="cursor-pointer border-0 bg-transparent text-center text-sm text-text-2 hover:text-accent disabled:cursor-not-allowed disabled:opacity-[var(--disabled-opacity)]"
+        disabled={pending}
+        onClick={toggleMode}
+        type="button"
+      >
+        {useRecovery ? dictionary.mfaTotpLink : dictionary.mfaRecoveryLink}
+      </button>
     </form>
   );
 }

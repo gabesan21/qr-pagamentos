@@ -68,6 +68,16 @@ describe("public checkout form", () => {
     expect(markup("NONE")).toContain('role="status"');
   });
 
+  // C03.c (14.6.1 round-1 repair 508e21d8): this form was one of the two
+  // components that used to emit the retired `checkout-card`/`checkout-form`/
+  // `checkout-payment`/`checkout-description` classes — pin the form phase's
+  // rendered markup by exact class name, never by prefix (the shell's own
+  // `max-w-[var(--checkout-max)]` token would false-positive on a prefix regex).
+  it("never emits a retired checkout-card/-form/-payment/-description class in the form phase", () => {
+    const rendered = markup("NAME_EMAIL_CPF_ADDRESS");
+    expect(rendered).not.toMatch(/\bcheckout-(card|form|payment|description)\b/);
+  });
+
   it("aborts hidden capability polls, ignores stale responses, and resumes without overlap", async () => {
     vi.useFakeTimers();
     const document = new TestVisibilityDocument();

@@ -1,6 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
+import Image from "next/image";
 import { Archive } from "lucide-react";
 
 import { WorkspaceHeading } from "@/app-shell/workspace-heading";
@@ -10,13 +11,19 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ConfirmDialog } from "@/components/ui/modal";
-import { StatusBadge } from "@/components/ui/status-badge";
+import { EntityStateBadge } from "@/components/ui/status-badge";
 import type { getDictionary } from "@/i18n/dictionaries";
 import type { SupportedLocale } from "@/i18n/locales";
 
 import { CatalogSubmit } from "../../catalog-submit";
 import { Banner, Breadcrumb } from "../../catalog-fields";
+import { ProductNotice } from "../../catalog-notices";
 import { ProductForm } from "../../product-form";
+
+function submitFormById(formId: string) {
+  const form = document.getElementById(formId);
+  if (form instanceof HTMLFormElement) form.requestSubmit();
+}
 
 type Dictionary = ReturnType<typeof getDictionary>;
 
@@ -36,25 +43,25 @@ function ProductHeader({
   dictionary: Dictionary;
   product: OwnerProduct;
 }>) {
+  const state = product.archivedAt !== null ? "archived" : product.active ? "active" : "inactive";
   return (
     <div className="flex flex-wrap items-center gap-3">
-      {product.imageMediaId ? (
-        <img
-          alt=""
-          className="size-12 rounded-md border border-border object-cover"
-          height={48}
-          src={`/media/${product.imageMediaId}`}
-          width={48}
-        />
-      ) : null}
+      <Image
+        alt=""
+        className="size-12 rounded-md border border-border object-cover"
+        height={48}
+        src={product.imageMediaId ? `/media/${product.imageMediaId}` : "/application-assets/product-fallback.svg"}
+        width={48}
+      />
       <h1 className="font-heading text-2xl leading-snug font-medium text-foreground">{product.internalName}</h1>
-      {product.archivedAt !== null ? (
-        <StatusBadge archived label={dictionary.catalogProductStateArchived} tone="danger" />
-      ) : product.active ? (
-        <StatusBadge label={dictionary.catalogProductStateActive} tone="success" />
-      ) : (
-        <StatusBadge label={dictionary.catalogProductStateInactive} tone="neutral" />
-      )}
+      <EntityStateBadge
+        labels={{
+          active: dictionary.catalogProductStateActive,
+          archived: dictionary.catalogProductStateArchived,
+          inactive: dictionary.catalogProductStateInactive,
+        }}
+        state={state}
+      />
     </div>
   );
 }
@@ -105,19 +112,19 @@ export function ProductDetailClient({
   choices,
   dictionary,
   locale,
+  notice,
   product,
 }: Readonly<{
   categories: readonly OwnerProductCategory[];
   choices: readonly { code: string; label: string }[];
   dictionary: Dictionary;
   locale: SupportedLocale;
+  notice?: "conflict" | "failed";
   product: OwnerProduct | undefined;
 }>) {
   const [archiveOpen, setArchiveOpen] = useState(false);
   const [activeDialogOpen, setActiveDialogOpen] = useState(false);
   const [pendingActive, setPendingActive] = useState(product?.active ?? true);
-  const activeFormRef = useRef<HTMLFormElement>(null);
-  const archiveFormRef = useRef<HTMLFormElement>(null);
 
   if (!product) {
     return (
@@ -152,9 +159,11 @@ export function ProductDetailClient({
       />
       <ProductHeader dictionary={dictionary} product={product} />
 
+      {notice ? <ProductNotice dictionary={dictionary} notice={notice} /> : null}
+
       {archived ? <ArchivedBanner dictionary={dictionary} /> : null}
 
-      {!archived ? (
+      <div className={archived ? "rounded-lg border border-border bg-muted/40 p-5 saturate-50 sm:p-6" : ""}>
         <ProductForm
           categories={categories}
           choices={choices}
@@ -166,8 +175,9 @@ export function ProductDetailClient({
             setActiveDialogOpen(true);
           }}
           product={product}
+          readOnly={archived}
         />
-      ) : null}
+      </div>
 
       {!archived ? (
         <>
@@ -202,7 +212,7 @@ export function ProductDetailClient({
                 : dictionary.catalogProductDeactivateConfirmDescription
             }
             failureMessage={dictionary.adminProductMutationFailed}
-            onConfirm={() => activeFormRef.current?.requestSubmit()}
+            onConfirm={() => submitFormById("product-active-toggle")}
             onOpenChange={setActiveDialogOpen}
             open={activeDialogOpen}
             pendingLabel={dictionary.loading}
@@ -214,7 +224,7 @@ export function ProductDetailClient({
             description={dictionary.catalogProductArchiveDescription}
             destructive
             failureMessage={dictionary.adminProductMutationFailed}
-            onConfirm={() => archiveFormRef.current?.requestSubmit()}
+            onConfirm={() => submitFormById("product-archive")}
             onOpenChange={setArchiveOpen}
             open={archiveOpen}
             pendingLabel={dictionary.loading}

@@ -77,7 +77,7 @@ describe("owner storefront logo route", () => {
 
     expect(create).toHaveBeenCalledWith(owner, "STOREFRONT_LOGO", expect.any(Uint8Array));
     expect(response.status).toBe(303);
-    expect(response.headers.get("location")).toBe(`/settings?storefront-logo=staged&logo=${identifier}`);
+    expect(response.headers.get("location")).toBe(`/settings?storefront-logo=staged&logo=${identifier}#settings-store`);
   });
 
   it("rejects an oversized declared body before parsing with the opaque failed redirect", async () => {
@@ -86,7 +86,7 @@ describe("owner storefront logo route", () => {
     const oversized = await request({ ...png, bytes: new Uint8Array(MAX_MEDIA_BYTES + 65 * 1024) });
     const formData = vi.spyOn(oversized, "formData");
     const response = await POST(oversized);
-    expect(response.headers.get("location")).toBe("/settings?storefront-logo=failed");
+    expect(response.headers.get("location")).toBe("/settings?storefront-logo=failed#settings-store");
     expect(formData).not.toHaveBeenCalled();
     expect(create).not.toHaveBeenCalled();
   });
@@ -97,18 +97,18 @@ describe("owner storefront logo route", () => {
     create.mockClear();
 
     const missing = await POST(await request(null));
-    expect(missing.headers.get("location")).toBe("/settings?storefront-logo=failed");
+    expect(missing.headers.get("location")).toBe("/settings?storefront-logo=failed#settings-store");
 
     const empty = await POST(await request({ ...png, bytes: new Uint8Array() }));
-    expect(empty.headers.get("location")).toBe("/settings?storefront-logo=failed");
+    expect(empty.headers.get("location")).toBe("/settings?storefront-logo=failed#settings-store");
 
     const oversized = await POST(await request({ ...png, bytes: new Uint8Array(MAX_MEDIA_BYTES + 1) }));
-    expect(oversized.headers.get("location")).toBe("/settings?storefront-logo=failed");
+    expect(oversized.headers.get("location")).toBe("/settings?storefront-logo=failed#settings-store");
     expect(create).not.toHaveBeenCalled();
 
     create.mockRejectedValueOnce(new Error("quota exceeded — internal detail"));
     const rejected = await POST(await request(png));
-    expect(rejected.headers.get("location")).toBe("/settings?storefront-logo=failed");
+    expect(rejected.headers.get("location")).toBe("/settings?storefront-logo=failed#settings-store");
     expect(await rejected.text()).toBe("");
   });
 
@@ -117,7 +117,7 @@ describe("owner storefront logo route", () => {
     ownerProtectedMutationResponse.mockReturnValue(null);
     create.mockRejectedValueOnce(new Error("media validation failed"));
     const response = await POST(await request(svg));
-    expect(response.headers.get("location")).toBe("/settings?storefront-logo=failed");
+    expect(response.headers.get("location")).toBe("/settings?storefront-logo=failed#settings-store");
     expect(await response.text()).toBe("");
   });
 });

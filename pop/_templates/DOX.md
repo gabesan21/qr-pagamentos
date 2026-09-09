@@ -31,4 +31,4 @@ Código sem árvore DOX → varredura recursiva e construção da árvore: AGENT
 - **002 (brief):** o planejador identifica os contratos aplicáveis às áreas prováveis e os linka; caminhada ampla só ocorre se uma decisão depender dela.
 - **004:** cada frente caminha a árvore até seu local antes da primeira edição. Um extrato pode ser reutilizado se base/hash não mudou; contratos alterados entram na mesma entrega.
 - **005:** o revisor confere se mudanças de propósito, estrutura, fluxos ou regras atualizaram os contratos; alteração sem impacto documental não exige reescrita.
-- **Type `default` com repo externo que deve ficar limpo de arquivos de IA:** decida com o usuário na entrevista — commitar a árvore DOX no repo (padrão do PoP) ou manter apenas o contrato raiz no AGENTS.md do projeto, dentro do PoP.
+- **Repo que deve ficar limpo de arquivos de IA:** decida com o usuário na entrevista — commitar a árvore DOX no repo (padrão do PoP) ou manter apenas o contrato raiz no AGENTS.md do projeto, fora do repositório.

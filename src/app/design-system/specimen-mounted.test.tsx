@@ -8,10 +8,13 @@ import { designSystemEn } from "@/i18n/dictionaries/design-system/en";
 import { designSystemPtBR } from "@/i18n/dictionaries/design-system/pt-BR";
 import { en } from "@/i18n/dictionaries/en";
 
+import { ToastViewport } from "@/components/ui/toast";
+
 import { designSystemCoverage, primitiveBindingId, primitiveCoverage } from "./coverage";
 import { DesignSystemInteractiveSpecimens } from "./interactive-specimens";
 
 vi.mock("next/headers", () => ({ cookies: async () => ({ get: () => ({ value: "en" }) }) }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ replace: vi.fn(), push: vi.fn() }) }));
 
 beforeAll(() => {
   Object.defineProperty(window, "matchMedia", { configurable: true, value: vi.fn(() => ({ addEventListener: vi.fn(), matches: false, removeEventListener: vi.fn() })) });
@@ -59,7 +62,10 @@ describe("mounted design-system state probes", () => {
 
   it("operates unavailable, invalid, keyboard, overlay, and deterministic toast states", async () => {
     const user = userEvent.setup();
-    const { container } = render(<DesignSystemInteractiveSpecimens dictionary={designSystemEn} />);
+    // The fixture no longer mounts its own Toaster (the redundant second
+    // viewport that duplicated the root layout's was removed); this render
+    // stands in for that shared viewport, exactly as RootLayout provides it.
+    const { container } = render(<><DesignSystemInteractiveSpecimens dictionary={designSystemEn} /><ToastViewport label="Fixture notifications" /></>);
 
     expect((within(container.querySelector("#ds-button-loading")!).getByRole("button") as HTMLButtonElement).disabled).toBe(true);
     expect(within(container.querySelector("#ds-button-loading")!).getByRole("button").getAttribute("aria-busy")).toBe("true");

@@ -2,24 +2,27 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ForbiddenError, UnauthenticatedError } from "@/auth/authorization";
-import type { PaymentLinkV2DirectoryRow } from "@/auth/payment-link-v2-view";
+import type { PaymentLinkV2DirectoryRow, PaymentLinkV2OwnerCurrencyPairOption } from "@/auth/payment-link-v2-view";
 
-const { requireOwnerFromCookie, resolveLocale, listV1, queryDirectory, redirect } = vi.hoisted(() => ({
+const { requireOwnerFromCookie, resolveLocale, listV1, queryDirectory, listOwnerActiveCurrencyPairs, redirect } = vi.hoisted(() => ({
   requireOwnerFromCookie: vi.fn(),
   resolveLocale: vi.fn(),
   listV1: vi.fn(),
   queryDirectory: vi.fn(),
+  listOwnerActiveCurrencyPairs: vi.fn<() => Promise<PaymentLinkV2OwnerCurrencyPairOption[]>>(async () => []),
   redirect: vi.fn((location: string) => { throw new Error(`redirect:${location}`); }),
 }));
 
-vi.mock("next/navigation", () => ({ redirect }));
+vi.mock("next/navigation", () => ({ redirect, useSearchParams: () => new URLSearchParams(), useRouter: () => ({ replace: vi.fn(), push: vi.fn() }) }));
 vi.mock("server-only", () => ({}));
 vi.mock("@/app/owner-guard", () => ({ requireOwnerFromCookie, ownerProtectedMutationResponse: vi.fn() }));
 vi.mock("@/i18n/locale-preference", () => ({ getLocalePreferenceService: () => ({ resolve: resolveLocale }) }));
+vi.mock("@/auth/storefront-settings", () => ({ getStorefrontSettingsService: () => ({ getForOwner: () => Promise.resolve({ storefrontEnabled: false, storefrontSlug: null }) }) }));
 vi.mock("@/auth/payment-link", () => ({ getPaymentLinkService: () => ({ listForOwner: listV1 }) }));
 vi.mock("@/auth/payment-link-v2-view", async (importActual) => ({
   ...(await importActual<typeof import("@/auth/payment-link-v2-view")>()),
   getPaymentLinkV2DirectoryAdapter: () => ({ readWindow: vi.fn() }),
+  listOwnerActiveCurrencyPairs,
 }));
 vi.mock("@/data-directory/server/directory-page", async (importActual) => ({
   ...(await importActual<typeof import("@/data-directory/server/directory-page")>()),
@@ -72,7 +75,7 @@ describe("merchant links directory page", () => {
     expect(queryDirectory).not.toHaveBeenCalled();
   });
 
-  it("renders the ready directory with badges, expiry, share, and the untouched V1 section", async () => {
+  it("renders the ready V2 directory with badges, expiry, share, and the era toggle to the untouched V1 section", async () => {
     ready("en", [
       row(),
       row({ id: "440e8400-e29b-41d4-a716-446655440011", state: "paid", paid: true, linkType: "SINGLE_USE" }),
@@ -80,6 +83,9 @@ describe("merchant links directory page", () => {
       row({ id: "440e8400-e29b-41d4-a716-446655440013", state: "inactive", active: false, compositionKind: "PRODUCT_LINES", orderCount: 7, lines: [{ position: 1, quantity: 2, titlePtBr: "Café", titleEn: "Coffee", unitPrice: "9.9" }, { position: 2, quantity: 1, titlePtBr: "Bolo", titleEn: "Cake", unitPrice: "5" }] }),
     ]);
 
+    // Eras partition the directory (14.5.2): the default `v2` era renders
+    // Commerce V2 rows only; the untouched V1 directory is reachable only
+    // through the explicit `filter.era=legacy` toggle, asserted below.
     const markup = renderToStaticMarkup(await MerchantLinksPage());
     expect(markup).toContain("Monthly donation");
     expect(markup).toContain("Coffee +1");
@@ -98,8 +104,11 @@ describe("merchant links directory page", () => {
     expect(markup).toContain("Dates");
     expect(markup).toContain("View orders");
     expect(markup).toContain('action="/links"');
-    expect(markup).toContain("Single-product links");
-    expect(markup).toContain("No payment links are available.");
+    expect(markup).not.toContain("An active product and currency pair are required.");
+
+    const legacy = renderToStaticMarkup(await MerchantLinksPage({ searchParams: Promise.resolve({ "filter.era": "legacy" }) }));
+    expect(legacy).toContain("An active product and currency pair are required.");
+    expect(legacy).toContain("No payment links are available.");
   });
 
   it("renders localized pt-BR copy", async () => {
@@ -107,7 +116,9 @@ describe("merchant links directory page", () => {
     const markup = renderToStaticMarkup(await MerchantLinksPage());
     expect(markup).toContain("Doação mensal");
     expect(markup).toContain(">Ativo</");
-    expect(markup).toContain("Links de produto único");
+
+    const legacy = renderToStaticMarkup(await MerchantLinksPage({ searchParams: Promise.resolve({ "filter.era": "legacy" }) }));
+    expect(legacy).toContain("É necessário ter um produto e um par de moedas ativos.");
   });
 
   it("renders the empty and filtered-empty states", async () => {
@@ -119,11 +130,9 @@ describe("merchant links directory page", () => {
     expect(filtered).toContain("No matching records");
   });
 
-  it("renders the invalid-query state without adapter I/O and without echoing input", async () => {
+  it("resets to the reset redirect without adapter I/O and without echoing input", async () => {
     ready("en");
-    const markup = renderToStaticMarkup(await MerchantLinksPage({ searchParams: Promise.resolve({ forged: "1" }) }));
-    expect(markup).toContain("The directory request is unavailable");
-    expect(markup).not.toContain("forged");
+    await expect(MerchantLinksPage({ searchParams: Promise.resolve({ forged: "1" }) })).rejects.toThrow("redirect:/links?filters=ignored");
     expect(queryDirectory).not.toHaveBeenCalled();
   });
 
@@ -133,12 +142,13 @@ describe("merchant links directory page", () => {
     expect(queryDirectory).not.toHaveBeenCalled();
   });
 
-  it("renders the error state when the directory read fails while the V1 section stays", async () => {
+  it("renders the error state when the directory read fails while the V1 section stays reachable via the era toggle", async () => {
     ready("en");
     queryDirectory.mockRejectedValue(new Error("database unavailable"));
     const markup = renderToStaticMarkup(await MerchantLinksPage());
     expect(markup).toContain("The directory could not be loaded");
-    expect(markup).toContain("Single-product links");
+    const legacy = renderToStaticMarkup(await MerchantLinksPage({ searchParams: Promise.resolve({ "filter.era": "legacy" }) }));
+    expect(legacy).toContain("An active product and currency pair are required.");
   });
 
   it("passes the cursor, filters, and search into the bounded merchant query and renders pagination URLs", async () => {
@@ -160,6 +170,20 @@ describe("merchant links directory page", () => {
     }));
     expect(markup).toContain("cursor=next-token");
     expect(markup).toContain("cursor=previous-token");
+  });
+
+  // 14.5.2 owed regression: the currency-pair column and filter, and the
+  // `from`/`to` calendar-day filters, are additive on the V2 directory.
+  it("renders the currency badge column and only registers the pair filter when the owner has active pairs", async () => {
+    ready("en", [row({ currencyPairLabel: "BRL/USDT" })]);
+    listOwnerActiveCurrencyPairs.mockResolvedValueOnce([]);
+    const withoutPairs = renderToStaticMarkup(await MerchantLinksPage());
+    expect(withoutPairs).toContain("BRL/USDT");
+    expect(withoutPairs).not.toContain('name="filter.pair"');
+
+    listOwnerActiveCurrencyPairs.mockResolvedValueOnce([{ id: "440e8400-e29b-41d4-a716-446655440020", label: "BRL/USDT" }]);
+    const withPairs = renderToStaticMarkup(await MerchantLinksPage());
+    expect(withPairs).toContain('name="filter.pair"');
   });
 
   it("renders the create affordance and each closed outcome notice in both locales", async () => {
@@ -184,8 +208,6 @@ describe("merchant links directory page", () => {
     const failed = renderToStaticMarkup(await MerchantLinksPage({ searchParams: Promise.resolve({ "payment-links-v2": "failed" }) }));
     expect(failed).toContain("The payment-link change could not be saved.");
 
-    const forged = renderToStaticMarkup(await MerchantLinksPage({ searchParams: Promise.resolve({ "payment-links-v2": "deleted" }) }));
-    expect(forged).toContain("The directory request is unavailable");
-    expect(forged).not.toContain("deleted");
+    await expect(MerchantLinksPage({ searchParams: Promise.resolve({ "payment-links-v2": "deleted" }) })).rejects.toThrow("redirect:/links?filters=ignored");
   });
 });

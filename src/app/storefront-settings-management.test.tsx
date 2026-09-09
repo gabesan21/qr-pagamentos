@@ -64,15 +64,19 @@ describe("storefront settings management", () => {
     expect(markup).toContain(dictionary.storefrontCurrencyHeading);
   });
 
-  it("resolves the stored-null theme and layout to the design-system fallbacks and lists all six themes", () => {
+  it("resolves the stored-null theme and layout to the design-system fallbacks and lists all six themes as swatches", () => {
     const markup = render();
-    expect(markup).toContain('name="storefrontThemeId"');
-    expect(markup).toContain('name="storefrontLayout"');
+    // The theme is a swatch `radiogroup` (`role="radio"` buttons) carrying
+    // the selection through one read-only hidden input, not a native
+    // `<select>` with per-option `value`s; the layout is a `SegmentedControl`
+    // mirrored the same way.
     for (const id of ["pix-paper", "cashier-daylight", "settlement-sand", "midnight-clearing", "vault-blue", "terminal-amber"]) {
-      expect(markup).toContain(`value="${id}"`);
+      expect(markup).toContain(`theme-swatch-${id}.svg`);
     }
-    expect(markup).toContain('value="pix-paper" selected=""');
-    expect(markup).toContain('value="boxed" selected=""');
+    expect(markup).toContain('name="storefrontThemeId" value="pix-paper"');
+    expect(markup).toContain('name="storefrontLayout" value="boxed"');
+    expect(markup).toContain('role="radiogroup"');
+    expect(markup).toContain('role="radio"');
   });
 
   it("lists only the active redacted currency choices plus the no-default option", () => {
@@ -127,6 +131,24 @@ describe("storefront settings management", () => {
     expect(markup).toContain('multipart/form-data');
     expect(markup).toContain('accept="image/jpeg,image/png,image/webp"');
     expect(markup).toContain('type="file"');
+  });
+
+  // 14.5.3 regression (fixed in c26b74c4): the `<noscript>` logo fallback
+  // controls bind to their own upload form through the `form=` attribute
+  // instead of nesting a second `<form>` inside `id="storefront-settings"`
+  // (invalid HTML — nested forms silently break submission). The sibling
+  // form renders as a document-level sibling, after the settings form closes.
+  it("binds the noscript logo fallback to a sibling form, never nested inside the settings form", () => {
+    const markup = render();
+    expect(markup.match(/<form\b/g)).toHaveLength(2);
+    expect(markup).toContain('form="storefront-logo-upload"');
+    expect(markup).toContain('id="storefront-logo-upload"');
+    const settingsFormEnd = markup.indexOf("</form>");
+    const uploadFormStart = markup.indexOf('id="storefront-logo-upload"');
+    const settingsFormStart = markup.indexOf('id="storefront-settings"');
+    expect(settingsFormStart).toBeGreaterThanOrEqual(0);
+    expect(settingsFormEnd).toBeGreaterThan(settingsFormStart);
+    expect(uploadFormStart).toBeGreaterThan(settingsFormEnd);
   });
 
   it("renders the disabled defaults as an empty, unchecked form", () => {

@@ -10,6 +10,7 @@ type SpecimenDictionary = Readonly<Record<
   | "dataDirectoryPageSizeLabel"
   | "dataDirectoryApplyFilters"
   | "dataDirectoryResetFilters"
+  | "dataDirectoryClearFilters"
   | "dataDirectoryPreviousPage"
   | "dataDirectoryNextPage"
   | "dataDirectoryPaginationLabel"
@@ -57,6 +58,7 @@ export function DataDirectorySpecimen({ dictionary }: Readonly<{ dictionary: Spe
     pageSizeLabel: dictionary.dataDirectoryPageSizeLabel,
     applyFilters: dictionary.dataDirectoryApplyFilters,
     resetFilters: dictionary.dataDirectoryResetFilters,
+    clearFilters: dictionary.dataDirectoryClearFilters,
     previousPage: dictionary.dataDirectoryPreviousPage,
     nextPage: dictionary.dataDirectoryNextPage,
     paginationLabel: dictionary.dataDirectoryPaginationLabel,
@@ -112,6 +114,7 @@ export function DataDirectorySpecimen({ dictionary }: Readonly<{ dictionary: Spe
             }]}
             formAction="/design-system"
             idPrefix={`specimen-directory-${state}`}
+            interactive={false}
             nextUrl="/design-system?pageSize=25&cursor=synthetic-next"
             previousUrl={state === "ready" ? "/design-system?pageSize=25&cursor=synthetic-previous" : undefined}
             resetUrl="/design-system"

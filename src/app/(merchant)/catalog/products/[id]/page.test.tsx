@@ -15,6 +15,7 @@ vi.mock("next/navigation", () => ({ redirect }));
 vi.mock("server-only", () => ({}));
 vi.mock("@/app/owner-guard", () => ({ requireOwnerFromCookie, ownerProtectedMutationResponse: vi.fn() }));
 vi.mock("@/i18n/locale-preference", () => ({ getLocalePreferenceService: () => ({ resolve: resolveLocale }) }));
+vi.mock("@/auth/storefront-settings", () => ({ getStorefrontSettingsService: () => ({ getForOwner: () => Promise.resolve({ storefrontEnabled: false, storefrontSlug: null }) }) }));
 vi.mock("@/auth/product", () => ({ getProductService: () => ({ listForOwner: listProducts }) }));
 vi.mock("@/auth/product-category", () => ({ getProductCategoryService: () => ({ listForOwner: listCategories }) }));
 vi.mock("@/auth/supported-exchange-currency", () => ({ getSupportedExchangeCurrencyService: () => ({ listActiveChoices: listChoices }) }));
@@ -68,6 +69,22 @@ describe("merchant product detail page", () => {
     expect(markup).toContain('value="archive"');
     expect(markup).toContain("Archive product permanently");
     expect(markup).toContain("Currency selection is unavailable");
+    // The confirmation dialogs resolve the real lifecycle forms by id, not a
+    // detached ref: both must be reachable via getElementById.
+    expect(markup).toContain('id="product-active-toggle"');
+    expect(markup).toContain('id="product-archive"');
+  });
+
+  // 14.5.3 regression counterpart: the hidden `currencyCode` mirror
+  // (product-form.tsx:365) is create-mode only — an edit never carries it,
+  // update reads the visible `CurrencyField` select directly.
+  it("never posts the hidden currency mirror in edit mode", async () => {
+    ready();
+    listProducts.mockResolvedValue([{ ...product, currencyCode: "BRL" }]);
+    listChoices.mockResolvedValue([{ code: "BRL", label: "Real" }]);
+
+    const markup = renderToStaticMarkup(await ProductDetailPage({ params: Promise.resolve({ id: product.id }) }));
+    expect(markup).not.toContain('name="currencyCode"');
   });
 
   it("renders archived products read-only with the terminal explanation and no mutation control", async () => {
@@ -79,5 +96,13 @@ describe("merchant product detail page", () => {
     expect(markup).toContain("Archival is permanent");
     expect(markup).not.toContain('action="/products"');
     expect(markup).not.toContain("Archive product permanently");
+    // No lingering mutation surface: no hidden action/id/version field and no
+    // submitting control survives archival.
+    expect(markup).not.toContain('name="action"');
+    expect(markup).not.toContain('name="id"');
+    expect(markup).not.toContain('name="version"');
+    expect(markup).not.toContain('type="submit"');
+    expect(markup).not.toContain('id="product-active-toggle"');
+    expect(markup).not.toContain('id="product-archive"');
   });
 });

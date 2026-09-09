@@ -11,7 +11,7 @@ const { requireAdminFromCookie, resolveLocale, queryDirectory, redirect } = vi.h
   redirect: vi.fn((location: string) => { throw new Error(`redirect:${location}`); }),
 }));
 
-vi.mock("next/navigation", () => ({ redirect }));
+vi.mock("next/navigation", () => ({ redirect, useRouter: () => ({ replace: vi.fn(), push: vi.fn() }) }));
 vi.mock("server-only", () => ({}));
 vi.mock("@/app/admin/guard", () => ({ requireAdminFromCookie, protectedMutationResponse: vi.fn() }));
 vi.mock("@/i18n/locale-preference", () => ({ getLocalePreferenceService: () => ({ resolve: resolveLocale }) }));
@@ -104,9 +104,10 @@ describe("administrator payment-links directory page", () => {
     // Both renderers (ruled facts and table) carry the badge; CSS leaves
     // exactly one in the accessibility tree, and only the deleted owner has it.
     expect(markup.match(/>Deleted</g)).toHaveLength(2);
-    // Directory facts from the owner projection.
-    expect(markup).toContain("Monthly donation");
-    expect(markup).toContain("Coffee");
+    // Directory facts from the owner projection: identifier, amount for the
+    // fixed-amount link, and the localized product count for the other.
+    expect(markup).toContain("abcdefghijklmnopqrstuvwx");
+    expect(markup).toContain("1 products");
     expect(markup).toContain(">Fixed amount</");
     expect(markup).toContain(">Product lines</");
     expect(markup).toContain(">Reusable</");
@@ -139,21 +140,17 @@ describe("administrator payment-links directory page", () => {
     expect(filtered).toContain("No matching records");
   });
 
-  it("renders the invalid-query state without directory I/O and without echoing input", async () => {
+  it("resets to the reset redirect without directory I/O and without echoing input", async () => {
     ready("en");
-    const markup = renderToStaticMarkup(await AdminPaymentLinksPage({ searchParams: Promise.resolve({ forged: "1" }) }));
-    expect(markup).toContain("The directory request is unavailable");
-    expect(markup).not.toContain("forged");
+    await expect(AdminPaymentLinksPage({ searchParams: Promise.resolve({ forged: "1" }) })).rejects.toThrow("redirect:/admin/payment-links?filters=ignored");
     expect(queryDirectory).not.toHaveBeenCalled();
   });
 
-  it("renders the invalid-query state when the delivered service rejects a calendar day", async () => {
+  it("resets to the reset redirect when the delivered service rejects a calendar day", async () => {
     ready("en");
     queryDirectory.mockResolvedValue({ status: "invalid-query" });
 
-    const markup = renderToStaticMarkup(await AdminPaymentLinksPage({ searchParams: Promise.resolve({ "filter.from": "2026-13-99" }) }));
-    expect(markup).toContain("The directory request is unavailable");
-    expect(markup).not.toContain("2026-13-99");
+    await expect(AdminPaymentLinksPage({ searchParams: Promise.resolve({ "filter.from": "2026-13-99" }) })).rejects.toThrow("redirect:/admin/payment-links?filters=ignored");
   });
 
   it("resets non-canonical queries before any read", async () => {

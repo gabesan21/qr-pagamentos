@@ -6,6 +6,7 @@ import { CheckCircle2Icon } from "lucide-react";
 
 import { AdminSubmit } from "@/app/admin/admin-submit";
 import type { Dictionary } from "./settings-surface";
+import { SettingsSectionNotice, type SectionNotice } from "./settings-section-notice";
 
 const THEME_NAMES: Record<string, keyof Dictionary> = {
   "pix-paper": "storefrontThemePixPaper",
@@ -19,12 +20,21 @@ const THEME_NAMES: Record<string, keyof Dictionary> = {
 export function AppearanceSection({
   defaultThemeId,
   dictionary,
+  notice,
   themeIds,
-}: Readonly<{ defaultThemeId: string; dictionary: Dictionary; themeIds: readonly string[] }>) {
+}: Readonly<{ defaultThemeId: string; dictionary: Dictionary; notice: SectionNotice; themeIds: readonly string[] }>) {
   const [themeId, setThemeId] = useState(defaultThemeId);
 
   return (
     <form action="/admin/settings/default-theme" method="post">
+      <SettingsSectionNotice
+        dictionary={dictionary}
+        notice={notice}
+        toastEntries={[
+          { param: "success", value: "theme-default", kind: "success", message: dictionary.adminThemeDefaultSaved },
+          { param: "error", value: "theme-default-failed", kind: "error", message: dictionary.adminThemeDefaultFailed },
+        ]}
+      />
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {themeIds.map((id) => {
           const selected = themeId === id;

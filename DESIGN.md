@@ -66,9 +66,39 @@ The stable semantic color paths are:
 | --- | --- |
 | Surfaces | `color.surface.page`, `raised`, `secondary`; `color.border.default` |
 | Text | `color.text.primary`, `secondary`, `tertiary` |
-| Action | `color.action.accent`, `foreground`, `soft` |
-| Feedback | `color.feedback.success`, `warning`, `danger`, `info` and each `.soft` companion |
+| Action | `color.action.accent`, `foreground`, `soft`, `soft-foreground` |
+| Feedback | `color.feedback.success`, `warning`, `danger`, `info` and each `.soft` / `.soft-foreground` companion |
 | Focus/depth | `color.focus.ring`; `shadow.elevation.card`; `shadow.elevation.modal` |
+
+### Projected utility vocabulary
+
+`src/app/globals.css` `@theme inline` binds the template's Tailwind names in
+`docs/template/app/tailwind.config.js` to the semantic variables above — never
+to a literal — so every utility works in all six themes and the WCAG `text-3`
+override applies automatically:
+
+| Utility | Bound role |
+| --- | --- |
+| `bg-bg` | `color.surface.page` |
+| `bg-surface` / `bg-surface-2` | `color.surface.raised` / `secondary` |
+| `text-text` / `text-text-2` / `text-text-3` | `color.text.primary` / `secondary` / `tertiary` (AA projection) |
+| `bg-accent` / `text-accent` | `color.action.accent` — the **strong** template accent |
+| `text-accent-fg` | `color.action.foreground` (on-accent text) |
+| `bg-accent-soft` | `color.action.soft` — the pale tint, a distinct name from `accent` |
+| `text-accent-on-soft` | `color.action.soft-foreground` (AA text over `bg-accent-soft`) |
+| `bg-success` / `bg-warning` / `bg-danger` / `bg-info` | `color.feedback.<role>` |
+| `bg-success-soft` / `bg-warning-soft` / `bg-danger-soft` / `bg-info-soft` | `color.feedback.<role>.soft` |
+| `text-success-on-soft` / `text-warning-on-soft` / `text-danger-on-soft` / `text-info-on-soft` | `color.feedback.<role>.soft-foreground` (AA text over `bg-<role>-soft`, never `text-<role>`) |
+| `rounded-card` / `rounded-pill` | `radius.semantic.lg` / `pill` |
+| `shadow-card` | `shadow.elevation.card` |
+| `font-display` / `font-money` | `font.semantic.display` / `numeric` |
+| `max-w-app` / `max-w-checkout` / `max-w-auth-form` | `layout.semantic.app` / `checkout` / `auth-form` |
+
+The legacy shadcn `--color-accent-foreground` stays bound to
+`color.text.primary` and is **not** the on-accent foreground; use
+`text-accent-fg` for text placed on a strong `bg-accent` surface. Existing
+shadcn utilities (`bg-primary`, `bg-muted`, `bg-destructive`, …) keep working
+unchanged alongside this vocabulary.
 
 The exact audit palette is the projection of
 `docs/template/app/src/index.css` at SHA-256
@@ -100,6 +130,22 @@ surfaces: page, raised, and secondary. These are the fixed outputs:
 | `midnight-clearing` | 54 | `#808ca0` | `5.556 / 5.069 / 4.518` |
 | `vault-blue` | 55 | `#7c8cab` | `5.524 / 5.117 / 4.508` |
 | `terminal-amber` | 30 | `#97835f` | `5.288 / 4.943 / 4.545` |
+
+The same `k`-step method projects text rendered over a soft-tinted surface
+(`text-<role>-on-soft` on `bg-<role>-soft`): origin `O` is the audit tone hex
+(`success`/`warning`/`danger`/`info`, or `accent` for `action`), target `P` is
+rendered `color.text.primary`, and the single background is that same tone's
+rendered soft surface, minimum ratio `4.5:1`. These roles never fall back to
+the strong `text-<role>` on a soft surface:
+
+| Theme | Role | `k` | On-soft hex | Ratio vs soft surface |
+| --- | --- | ---: | --- | ---: |
+| `pix-paper` | success/warning/danger/info/action | 76/70/23/6/111 | `#1e7b4b` / `#8d6321` / `#b73939` / `#2b6aad` / `#0d7a6b` | 4.513 / 4.541 / 4.547 / 4.526 / 4.522 |
+| `cashier-daylight` | success/warning/danger/info/action | 10/14/0/0/0 | `#157c3c` / `#995e09` / `#b91c1c` / `#0369a1` / `#2456e6` | 4.526 / 4.560 / 5.105 / 4.967 / 4.909 |
+| `settlement-sand` | success/warning/danger/info/action | 14/0/0/0/31 | `#4b770f` / `#92400e` / `#a63535` / `#315c8c` / `#99541d` | 4.507 / 5.689 / 5.021 / 5.475 / 4.522 |
+| `midnight-clearing` | success/warning/danger/info/action | 0/0/0/0/0 | `#34d399` / `#fbbf24` / `#f87171` / `#60a5fa` / `#5eead4` | 6.498 / 7.456 / 5.244 / 5.357 / 8.265 |
+| `vault-blue` | success/warning/danger/info/action | 0/0/0/0/21 | `#3ecf8e` / `#f5b93f` / `#ef6a6a` / `#7aa8ff` / `#5c95fd` | 6.691 / 7.433 / 4.909 / 5.873 / 4.505 |
+| `terminal-amber` | success/warning/danger/info/action | 0/0/0/0/0 | `#8fcb5c` / `#ffd166` / `#ff7a5c` / `#e8b04b` / `#ffb224` | 7.221 / 9.045 / 5.917 / 7.477 / 8.105 |
 
 The verifier linearizes normalized sRGB with
 `c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ^ 2.4`, calculates
@@ -200,10 +246,28 @@ storage]]; template assets do not bypass that lifecycle.
 
 ### Authentication
 
-- Center one bordered card up to `720px`. At `900px` and above, show the exact
-  `300px` brand panel beside the form; below it, omit the panel rather than
-  compressing it. The form remains at most `420px` with `24px`/`32px` responsive
-  padding and an accessible language control.
+- The shared `src/app/auth-card.tsx` composes every auth surface (login, MFA
+  challenge, reset password): a centered `720px` card whose leading `300px`
+  brand panel (tagline, product caption, six-swatch strip generated from the
+  closed theme-id registry, `aria-hidden`) shows at `900px` and above and is
+  omitted below it rather than compressed; the trailing form column caps at
+  `420px` with `24px`/`32px` responsive padding, a fixed top-right language
+  control, and either an interactive form or a state-only panel as content.
+- Login adds a forgot-password link to `/reset-password` noting that a valid
+  administrator-issued link is required (self-service reset does not exist),
+  show/hide password, and inline required-field errors as progressive
+  enhancement over the native `required` attributes and POST. The MFA
+  challenge is a six-cell `InputOTP` with native paste fill, submit on
+  completion, a Back link to `/login`, and the existing recovery-code toggle.
+- Reset password proves only the two unusable-link states the service can
+  distinguish — missing/blank token and a token the service rejects — each
+  with the generated `unavailable` illustration and a back-to-login action;
+  the three-way invalid/expired/used split is an open contract limit
+  (`validateResetChallenge`/`findValidToken` fold every rejection into one
+  `null`, `src/auth/password-reset.ts:94-96,159-173`) requiring a new service
+  outcome, not a presentation change. The form keeps the 12–128 requirement
+  hint, a live length meter, and client-side mismatch feedback; success
+  renders on `/reset-password?status=changed` instead of leaving the page.
 - Preserve credential, MFA, recovery, and unavailable semantics from
   [[pop/specs/identity-security|Identity security]] and the administrative
   foundation. Username and password are the only login credentials; email is
@@ -219,27 +283,71 @@ storage]]; template assets do not bypass that lifecycle.
 - The sticky `56px` top bar contains page identity, locale, and the role-safe
   account menu. Main content is centered to `1280px` with `16px` padding below
   `lg` and `24px` from `lg`.
+- The top-bar title is resolved from an inert route→label registry each role
+  layout supplies (`titleRoutes`, matched with the shared `isActiveRoute`
+  rule); the merchant registry also matches `/profile`, and an unmatched
+  route falls back to the role's dashboard label. Static per-role eyebrow
+  strings no longer name the page.
+- The persistent rail footer shows a `Monogram`, username, role pill, and the
+  `by Nautt Finance` caption; sign-out is owned solely by the account menu and
+  is never duplicated in the rail (the mobile drawer footer keeps its own
+  sign-out).
+- The merchant top bar links `View storefront` only when the owner's
+  storefront settings resolve `storefrontEnabled` with a non-null slug,
+  targeting `/store/<slug>` — never the template's `/pay/<slug>` shortcut —
+  and the link is always absent for the administrator shell.
 - Administrator and merchant inventories remain separate fixed five-entry
   lists. Active state uses `aria-current="page"` plus a non-color marker.
   Shells receive inert labels, links, identity, username, locale, and children;
   no business DTO or service crosses into `src/app-shell/`.
 - A skip link precedes sticky chrome. Drawer disclosure, close, account menu,
   locale, and logout meet the target minimum and preserve keyboard focus.
+- The account menu also holds a six-swatch theme picker (`role="group"` of
+  `menuitemradio` buttons, check icon as the non-color marker). Picking one
+  repaints instantly by mutating `<html data-theme>` and persists through a
+  client-written, non-`HttpOnly` `qr_theme` cookie with no authorization
+  effect; the root layout only trusts it for a resolved principal and only
+  when it names one of the six ids, so unauthenticated public surfaces stay untouched and
+  `data-theme-preview` keeps governing storefront/checkout.
 
 ### Public payment and storefront surfaces
 
 - `/pay/[identifier]` follows the parity checkout composition and existing V1 /
-  V2 precedence. The existing branded V2 two-column contract may widen to the
-  application cap and stack on narrow screens; the visual target must never
-  collapse or reshape its business DTO.
-- `/store/[slug]` is an authorized extrapolation: use the same tokens,
-  typography, identity, feedback, card/table components, and responsive laws to
-  render the existing grouped catalog and browser-local cart in the persisted
-  `boxed` or `table` layout. Keep the public redaction and exact-money contracts.
-- `/store/[slug]/pay` is an authorized extrapolation: use the same branded
-  public shell and checkout-width composition, preserve the return-to-store
-  affordance and the standalone state machine, and keep the current server trust
-  boundary.
+  V2 precedence. **Superseded by task 14.6.1 (2026-09-08):** the prior
+  branded V2 two-column contract that widened to the application cap is
+  retired; both eras now compose one shared `CheckoutShell` column capped at
+  `max-w-checkout` (560px, per the 2026-09-07 decision), never wider, with a
+  merchant header (logo or `Monogram` `xl`, display name, trust line, themed
+  via `data-theme-preview`/`--storefront-accent`), a public footer
+  (powered-by, privacy link opening a `Modal` notice, `LanguageSwitcher`),
+  and the closed outcome-view set: three live states (created, pending,
+  indeterminate) sharing one `QrDisplay`-`payload` view with the merchant
+  mark as the identity centre-cut and a compact single-feedback `CopyField`,
+  plus five terminal states (confirmed, refunded, rejected, cancelled,
+  expired) each with `ProviderStateBadge` and a non-color marker, the three
+  failures alone offering start-over. The visual target must never collapse
+  or reshape its business DTO.
+- `/store/[slug]` and `/store/[slug]/pay` are authorized extrapolations.
+  **Converged by task 14.6.2 (2026-09-08):** both now compose 14.6.1's shared
+  `CheckoutShell` directly (merchant header, `data-theme-preview`/
+  `--storefront-accent`, public footer) instead of a page-local rail/footer,
+  and both storefront-specific `EmptyState` vocabulary (unavailable, empty,
+  error) replaces the retired `Card` + destructive `Alert` treatment. The
+  standalone payment/outcome phases render through 14.6.1's
+  `CheckoutPaymentView` unconverted (identical `CheckoutPaymentViewState`
+  union), so `ProviderStateBadge`'s domain tone map is the only tone source —
+  refunded is neutral, never a page-local danger class. **Deviation:**
+  14.6.1's `useCheckoutExperience` controller is welded to
+  `/api/payment-links/[identifier]/**` and a customer-only attempt body; the
+  standalone amount-bearing attempt against `/api/store/[slug]/checkout`
+  keeps its own local phase, but now obeys the same rule the shared
+  controller enforces — field/amount edits never touch attempt, payment, or
+  capability, only the explicit start-over resets. Every public `storefront-*`/
+  `receipt-rail*` BEM rule this task owned is retired from `globals.css`
+  (`.receipt-rail*`'s last consumer, `src/app/design-system/page.tsx`, moved
+  to utilities in `14.7.1`, and the rule is gone — see "BEM retirement"
+  below). Cart persistence, exact-money totals, layouts, the cart-checkout/
+  standalone submit bodies, and the sessionless trust boundary are unchanged.
 - The two extrapolations never copy the template's incorrect shortcut from a
   storefront slug to `/pay/[identifier]`; current routes and commands win.
 
@@ -257,19 +365,45 @@ Task `12.2.3` delivers the reachable shared compositions `CopyField`,
 `Monogram`, `QrDisplay`, `SimpleTabs`, the five `Skeletons`, `StatCard`,
 `StatusBadge`, `Timeline`, and `ToastViewport`/`showToast`. `DataDirectory` is
 the single owner for the reachable `DataTable` and `FilterBar` responsibilities;
-it composes canonical previous/next pagination and never adds total-count,
+its client shell is a live URL-state controller (debounced search, on-change
+filters/page size, geometry-preserving skeleton while pending) over the native
+GET form, renders removable localized chips and clickable rows with a
+template previous/next pagination footer, and never adds total-count,
 page-number, arbitrary sorting, or client-list behavior. The executable map is
 `src/components/ui/inventory.json`, checked by
 `scripts/check-shared-ui-inventory.mjs`: all 187 assigned obligations map once,
 and all 49 unreachable generated sources remain exclusions. Official supporting
 sources are recorded with one insufficiency finding each.
 
+Task `14.2.4` brings `owners` to template parity without adding to that
+20-entry set: `status-badge.tsx` renders a soft-tint pill with a `bg-current`
+dot (or `Archive` icon when archived, struck-through label when archived or
+deleted) and exports `StatusBadge` plus five closed-union domain families —
+`ProviderStateBadge`, `LocalOutcomeBadge`, `LinkLifecycleBadge`,
+`AccountStateBadge`, `EntityStateBadge` — over one shared tone map, with tone,
+shape, and labels owned centrally while every caller still supplies its own
+localized `labels`; `copy-field.tsx` adds a `compact` chip variant;
+`monogram.tsx` adds an `xl` (48px) accent-soft size; `qr-display.tsx` accepts
+an optional `payload` and generates the QR client-side with the pinned
+`qrcode` package (error correction `H` when an `identity` centre-cut is
+present) while still honoring an explicitly passed `graphic`; `stat-card.tsx`
+accepts an optional `sparkline` rendered as an `aria-hidden` accent SVG
+polyline. A genuinely new component that a template obligation marks
+`excluded-unreachable-generated-ui` — the accessible drop-tile `ImageUploader`
+(idle, drag-over, staging, staged with preview/replace/remove, failed with
+retry, disabled) — is recorded in `inventory.json`'s `localAdditions` section
+instead of `owners`: owner, public API, states, and a one-line insufficiency
+finding, never counted against the 20 reachable template sources.
+
 Before adding a component:
 
 1. Search the production inventory and the reachable parity graph.
 2. Reuse or extend the single owner when its responsibility matches.
-3. If genuinely new, record one owner/import path, public props, complete
-   applicable states, and a one-line insufficiency finding for the inventory.
+3. If genuinely new **and reachable**, record one owner/import path, public
+   props, complete applicable states, and a one-line insufficiency finding in
+   `owners`. If genuinely new but the template marks its source
+   `excluded-unreachable-generated-ui`, record the same contract in
+   `localAdditions` instead — it never enters `owners`.
 4. Update the executable inventory with the owner, public props, applicable
    states, and insufficiency finding. The closed `/design-system` specimen
    exercises every reachable shared owner and its applicable state across both
@@ -277,7 +411,124 @@ Before adding a component:
 
 Every `excluded-unreachable-generated-ui` obligation remains excluded. An
 unreachable generated template file, including a registry component, is not an
-implementation candidate and is never added merely because it exists.
+implementation candidate and is never added merely because it exists — a
+genuinely needed local owner is recorded in `localAdditions`, never in
+`owners`.
+
+Task `14.4.3` adds `src/app/admin/admin-controls.tsx`'s `SegmentedControl` as
+an **admin-local** control outside `src/components/ui/` and outside
+`inventory.json`: the admin route group may not import the merchant
+`catalog-fields.tsx` twin (the role boundary in
+[[pop/specs/administrative-foundation|administrative foundation]] forbids
+cross-role component sharing as much as cross-role data), and the template
+itself keeps this control page-local. It is a `role="radiogroup"` of
+`role="radio"` buttons with six applicable states — default, hover, visible
+focus, selected/active (`aria-checked` plus an elevated background, never
+color alone), disabled, and an optional hidden-input bridge so a caller's
+native form POST needs no extra state wiring. Consolidating it with the
+merchant twin is a tracked follow-up, not this task's scope.
+
+Task `14.4.2` converges the `/admin` dashboard and the `/admin/orders**` and
+`/admin/payment-links**` directories to the template's operations model
+without adding to `owners`: the dashboard's segmented period control is a
+route-local client composition of the owned `Tabs`/`TabsList` (pill variant),
+committing `?period=` through `router.replace` inside a transition with a
+`<noscript>` three-link fallback; the dashboard grid moves from the retired
+`.admin-dashboard__*` BEM block to plain `lg:col-span-{5,4,3}` utilities, and
+the active-users `StatCard` renders `trend` (not `sparkline` — the analytics
+projection carries no series). Both admin directories keep the single
+`DataDirectory` shell and gain route-local read-only pieces instead of new
+inventory: an admin-local table for the byte-frozen V1 ledger reusing the
+owned `Table` primitives, and an admin-local associated-orders card on the
+link detail composing `Card`/`StatusBadge`/`MoneyText`.
+
+Task `14.5.1` converges the merchant dashboard, `/orders`, and the V2 order
+detail routes to the template's operations model, also without adding to
+`owners`: `timeline.tsx` gains one additive, optional per-entry `action` slot
+(absent by default) so the author-only comment-edit CAS control rides the
+newest-first thread instead of its own article; the merchant dashboard's
+segmented period control (`today`/`7d`/`30d`) is a route-local client
+composition of the owned `Tabs`/`TabsList` pill variant, committing `?period=`
+through `router.replace` inside a transition — the same pattern as the
+`14.4.2` admin period control, kept as a second, independent route-local
+wrapper rather than a promoted shared owner, because moving the admin file
+would falsify tests `14.4.4` just verified for no contract gain; a third
+consumer promotes both to one route-neutral owner. The dashboard grid retires
+the `.merchant-dashboard__*` BEM block from `globals.css` in favor of the same
+utility-class approach as `14.4.2`.
+
+Task `14.5.2` converges the merchant `/links` directory, composition form, detail,
+and order drilldowns to the template without adding to `owners`. The directory
+answers the template's single merged table with an **era partition** instead
+of a blend: `era=v2` (default) keeps the existing keyset `DataDirectory` page,
+while `era=legacy` renders the byte-frozen V1 list through the same shell with
+a legacy chip, a read-only `Modal` detail, and the restyled V1 create/revoke
+forms — a keyset page cannot span a cursorless byte-frozen source, so the two
+eras never share one page. The create/edit form composes a route-local radio-card
+group (`Card`/`Button` states, not a new inventory owner) for composition/type,
+a searchable product picker with `Button` steppers and an exact running total,
+and a sticky preview panel in the existing 8+4 grid; the bilingual description
+`Field`s render for every composition but stay read-only with a caption for
+`PRODUCT_LINES` — a documented deviation from `LocalizedFieldGroup` (that
+primitive omits `name`, breaking the no-JS `<form>` submission this page
+requires), so the plain named `Input` pair stays the owner here. Lifecycle
+guards on the detail render from the derived model: deactivate while
+persisted-active, activate only for `inactive`, a disabled control with
+caption for a settled single-use link, and a reopen caption scoped to
+`expired`+`REUSABLE`. `link-money.ts` is the one BigInt-micro-unit money module
+for every arithmetic result in this subtree (subtotal, line totals, running
+total, confirmed volume); no `Number()` touches an amount here.
+Task `14.5.3` converges `/catalog`, `/settings`, and `/profile` without adding
+to `owners`. `SegmentedControl` gains a second **merchant-local** home in
+`src/app/(merchant)/merchant-controls.tsx` — the merchant counterpart of
+`14.4.3`'s admin-local control, same six-state contract, imported by the
+catalog product-state toggle and the settings appearance layout picker; it
+stays outside `src/components/ui/` for the identical reason (a frozen `owners`
+set with no insufficiency finding, and the template itself keeps the control
+page-local). The owned `ImageUploader` (`14.2.4`'s `localAdditions` entry) gets
+its second and third call sites: the catalog product form (replacing the
+legacy `ImageField`) and the settings logo block (replacing the plain
+multipart input, which survives only as the `<noscript>` fallback). `/profile`
+converges to one `max-w-3xl` single-column stack, retiring the two-card
+grid. The TOTP enrollment composition follows the template's three-step order
+— QR/manual-secret, inline-error code confirm, recovery codes with copy-all
+and download — over `Modal`/`ConfirmDialog`/`CopyField`, adding no new shared
+component. This task also retires the merchant-only BEM it obsoletes:
+`.storefront-workspace*`, `.storefront-logo-{block,current,actions,staged}`,
+`.storefront-preview*`, `.profile-workspace*`, and `.profile-form__fieldset`
+are gone from `globals.css` (public `.storefront-*` rules and `.settings-surface*`
+stay, serving `/store/**` and the settings shell respectively); the two
+skeleton `loading.tsx` files that used the retired classes move to plain
+`grid`/`grid-cols-[…]` utilities with no visual change.
+
+## BEM retirement (14.7.1)
+
+The parallel BEM CSS system is retired: `14.7.1` deletes every route-scoped
+`globals.css` rule whose last consumer was migrated to Tailwind utilities by
+this task or an earlier one (`admin-shell*`, `admin-account*`,
+`admin-product*`, `receipt-rail*`, `ds-*`/`[data-ds-prose]`, `nautt-facts*`,
+`settings-surface*`, `auth-page`, `auth-card__{panel-brand,tagline,caption,
+strip,swatch,form--tight,footer}`, `auth-password-field*`, `auth-forgot*`,
+`auth-totp-actions`, `auth-mode-toggle`, `login-page`, `login-form`,
+`reset-password-page`, `reset-password-form`). Below the generated token
+block, `globals.css` now holds only tokens, `@theme inline`, `@layer base`,
+element base rules, and four sanctioned exceptions, each kept for a reason
+that cannot become a utility without breaking a gate or a component
+boundary: **`src/app-shell/app-shell.css`** is the one remaining
+route-neutral BEM stylesheet, reserved for shell chrome (its own DOX line
+above); **the `(min-width: 900px)` auth split-card block** (`.auth-card`,
+`.auth-card__panel`, `.auth-card__form`, `.auth-card__language`) survives
+because `scripts/check-design-tokens.mjs` sanctions that literal only inside
+`globals.css` — `min-[900px]:` in a `.tsx` would be a raw-value gate
+violation and CSS forbids `var()` inside a media query, so the breakpoint
+cannot move; **`.brand-identity*`/`[data-brand-identity]`** is
+component-owned identity geometry (`src/brand/AGENTS.md`), plus the
+`.auth-brand` descendant override it accepts — shrinking `BrandIdentity`'s
+`product-lockup` mark/name without a new size prop is an open gap, not a
+forced refactor (see
+[[pop/researches/template-fidelity-convergence/convergence-outcome|convergence-outcome]]);
+**`.sr-only`** is the one global accessibility utility with no Tailwind
+equivalent that matches it byte-for-byte. No other BEM selector remains.
 
 ## State contract
 
@@ -290,13 +541,14 @@ them. Mark a state non-applicable instead of simulating it.
 | Owner | Required applicable states and feedback |
 | --- | --- |
 | Actions and controls | default, populated where value-bearing, invalid with associated message, hover, visible focus, pending/loading, disabled; label remains associated and above the control |
-| Data directories | ready, loading with geometry-preserving skeleton, empty, filtered-empty with reset, invalid-query reset, request error with retry, pagination/filter selection; desktop table and narrow facts expose one action set |
+| Data directories | ready, loading with geometry-preserving skeleton while a URL-state commit is pending, empty, filtered-empty with reset, invalid input redirected to reset with an informational notice (no production `invalid-query` render), request error with retry, live debounced search and on-change filters/page size, removable localized chips, clickable rows with the explicit action preserved as the keyboard path, keyset pagination; desktop table and narrow facts expose one action set |
 | Empty/unavailable | localized illustration, title, optional body and one recovery/CTA; empty is never destructive and unavailable discloses no cause |
 | Filters and tabs | default, active/selected with non-color marker, clear/reset, hover/focus, disabled; URL and native GET behavior remain server-authoritative |
-| Identity | image or initial fallback, meaningful or decorative naming, and size variants; bytes and lifecycle remain media-authoritative |
+| Identity | image or initial fallback, meaningful or decorative naming, and size variants including the `xl` accent-soft `Monogram`; bytes and lifecycle remain media-authoritative |
 | Modal/confirmation | closed/open, initial focus, keyboard loop, escape/overlay dismissal when allowed, destructive confirmation, pending/disabled, failure without accidental close, focus restoration |
-| Copy and QR | ready, copy pending, copied success announced politely, copy failure/retry; QR preparing, available, waiting/recovery, and terminal states preserve alternative text and exact payload boundaries |
-| Status, money, timeline, stats | ready, empty where data-driven, loading skeleton, unavailable/error; text/icon/shape accompanies color and numeric facts use mono tabular type |
+| Copy and QR | ready, copy pending, copied success announced politely, copy failure/retry, in either the button or compact chip `CopyField` variant; QR preparing, available, waiting/recovery, and terminal states preserve alternative text and exact payload boundaries whether the caller supplies a `graphic` or `QrDisplay` generates it from `payload` |
+| Upload | idle, drag-over, staging, staged with preview/replace/remove, failed with retry, and disabled, each visually distinguishable without relying on color alone; staging boundary and identifiers stay caller-owned |
+| Status, money, timeline, stats | ready, empty where data-driven, loading skeleton, unavailable/error; text/icon/shape accompanies color, numeric facts use mono tabular type, `StatusBadge`'s five domain families share one tone map, and `StatCard`'s optional sparkline is a decorative `aria-hidden` accent trend, never the sole trend indicator |
 | Toast/alert | info, success, warning, destructive error, dismiss, retry, auto-dismiss only where safe; use polite/assertive live semantics appropriate to urgency |
 
 ### Page and journey states
@@ -308,9 +560,12 @@ them. Mark a state non-applicable instead of simulating it.
   generic invalid credentials, MFA challenge, TOTP/recovery-code modes, wrong
   proof, lock/recovery, success, cancellation, and opaque unavailable states as
   allowed by the identity contract.
-- Password recovery covers token loading, valid form, validation, request error,
-  invalid/expired/used token, pending, and success. Presentation does not invent
-  email delivery or expose token validity beyond the existing route contract.
+- Password recovery covers missing/blank token, an unusable (rejected) token,
+  valid form, client validation, request error, pending, and success on
+  `/reset-password?status=changed`. The service cannot distinguish invalid,
+  expired, and used tokens, so those three collapse into the one rejected
+  state; presentation does not invent email delivery or a finer split beyond
+  the existing route contract.
 - Checkout and standalone payment cover initial form, policy-exact validation,
   submitting/disabled, reserved/creating/preparing, QR and copy, pending and
   indeterminate waiting, visibility-aware polling, status error with manual
@@ -321,6 +576,14 @@ them. Mark a state non-applicable instead of simulating it.
   spec-owned archived/deleted, immutable-version, exact-period, empty-prerequisite,
   conflict, staged-media, credential, and provider-recovery states. Parity never
   authorizes a new projection or mutation to fill a visual gap.
+- The admin account editor (`14.4.3`) persists its active `SimpleTabs` panel
+  through the URL hash across a reload instead of a client navigation, and
+  each `/admin/settings` section (exchange currencies, payment settings,
+  default theme, language) raises its own toast/`<noscript>` pair from the
+  query string that section's own route already returns, rather than one
+  page-level banner; a destructive segmented value (role demotion, account
+  disablement, deactivating a payment-settings row) still routes through the
+  shared `ConfirmDialog` before the unchanged byte-frozen POST.
 
 ## Accessibility and feedback
 
@@ -338,6 +601,17 @@ them. Mark a state non-applicable instead of simulating it.
   explained rather than deceptively enabled.
 - Loading preserves final geometry. Motion conveys no essential information,
   and focused elements do not move unexpectedly.
+- `ToastViewport` mounts once in the root layout, bottom-right, and reaches
+  every route. Mutation outcomes raise a toast instead of a server banner: success
+  auto-dismisses at 5s, error and warning stay sticky with an optional retry
+  action, and motion stays inside the global `prefers-reduced-motion`
+  collapse — no toast introduces its own animation or transition. Each
+  migrated site keeps its original server `Alert` (same `role` and variant)
+  inside `<noscript>` as the no-JS fallback; sonner's own live region is the
+  single announcer, so the fallback never duplicates it.
+- A mutation returns to the page that submitted it. The destination is always
+  derived server-side from data the route already trusts — the route param
+  or the submitted `action`/`id` — never from a client-supplied path.
 
 ## Business and security precedence
 

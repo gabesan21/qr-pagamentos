@@ -10,6 +10,7 @@ type RecoveryCodesProps = Readonly<{
   codes: readonly string[];
   copiedLabel: string;
   copyLabel: string;
+  downloadLabel: string;
   savedLabel: string;
   saved: boolean;
   onSavedChange: (saved: boolean) => void;
@@ -21,6 +22,7 @@ export function RecoveryCodes({
   codes,
   copiedLabel,
   copyLabel,
+  downloadLabel,
   savedLabel,
   saved,
   onSavedChange,
@@ -40,6 +42,19 @@ export function RecoveryCodes({
     }
   }
 
+  function download() {
+    const blob = new Blob([codes.join("\n")], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    try {
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "recovery-codes.txt";
+      link.click();
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+  }
+
   return (
     <div className="space-y-4">
       <div>
@@ -56,6 +71,9 @@ export function RecoveryCodes({
       <div className="flex flex-wrap gap-3">
         <Button onClick={() => void copy()} type="button" variant="secondary">
           {copied ? copiedLabel : copyLabel}
+        </Button>
+        <Button onClick={download} type="button" variant="secondary">
+          {downloadLabel}
         </Button>
       </div>
       <div className="flex items-start gap-3">

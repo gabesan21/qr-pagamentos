@@ -1,8 +1,9 @@
 import Link from "next/link";
 
 import { CatalogSubmit } from "@/app/(merchant)/catalog/catalog-submit";
+import { FormDraftGuard } from "@/app/form-draft";
+import { OrderOutcomeEditor } from "@/app/(merchant)/orders/order-outcome-editor";
 import { formatCatalogPrice } from "@/app/(merchant)/catalog/price-format";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { MoneyText } from "@/components/ui/money-text";
 import { Monogram } from "@/components/ui/monogram";
 import { Separator } from "@/components/ui/separator";
-import { StatusBadge } from "@/components/ui/status-badge";
+import { LinkLifecycleBadge, StatusBadge, type LinkLifecycle } from "@/components/ui/status-badge";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { Timeline, type TimelineEntry } from "@/components/ui/timeline";
@@ -30,6 +31,12 @@ type Dictionary = ReturnType<typeof getDictionary>;
 // Commerce V2 order views (8.3.3): server-rendered list/detail facts, the
 // comment thread, and the guarded local-outcome forms. Currency pair UUIDs,
 // line product UUIDs, and internal lifecycle fields never render.
+
+// The detail page carries the closed notice under this key; only "failed"
+// means the posted body/note was lost, so drafts restore under that value
+// alone.
+const ORDER_V2_NOTICE_KEY = "orders-v2";
+const ORDER_V2_FAILURE_NOTICES = ["failed"] as const;
 
 export function formatOrderV2Instant(value: Date, locale: SupportedLocale) {
   return new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short", timeZone: "UTC" }).format(value);
@@ -89,6 +96,15 @@ function orderV2PolicyLabel(dictionary: Dictionary, policy: CheckoutDataPolicy) 
   return dictionary.checkoutPolicyNone;
 }
 
+// Whether the order's own checkout data policy requires this payer field;
+// an unmet non-required field is policy compliance, not a missing capture.
+function payerFieldRequired(policy: CheckoutDataPolicy, field: "address" | "cpf" | "email" | "name"): boolean {
+  if (field === "email") return policy !== "NONE";
+  if (field === "name") return policy === "NAME_EMAIL" || policy === "NAME_EMAIL_CPF" || policy === "NAME_EMAIL_CPF_ADDRESS";
+  if (field === "cpf") return policy === "NAME_EMAIL_CPF" || policy === "NAME_EMAIL_CPF_ADDRESS";
+  return policy === "NAME_EMAIL_CPF_ADDRESS";
+}
+
 // The policy-exact payer tuple, most identifying fact first.
 export function OrderV2PayerFacts({ dictionary, payer }: Readonly<{ dictionary: Dictionary; payer: CustomerSnapshotV1 }>) {
   const facts = [payer.name, payer.email, payer.cpf].filter((fact): fact is string => fact !== null);
@@ -100,11 +116,16 @@ export function OrderV2PayerFacts({ dictionary, payer }: Readonly<{ dictionary: 
   );
 }
 
-function FieldRow({ dictionary, label, value }: Readonly<{ dictionary: Dictionary; label: string; value: string | null | undefined }>) {
+// Not-required fields under the order's own checkout data policy render this
+// hint instead of a bare em dash, so an empty payer fact reads as policy
+// compliance rather than a missing capture.
+function FieldRow({ dictionary, hint, label, value }: Readonly<{ dictionary: Dictionary; hint?: string; label: string; value: string | null | undefined }>) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 py-1.5">
       <span className="text-sm text-muted-foreground">{label}</span>
-      {value ? <CopyField labels={{ copy: dictionary.orderV2DirectoryCopy, pending: dictionary.orderV2DirectoryCopy, copied: dictionary.orderV2DirectoryCopied, failed: dictionary.orderV2DirectoryCopyFailed }} truncate={false} value={value} /> : <span className="text-sm text-muted-foreground">—</span>}
+      {value
+        ? <CopyField labels={{ copy: dictionary.orderV2DirectoryCopy, pending: dictionary.orderV2DirectoryCopy, copied: dictionary.orderV2DirectoryCopied, failed: dictionary.orderV2DirectoryCopyFailed }} truncate={false} value={value} />
+        : <span className="text-sm text-muted-foreground">{hint ?? "—"}</span>}
     </div>
   );
 }
@@ -159,6 +180,7 @@ export function OrderV2DetailCard({
   backHref,
   backLabel,
   dictionary,
+  link,
   locale,
   order,
   owner,
@@ -166,6 +188,10 @@ export function OrderV2DetailCard({
   backHref: string;
   backLabel?: string;
   dictionary: Dictionary;
+  // Additive: the resolved payment link's href and derived lifecycle,
+  // scoped by the caller (owner or administrator identifier lookup). A
+  // caller that omits it renders the link card exactly as before.
+  link?: Readonly<{ href: string; lifecycle: LinkLifecycle }>;
   locale: SupportedLocale;
   order: OrderV2View;
   owner?: Readonly<{ username: string; deletedAt: Date | null }>;
@@ -279,16 +305,23 @@ export function OrderV2DetailCard({
             </CardHeader>
             <CardContent>
               <div className="divide-y">
-                <FieldRow dictionary={dictionary} label={dictionary.checkoutNameLabel} value={order.customer.name} />
-                <FieldRow dictionary={dictionary} label={dictionary.checkoutEmailLabel} value={order.customer.email} />
-                <FieldRow dictionary={dictionary} label={dictionary.checkoutCpfLabel} value={order.customer.cpf} />
+                <FieldRow dictionary={dictionary} hint={payerFieldRequired(order.checkoutDataPolicy, "name") ? undefined : dictionary.orderV2DetailPayerNotRequired} label={dictionary.checkoutNameLabel} value={order.customer.name} />
+                <FieldRow dictionary={dictionary} hint={payerFieldRequired(order.checkoutDataPolicy, "email") ? undefined : dictionary.orderV2DetailPayerNotRequired} label={dictionary.checkoutEmailLabel} value={order.customer.email} />
+                <FieldRow dictionary={dictionary} hint={payerFieldRequired(order.checkoutDataPolicy, "cpf") ? undefined : dictionary.orderV2DetailPayerNotRequired} label={dictionary.checkoutCpfLabel} value={order.customer.cpf} />
                 {order.customer.address ? (
                   <FieldRow
                     dictionary={dictionary}
                     label={dictionary.checkoutAddressLegend}
                     value={`${order.customer.address.street}, ${order.customer.address.number}${order.customer.address.complement ? ` — ${order.customer.address.complement}` : ""}`}
                   />
-                ) : <FieldRow dictionary={dictionary} label={dictionary.checkoutAddressLegend} value={null} />}
+                ) : (
+                  <FieldRow
+                    dictionary={dictionary}
+                    hint={payerFieldRequired(order.checkoutDataPolicy, "address") ? undefined : dictionary.orderV2DetailPayerNotRequired}
+                    label={dictionary.checkoutAddressLegend}
+                    value={null}
+                  />
+                )}
               </div>
             </CardContent>
           </Card>
@@ -336,6 +369,22 @@ export function OrderV2DetailCard({
                   truncate={false}
                   value={order.paymentLinkV2Identifier}
                 />
+                {link ? (
+                  <div className="flex flex-wrap items-center gap-3">
+                    <LinkLifecycleBadge
+                      labels={{
+                        active: dictionary.orderV2DetailLinkLifecycleActive,
+                        inactive: dictionary.orderV2DetailLinkLifecycleInactive,
+                        expired: dictionary.orderV2DetailLinkLifecycleExpired,
+                        paid: dictionary.orderV2DetailLinkLifecyclePaid,
+                      }}
+                      lifecycle={link.lifecycle}
+                    />
+                    <Button asChild data-ds-hit-target size="sm" variant="outline">
+                      <Link href={link.href}>{dictionary.orderV2DetailViewLink}</Link>
+                    </Button>
+                  </div>
+                ) : null}
               </CardContent>
             </Card>
           ) : null}
@@ -360,120 +409,110 @@ export function OrderV2DetailCard({
   );
 }
 
-function CommentEntry({
+// The author-only CAS edit is unchanged: same fields, same route action; it
+// now rides the additive `Timeline` `action` slot instead of its own article.
+function CommentEditDisclosure({
   comment,
   dictionary,
-  locale,
   orderId,
 }: Readonly<{
   comment: OrderV2CommentView;
   dictionary: Dictionary;
-  locale: SupportedLocale;
   orderId: string;
 }>) {
   return (
-    <article className="flex flex-col gap-3 border-b border-border pb-4 last:border-b-0 last:pb-0">
-      <p className="m-0 whitespace-pre-line">{comment.body}</p>
-      <p className="m-0 text-sm text-muted-foreground">
-        {formatOrderV2Instant(comment.createdAt, locale)}
-        {comment.editedAt ? ` · ${dictionary.orderV2CommentEdited} ${formatOrderV2Instant(comment.editedAt, locale)}` : ""}
-      </p>
-      <details>
-        <summary>{dictionary.orderV2CommentEditAction}</summary>
-        <form action={`/orders-v2/${orderId}`} className="flex flex-col gap-3 pt-3" method="post">
-          <Input name="action" type="hidden" value="edit-comment" />
-          <Input name="commentId" type="hidden" value={comment.id} />
-          <Input name="commentVersion" type="hidden" value={comment.version} />
-          <Field>
-            <FieldLabel htmlFor={`comment-edit-${comment.id}`}>{dictionary.orderV2CommentEditAction}</FieldLabel>
-            <Textarea data-ds-hit-target defaultValue={comment.body} id={`comment-edit-${comment.id}`} maxLength={2000} minLength={1} name="body" required />
-          </Field>
-          <div className="flex flex-wrap gap-3">
-            <CatalogSubmit label={dictionary.orderV2CommentEditSubmit} tone="secondary" />
-          </div>
-        </form>
-      </details>
-    </article>
-  );
-}
-
-export function OrderV2CommentsCard({
-  dictionary,
-  locale,
-  order,
-}: Readonly<{
-  dictionary: Dictionary;
-  locale: SupportedLocale;
-  order: OrderV2View;
-}>) {
-  return (
-    <Card>
-      <CardHeader><CardTitle>{dictionary.orderV2CommentsHeading}</CardTitle></CardHeader>
-      <CardContent className="flex flex-col gap-5">
-        {order.comments.length === 0 ? <p>{dictionary.orderV2CommentsEmpty}</p> : (
-          <div className="flex flex-col gap-4">
-            {order.comments.map((comment) => (
-              <CommentEntry comment={comment} dictionary={dictionary} key={comment.id} locale={locale} orderId={order.id} />
-            ))}
-          </div>
-        )}
-        <form action={`/orders-v2/${order.id}`} className="flex flex-col gap-3" method="post">
-          <Input name="action" type="hidden" value="append-comment" />
-          <Field>
-            <FieldLabel htmlFor="comment-append-body">{dictionary.orderV2CommentAddLabel}</FieldLabel>
-            <Textarea data-ds-hit-target id="comment-append-body" maxLength={2000} minLength={1} name="body" required />
-          </Field>
-          <div className="flex flex-wrap gap-3">
-            <CatalogSubmit label={dictionary.orderV2CommentAddSubmit} />
-          </div>
-        </form>
-      </CardContent>
-    </Card>
-  );
-}
-
-function OutcomeForm({
-  confirm,
-  description,
-  dictionary,
-  label,
-  order,
-  outcome,
-  tone,
-}: Readonly<{
-  confirm: string;
-  description: string;
-  dictionary: Dictionary;
-  label: string;
-  order: OrderV2View;
-  outcome: OrderV2LocalOutcome;
-  tone: "secondary" | "destructive";
-}>) {
-  return (
     <details>
-      <summary>{confirm}</summary>
-      <Alert variant="warning">
-        <AlertTitle>{confirm}</AlertTitle>
-        <AlertDescription>{description}</AlertDescription>
-      </Alert>
-      <form action={`/orders-v2/${order.id}`} className="flex flex-col gap-3 pt-3" method="post">
-        <Input name="action" type="hidden" value="set-outcome" />
-        <Input name="version" type="hidden" value={order.lifecycleVersion} />
-        <Input name="outcome" type="hidden" value={outcome} />
+      <summary>{dictionary.orderV2CommentEditAction}</summary>
+      <FormDraftGuard
+        draftKey={`order-v2-comment-edit-${orderId}-${comment.id}`}
+        fieldNames={["body"]}
+        formId={`comment-edit-form-${comment.id}`}
+        noticeKey={ORDER_V2_NOTICE_KEY}
+        noticeValues={ORDER_V2_FAILURE_NOTICES}
+      />
+      <form action={`/orders-v2/${orderId}`} className="flex flex-col gap-3 pt-3" id={`comment-edit-form-${comment.id}`} method="post">
+        <Input name="action" type="hidden" value="edit-comment" />
+        <Input name="commentId" type="hidden" value={comment.id} />
+        <Input name="commentVersion" type="hidden" value={comment.version} />
         <Field>
-          <FieldLabel htmlFor={`outcome-note-${outcome}`}>{dictionary.orderV2OutcomeNoteLabel}</FieldLabel>
-          <Textarea data-ds-hit-target id={`outcome-note-${outcome}`} maxLength={2000} name="note" />
+          <FieldLabel htmlFor={`comment-edit-${comment.id}`}>{dictionary.orderV2CommentEditAction}</FieldLabel>
+          <Textarea data-ds-hit-target defaultValue={comment.body} id={`comment-edit-${comment.id}`} maxLength={2000} minLength={1} name="body" required />
         </Field>
         <div className="flex flex-wrap gap-3">
-          <CatalogSubmit label={label} tone={tone} />
+          <CatalogSubmit label={dictionary.orderV2CommentEditSubmit} tone="secondary" />
         </div>
       </form>
     </details>
   );
 }
 
+// Newest-first thread through `Timeline`: the comment body is the entry's
+// title, the edited caption its optional body, and the author-only CAS edit
+// rides the additive `action` slot.
+function commentTimelineEntries(dictionary: Dictionary, locale: SupportedLocale, order: OrderV2View): TimelineEntry[] {
+  return [...order.comments]
+    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+    .map((comment) => ({
+      id: comment.id,
+      title: comment.body,
+      body: comment.editedAt ? `${dictionary.orderV2CommentEdited} ${formatOrderV2Instant(comment.editedAt, locale)}` : undefined,
+      formattedAt: formatOrderV2Instant(comment.createdAt, locale),
+      dateTime: comment.createdAt.toISOString(),
+      tone: "default",
+      action: <CommentEditDisclosure comment={comment} dictionary={dictionary} orderId={order.id} />,
+    }));
+}
+
+export function OrderV2CommentsCard({
+  composerName,
+  dictionary,
+  locale,
+  order,
+}: Readonly<{
+  // The signed-in owner's own username: paired with the composer as the
+  // template's avatar. Every call site is the owner's own detail page.
+  composerName: string;
+  dictionary: Dictionary;
+  locale: SupportedLocale;
+  order: OrderV2View;
+}>) {
+  const timelineEntries = commentTimelineEntries(dictionary, locale, order);
+  return (
+    <Card>
+      <CardHeader><CardTitle>{dictionary.orderV2CommentsHeading}</CardTitle></CardHeader>
+      <CardContent className="flex flex-col gap-5">
+        <div className="flex items-start gap-3">
+          <Monogram name={composerName} />
+          <div className="min-w-0 flex-1">
+            <FormDraftGuard
+              draftKey={`order-v2-comment-append-${order.id}`}
+              fieldNames={["body"]}
+              formId={`comment-append-form-${order.id}`}
+              noticeKey={ORDER_V2_NOTICE_KEY}
+              noticeValues={ORDER_V2_FAILURE_NOTICES}
+            />
+            <form action={`/orders-v2/${order.id}`} className="flex flex-col gap-3" id={`comment-append-form-${order.id}`} method="post">
+              <Input name="action" type="hidden" value="append-comment" />
+              <Field>
+                <FieldLabel htmlFor="comment-append-body">{dictionary.orderV2CommentAddLabel}</FieldLabel>
+                <Textarea data-ds-hit-target id="comment-append-body" maxLength={2000} minLength={1} name="body" required />
+              </Field>
+              <div className="flex flex-wrap justify-end gap-3">
+                <CatalogSubmit label={dictionary.orderV2CommentAddSubmit} />
+              </div>
+            </form>
+          </div>
+        </div>
+        {order.comments.length === 0 ? <p>{dictionary.orderV2CommentsEmpty}</p> : <Timeline entries={timelineEntries} />}
+      </CardContent>
+    </Card>
+  );
+}
+
 // The local outcome is append-only history under the lifecycle CAS; it never
-// writes, masks, or shadows the payment state, so both actions stay available.
+// writes, masks, or shadows the payment state, so both actions stay available
+// through one select + note + confirmation (14.5.1 F03), never gated on a
+// `confirmed` payment state.
 export function OrderV2OutcomeCard({
   dictionary,
   order,
@@ -484,25 +523,8 @@ export function OrderV2OutcomeCard({
   return (
     <Card>
       <CardHeader><CardTitle>{dictionary.orderV2OutcomeHeading}</CardTitle></CardHeader>
-      <CardContent className="flex flex-col gap-5">
-        <OutcomeForm
-          confirm={dictionary.orderV2OutcomeFinalizeConfirm}
-          description={dictionary.orderV2OutcomeFinalizeDescription}
-          dictionary={dictionary}
-          label={dictionary.orderV2OutcomeFinalize}
-          order={order}
-          outcome="LOCAL_FINALIZED"
-          tone="secondary"
-        />
-        <OutcomeForm
-          confirm={dictionary.orderV2OutcomeCancelConfirm}
-          description={dictionary.orderV2OutcomeCancelDescription}
-          dictionary={dictionary}
-          label={dictionary.orderV2OutcomeCancel}
-          order={order}
-          outcome="LOCAL_CANCELLED"
-          tone="destructive"
-        />
+      <CardContent>
+        <OrderOutcomeEditor dictionary={dictionary} orderId={order.id} version={order.lifecycleVersion} />
       </CardContent>
     </Card>
   );

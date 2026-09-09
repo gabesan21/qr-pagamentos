@@ -55,6 +55,10 @@
         "$type": "color",
         "$value": "{color.primitive.audit.template.cashier-daylight.accent-soft}"
       },
+      "accent-soft-foreground": {
+        "$type": "color",
+        "$value": "{color.primitive.accessibility.cashier-daylight.accent-soft-foreground}"
+      },
       "success": {
         "$type": "color",
         "$value": "{color.primitive.accessibility.cashier-daylight.feedback-success}"
@@ -66,6 +70,10 @@
       "success-soft": {
         "$type": "color",
         "$value": "{color.primitive.audit.template.cashier-daylight.success-soft}"
+      },
+      "success-soft-foreground": {
+        "$type": "color",
+        "$value": "{color.primitive.accessibility.cashier-daylight.success-soft-foreground}"
       },
       "warning": {
         "$type": "color",
@@ -79,6 +87,10 @@
         "$type": "color",
         "$value": "{color.primitive.audit.template.cashier-daylight.warning-soft}"
       },
+      "warning-soft-foreground": {
+        "$type": "color",
+        "$value": "{color.primitive.accessibility.cashier-daylight.warning-soft-foreground}"
+      },
       "danger": {
         "$type": "color",
         "$value": "{color.primitive.accessibility.cashier-daylight.feedback-danger}"
@@ -91,6 +103,10 @@
         "$type": "color",
         "$value": "{color.primitive.audit.template.cashier-daylight.danger-soft}"
       },
+      "danger-soft-foreground": {
+        "$type": "color",
+        "$value": "{color.primitive.accessibility.cashier-daylight.danger-soft-foreground}"
+      },
       "info": {
         "$type": "color",
         "$value": "{color.primitive.accessibility.cashier-daylight.feedback-info}"
@@ -102,6 +118,10 @@
       "info-soft": {
         "$type": "color",
         "$value": "{color.primitive.audit.template.cashier-daylight.info-soft}"
+      },
+      "info-soft-foreground": {
+        "$type": "color",
+        "$value": "{color.primitive.accessibility.cashier-daylight.info-soft-foreground}"
       },
       "focus-ring": {
         "$type": "color",

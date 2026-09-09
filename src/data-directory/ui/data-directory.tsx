@@ -18,6 +18,9 @@ export type DataDirectoryCopy = Readonly<{
   pageSizeLabel: string;
   applyFilters: string;
   resetFilters: string;
+  // Optional so existing per-page copy builders that predate the ghost
+  // "Clear filters" action keep compiling; falls back to `resetFilters`.
+  clearFilters?: string;
   previousPage: string;
   nextPage: string;
   paginationLabel: string;
@@ -90,6 +93,13 @@ type DataDirectoryProps<Row> = Readonly<{
   emptyAction?: Readonly<{ href: string; label: string }>;
   getRowActions?: (row: Row) => ReactNode;
   actionsLabel?: string;
+  // Optional server-evaluated row link; resolved here alongside `cells` and
+  // `actions` so no row projection crosses the server/client boundary.
+  getRowHref?: (row: Row) => string | undefined;
+  // Documented opt-out for non-navigating demo surfaces (the design-system
+  // gallery): renders the same composition with no live URL commit. Defaults
+  // to the live URL-state controller.
+  interactive?: boolean;
 }>;
 
 // The directory surface is split into a server wrapper and a client shell:
@@ -101,6 +111,7 @@ export function DataDirectory<Row>(props: DataDirectoryProps<Row>) {
     key: props.rowKey(row),
     cells: props.columns.map((column) => column.value(row)),
     actions: props.getRowActions ? props.getRowActions(row) : undefined,
+    href: props.getRowHref ? props.getRowHref(row) : undefined,
   }));
 
   return (
@@ -114,6 +125,7 @@ export function DataDirectory<Row>(props: DataDirectoryProps<Row>) {
       filters={props.filters}
       formAction={props.formAction}
       idPrefix={props.idPrefix}
+      interactive={props.interactive}
       nextUrl={props.nextUrl}
       pageSize={props.pageSize}
       pageSizes={props.pageSizes}

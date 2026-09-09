@@ -36,6 +36,8 @@ export default async function PaymentLinkV2OrderDetailPage({
             backHref={backToOrders}
             dictionary={dictionary}
             link={{ identifier: link.identifier, state: link.state }}
+            linkHref={`/links/v2/${link.id}`}
+            linksHref="/links"
             locale={locale}
             order={orderResult.order}
           />

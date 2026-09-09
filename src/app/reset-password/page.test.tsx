@@ -36,30 +36,51 @@ describe("reset password page contract", () => {
     expect(markup).toContain('id="confirmation"');
     expect(markup).toContain('name="confirmation"');
     expect(markup).toContain('type="password"');
-    expect(markup).not.toContain(getDictionary("pt-BR").resetPasswordTokenInvalid);
+    expect(markup).not.toContain(getDictionary("pt-BR").resetPasswordNoTokenHeading);
+    expect(markup).not.toContain(getDictionary("pt-BR").resetPasswordRejectedHeading);
     expect(markup).toContain('class="auth-card__panel"');
-    expect(markup).toContain('class="auth-card__form reset-password-form"');
+    expect(markup).toContain('class="auth-card__form"');
+    expect(markup).toContain('id="reset-password-form"');
+    // 12–128 meter and client mismatch feedback.
+    expect(markup).toContain(getDictionary("pt-BR").resetPasswordRequirement);
+    expect(markup).toContain('minLength="12"');
+    expect(markup).toContain('maxLength="128"');
+    expect(markup).toContain(getDictionary("pt-BR").resetPasswordLengthMeter.replace("{{len}}", "0"));
   });
 
-  it("shows an opaque unavailable message for a missing token", async () => {
-    validateResetChallenge.mockResolvedValue(null);
-
+  it("shows the explicit missing-token state, distinct from the rejected-link state", async () => {
     const markup = renderToStaticMarkup(await ResetPasswordPage({ searchParams: Promise.resolve({}) }));
 
-    expect(markup).toContain(getDictionary("pt-BR").resetPasswordTokenInvalid);
+    expect(markup).toContain(getDictionary("pt-BR").resetPasswordNoTokenHeading);
+    expect(markup).toContain(getDictionary("pt-BR").resetPasswordNoTokenBody);
+    expect(markup).not.toContain(getDictionary("pt-BR").resetPasswordRejectedHeading);
     expect(markup).not.toContain('action="/reset-password/submit"');
+    expect(markup).toContain('src="/application-assets/unavailable.svg"');
+    expect(markup).toContain('href="/login"');
   });
 
-  it("shows an opaque unavailable message for an invalid token", async () => {
+  it("shows the explicit rejected-link state for an invalid token", async () => {
     validateResetChallenge.mockResolvedValue(null);
 
     const markup = renderToStaticMarkup(await ResetPasswordPage({ searchParams: Promise.resolve({ token: "invalid-token" }) }));
 
     expect(validateResetChallenge).toHaveBeenCalledWith("invalid-token");
-    expect(markup).toContain(getDictionary("pt-BR").resetPasswordTokenInvalid);
+    expect(markup).toContain(getDictionary("pt-BR").resetPasswordRejectedHeading);
+    expect(markup).toContain(getDictionary("pt-BR").resetPasswordRejectedBody);
+    expect(markup).not.toContain(getDictionary("pt-BR").resetPasswordNoTokenHeading);
     expect(markup).not.toContain('name="newPassword"');
-    expect(markup).toContain('class="auth-card__form auth-card__form--tight"');
+    expect(markup).toContain('src="/application-assets/unavailable.svg"');
     expect(markup).toContain('class="auth-card__panel"');
+  });
+
+  it("renders the on-page success state from ?status=changed without leaving /reset-password", async () => {
+    const markup = renderToStaticMarkup(await ResetPasswordPage({ searchParams: Promise.resolve({ status: "changed" }) }));
+
+    expect(markup).toContain(getDictionary("pt-BR").resetPasswordSuccessHeading);
+    expect(markup).toContain(getDictionary("pt-BR").resetPasswordSuccessBody);
+    expect(markup).toContain('href="/login"');
+    expect(markup).not.toContain('action="/reset-password/submit"');
+    expect(validateResetChallenge).not.toHaveBeenCalled();
   });
 
   it("shows the failure alert when the route reports an error", async () => {
@@ -89,8 +110,10 @@ describe("reset password page contract", () => {
     expect(dictionary.resetPasswordConfirmPasswordLabel).not.toBe("");
     expect(dictionary.resetPasswordSubmit).not.toBe("");
     expect(dictionary.resetPasswordSubmitting).not.toBe("");
-    expect(dictionary.resetPasswordTokenInvalid).not.toBe("");
+    expect(dictionary.resetPasswordNoTokenHeading).not.toBe("");
+    expect(dictionary.resetPasswordRejectedHeading).not.toBe("");
     expect(dictionary.resetPasswordFailed).not.toBe("");
+    expect(dictionary.resetPasswordSuccessHeading).not.toBe("");
   });
 
   it("renders the reset form in the persisted locale preference", async () => {
@@ -105,9 +128,9 @@ describe("reset password page contract", () => {
 
   it("permits only the six owned UI sources and no page-local visual primitive", () => {
     const allowedSources = new Set(["alert", "button", "card", "field", "input", "spinner"]);
-    const requiredExports = ["Alert", "Button", "Card", "Field", "Input", "Spinner"];
+    const requiredExports = ["Alert", "Button", "CardContent", "Field", "Input"];
     const importPattern = /import\s+(?:type\s+)?([^;]+?)\s+from\s+"([^"]+)"/g;
-    const files = ["page.tsx", "reset-password-submit.tsx"];
+    const files = ["page.tsx", "reset-password-form.tsx", "reset-password-submit.tsx"];
     const importedNames = new Set<string>();
 
     for (const file of files) {
@@ -121,10 +144,15 @@ describe("reset password page contract", () => {
             if (imported) importedNames.add(imported);
           }
         } else if (specifier === "@/brand/brand-identity") {
-          expect(file).toBe("page.tsx");
+          expect(["page.tsx", "reset-password-form.tsx"]).toContain(file);
         } else if (specifier.startsWith(".")) {
-          expect(specifier).toBe("./reset-password-submit");
-          expect(file).toBe("page.tsx");
+          if (file === "page.tsx") {
+            expect(specifier).toBe("./reset-password-form");
+          } else if (file === "reset-password-form.tsx") {
+            expect(specifier).toBe("./reset-password-submit");
+          } else {
+            throw new Error(`unexpected relative import ${specifier} in ${file}`);
+          }
         }
       }
     }
@@ -132,5 +160,19 @@ describe("reset password page contract", () => {
     for (const required of requiredExports) {
       expect(importedNames.has(required)).toBe(true);
     }
+  });
+
+  it("renders the labelled PT/EN language switcher posting to /language-preference, ≥44px, on both the form and the missing-token state", async () => {
+    const validMarkup = renderToStaticMarkup(await ResetPasswordPage({ searchParams: Promise.resolve({ token: "valid-token" }) }));
+    expect(validMarkup).toContain('action="/language-preference"');
+    expect(validMarkup).toContain('name="locale"');
+    expect(validMarkup).toMatch(/aria-label="[^"]+"/);
+    expect(validMarkup).toContain(">PT<");
+    expect(validMarkup).toContain(">EN<");
+    expect(validMarkup).toContain("h-11");
+
+    const missingTokenMarkup = renderToStaticMarkup(await ResetPasswordPage({ searchParams: Promise.resolve({}) }));
+    expect(missingTokenMarkup).toContain('action="/language-preference"');
+    expect(readCookie).not.toHaveBeenCalledWith("qr_session");
   });
 });

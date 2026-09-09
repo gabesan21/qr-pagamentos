@@ -10,7 +10,7 @@ aprovação/merge — os julgamentos são delegados ao revisor independente
 (seção Yolo mode do WORKFLOW).
 
 Uso:
-    python3 scripts/pop_status.py [--project <categoria>/<projeto>] [--vault DIR]
+    python3 scripts/pop_status.py [--project <projeto>[/<repo>]] [--vault DIR]
 """
 
 import argparse
@@ -119,8 +119,9 @@ def print_list(title, items):
 def main():
     parser = argparse.ArgumentParser(
         description="Panorama do vault: tasks por estágio e gates pendentes.")
-    parser.add_argument("--project", metavar="CATEGORIA/PROJETO",
-                        help="limita a um projeto (ex.: agents/meu-projeto)")
+    parser.add_argument("--project", metavar="PROJETO",
+                        help="limita a um projeto (ex.: meu-projeto; "
+                             "repo de multi-repo: meu-app/frontend)")
     parser.add_argument("--scope", "--vault", dest="vault", metavar="DIR",
                         help="raiz do vault (default: pasta acima de scripts/)")
     args = parser.parse_args()

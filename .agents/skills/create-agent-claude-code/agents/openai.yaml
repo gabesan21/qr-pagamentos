@@ -1,0 +1,4 @@
+interface:
+  display_name: "Create Agent Claude Code"
+  short_description: "Gera agents Claude Code com validação fechada"
+  default_prompt: "Use $create-agent-claude-code para materializar os agentes canônicos do PoP no Claude Code."

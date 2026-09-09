@@ -2,13 +2,13 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import {
+  copyLabels,
   formatLinkInstant,
-  LinkStateBadge,
   linkKindLabel,
-  linkSummary,
   linkTypeLabel,
 } from "@/app/(merchant)/links/link-v2-views";
 import { WorkspaceHeading } from "@/app-shell/workspace-heading";
+import { dataDirectoryCopy, DirectoryInvalidFiltersNotice } from "@/app/directory-support";
 import {
   ADMIN_PAYMENT_LINK_V2_DIRECTORY_PAGE_SIZE_POLICY,
   ADMIN_PAYMENT_LINK_V2_DIRECTORY_PATH,
@@ -19,13 +19,20 @@ import {
 import { PAYMENT_LINK_V2_DERIVED_STATES } from "@/auth/payment-link-v2-view";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { CopyField } from "@/components/ui/copy-field";
+import { MoneyText } from "@/components/ui/money-text";
 import { Monogram } from "@/components/ui/monogram";
+import { LinkLifecycleBadge, type LinkLifecycle } from "@/components/ui/status-badge";
+import {
+  DIRECTORY_INVALID_FILTERS_PARAM,
+  DIRECTORY_INVALID_FILTERS_VALUE,
+  directoryInvalidFiltersLocation,
+} from "@/data-directory/server/notice";
 import { DataDirectory, type DataDirectoryColumn, type DataDirectoryState } from "@/data-directory/ui/data-directory";
 import type { getDictionary } from "@/i18n/dictionaries";
 import type { SupportedLocale } from "@/i18n/locales";
 
 import { requireAdminShellContext } from "../shell-context";
-import { adminPaymentLinksDirectoryCopy } from "./directory-copy";
 import {
   adminPaymentLinksCanonicalTarget,
   resolveAdminPaymentLinksDirectoryQuery,
@@ -63,49 +70,69 @@ function OwnerCell({ dictionary, owner }: Readonly<{ dictionary: Dictionary; own
   );
 }
 
+// `PaymentLinkV2DerivedState` and `LinkLifecycle` share the exact closed
+// vocabulary; only the caller-supplied localized labels differ per surface.
+function lifecycleLabels(dictionary: Dictionary): Readonly<Record<LinkLifecycle, string>> {
+  return {
+    active: dictionary.paymentLinkDirectoryStateActive,
+    inactive: dictionary.paymentLinkDirectoryStateInactive,
+    expired: dictionary.paymentLinkDirectoryStateExpired,
+    paid: dictionary.paymentLinkDirectoryStatePaid,
+  };
+}
+
+// Fixed-amount links render the redacted pair-labelled amount; product-line
+// links render the localized line count instead — never a stored total.
+function AmountOrProductsCell({ dictionary, row }: Readonly<{ dictionary: Dictionary; row: AdminPaymentLinkV2DirectoryRow }>) {
+  if (row.compositionKind === "FIXED_AMOUNT") {
+    return <MoneyText pairLabel={row.currencyPairLabel} value={row.amount ?? "—"} />;
+  }
+  return <span className="font-mono tabular-nums">{dictionary.paymentLinkDirectoryProductsCount.replace("{count}", String(row.lines.length))}</span>;
+}
+
+// Created date with the expiry beneath it, styled in the danger tone once the
+// row's read-time state is `expired`.
+function CreatedCell({ dictionary, locale, row }: Readonly<{ dictionary: Dictionary; locale: SupportedLocale; row: AdminPaymentLinkV2DirectoryRow }>) {
+  return (
+    <div className="flex flex-col gap-0.5">
+      <span className="font-mono tabular-nums">{formatLinkInstant(row.createdAt, locale)}</span>
+      <span className={row.state === "expired" ? "font-mono text-xs tabular-nums text-danger" : "font-mono text-xs tabular-nums text-muted-foreground"}>
+        {row.expiresAt ? formatLinkInstant(row.expiresAt, locale) : dictionary.adminPaymentLinkNoExpiry}
+      </span>
+    </div>
+  );
+}
+
 function AdminPaymentLinkV2Directory({
   dictionary,
   locale,
   page,
   query,
-  serviceInvalid = false,
 }: Readonly<{
   dictionary: Dictionary;
   locale: SupportedLocale;
   page: Extract<AdminPaymentLinkV2DirectoryResult, { status: "ready" }> | null;
-  query: Extract<ReturnType<typeof resolveAdminPaymentLinksDirectoryQuery>, { status: "ready" | "invalid-query" }>;
-  serviceInvalid?: boolean;
+  query: Extract<ReturnType<typeof resolveAdminPaymentLinksDirectoryQuery>, { status: "ready" }>;
 }>) {
-  const copy = adminPaymentLinksDirectoryCopy(dictionary);
+  const copy = dataDirectoryCopy(dictionary, {
+    title: dictionary.adminPaymentLinkV2DirectoryEmpty,
+    description: dictionary.adminPaymentLinkV2DirectoryEmptyDescription,
+  });
+  const lifecycleLabelSet = lifecycleLabels(dictionary);
   const columns: readonly DataDirectoryColumn<AdminPaymentLinkV2DirectoryRow>[] = [
     {
-      id: "summary",
-      label: dictionary.paymentLinkDirectoryColumnSummary,
-      value: (row) => <span className="font-medium">{linkSummary(row, locale)}</span>,
+      id: "identifier",
+      label: dictionary.paymentLinkDirectoryColumnIdentifier,
+      value: (row) => <CopyField labels={copyLabels(dictionary)} value={row.identifier} variant="compact" />,
     },
+    { id: "merchant", label: dictionary.adminPaymentLinkV2DirectoryColumnOwner, value: (row) => <OwnerCell dictionary={dictionary} owner={row.owner} /> },
     { id: "composition", label: dictionary.paymentLinkDirectoryColumnComposition, value: (row) => <Badge variant="outline">{linkKindLabel(dictionary, row.compositionKind)}</Badge> },
-    { id: "type", label: dictionary.paymentLinkDirectoryColumnType, value: (row) => linkTypeLabel(dictionary, row.linkType) },
-    { id: "state", label: dictionary.paymentLinkDirectoryColumnState, value: (row) => <LinkStateBadge dictionary={dictionary} state={row.state} /> },
-    { id: "owner", label: dictionary.adminPaymentLinkV2DirectoryColumnOwner, value: (row) => <OwnerCell dictionary={dictionary} owner={row.owner} /> },
+    { id: "type", label: dictionary.paymentLinkDirectoryColumnType, value: (row) => <Badge variant="outline">{linkTypeLabel(dictionary, row.linkType)}</Badge> },
+    { id: "state", label: dictionary.paymentLinkDirectoryColumnState, value: (row) => <LinkLifecycleBadge labels={lifecycleLabelSet} lifecycle={row.state} /> },
+    { id: "amount", label: dictionary.paymentLinkDirectoryAmount, numeric: true, value: (row) => <AmountOrProductsCell dictionary={dictionary} row={row} /> },
     { id: "orders", label: dictionary.paymentLinkDirectoryColumnOrders, numeric: true, value: (row) => <span className="font-mono tabular-nums">{row.orderCount}</span> },
-    { id: "expiry", label: dictionary.paymentLinkDirectoryColumnExpiry, numeric: true, value: (row) => row.expiresAt ? formatLinkInstant(row.expiresAt, locale) : dictionary.adminPaymentLinkNoExpiry },
+    { id: "created", label: dictionary.paymentLinkDirectoryCreated, numeric: true, value: (row) => <CreatedCell dictionary={dictionary} locale={locale} row={row} /> },
   ];
-
-  if (query.status === "invalid-query" || serviceInvalid) {
-    return (
-      <DataDirectory
-        caption={dictionary.adminPaymentLinkV2DirectoryHeading}
-        columns={columns}
-        copy={copy}
-        formAction={ADMIN_PAYMENT_LINK_V2_DIRECTORY_PATH}
-        idPrefix="admin-payment-links-v2"
-        resetUrl={ADMIN_PAYMENT_LINK_V2_DIRECTORY_PATH}
-        rowKey={(row) => row.id}
-        rows={[]}
-        state="invalid-query"
-      />
-    );
-  }
 
   const rows = page?.rows ?? [];
   const filtering = Boolean(query.query.q) || Object.keys(query.query.filters).length > 0 || query.cursor !== undefined;
@@ -118,7 +145,7 @@ function AdminPaymentLinkV2Directory({
   return (
     <DataDirectory
       actionsLabel={dictionary.paymentLinkDirectoryColumnActions}
-      canonicalFilterQuery={query.status === "ready" && !serviceInvalid ? query.query.canonicalFilterQuery : undefined}
+      canonicalFilterQuery={query.query.canonicalFilterQuery}
       caption={dictionary.adminPaymentLinkV2DirectoryHeading}
       columns={columns}
       copy={copy}
@@ -159,6 +186,16 @@ function AdminPaymentLinkV2Directory({
             { value: "FIXED_AMOUNT", label: dictionary.paymentLinkDirectoryKindFixedAmount },
           ],
         },
+        {
+          name: "money",
+          label: dictionary.paymentLinkDirectoryFilterMoney,
+          allLabel: dictionary.paymentLinkDirectoryFilterAllMoney,
+          ...(firstValue(query.query.filters.money) ? { selected: firstValue(query.query.filters.money) } : {}),
+          options: [
+            { value: "USD", label: dictionary.paymentLinkDirectoryMoneyUsd },
+            { value: "FIAT", label: dictionary.paymentLinkDirectoryMoneyFiat },
+          ],
+        },
       ]}
       formAction={ADMIN_PAYMENT_LINK_V2_DIRECTORY_PATH}
       getRowActions={(row) => (
@@ -166,6 +203,7 @@ function AdminPaymentLinkV2Directory({
           <Link href={`/admin/payment-links/v2/${row.id}`}>{dictionary.paymentLinkDirectoryView}</Link>
         </Button>
       )}
+      getRowHref={(row) => `/admin/payment-links/v2/${row.id}`}
       idPrefix="admin-payment-links-v2"
       {...(page?.nextCursor ? { nextUrl: pageUrl(query.query, page.nextCursor) } : {})}
       pageSize={query.query.pageSize}
@@ -178,6 +216,11 @@ function AdminPaymentLinkV2Directory({
       {...(query.query.q ? { search: query.query.q } : {})}
       state={state}
       textFilters={[
+        {
+          name: "merchant",
+          label: dictionary.paymentLinkDirectoryFilterMerchant,
+          ...(firstValue(query.query.filters.merchant) ? { selected: firstValue(query.query.filters.merchant) } : {}),
+        },
         {
           name: "from",
           label: dictionary.paymentLinkDirectoryFilterFrom,
@@ -204,30 +247,32 @@ export default async function AdminPaymentLinksPage({
   searchParams?: Promise<AdminPaymentLinksSearchParams>;
 }> = {}) {
   const { dictionary, locale, principal } = await requireAdminShellContext();
-  const query = resolveAdminPaymentLinksDirectoryQuery({ searchParams: await searchParams, principal });
+  const params = await searchParams;
+  const invalidFiltersNotice = params[DIRECTORY_INVALID_FILTERS_PARAM] === DIRECTORY_INVALID_FILTERS_VALUE;
+  const query = resolveAdminPaymentLinksDirectoryQuery({ searchParams: params, principal });
   if (query.status === "redirect") redirect(query.location);
+  if (query.status === "invalid-query") redirect(directoryInvalidFiltersLocation(ADMIN_PAYMENT_LINK_V2_DIRECTORY_PATH));
 
   let page: Extract<AdminPaymentLinkV2DirectoryResult, { status: "ready" }> | null = null;
-  // The delivered service rejects ungrammatical calendar days after
-  // canonicalization; that is the same zero-I/O invalid-query state.
-  let serviceInvalid = false;
   let serviceRedirect: string | null = null;
-  if (query.status === "ready") {
-    try {
-      const result = await queryAdminPaymentLinkV2Directory(adminPaymentLinksCanonicalTarget(query));
-      if (result.status === "ready") page = result;
-      else if (result.status === "invalid-query") serviceInvalid = true;
-      else serviceRedirect = result.location;
-    } catch {
-      page = null;
-    }
+  try {
+    const result = await queryAdminPaymentLinkV2Directory(adminPaymentLinksCanonicalTarget(query));
+    // The delivered service rejects ungrammatical calendar days after
+    // canonicalization; that is the same zero-I/O invalid-query state, routed
+    // the same way as a page-level invalid query.
+    if (result.status === "ready") page = result;
+    else if (result.status === "invalid-query") serviceRedirect = directoryInvalidFiltersLocation(ADMIN_PAYMENT_LINK_V2_DIRECTORY_PATH);
+    else serviceRedirect = result.location;
+  } catch {
+    page = null;
   }
   if (serviceRedirect !== null) redirect(serviceRedirect);
 
   return (
     <>
       <WorkspaceHeading description={dictionary.adminPaymentLinkV2DirectoryDescription} eyebrow={dictionary.shellAdminEyebrow} title={dictionary.shellAdminLinksTitle} />
-      <AdminPaymentLinkV2Directory dictionary={dictionary} locale={locale} page={page} query={query} serviceInvalid={serviceInvalid} />
+      {invalidFiltersNotice ? <DirectoryInvalidFiltersNotice dictionary={dictionary} /> : null}
+      <AdminPaymentLinkV2Directory dictionary={dictionary} locale={locale} page={page} query={query} />
     </>
   );
 }

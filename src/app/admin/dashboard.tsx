@@ -7,11 +7,11 @@ import { MoneyText } from "@/components/ui/money-text";
 import { Monogram } from "@/components/ui/monogram";
 import { CardSkeleton, StatGridSkeleton, TableSkeleton } from "@/components/ui/skeletons";
 import { StatCard } from "@/components/ui/stat-card";
+import { ProviderStateBadge, StatusBadge, type ProviderState } from "@/components/ui/status-badge";
 import type { getDictionary } from "@/i18n/dictionaries";
 import type { SupportedLocale } from "@/i18n/locales";
 import type {
   AdminAnalyticsCurrencyAmount,
-  AdminAnalyticsPeriod,
   AdminAnalyticsSalesGroup,
   AdminAnalyticsView,
 } from "@/orders/admin-analytics";
@@ -19,15 +19,6 @@ import type { OrderV2Source, OrderV2State } from "@/orders/order-v2";
 
 type Dictionary = ReturnType<typeof getDictionary>;
 type CurrencyLabel = AdminAnalyticsCurrencyAmount["currency"];
-
-const DASHBOARD_PERIODS: ReadonlyArray<{
-  id: AdminAnalyticsPeriod;
-  label: (dictionary: Dictionary) => string;
-}> = [
-  { id: "today", label: (dictionary) => dictionary.adminDashboardPeriodToday },
-  { id: "7d", label: (dictionary) => dictionary.adminDashboardPeriod7d },
-  { id: "30d", label: (dictionary) => dictionary.adminDashboardPeriod30d },
-];
 
 const ORDER_SOURCE_ORDER: ReadonlyArray<OrderV2Source> = ["LINK", "STANDALONE", "AD_HOC"];
 
@@ -62,27 +53,6 @@ function progressWidthClass(percentage: number): string {
   if (percentage <= 0) return PROGRESS_WIDTH_BUCKETS[0];
   const bucket = Math.min(PROGRESS_WIDTH_BUCKETS.length - 1, Math.ceil(percentage / 5));
   return PROGRESS_WIDTH_BUCKETS[bucket];
-}
-
-export function AdminDashboardPeriodNavigation({
-  current,
-  dictionary,
-}: Readonly<{ current: AdminAnalyticsPeriod; dictionary: Dictionary }>) {
-  return (
-    <nav aria-label={dictionary.adminDashboardPeriodLabel} className="admin-dashboard__periods">
-      {DASHBOARD_PERIODS.map((period) =>
-        period.id === current ? (
-          <span aria-current="page" className="admin-dashboard__period admin-dashboard__period--current" key={period.id}>
-            {period.label(dictionary)}
-          </span>
-        ) : (
-          <Link className="admin-dashboard__period" href={`/admin?period=${period.id}`} key={period.id}>
-            {period.label(dictionary)}
-          </Link>
-        ),
-      )}
-    </nav>
-  );
 }
 
 // Rates arrive as exact decimals with exactly four fraction digits ("0.5000");
@@ -125,9 +95,9 @@ function AmountLines({
   locale,
 }: Readonly<{ amounts: ReadonlyArray<AdminAnalyticsCurrencyAmount>; dictionary: Dictionary; locale: SupportedLocale }>) {
   return (
-    <span className="admin-dashboard__amount-lines">
+    <span className="flex flex-col gap-1">
       {amounts.map((amount) => (
-        <span className="admin-dashboard__count" key={`${amount.currency.code ?? "unlabeled"}-${amount.currency.label ?? "unlabeled"}-${amount.amount}`}>
+        <span className="tabular-nums" key={`${amount.currency.code ?? "unlabeled"}-${amount.currency.label ?? "unlabeled"}-${amount.amount}`}>
           {formatAmount(dictionary, amount, locale)}
         </span>
       ))}
@@ -149,22 +119,22 @@ function SalesGroups({
   locale: SupportedLocale;
 }>) {
   return (
-    <section className="admin-dashboard__group">
-      <h3>{heading}</h3>
+    <section className="grid gap-3 border-t border-border pt-4">
+      <h3 className="m-0">{heading}</h3>
       {groups.length === 0 ? (
-        <p className="admin-dashboard__empty">{emptyLabel}</p>
+        <p className="m-0 max-w-prose text-text-2">{emptyLabel}</p>
       ) : (
-        <ul className="admin-dashboard__amounts">
+        <ul className="m-0 flex list-none flex-wrap gap-5 p-0">
           {groups.map((group) => (
-            <li key={`${group.currency.code ?? "unlabeled"}-${group.currency.label ?? "unlabeled"}-${group.amount}`}>
+            <li className="flex flex-col gap-1" key={`${group.currency.code ?? "unlabeled"}-${group.currency.label ?? "unlabeled"}-${group.amount}`}>
               <MoneyText
-                className="admin-dashboard__amount"
+                className="text-[length:var(--type-title)] font-semibold tabular-nums"
                 pairLabel={currencyDetail(dictionary, group.currency) ?? undefined}
                 size="large"
                 value={formatAmount(dictionary, group, locale)}
               />
-              <span className="admin-dashboard__facts-secondary">
-                <span className="admin-dashboard__count">{group.orderCount}</span> {dictionary.adminDashboardOrderCountLabel}
+              <span className="text-text-2 text-sm">
+                <span className="tabular-nums">{group.orderCount}</span> {dictionary.adminDashboardOrderCountLabel}
               </span>
             </li>
           ))}
@@ -192,20 +162,40 @@ function stateLabel(dictionary: Dictionary, state: OrderV2State | null) {
   return dictionary.checkoutStateIndeterminate;
 }
 
+// `OrderV2State` members are the upper-case mirror of `ProviderState`
+// (`payment-link-order.ts`'s `PAYMENT_LINK_ORDER_STATES`); every member has a
+// matching lower-case `ProviderState`, so the cast is total, never partial.
+function toProviderState(state: OrderV2State): ProviderState {
+  return state.toLowerCase() as ProviderState;
+}
+
+function providerStateBadgeLabels(dictionary: Dictionary): Readonly<Record<ProviderState, string>> {
+  return {
+    cancelled: dictionary.checkoutStateCancelled,
+    confirmed: dictionary.checkoutStateConfirmed,
+    created: dictionary.checkoutStateCreated,
+    expired: dictionary.checkoutStateExpired,
+    indeterminate: dictionary.checkoutStateIndeterminate,
+    pending: dictionary.checkoutStatePending,
+    refunded: dictionary.checkoutStateRefunded,
+    rejected: dictionary.checkoutStateRejected,
+  };
+}
+
 function SourceChip({ dictionary, source }: Readonly<{ dictionary: Dictionary; source: OrderV2Source }>) {
   const variant = source === "LINK" ? "default" : source === "STANDALONE" ? "secondary" : "outline";
   return <Badge variant={variant}>{sourceLabel(dictionary, source)}</Badge>;
 }
 
 function sourceBarClass(source: OrderV2Source) {
-  if (source === "LINK") return "admin-dashboard__source-bar--link";
-  if (source === "STANDALONE") return "admin-dashboard__source-bar--standalone";
-  return "admin-dashboard__source-bar--ad-hoc";
+  if (source === "LINK") return "bg-primary";
+  if (source === "STANDALONE") return "bg-info";
+  return "bg-muted-foreground";
 }
 
 function UsersStatGrid({ dictionary, view }: Readonly<{ dictionary: Dictionary; view: AdminAnalyticsView }>) {
   return (
-    <div className="admin-dashboard__stat-grid admin-dashboard__stat-grid--3">
+    <div className="grid gap-4 sm:grid-cols-3">
       <StatCard
         caption={dictionary.adminDashboardPeriodIndependentCaption}
         label={dictionary.adminDashboardUsersRegistered}
@@ -214,13 +204,14 @@ function UsersStatGrid({ dictionary, view }: Readonly<{ dictionary: Dictionary; 
       <StatCard
         caption={dictionary.adminDashboardPeriodIndependentCaption}
         label={dictionary.adminDashboardUsersActiveNow}
+        trend={{ direction: "up", label: `${view.users.activeNow} ${dictionary.adminDashboardUsersActiveNowTrendSuffix}` }}
         value={view.users.activeNow}
       />
       <StatCard
         label={dictionary.adminDashboardUsersDeleted}
         value={
           <span className="inline-flex items-center gap-2">
-            <span aria-hidden className="admin-dashboard__danger-dot" />
+            <span aria-hidden className="size-2 rounded-full bg-danger" />
             {view.users.deletedTotal}
           </span>
         }
@@ -243,44 +234,49 @@ function OrdersCard({ dictionary, view }: Readonly<{ dictionary: Dictionary; vie
         <CardTitle>{dictionary.adminDashboardOrdersHeading}</CardTitle>
         <CardDescription>{dictionary.adminDashboardOrdersDescription}</CardDescription>
       </CardHeader>
-      <CardContent className="admin-dashboard__groups">
+      <CardContent className="grid gap-5">
         <div>
-          <p className="admin-dashboard__empty">{dictionary.adminDashboardOrdersCreated}</p>
-          <p className="admin-dashboard__big-stat">{orders.createdInPeriod}</p>
+          <p className="m-0 max-w-prose text-text-2">{dictionary.adminDashboardOrdersCreated}</p>
+          <p className="font-display m-0 text-[length:var(--type-display)] leading-8 font-semibold">{orders.createdInPeriod}</p>
         </div>
         {orders.bySource.length === 0 ? (
-          <p className="admin-dashboard__empty">{dictionary.adminDashboardOrdersEmpty}</p>
+          <p className="m-0 max-w-prose text-text-2">{dictionary.adminDashboardOrdersEmpty}</p>
         ) : (
-          <section aria-label={dictionary.adminDashboardOrdersBySource} className="admin-dashboard__group">
-            <div className="admin-dashboard__progress" role="img" aria-label={`${dictionary.adminDashboardOrdersBySource}: ${total}`}>
+          <section aria-label={dictionary.adminDashboardOrdersBySource} className="grid gap-3 border-t border-border pt-4">
+            <div aria-label={`${dictionary.adminDashboardOrdersBySource}: ${total}`} className="flex h-3 w-full overflow-hidden rounded-full bg-muted" role="img">
               {sourceRows.map((row) => {
                 const pct = total === 0 ? 0 : (row.count / total) * 100;
                 return (
                   <div
+                    className={`transition-all ${sourceBarClass(row.source)} ${progressWidthClass(pct)}`}
                     key={row.source}
-                    className={`${sourceBarClass(row.source)} ${progressWidthClass(pct)}`}
                   />
                 );
               })}
             </div>
-            <ul className="admin-dashboard__origin-list">
+            <ul className="m-0 grid list-none gap-2 p-0">
               {sourceRows.map((row) => (
-                <li key={row.source} className="admin-dashboard__origin-row">
+                <li className="flex items-center justify-between" key={row.source}>
                   <SourceChip dictionary={dictionary} source={row.source} />
-                  <span className="admin-dashboard__count">{row.count}</span>
+                  <span className="tabular-nums">{row.count}</span>
                 </li>
               ))}
             </ul>
           </section>
         )}
         {orders.byState.length === 0 ? null : (
-          <section className="admin-dashboard__group">
-            <h3>{dictionary.adminDashboardByProviderState}</h3>
-            <div className="admin-dashboard__state-tags">
+          <section className="grid gap-3 border-t border-border pt-4">
+            <h3 className="m-0">{dictionary.adminDashboardByProviderState}</h3>
+            <div className="flex flex-wrap gap-2">
               {orders.byState.map((row) => (
-                <Badge key={row.state ?? "none"} variant="secondary">
-                  {stateLabel(dictionary, row.state)} <span className="admin-dashboard__count">{row.count}</span>
-                </Badge>
+                <span className="inline-flex items-center gap-1.5" key={row.state ?? "none"}>
+                  {row.state === null ? (
+                    <StatusBadge label={stateLabel(dictionary, null)} tone="neutral" />
+                  ) : (
+                    <ProviderStateBadge labels={providerStateBadgeLabels(dictionary)} state={toProviderState(row.state)} />
+                  )}
+                  <span className="text-text-2 text-xs tabular-nums">{row.count}</span>
+                </span>
               ))}
             </div>
           </section>
@@ -297,7 +293,7 @@ function SalesCard({ dictionary, locale, view }: Readonly<{ dictionary: Dictiona
         <CardTitle>{dictionary.adminDashboardSalesHeading}</CardTitle>
         <CardDescription>{dictionary.adminDashboardSalesDescription}</CardDescription>
       </CardHeader>
-      <CardContent className="admin-dashboard__groups">
+      <CardContent className="grid gap-5">
         <SalesGroups
           dictionary={dictionary}
           emptyLabel={dictionary.adminDashboardSalesEmpty}
@@ -325,13 +321,13 @@ function FunnelBar({
 }: Readonly<{ cls: string; count: number; label: string; total: number }>) {
   const rate = total === 0 ? 0 : Math.round((count / total) * 100);
   return (
-    <div className="admin-dashboard__funnel-row">
-      <div className="admin-dashboard__funnel-labels">
+    <div className="grid gap-1">
+      <div className="flex justify-between">
         <span>{label}</span>
-        <span className="admin-dashboard__count">{count} · {rate}%</span>
+        <span className="tabular-nums">{count} · {rate}%</span>
       </div>
-      <div className="admin-dashboard__progress admin-dashboard__progress--small">
-        <div className={`${cls} ${progressWidthClass(rate)}`} />
+      <div className="h-2 overflow-hidden rounded-full bg-muted">
+        <div className={`h-full transition-all ${cls} ${progressWidthClass(rate)}`} />
       </div>
     </div>
   );
@@ -349,37 +345,37 @@ function FunnelCard({ dictionary, locale, view }: Readonly<{ dictionary: Diction
       </CardHeader>
       <CardContent>
         {funnel.attempts === 0 ? (
-          <p className="admin-dashboard__empty">{dictionary.adminDashboardFunnelEmpty}</p>
+          <p className="m-0 max-w-prose text-text-2">{dictionary.adminDashboardFunnelEmpty}</p>
         ) : (
-          <div className="admin-dashboard__funnel">
+          <div className="grid gap-4">
             <FunnelBar
-              cls="admin-dashboard__funnel-bar--converted"
+              cls="bg-success"
               count={funnel.converted}
               label={dictionary.adminDashboardFunnelConverted}
               total={total}
             />
             <FunnelBar
-              cls="admin-dashboard__funnel-bar--in-progress"
+              cls="bg-info"
               count={funnel.inProgress}
               label={dictionary.adminDashboardFunnelInProgress}
               total={total}
             />
             <FunnelBar
-              cls="admin-dashboard__funnel-bar--abandoned"
+              cls="bg-muted-foreground"
               count={funnel.abandoned}
               label={dictionary.adminDashboardFunnelAbandoned}
               total={total}
             />
-            <div className="admin-dashboard__funnel-rates">
-              <div>
+            <div className="grid gap-2 border-t border-border pt-4">
+              <div className="flex justify-between">
                 <span>{dictionary.adminDashboardFunnelConversionRate}</span>
-                <span className="admin-dashboard__count">
+                <span className="tabular-nums">
                   {funnel.conversionRate === null ? dictionary.adminDashboardRateUnavailable : formatAdminDashboardRate(funnel.conversionRate, locale)}
                 </span>
               </div>
-              <div>
+              <div className="flex justify-between">
                 <span>{dictionary.adminDashboardFunnelAbandonmentRate}</span>
-                <span className="admin-dashboard__count">
+                <span className="tabular-nums">
                   {funnel.abandonmentRate === null ? dictionary.adminDashboardRateUnavailable : formatAdminDashboardRate(funnel.abandonmentRate, locale)}
                 </span>
               </div>
@@ -393,7 +389,7 @@ function FunnelCard({ dictionary, locale, view }: Readonly<{ dictionary: Diction
 
 function LinksProductsStatGrid({ dictionary, view }: Readonly<{ dictionary: Dictionary; view: AdminAnalyticsView }>) {
   return (
-    <div className="admin-dashboard__stat-grid admin-dashboard__stat-grid--4">
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <StatCard
         caption={dictionary.adminDashboardPeriodIndependentCaption}
         label={dictionary.adminDashboardLinksTotal}
@@ -429,20 +425,25 @@ function TopOwnersCard({ dictionary, locale, view }: Readonly<{ dictionary: Dict
         {view.topOwners.length === 0 ? (
           <EmptyState illustration="users" title={dictionary.adminDashboardTopOwnersEmpty} />
         ) : (
-          <ol className="admin-dashboard__leaderboard">
+          <ol className="m-0 grid list-none gap-1 p-0">
             {view.topOwners.map((entry, index) => (
               <li key={entry.owner.username}>
-                <Link className="admin-dashboard__leaderboard-row" href="/admin/accounts">
-                  <span aria-hidden className="admin-dashboard__rank">{index + 1}</span>
+                <Link
+                  className="flex min-h-11 items-center gap-3 rounded-md p-2 no-underline hover:bg-muted"
+                  href={`/admin/orders?filter.merchant=${encodeURIComponent(entry.owner.username)}`}
+                >
+                  <span aria-hidden className="bg-accent text-accent-foreground font-money inline-flex size-7 items-center justify-center rounded-full text-xs font-semibold">
+                    {index + 1}
+                  </span>
                   <Monogram accessibleName={entry.owner.username} name={entry.owner.username} size="sm" />
-                  <span className={`admin-dashboard__leaderboard-name ${entry.owner.deleted ? "admin-dashboard__leaderboard-name--deleted" : ""}`}>
+                  <span className={`truncate font-semibold ${entry.owner.deleted ? "line-through" : ""}`}>
                     {entry.owner.username}
                   </span>
                   {entry.owner.deleted ? (
-                    <Badge variant="outline">{dictionary.adminDashboardDeletedOwnerBadge}</Badge>
+                    <StatusBadge label={dictionary.adminDashboardDeletedOwnerBadge} tone="danger" />
                   ) : null}
-                  <span className="admin-dashboard__count admin-dashboard__leaderboard-metric">{entry.confirmedOrders}</span>
-                  <span className="admin-dashboard__leaderboard-metric">
+                  <span className="ml-auto tabular-nums">{entry.confirmedOrders}</span>
+                  <span className="ml-auto">
                     <AmountLines amounts={entry.confirmedVolume} dictionary={dictionary} locale={locale} />
                   </span>
                 </Link>
@@ -466,23 +467,23 @@ function TopProductsCard({ dictionary, locale, view }: Readonly<{ dictionary: Di
         {view.topProducts.length === 0 ? (
           <EmptyState illustration="products" title={dictionary.adminDashboardTopProductsEmpty} />
         ) : (
-          <ol className="admin-dashboard__leaderboard">
+          <ol className="m-0 grid list-none gap-1 p-0">
             {view.topProducts.map((product) => (
               <li key={`${product.titlePtBr}-${product.titleEn}-${product.confirmedQuantity}`}>
-                <div className="admin-dashboard__leaderboard-row admin-dashboard__leaderboard-row--static">
+                <div className="flex min-h-11 items-center gap-3 p-2">
                   <img
                     alt=""
                     aria-hidden
-                    className="admin-dashboard__product-thumb"
+                    className="size-8 rounded-md border border-border object-contain"
                     height={32}
                     src="/application-assets/product-fallback.svg"
                     width={32}
                   />
-                  <span className="admin-dashboard__leaderboard-name admin-dashboard__leaderboard-name--product">
+                  <span className="min-w-0 flex-1 truncate font-semibold">
                     {locale === "pt-BR" ? product.titlePtBr : product.titleEn}
                   </span>
-                  <span className="admin-dashboard__count admin-dashboard__leaderboard-metric">×{product.confirmedQuantity}</span>
-                  <span className="admin-dashboard__leaderboard-metric">
+                  <span className="ml-auto tabular-nums">×{product.confirmedQuantity}</span>
+                  <span className="ml-auto">
                     <AmountLines amounts={product.revenue} dictionary={dictionary} locale={locale} />
                   </span>
                 </div>
@@ -497,19 +498,25 @@ function TopProductsCard({ dictionary, locale, view }: Readonly<{ dictionary: Di
 
 export function AdminDashboardSkeleton({ dictionary }: Readonly<{ dictionary: Dictionary }>) {
   return (
-    <div className="admin-dashboard">
-      <div className="admin-dashboard__stat-grid admin-dashboard__stat-grid--3">
-        <CardSkeleton label={dictionary.adminDashboardUsersHeading} />
-        <CardSkeleton label={dictionary.adminDashboardUsersHeading} />
-        <CardSkeleton label={dictionary.adminDashboardUsersHeading} />
+    <div className="grid gap-6">
+      <div className="grid gap-4 sm:grid-cols-3">
+        <CardSkeleton label={dictionary.adminDashboardUsersRegistered} />
+        <CardSkeleton label={dictionary.adminDashboardUsersActiveNow} />
+        <CardSkeleton label={dictionary.adminDashboardUsersDeleted} />
       </div>
-      <div className="admin-dashboard__row admin-dashboard__row--3">
-        <TableSkeleton columns={2} label={dictionary.adminDashboardOrdersHeading} rows={4} />
-        <TableSkeleton columns={1} label={dictionary.adminDashboardSalesHeading} rows={4} />
-        <TableSkeleton columns={1} label={dictionary.adminDashboardFunnelHeading} rows={3} />
+      <div className="grid gap-4 lg:grid-cols-12">
+        <div className="lg:col-span-5">
+          <TableSkeleton columns={2} label={dictionary.adminDashboardOrdersHeading} rows={4} />
+        </div>
+        <div className="lg:col-span-4">
+          <TableSkeleton columns={1} label={dictionary.adminDashboardSalesHeading} rows={4} />
+        </div>
+        <div className="lg:col-span-3">
+          <TableSkeleton columns={1} label={dictionary.adminDashboardFunnelHeading} rows={3} />
+        </div>
       </div>
       <StatGridSkeleton count={4} label={dictionary.adminDashboardLinksProductsHeading} />
-      <div className="admin-dashboard__row admin-dashboard__row--2">
+      <div className="grid gap-4 lg:grid-cols-2">
         <TableSkeleton columns={3} label={dictionary.adminDashboardTopOwnersHeading} rows={5} />
         <TableSkeleton columns={3} label={dictionary.adminDashboardTopProductsHeading} rows={5} />
       </div>
@@ -523,24 +530,24 @@ export function AdminDashboard({
   view,
 }: Readonly<{ dictionary: Dictionary; locale: SupportedLocale; view: AdminAnalyticsView }>) {
   return (
-    <div className="admin-dashboard">
+    <div className="grid gap-6">
       <UsersStatGrid dictionary={dictionary} view={view} />
 
-      <div className="admin-dashboard__row admin-dashboard__row--3">
-        <div className="admin-dashboard__col admin-dashboard__col--5">
+      <div className="grid gap-4 lg:grid-cols-12">
+        <div className="min-w-0 lg:col-span-5">
           <OrdersCard dictionary={dictionary} view={view} />
         </div>
-        <div className="admin-dashboard__col admin-dashboard__col--4">
+        <div className="min-w-0 lg:col-span-4">
           <SalesCard dictionary={dictionary} locale={locale} view={view} />
         </div>
-        <div className="admin-dashboard__col admin-dashboard__col--3">
+        <div className="min-w-0 lg:col-span-3">
           <FunnelCard dictionary={dictionary} locale={locale} view={view} />
         </div>
       </div>
 
       <LinksProductsStatGrid dictionary={dictionary} view={view} />
 
-      <div className="admin-dashboard__row admin-dashboard__row--2">
+      <div className="grid gap-4 lg:grid-cols-2">
         <TopOwnersCard dictionary={dictionary} locale={locale} view={view} />
         <TopProductsCard dictionary={dictionary} locale={locale} view={view} />
       </div>

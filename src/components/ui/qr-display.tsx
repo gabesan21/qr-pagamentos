@@ -1,4 +1,7 @@
-import type { ReactNode } from "react";
+"use client";
+
+import { useEffect, useState, type ReactNode } from "react";
+import QRCode from "qrcode";
 
 import { cn } from "@/lib/utils";
 
@@ -7,13 +10,23 @@ type QrDisplayProps = Readonly<{
   alternativeValue?: string;
   caption?: string;
   className?: string;
-  graphic: ReactNode;
+  graphic?: ReactNode;
   graphicLabel: string;
   identity?: ReactNode;
+  payload?: string;
   pending?: boolean;
 }>;
 
-/** Frames caller-rendered QR graphics; payload generation remains with a domain owner. */
+/**
+ * Frames a QR graphic on a forced-light frame that stays legible in all six
+ * themes. A caller may still render its own `graphic` (every existing owner
+ * keeps compiling unchanged); passing `payload` instead lets this owner
+ * generate the SVG itself with the pinned `qrcode` package, the same
+ * client-side pattern already used by src/app/profile/totp-qr-code.tsx.
+ * `graphic` always wins when both are supplied. Error correction rises to
+ * "H" whenever an `identity` centre-cut is present, because the covered
+ * centre consumes redundancy the decoder needs back.
+ */
 export function QrDisplay({
   alternativeLabel,
   alternativeValue,
@@ -22,22 +35,65 @@ export function QrDisplay({
   graphic,
   graphicLabel,
   identity,
+  payload,
   pending = false,
 }: QrDisplayProps) {
+  const errorCorrectionLevel = identity ? "H" : "M";
+  const [generated, setGenerated] = useState<{ svg: string; forPayload: string; forLevel: string } | null>(null);
+  const [failed, setFailed] = useState<{ forPayload: string; forLevel: string } | null>(null);
+  const generatedSvg =
+    generated && generated.forPayload === payload && generated.forLevel === errorCorrectionLevel ? generated.svg : null;
+  const hasFailed = Boolean(failed && failed.forPayload === payload && failed.forLevel === errorCorrectionLevel);
+
+  useEffect(() => {
+    if (graphic || !payload) {
+      return;
+    }
+
+    let cancelled = false;
+    QRCode.toString(payload, {
+      type: "svg",
+      margin: 2,
+      errorCorrectionLevel,
+    })
+      .then((svg) => {
+        if (!cancelled) setGenerated({ svg, forPayload: payload, forLevel: errorCorrectionLevel });
+      })
+      .catch(() => {
+        // A rejected generation must clear aria-busy, not pulse forever: mark this
+        // exact (payload, level) pair as failed instead of leaving it "still generating".
+        if (!cancelled) setFailed({ forPayload: payload, forLevel: errorCorrectionLevel });
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [errorCorrectionLevel, graphic, payload]);
+
+  const isGenerating = Boolean(payload) && !graphic && !generatedSvg && !hasFailed;
+  const isPending = pending || isGenerating;
+  const resolvedGraphic =
+    graphic ??
+    (generatedSvg ? (
+      <div className="size-full" dangerouslySetInnerHTML={{ __html: generatedSvg }} />
+    ) : (
+      <div aria-hidden="true" className="size-full" />
+    ));
+
   return (
-    <figure aria-busy={pending || undefined} className={cn("flex flex-col items-center gap-3", className)}>
+    <figure aria-busy={isPending || undefined} className={cn("flex flex-col items-center gap-3", className)}>
       <div
         aria-label={graphicLabel}
         className={cn(
-          "relative grid aspect-square w-full max-w-66 place-items-center overflow-hidden rounded-lg bg-card p-4 ring-1 ring-border",
-          pending && "animate-pulse",
+          "relative grid aspect-square w-full max-w-66 place-items-center overflow-hidden rounded-lg bg-white p-4 ring-1 ring-border",
+          isPending && "animate-pulse",
         )}
-        data-pending={pending || undefined}
+        data-pending={isPending || undefined}
         role="img"
       >
-        {graphic}
+        {resolvedGraphic}
         {identity ? (
-          <span className="absolute left-1/2 top-1/2 grid size-11 -translate-1/2 place-items-center rounded-full bg-card p-1">
+          <span className="absolute left-1/2 top-1/2 grid size-11 -translate-1/2 place-items-center rounded-full bg-white p-1">
             {identity}
           </span>
         ) : null}

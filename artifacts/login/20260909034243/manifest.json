@@ -1,0 +1,61 @@
+{
+  "runId": "20260909034243",
+  "startedAt": "2026-09-09T03:42:43.152Z",
+  "gitHead": "209abfaab32d1ff7ed3ca28224bccd576df9ec22",
+  "brandManifest": {
+    "path": "src/brand/assets.manifest.json",
+    "sha256": "cbde51333a82150990effa2f7bd94a3a41a1f31e3895b2d5283130f6fdf2b10f"
+  },
+  "assertions": "artifacts/login/20260909034243/assertions.json",
+  "assertionsSha256": "d60a039db94edee1fb129883236db82c38239cb5361394cf9710d6cb86ebfd94",
+  "pngs": [
+    {
+      "path": "artifacts/login/20260909034243/login-light-320.png",
+      "bytes": 21163,
+      "sha256": "60f04843110bb65a177d4d407815a7d0b3de942b61dd1fb0679342a9f9f739eb",
+      "mtimeMs": 1788925364605.6204
+    },
+    {
+      "path": "artifacts/login/20260909034243/login-light-375.png",
+      "bytes": 21880,
+      "sha256": "1a52c235ef62e1581ca1ff7096277d70710dcba367f45fddadb57fde6d16d216",
+      "mtimeMs": 1788925365872.2986
+    },
+    {
+      "path": "artifacts/login/20260909034243/login-light-768.png",
+      "bytes": 23950,
+      "sha256": "d2c8a33baa2b66acc8c2ce9afe0a9ac08c04cbe9e00eda8e08812d843ffb8e60",
+      "mtimeMs": 1788925367125.643
+    },
+    {
+      "path": "artifacts/login/20260909034243/login-light-1440.png",
+      "bytes": 40286,
+      "sha256": "83be438f894c88b3359b4a1d5c7aa61468f21cd1ce0c1b5bae193bed62fcb65f",
+      "mtimeMs": 1788925368455.655
+    },
+    {
+      "path": "artifacts/login/20260909034243/login-dark-320.png",
+      "bytes": 22632,
+      "sha256": "a5e4eca82ea7c4e4fab68706fc61714b6589350ab3a3c73dd567a4733446dd1a",
+      "mtimeMs": 1788925369702.333
+    },
+    {
+      "path": "artifacts/login/20260909034243/login-dark-375.png",
+      "bytes": 23213,
+      "sha256": "036c5cd1a1732d949e89de581abe4f99f02e0f710a5579c1aed4a5313f6f2ea8",
+      "mtimeMs": 1788925370939.0107
+    },
+    {
+      "path": "artifacts/login/20260909034243/login-dark-768.png",
+      "bytes": 25604,
+      "sha256": "7570fbaa4b24e4071730eb658c5c889d304726e8cbf545fb78cf69e0e3706283",
+      "mtimeMs": 1788925372262.356
+    },
+    {
+      "path": "artifacts/login/20260909034243/login-dark-1440.png",
+      "bytes": 42266,
+      "sha256": "7bde32a538d501622803a4e7e5008c24ffba1b18e7e0ee8e298ddb48c6b81f59",
+      "mtimeMs": 1788925373622.3682
+    }
+  ]
+}

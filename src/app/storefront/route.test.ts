@@ -58,7 +58,7 @@ describe("owner storefront route", () => {
       storefrontAccentColor: "#1A2B3C",
       storefrontEnabled: "true",
     });
-    expect(response.headers.get("location")).toBe("/?storefront=changed");
+    expect(response.headers.get("location")).toBe("/settings?storefront=changed#settings-identity");
   });
 
   it("maps slug collisions and validation failures to opaque redirects", async () => {
@@ -66,10 +66,10 @@ describe("owner storefront route", () => {
     ownerProtectedMutationResponse.mockReturnValue(null);
     update.mockRejectedValueOnce(new StorefrontSettingsConflictError("taken"));
     const conflict = await POST(request({ storefrontSlug: "my-store" }));
-    expect(conflict.headers.get("location")).toBe("/?storefront=conflict");
+    expect(conflict.headers.get("location")).toBe("/settings?storefront=conflict#settings-identity");
     update.mockRejectedValueOnce(new Error("invalid"));
     const failed = await POST(request({ storefrontSlug: "Invalid" }));
-    expect(failed.headers.get("location")).toBe("/?storefront=failed");
+    expect(failed.headers.get("location")).toBe("/settings?storefront=failed#settings-identity");
   });
 
   it("forwards extended fields only when the form carries them", async () => {
@@ -97,7 +97,7 @@ describe("owner storefront route", () => {
       storefrontStandalonePaymentsEnabled: "false",
       storefrontDefaultCurrencyCode: "USD",
     });
-    expect(extended.headers.get("location")).toBe("/?storefront=changed");
+    expect(extended.headers.get("location")).toBe("/settings?storefront=changed#settings-identity");
 
     const clearLogo = await POST(request({ storefrontSlug: "my-store", storefrontLogoMediaIdentifier: "" }));
     expect(update).toHaveBeenLastCalledWith(owner, {
@@ -108,6 +108,6 @@ describe("owner storefront route", () => {
       storefrontEnabled: null,
       storefrontLogoMediaIdentifier: "",
     });
-    expect(clearLogo.headers.get("location")).toBe("/?storefront=changed");
+    expect(clearLogo.headers.get("location")).toBe("/settings?storefront=changed#settings-identity");
   });
 });

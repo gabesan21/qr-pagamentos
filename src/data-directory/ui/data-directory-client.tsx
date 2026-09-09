@@ -1,6 +1,18 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useTransition,
+  type ChangeEvent,
+  type MouseEvent as ReactMouseEvent,
+  type ReactNode,
+  type RefObject,
+} from "react";
+import { useRouter } from "next/navigation";
 
 import type { DirectoryPageSize } from "@/data-directory/server/query-contract";
 import { AlertCircleIcon, InboxIcon, RotateCcwIcon, SearchIcon, SearchXIcon, XIcon } from "lucide-react";
@@ -34,7 +46,19 @@ import type {
 
 const LOADING_ROW_KEYS = ["first", "second", "third"] as const;
 
-const SEARCH_DEBOUNCE_MS = 400;
+const SEARCH_DEBOUNCE_MS = 350;
+
+const INTERACTIVE_DESCENDANT_SELECTOR = "a, button, input, select, textarea, label, [role]";
+
+// Bounded to `boundary` (the row itself): an unbounded `target.closest(...)`
+// climbs past the row into ancestors — the desktop table's own
+// `role="region"` wrapper matches `[role]` — and would treat every row click
+// as landing on an interactive descendant, never navigating.
+function isInteractiveDescendant(target: EventTarget | null, boundary: Element) {
+  if (!(target instanceof Element)) return false;
+  const match = target.closest(INTERACTIVE_DESCENDANT_SELECTOR);
+  return match !== null && boundary.contains(match);
+}
 
 function removeQueryParam(query: string, key: string, value?: string) {
   const params = new URLSearchParams(query);
@@ -48,24 +72,74 @@ function removeQueryParam(query: string, key: string, value?: string) {
   return params.toString();
 }
 
-function filterRemoveUrl(formAction: string, query: string, key: string, value?: string) {
-  const without = removeQueryParam(query, key, value);
+function withPageSize(query: string, pageSize?: DirectoryPageSize) {
+  if (pageSize === undefined) return query;
+  const params = new URLSearchParams(query);
+  params.set("pageSize", String(pageSize));
+  return params.toString();
+}
+
+function filterRemoveUrl(
+  formAction: string,
+  query: string,
+  key: string,
+  value: string | undefined,
+  pageSize: DirectoryPageSize | undefined,
+) {
+  const without = withPageSize(removeQueryParam(query, key, value), pageSize);
   return without ? `${formAction}?${without}` : formAction;
 }
 
-// Search input that submits its parent form after the user stops typing,
-// and exposes a clear button to reset the query immediately.
+// Builds the canonical commit query from the live form state: keeps `q`, the
+// registered `filter.*` pairs and the selected page size, and never reads or
+// emits `cursor` (the field does not exist in this form).
+function buildCommitQuery(form: HTMLFormElement, filterNames: readonly string[]) {
+  const data = new FormData(form);
+  const params = new URLSearchParams();
+  const q = (data.get("q") as string | null)?.trim();
+  if (q) params.set("q", q);
+  for (const name of filterNames) {
+    for (const raw of data.getAll(`filter.${name}`)) {
+      const value = String(raw).trim();
+      if (value !== "") params.append(`filter.${name}`, value);
+    }
+  }
+  const pageSize = data.get("pageSize");
+  if (pageSize !== null && String(pageSize) !== "") params.set("pageSize", String(pageSize));
+  return params.toString();
+}
+
+function chipValueLabel(
+  key: string,
+  value: string,
+  searchLabel: string,
+  filters?: readonly DataDirectoryEnumFilter[],
+  textFilters?: readonly DataDirectoryTextFilter[],
+) {
+  if (key === "q") return { label: searchLabel, value };
+  const name = key.startsWith("filter.") ? key.slice("filter.".length) : key;
+  const enumFilter = filters?.find((filter) => filter.name === name);
+  if (enumFilter) {
+    const option = enumFilter.options.find((candidate) => candidate.value === value);
+    return { label: enumFilter.label, value: option?.label ?? value };
+  }
+  const textFilter = textFilters?.find((filter) => filter.name === name);
+  return { label: textFilter?.label ?? key, value };
+}
+
+// Search input that commits after the caller-provided delay once the user
+// stops typing, and exposes a clear button that commits immediately.
 function DebouncedSearch({
   defaultValue,
-  formRef,
   id,
   label,
+  onCommit,
   placeholder,
 }: Readonly<{
   defaultValue?: string;
-  formRef: React.RefObject<HTMLFormElement | null>;
   id: string;
   label: string;
+  onCommit: () => void;
   placeholder?: string;
 }>) {
   const [value, setValue] = useState(defaultValue ?? "");
@@ -78,20 +152,18 @@ function DebouncedSearch({
     [],
   );
 
-  const submit = useCallback(() => {
-    formRef.current?.requestSubmit();
-  }, [formRef]);
-
   function handleChange(next: string) {
     setValue(next);
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    timeoutRef.current = setTimeout(submit, SEARCH_DEBOUNCE_MS);
+    timeoutRef.current = setTimeout(onCommit, SEARCH_DEBOUNCE_MS);
   }
 
   function handleClear() {
     setValue("");
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    timeoutRef.current = setTimeout(submit, 0);
+    // Deferred one tick so the cleared value is present in the form before
+    // the commit reads it.
+    timeoutRef.current = setTimeout(onCommit, 0);
   }
 
   return (
@@ -120,18 +192,21 @@ function DebouncedSearch({
   );
 }
 
-// Active filter chips rendered above the directory table so the administrator
-// can see and remove applied filters without re-opening the filter bar.
+// Active filter chips rendered above the directory table so the caller can
+// see and remove applied filters without re-opening the filter bar. Values
+// resolve through the registered enum options; raw enum ids are never shown.
 function ActiveFilterChips({
   canonicalFilterQuery,
   filters,
   formAction,
+  pageSize,
   searchLabel,
   textFilters,
 }: Readonly<{
   canonicalFilterQuery?: string;
   filters?: readonly DataDirectoryEnumFilter[];
   formAction: string;
+  pageSize?: DirectoryPageSize;
   searchLabel: string;
   textFilters?: readonly DataDirectoryTextFilter[];
 }>) {
@@ -140,16 +215,10 @@ function ActiveFilterChips({
   const entries = Array.from(params.entries());
   if (entries.length === 0) return null;
 
-  const filterLabels = new Map<string, string>([
-    ["q", searchLabel],
-    ...(filters ?? []).map((filter) => [`filter.${filter.name}`, filter.label] as const),
-    ...(textFilters ?? []).map((filter) => [`filter.${filter.name}`, filter.label] as const),
-  ]);
-
   return (
     <div className="flex flex-wrap items-center gap-2">
       {entries.map(([key, value], index) => {
-        const label = filterLabels.get(key) ?? key;
+        const { label, value: resolvedValue } = chipValueLabel(key, value, searchLabel, filters, textFilters);
         return (
           <Badge
             asChild
@@ -160,9 +229,9 @@ function ActiveFilterChips({
           >
             <a
               className="inline-flex min-h-11 items-center"
-              href={filterRemoveUrl(formAction, canonicalFilterQuery, key, value)}
+              href={filterRemoveUrl(formAction, canonicalFilterQuery, key, value, pageSize)}
             >
-              <span className="max-w-[16rem] truncate">{label}: {value}</span>
+              <span className="max-w-[16rem] truncate">{label}: {resolvedValue}</span>
               <XIcon aria-hidden className="size-3" />
             </a>
           </Badge>
@@ -176,6 +245,7 @@ type PreparedRow = Readonly<{
   key: string;
   cells: readonly ReactNode[];
   actions?: ReactNode;
+  href?: string;
 }>;
 
 type DataDirectoryClientProps = Readonly<{
@@ -198,42 +268,59 @@ type DataDirectoryClientProps = Readonly<{
   textFilters?: readonly DataDirectoryTextFilter[];
   emptyAction?: Readonly<{ href: string; label: string }>;
   actionsLabel?: string;
+  interactive?: boolean;
 }>;
 
 function DirectoryToolbar({
-  action,
   canonicalFilterQuery,
   copy,
   filters = [],
-  textFilters = [],
-  pageSize = 25,
-  pageSizes = [25, 50, 100],
+  formAction,
+  formId,
+  formRef,
+  hasChips,
+  interactive,
+  onCommit,
+  onFieldChange,
+  pageSize,
   resetUrl,
   search,
+  textFilters = [],
   idPrefix,
 }: Readonly<{
-  action: string;
   canonicalFilterQuery?: string;
   copy: DataDirectoryCopy;
   filters?: readonly DataDirectoryEnumFilter[];
-  textFilters?: readonly DataDirectoryTextFilter[];
+  formAction: string;
+  formId: string;
+  formRef: RefObject<HTMLFormElement | null>;
+  hasChips: boolean;
+  interactive: boolean;
+  onCommit: () => void;
+  onFieldChange: (event: ChangeEvent<HTMLFormElement>) => void;
   pageSize?: DirectoryPageSize;
-  pageSizes?: readonly DirectoryPageSize[];
   resetUrl: string;
   search?: string;
+  textFilters?: readonly DataDirectoryTextFilter[];
   idPrefix: string;
 }>) {
-  const formRef = useRef<HTMLFormElement>(null);
   return (
-    <form action={action} className="flex flex-col gap-5" method="get" ref={formRef}>
+    <form
+      action={formAction}
+      className="flex flex-col gap-5"
+      id={formId}
+      method="get"
+      onChange={interactive ? onFieldChange : undefined}
+      ref={formRef}
+    >
       <FieldGroup className="grid gap-5 md:grid-cols-3">
         <Field>
           <FieldLabel htmlFor={`${idPrefix}-search`}>{copy.searchLabel}</FieldLabel>
           <DebouncedSearch
             defaultValue={search}
-            formRef={formRef}
             id={`${idPrefix}-search`}
             label={copy.resetFilters}
+            onCommit={interactive ? onCommit : noop}
             placeholder={copy.searchPlaceholder}
           />
         </Field>
@@ -266,30 +353,46 @@ function DirectoryToolbar({
             />
           </Field>
         ))}
-        <Field>
-          <FieldLabel htmlFor={`${idPrefix}-page-size`}>{copy.pageSizeLabel}</FieldLabel>
-          <NativeSelect data-ds-hit-target defaultValue={String(pageSize)} id={`${idPrefix}-page-size`} name="pageSize">
-            {pageSizes.map((size) => (
-              <NativeSelectOption key={size} value={String(size)}>{size}</NativeSelectOption>
-            ))}
-          </NativeSelect>
-        </Field>
       </FieldGroup>
       <ActiveFilterChips
         canonicalFilterQuery={canonicalFilterQuery}
         filters={filters}
-        formAction={action}
+        formAction={formAction}
+        pageSize={pageSize}
         searchLabel={copy.searchLabel}
         textFilters={textFilters}
       />
-      <div className="flex flex-wrap gap-3">
-        <Button data-ds-hit-target type="submit"><SearchIcon data-icon="inline-start" />{copy.applyFilters}</Button>
-        <Button asChild data-ds-hit-target variant="outline">
-          <a href={resetUrl}><RotateCcwIcon data-icon="inline-start" />{copy.resetFilters}</a>
-        </Button>
+      <div className="flex flex-wrap items-center gap-3">
+        {hasChips ? (
+          <Button asChild data-ds-hit-target variant="ghost">
+            <a href={resetUrl}>{copy.clearFilters ?? copy.resetFilters}</a>
+          </Button>
+        ) : null}
       </div>
+      {interactive ? (
+        <noscript>
+          <div className="flex flex-wrap gap-3">
+            <Button data-ds-hit-target type="submit"><SearchIcon data-icon="inline-start" />{copy.applyFilters}</Button>
+            <Button asChild data-ds-hit-target variant="outline">
+              <a href={resetUrl}><RotateCcwIcon data-icon="inline-start" />{copy.resetFilters}</a>
+            </Button>
+          </div>
+        </noscript>
+      ) : (
+        <div className="flex flex-wrap gap-3">
+          <Button data-ds-hit-target type="submit"><SearchIcon data-icon="inline-start" />{copy.applyFilters}</Button>
+          <Button asChild data-ds-hit-target variant="outline">
+            <a href={resetUrl}><RotateCcwIcon data-icon="inline-start" />{copy.resetFilters}</a>
+          </Button>
+        </div>
+      )}
     </form>
   );
+}
+
+function noop() {
+  // Non-interactive opt-out: the debounced search still updates its own
+  // controlled value for visual fidelity but never commits a navigation.
 }
 
 function StateCard({
@@ -387,72 +490,150 @@ function DirectoryLoading({
   );
 }
 
-function DirectoryPagination({
+// Template pagination footer: rows-per-page on the left, previous/next on
+// the right, one ruled band. The page-size control lives here but stays
+// associated to the toolbar's native GET form through `form=` so the no-JS
+// path keeps submitting it.
+function DirectoryFooter({
   copy,
+  formId,
+  idPrefix,
+  interactive,
   nextUrl,
+  onPageSizeChange,
+  pageSize = 25,
+  pageSizes = [25, 50, 100],
   previousUrl,
 }: Readonly<{
   copy: DataDirectoryCopy;
+  formId: string;
+  idPrefix: string;
+  interactive: boolean;
   nextUrl?: string;
+  onPageSizeChange: () => void;
+  pageSize?: DirectoryPageSize;
+  pageSizes?: readonly DirectoryPageSize[];
   previousUrl?: string;
 }>) {
-  if (!previousUrl && !nextUrl) {
-    return null;
-  }
-
   return (
-    <Pagination className="justify-start" label={copy.paginationLabel}>
-      <PaginationContent className="w-full">
-        {previousUrl ? (
-          <PaginationItem>
-            <PaginationPrevious
-              data-ds-hit-target
-              href={previousUrl}
-              label={copy.previousPage}
-              text={copy.previousPage}
-            />
-          </PaginationItem>
-        ) : null}
-        {nextUrl ? (
-          <PaginationItem className="ml-auto">
-            <PaginationNext
-              data-ds-hit-target
-              href={nextUrl}
-              label={copy.nextPage}
-              text={copy.nextPage}
-            />
-          </PaginationItem>
-        ) : null}
-      </PaginationContent>
-    </Pagination>
+    <div className="flex flex-col gap-4 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
+      <Field className="w-auto">
+        <FieldLabel htmlFor={`${idPrefix}-page-size`}>{copy.pageSizeLabel}</FieldLabel>
+        <NativeSelect
+          data-ds-hit-target
+          defaultValue={String(pageSize)}
+          form={formId}
+          id={`${idPrefix}-page-size`}
+          name="pageSize"
+          onChange={interactive ? onPageSizeChange : undefined}
+        >
+          {pageSizes.map((size) => (
+            <NativeSelectOption key={size} value={String(size)}>{size}</NativeSelectOption>
+          ))}
+        </NativeSelect>
+      </Field>
+      {previousUrl || nextUrl ? (
+        <Pagination className="justify-start sm:justify-end" label={copy.paginationLabel}>
+          <PaginationContent>
+            {previousUrl ? (
+              <PaginationItem>
+                <PaginationPrevious
+                  data-ds-hit-target
+                  href={previousUrl}
+                  label={copy.previousPage}
+                  text={copy.previousPage}
+                />
+              </PaginationItem>
+            ) : null}
+            {nextUrl ? (
+              <PaginationItem>
+                <PaginationNext
+                  data-ds-hit-target
+                  href={nextUrl}
+                  label={copy.nextPage}
+                  text={copy.nextPage}
+                />
+              </PaginationItem>
+            ) : null}
+          </PaginationContent>
+        </Pagination>
+      ) : null}
+    </div>
   );
 }
 
 export function DataDirectoryClient(props: DataDirectoryClientProps) {
-  const stateAction = props.state === "filtered-empty" || props.state === "invalid-query"
+  const interactive = props.interactive ?? true;
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const formRef = useRef<HTMLFormElement>(null);
+  const formId = `${props.idPrefix}-directory-form`;
+
+  const filterNames = useMemo(
+    () => [...(props.filters ?? []).map((filter) => filter.name), ...(props.textFilters ?? []).map((filter) => filter.name)],
+    [props.filters, props.textFilters],
+  );
+
+  const commit = useCallback(() => {
+    const form = formRef.current;
+    if (!form) return;
+    const query = buildCommitQuery(form, filterNames);
+    const target = query ? `${props.formAction}?${query}` : props.formAction;
+    startTransition(() => {
+      router.replace(target, { scroll: false });
+    });
+  }, [filterNames, props.formAction, router]);
+
+  const handleFieldChange = useCallback(
+    (event: ChangeEvent<HTMLFormElement>) => {
+      const target = event.target;
+      if (target instanceof HTMLInputElement && target.name === "q") return;
+      commit();
+    },
+    [commit],
+  );
+
+  const handleRowNavigate = useCallback(
+    (href: string) => (event: ReactMouseEvent<HTMLElement>) => {
+      if (isInteractiveDescendant(event.target, event.currentTarget)) return;
+      router.push(href);
+    },
+    [router],
+  );
+
+  const effectiveState: DataDirectoryState = isPending ? "loading" : props.state;
+
+  const stateAction = effectiveState === "filtered-empty" || effectiveState === "invalid-query"
     ? { href: props.resetUrl, label: props.copy.resetFilters }
-    : props.state === "error"
+    : effectiveState === "error"
       ? { href: props.retryUrl ?? props.resetUrl, label: props.copy.retry }
-      : props.state === "empty"
+      : effectiveState === "empty"
         ? props.emptyAction
         : undefined;
 
+  const hasChips = Boolean(props.canonicalFilterQuery && new URLSearchParams(props.canonicalFilterQuery).size > 0);
+
   return (
-    <section aria-busy={props.state === "loading" ? true : undefined} className="flex min-w-0 flex-col gap-6" data-data-directory>
+    <section aria-busy={effectiveState === "loading" ? true : undefined} className="flex min-w-0 flex-col gap-6" data-data-directory>
       <DirectoryToolbar
-        action={props.formAction}
         canonicalFilterQuery={props.canonicalFilterQuery}
         copy={props.copy}
         filters={props.filters}
+        formAction={props.formAction}
+        formId={formId}
+        formRef={formRef}
+        hasChips={hasChips}
         idPrefix={props.idPrefix}
+        interactive={interactive}
+        onCommit={commit}
+        onFieldChange={handleFieldChange}
         pageSize={props.pageSize}
-        pageSizes={props.pageSizes}
         resetUrl={props.resetUrl}
         search={props.search}
         textFilters={props.textFilters}
       />
       <Separator />
-      {props.state === "loading" ? (
+      {effectiveState === "loading" ? (
         <DirectoryLoading
           actionsLabel={props.actionsLabel}
           caption={props.caption}
@@ -460,19 +641,19 @@ export function DataDirectoryClient(props: DataDirectoryClientProps) {
           copy={props.copy}
         />
       ) : null}
-      {props.state === "empty" ? (
+      {effectiveState === "empty" ? (
         <StateCard action={stateAction} description={props.copy.emptyDescription} state="empty" title={props.copy.empty} />
       ) : null}
-      {props.state === "filtered-empty" ? (
+      {effectiveState === "filtered-empty" ? (
         <StateCard action={stateAction} description={props.copy.filteredEmptyDescription} state="filtered-empty" title={props.copy.filteredEmpty} />
       ) : null}
-      {props.state === "invalid-query" ? (
+      {effectiveState === "invalid-query" ? (
         <StateCard action={stateAction} description={props.copy.invalidDescription} state="invalid-query" title={props.copy.invalid} />
       ) : null}
-      {props.state === "error" ? (
+      {effectiveState === "error" ? (
         <StateCard action={stateAction} description={props.copy.errorDescription} state="error" title={props.copy.error} />
       ) : null}
-      {props.state === "ready" ? (
+      {effectiveState === "ready" ? (
         <>
           <div className="hidden min-w-0 md:block" role="region" aria-label={props.caption}>
             <Table>
@@ -485,7 +666,11 @@ export function DataDirectoryClient(props: DataDirectoryClientProps) {
               </TableHeader>
               <TableBody>
                 {props.preparedRows.map((row) => (
-                  <TableRow className="h-13" key={row.key}>
+                  <TableRow
+                    className={row.href ? "h-13 cursor-pointer" : "h-13"}
+                    key={row.key}
+                    onClick={row.href ? handleRowNavigate(row.href) : undefined}
+                  >
                     {row.cells.map((cell, index) => (
                       <TableCell className={props.columns[index]?.numeric ? "font-mono tabular-nums" : "whitespace-normal"} key={index}>
                         {cell}
@@ -499,7 +684,11 @@ export function DataDirectoryClient(props: DataDirectoryClientProps) {
           </div>
           <div className="flex flex-col gap-4 md:hidden">
             {props.preparedRows.map((row) => (
-              <Card key={row.key}>
+              <Card
+                className={row.href ? "cursor-pointer" : undefined}
+                key={row.key}
+                onClick={row.href ? handleRowNavigate(row.href) : undefined}
+              >
                 <CardContent>
                   <dl className="grid gap-3">
                     {props.columns.map((column, index) => (
@@ -514,9 +703,27 @@ export function DataDirectoryClient(props: DataDirectoryClientProps) {
               </Card>
             ))}
           </div>
-          <DirectoryPagination copy={props.copy} nextUrl={props.nextUrl} previousUrl={props.previousUrl} />
         </>
       ) : null}
+      {
+        // The footer (page-size select + pagination) stays mounted across a
+        // pending commit even though `effectiveState` flips to "loading": it
+        // gates on the last committed `props.state` instead, so the select
+        // that triggered the transition never unmounts under focus.
+        props.state === "ready" ? (
+          <DirectoryFooter
+            copy={props.copy}
+            formId={formId}
+            idPrefix={props.idPrefix}
+            interactive={interactive}
+            nextUrl={props.nextUrl}
+            onPageSizeChange={commit}
+            pageSize={props.pageSize}
+            pageSizes={props.pageSizes}
+            previousUrl={props.previousUrl}
+          />
+        ) : null
+      }
     </section>
   );
 }

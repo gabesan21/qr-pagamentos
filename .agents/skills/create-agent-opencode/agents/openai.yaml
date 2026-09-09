@@ -1,0 +1,4 @@
+interface:
+  display_name: "Create OpenCode Agents"
+  short_description: "Gera agents OpenCode com validação fechada"
+  default_prompt: "Use $create-agent-opencode para gerar e validar um bundle candidato dos papéis canônicos no OpenCode."

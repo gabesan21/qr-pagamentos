@@ -11,9 +11,9 @@ export async function POST(request: Request, { params }: Readonly<{ params: Prom
     try {
       const actor = await requireOwnerFromCookie();
       await getPaymentLinkService().deactivate(actor, (await params).id);
-      return relativeRedirect("/?payment-links=revoked");
+      return relativeRedirect("/links?payment-links=revoked");
     } catch (error) {
-      return ownerProtectedMutationResponse(error) ?? relativeRedirect("/?payment-links=failed");
+      return ownerProtectedMutationResponse(error) ?? relativeRedirect("/links?payment-links=failed");
     }
   });
 }

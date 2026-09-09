@@ -4,6 +4,8 @@ import type { DirectoryCursorCodec } from "@/data-directory/server/cursor";
 
 vi.mock("server-only", () => ({}));
 
+import { DIRECTORY_INVALID_FILTERS_PARAM, DIRECTORY_INVALID_FILTERS_VALUE, directoryInvalidFiltersLocation } from "@/data-directory/server/notice";
+
 import { resolveLinksDirectoryQuery } from "./directory-query";
 
 const principal = { id: "440e8400-e29b-41d4-a716-446655440001", username: "owner", email: null, role: "USER" as const, status: "ACTIVE" as const, createdAt: new Date() };
@@ -56,6 +58,20 @@ describe("links directory query", () => {
     });
   });
 
+  // 14.5.2 owed regression: `from`/`to` gained calendar-day validation
+  // (directory-query.ts:99-103), rejecting an ungrammatical or nonexistent
+  // day with the same zero-I/O invalid-query outcome as every other
+  // malformed filter, mirroring the administrator directory's own rule.
+  it("accepts a valid from/to calendar-day pair and rejects a malformed day in either bound", () => {
+    expect(resolve({ "filter.from": "2026-07-01", "filter.to": "2026-07-31" })).toMatchObject({
+      status: "ready",
+      query: { filters: { from: "2026-07-01", to: "2026-07-31" } },
+    });
+    expect(resolve({ "filter.from": "2026-02-30" }).status).toBe("invalid-query");
+    expect(resolve({ "filter.to": "not-a-date" }).status).toBe("invalid-query");
+    expect(resolve({ "filter.from": "2026-13-01" }).status).toBe("invalid-query");
+  });
+
   it("resets non-canonical input to the deterministic canonical location", () => {
     expect(resolve({ pageSize: "25" })).toEqual({ status: "redirect", location: "/links" });
     expect(resolve({ q: "  donation  " })).toEqual({ status: "redirect", location: "/links?q=donation" });
@@ -92,5 +108,33 @@ describe("links directory query", () => {
     if (ready.status !== "ready") throw new Error("expected ready");
     expect(ready.query.canonicalQuery).toBe("filter.kind=FIXED_AMOUNT");
     expect(resolve({ "payment-links-v2": "created", pageSize: "25" })).toEqual({ status: "redirect", location: "/links" });
+  });
+});
+
+describe("links directory query reserved invalid-filters pair", () => {
+  it("strips the reserved pair before canonicalization and resolves the canonical result for the remaining params", () => {
+    const withPair = resolve({ [DIRECTORY_INVALID_FILTERS_PARAM]: DIRECTORY_INVALID_FILTERS_VALUE, "filter.state": "active" });
+    const withoutPair = resolve({ "filter.state": "active" });
+    expect(withPair).toEqual(withoutPair);
+    expect(withPair).toMatchObject({ status: "ready", query: { filters: { state: ["active"] } } });
+  });
+
+  it("never redirects back to a URL carrying the reserved pair", () => {
+    const bare = resolve({ [DIRECTORY_INVALID_FILTERS_PARAM]: DIRECTORY_INVALID_FILTERS_VALUE });
+    expect(bare.status).toBe("ready");
+    const forcedRedirect = resolve({ [DIRECTORY_INVALID_FILTERS_PARAM]: DIRECTORY_INVALID_FILTERS_VALUE, q: "  donation  " });
+    expect(forcedRedirect).toEqual({ status: "redirect", location: "/links?q=donation" });
+    if (forcedRedirect.status === "redirect") expect(forcedRedirect.location).not.toContain(DIRECTORY_INVALID_FILTERS_PARAM);
+  });
+
+  it("redirects an otherwise-invalid request to directoryInvalidFiltersLocation(path) exactly once, and resolving that redirect location never loops", () => {
+    expect(resolve({ unknown: "1" }).status).toBe("invalid-query");
+    const location = directoryInvalidFiltersLocation("/links");
+    expect(location).toBe("/links?filters=ignored");
+
+    const [, query] = location.split("?");
+    const searchParams = Object.fromEntries(new URLSearchParams(query));
+    const resolved = resolve(searchParams);
+    expect(resolved).toMatchObject({ status: "ready", query: { filters: {}, pageSize: 25, canonicalQuery: "", canonicalFilterQuery: "" } });
   });
 });
