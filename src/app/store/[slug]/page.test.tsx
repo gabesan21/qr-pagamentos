@@ -74,7 +74,15 @@ describe("public storefront page", () => {
     expect(markup).toContain('data-theme-preview="vault-blue"');
     expect(markup).toContain('style="--storefront-accent:#106B5B"');
     expect(textContent(markup)).toContain("Loja da Ana");
-    expect(markup).toContain('data-brand-identity="merchant-fallback"');
+    // Converged (14.6.1's `CheckoutMerchantHeader`): a display name without a
+    // logo renders the initials `Monogram`, never the merchant fallback mark.
+    expect(textContent(markup)).toContain("LD");
+    expect(markup).not.toContain('data-brand-identity="merchant-fallback"');
+    expect(markup).toContain("Pagamento seguro processado por QR Pagamentos");
+    // C1: the shared public footer (powered-by + `LanguageSwitcher`) renders
+    // on the storefront exactly as it does on the standalone checkout.
+    expect(markup).toContain("Desenvolvido por QR Pagamentos");
+    expect(markup).toContain('name="locale"');
     expect(textContent(markup)).toContain("Cafés");
     expect(textContent(markup)).toContain("Mais produtos");
     expect(textContent(markup)).toContain("Café especial.");
