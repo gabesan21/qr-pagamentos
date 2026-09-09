@@ -1,68 +1,55 @@
-import type { CSSProperties, ReactNode } from "react";
+import type { ReactNode } from "react";
 
 import { BrandIdentity } from "@/brand/brand-identity";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Monogram } from "@/components/ui/monogram";
 import { MoneyText } from "@/components/ui/money-text";
 import { Separator } from "@/components/ui/separator";
 import { StatusBadge } from "@/components/ui/status-badge";
 import type { PublicCheckoutV2Branding, PublicCheckoutV2Composition, PublicCheckoutV2PaidPresentation, PublicCheckoutV2Presentation } from "@/checkout/public-checkout-v2-presentation";
 import type { getDictionary } from "@/i18n/dictionaries";
+import type { SupportedLocale } from "@/i18n/locales";
 
+import { CheckoutShell } from "./checkout-shell";
 import { PublicCheckoutV2Form } from "./public-checkout-v2-form";
 
 type Dictionary = ReturnType<typeof getDictionary>;
 
-// The branded Commerce V2 shell (9.3.1): the scoped data-theme-preview
-// selector and the validated --storefront-accent declaration recolor the page
-// root through the delivered storefront mechanism. The token lint accepts
-// exactly this one declaration in this file, so the checkout view and the
-// 9.3.2 paid view share this shell instead of repeating it.
-function CheckoutV2Shell({ children, dictionary, presentation }: Readonly<{ children: ReactNode; dictionary: Dictionary; presentation: Readonly<{ branding: PublicCheckoutV2Branding }> }>) {
-  const displayName = presentation.branding.displayName ?? dictionary.storefrontFallbackName;
-  return (
-    <main className="checkout-shell checkout-v2" data-theme-preview={presentation.branding.themeId} style={{ "--storefront-accent": presentation.branding.accentColor } as CSSProperties}>
-      <div className="checkout-main">
-        <header className="checkout-v2__rail">
-          {presentation.branding.logoMediaIdentifier ? (
-            <div className="rounded-full bg-primary p-1.5">
-              {/* The owner-activated public media object renders directly; the
-                  official merchant fallback stays the only placeholder identity. */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img alt={dictionary.checkoutMerchantLogoAlt} className="checkout-v2__logo" src={`/media/${presentation.branding.logoMediaIdentifier}`} />
-            </div>
-          ) : (
-            <span aria-label={dictionary.checkoutMerchantFallbackAlt} role="img"><BrandIdentity variant="merchant-fallback" /></span>
-          )}
-          <h1 className="checkout-v2__name font-[family-name:var(--font-display)] text-lg font-semibold leading-7">{displayName}</h1>
-          <p className="text-xs text-muted-foreground">{dictionary.checkoutTrustLine}</p>
-        </header>
-        {children}
-      </div>
-    </main>
-  );
+// The QR centre-cut merchant mark (14.6.1 round-1 repair, C06): mirrors the
+// V1 `page.tsx` precedence (logo, `Monogram`, fallback) for `QrDisplay`'s
+// `identity` slot.
+function merchantIdentityMark(branding: PublicCheckoutV2Branding, dictionary: Dictionary): ReactNode {
+  if (branding.logoMediaIdentifier) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img alt={dictionary.checkoutMerchantLogoAlt} className="size-7 object-contain" src={`/media/${branding.logoMediaIdentifier}`} />
+    );
+  }
+  if (branding.displayName) return <Monogram name={branding.displayName} size="sm" />;
+  return <span aria-label={dictionary.checkoutMerchantFallbackAlt} role="img"><BrandIdentity variant="merchant-fallback" /></span>;
 }
 
 function CheckoutV2CompositionFacts({ composition }: Readonly<{ composition: PublicCheckoutV2Composition }>) {
   return composition.kind === "PRODUCT_LINES" ? (
-    <ul className="checkout-v2__lines">
+    <ul className="grid list-none gap-4 p-0 m-0">
       {composition.lines.map((line, index) => (
-        <li className="checkout-v2__line" key={`${index}-${line.product.title}`}>
-          <p className="checkout-v2__line-title">{line.product.title}</p>
-          <p className="checkout-v2__line-description">{line.product.description}</p>
-          <p className="checkout-v2__line-price">{line.quantity} × {line.product.price}</p>
+        <li className="grid gap-1" key={`${index}-${line.product.title}`}>
+          <p className="m-0 font-semibold break-words">{line.product.title}</p>
+          <p className="m-0 max-w-[var(--layout-max)] whitespace-pre-wrap text-muted-foreground">{line.product.description}</p>
+          <p className="m-0 tabular-nums">{line.quantity} × {line.product.price}</p>
         </li>
       ))}
     </ul>
   ) : (
-    <p className="checkout-v2__line-description">{composition.description}</p>
+    <p className="m-0 max-w-[var(--layout-max)] whitespace-pre-wrap text-muted-foreground">{composition.description}</p>
   );
 }
 
 function CheckoutV2Total({ composition, currencyCode, dictionary }: Readonly<{ composition: PublicCheckoutV2Composition; currencyCode: string | null; dictionary: Dictionary }>) {
   const total = composition.kind === "PRODUCT_LINES" ? composition.total : composition.amount;
   return (
-    <p className="checkout-v2__total">
-      <span>{dictionary.checkoutTotalLabel}</span>
+    <p className="m-0 flex items-baseline justify-between gap-2 tabular-nums">
+      <span className="text-sm font-semibold text-muted-foreground">{dictionary.checkoutTotalLabel}</span>
       <span className="inline-flex items-baseline gap-1.5">
         <MoneyText size="large" value={total} />
         {currencyCode ? <MoneyText pairLabel={currencyCode} value="" /> : <span className="text-sm text-muted-foreground">{dictionary.checkoutUnlabeledCurrency}</span>}
@@ -71,52 +58,59 @@ function CheckoutV2Total({ composition, currencyCode, dictionary }: Readonly<{ c
   );
 }
 
-// The branded two-column Commerce V2 checkout composition (9.3.1): the
-// summary column renders only server-derived facts (localized lines or fixed
-// description, the seam-derived exact total, and the registry display code or
-// the explicit unlabeled treatment) next to the policy-driven customer form.
-export function PublicCheckoutV2Page({ dictionary, identifier, presentation }: Readonly<{ dictionary: Dictionary; identifier: string; presentation: PublicCheckoutV2Presentation }>) {
+// The branded single-column Commerce V2 checkout composition (9.3.1,
+// converged onto the shared shell by 14.6.1): the summary section renders
+// only server-derived facts (localized lines or fixed description, the
+// seam-derived exact total, and the registry display code or the explicit
+// unlabeled treatment) above the policy-driven customer form, all inside the
+// one column at the checkout cap the shell owns.
+export function PublicCheckoutV2Page({ dictionary, identifier, locale, presentation }: Readonly<{ dictionary: Dictionary; identifier: string; locale: SupportedLocale; presentation: PublicCheckoutV2Presentation }>) {
   return (
-    <CheckoutV2Shell dictionary={dictionary} presentation={presentation}>
-      <div className="checkout-v2__columns lg:grid-cols-2">
-        <Card className="checkout-card">
+    <CheckoutShell branding={presentation.branding} dictionary={dictionary} locale={locale}>
+      <div className="flex flex-col gap-6">
+        <Card className="w-full">
           <CardHeader>
             <CardTitle>{dictionary.checkoutSummaryHeading}</CardTitle>
           </CardHeader>
-          <CardContent className="checkout-v2__summary">
+          <CardContent className="grid gap-4">
             <CheckoutV2CompositionFacts composition={presentation.composition} />
             <Separator />
             <CheckoutV2Total composition={presentation.composition} currencyCode={presentation.currencyCode} dictionary={dictionary} />
           </CardContent>
         </Card>
-        <PublicCheckoutV2Form dictionary={dictionary} identifier={identifier} policy={presentation.checkoutPolicy} />
+        <PublicCheckoutV2Form
+          currencyLabel={presentation.currencyCode ?? undefined}
+          dictionary={dictionary}
+          identifier={identifier}
+          merchantIdentity={merchantIdentityMark(presentation.branding, dictionary)}
+          policy={presentation.checkoutPolicy}
+          total={presentation.composition.kind === "PRODUCT_LINES" ? presentation.composition.total : presentation.composition.amount}
+        />
       </div>
-    </CheckoutV2Shell>
+    </CheckoutShell>
   );
 }
 
-// The paid terminal view (9.3.2) for a consumed SINGLE_USE link: the same
-// branded shell and public composition summary with a non-color paid marker
-// (icon plus text) — server-rendered only, with no form, polling client,
-// mutation affordance, order state, or timestamp.
-export function PublicCheckoutV2PaidPage({ dictionary, presentation }: Readonly<{ dictionary: Dictionary; presentation: PublicCheckoutV2PaidPresentation }>) {
+// The paid terminal view (9.3.2, converged onto the shared shell by 14.6.1):
+// the same branded shell and public composition summary with a non-color
+// paid marker (icon plus text) — server-rendered only, with no form, polling
+// client, mutation affordance, order state, or timestamp.
+export function PublicCheckoutV2PaidPage({ dictionary, locale, presentation }: Readonly<{ dictionary: Dictionary; locale: SupportedLocale; presentation: PublicCheckoutV2PaidPresentation }>) {
   return (
-    <CheckoutV2Shell dictionary={dictionary} presentation={presentation}>
-      <div className="checkout-v2__columns">
-        <Card className="checkout-card">
-          <CardContent className="flex flex-col items-center gap-4 p-6 text-center">
-            <StatusBadge label={dictionary.checkoutPaidBadge} tone="success" />
-            <div>
-              <h2 className="font-[family-name:var(--font-display)] text-lg font-semibold leading-7">{dictionary.checkoutPaidHeading}</h2>
-              <p className="text-sm text-muted-foreground">{dictionary.checkoutPaidDescription}</p>
-            </div>
-            <Separator />
-            <CheckoutV2CompositionFacts composition={presentation.composition} />
-            <Separator />
-            <CheckoutV2Total composition={presentation.composition} currencyCode={presentation.currencyCode} dictionary={dictionary} />
-          </CardContent>
-        </Card>
-      </div>
-    </CheckoutV2Shell>
+    <CheckoutShell branding={presentation.branding} dictionary={dictionary} locale={locale}>
+      <Card className="w-full">
+        <CardContent className="flex flex-col items-center gap-4 p-6 text-center">
+          <StatusBadge label={dictionary.checkoutPaidBadge} tone="success" />
+          <div>
+            <h2 className="font-[family-name:var(--font-display)] text-lg font-semibold leading-7">{dictionary.checkoutPaidHeading}</h2>
+            <p className="text-sm text-muted-foreground">{dictionary.checkoutPaidDescription}</p>
+          </div>
+          <Separator />
+          <CheckoutV2CompositionFacts composition={presentation.composition} />
+          <Separator />
+          <CheckoutV2Total composition={presentation.composition} currencyCode={presentation.currencyCode} dictionary={dictionary} />
+        </CardContent>
+      </Card>
+    </CheckoutShell>
   );
 }

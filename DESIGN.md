@@ -313,9 +313,20 @@ storage]]; template assets do not bypass that lifecycle.
 ### Public payment and storefront surfaces
 
 - `/pay/[identifier]` follows the parity checkout composition and existing V1 /
-  V2 precedence. The existing branded V2 two-column contract may widen to the
-  application cap and stack on narrow screens; the visual target must never
-  collapse or reshape its business DTO.
+  V2 precedence. **Superseded by task 14.6.1 (2026-09-08):** the prior
+  branded V2 two-column contract that widened to the application cap is
+  retired; both eras now compose one shared `CheckoutShell` column capped at
+  `max-w-checkout` (560px, per the 2026-09-07 decision), never wider, with a
+  merchant header (logo or `Monogram` `xl`, display name, trust line, themed
+  via `data-theme-preview`/`--storefront-accent`), a public footer
+  (powered-by, privacy link opening a `Modal` notice, `LanguageSwitcher`),
+  and the closed outcome-view set: three live states (created, pending,
+  indeterminate) sharing one `QrDisplay`-`payload` view with the merchant
+  mark as the identity centre-cut and a compact single-feedback `CopyField`,
+  plus five terminal states (confirmed, refunded, rejected, cancelled,
+  expired) each with `ProviderStateBadge` and a non-color marker, the three
+  failures alone offering start-over. The visual target must never collapse
+  or reshape its business DTO.
 - `/store/[slug]` is an authorized extrapolation: use the same tokens,
   typography, identity, feedback, card/table components, and responsive laws to
   render the existing grouped catalog and browser-local cart in the persisted
