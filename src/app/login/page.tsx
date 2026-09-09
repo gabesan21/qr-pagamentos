@@ -22,7 +22,7 @@ export default async function LoginPage({ searchParams }: Readonly<{ searchParam
   const mfaRequired = notices.mfa === "required" || mfaFailed;
 
   return (
-    <main className="auth-page login-page">
+    <main className="grid min-h-svh place-items-center p-4">
       <AuthCard
         caption={dictionary.heading}
         languageControl={<LanguageSwitcher label={dictionary.languageLabel} locale={locale} />}

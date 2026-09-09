@@ -48,7 +48,7 @@ export function TotpChallengeForm({ dictionary, failed }: Readonly<TotpChallenge
   }
 
   return (
-    <form action="/login/totp-challenge" className="login-form" id="totp-challenge-form" method="post" ref={formRef}>
+    <form action="/login/totp-challenge" className="grid gap-5" id="totp-challenge-form" method="post" ref={formRef}>
       {failed && (
         <Alert variant="destructive">
           <AlertDescription>{dictionary.mfaFailed}</AlertDescription>
@@ -100,7 +100,7 @@ export function TotpChallengeForm({ dictionary, failed }: Readonly<TotpChallenge
           </Field>
         )}
       </FieldGroup>
-      <div className="auth-totp-actions">
+      <div className="flex items-center gap-3">
         <Button asChild disabled={pending} variant="ghost">
           <a href="/login">{dictionary.backToCredentials}</a>
         </Button>
@@ -109,7 +109,12 @@ export function TotpChallengeForm({ dictionary, failed }: Readonly<TotpChallenge
           {pending ? dictionary.mfaSubmitting : dictionary.mfaSubmit}
         </Button>
       </div>
-      <button className="auth-mode-toggle" disabled={pending} onClick={toggleMode} type="button">
+      <button
+        className="cursor-pointer border-0 bg-transparent text-center text-sm text-text-2 hover:text-accent disabled:cursor-not-allowed disabled:opacity-[var(--disabled-opacity)]"
+        disabled={pending}
+        onClick={toggleMode}
+        type="button"
+      >
         {useRecovery ? dictionary.mfaTotpLink : dictionary.mfaRecoveryLink}
       </button>
     </form>

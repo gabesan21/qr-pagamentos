@@ -35,7 +35,7 @@ export default async function ResetPasswordPage({ searchParams }: Readonly<{ sea
     : false;
 
   return (
-    <main className="auth-page reset-password-page">
+    <main className="grid min-h-svh place-items-center p-4">
       <AuthCard
         caption={dictionary.resetPasswordIntroduction}
         languageControl={<LanguageSwitcher label={dictionary.languageLabel} locale={locale} />}

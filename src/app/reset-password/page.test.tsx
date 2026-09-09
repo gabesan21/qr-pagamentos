@@ -40,7 +40,7 @@ describe("reset password page contract", () => {
     expect(markup).not.toContain(getDictionary("pt-BR").resetPasswordRejectedHeading);
     expect(markup).toContain('class="auth-card__panel"');
     expect(markup).toContain('class="auth-card__form"');
-    expect(markup).toContain('class="reset-password-form"');
+    expect(markup).toContain('id="reset-password-form"');
     // 12–128 meter and client mismatch feedback.
     expect(markup).toContain(getDictionary("pt-BR").resetPasswordRequirement);
     expect(markup).toContain('minLength="12"');
