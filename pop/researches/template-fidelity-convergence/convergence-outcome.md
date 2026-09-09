@@ -39,7 +39,7 @@ route-scoped BEM system (see [[DESIGN|DESIGN.md]] › "BEM retirement").
 | No outcome/currency-pair filter, no unified V1+V2 order list, no payment-data card, no stale strip, no V2 line-title column | `checkout-and-order-lifecycle` (per `14.5.1`) |
 | No active-state control on catalog create, no inline edit for inactive category, no credential replace outside `UNREGISTERED`, no enrolled-since date | `catalog-and-payment-links` (per `14.5.3`) |
 | Countdown, single-use badge, order reference excluded from public checkout (would leak into the pinned DTO); no-JS `<form action>` fallback (JSON-only API, out of scope) | `checkout-and-order-lifecycle` (per `14.6.1`) |
-| `.auth-brand` descendant override into `BrandIdentity` internals — a size prop would retire it | `src/brand/AGENTS.md` (this task, F03) and [[pop/memory/2026-09-08/14.7.1-retire-bem-and-refresh-contracts.f02-auth-consumers|F02's report]] |
+| `.auth-brand` descendant override into `BrandIdentity` internals — a size prop would retire it | `src/brand/AGENTS.md:32` (this task, F03) |
 | Password reset 2-state collapse (`validateResetChallenge`/`findValidToken` fold invalid/expired/used into one `null`) | `pop/specs/application-frontend-system.md` line 85 |
 
 ## Deliberately not reproduced / still un-triaged follow-ups

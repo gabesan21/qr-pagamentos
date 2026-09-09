@@ -250,7 +250,7 @@ test("creates the closed store-settings evidence run", async ({ browser, page })
     await waitForWorkspace();
     await page.evaluate(async () => document.fonts.ready);
 
-    const navLinks = page.locator(".settings-surface__nav-link");
+    const navLinks = page.locator("nav[aria-label] a[href^=\"#settings-\"]");
     await expect(navLinks).toHaveCount(7);
     const navHrefs = await navLinks.evaluateAll((elements) => elements.map((element) => element.getAttribute("href")));
     expect(navHrefs.every((href) => href?.startsWith("#settings-"))).toBe(true);

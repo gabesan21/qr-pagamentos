@@ -226,7 +226,7 @@ export default async function DesignSystemPage() {
   return <main className="grid gap-8" data-design-system-locale={locale}>
     <header className="grid gap-3 border-y-[length:var(--focus-width)] border-border py-4">
       <span className="text-xs font-semibold">QR Pagamentos / shared specimen</span>
-      <h1>{dictionary.designSystemHeading}</h1>
+      <h1 className="text-[length:var(--type-display)]">{dictionary.designSystemHeading}</h1>
       <div className="flex flex-wrap gap-4 tabular-nums text-muted-foreground"><span>application-frontend-system</span><span>Inter · Sora · IBM Plex Mono</span><span>{dictionary.designSystemRole}</span></div>
     </header>
     <p className="max-w-[var(--layout-max)] text-muted-foreground">{dictionary.designSystemIntroduction}</p>
