@@ -40,6 +40,16 @@
       "test_seconds": 0,
       "return_kind": "execucao",
       "result": "returned"
+    },
+    {
+      "at": "2026-09-08T23:44:41-03:00",
+      "event": "transition",
+      "from": "004_processing",
+      "to": "005_closing",
+      "contexts": [],
+      "test_seconds": 0,
+      "return_kind": null,
+      "result": "advanced"
     }
   ]
 }
