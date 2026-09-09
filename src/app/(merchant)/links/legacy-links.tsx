@@ -3,11 +3,12 @@
 // Legacy (V1) era of `/links`: the frozen `payment_link` list rendered
 // through the same `DataDirectory` composition as the Commerce V2 era, with
 // its own restyled create/revoke forms posting to the byte-frozen
-// `/payment-links` routes. Never imports `@/app/admin/payment-link-management`
-// — that admin-only source stops being reachable from this merchant surface.
+// `/payment-links` routes. `@/app/admin/payment-link-management` (the
+// admin-only source this merchant surface replaced) has since been retired
+// as dead code (14.7.1) — this file does not import it.
 // The whole `PaymentLinkOwnerData` already crosses the server/client boundary
-// today (the admin file it replaces here is `"use client"` too), so passing
-// it into this component changes no exposure.
+// today (this component is `"use client"` too), so passing it in changes no
+// exposure.
 import { useEffect, useState } from "react";
 
 import type { OwnerPaymentLink, PaymentLinkOwnerData } from "@/auth/payment-link";

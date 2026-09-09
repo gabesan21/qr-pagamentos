@@ -81,15 +81,15 @@ export function SettingsSurface({
   const checkoutPolicyFailed = notices["checkout-policy"] === "failed";
 
   return (
-    <div className="settings-surface">
-      <div className="settings-surface__layout">
-        <nav aria-label={dictionary.settingsNavLabel} className="settings-surface__nav">
-          <div className="settings-surface__nav-inner">
+    <div className="grid gap-6">
+      <div className="grid gap-6 lg:grid-cols-[calc(var(--space-12)*4)_1fr] lg:items-start">
+        <nav aria-label={dictionary.settingsNavLabel} className="hidden lg:block">
+          <div className="flex flex-col gap-1 lg:sticky lg:top-[calc(var(--top-bar-height)+var(--space-6))]">
             {SECTIONS.map(({ id, labelKey }) => (
               <a
                 key={id}
                 aria-current={activeId === id ? "true" : undefined}
-                className="settings-surface__nav-link"
+                className="flex min-h-11 items-center rounded-md px-3 text-xs text-muted-foreground no-underline transition-colors hover:bg-muted hover:text-foreground aria-[current=true]:bg-muted aria-[current=true]:font-semibold aria-[current=true]:text-foreground"
                 href={`#settings-${id}`}
               >
                 {dictionary[labelKey as keyof Dictionary] as string}
@@ -98,20 +98,20 @@ export function SettingsSurface({
           </div>
         </nav>
 
-        <div className="settings-surface__sections">
-          <section aria-labelledby="settings-connection-heading" className="settings-surface__section" id="settings-connection">
-            <h2 className="settings-surface__section-heading" id="settings-connection-heading">
+        <div className="grid min-w-0 gap-8">
+          <section aria-labelledby="settings-connection-heading" className="grid gap-4 scroll-mt-[calc(var(--top-bar-height)+var(--space-6))]" id="settings-connection">
+            <h2 className="m-0" id="settings-connection-heading">
               {dictionary.nauttHeading}
             </h2>
-            <p className="settings-surface__section-description">{dictionary.nauttDescription}</p>
+            <p className="m-0 max-w-[var(--layout-max)] text-muted-foreground">{dictionary.nauttDescription}</p>
             <NauttCredentialSurface dictionary={dictionary} locale={locale} notice={notices.nautt} status={nauttStatus} />
           </section>
 
-          <section aria-labelledby="settings-policy-heading" className="settings-surface__section" id="settings-policy">
-            <h2 className="settings-surface__section-heading" id="settings-policy-heading">
+          <section aria-labelledby="settings-policy-heading" className="grid gap-4 scroll-mt-[calc(var(--top-bar-height)+var(--space-6))]" id="settings-policy">
+            <h2 className="m-0" id="settings-policy-heading">
               {dictionary.checkoutPolicyHeading}
             </h2>
-            <p className="settings-surface__section-description">{dictionary.checkoutPolicyDescription}</p>
+            <p className="m-0 max-w-[var(--layout-max)] text-muted-foreground">{dictionary.checkoutPolicyDescription}</p>
             {notices["checkout-policy"] ? (
               <Alert role={checkoutPolicyFailed ? "alert" : "status"} variant={checkoutPolicyFailed ? "destructive" : "success"}>
                 <AlertTitle>{checkoutPolicyFailed ? dictionary.adminErrorHeading : dictionary.adminSuccessHeading}</AlertTitle>
@@ -131,11 +131,11 @@ export function SettingsSurface({
             stagedLogoMediaIdentifier={stagedLogoMediaIdentifier}
           />
 
-          <section aria-labelledby="settings-language-heading" className="settings-surface__section" id="settings-language">
-            <h2 className="settings-surface__section-heading" id="settings-language-heading">
+          <section aria-labelledby="settings-language-heading" className="grid gap-4 scroll-mt-[calc(var(--top-bar-height)+var(--space-6))]" id="settings-language">
+            <h2 className="m-0" id="settings-language-heading">
               {dictionary.languageHeading}
             </h2>
-            <p className="settings-surface__section-description">{dictionary.settingsLanguageDescription}</p>
+            <p className="m-0 max-w-[var(--layout-max)] text-muted-foreground">{dictionary.settingsLanguageDescription}</p>
             {notices.language === "saved" ? (
               <noscript>
                 <Alert role="status" variant="success">

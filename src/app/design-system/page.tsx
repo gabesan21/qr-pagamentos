@@ -50,8 +50,8 @@ const tableStates: readonly DataDirectoryState[] = [
 ];
 
 function Section({ children, description, id, title }: Readonly<{ children: React.ReactNode; description: string; id: string; title: string }>) {
-  return <section aria-labelledby={id} className="ds-section" data-ds-section={id}>
-    <div className="ds-section__heading"><h2 id={id}>{title}</h2><p data-ds-prose>{description}</p></div>
+  return <section aria-labelledby={id} className="grid gap-5 border-t-[length:var(--focus-width)] border-border pt-6" data-ds-section={id}>
+    <div className="grid gap-2"><h2 className="m-0" id={id}>{title}</h2><p className="m-0 max-w-[var(--layout-max)] text-muted-foreground">{description}</p></div>
     {children}
   </section>;
 }
@@ -223,16 +223,16 @@ export default async function DesignSystemPage() {
   const locale = localeFromPreferenceCookie(requestCookies.get(localePreferenceCookieName)?.value);
   const dictionary = getDictionary(locale);
 
-  return <main className="ds-ledger" data-design-system-locale={locale}>
-    <header className="receipt-rail">
-      <span className="receipt-rail__label">QR Pagamentos / shared specimen</span>
+  return <main className="grid gap-8" data-design-system-locale={locale}>
+    <header className="grid gap-3 border-y-[length:var(--focus-width)] border-border py-4">
+      <span className="text-xs font-semibold">QR Pagamentos / shared specimen</span>
       <h1>{dictionary.designSystemHeading}</h1>
-      <div className="receipt-rail__facts ds-facts"><span>application-frontend-system</span><span>Inter · Sora · IBM Plex Mono</span><span>{dictionary.designSystemRole}</span></div>
+      <div className="flex flex-wrap gap-4 tabular-nums text-muted-foreground"><span>application-frontend-system</span><span>Inter · Sora · IBM Plex Mono</span><span>{dictionary.designSystemRole}</span></div>
     </header>
-    <p className="admin-shell__intro" data-ds-prose>{dictionary.designSystemIntroduction}</p>
+    <p className="max-w-[var(--layout-max)] text-muted-foreground">{dictionary.designSystemIntroduction}</p>
 
     <Section id="themes" title={dictionary.designSystemThemesHeading} description={dictionary.designSystemThemesDescription}>
-      <div className="ds-row" id="ds-primitive-badge">{themes.map(([id, mode]) => <Badge data-theme-id={id} key={id} variant="outline">{id} · {mode === "light" ? dictionary.designSystemLight : dictionary.designSystemDark}</Badge>)}</div>
+      <div className="flex flex-wrap items-start gap-3" id="ds-primitive-badge">{themes.map(([id, mode]) => <Badge data-theme-id={id} key={id} variant="outline">{id} · {mode === "light" ? dictionary.designSystemLight : dictionary.designSystemDark}</Badge>)}</div>
     </Section>
 
     <Section id="feedback" title={dictionary.designSystemFeedbackHeading} description={dictionary.designSystemFeedbackDescription}>
@@ -257,7 +257,7 @@ export default async function DesignSystemPage() {
         {(["default", "success", "info", "danger"] as const).map((tone) => <SpecimenBinding key={tone} owner="timeline" state={tone}><Timeline entries={[{ id: tone, title: dictionary.designSystemTimelinePrepared, formattedAt: "2026-08-03 09:30 BRT", tone }]} /></SpecimenBinding>)}
       </div>
       <div className="grid gap-3 sm:grid-cols-3"><SpecimenBinding owner="stat-card" state="empty"><StatCard label={dictionary.designSystemStatLabel} value="0" /></SpecimenBinding><SpecimenBinding owner="stat-card" state="unavailable"><StatCard caption={dictionary.designSystemUnavailableBody} label={dictionary.designSystemStatLabel} value="—" /></SpecimenBinding></div>
-      <div className="ds-row">{(["ready", "neutral", "info", "success", "warning", "danger"] as const).map((state) => <SpecimenBinding key={state} owner="status-badge" state={state}><StatusBadge label={state === "danger" ? dictionary.designSystemDanger : state === "warning" ? dictionary.designSystemWarning : state === "success" ? dictionary.designSystemSuccess : state === "info" ? dictionary.designSystemInfo : dictionary.designSystemReady} tone={state === "ready" ? "neutral" : state} /></SpecimenBinding>)}<SpecimenBinding owner="status-badge" state="archived"><StatusBadge archived label={dictionary.designSystemArchived} /></SpecimenBinding></div>
+      <div className="flex flex-wrap items-start gap-3">{(["ready", "neutral", "info", "success", "warning", "danger"] as const).map((state) => <SpecimenBinding key={state} owner="status-badge" state={state}><StatusBadge label={state === "danger" ? dictionary.designSystemDanger : state === "warning" ? dictionary.designSystemWarning : state === "success" ? dictionary.designSystemSuccess : state === "info" ? dictionary.designSystemInfo : dictionary.designSystemReady} tone={state === "ready" ? "neutral" : state} /></SpecimenBinding>)}<SpecimenBinding owner="status-badge" state="archived"><StatusBadge archived label={dictionary.designSystemArchived} /></SpecimenBinding></div>
     </Section>
 
     <Section id="empty-states" title={dictionary.designSystemEmptyHeading} description={dictionary.designSystemEmptyDescription}>

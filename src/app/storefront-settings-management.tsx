@@ -183,9 +183,9 @@ export function StorefrontSettingsManagement({
       <form action="/storefront" id={formId} method="post">
       <fieldset aria-busy={pending || undefined} className="contents" ref={fieldsetRef}>
         <div className="space-y-8">
-          <section aria-labelledby="settings-identity-heading" className="settings-surface__section" id="settings-identity">
-            <h2 className="settings-surface__section-heading" id="settings-identity-heading">{dictionary.storefrontIdentityHeading}</h2>
-            <p className="settings-surface__section-description">{dictionary.storefrontIdentityDescription}</p>
+          <section aria-labelledby="settings-identity-heading" className="grid gap-4 scroll-mt-[calc(var(--top-bar-height)+var(--space-6))]" id="settings-identity">
+            <h2 className="m-0" id="settings-identity-heading">{dictionary.storefrontIdentityHeading}</h2>
+            <p className="m-0 max-w-[var(--layout-max)] text-muted-foreground">{dictionary.storefrontIdentityDescription}</p>
             {notice ? (
               <Alert role={noticeFailed ? "alert" : "status"} variant={noticeFailed ? "destructive" : "success"}>
                 <AlertTitle>{noticeFailed ? dictionary.adminErrorHeading : dictionary.adminSuccessHeading}</AlertTitle>
@@ -227,9 +227,9 @@ export function StorefrontSettingsManagement({
             </Card>
           </section>
 
-          <section aria-labelledby="settings-store-heading" className="settings-surface__section" id="settings-store">
-            <h2 className="settings-surface__section-heading" id="settings-store-heading">{dictionary.storefrontAppearanceHeading}</h2>
-            <p className="settings-surface__section-description">{dictionary.storefrontAppearanceDescription}</p>
+          <section aria-labelledby="settings-store-heading" className="grid gap-4 scroll-mt-[calc(var(--top-bar-height)+var(--space-6))]" id="settings-store">
+            <h2 className="m-0" id="settings-store-heading">{dictionary.storefrontAppearanceHeading}</h2>
+            <p className="m-0 max-w-[var(--layout-max)] text-muted-foreground">{dictionary.storefrontAppearanceDescription}</p>
             <Card>
               <CardContent>
                 <FieldGroup>
@@ -350,9 +350,9 @@ export function StorefrontSettingsManagement({
             </Card>
           </section>
 
-          <section aria-labelledby="settings-payments-heading" className="settings-surface__section" id="settings-payments">
-            <h2 className="settings-surface__section-heading" id="settings-payments-heading">{dictionary.storefrontPaymentsHeading}</h2>
-            <p className="settings-surface__section-description">{dictionary.storefrontPaymentsDescription}</p>
+          <section aria-labelledby="settings-payments-heading" className="grid gap-4 scroll-mt-[calc(var(--top-bar-height)+var(--space-6))]" id="settings-payments">
+            <h2 className="m-0" id="settings-payments-heading">{dictionary.storefrontPaymentsHeading}</h2>
+            <p className="m-0 max-w-[var(--layout-max)] text-muted-foreground">{dictionary.storefrontPaymentsDescription}</p>
             <Card>
               <CardContent>
                 <FieldGroup>
@@ -367,9 +367,9 @@ export function StorefrontSettingsManagement({
             </Card>
           </section>
 
-          <section aria-labelledby="settings-currency-heading" className="settings-surface__section" id="settings-currency">
-            <h2 className="settings-surface__section-heading" id="settings-currency-heading">{dictionary.storefrontCurrencyHeading}</h2>
-            <p className="settings-surface__section-description">{dictionary.storefrontCurrencyDescription}</p>
+          <section aria-labelledby="settings-currency-heading" className="grid gap-4 scroll-mt-[calc(var(--top-bar-height)+var(--space-6))]" id="settings-currency">
+            <h2 className="m-0" id="settings-currency-heading">{dictionary.storefrontCurrencyHeading}</h2>
+            <p className="m-0 max-w-[var(--layout-max)] text-muted-foreground">{dictionary.storefrontCurrencyDescription}</p>
             <Card>
               <CardContent>
                 <FieldGroup>
