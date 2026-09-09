@@ -3,17 +3,15 @@
 import { useEffect, useRef, useState } from "react";
 
 import { createPollingController } from "@/app/pay/[identifier]/public-checkout-form";
+import { CheckoutPaymentView } from "@/app/pay/[identifier]/checkout-payment-views";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { CopyField } from "@/components/ui/copy-field";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Field, FieldError, FieldGroup, FieldLabel, FieldLegend, FieldSet } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { MoneyText } from "@/components/ui/money-text";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
-import { QrDisplay } from "@/components/ui/qr-display";
 import { Spinner } from "@/components/ui/spinner";
-import { StatusBadge, type StatusTone } from "@/components/ui/status-badge";
 import type { getDictionary } from "@/i18n/dictionaries";
 import type { CheckoutDataPolicy, CustomerSnapshotV1 } from "@/orders/payment-link-order";
 import { isStorefrontCartAmount } from "@/storefront/cart";
@@ -25,7 +23,9 @@ export type StandaloneFormValues = Record<StandaloneFieldName | "complement", st
 // The closed client state set (9.2.2): the union of 9.2.1's accept states
 // (RESERVED, CREATING, PENDING, INDETERMINATE) and the V1 status vocabulary
 // (CREATED, PENDING, INDETERMINATE, CONFIRMED, REJECTED, CANCELLED, EXPIRED,
-// REFUNDED). RESERVED/CREATING/CREATED render the waiting treatment, never an error.
+// REFUNDED). RESERVED/CREATING/CREATED render the waiting treatment, never an
+// error. Identical to 14.6.1's `CheckoutPaymentViewState` (14.6.2 F02), so the
+// payment/outcome phases render through `CheckoutPaymentView` unconverted.
 export type StandalonePaymentState = "RESERVED" | "CREATING" | "CREATED" | "PENDING" | "INDETERMINATE" | "CONFIRMED" | "REJECTED" | "CANCELLED" | "EXPIRED" | "REFUNDED";
 export type StandalonePayment = Readonly<{ state: StandalonePaymentState; pixCopyPaste?: string; pixQrCodeUrl?: string }>;
 type CheckoutAttempt = Readonly<{ idempotencyKey: string; amount: string; customer: CustomerSnapshotV1 }>;
@@ -67,29 +67,6 @@ function snapshot(policy: CheckoutDataPolicy, values: StandaloneFormValues): Rea
   };
 }
 
-function paymentCopy(dictionary: Dictionary, state: StandalonePaymentState): string {
-  const copy: Record<StandalonePaymentState, string> = {
-    RESERVED: dictionary.checkoutStateCreated,
-    CREATING: dictionary.checkoutStateCreated,
-    CREATED: dictionary.checkoutStateCreated,
-    PENDING: dictionary.checkoutStatePending,
-    INDETERMINATE: dictionary.checkoutStateIndeterminate,
-    CONFIRMED: dictionary.checkoutStateConfirmed,
-    REJECTED: dictionary.checkoutStateRejected,
-    CANCELLED: dictionary.checkoutStateCancelled,
-    EXPIRED: dictionary.checkoutStateExpired,
-    REFUNDED: dictionary.checkoutStateRefunded,
-  };
-  return copy[state];
-}
-
-function paymentTone(state: StandalonePaymentState): StatusTone {
-  if (state === "CONFIRMED") return "success";
-  if (state === "REJECTED" || state === "CANCELLED" || state === "EXPIRED" || state === "REFUNDED") return "danger";
-  if (state === "PENDING" || state === "INDETERMINATE") return "warning";
-  return "info";
-}
-
 export function standalonePaymentFromResponse(value: unknown): StandalonePayment | null {
   if (!value || typeof value !== "object" || !("state" in value)) return null;
   const payment = value as { state?: unknown; pixCopyPaste?: unknown; pixQrCodeUrl?: unknown };
@@ -99,49 +76,47 @@ export function standalonePaymentFromResponse(value: unknown): StandalonePayment
   return { state: payment.state as StandalonePaymentState, ...(payment.pixCopyPaste ? { pixCopyPaste: payment.pixCopyPaste } : {}), ...(payment.pixQrCodeUrl ? { pixQrCodeUrl: payment.pixQrCodeUrl } : {}) };
 }
 
-// The one opaque unavailable view: unknown/disabled slug, standalone off,
-// submit 404, status 404, and an expired capability all share it, with the
-// localized return-to-store link as the only affordance.
+// The one opaque unavailable view (14.6.2 F02, C2): unknown/disabled slug,
+// standalone off, submit 404, status 404, and an expired capability all share
+// this `EmptyState` composition — no more `Card` + destructive `Alert` — with
+// the localized return-to-store link as the only affordance.
 export function StandalonePaymentUnavailable({ dictionary, slug }: Readonly<{ dictionary: Dictionary; slug: string }>) {
   return (
-    <Card className="storefront-card">
-      <CardHeader><CardTitle>{dictionary.storefrontUnavailableHeading}</CardTitle></CardHeader>
-      <CardContent className="storefront-error">
-        <Alert variant="destructive">
-          <AlertTitle>{dictionary.storefrontUnavailableHeading}</AlertTitle>
-          <AlertDescription>{dictionary.storefrontUnavailableDescription}</AlertDescription>
-        </Alert>
-        <div>
-          <Button asChild variant="outline">
-            <a href={`/store/${slug}`}>{dictionary.storefrontPayReturn}</a>
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+    <EmptyState
+      action={
+        <Button asChild variant="outline">
+          <a href={`/store/${slug}`}>{dictionary.storefrontPayReturn}</a>
+        </Button>
+      }
+      body={dictionary.storefrontUnavailableDescription}
+      illustration="unavailable"
+      kind="unavailable"
+      title={dictionary.storefrontUnavailableHeading}
+    />
   );
 }
 
 // Pure presentational composition of the standalone payment journey; the
 // stateful wrapper below owns every handler, so tests render each closed
-// state directly.
+// state directly. Once a payment exists the form yields entirely to 14.6.1's
+// `CheckoutPaymentView` (C3, C4): no page-local tone map or outcome markup.
 export function StandalonePaymentView({
   amount,
   amountInvalid,
   attemptMade,
   checkoutError,
-  copyState,
   currencyCode,
   dictionary,
   invalid,
   onAmountChange,
-  onCopyPix,
   onFieldChange,
-  onStatusRetry,
+  onRetryPoll,
+  onStartOver,
   onSubmit,
   payment,
   policy,
+  pollFailed,
   slug,
-  statusError,
   submittedAmount,
   submitting,
   unavailable,
@@ -151,25 +126,51 @@ export function StandalonePaymentView({
   amountInvalid: boolean;
   attemptMade: boolean;
   checkoutError: boolean;
-  copyState: "success" | "error" | null;
   currencyCode: string | null;
   dictionary: Dictionary;
   invalid: ReadonlySet<StandaloneFieldName>;
   onAmountChange: (value: string) => void;
-  onCopyPix: (state: "copied" | "failed" | "pending" | "ready") => void;
   onFieldChange: (field: keyof StandaloneFormValues, value: string) => void;
-  onStatusRetry: () => void;
+  onRetryPoll: () => void;
+  onStartOver: () => void;
   onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
   payment: StandalonePayment | null;
   policy: CheckoutDataPolicy;
+  pollFailed: boolean;
   slug: string;
-  statusError: boolean;
   submittedAmount: string | null;
   submitting: boolean;
   unavailable: boolean;
   values: StandaloneFormValues;
 }>) {
   if (unavailable) return <StandalonePaymentUnavailable dictionary={dictionary} slug={slug} />;
+
+  if (payment) {
+    return (
+      <Card className="w-full">
+        <CardContent className="grid gap-6">
+          <CheckoutPaymentView
+            currencyLabel={currencyCode ?? undefined}
+            dictionary={dictionary}
+            merchantName={dictionary.storefrontFallbackName}
+            onRetryPoll={onRetryPoll}
+            onStartOver={onStartOver}
+            pixCopyPaste={payment.pixCopyPaste}
+            pixQrCodeUrl={payment.pixQrCodeUrl}
+            pollFailed={pollFailed}
+            state={payment.state}
+            total={submittedAmount ?? amount}
+          />
+        </CardContent>
+        <CardFooter className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-xs text-muted-foreground">{dictionary.checkoutPrivacyNotice}</p>
+          <Button asChild variant="outline">
+            <a href={`/store/${slug}`}>{dictionary.storefrontPayReturn}</a>
+          </Button>
+        </CardFooter>
+      </Card>
+    );
+  }
 
   const field = (name: StandaloneFieldName, label: string, type = "text", autoComplete?: string) => (
     <Field data-invalid={invalid.has(name) || undefined}>
@@ -179,115 +180,67 @@ export function StandalonePaymentView({
     </Field>
   );
 
-  const isTerminal = payment ? TERMINAL_STATES.has(payment.state) : false;
-  const awaitingQr = payment && !payment.pixQrCodeUrl && !payment.pixCopyPaste && !isTerminal;
-
-  return <Card className="checkout-card">
-    <CardHeader><CardTitle>{dictionary.storefrontPayHeading}</CardTitle></CardHeader>
-    <CardContent>
-      <form className="checkout-form" onSubmit={onSubmit}>
-        <FieldGroup>
-          <Field data-invalid={amountInvalid || undefined}>
-            <FieldLabel htmlFor="standalone-amount">{dictionary.storefrontCustomAmountLabel}{currencyCode ? ` (${currencyCode})` : ""}</FieldLabel>
-            <Input aria-invalid={amountInvalid || undefined} autoComplete="off" id="standalone-amount" inputMode="decimal" name="amount" onChange={(event) => onAmountChange(event.target.value)} required type="text" value={amount} />
-            {amountInvalid ? <FieldError>{dictionary.storefrontCustomAmountInvalid}</FieldError> : null}
-          </Field>
-          {requiredFields(policy).length === 0 ? <Alert role="status"><AlertDescription>{dictionary.checkoutNoCustomerData}</AlertDescription></Alert> : null}
-          {requiredFields(policy).includes("name") ? field("name", dictionary.checkoutNameLabel, "text", "name") : null}
-          {requiredFields(policy).includes("email") ? field("email", dictionary.checkoutEmailLabel, "email", "email") : null}
-          {requiredFields(policy).includes("cpf") ? field("cpf", dictionary.checkoutCpfLabel, "text", "off") : null}
-          {policy === "NAME_EMAIL_CPF_ADDRESS" ? (
-            <FieldSet>
-              <FieldLegend>{dictionary.checkoutAddressLegend}</FieldLegend>
-              <FieldGroup>
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_auto]">
-                  {field("street", dictionary.checkoutStreetLabel, "text", "street-address")}
-                  {field("number", dictionary.checkoutNumberLabel)}
-                </div>
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  {field("district", dictionary.checkoutDistrictLabel)}
-                  {field("city", dictionary.checkoutCityLabel, "text", "address-level2")}
-                </div>
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <Field data-invalid={invalid.has("stateUf") || undefined}>
-                    <FieldLabel htmlFor="standalone-stateUf">{dictionary.checkoutStateUfLabel}</FieldLabel>
-                    <NativeSelect aria-invalid={invalid.has("stateUf") || undefined} id="standalone-stateUf" name="stateUf" onChange={(event) => onFieldChange("stateUf", event.target.value)} required value={values.stateUf}>
-                      <NativeSelectOption value="">{dictionary.checkoutStateUfPlaceholder}</NativeSelectOption>
-                      {BRAZILIAN_UFS.map((uf) => <NativeSelectOption key={uf} value={uf}>{uf}</NativeSelectOption>)}
-                    </NativeSelect>
-                    {invalid.has("stateUf") ? <FieldError>{dictionary.checkoutValidationError}</FieldError> : null}
+  return (
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle>{dictionary.storefrontPayHeading}</CardTitle>
+        <CardDescription>{dictionary.storefrontPayIntroduction}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form className="grid gap-6" onSubmit={onSubmit}>
+          <FieldGroup>
+            <Field data-invalid={amountInvalid || undefined}>
+              <FieldLabel htmlFor="standalone-amount">{dictionary.storefrontCustomAmountLabel}{currencyCode ? ` (${currencyCode})` : ""}</FieldLabel>
+              <Input aria-invalid={amountInvalid || undefined} autoComplete="off" id="standalone-amount" inputMode="decimal" name="amount" onChange={(event) => onAmountChange(event.target.value)} required type="text" value={amount} />
+              {amountInvalid ? <FieldError>{dictionary.storefrontCustomAmountInvalid}</FieldError> : null}
+            </Field>
+            {requiredFields(policy).length === 0 ? <Alert role="status"><AlertDescription>{dictionary.checkoutNoCustomerData}</AlertDescription></Alert> : null}
+            {requiredFields(policy).includes("name") ? field("name", dictionary.checkoutNameLabel, "text", "name") : null}
+            {requiredFields(policy).includes("email") ? field("email", dictionary.checkoutEmailLabel, "email", "email") : null}
+            {requiredFields(policy).includes("cpf") ? field("cpf", dictionary.checkoutCpfLabel, "text", "off") : null}
+            {policy === "NAME_EMAIL_CPF_ADDRESS" ? (
+              <FieldSet>
+                <FieldLegend>{dictionary.checkoutAddressLegend}</FieldLegend>
+                <FieldGroup>
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_auto]">
+                    {field("street", dictionary.checkoutStreetLabel, "text", "street-address")}
+                    {field("number", dictionary.checkoutNumberLabel)}
+                  </div>
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    {field("district", dictionary.checkoutDistrictLabel)}
+                    {field("city", dictionary.checkoutCityLabel, "text", "address-level2")}
+                  </div>
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <Field data-invalid={invalid.has("stateUf") || undefined}>
+                      <FieldLabel htmlFor="standalone-stateUf">{dictionary.checkoutStateUfLabel}</FieldLabel>
+                      <NativeSelect aria-invalid={invalid.has("stateUf") || undefined} id="standalone-stateUf" name="stateUf" onChange={(event) => onFieldChange("stateUf", event.target.value)} required value={values.stateUf}>
+                        <NativeSelectOption value="">{dictionary.checkoutStateUfPlaceholder}</NativeSelectOption>
+                        {BRAZILIAN_UFS.map((uf) => <NativeSelectOption key={uf} value={uf}>{uf}</NativeSelectOption>)}
+                      </NativeSelect>
+                      {invalid.has("stateUf") ? <FieldError>{dictionary.checkoutValidationError}</FieldError> : null}
+                    </Field>
+                    {field("postalCode", dictionary.checkoutPostalCodeLabel, "text", "postal-code")}
+                  </div>
+                  <Field>
+                    <FieldLabel htmlFor="standalone-complement">{dictionary.checkoutComplementLabel}</FieldLabel>
+                    <Input autoComplete="address-line2" id="standalone-complement" name="complement" onChange={(event) => onFieldChange("complement", event.target.value)} value={values.complement} />
                   </Field>
-                  {field("postalCode", dictionary.checkoutPostalCodeLabel, "text", "postal-code")}
-                </div>
-                <Field>
-                  <FieldLabel htmlFor="standalone-complement">{dictionary.checkoutComplementLabel}</FieldLabel>
-                  <Input autoComplete="address-line2" id="standalone-complement" name="complement" onChange={(event) => onFieldChange("complement", event.target.value)} value={values.complement} />
-                </Field>
-              </FieldGroup>
-            </FieldSet>
-          ) : null}
-          {checkoutError ? <Alert variant="destructive"><AlertTitle>{dictionary.checkoutErrorHeading}</AlertTitle><AlertDescription>{dictionary.checkoutErrorDescription}</AlertDescription></Alert> : null}
-          <Button aria-busy={submitting || undefined} disabled={submitting} type="submit">{submitting ? <Spinner data-icon="inline-start" /> : null}{submitting ? dictionary.checkoutSubmitting : attemptMade ? dictionary.checkoutRetry : dictionary.checkoutSubmit}</Button>
-        </FieldGroup>
-      </form>
-      {payment ? <section aria-live="polite" className="checkout-payment" aria-label={dictionary.checkoutPaymentHeading}>
-        <div className="flex flex-col items-center gap-3">
-          <StatusBadge label={paymentCopy(dictionary, payment.state)} tone={paymentTone(payment.state)} />
-          {submittedAmount ? (
-            <p className="checkout-v2__total">
-              <span>{dictionary.storefrontCustomAmountLabel}</span>
-              <MoneyText pairLabel={currencyCode ?? undefined} size="large" value={submittedAmount} />
-            </p>
-          ) : null}
-          {!isTerminal ? (
-            <>
-              {awaitingQr ? (
-                <QrDisplay graphicLabel={dictionary.checkoutQrAlt} graphic={<></>} pending />
-              ) : payment.pixQrCodeUrl ? (
-                <QrDisplay
-                  caption={dictionary.checkoutQrAlt}
-                  graphicLabel={dictionary.checkoutQrAlt}
-                  graphic={
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img alt={dictionary.checkoutQrAlt} className="checkout-qr" src={payment.pixQrCodeUrl} />
-                  }
-                  pending={payment.state === "RESERVED" || payment.state === "CREATING" || payment.state === "CREATED"}
-                />
-              ) : null}
-              {payment.pixCopyPaste ? (
-                <div className="checkout-copy">
-                  <CopyField
-                    labels={{ copy: dictionary.checkoutCopyPix, pending: dictionary.checkoutCopyPending, copied: dictionary.checkoutCopySuccess, failed: dictionary.checkoutCopyError }}
-                    onCopy={onCopyPix}
-                    value={payment.pixCopyPaste}
-                  />
-                </div>
-              ) : null}
-              {awaitingQr ? (
-                <Alert role="status">
-                  <AlertDescription>{dictionary.checkoutWaitingPaymentData}</AlertDescription>
-                </Alert>
-              ) : null}
-              {statusError ? (
-                <Alert variant="warning">
-                  <AlertTitle>{dictionary.checkoutStatusErrorHeading}</AlertTitle>
-                  <AlertDescription>{dictionary.checkoutStatusErrorDescription}</AlertDescription>
-                </Alert>
-              ) : null}
-              {statusError ? <Button onClick={onStatusRetry} type="button" variant="outline">{dictionary.checkoutRetryStatus}</Button> : null}
-            </>
-          ) : null}
-          {copyState ? <p aria-live="polite" className="text-sm text-muted-foreground">{copyState === "success" ? dictionary.checkoutCopySuccess : dictionary.checkoutCopyError}</p> : null}
-        </div>
-      </section> : null}
-    </CardContent>
-    <CardFooter className="storefront-pay-footer">
-      <p className="checkout-privacy">{dictionary.checkoutPrivacyNotice}</p>
-      <Button asChild variant="outline">
-        <a href={`/store/${slug}`}>{dictionary.storefrontPayReturn}</a>
-      </Button>
-    </CardFooter>
-  </Card>;
+                </FieldGroup>
+              </FieldSet>
+            ) : null}
+            {checkoutError ? <Alert variant="destructive"><AlertTitle>{dictionary.checkoutErrorHeading}</AlertTitle><AlertDescription>{dictionary.checkoutErrorDescription}</AlertDescription></Alert> : null}
+            <Button aria-busy={submitting || undefined} disabled={submitting} type="submit">{submitting ? <Spinner data-icon="inline-start" /> : null}{submitting ? dictionary.checkoutSubmitting : attemptMade ? dictionary.checkoutRetry : dictionary.checkoutSubmit}</Button>
+          </FieldGroup>
+        </form>
+      </CardContent>
+      <CardFooter className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-xs text-muted-foreground">{dictionary.checkoutPrivacyNotice}</p>
+        <Button asChild variant="outline">
+          <a href={`/store/${slug}`}>{dictionary.storefrontPayReturn}</a>
+        </Button>
+      </CardFooter>
+    </Card>
+  );
 }
 
 // The single client boundary of the standalone payment page (9.2.2): it owns
@@ -296,6 +249,14 @@ export function StandalonePaymentView({
 // failure view. The browser never supplies owner, currency, total, or status:
 // the submit body is exactly { idempotencyKey, amount, customer } and 9.2.1
 // re-derives everything else from locked persisted state.
+//
+// Deviation (14.6.2 F02, plan risk 1): 14.6.1's `useCheckoutExperience` is
+// welded to `/api/payment-links/[identifier]/**` and to a customer-only
+// attempt body — this route posts `/api/store/[slug]/checkout` with an
+// `amount` the buyer supplies, a shape the shared controller cannot express.
+// The phase therefore stays local, but obeys the same rule the shared
+// controller enforces: field/amount edits never touch attempt, payment, or
+// capability, and the explicit start-over is the only reset.
 export function StandalonePaymentExperience({
   currencyCode,
   dictionary,
@@ -319,9 +280,8 @@ export function StandalonePaymentExperience({
   const [submitting, setSubmitting] = useState(false);
   const [unavailable, setUnavailable] = useState(false);
   const [checkoutError, setCheckoutError] = useState(false);
-  const [statusError, setStatusError] = useState(false);
-  const [copyState, setCopyState] = useState<"success" | "error" | null>(null);
-  const [statusRetry, setStatusRetry] = useState(0);
+  const [pollFailed, setPollFailed] = useState(false);
+  const [pollRetryTick, setPollRetryTick] = useState(0);
   const terminalRef = useRef(false);
 
   useEffect(() => {
@@ -339,24 +299,37 @@ export function StandalonePaymentExperience({
         if (!next) throw new Error("status-read-failed");
         setPayment(next);
         terminalRef.current = TERMINAL_STATES.has(next.state);
-        if (terminalRef.current) setCopyState(null);
-        setStatusError(false);
+        setPollFailed(false);
         failures = 0;
         if (!terminalRef.current) schedule(5_000);
       } catch (error) {
         if (isCurrent() && !(error instanceof DOMException && error.name === "AbortError")) {
           failures += 1;
-          if (failures >= 3) setStatusError(true);
+          if (failures >= 3) setPollFailed(true);
           else schedule(1_000 * 2 ** failures);
         }
       }
     });
     polling.start();
     return polling.stop;
-  }, [capability, slug, statusRetry]);
+  }, [capability, slug, pollRetryTick]);
 
-  const resetFlow = () => {
-    setAttempt(null); setPayment(null); setCapability(null); setUnavailable(false); setCheckoutError(false); setStatusError(false); setCopyState(null);
+  // The only reset (C04, mirrored from 14.6.1's `startOver`): field and
+  // amount edits below never call this — they only clear their own
+  // validation flag — so an issued payment survives every keystroke.
+  const startOver = () => {
+    terminalRef.current = false;
+    setAmount("");
+    setAmountInvalid(false);
+    setValues(INITIAL_VALUES);
+    setInvalid(new Set());
+    setAttempt(null);
+    setPayment(null);
+    setCapability(null);
+    setSubmitting(false);
+    setUnavailable(false);
+    setCheckoutError(false);
+    setPollFailed(false);
   };
 
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -378,7 +351,6 @@ export function StandalonePaymentExperience({
         : null;
       if (!accepted?.payment || typeof accepted.statusCapability !== "string") { setCheckoutError(true); return; }
       terminalRef.current = TERMINAL_STATES.has(accepted.payment.state);
-      if (terminalRef.current) setCopyState(null);
       setPayment(accepted.payment); setCapability(accepted.statusCapability);
     } catch { setCheckoutError(true); } finally { setSubmitting(false); }
   };
@@ -389,23 +361,21 @@ export function StandalonePaymentExperience({
       amountInvalid={amountInvalid}
       attemptMade={attempt !== null}
       checkoutError={checkoutError}
-      copyState={copyState}
       currencyCode={currencyCode}
       dictionary={dictionary}
       invalid={invalid}
-      onAmountChange={(value) => { setAmount(value); setAmountInvalid(false); resetFlow(); }}
-      onCopyPix={(state) => { setCopyState(state === "copied" ? "success" : state === "failed" ? "error" : null); }}
+      onAmountChange={(value) => { setAmount(value); setAmountInvalid(false); }}
       onFieldChange={(field, value) => {
         setValues((current) => ({ ...current, [field]: value }));
         setInvalid((current) => { const next = new Set(current); next.delete(field as StandaloneFieldName); return next; });
-        resetFlow();
       }}
-      onStatusRetry={() => setStatusRetry((value) => value + 1)}
+      onRetryPoll={() => setPollRetryTick((value) => value + 1)}
+      onStartOver={startOver}
       onSubmit={(event) => { void submit(event); }}
       payment={payment}
       policy={policy}
+      pollFailed={pollFailed}
       slug={slug}
-      statusError={statusError}
       submittedAmount={attempt?.amount ?? null}
       submitting={submitting}
       unavailable={unavailable}

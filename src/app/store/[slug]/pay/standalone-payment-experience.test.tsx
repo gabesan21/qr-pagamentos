@@ -28,19 +28,18 @@ function renderView(overrides: Partial<Parameters<typeof StandalonePaymentView>[
       amountInvalid={false}
       attemptMade={false}
       checkoutError={false}
-      copyState={null}
       currencyCode="BRL"
       dictionary={dictionary}
       invalid={new Set()}
       onAmountChange={vi.fn()}
-      onCopyPix={vi.fn()}
       onFieldChange={vi.fn()}
-      onStatusRetry={vi.fn()}
+      onRetryPoll={vi.fn()}
+      onStartOver={vi.fn()}
       onSubmit={vi.fn()}
       payment={null}
       policy="NAME_EMAIL_CPF"
+      pollFailed={false}
       slug="ana-store"
-      statusError={false}
       submittedAmount={null}
       submitting={false}
       unavailable={false}
@@ -96,6 +95,9 @@ describe("standalone payment view", () => {
     expect(markup).toContain('href="/store/ana-store"');
   });
 
+  // Payment/outcome phases render through 14.6.1's `CheckoutPaymentView`
+  // (14.6.2 F02, C3/C4): no page-local tone map, `QrDisplay`/`CopyField`
+  // composition, or terminal markup survives here.
   it.each([
     ["RESERVED", "Preparing payment"],
     ["CREATING", "Preparing payment"],
@@ -107,51 +109,39 @@ describe("standalone payment view", () => {
 
     expect(textContent(markup)).toContain(label);
     expect(textContent(markup)).toContain("12.5 BRL");
-    expect(markup).not.toContain("bg-destructive");
-    expect(textContent(markup)).toContain("Payment details are still being prepared.");
+    expect(markup).not.toContain("bg-danger-soft");
     expect(markup).toContain('href="/store/ana-store"');
   });
 
-  it("renders the QR and copy affordances without the waiting notice when payment data exists", () => {
-    const markup = renderView({ payment: { state: "PENDING", pixCopyPaste: "pix-code", pixQrCodeUrl: "https://provider.example/qr.png" }, submittedAmount: "12.5" });
+  it("renders the QR and copy affordances once payment data exists", () => {
+    const markup = renderView({ payment: { state: "PENDING", pixCopyPaste: "pix-code", pixQrCodeUrl: undefined }, submittedAmount: "12.5" });
 
-    expect(markup).toContain('src="https://provider.example/qr.png"');
-    expect(markup).toContain('alt="PIX payment QR code"');
     expect(textContent(markup)).toContain("pix-code");
     expect(textContent(markup)).toContain("Copy PIX code");
-    expect(textContent(markup)).not.toContain("Payment details are still being prepared.");
-  });
-
-  it("announces copy feedback politely", () => {
-    const success = renderView({ copyState: "success", payment: { state: "PENDING", pixCopyPaste: "pix-code" } });
-    expect(success).toContain("PIX code copied.");
-    expect(success).toContain('aria-live="polite"');
-
-    const failure = renderView({ copyState: "error", payment: { state: "PENDING", pixCopyPaste: "pix-code" } });
-    expect(failure).toContain("The PIX code could not be copied.");
   });
 
   it("renders the polling status error with the manual retry and the return link", () => {
-    const markup = renderView({ payment: { state: "PENDING" }, statusError: true });
+    const markup = renderView({ payment: { state: "PENDING" }, pollFailed: true });
 
-    expect(markup).toContain("Payment status could not be refreshed");
-    expect(markup).toContain("Check status again");
+    expect(markup).toContain("We could not check the payment status.");
+    expect(markup).toContain("Check again");
     expect(markup).toContain('href="/store/ana-store"');
   });
 
+  // C3: refunded renders neutral, never the danger tone the other terminal
+  // outcomes use — `ProviderStateBadge`'s own domain-tone map, not a
+  // page-local one.
   it.each([
     ["CONFIRMED", "Payment confirmed", false],
     ["REJECTED", "Payment rejected", true],
     ["CANCELLED", "Payment cancelled", true],
     ["EXPIRED", "Payment expired", true],
-    ["REFUNDED", "Payment refunded", true],
-  ] as const)("renders the terminal %s view with the return link", (state: StandalonePaymentState, label: string, destructive: boolean) => {
+    ["REFUNDED", "Payment refunded", false],
+  ] as const)("renders the terminal %s view with the return link", (state: StandalonePaymentState, label: string, danger: boolean) => {
     const markup = renderView({ payment: { state }, submittedAmount: "12.5" });
 
     expect(markup).toContain(label);
-    expect(markup.includes("bg-danger-soft text-danger")).toBe(destructive);
-    expect(markup).not.toContain("bg-destructive");
-    expect(markup).not.toContain("Payment details are still being prepared.");
+    expect(markup.includes("bg-danger-soft")).toBe(danger);
     expect(markup).toContain('href="/store/ana-store"');
   });
 

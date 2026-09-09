@@ -327,14 +327,27 @@ storage]]; template assets do not bypass that lifecycle.
   expired) each with `ProviderStateBadge` and a non-color marker, the three
   failures alone offering start-over. The visual target must never collapse
   or reshape its business DTO.
-- `/store/[slug]` is an authorized extrapolation: use the same tokens,
-  typography, identity, feedback, card/table components, and responsive laws to
-  render the existing grouped catalog and browser-local cart in the persisted
-  `boxed` or `table` layout. Keep the public redaction and exact-money contracts.
-- `/store/[slug]/pay` is an authorized extrapolation: use the same branded
-  public shell and checkout-width composition, preserve the return-to-store
-  affordance and the standalone state machine, and keep the current server trust
-  boundary.
+- `/store/[slug]` and `/store/[slug]/pay` are authorized extrapolations.
+  **Converged by task 14.6.2 (2026-09-08):** both now compose 14.6.1's shared
+  `CheckoutShell` directly (merchant header, `data-theme-preview`/
+  `--storefront-accent`, public footer) instead of a page-local rail/footer,
+  and both storefront-specific `EmptyState` vocabulary (unavailable, empty,
+  error) replaces the retired `Card` + destructive `Alert` treatment. The
+  standalone payment/outcome phases render through 14.6.1's
+  `CheckoutPaymentView` unconverted (identical `CheckoutPaymentViewState`
+  union), so `ProviderStateBadge`'s domain tone map is the only tone source —
+  refunded is neutral, never a page-local danger class. **Deviation:**
+  14.6.1's `useCheckoutExperience` controller is welded to
+  `/api/payment-links/[identifier]/**` and a customer-only attempt body; the
+  standalone amount-bearing attempt against `/api/store/[slug]/checkout`
+  keeps its own local phase, but now obeys the same rule the shared
+  controller enforces — field/amount edits never touch attempt, payment, or
+  capability, only the explicit start-over resets. Every public `storefront-*`/
+  `receipt-rail*` BEM rule this task owned is retired from `globals.css`;
+  `.receipt-rail*` itself survives because `src/app/design-system/page.tsx`
+  still consumes it (out of this task's scope). Cart persistence, exact-money
+  totals, layouts, the cart-checkout/standalone submit bodies, and the
+  sessionless trust boundary are unchanged.
 - The two extrapolations never copy the template's incorrect shortcut from a
   storefront slug to `/pay/[identifier]`; current routes and commands win.
 

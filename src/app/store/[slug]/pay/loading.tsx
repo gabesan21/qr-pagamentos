@@ -1,18 +1,15 @@
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+import { CheckoutSkeleton } from "@/components/ui/skeletons";
+import { getDictionary } from "@/i18n/dictionaries";
+import { defaultLocale } from "@/i18n/locales";
+
+import { CheckoutShell } from "@/app/pay/[identifier]/checkout-shell";
 
 export default function StandalonePaymentLoading() {
+  const dictionary = getDictionary(defaultLocale);
+
   return (
-    <main aria-busy="true" className="storefront-shell">
-      <Card className="storefront-card">
-        <CardHeader><Skeleton className="storefront-skeleton storefront-skeleton--title" /></CardHeader>
-        <CardContent><Skeleton className="storefront-skeleton storefront-skeleton--body" /></CardContent>
-        <CardFooter><Skeleton className="storefront-skeleton storefront-skeleton--control" /></CardFooter>
-      </Card>
-      <Card className="storefront-card">
-        <CardHeader><Skeleton className="storefront-skeleton storefront-skeleton--title" /></CardHeader>
-        <CardContent><Skeleton className="storefront-skeleton storefront-skeleton--lines" /></CardContent>
-      </Card>
-    </main>
+    <CheckoutShell busy dictionary={dictionary} locale={defaultLocale}>
+      <CheckoutSkeleton label={dictionary.checkoutLoadingLabel} />
+    </CheckoutShell>
   );
 }
