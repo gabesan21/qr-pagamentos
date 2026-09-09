@@ -170,9 +170,10 @@ test("creates current, responsive login evidence", async ({ page }) => {
         // `document.querySelector` returns DOM order, and the AuthCard's own
         // decorative leading-panel brand mark (hidden below the auth
         // breakpoint) now precedes the visible form-column one; select the
-        // visible header mark by its own class, never the first match.
-        const brand = element<HTMLElement>(".auth-brand[data-brand-identity]");
-        const brandMark = element<SVGSVGElement>(".auth-brand [data-brand-mark]");
+        // visible header mark scoped to the card header, never the first
+        // `[data-brand-identity]` match on the page.
+        const brand = element<HTMLElement>('[data-slot="card-header"] [data-brand-identity]');
+        const brandMark = element<SVGSVGElement>('[data-slot="card-header"] [data-brand-mark]');
         const card = element<HTMLElement>('[data-slot="card"]');
         return {
           bodyFont: getComputedStyle(document.body).fontFamily,
