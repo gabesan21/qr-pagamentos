@@ -11,7 +11,6 @@ function storeWith(users: TestUser[] = [admin]): AdministrationStore & {
   sessions: string[];
   lockScopes: number;
   storefrontEnabled: Map<string, boolean>;
-  activeV1Links: Map<string, number>;
   activeV2Links: Map<string, number>;
   deletions: Array<{ id: string; userId: string; actorId: string; createdAt: Date }>;
   failDeletion(): void;
@@ -21,7 +20,6 @@ function storeWith(users: TestUser[] = [admin]): AdministrationStore & {
   const sessions = users.map((user) => user.id);
   const data = new Map(users.map((user) => [user.id, { ...user }]));
   const storefrontEnabled = new Map(users.map((user) => [user.id, true]));
-  const activeV1Links = new Map(users.map((user) => [user.id, 2]));
   const activeV2Links = new Map(users.map((user) => [user.id, 1]));
   const deletions: Array<{ id: string; userId: string; actorId: string; createdAt: Date }> = [];
   let deletionFails = false;
@@ -35,7 +33,6 @@ function storeWith(users: TestUser[] = [admin]): AdministrationStore & {
     async updatePassword() {},
     async markDeleted(id: string, deletedAt: Date) { const user = data.get(id); if (user) { user.deletedAt = deletedAt; user.status = "DISABLED"; } },
     async disableStorefront(id: string) { storefrontEnabled.set(id, false); },
-    async deactivatePaymentLinks(ownerId: string) { activeV1Links.set(ownerId, 0); },
     async deactivatePaymentLinksV2(ownerId: string) { activeV2Links.set(ownerId, 0); },
     async recordDeletion(row: { id: string; userId: string; actorId: string; createdAt: Date }) {
       if (deletionFails) throw new Error("audit write failed");
@@ -54,7 +51,6 @@ function storeWith(users: TestUser[] = [admin]): AdministrationStore & {
       data: new Map([...data].map(([id, user]) => [id, { ...user }])),
       sessions: [...sessions],
       storefrontEnabled: new Map(storefrontEnabled),
-      activeV1Links: new Map(activeV1Links),
       activeV2Links: new Map(activeV2Links),
       deletions: deletions.length,
     };
@@ -65,8 +61,6 @@ function storeWith(users: TestUser[] = [admin]): AdministrationStore & {
     sessions.splice(0, sessions.length, ...saved.sessions);
     storefrontEnabled.clear();
     for (const [id, value] of saved.storefrontEnabled) storefrontEnabled.set(id, value);
-    activeV1Links.clear();
-    for (const [id, value] of saved.activeV1Links) activeV1Links.set(id, value);
     activeV2Links.clear();
     for (const [id, value] of saved.activeV2Links) activeV2Links.set(id, value);
     deletions.length = saved.deletions;
@@ -75,7 +69,6 @@ function storeWith(users: TestUser[] = [admin]): AdministrationStore & {
     ...mutationStore,
     sessions,
     storefrontEnabled,
-    activeV1Links,
     activeV2Links,
     deletions,
     failDeletion: () => { deletionFails = true; },
@@ -170,7 +163,6 @@ describe("user soft deletion", () => {
     expect(target?.status).toBe("DISABLED");
     expect(target?.deletedAt).toBeInstanceOf(Date);
     expect(store.storefrontEnabled.get("target")).toBe(false);
-    expect(store.activeV1Links.get("target")).toBe(0);
     expect(store.activeV2Links.get("target")).toBe(0);
     expect(store.deletions).toHaveLength(1);
     expect(store.deletions[0]).toMatchObject({ userId: "target", actorId: "admin", createdAt: target?.deletedAt });
@@ -199,7 +191,6 @@ describe("user soft deletion", () => {
     expect(await store.findUser("admin")).toMatchObject({ status: "ACTIVE", deletedAt: null });
     expect(store.deletions).toHaveLength(0);
     expect(store.storefrontEnabled.get("admin")).toBe(true);
-    expect(store.activeV1Links.get("admin")).toBe(2);
   });
 
   it("shares one opaque not-found outcome for unknown and already-deleted targets", async () => {
@@ -220,7 +211,6 @@ describe("user soft deletion", () => {
     await expect(service.deleteUser(admin, "target")).rejects.toThrow("audit write failed");
     expect(await store.findUser("target")).toMatchObject({ status: "ACTIVE", deletedAt: null });
     expect(store.storefrontEnabled.get("target")).toBe(true);
-    expect(store.activeV1Links.get("target")).toBe(2);
     expect(store.activeV2Links.get("target")).toBe(1);
     expect(store.deletions).toHaveLength(0);
     expect(store.validatesTargetToken()).toBe(true);

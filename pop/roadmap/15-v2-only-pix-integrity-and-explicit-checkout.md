@@ -24,6 +24,7 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
+| [[15.1.6-remove-residual-v1-store-calls]] | Remove the seven residual Prisma calls to deleted V1 models and the storefront's V1-derived `products` rule, with spec/DOX sync; unblocks 15.1.4 C1. · size: S | 003_human_approval |
 | [[15.1.4-phase-verification]] | Write/run the phase suite (`pnpm check`, contract checks, parity check) and repair only phase defects. · size: M | 003_human_approval |
 
 ## Phase 15.2 - PIX integrity

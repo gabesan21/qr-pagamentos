@@ -404,14 +404,13 @@ describe("Commerce V2 attach and settlement wiring", () => {
     fetch.mockResolvedValueOnce(quoteSuccess());
     await service.quote(ownerA, fiatQuoteInput);
 
-    await expect(service.createOrder(ownerA, { quoteUuid }, {}, undefined, "not-a-uuid")).rejects.toBeInstanceOf(OwnerPricingOrdersError);
+    await expect(service.createOrder(ownerA, { quoteUuid }, {}, "not-a-uuid")).rejects.toBeInstanceOf(OwnerPricingOrdersError);
     expect(fetch).toHaveBeenCalledTimes(1);
 
     fetch.mockResolvedValueOnce(orderCreated());
-    await service.createOrder(ownerA, { quoteUuid }, {}, undefined, orderV2Id);
+    await service.createOrder(ownerA, { quoteUuid }, {}, orderV2Id);
     const persisted = await store.findWebhookActionable(ownerA, orderUuid);
     expect(persisted?.orderV2Id).toBe(orderV2Id);
-    expect(persisted?.paymentLinkOrderId).toBeNull();
   });
 
   it("invokes the settlement hook with the persisted row only after the authoritative reconciliation", async () => {
@@ -424,7 +423,7 @@ describe("Commerce V2 attach and settlement wiring", () => {
     fetch.mockResolvedValueOnce(quoteSuccess());
     const quote = await service.quote(ownerA, fiatQuoteInput);
     fetch.mockResolvedValueOnce(orderCreated());
-    await service.createOrder(ownerA, { quoteUuid: quote.quoteUuid }, {}, undefined, orderV2Id);
+    await service.createOrder(ownerA, { quoteUuid: quote.quoteUuid }, {}, orderV2Id);
     fetch.mockResolvedValueOnce(orderRetrieved());
 
     await expect(service.reconcileWebhookOrder(ownerA, orderUuid)).resolves.toEqual({ kind: "processed", localOrderId: expect.any(String) });
@@ -472,7 +471,6 @@ describe("order V2 settlement hook", () => {
       paymentMethod: "pix",
       pixCopyPaste: null,
       pixQrcodeUrl: null,
-      paymentLinkOrderId: null,
       orderV2Id,
       reconciliationVersion: 4,
       ...overrides,
