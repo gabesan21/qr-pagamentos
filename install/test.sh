@@ -362,7 +362,7 @@ if [[ $1 == image && $2 == inspect && $3 != --format ]]; then exit 0; fi
 if [[ $1 == image && $2 == inspect ]]; then printf '%s\n' "$revision"; exit 0; fi
 if [[ $1 == run ]]; then
   if [[ " $* " == *'migration-policy.mjs verify '* ]]; then
-    printf 'PASS migration-policy baseline=19 future=0\n'
+    printf 'PASS migration-policy baseline=16 future=0\n'
     if [[ ${FAKE_CHECKOUT_DRIFT:-false} == true ]]; then printf drift > "$FAKE_UPDATE_ROOT/concurrent-checkout-drift"; fi
   fi
   exit 0

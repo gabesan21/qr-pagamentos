@@ -35,13 +35,13 @@ assert(runtimeClient.includes("process.env.DATABASE_URL") && !runtimeClient.incl
 const gitignore = await readFile(".gitignore", "utf8");
 assert(gitignore.split("\n").includes("src/generated/prisma/"), "Generated Prisma output is not ignored");
 const schema = await readFile("prisma/schema.prisma", "utf8");
-for (const model of ["DatabaseFoundationFixture", "User", "PasswordCredential", "NauttCredential", "DeploymentBootstrap", "Session", "GlobalPaymentSettings", "ProviderQuote", "ProviderOrder", "WebhookDelivery", "WebhookDeliveryAttempt", "WebhookRecoveryLease", "CatalogCurrencyPair", "CatalogPaymentMethod", "SupportedExchangeCurrency", "Product", "ProductCategory", "PaymentLink", "PaymentLinkOrder", "CheckoutAttempt", "PaymentLinkSingleUseSettlement", "MediaObject"]) {
+for (const model of ["DatabaseFoundationFixture", "User", "PasswordCredential", "NauttCredential", "DeploymentBootstrap", "Session", "GlobalPaymentSettings", "ProviderQuote", "ProviderOrder", "WebhookDelivery", "WebhookDeliveryAttempt", "WebhookRecoveryLease", "CatalogCurrencyPair", "CatalogPaymentMethod", "SupportedExchangeCurrency", "Product", "ProductCategory", "MediaObject"]) {
   assert(schema.includes(`model ${model}`), `Schema is missing ${model}`);
 }
 assert(schema.includes('output   = "../src/generated/prisma"'), "Generated output changed");
 
 const migrationDirectories = (await readdir("prisma/migrations", { withFileTypes: true })).filter((entry) => entry.isDirectory()).map((entry) => entry.name);
-assert(migrationDirectories.length >= 19, "Migration history lost its pinned baseline");
+assert(migrationDirectories.length >= 16, "Migration history lost its pinned baseline");
 const migration = await readFile("prisma/migrations/20260714000000_foundation_baseline/migration.sql", "utf8");
 for (const constraint of ["database_foundation_fixture_key_key", "database_foundation_fixture_key_nonblank", "database_foundation_fixture_quantity_nonnegative"]) {
   assert(migration.includes(constraint), `Migration lost ${constraint}`);
@@ -132,39 +132,15 @@ for (const field of ["internalName", "titlePtBr", "titleEn", "descriptionPtBr", 
 assert(productMigration.includes("[1-9][0-9]{0,11}") && productMigration.includes("[0-9]{0,5}[1-9]"), "Product price grammar lost its 18/6 canonical bounds");
 assert(!/GRANT\s+(?:TRUNCATE|REFERENCES|TRIGGER)|ALTER\s+(?:TABLE|SCHEMA).*OWNER/i.test(productMigration), "Product migration grants excess privileges or changes ownership");
 
-const paymentLinkMigration = await readFile("prisma/migrations/20260721020000_payment_links/migration.sql", "utf8");
-for (const contract of ["payment_link_pkey", "payment_link_identifier_key", "payment_link_identifier_url_safe", "payment_link_type_closed", "payment_link_product_fkey", "payment_link_currency_pair_fkey", "payment_link_created_at_id_idx", "payment_link_product_id_idx", "payment_link_currency_pair_id_idx", "payment_link_require_active_dependencies", "FOR SHARE", "payment_link_product_active", "payment_link_currency_pair_active", "GRANT SELECT, INSERT, UPDATE, DELETE"]) {
-  assert(paymentLinkMigration.includes(contract), `Payment-link migration lost ${contract}`);
-}
-for (const field of ["identifier", "productId", "currencyPairId", "linkType", "expiresAt", "paymentLinks"]) {
-  assert(schema.includes(field), `Schema is missing payment-link field ${field}`);
-}
-assert(!/GRANT\s+(?:TRUNCATE|REFERENCES|TRIGGER)|ALTER\s+(?:TABLE|SCHEMA).*OWNER/i.test(paymentLinkMigration), "Payment-link migration grants excess privileges or changes ownership");
-
 const ownerIsolationMigration = await readFile("prisma/migrations/20260721030000_owner_isolation_checkout_policy/migration.sql", "utf8");
-for (const contract of ["owner isolation migration requires empty product and payment_link tables", "checkout_data_policy", "user_checkout_data_policy_closed", "product_owner_fkey", "product_id_owner_id_key", "product_owner_internal_name_id_idx", "payment_link_owner_fkey", "payment_link_product_owner_fkey", "payment_link_owner_created_at_id_idx", "GRANT SELECT, UPDATE (\"checkout_data_policy\")"]) {
+for (const contract of ["owner isolation migration requires empty product table", "checkout_data_policy", "user_checkout_data_policy_closed", "product_owner_fkey", "product_id_owner_id_key", "product_owner_internal_name_id_idx", "GRANT SELECT, UPDATE (\"checkout_data_policy\")"]) {
   assert(ownerIsolationMigration.includes(contract), `Owner-isolation migration lost ${contract}`);
 }
 for (const field of ["checkoutDataPolicy", "ownerId", "owner           User", "productId, ownerId"]) {
   assert(schema.includes(field), `Schema is missing owner-isolation field ${field}`);
 }
 assert(!/GRANT\s+(?:TRUNCATE|REFERENCES|TRIGGER)|ALTER\s+(?:TABLE|SCHEMA).*OWNER/i.test(ownerIsolationMigration), "Owner-isolation migration grants excess privileges or changes ownership");
-
-const paymentLinkOrderMigration = await readFile("prisma/migrations/20260721040000_payment_link_orders/migration.sql", "utf8");
-for (const contract of ["payment_link_id_owner_id_key", "payment_link_id_owner_product_id_key", "payment_link_order_pkey", "payment_link_order_id_owner_id_key", "payment_link_order_product_price_canonical", "payment_link_order_policy_closed", "payment_link_order_snapshot_tuple", "payment_link_order_brazil_address", "payment_link_order_state_closed", "payment_link_order_settlement_consistent", "payment_link_order_link_owner_product_fkey", "payment_link_order_product_owner_fkey", "provider_order_payment_link_order_id_key", "provider_order_payment_link_order_owner_key", "provider_order_payment_link_order_owner_fkey", "payment_link_single_use_settlement_pkey", "payment_link_single_use_settlement_order_key", "payment_link_single_use_settlement_order_owner_key", "payment_link_single_use_settlement_link_owner_fkey", "payment_link_single_use_settlement_order_owner_fkey", "GRANT SELECT, INSERT, UPDATE, DELETE"]) {
-  assert(paymentLinkOrderMigration.includes(contract), `Payment-link order migration lost ${contract}`);
-}
-for (const field of ["PaymentLinkOrder", "PaymentLinkSingleUseSettlement", "paymentLinkOrderId", "lifecycleVersion", "checkoutDataPolicy", "paymentLinkId, ownerId, productId"]) {
-  assert(schema.includes(field), `Schema is missing payment-link order field ${field}`);
-}
-assert(!/GRANT\s+(?:TRUNCATE|REFERENCES|TRIGGER)|ALTER\s+(?:TABLE|SCHEMA).*OWNER/i.test(paymentLinkOrderMigration), "Payment-link order migration grants excess privileges or changes ownership");
-
-const checkoutAttemptMigration = await readFile("prisma/migrations/20260721050000_public_checkout_attempts/migration.sql", "utf8");
-for (const contract of ["checkout_attempt_pkey", "checkout_attempt_link_retry_key_verifier_key", "checkout_attempt_payment_link_order_id_key", "checkout_attempt_retry_key_verifier_hex", "checkout_attempt_request_verifier_hex", "checkout_attempt_capability_verifier_hex", "checkout_attempt_state_closed", "checkout_attempt_link_owner_fkey", "checkout_attempt_order_owner_fkey", "GRANT SELECT, INSERT, UPDATE, DELETE"]) {
-  assert(checkoutAttemptMigration.includes(contract), `Checkout attempt migration lost ${contract}`);
-}
-assert(schema.includes("model CheckoutAttempt") && schema.includes("capabilityVerifier"), "Schema is missing durable checkout attempts");
-assert(!/GRANT\s+(?:TRUNCATE|REFERENCES|TRIGGER)|ALTER\s+(?:TABLE|SCHEMA).*OWNER/i.test(checkoutAttemptMigration), "Checkout attempt migration grants excess privileges or changes ownership");
+assert(!/payment_link/i.test(ownerIsolationMigration), "Owner-isolation migration must carry no V1 payment_link statement");
 
 const storefrontMigration = await readFile("prisma/migrations/20260721060000_storefront_settings/migration.sql", "utf8");
 for (const contract of ["storefront_slug", "storefront_display_name_pt_br", "storefront_display_name_en", "storefront_accent_color", "storefront_enabled", "user_storefront_slug_key", "user_storefront_slug_format", "user_storefront_display_name_pt_br_single_line", "user_storefront_display_name_en_single_line", "user_storefront_accent_color_format", "user_storefront_enabled_requires_slug", "GRANT SELECT, UPDATE (\"storefront_slug\", \"storefront_display_name_pt_br\", \"storefront_display_name_en\", \"storefront_accent_color\", \"storefront_enabled\")"]) {
