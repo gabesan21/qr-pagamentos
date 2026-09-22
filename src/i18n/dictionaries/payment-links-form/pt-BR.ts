@@ -4,10 +4,8 @@
 // currency pair, expiry, description…) is unchanged and stays in the
 // `payment-links` and `payment-links-directory` domains.
 export const paymentLinksFormPtBR = {
-  paymentLinksFormCompositionCaption: "Escolha como este link compõe seu valor.",
   paymentLinksFormCompositionProductLinesCaption: "Um ou mais produtos ativos, cada um com sua própria quantidade.",
   paymentLinksFormCompositionFixedAmountCaption: "Uma descrição bilíngue e um valor exato fixo.",
-  paymentLinksFormTypeCaption: "Escolha quantas vezes este link pode ser usado.",
   paymentLinksFormTypeReusableCaption: "Permanece aberto para checkouts repetidos até ser desativado ou expirar.",
   paymentLinksFormTypeSingleUseCaption: "Fecha-se sozinho assim que um checkout é confirmado.",
   paymentLinksFormPairsCta: "Ir para configurações",
