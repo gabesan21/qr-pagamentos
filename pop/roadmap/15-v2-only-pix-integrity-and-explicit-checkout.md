@@ -24,9 +24,9 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[15.1.1-remove-v1-application-surfaces]] | Delete V1 modules, routes, pages, DTO branches, dictionaries and tests; checkout/status/`/pay` resolve V2 only. · size: L | 002_planning |
-| [[15.1.2-remove-v1-persistence-and-rebase-migrations]] | Drop the four V1 tables and `provider_order.payment_link_order_id`, rebase migrations/baseline and bootstrap grants under the destructive authorization. · size: M · critical | 002_planning |
-| [[15.1.3-rewrite-contracts-and-parity-without-v1]] | Rewrite specs, DOX and root AGENTS without V1; refresh parity records for the deleted routes through the official procedure. · size: M | 002_planning |
+| [[15.1.1-remove-v1-application-surfaces]] | Delete V1 modules, routes, pages, DTO branches, dictionaries and tests; checkout/status/`/pay` resolve V2 only. · size: L | 003_human_approval |
+| [[15.1.2-remove-v1-persistence-and-rebase-migrations]] | Drop the four V1 tables and `provider_order.payment_link_order_id`, rebase migrations/baseline and bootstrap grants under the destructive authorization. · size: M · critical | 003_human_approval |
+| [[15.1.3-rewrite-contracts-and-parity-without-v1]] | Rewrite specs, DOX and root AGENTS without V1; refresh parity records for the deleted routes through the official procedure. · size: M | 003_human_approval |
 | [[15.1.4-phase-verification]] | Write/run the phase suite (`pnpm check`, contract checks, parity check) and repair only phase defects. · size: M | 001_initial_task |
 
 ## Phase 15.2 - PIX integrity
@@ -37,9 +37,9 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[15.2.1-preserve-pix-on-reconciliation]] | `reconcile` writes PIX fields only when the authoritative read carries a value; regression tests on both stores. · size: S | 002_planning |
-| [[15.2.2-fail-closed-on-documented-creation-errors]] | Documented 400/422 creation codes mark the attempt failed and answer the redacted pre-dispatch outcome; ambiguity stays `INDETERMINATE`; never a second POST. · size: M · critical | 002_planning |
-| [[15.2.3-payment-method-visibility-and-public-dto-trim]] | Redacted provider `code` in logs, `paymentMethod` on the owner order detail, `pixQrCodeUrl` removed from public DTOs. · size: S | 002_planning |
+| [[15.2.1-preserve-pix-on-reconciliation]] | `reconcile` writes PIX fields only when the authoritative read carries a value; regression tests on both stores. · size: S | 003_human_approval |
+| [[15.2.2-fail-closed-on-documented-creation-errors]] | Documented 400/422 creation codes mark the attempt failed and answer the redacted pre-dispatch outcome; ambiguity stays `INDETERMINATE`; never a second POST. · size: M · critical | 003_human_approval |
+| [[15.2.3-payment-method-visibility-and-public-dto-trim]] | Redacted provider `code` in logs, `paymentMethod` on the owner order detail, `pixQrCodeUrl` removed from public DTOs. · size: S | 003_human_approval |
 | [[15.2.4-phase-verification]] | Write/run the phase suite (reconciliation, adapter and checkout service tests) and repair only phase defects. · size: S | 001_initial_task |
 
 ## Phase 15.3 - Explicit checkout
@@ -50,9 +50,9 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[15.3.1-checkout-explicit-states-without-retry]] | Remove backoff, "check again", "try again" and the waiting placeholder; explicit PIX-unavailable, status-unavailable and submit-failure states with "Start over" only. · size: M | 002_planning |
-| [[15.3.2-checkout-customer-block-only-when-required]] | Policy `NONE` renders no customer heading, notice or field group on `/pay` and `/store/[slug]/pay`; pay action and privacy line keep their place. · size: S | 002_planning |
-| [[15.3.3-checkout-template-and-a11y-convergence]] | `aria-live` state badge, on-soft warning, locale-aware loading, `max-w-checkout`/`font-display`/`bg-accent`, 44 px privacy target, reduced-motion scroll. · size: M | 002_planning |
+| [[15.3.1-checkout-explicit-states-without-retry]] | Remove backoff, "check again", "try again" and the waiting placeholder; explicit PIX-unavailable, status-unavailable and submit-failure states with "Start over" only. · size: M | 003_human_approval |
+| [[15.3.2-checkout-customer-block-only-when-required]] | Policy `NONE` renders no customer heading, notice or field group on `/pay` and `/store/[slug]/pay`; pay action and privacy line keep their place. · size: S | 003_human_approval |
+| [[15.3.3-checkout-template-and-a11y-convergence]] | `aria-live` state badge, on-soft warning, locale-aware loading, `max-w-checkout`/`font-display`/`bg-accent`, 44 px privacy target, reduced-motion scroll. · size: M | 003_human_approval |
 | [[15.3.4-phase-verification]] | Write/run the phase suite (checkout view/controller/form tests, static gates) and repair only phase defects. · size: M | 001_initial_task |
 
 ## Phase 15.4 - Visual drift sweep
@@ -69,5 +69,5 @@
 ## Dependency and parallel-wave map
 
 - 15.1 first: 15.1.1 alone, then 15.1.2 and 15.1.3 in parallel (disjoint write sets: `prisma/**`+`container/**`+`install/**` vs `pop/specs/**`+DOX+`docs/frontend-template-parity/**`), then 15.1.4.
-- 15.2 and 15.3 start after 15.1.4 and may run in parallel with each other (`src/integrations/nautt/**`+`src/orders/**` vs `src/app/pay/**`+`src/app/store/**`+dictionaries), at most three tasks at a time.
+- 15.2 and 15.3 start after 15.1.4. Inside each phase the tasks are serialized by `depends_on` (15.2.1 → 15.2.2 → 15.2.3; 15.3.1 → 15.3.2 → 15.3.3) because the 002 plans share files within the phase; across phases 15.2.x and 15.3.x may run in parallel, except 15.2.3, which also waits for 15.3.1 (same browser parser files). At most three tasks at a time.
 - 15.4 after 15.3.4; the `develop` → `main` PR opens when the last phase verification closes.
