@@ -2,11 +2,10 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const { get } = vi.hoisted(() => ({ get: vi.fn() }));
-const { read, readV2, resolve, resolveLocale } = vi.hoisted(() => ({ read: vi.fn(), readV2: vi.fn(), resolve: vi.fn(), resolveLocale: vi.fn() }));
+const { readV2, resolve, resolveLocale } = vi.hoisted(() => ({ readV2: vi.fn(), resolve: vi.fn(), resolveLocale: vi.fn() }));
 vi.mock("server-only", () => ({}));
 vi.mock("next/headers", () => ({ cookies: async () => ({ get }) }));
 vi.mock("@/auth/authorization", () => ({ getAuthorizationService: () => ({ resolve }) }));
-vi.mock("@/checkout/public-checkout-presentation", () => ({ getPublicCheckoutPresentationService: () => ({ read }) }));
 vi.mock("@/checkout/public-checkout-v2-presentation", () => ({ getPublicCheckoutV2PresentationService: () => ({ read: readV2 }) }));
 vi.mock("@/i18n/locale-preference", () => ({ getLocalePreferenceService: () => ({ resolve: resolveLocale }) }));
 
@@ -20,61 +19,20 @@ describe("public checkout page", () => {
     readV2.mockResolvedValue(null);
   });
 
-  it("renders the exact projection with policy-driven fields and shared primitives", async () => {
-    get.mockReturnValue(undefined);
-    read.mockResolvedValueOnce({
-      product: { title: "Donation", description: "Support the project.", price: "12.50" },
-      checkoutPolicy: "NAME_EMAIL_CPF_ADDRESS",
-      branding: { displayName: "Ana's Shop", accentColor: "#125448", themeId: "vault-blue", logoMediaIdentifier: "logo-media-identifier-00000000000000000" },
-    });
-    const markup = renderToStaticMarkup(await PublicCheckoutPage({ params: Promise.resolve({ identifier }) }));
-
-    expect(read).toHaveBeenCalledWith(identifier, "pt-BR");
-    expect(markup).toContain("Donation");
-    expect(markup).toContain('for="checkout-name"');
-    expect(markup).toContain('for="checkout-email"');
-    expect(markup).toContain('for="checkout-cpf"');
-    expect(markup).toContain('for="checkout-street"');
-    expect(markup).toContain('data-slot="card"');
-    expect(markup).toContain('data-slot="field-set"');
-    expect(markup).not.toContain("currencyUuid");
-    expect(markup).toContain("/media/logo-media-identifier-00000000000000000");
-  });
-
-  it("renders a generic unavailable state without a form", async () => {
-    get.mockReturnValue(undefined);
-    read.mockResolvedValueOnce(null);
-    const markup = renderToStaticMarkup(await PublicCheckoutPage({ params: Promise.resolve({ identifier }) }));
-
-    expect(markup).toContain("Este link de pagamento está indisponível");
-    expect(markup).not.toContain('data-slot="field-group"');
-  });
-
   it("uses the persisted UI locale instead of Accept-Language when a principal is present", async () => {
     get.mockReturnValue({ value: "session-token" });
     resolve.mockResolvedValueOnce({ id: "account-id" });
     resolveLocale.mockResolvedValueOnce("en");
-    read.mockResolvedValueOnce({ product: { title: "Donation", description: "Support the project.", price: "12.50" }, checkoutPolicy: "NONE", branding: { displayName: null, accentColor: null, themeId: "pix-paper", logoMediaIdentifier: null } });
 
     await PublicCheckoutPage({ params: Promise.resolve({ identifier }) });
 
     expect(resolve).toHaveBeenCalledWith("session-token");
     expect(resolveLocale).toHaveBeenCalledWith("account-id");
-    expect(read).toHaveBeenCalledWith(identifier, "en");
+    expect(readV2).toHaveBeenCalledWith(identifier, "en");
   });
 
-  it("keeps V1 resolution first and never reads the V2 presentation while V1 resolves", async () => {
+  it("renders the branded two-column V2 composition", async () => {
     get.mockReturnValue(undefined);
-    read.mockResolvedValueOnce({ product: { title: "Donation", description: "Support the project.", price: "12.50" }, checkoutPolicy: "NONE", branding: { displayName: null, accentColor: null, themeId: "pix-paper", logoMediaIdentifier: null } });
-
-    await PublicCheckoutPage({ params: Promise.resolve({ identifier }) });
-
-    expect(readV2).not.toHaveBeenCalled();
-  });
-
-  it("renders the branded two-column V2 composition only on a V1 miss", async () => {
-    get.mockReturnValue(undefined);
-    read.mockResolvedValueOnce(null);
     readV2.mockResolvedValueOnce({
       kind: "checkout",
       presentation: {
@@ -111,7 +69,6 @@ describe("public checkout page", () => {
 
   it("renders the fixed-amount V2 composition with the fallback identity and the unlabeled treatment", async () => {
     get.mockReturnValue(undefined);
-    read.mockResolvedValueOnce(null);
     readV2.mockResolvedValueOnce({
       kind: "checkout",
       presentation: {
@@ -132,9 +89,8 @@ describe("public checkout page", () => {
     expect(markup).not.toContain("/media/");
   });
 
-  it("renders the one opaque unavailable view when neither presentation resolves", async () => {
+  it("renders the one opaque unavailable view when nothing resolves", async () => {
     get.mockReturnValue(undefined);
-    read.mockResolvedValueOnce(null);
     const markup = renderToStaticMarkup(await PublicCheckoutPage({ params: Promise.resolve({ identifier }) }));
 
     expect(readV2).toHaveBeenCalledWith(identifier, "pt-BR");
@@ -145,7 +101,6 @@ describe("public checkout page", () => {
 
   it("renders the branded paid terminal view for a consumed single-use product-lines link without any form", async () => {
     get.mockReturnValue(undefined);
-    read.mockResolvedValueOnce(null);
     readV2.mockResolvedValueOnce({
       kind: "paid",
       paid: {
@@ -189,7 +144,6 @@ describe("public checkout page", () => {
     get.mockReturnValue({ value: "session-token" });
     resolve.mockResolvedValueOnce({ id: "account-id" });
     resolveLocale.mockResolvedValueOnce("en");
-    read.mockResolvedValueOnce(null);
     readV2.mockResolvedValueOnce({
       kind: "paid",
       paid: {
