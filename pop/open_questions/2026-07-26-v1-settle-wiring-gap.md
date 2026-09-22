@@ -1,5 +1,5 @@
 ---
-status: aberta
+status: answered
 origem: projeto
 created: 2026-07-26
 ---
@@ -11,3 +11,5 @@ Task [[9.2.1-implement-standalone-payment-orders]] confirmed during recon that n
 **Gap:** V1 `payment_link_order` rows never transition through the settlement map V1 in production. A confirmed provider payment leaves the V1 order `PENDING` forever, and a `SINGLE_USE` V1 link is never consumed by the atomic claim — the V1 settle service (`src/orders/payment-link-order.ts`) is exercised only by tests.
 
 **Candidate resolution (separate modification, not scoped into 9.2.1):** mirror the delivered V2 wiring for the V1 attach column (`provider_order.payment_link_order_id`) — invoke the V1 settle with exact persisted identities/versions after the same authoritative reconciliation, preserving the single-use claim-before-`CONFIRMED` semantics and the no-retry/no-second-GET fences. Needs its own card, plan, and disposable-PostgreSQL evidence; any V1 behavior change outside an approved task is forbidden.
+
+**Answered 2026-09-22:** superseded by the user's decision to remove V1 integrally ([[notes/decisions/2026-09-22-v1-removal-and-checkout-decisions|2026-09-22 decisions]], Epoch 15). No V1 settle wiring will be built.

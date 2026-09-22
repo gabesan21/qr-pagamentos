@@ -42,6 +42,7 @@ None. This project is an independent island in the vault.
 - **2026-07-13:** Keep payment-link ownership in this application and use Nautt only for order creation, order queries, and webhooks.
 - **2026-07-13:** Use Prisma and local first-party authentication, with the first admin created by a deployment seed.
 - **2026-07-13:** Deliver every phase through yolo task PRs integrated into `develop`, followed by human testing and a final PR to `main`.
+- **2026-09-22:** Remove the V1 payment-link/checkout/order line integrally (never a product, no legacy), forbid every retry rule in the checkout, hide the customer block for policy `NONE`, and fix PIX integrity — Epoch 15, with destructive migration authorization for the persistence task.
 
 ### Decision notes
 
@@ -49,4 +50,5 @@ None. This project is an independent island in the vault.
 - [[notes/decisions/2026-07-14-installer-simplification|Installer simplification]] — *read before adding host privilege escalation, OS package management, or `sudo` to `install/`.*
 - [[notes/decisions/2026-07-20-multi-agent-workflow|Multi-agent workflow adoption]] — *read before changing planner/executor roles, ownership rules, or the single fresh-context review gate.*
 - [[notes/decisions/2026-07-25-beta-unverified-webhook-intake|Beta unverified webhook intake]] — *read before touching the Nautt webhook callback; it carries the verbatim beta decision and the exact pre-production reversal steps.*
+- [[notes/decisions/2026-09-22-v1-removal-and-checkout-decisions|V1 removal and checkout decisions]] — *read before touching V1 remnants, checkout retry semantics, the customer-data block or migration destructiveness.*
 - [[notes/weekly-review-2026-07-21|Weekly review 2026-07-21]] — *read when comparing harness health over time or when kanban evidence retention comes up again.*
