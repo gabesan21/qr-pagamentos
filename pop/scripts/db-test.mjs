@@ -117,18 +117,6 @@ async function expectDenied(client, sql) {
   }
 }
 
-async function waitForLock(observer, backendPid, label) {
-  for (let attempt = 0; attempt < 100; attempt += 1) {
-    const activity = await observer.query(
-      "SELECT wait_event_type FROM pg_stat_activity WHERE pid = $1",
-      [backendPid],
-    );
-    if (activity.rows[0]?.wait_event_type === "Lock") return;
-    await new Promise((resolve) => setTimeout(resolve, 25));
-  }
-  throw new Error(`${label} did not wait on a PostgreSQL lock`);
-}
-
 const policyResult = await verifyRepository();
 console.log(`PASS migration-policy-preflight baseline=${policyResult.baselineCount} future=${policyResult.futureCount}`);
 
@@ -684,102 +672,6 @@ try {
   await runtime.query(`DELETE FROM app.product WHERE id = $1`, [catalogMediaProductId]);
   console.log("PASS product-schema");
 
-  const paymentLinkConstraints = await runtime.query(`
-    SELECT c.conname, pg_get_userbyid(t.relowner) AS owner
-    FROM pg_constraint c
-    JOIN pg_class t ON t.oid = c.conrelid
-    JOIN pg_namespace n ON n.oid = t.relnamespace
-    WHERE n.nspname = 'app' AND t.relname = 'payment_link'
-  `);
-  const paymentLinkConstraintNames = new Set(paymentLinkConstraints.rows.map((row) => row.conname));
-  for (const name of ["payment_link_pkey", "payment_link_identifier_key", "payment_link_identifier_url_safe", "payment_link_type_closed", "payment_link_owner_fkey", "payment_link_product_owner_fkey", "payment_link_currency_pair_fkey", "payment_link_id_owner_id_key", "payment_link_id_owner_product_id_key"]) {
-    assert(paymentLinkConstraintNames.has(name), `Missing constraint ${name}`);
-  }
-  assert(paymentLinkConstraints.rows.every((row) => row.owner === "qr_migrator"), "Runtime owns the payment-link table");
-
-  async function createActiveLinkDependencies(label) {
-    const product = await runtime.query(
-      `INSERT INTO app.product (internal_name, title_pt_br, title_en, description_pt_br, description_en, price, owner_id) VALUES ($1, 'Título', 'Title', 'Descrição', 'Description', '10.25', $2) RETURNING id`,
-      [`payment-link-${label}-${randomUUID()}`, otherUserId],
-    );
-    const pair = await runtime.query(
-      `INSERT INTO app.catalog_currency_pair (label, currency_uuid, exchange_currency_uuid) VALUES ($1, $2, $3) RETURNING id`,
-      [`pair-${label}`, randomUUID(), randomUUID()],
-    );
-    return { productId: product.rows[0].id, currencyPairId: pair.rows[0].id };
-  }
-
-  async function insertPaymentLink(client, productId, currencyPairId, identifier = randomUUID().replaceAll("-", "").slice(0, 24)) {
-    return client.query(
-      `INSERT INTO app.payment_link (identifier, owner_id, product_id, currency_pair_id, link_type) VALUES ($1, $2, $3, $4, 'REUSABLE') RETURNING id`,
-      [identifier, otherUserId, productId, currencyPairId],
-    );
-  }
-
-  const linkDependencies = await createActiveLinkDependencies("constraints");
-  await insertPaymentLink(runtime, linkDependencies.productId, linkDependencies.currencyPairId, "AbCdEfGhIjKlMnOpQrStUvWx");
-  await expectSqlState(runtime, `INSERT INTO app.payment_link (identifier, owner_id, product_id, currency_pair_id, link_type) VALUES ('not url safe!', '${otherUserId}', '${linkDependencies.productId}', '${linkDependencies.currencyPairId}', 'REUSABLE')`, { code: "23514", constraint: "payment_link_identifier_url_safe" });
-  await expectSqlState(runtime, `INSERT INTO app.payment_link (identifier, owner_id, product_id, currency_pair_id, link_type) VALUES ('ZbCdEfGhIjKlMnOpQrStUvWx', '${otherUserId}', '${linkDependencies.productId}', '${linkDependencies.currencyPairId}', 'UNLIMITED')`, { code: "23514", constraint: "payment_link_type_closed" });
-
-  const creationClient = new Client({ connectionString: runtimeUrl });
-  const deactivationClient = new Client({ connectionString: runtimeUrl });
-  await creationClient.connect();
-  await deactivationClient.connect();
-  const creationPid = (await creationClient.query("SELECT pg_backend_pid() AS pid")).rows[0].pid;
-  const deactivationPid = (await deactivationClient.query("SELECT pg_backend_pid() AS pid")).rows[0].pid;
-
-  for (const dependency of ["product", "currency_pair"]) {
-    const dependencies = await createActiveLinkDependencies(`create-first-${dependency}`);
-    await creationClient.query("BEGIN");
-    await insertPaymentLink(creationClient, dependencies.productId, dependencies.currencyPairId);
-    const update = dependency === "product"
-      ? deactivationClient.query("UPDATE app.product SET active = FALSE WHERE id = $1", [dependencies.productId])
-      : deactivationClient.query("UPDATE app.catalog_currency_pair SET active = FALSE WHERE id = $1", [dependencies.currencyPairId]);
-    await waitForLock(admin, deactivationPid, `${dependency} deactivation behind link insert`);
-    await creationClient.query("COMMIT");
-    await update;
-  }
-
-  for (const dependency of ["product", "currency_pair"]) {
-    const dependencies = await createActiveLinkDependencies(`deactivate-first-${dependency}`);
-    await deactivationClient.query("BEGIN");
-    if (dependency === "product") {
-      await deactivationClient.query("UPDATE app.product SET active = FALSE WHERE id = $1", [dependencies.productId]);
-    } else {
-      await deactivationClient.query("UPDATE app.catalog_currency_pair SET active = FALSE WHERE id = $1", [dependencies.currencyPairId]);
-    }
-    await creationClient.query("BEGIN");
-    const insert = insertPaymentLink(creationClient, dependencies.productId, dependencies.currencyPairId);
-    await waitForLock(admin, creationPid, `link insert behind ${dependency} deactivation`);
-    await deactivationClient.query("COMMIT");
-    try {
-      await insert;
-      throw new Error(`Link insert unexpectedly succeeded after ${dependency} deactivation`);
-    } catch (error) {
-      assert(error?.code === "23514", `Expected ${dependency} dependency failure, got ${error?.code}`);
-      assert(error?.constraint === (dependency === "product" ? "payment_link_product_active" : "payment_link_currency_pair_active"), `Unexpected dependency constraint ${error?.constraint}`);
-    } finally {
-      await creationClient.query("ROLLBACK");
-    }
-    const remaining = await runtime.query("SELECT count(*)::int AS count FROM app.payment_link WHERE product_id = $1 AND currency_pair_id = $2", [dependencies.productId, dependencies.currencyPairId]);
-    assert(remaining.rows[0].count === 0, `Failed ${dependency} link insert persisted a row`);
-  }
-  await creationClient.end();
-  await deactivationClient.end();
-
-  // Archival is terminal deactivation: the same baseline dependency trigger
-  // rejects new links to an archived product with no trigger or service change.
-  const archivedDependencies = await createActiveLinkDependencies("archived-product");
-  await runtime.query(`UPDATE app.product SET active = FALSE, archived_at = CURRENT_TIMESTAMP WHERE id = $1`, [archivedDependencies.productId]);
-  await expectSqlState(
-    runtime,
-    `INSERT INTO app.payment_link (identifier, owner_id, product_id, currency_pair_id, link_type) VALUES ('${randomUUID().replaceAll("-", "").slice(0, 24)}', '${otherUserId}', '${archivedDependencies.productId}', '${archivedDependencies.currencyPairId}', 'REUSABLE')`,
-    { code: "23514", constraint: "payment_link_product_active" },
-  );
-  const archivedProductState = await runtime.query(`SELECT active, archived_at FROM app.product WHERE id = $1`, [archivedDependencies.productId]);
-  assert(archivedProductState.rows[0]?.active === false && archivedProductState.rows[0]?.archived_at !== null, "Archived product state changed");
-  console.log("PASS payment-link-schema-and-locking");
-
   const paymentLinkV2Constraints = await runtime.query(`
     SELECT c.conname, pg_get_userbyid(t.relowner) AS owner
     FROM pg_constraint c
@@ -1289,7 +1181,6 @@ try {
       has_table_privilege(current_user, 'app.product', 'SELECT,INSERT,UPDATE,DELETE') AS product_dml,
       has_table_privilege(current_user, 'app.product_category', 'SELECT,INSERT,UPDATE') AS product_category_dml,
       has_table_privilege(current_user, 'app.product_category', 'DELETE') AS product_category_delete,
-      has_table_privilege(current_user, 'app.payment_link', 'SELECT,INSERT,UPDATE,DELETE') AS payment_link_dml,
       has_table_privilege(current_user, 'app.payment_link_v2', 'SELECT,INSERT,UPDATE,DELETE') AS payment_link_v2_dml,
       has_table_privilege(current_user, 'app.payment_link_v2_line', 'SELECT,INSERT,UPDATE,DELETE') AS payment_link_v2_line_dml,
       has_table_privilege(current_user, 'app.order_v2', 'SELECT,INSERT,UPDATE,DELETE') AS order_v2_dml,
@@ -1321,7 +1212,6 @@ try {
       has_table_privilege(current_user, 'app.webhook_recovery_lease', 'TRUNCATE,REFERENCES,TRIGGER') AS webhook_recovery_lease_excess,
       has_table_privilege(current_user, 'app.product', 'TRUNCATE,REFERENCES,TRIGGER') AS product_excess,
       has_table_privilege(current_user, 'app.product_category', 'TRUNCATE,REFERENCES,TRIGGER') AS product_category_excess,
-      has_table_privilege(current_user, 'app.payment_link', 'TRUNCATE,REFERENCES,TRIGGER') AS payment_link_excess,
       has_table_privilege(current_user, 'app.payment_link_v2', 'TRUNCATE,REFERENCES,TRIGGER') AS payment_link_v2_excess,
       has_table_privilege(current_user, 'app.payment_link_v2_line', 'TRUNCATE,REFERENCES,TRIGGER') AS payment_link_v2_line_excess,
       has_table_privilege(current_user, 'app.order_v2', 'TRUNCATE,REFERENCES,TRIGGER') AS order_v2_excess,
@@ -1344,8 +1234,8 @@ try {
       pg_has_role(current_user, 'qr_migrator', 'SET') AS migrator_set
   `);
   const acl = privilege.rows[0];
-  assert(acl.current_user === "qr_runtime" && acl.schema_usage && acl.table_dml && acl.user_dml && acl.credential_dml && acl.bootstrap_dml && acl.session_dml && acl.nautt_credential_dml && acl.provider_quote_dml && acl.provider_order_dml && acl.webhook_delivery_dml && acl.webhook_attempt_dml && acl.webhook_recovery_lease_dml && acl.catalog_currency_pair_dml && acl.catalog_payment_method_dml && acl.supported_exchange_currency_dml && acl.product_dml && acl.product_category_dml && acl.payment_link_dml && acl.payment_link_v2_dml && acl.payment_link_v2_line_dml && acl.order_v2_dml && acl.order_v2_line_dml && acl.order_comment_v2_dml && acl.order_local_outcome_v2_dml && acl.checkout_attempt_v2_dml && acl.standalone_checkout_attempt_dml && acl.settlement_v2_dml && acl.media_object_dml && acl.settings_select && acl.settings_column_update && acl.system_settings_dml && acl.sequence_usage && acl.webhook_sequence_usage, "Runtime lacks intended privileges");
-  assert(!acl.settings_table_update && !acl.settings_write_extra && !acl.system_settings_delete && !acl.system_settings_excess && !acl.product_category_delete && !acl.catalog_currency_pair_delete && !acl.order_v2_line_extra && !acl.order_comment_v2_delete && !acl.order_local_outcome_v2_extra && !acl.settlement_v2_extra && !acl.standalone_checkout_attempt_delete && !acl.schema_create && !acl.table_truncate && !acl.table_references && !acl.table_trigger && !acl.provider_order_excess && !acl.webhook_delivery_excess && !acl.webhook_recovery_lease_excess && !acl.product_excess && !acl.product_category_excess && !acl.payment_link_excess && !acl.payment_link_v2_excess && !acl.payment_link_v2_line_excess && !acl.order_v2_excess && !acl.order_v2_line_excess && !acl.order_comment_v2_excess && !acl.order_local_outcome_v2_excess && !acl.checkout_attempt_v2_excess && !acl.standalone_checkout_attempt_excess && !acl.settlement_v2_excess && !acl.media_object_excess && !acl.supported_exchange_currency_excess && !acl.table_maintain && !acl.sequence_select && !acl.sequence_update && !acl.migration_access && !acl.migrator_member && !acl.migrator_set, "Runtime has excess privileges");
+  assert(acl.current_user === "qr_runtime" && acl.schema_usage && acl.table_dml && acl.user_dml && acl.credential_dml && acl.bootstrap_dml && acl.session_dml && acl.nautt_credential_dml && acl.provider_quote_dml && acl.provider_order_dml && acl.webhook_delivery_dml && acl.webhook_attempt_dml && acl.webhook_recovery_lease_dml && acl.catalog_currency_pair_dml && acl.catalog_payment_method_dml && acl.supported_exchange_currency_dml && acl.product_dml && acl.product_category_dml && acl.payment_link_v2_dml && acl.payment_link_v2_line_dml && acl.order_v2_dml && acl.order_v2_line_dml && acl.order_comment_v2_dml && acl.order_local_outcome_v2_dml && acl.checkout_attempt_v2_dml && acl.standalone_checkout_attempt_dml && acl.settlement_v2_dml && acl.media_object_dml && acl.settings_select && acl.settings_column_update && acl.system_settings_dml && acl.sequence_usage && acl.webhook_sequence_usage, "Runtime lacks intended privileges");
+  assert(!acl.settings_table_update && !acl.settings_write_extra && !acl.system_settings_delete && !acl.system_settings_excess && !acl.product_category_delete && !acl.catalog_currency_pair_delete && !acl.order_v2_line_extra && !acl.order_comment_v2_delete && !acl.order_local_outcome_v2_extra && !acl.settlement_v2_extra && !acl.standalone_checkout_attempt_delete && !acl.schema_create && !acl.table_truncate && !acl.table_references && !acl.table_trigger && !acl.provider_order_excess && !acl.webhook_delivery_excess && !acl.webhook_recovery_lease_excess && !acl.product_excess && !acl.product_category_excess && !acl.payment_link_v2_excess && !acl.payment_link_v2_line_excess && !acl.order_v2_excess && !acl.order_v2_line_excess && !acl.order_comment_v2_excess && !acl.order_local_outcome_v2_excess && !acl.checkout_attempt_v2_excess && !acl.standalone_checkout_attempt_excess && !acl.settlement_v2_excess && !acl.media_object_excess && !acl.supported_exchange_currency_excess && !acl.table_maintain && !acl.sequence_select && !acl.sequence_update && !acl.migration_access && !acl.migrator_member && !acl.migrator_set, "Runtime has excess privileges");
   const ownership = await admin.query(`
     SELECT
       (SELECT count(*)::int FROM pg_class WHERE relowner = 'qr_runtime'::regrole) AS objects,
