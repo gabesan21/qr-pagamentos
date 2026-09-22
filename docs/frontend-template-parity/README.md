@@ -90,7 +90,14 @@ asserts stable record count, IDs, targets, owners, dispositions, reasons, and
 evidence; all other record families remain byte-equivalent, and only the
 manifest obligation binding changes.
 Then validate the canonical contract with `pnpm frontend-parity:check`. Do not
-hand-edit the manifest or obligation records. The disposable negative suite is
+hand-edit the manifest or obligation records. A live current route with no
+`current-route` record at all — never a stale-source mismatch, which the
+refresh above already handles — is added only through
+`node scripts/check-frontend-template-parity-contract.mjs --register-missing-current-routes`,
+which derives every field from the live route inventory, the template route
+set, and `ownerForSource`, refuses to touch or re-add any route that already
+has a record, and aborts before writing if any existing `current-route` id
+fails its own reproducibility check. The disposable negative suite is
 `node scripts/check-frontend-template-parity-contract.mjs --semantic-mutation-probes`;
 it makes an isolated in-memory clone for each field removal/tamper, runs the same
 independent source-derived semantic validator used by the canonical gate, and

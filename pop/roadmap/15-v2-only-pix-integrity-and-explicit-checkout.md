@@ -27,6 +27,7 @@
 | [[15.1.1-remove-v1-application-surfaces]] | Delete V1 modules, routes, pages, DTO branches, dictionaries and tests; checkout/status/`/pay` resolve V2 only. · size: L | 003_human_approval |
 | [[15.1.2-remove-v1-persistence-and-rebase-migrations]] | Drop the four V1 tables and `provider_order.payment_link_order_id`, rebase migrations/baseline and bootstrap grants under the destructive authorization. · size: M · critical | 003_human_approval |
 | [[15.1.3-rewrite-contracts-and-parity-without-v1]] | Rewrite specs, DOX and root AGENTS without V1; refresh parity records for the deleted routes through the official procedure. · size: M | 003_human_approval |
+| [[15.1.5-create-missing-parity-current-route-records]] | Add the three missing `current-route` parity records (merchant error, two V2 order-detail loadings) through a sanctioned checker operation; canonical parity check passes. · size: S | 003_human_approval |
 | [[15.1.4-phase-verification]] | Write/run the phase suite (`pnpm check`, contract checks, parity check) and repair only phase defects. · size: M | 001_initial_task |
 
 ## Phase 15.2 - PIX integrity
