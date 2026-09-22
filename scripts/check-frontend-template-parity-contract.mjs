@@ -442,11 +442,14 @@ function compatibleProtectedFields(original, refreshed) {
   }
   return true;
 }
-function assertRefreshInvariants(before, after) {
-  if (before.length !== after.length) throw new Error(`PARITY_REFRESH_INVARIANT_RECORD_COUNT before=${before.length} after=${after.length}`);
+function assertRefreshInvariants(before, after, options = {}) {
+  const registeredIds = options.registeredIds ?? new Set();
   const beforeById = new Map(before.map((record) => [record.id, record]));
   const afterById = new Map(after.map((record) => [record.id, record]));
   if (beforeById.size !== before.length || afterById.size !== after.length) throw new Error("PARITY_REFRESH_INVARIANT_DUPLICATE_ID obligations");
+  const newRegisteredIds = [...registeredIds].filter((id) => !beforeById.has(id));
+  const expectedCount = before.length + newRegisteredIds.length;
+  if (after.length !== expectedCount) throw new Error(`PARITY_REFRESH_INVARIANT_RECORD_COUNT before=${before.length} after=${after.length}`);
   for (const [id, original] of beforeById) {
     const refreshed = afterById.get(id);
     if (!refreshed) throw new Error(`PARITY_REFRESH_INVARIANT_ID_MISSING ${id}`);
@@ -457,7 +460,7 @@ function assertRefreshInvariants(before, after) {
       throw new Error(`PARITY_REFRESH_INVARIANT_FAMILY ${id}`);
     }
   }
-  for (const id of afterById.keys()) if (!beforeById.has(id)) throw new Error(`PARITY_REFRESH_INVARIANT_ID_ADDED ${id}`);
+  for (const id of afterById.keys()) if (!beforeById.has(id) && !registeredIds.has(id)) throw new Error(`PARITY_REFRESH_INVARIANT_ID_ADDED ${id}`);
 }
 function compareSemanticField(failures, code, record, expected, select) {
   if (!sameObjects(select(record), select(expected))) fail(failures, code, record.id);
@@ -571,6 +574,66 @@ async function refreshSemanticContract() {
   return { records: nextRecords.length, semanticRecords: regenerated.length, currentRoutes: currentRoutes.length };
 }
 
+const currentRouteRegistrationId = (route) => obligationId("current-route", `${route.routeKind}:${route.route}`);
+// Named, singular exception: current-route:86a91d7b9224e135 (src/app/(merchant)/catalog/products/[id]/loading.tsx,
+// route /catalog/products/[id], routeKind loading) does not reproduce under the routeKind:route id formula under
+// any tested scheme. Introduced verbatim by commit e3264d60; accepted as a pre-existing, documented anomaly per the
+// 2026-09-22 coordinator decision recorded in task 15.1.5's card log. It stays byte-identical and is never used to
+// justify skipping reproducibility for any other record.
+const KNOWN_CURRENT_ROUTE_ID_ANOMALY = "current-route:86a91d7b9224e135";
+function evidenceTargetForRouteKind(routeKind) {
+  if (routeKind === "loading") return "loading";
+  if (routeKind === "error") return "error-retry";
+  return "all-states";
+}
+async function registerMissingCurrentRoutes() {
+  const manifestPath = "docs/frontend-template-parity/manifest.json";
+  const obligationsPath = "docs/frontend-template-parity/obligations.ndjson";
+  const manifest = JSON.parse(await readFile(absolute(manifestPath), "utf8"));
+  const originalRaw = await readFile(absolute(obligationsPath), "utf8");
+  const records = originalRaw.trim().split("\n").map((line) => JSON.parse(line));
+  if (manifest.obligations?.path !== obligationsPath || manifest.obligations?.count !== records.length || manifest.obligations?.sha256 !== sha256(originalRaw)) {
+    throw new Error("PARITY_REGISTER_MANIFEST_BINDING_INVALID manifest obligations");
+  }
+  const existingRouteRecords = records.filter((record) => record.kind === "current-route");
+  for (const record of existingRouteRecords) {
+    if (record.id === KNOWN_CURRENT_ROUTE_ID_ANOMALY) continue;
+    const expectedId = currentRouteRegistrationId(record);
+    if (expectedId !== record.id) throw new Error(`PARITY_REGISTER_CURRENT_ROUTE_ID_UNREPRODUCIBLE ${record.id}`);
+  }
+  const currentRoutes = await currentRouteInventory();
+  const missing = currentRoutes.filter((route) => !existingRouteRecords.some((record) => currentRouteKey(record) === currentRouteKey(route)));
+  if (!missing.length) throw new Error("PARITY_REGISTER_NOTHING_MISSING");
+  const failures = [];
+  await templateGraph(failures);
+  if (failures.length) throw new Error(failures.join("\n"));
+  const concreteTemplateRoutes = new Set((await templateRoutes()).map((entry) => entry.route.replace(/:([A-Za-z0-9_]+)/g, "[$1]")));
+  const registered = missing.map((route) => {
+    const isDirect = concreteTemplateRoutes.has(route.route);
+    return {
+      id: currentRouteRegistrationId(route),
+      kind: "current-route",
+      source: { path: route.path, sha256: route.sha256 },
+      route: route.route,
+      routeKind: route.routeKind,
+      target: { route: route.route, surface: route.path },
+      disposition: isDirect ? "direct-presentation-map" : "current-only-presentation-map",
+      ...(isDirect ? {} : { reason: "Current surface has no direct supplied template route." }),
+      laterOwner: ownerForSource(route.path, route.route),
+      evidenceTarget: evidenceTargetForRouteKind(route.routeKind),
+    };
+  });
+  const registeredIds = new Set(registered.map((record) => record.id));
+  const nextRecords = [...records, ...registered].sort((a, b) => a.id.localeCompare(b.id));
+  assertRefreshInvariants(records, nextRecords, { registeredIds });
+  const raw = `${nextRecords.map((record) => JSON.stringify(record)).join("\n")}\n`;
+  const nextManifest = structuredClone(manifest);
+  nextManifest.obligations = { path: obligationsPath, count: nextRecords.length, sha256: sha256(raw) };
+  await writeFile(absolute(obligationsPath), raw);
+  await writeFile(absolute(manifestPath), `${JSON.stringify(nextManifest, null, 2)}\n`);
+  return { registered: registered.length, records: nextRecords.length };
+}
+
 async function runSemanticMutationProbes() {
   const obligationsPath = "docs/frontend-template-parity/obligations.ndjson";
   const originalRaw = await readFile(absolute(obligationsPath), "utf8");
@@ -649,7 +712,20 @@ async function runSemanticMutationProbes() {
   const tamperedRefresh = refreshedRouteRecords.map((record) => structuredClone(record));
   tamperedRefresh.find((record) => record.id === routeRecord.id).target = { route: "/tampered", surface: "src/app/tampered/page.tsx" };
   expectRefreshFailure("refresh-invariant-tamper", "REFRESH_INVARIANT_PROTECTED", () => assertRefreshInvariants(staleRouteRecords, tamperedRefresh));
-  return { probes: cases.length + 5 };
+
+  const registrationCandidate = { id: "current-route:probe-registered", kind: "current-route", source: { path: "src/app/probe-registered/page.tsx", sha256: "e" }, route: "/probe-registered", routeKind: "page", target: { route: "/probe-registered", surface: "src/app/probe-registered/page.tsx" }, disposition: "direct-presentation-map", laterOwner: "12.7.2", evidenceTarget: "all-states" };
+  try {
+    assertRefreshInvariants(originalRecords, [...originalRecords, registrationCandidate], { registeredIds: new Set([registrationCandidate.id]) });
+  } catch (error) {
+    throw new Error(`PARITY_MUTATION_PROBE_UNEXPECTED_REJECTION current-route-register-authorized-addition ${error.message}`);
+  }
+  console.log("FRONTEND_PARITY_MUTATION_OK current-route-register-authorized-addition=ACCEPTED");
+  expectRefreshFailure("current-route-register-unauthorized-addition", "REFRESH_INVARIANT_ID_ADDED", () => assertRefreshInvariants(originalRecords, [...originalRecords, registrationCandidate], { registeredIds: new Set(["current-route:not-the-registered-id"]) }));
+  const registrationProtectedTamper = structuredClone(routeRecord);
+  registrationProtectedTamper.target = { route: "/tampered-registration", surface: "src/app/tampered-registration/page.tsx" };
+  expectRefreshFailure("current-route-register-protected-tamper", "REFRESH_INVARIANT_PROTECTED", () => assertRefreshInvariants(originalRecords, originalRecords.map((record) => (record.id === routeRecord.id ? registrationProtectedTamper : record)), { registeredIds: new Set([routeRecord.id]) }));
+
+  return { probes: cases.length + 8 };
 }
 
 export async function checkFrontendTemplateParity() {
@@ -711,6 +787,9 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     if (process.argv.includes("--refresh-semantic-contract")) {
       const result = await refreshSemanticContract();
       console.log(`FRONTEND_PARITY_REFRESH_OK records=${result.records} semantic_records=${result.semanticRecords} current_routes=${result.currentRoutes}`);
+    } else if (process.argv.includes("--register-missing-current-routes")) {
+      const result = await registerMissingCurrentRoutes();
+      console.log(`FRONTEND_PARITY_REGISTER_OK registered=${result.registered} records=${result.records}`);
     } else if (process.argv.includes("--semantic-mutation-probes")) {
       const result = await runSemanticMutationProbes();
       console.log(`FRONTEND_PARITY_MUTATIONS_OK probes=${result.probes}`);
