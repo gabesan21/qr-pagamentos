@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { WorkspaceHeading } from "@/app-shell/workspace-heading";
-import { getPaymentLinkService } from "@/auth/payment-link";
+import { listActivePaymentLinkProducts } from "@/auth/payment-link-v2-catalog";
 import { getPaymentLinkV2PrefillService } from "@/auth/payment-link-v2-prefill";
 import { getPaymentLinkV2ViewService } from "@/auth/payment-link-v2-view";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -34,10 +34,10 @@ export default async function EditPaymentLinkPage({
   const { dictionary, locale, principal } = await requireMerchantShellContext();
   const id = (await params).id;
   const notice = parseLinksNotice((await searchParams)[LINKS_NOTICE_KEY]);
-  const [view, prefill, data] = await Promise.all([
+  const [view, prefill, activeProducts] = await Promise.all([
     getPaymentLinkV2ViewService().getForOwner(principal, id),
     getPaymentLinkV2PrefillService().getForOwner(principal, id),
-    getPaymentLinkService().listForOwner(principal),
+    listActivePaymentLinkProducts(principal.id),
   ]);
 
   if (view.kind !== "found" || prefill === null) {
@@ -61,7 +61,7 @@ export default async function EditPaymentLinkPage({
       unitPrice: line.unitPrice,
     }];
   });
-  const products = data.activeProducts.map((product) => ({ id: product.id, price: product.price, titleEn: product.titleEn, titlePtBr: product.titlePtBr }));
+  const products = activeProducts.map((product) => ({ id: product.id, price: product.price, titleEn: product.titleEn, titlePtBr: product.titlePtBr }));
   const editHref = `/links/v2/${link.id}/edit`;
 
   return (

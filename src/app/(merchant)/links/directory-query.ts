@@ -26,19 +26,12 @@ export const LINKS_NOTICE_KEY = "payment-links-v2";
 export const LINKS_NOTICE_VALUES = ["created", "edited", "activated", "deactivated", "failed"] as const;
 export type LinksNotice = (typeof LINKS_NOTICE_VALUES)[number];
 
-// The frozen legacy V1 create/revoke redirects land on this same directory
-// with their own closed key, resolved and stripped exactly like the V2 key
-// so strict canonicalization never sees either as a stray param.
-export const LEGACY_LINKS_NOTICE_KEY = "payment-links";
-export const LEGACY_LINKS_NOTICE_VALUES = ["created", "revoked", "failed"] as const;
-export type LegacyLinksNotice = (typeof LEGACY_LINKS_NOTICE_VALUES)[number];
-
 export type LinksSearchParams = Readonly<Record<string, string | readonly string[] | undefined>>;
 
 type ReadyDirectoryRequest = Extract<CanonicalDirectoryRequest, { status: "ready" }>;
 
 export type LinksDirectoryQuery =
-  | (ReadyDirectoryRequest & Readonly<{ notice?: LinksNotice; legacyNotice?: LegacyLinksNotice }>)
+  | (ReadyDirectoryRequest & Readonly<{ notice?: LinksNotice }>)
   | Exclude<CanonicalDirectoryRequest, ReadyDirectoryRequest>;
 
 // Shared by the non-directory link pages (`/links/new`, `/links/v2/[id]`, its
@@ -59,7 +52,6 @@ export function resolveLinksDirectoryQuery(
   codec: DirectoryCursorCodec = createDirectoryCursorCodec(),
 ): LinksDirectoryQuery {
   let notice: LinksNotice | undefined;
-  let legacyNotice: LegacyLinksNotice | undefined;
   const entries: Array<[string, string]> = [];
   for (const [key, value] of Object.entries(input.searchParams)) {
     if (value === undefined) continue;
@@ -71,12 +63,6 @@ export function resolveLinksDirectoryQuery(
       if (typeof value !== "string" || notice !== undefined) return { status: "invalid-query" };
       if (!(LINKS_NOTICE_VALUES as readonly string[]).includes(value)) return { status: "invalid-query" };
       notice = value as LinksNotice;
-      continue;
-    }
-    if (key === LEGACY_LINKS_NOTICE_KEY) {
-      if (typeof value !== "string" || legacyNotice !== undefined) return { status: "invalid-query" };
-      if (!(LEGACY_LINKS_NOTICE_VALUES as readonly string[]).includes(value)) return { status: "invalid-query" };
-      legacyNotice = value as LegacyLinksNotice;
       continue;
     }
     const values = typeof value === "string" ? [value] : value;
@@ -101,5 +87,5 @@ export function resolveLinksDirectoryQuery(
   const to = firstValue(resolved.query.filters.to);
   if (from !== undefined && validCalendarDayStartUtc(from) === null) return { status: "invalid-query" };
   if (to !== undefined && validCalendarDayStartUtc(to) === null) return { status: "invalid-query" };
-  return { ...resolved, ...(notice !== undefined ? { notice } : {}), ...(legacyNotice !== undefined ? { legacyNotice } : {}) };
+  return { ...resolved, ...(notice !== undefined ? { notice } : {}) };
 }

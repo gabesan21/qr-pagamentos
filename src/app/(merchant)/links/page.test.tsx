@@ -4,10 +4,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ForbiddenError, UnauthenticatedError } from "@/auth/authorization";
 import type { PaymentLinkV2DirectoryRow, PaymentLinkV2OwnerCurrencyPairOption } from "@/auth/payment-link-v2-view";
 
-const { requireOwnerFromCookie, resolveLocale, listV1, queryDirectory, listOwnerActiveCurrencyPairs, redirect } = vi.hoisted(() => ({
+const { requireOwnerFromCookie, resolveLocale, queryDirectory, listOwnerActiveCurrencyPairs, redirect } = vi.hoisted(() => ({
   requireOwnerFromCookie: vi.fn(),
   resolveLocale: vi.fn(),
-  listV1: vi.fn(),
   queryDirectory: vi.fn(),
   listOwnerActiveCurrencyPairs: vi.fn<() => Promise<PaymentLinkV2OwnerCurrencyPairOption[]>>(async () => []),
   redirect: vi.fn((location: string) => { throw new Error(`redirect:${location}`); }),
@@ -18,7 +17,6 @@ vi.mock("server-only", () => ({}));
 vi.mock("@/app/owner-guard", () => ({ requireOwnerFromCookie, ownerProtectedMutationResponse: vi.fn() }));
 vi.mock("@/i18n/locale-preference", () => ({ getLocalePreferenceService: () => ({ resolve: resolveLocale }) }));
 vi.mock("@/auth/storefront-settings", () => ({ getStorefrontSettingsService: () => ({ getForOwner: () => Promise.resolve({ storefrontEnabled: false, storefrontSlug: null }) }) }));
-vi.mock("@/auth/payment-link", () => ({ getPaymentLinkService: () => ({ listForOwner: listV1 }) }));
 vi.mock("@/auth/payment-link-v2-view", async (importActual) => ({
   ...(await importActual<typeof import("@/auth/payment-link-v2-view")>()),
   getPaymentLinkV2DirectoryAdapter: () => ({ readWindow: vi.fn() }),
@@ -59,7 +57,6 @@ function row(overrides: Partial<PaymentLinkV2DirectoryRow> = {}): PaymentLinkV2D
 function ready(locale: "pt-BR" | "en" = "en", rows: PaymentLinkV2DirectoryRow[] = [row()]) {
   requireOwnerFromCookie.mockResolvedValue(principal);
   resolveLocale.mockResolvedValue(locale);
-  listV1.mockResolvedValue({ links: [], activeProducts: [], activeCurrencyPairs: [] });
   queryDirectory.mockResolvedValue({ rows });
 }
 
@@ -71,11 +68,10 @@ describe("merchant links directory page", () => {
     await expect(MerchantLinksPage()).rejects.toThrow("redirect:/login");
     requireOwnerFromCookie.mockRejectedValueOnce(new ForbiddenError("administrators stay out"));
     await expect(MerchantLinksPage()).rejects.toThrow("redirect:/admin");
-    expect(listV1).not.toHaveBeenCalled();
     expect(queryDirectory).not.toHaveBeenCalled();
   });
 
-  it("renders the ready V2 directory with badges, expiry, share, and the era toggle to the untouched V1 section", async () => {
+  it("renders the ready V2 directory with badges, expiry, and share", async () => {
     ready("en", [
       row(),
       row({ id: "440e8400-e29b-41d4-a716-446655440011", state: "paid", paid: true, linkType: "SINGLE_USE" }),
@@ -83,9 +79,6 @@ describe("merchant links directory page", () => {
       row({ id: "440e8400-e29b-41d4-a716-446655440013", state: "inactive", active: false, compositionKind: "PRODUCT_LINES", orderCount: 7, lines: [{ position: 1, quantity: 2, titlePtBr: "Café", titleEn: "Coffee", unitPrice: "9.9" }, { position: 2, quantity: 1, titlePtBr: "Bolo", titleEn: "Cake", unitPrice: "5" }] }),
     ]);
 
-    // Eras partition the directory (14.5.2): the default `v2` era renders
-    // Commerce V2 rows only; the untouched V1 directory is reachable only
-    // through the explicit `filter.era=legacy` toggle, asserted below.
     const markup = renderToStaticMarkup(await MerchantLinksPage());
     expect(markup).toContain("Monthly donation");
     expect(markup).toContain("Coffee +1");
@@ -104,11 +97,6 @@ describe("merchant links directory page", () => {
     expect(markup).toContain("Dates");
     expect(markup).toContain("View orders");
     expect(markup).toContain('action="/links"');
-    expect(markup).not.toContain("An active product and currency pair are required.");
-
-    const legacy = renderToStaticMarkup(await MerchantLinksPage({ searchParams: Promise.resolve({ "filter.era": "legacy" }) }));
-    expect(legacy).toContain("An active product and currency pair are required.");
-    expect(legacy).toContain("No payment links are available.");
   });
 
   it("renders localized pt-BR copy", async () => {
@@ -116,9 +104,6 @@ describe("merchant links directory page", () => {
     const markup = renderToStaticMarkup(await MerchantLinksPage());
     expect(markup).toContain("Doação mensal");
     expect(markup).toContain(">Ativo</");
-
-    const legacy = renderToStaticMarkup(await MerchantLinksPage({ searchParams: Promise.resolve({ "filter.era": "legacy" }) }));
-    expect(legacy).toContain("É necessário ter um produto e um par de moedas ativos.");
   });
 
   it("renders the empty and filtered-empty states", async () => {
@@ -142,19 +127,16 @@ describe("merchant links directory page", () => {
     expect(queryDirectory).not.toHaveBeenCalled();
   });
 
-  it("renders the error state when the directory read fails while the V1 section stays reachable via the era toggle", async () => {
+  it("renders the error state when the directory read fails", async () => {
     ready("en");
     queryDirectory.mockRejectedValue(new Error("database unavailable"));
     const markup = renderToStaticMarkup(await MerchantLinksPage());
     expect(markup).toContain("The directory could not be loaded");
-    const legacy = renderToStaticMarkup(await MerchantLinksPage({ searchParams: Promise.resolve({ "filter.era": "legacy" }) }));
-    expect(legacy).toContain("An active product and currency pair are required.");
   });
 
   it("passes the cursor, filters, and search into the bounded merchant query and renders pagination URLs", async () => {
     requireOwnerFromCookie.mockResolvedValue(principal);
     resolveLocale.mockResolvedValue("en");
-    listV1.mockResolvedValue({ links: [], activeProducts: [], activeCurrencyPairs: [] });
     queryDirectory.mockResolvedValue({ rows: [row()], nextCursor: "next-token", previousCursor: "previous-token" });
 
     const markup = renderToStaticMarkup(await MerchantLinksPage({

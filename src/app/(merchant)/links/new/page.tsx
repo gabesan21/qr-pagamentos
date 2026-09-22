@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { WorkspaceHeading } from "@/app-shell/workspace-heading";
-import { getPaymentLinkService } from "@/auth/payment-link";
+import { listActivePaymentLinkCurrencyPairs, listActivePaymentLinkProducts } from "@/auth/payment-link-v2-catalog";
 import { getPaymentLinkV2PrefillService } from "@/auth/payment-link-v2-prefill";
 import { getPaymentLinkV2ViewService } from "@/auth/payment-link-v2-view";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -36,7 +36,10 @@ export default async function NewPaymentLinkPage({
   const from = firstValue(resolvedSearchParams.from);
   const notice = parseLinksNotice(resolvedSearchParams[LINKS_NOTICE_KEY]);
 
-  const data = await getPaymentLinkService().listForOwner(principal);
+  const [activeProducts, activeCurrencyPairs] = await Promise.all([
+    listActivePaymentLinkProducts(principal.id),
+    listActivePaymentLinkCurrencyPairs(),
+  ]);
 
   let initialKind: "PRODUCT_LINES" | "FIXED_AMOUNT" | undefined;
   let initialLinkType: "SINGLE_USE" | "REUSABLE" | undefined;
@@ -75,8 +78,8 @@ export default async function NewPaymentLinkPage({
     }
   }
 
-  const products = data.activeProducts.map((product) => ({ id: product.id, price: product.price, titleEn: product.titleEn, titlePtBr: product.titlePtBr }));
-  const pairs = data.activeCurrencyPairs.map((pair) => ({ id: pair.id, label: pair.label }));
+  const products = activeProducts.map((product) => ({ id: product.id, price: product.price, titleEn: product.titleEn, titlePtBr: product.titlePtBr }));
+  const pairs = activeCurrencyPairs.map((pair) => ({ id: pair.id, label: pair.label }));
   const description = from === undefined ? dictionary.paymentLinkCreateDescription : dictionary.paymentLinkCreateFromDescription;
 
   return (
