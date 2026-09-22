@@ -2,7 +2,7 @@ import type { CSSProperties, ReactNode } from "react";
 
 import { BrandIdentity } from "@/brand/brand-identity";
 import { Monogram } from "@/components/ui/monogram";
-import type { PublicCheckoutBranding } from "@/checkout/public-checkout-presentation";
+import type { PublicCheckoutV2Branding } from "@/checkout/public-checkout-v2-presentation";
 import type { getDictionary } from "@/i18n/dictionaries";
 import type { SupportedLocale } from "@/i18n/locales";
 
@@ -10,7 +10,7 @@ import { CheckoutFooter } from "./checkout-footer";
 
 type Dictionary = ReturnType<typeof getDictionary>;
 
-function CheckoutMerchantHeader({ branding, dictionary }: Readonly<{ branding: PublicCheckoutBranding; dictionary: Dictionary }>) {
+function CheckoutMerchantHeader({ branding, dictionary }: Readonly<{ branding: PublicCheckoutV2Branding; dictionary: Dictionary }>) {
   const displayName = branding.displayName ?? dictionary.storefrontFallbackName;
   return (
     <header className="flex flex-col items-center gap-2 text-center">
@@ -33,14 +33,14 @@ function CheckoutMerchantHeader({ branding, dictionary }: Readonly<{ branding: P
 }
 
 // The one shared branded checkout shell (14.6.1 F01): a single column capped
-// at the checkout token, the merchant header for both V1 and V2 eras, and the
-// public footer — composed by the V1 branch, the V2 checkout/paid branches,
-// the unavailable view, `loading`, and `error`. `branding` is optional: the
+// at the checkout token, the merchant header, and the public footer —
+// composed by the V2 checkout/paid branches, the unavailable view, `loading`,
+// and `error`. `branding` is optional: the
 // opaque unavailable/loading/error views render no merchant identity, only
 // the column and the footer. This is the only file declaring
 // `--storefront-accent` — `scripts/check-design-tokens.mjs` allows exactly
 // this one path.
-export function CheckoutShell({ branding, busy, children, dictionary, locale }: Readonly<{ branding?: PublicCheckoutBranding; busy?: boolean; children: ReactNode; dictionary: Dictionary; locale: SupportedLocale }>) {
+export function CheckoutShell({ branding, busy, children, dictionary, locale }: Readonly<{ branding?: PublicCheckoutV2Branding; busy?: boolean; children: ReactNode; dictionary: Dictionary; locale: SupportedLocale }>) {
   return (
     <main
       aria-busy={busy}
