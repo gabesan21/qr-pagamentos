@@ -12,7 +12,7 @@ import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/ui/spinner";
 import type { getDictionary } from "@/i18n/dictionaries";
-import type { CheckoutDataPolicy, PaymentLinkOrderState } from "@/orders/payment-link-order";
+import type { CheckoutDataPolicy, PaymentLinkOrderState } from "@/orders/order-v2-policies";
 
 import { BRAZILIAN_UFS, requiredCheckoutFields, useCheckoutExperience, type CheckoutFieldName, type CheckoutPayment } from "./checkout-experience";
 import { CheckoutPaymentView } from "./checkout-payment-views";

@@ -421,7 +421,7 @@ test("creates the closed public checkout evidence run", async ({ page }) => {
   await expect(page.getByLabel("Nome")).toHaveValue("hidratação");
   await page.getByLabel("Nome").fill("");
   // Native constraint validation is the honest local-validation state (the
-  // form mirrors V1 with no noValidate): an empty submit dispatches no POST,
+  // form renders with no noValidate): an empty submit dispatches no POST,
   // marks both required fields :invalid, and focuses the first one.
   const checkoutPosts: string[] = [];
   const observeCheckoutPost = (request: PlaywrightRequest) => {

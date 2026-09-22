@@ -6,7 +6,7 @@ import {
   OrderV2PayerFacts,
   OrderV2SourceBadge,
 } from "@/app/orders/order-v2-views";
-import { orderStateLabel } from "@/app/orders/order-views";
+import { orderStateLabel } from "@/app/orders/order-state-views";
 import { WorkspaceHeading } from "@/app-shell/workspace-heading";
 import { formatCatalogPrice } from "@/app/(merchant)/catalog/price-format";
 import { dataDirectoryCopy, DirectoryInvalidFiltersNotice } from "@/app/directory-support";
@@ -16,7 +16,6 @@ import { CopyField } from "@/components/ui/copy-field";
 import { MoneyText } from "@/components/ui/money-text";
 import { Monogram } from "@/components/ui/monogram";
 import { LocalOutcomeBadge, ProviderStateBadge, StatusBadge, type LocalOutcome, type ProviderState } from "@/components/ui/status-badge";
-import { Separator } from "@/components/ui/separator";
 import {
   DIRECTORY_INVALID_FILTERS_PARAM,
   DIRECTORY_INVALID_FILTERS_VALUE,
@@ -34,7 +33,6 @@ import {
   type AdminOrderV2DirectoryResult,
   type AdminOrderV2Summary,
 } from "@/orders/order-v2-admin-directory";
-import { getOrderViewService } from "@/orders/order-view";
 
 import { requireAdminShellContext } from "../shell-context";
 import {
@@ -42,7 +40,6 @@ import {
   resolveAdminOrdersDirectoryQuery,
   type AdminOrdersSearchParams,
 } from "./directory-query";
-import { AdminLegacyOrderTable } from "./legacy-order-table";
 
 type Dictionary = ReturnType<typeof getDictionary>;
 
@@ -269,9 +266,6 @@ export default async function AdminOrdersPage({
   if (query.status === "redirect") redirect(query.location);
   if (query.status === "invalid-query") redirect(directoryInvalidFiltersLocation(ADMIN_ORDER_V2_DIRECTORY_PATH));
 
-  // The frozen V1 ledger keeps its exact behavior, including its own failure
-  // propagation; only the V2 directory read degrades into the error state.
-  const data = await getOrderViewService().listForAdmin(principal);
   let page: Extract<AdminOrderV2DirectoryResult, { status: "ready" }> | null = null;
   let serviceRedirect: string | null = null;
   try {
@@ -292,14 +286,6 @@ export default async function AdminOrdersPage({
       <WorkspaceHeading description={dictionary.adminOrderV2DirectoryDescription} eyebrow={dictionary.shellAdminEyebrow} title={dictionary.ordersHeading} />
       {invalidFiltersNotice ? <DirectoryInvalidFiltersNotice dictionary={dictionary} /> : null}
       <AdminOrderV2Directory dictionary={dictionary} locale={locale} page={page} query={query} />
-      <Separator />
-      <section aria-labelledby="legacy-orders-heading">
-        <header className="workspace-heading">
-          <h2 id="legacy-orders-heading">{dictionary.orderV2DirectoryLegacyHeading}</h2>
-          <p>{dictionary.orderV2DirectoryLegacyDescription}</p>
-        </header>
-        <AdminLegacyOrderTable detailHref={(orderId) => `/admin/orders/${orderId}`} dictionary={dictionary} locale={locale} orders={data} />
-      </section>
     </>
   );
 }

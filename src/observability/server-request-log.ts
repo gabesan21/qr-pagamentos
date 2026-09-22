@@ -9,8 +9,6 @@ export const serverRequestRoutes = {
   products: "/products",
   productImages: "/products/images",
   productCategories: "/product-categories",
-  paymentLinks: "/payment-links",
-  paymentLink: "/payment-links/[id]",
   paymentLinksV2: "/payment-links-v2",
   paymentLinkV2: "/payment-links-v2/[id]",
   ordersV2: "/orders-v2",

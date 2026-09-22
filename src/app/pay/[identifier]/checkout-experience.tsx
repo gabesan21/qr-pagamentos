@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import type { getDictionary } from "@/i18n/dictionaries";
-import type { CheckoutDataPolicy, CustomerSnapshotV1 } from "@/orders/payment-link-order";
+import type { CheckoutDataPolicy, CustomerSnapshotV1 } from "@/orders/order-v2-policies";
 
 import { isValidCpfFormat, isValidEmailFormat, isValidPostalCodeFormat, maskCpf, maskPostalCode } from "./checkout-form-validation";
 import { createPollingController } from "./public-checkout-form";

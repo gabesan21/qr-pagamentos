@@ -386,7 +386,6 @@ test("creates the closed merchant orders evidence run", async ({ page }) => {
     "src/app/(merchant)/orders/page-size-preference.tsx",
     "src/app/(merchant)/orders/loading.tsx",
     "src/app/(merchant)/orders/v2/[id]/page.tsx",
-    "src/app/(merchant)/orders/[id]/page.tsx",
     "src/data-directory/ui/data-directory.tsx",
     "src/i18n/dictionaries/orders-directory/en.ts",
     "src/i18n/dictionaries/orders-directory/pt-BR.ts",

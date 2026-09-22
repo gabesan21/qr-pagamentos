@@ -7,14 +7,13 @@ import {
   OrderV2PayerFacts,
   OrderV2SourceBadge,
 } from "@/app/orders/order-v2-views";
-import { orderStateLabel } from "@/app/orders/order-views";
+import { orderStateLabel } from "@/app/orders/order-state-views";
 import { WorkspaceHeading } from "@/app-shell/workspace-heading";
 import { formatCatalogPrice } from "@/app/(merchant)/catalog/price-format";
 import { Button } from "@/components/ui/button";
 import { CopyField } from "@/components/ui/copy-field";
 import { MoneyText } from "@/components/ui/money-text";
 import { LocalOutcomeBadge, ProviderStateBadge, StatusBadge, type LocalOutcome, type ProviderState } from "@/components/ui/status-badge";
-import { Separator } from "@/components/ui/separator";
 import {
   DIRECTORY_INVALID_FILTERS_PARAM,
   DIRECTORY_INVALID_FILTERS_VALUE,
@@ -23,7 +22,6 @@ import {
 import { DataDirectory, type DataDirectoryColumn, type DataDirectoryState } from "@/data-directory/ui/data-directory";
 import type { getDictionary } from "@/i18n/dictionaries";
 import type { SupportedLocale } from "@/i18n/locales";
-import { getOrderViewService } from "@/orders/order-view";
 import {
   ORDER_V2_DIRECTORY_PAGE_SIZE_POLICY,
   ORDER_V2_DIRECTORY_PATH,
@@ -41,7 +39,6 @@ import {
   resolveOrdersDirectoryQuery,
   type OrdersSearchParams,
 } from "./directory-query";
-import { MerchantLegacyOrderTable } from "./legacy-order-table";
 import { OrderV2Notice } from "./orders-notices";
 import { OrderV2PageSizePreference } from "./page-size-preference";
 
@@ -247,9 +244,6 @@ export default async function MerchantOrdersPage({
   if (query.status === "redirect") redirect(query.location);
   if (query.status === "invalid-query") redirect(directoryInvalidFiltersLocation(ORDER_V2_DIRECTORY_PATH));
 
-  // The frozen V1 section keeps its exact behavior, including its own failure
-  // propagation; only the V2 directory read degrades into the error state.
-  const data = await getOrderViewService().listForOwner(principal);
   let page: Extract<OrderV2DirectoryResult, { status: "ready" }> | null = null;
   // The delivered service rejects ungrammatical calendar days after
   // canonicalization; that resolves through the same reset-with-notice route.
@@ -277,14 +271,6 @@ export default async function MerchantOrdersPage({
         storageKey="qr-orders-v2-page-size"
       />
       <OrderV2Directory dictionary={dictionary} locale={locale} page={page} query={query} />
-      <Separator />
-      <section aria-labelledby="legacy-orders-heading" className="flex flex-col gap-6">
-        <header className="workspace-heading">
-          <h2 id="legacy-orders-heading">{dictionary.orderV2DirectoryLegacyHeading}</h2>
-          <p>{dictionary.orderV2DirectoryLegacyDescription}</p>
-        </header>
-        <MerchantLegacyOrderTable detailHref={(orderId) => `/orders/${orderId}`} dictionary={dictionary} locale={locale} orders={data} />
-      </section>
     </>
   );
 }

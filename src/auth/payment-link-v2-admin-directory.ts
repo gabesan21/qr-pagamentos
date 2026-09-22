@@ -23,7 +23,7 @@ import type {
 import { getDatabaseClient } from "../db/client";
 import type { Prisma, PrismaClient } from "../generated/prisma/client";
 import { ForbiddenError, type Principal } from "./authorization";
-import type { PaymentLinkType } from "./payment-link";
+import type { PaymentLinkType } from "../orders/payment-link-v2-type";
 import type { PaymentLinkV2CompositionKind } from "./payment-link-v2";
 import {
   PAYMENT_LINK_V2_DERIVED_STATES,
