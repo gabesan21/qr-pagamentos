@@ -29,7 +29,7 @@ import {
   type OrderV2Summary,
   type OrderV2SummaryRow,
 } from "./order-v2-view";
-import { PAYMENT_LINK_ORDER_STATES } from "./payment-link-order";
+import { PAYMENT_LINK_ORDER_STATES } from "./order-v2-policies";
 
 // Owner-scoped Commerce V2 order directory (8.3.1): the bounded query contract
 // of src/data-directory/server over order_v2, read-only. Mutations stay with

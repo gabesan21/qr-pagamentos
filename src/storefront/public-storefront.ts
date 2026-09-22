@@ -3,7 +3,7 @@ import "server-only";
 import { getDatabaseClient } from "../db/client";
 import { DEFAULT_STOREFRONT_THEME_ID } from "../design-system/themes";
 import type { SupportedLocale } from "../i18n/locales";
-import type { CheckoutDataPolicy } from "../orders/payment-link-order";
+import type { CheckoutDataPolicy } from "../orders/order-v2-policies";
 
 const STOREFRONT_SLUG_PATTERN = /^[a-z0-9](-?[a-z0-9])*$/;
 const STOREFRONT_SLUG_MAXIMUM_LENGTH = 63;

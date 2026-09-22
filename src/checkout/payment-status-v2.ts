@@ -4,7 +4,7 @@ import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 
 import { getDatabaseClient } from "@/db/client";
 import { loadEncryptionKey } from "@/lib/nautt-crypto";
-import type { PaymentLinkOrderState } from "@/orders/payment-link-order";
+import type { PaymentLinkOrderState } from "@/orders/order-v2-policies";
 
 // Sessionless Commerce V2 payment status (9.3.1): the same opaque
 // capability-only polling contract as the V1 status service, bound to

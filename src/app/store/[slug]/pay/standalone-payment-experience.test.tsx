@@ -8,7 +8,7 @@ import { getDictionary } from "@/i18n/dictionaries";
 function textContent(markup: string): string {
   return markup.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
 }
-import type { CheckoutDataPolicy } from "@/orders/payment-link-order";
+import type { CheckoutDataPolicy } from "@/orders/order-v2-policies";
 
 import {
   StandalonePaymentExperience,

@@ -22,9 +22,9 @@ import type { getDictionary } from "@/i18n/dictionaries";
 import type { SupportedLocale } from "@/i18n/locales";
 import type { OrderV2CommentView, OrderV2Summary, OrderV2View } from "@/orders/order-v2-view";
 import type { OrderV2LocalOutcome, OrderV2Source, OrderV2State } from "@/orders/order-v2";
-import type { CheckoutDataPolicy, CustomerSnapshotV1 } from "@/orders/payment-link-order";
+import type { CheckoutDataPolicy, CustomerSnapshotV1 } from "@/orders/order-v2-policies";
 
-import { orderStateLabel } from "./order-views";
+import { orderStateLabel } from "./order-state-views";
 
 type Dictionary = ReturnType<typeof getDictionary>;
 

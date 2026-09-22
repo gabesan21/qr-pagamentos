@@ -3,7 +3,7 @@ import { randomBytes, randomUUID } from "node:crypto";
 import { getDatabaseClient } from "../db/client";
 import type { Prisma } from "../generated/prisma/client";
 import { requireUserPrincipal, type Principal } from "./authorization";
-import type { PaymentLinkType } from "./payment-link";
+import type { PaymentLinkType } from "../orders/payment-link-v2-type";
 
 export const PAYMENT_LINK_V2_COMPOSITION_KINDS = ["PRODUCT_LINES", "FIXED_AMOUNT"] as const;
 export type PaymentLinkV2CompositionKind = (typeof PAYMENT_LINK_V2_COMPOSITION_KINDS)[number];

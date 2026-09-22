@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 vi.mock("server-only", () => ({}));
 
 import { getDictionary } from "@/i18n/dictionaries";
-import type { CheckoutDataPolicy } from "@/orders/payment-link-order";
+import type { CheckoutDataPolicy } from "@/orders/order-v2-policies";
 
 import { createPollingController, PublicCheckoutForm } from "./public-checkout-form";
 

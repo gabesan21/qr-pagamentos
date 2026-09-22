@@ -4,7 +4,7 @@ import { getDatabaseClient } from "@/db/client";
 import { DEFAULT_STOREFRONT_THEME_ID } from "@/design-system/themes";
 import type { SupportedLocale } from "@/i18n/locales";
 import { totalFromLines } from "@/orders/order-v2";
-import type { CheckoutDataPolicy } from "@/orders/payment-link-order";
+import type { CheckoutDataPolicy } from "@/orders/order-v2-policies";
 
 // Sessionless Commerce V2 checkout presentation (9.3.1): the read behind the
 // additive /pay/[identifier] V2 branch. The checkout DTO carries only the

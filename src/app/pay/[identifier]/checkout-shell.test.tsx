@@ -3,11 +3,11 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
 import { en as dictionary } from "@/i18n/dictionaries/en";
-import type { PublicCheckoutBranding } from "@/checkout/public-checkout-presentation";
+import type { PublicCheckoutV2Branding } from "@/checkout/public-checkout-v2-presentation";
 
 import { CheckoutShell } from "./checkout-shell";
 
-function render(branding?: PublicCheckoutBranding) {
+function render(branding?: PublicCheckoutV2Branding) {
   return renderToStaticMarkup(
     <CheckoutShell branding={branding} dictionary={dictionary} locale="en">
       <p>content</p>

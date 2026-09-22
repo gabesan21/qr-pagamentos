@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { formatCatalogPrice } from "@/app/(merchant)/catalog/price-format";
-import { orderStateLabel } from "@/app/orders/order-views";
+import { orderStateLabel } from "@/app/orders/order-state-views";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CopyField } from "@/components/ui/copy-field";
@@ -11,7 +11,7 @@ import { LocalOutcomeBadge, ProviderStateBadge, StatusBadge, type LocalOutcome, 
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { getDictionary } from "@/i18n/dictionaries";
 import type { SupportedLocale } from "@/i18n/locales";
-import type { CheckoutDataPolicy, CustomerSnapshotV1 } from "@/orders/payment-link-order";
+import type { CheckoutDataPolicy, CustomerSnapshotV1 } from "@/orders/order-v2-policies";
 import type { OrderV2LocalOutcomeView, OrderV2Summary, OrderV2View } from "@/orders/order-v2-view";
 import type { OrderV2State } from "@/orders/order-v2";
 

@@ -6,7 +6,7 @@ import { getNauttCredentialService } from "@/auth/nautt-credential";
 import { getDatabaseClient } from "@/db/client";
 import type { Prisma, PrismaClient } from "@/generated/prisma/client";
 import { loadEncryptionKey } from "@/lib/nautt-crypto";
-import { normalizeCustomerSnapshotV1, type CheckoutDataPolicy, type CustomerSnapshotV1 } from "@/orders/payment-link-order";
+import { normalizeCustomerSnapshotV1, type CheckoutDataPolicy, type CustomerSnapshotV1 } from "@/orders/order-v2-policies";
 import { createOrderV2Service, createOrderV2Store, type StoredOrderV2 } from "@/orders/order-v2";
 import { createOwnerPricingOrdersService } from "@/integrations/nautt/owner-pricing-orders";
 import { getPricingOrdersAdapter, NauttOrderCreationIndeterminateError } from "@/integrations/nautt/pricing-orders-client";

@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { Spinner } from "@/components/ui/spinner";
 import type { getDictionary } from "@/i18n/dictionaries";
-import type { CheckoutDataPolicy, CustomerSnapshotV1 } from "@/orders/payment-link-order";
+import type { CheckoutDataPolicy, CustomerSnapshotV1 } from "@/orders/order-v2-policies";
 import { isStorefrontCartAmount } from "@/storefront/cart";
 
 type Dictionary = ReturnType<typeof getDictionary>;

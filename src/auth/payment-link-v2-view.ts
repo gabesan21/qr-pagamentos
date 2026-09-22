@@ -8,7 +8,7 @@ import type { DirectoryFilterDefinition } from "../data-directory/server/query-c
 import { getDatabaseClient } from "../db/client";
 import type { Prisma, PrismaClient } from "../generated/prisma/client";
 import { requireUserPrincipal, type Principal } from "./authorization";
-import type { PaymentLinkType } from "./payment-link";
+import type { PaymentLinkType } from "../orders/payment-link-v2-type";
 import type { PaymentLinkV2CompositionKind } from "./payment-link-v2";
 
 // Derived lifecycle vocabulary for the merchant V2 link directory. The only

@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { formatCatalogPrice } from "@/app/(merchant)/catalog/price-format";
-import { orderStateLabel } from "@/app/orders/order-views";
+import { orderStateLabel } from "@/app/orders/order-state-views";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MoneyText } from "@/components/ui/money-text";
