@@ -104,7 +104,7 @@ This spec defines the application-wide presentation, composition, interaction-fe
 
 ## Errors and limits
 
-- Exact parity must stop if it would replace the fixed stack, weaken any existing role/owner/origin/rate-limit/redaction/exact-decimal/V1 compatibility rule, expose a secret or provider detail, or invent an unavailable projection or mutation.
+- Exact parity must stop if it would replace the fixed stack, weaken any existing role/owner/origin/rate-limit/redaction/exact-decimal rule, expose a secret or provider detail, or invent an unavailable projection or mutation.
 - An unavailable licensed self-hosted font source or asset provenance record blocks only that asset integration lane; it never authorizes remote loading, silent substitution, or untracked bytes.
 
 ## Conformance criteria
@@ -117,12 +117,12 @@ This spec defines the application-wide presentation, composition, interaction-fe
 ## Out of scope
 
 - Route-family migration and product-surface composition; the shared foundation and its closed specimen do not grant a product route new behavior or ownership.
-- New backend/API/database behavior, Nautt-hosted links, new themes/locales, or changes to authorization, exact money, redaction, security guards, V1/V2 lifecycle, and media ownership.
+- New backend/API/database behavior, Nautt-hosted links, new themes/locales, or changes to authorization, exact money, redaction, security guards, order lifecycle, and media ownership.
 
 ## Related references
 
 - [[specs/administrative-foundation|Administrative foundation]] — follow for roles, locale, shell capability, native mutations, and directories.
-- [[specs/catalog-and-payment-links|Catalog and payment links]] — follow for owner scope, V1/V2 compatibility, exact composition, and link lifecycle.
+- [[specs/catalog-and-payment-links|Catalog and payment links]] — follow for owner scope, exact composition, and link lifecycle.
 - [[specs/checkout-and-order-lifecycle|Checkout and order lifecycle]] — follow for buyer data, exact money, retry/capability, polling, and terminal states.
 - [[specs/storefront-and-customization|Storefront and customization]] — follow for theme IDs, branding, public projections, cart, and standalone payments.
 - [[specs/identity-security|Identity security]] — follow for login, MFA, recovery, opaque outcomes, and secret handling.
