@@ -386,6 +386,16 @@ async function currentRouteInventory() {
 const semanticKinds = new Set(["authored-class-occurrence", "state", "interaction"]);
 function currentRouteKey(route) { return stable({ route: route.route, routeKind: route.routeKind }); }
 function exactCurrentRouteKey(route) { return stable({ path: route.source?.path ?? route.path, route: route.route, routeKind: route.routeKind }); }
+async function retiredCurrentRouteIds(records) {
+  const retired = new Set();
+  for (const record of records) {
+    if (record.kind !== "current-route") continue;
+    const filePath = record.source?.path;
+    if (!filePath) continue;
+    if (!(await exists(filePath))) retired.add(record.id);
+  }
+  return retired;
+}
 function refreshCurrentRouteSources(records, currentRoutes) {
   const routeRecords = records.filter((record) => record.kind === "current-route");
   const duplicateIds = routeRecords.filter((record, index) => routeRecords.findIndex((candidate) => candidate.id === record.id) !== index);
@@ -444,13 +454,19 @@ function compatibleProtectedFields(original, refreshed) {
 }
 function assertRefreshInvariants(before, after, options = {}) {
   const registeredIds = options.registeredIds ?? new Set();
+  const retiredIds = options.retiredIds ?? new Set();
   const beforeById = new Map(before.map((record) => [record.id, record]));
   const afterById = new Map(after.map((record) => [record.id, record]));
   if (beforeById.size !== before.length || afterById.size !== after.length) throw new Error("PARITY_REFRESH_INVARIANT_DUPLICATE_ID obligations");
   const newRegisteredIds = [...registeredIds].filter((id) => !beforeById.has(id));
-  const expectedCount = before.length + newRegisteredIds.length;
-  if (after.length !== expectedCount) throw new Error(`PARITY_REFRESH_INVARIANT_RECORD_COUNT before=${before.length} after=${after.length}`);
+  const expectedCount = before.length - retiredIds.size + newRegisteredIds.length;
+  if (after.length !== expectedCount) throw new Error(`PARITY_REFRESH_INVARIANT_RECORD_COUNT before=${before.length} after=${after.length} retired=${retiredIds.size} registered=${newRegisteredIds.length}`);
   for (const [id, original] of beforeById) {
+    if (retiredIds.has(id)) {
+      if (afterById.has(id)) throw new Error(`PARITY_REFRESH_INVARIANT_RETIRED_SURVIVED ${id}`);
+      if (original.kind !== "current-route") throw new Error(`PARITY_REFRESH_INVARIANT_RETIRED_KIND_INVALID ${id}`);
+      continue;
+    }
     const refreshed = afterById.get(id);
     if (!refreshed) throw new Error(`PARITY_REFRESH_INVARIANT_ID_MISSING ${id}`);
     if (!compatibleProtectedFields(original, refreshed)) throw new Error(`PARITY_REFRESH_INVARIANT_PROTECTED ${id}`);
@@ -563,9 +579,11 @@ async function refreshSemanticContract() {
     laterOwner: ownerForSource(derived.source.path),
     evidenceTarget: kind === "authored-class-occurrence" ? "interactive" : "all-states",
   })));
-  const routeRefreshedRecords = refreshCurrentRouteSources(records, currentRoutes);
+  const retiredIds = await retiredCurrentRouteIds(records);
+  const survivingRecords = records.filter((record) => !retiredIds.has(record.id));
+  const routeRefreshedRecords = refreshCurrentRouteSources(survivingRecords, currentRoutes);
   const nextRecords = [...routeRefreshedRecords.filter((record) => !semanticKinds.has(record.kind)), ...regenerated].sort((a, b) => a.id.localeCompare(b.id));
-  assertRefreshInvariants(records, nextRecords);
+  assertRefreshInvariants(records, nextRecords, { retiredIds });
   const raw = `${nextRecords.map((record) => JSON.stringify(record)).join("\n")}\n`;
   const nextManifest = structuredClone(manifest);
   nextManifest.obligations = { path: obligationsPath, count: nextRecords.length, sha256: sha256(raw) };
