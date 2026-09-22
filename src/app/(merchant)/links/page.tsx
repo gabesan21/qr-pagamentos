@@ -4,13 +4,10 @@ import { ListOrderedIcon, PlusIcon, Share2Icon } from "lucide-react";
 
 import { dataDirectoryCopy, DirectoryInvalidFiltersNotice } from "@/app/directory-support";
 import { WorkspaceHeading } from "@/app-shell/workspace-heading";
-import { getPaymentLinkService, type PaymentLinkOwnerData } from "@/auth/payment-link";
 import {
   getPaymentLinkV2DirectoryAdapter,
   listOwnerActiveCurrencyPairs,
   PAYMENT_LINK_V2_DERIVED_STATES,
-  PAYMENT_LINK_V2_DIRECTORY_ERA_VALUES,
-  type PaymentLinkV2DirectoryEra,
   type PaymentLinkV2DirectoryRow,
 } from "@/auth/payment-link-v2-view";
 import { Badge } from "@/components/ui/badge";
@@ -44,8 +41,7 @@ import {
   resolveLinksDirectoryQuery,
   type LinksSearchParams,
 } from "./directory-query";
-import { LegacyLinksDirectory } from "./legacy-links";
-import { PaymentLinkLegacyNotice, PaymentLinkV2Notice } from "./links-notices";
+import { PaymentLinkV2Notice } from "./links-notices";
 import { copyLabels, formatLinkInstant, linkKindLabel, linkSummary, linkTypeLabel } from "./link-v2-views";
 
 type Dictionary = ReturnType<typeof getDictionary>;
@@ -77,32 +73,14 @@ function lifecycleLabels(dictionary: Dictionary): Readonly<Record<LinkLifecycle,
   };
 }
 
-// The `era` toggle is registered on both eras' toolbars so switching stays a
-// single native GET; it never changes the row set on its own render pass —
-// the page picks which directory to query before either table renders.
-function eraFilter(dictionary: Dictionary, era: PaymentLinkV2DirectoryEra): DataDirectoryEnumFilter {
-  return {
-    name: "era",
-    label: dictionary.paymentLinkDirectoryFilterEra,
-    allLabel: dictionary.paymentLinkDirectoryEraV2,
-    selected: era,
-    options: PAYMENT_LINK_V2_DIRECTORY_ERA_VALUES.map((value) => ({
-      value,
-      label: value === "v2" ? dictionary.paymentLinkDirectoryEraV2 : dictionary.paymentLinkDirectoryEraLegacy,
-    })),
-  };
-}
-
 function PaymentLinkDirectory({
   dictionary,
-  era,
   locale,
   ownerPairs,
   page,
   query,
 }: Readonly<{
   dictionary: Dictionary;
-  era: PaymentLinkV2DirectoryEra;
   locale: SupportedLocale;
   ownerPairs: ReadonlyArray<Readonly<{ id: string; label: string }>>;
   page: DirectoryPage<PaymentLinkV2DirectoryRow> | null;
@@ -171,7 +149,6 @@ function PaymentLinkDirectory({
       columns={columns}
       copy={copy}
       filters={[
-        eraFilter(dictionary, era),
         {
           name: "state",
           label: dictionary.paymentLinkDirectoryFilterState,
@@ -267,36 +244,22 @@ export default async function MerchantLinksPage({
   if (query.status === "redirect") redirect(query.location);
   if (query.status === "invalid-query") redirect(directoryInvalidFiltersLocation(LINKS_DIRECTORY_PATH));
 
-  const era: PaymentLinkV2DirectoryEra = firstValue(query.query.filters.era) === "legacy" ? "legacy" : "v2";
-
-  // Eras are a partition: only the selected era's store is ever read, so one
-  // keyset page never blends V1 and V2 rows.
   let page: DirectoryPage<PaymentLinkV2DirectoryRow> | null = null;
-  let legacyData: PaymentLinkOwnerData | null = null;
-  if (era === "legacy") {
-    legacyData = await getPaymentLinkService().listForOwner(principal);
-  } else {
-    try {
-      page = await queryMerchantDirectory({
-        principal,
-        directory: LINKS_DIRECTORY_ID,
-        orderId: LINKS_DIRECTORY_ORDER_ID,
-        order: DIRECTORY_ORDER,
-        filters: { ...query.query.filters, ...(query.query.q ? { q: query.query.q } : {}) },
-        canonicalFilterQuery: query.query.canonicalFilterQuery,
-        pageSize: query.query.pageSize,
-        ...(query.cursor ? { cursor: query.cursor } : {}),
-        adapter: getPaymentLinkV2DirectoryAdapter(),
-      });
-    } catch {
-      page = null;
-    }
+  try {
+    page = await queryMerchantDirectory({
+      principal,
+      directory: LINKS_DIRECTORY_ID,
+      orderId: LINKS_DIRECTORY_ORDER_ID,
+      order: DIRECTORY_ORDER,
+      filters: { ...query.query.filters, ...(query.query.q ? { q: query.query.q } : {}) },
+      canonicalFilterQuery: query.query.canonicalFilterQuery,
+      pageSize: query.query.pageSize,
+      ...(query.cursor ? { cursor: query.cursor } : {}),
+      adapter: getPaymentLinkV2DirectoryAdapter(),
+    });
+  } catch {
+    page = null;
   }
-
-  const copy = dataDirectoryCopy(dictionary, {
-    title: dictionary.adminPaymentLinksEmpty,
-    description: dictionary.adminPaymentLinksEmptyDescription,
-  });
 
   return (
     <div className="space-y-6">
@@ -308,28 +271,7 @@ export default async function MerchantLinksPage({
       </div>
       {invalidFiltersNotice ? <DirectoryInvalidFiltersNotice dictionary={dictionary} /> : null}
       {query.status === "ready" && query.notice ? <PaymentLinkV2Notice dictionary={dictionary} notice={query.notice} /> : null}
-      {query.status === "ready" && query.legacyNotice ? <PaymentLinkLegacyNotice dictionary={dictionary} notice={query.legacyNotice} /> : null}
-      {era === "legacy" && legacyData ? (
-        <LegacyLinksDirectory
-          canonicalFilterQuery={query.query.canonicalFilterQuery}
-          copy={copy}
-          data={legacyData}
-          dictionary={dictionary}
-          eraOptions={[eraFilter(dictionary, era)]}
-          filters={{
-            ...(query.query.q ? { q: query.query.q } : {}),
-            ...(firstValue(query.query.filters.state) ? { state: firstValue(query.query.filters.state) } : {}),
-            ...(firstValue(query.query.filters.type) ? { type: firstValue(query.query.filters.type) } : {}),
-            ...(firstValue(query.query.filters.from) ? { from: firstValue(query.query.filters.from) } : {}),
-            ...(firstValue(query.query.filters.to) ? { to: firstValue(query.query.filters.to) } : {}),
-          }}
-          formAction={LINKS_DIRECTORY_PATH}
-          locale={locale}
-          resetUrl={LINKS_DIRECTORY_PATH}
-        />
-      ) : (
-        <PaymentLinkDirectory dictionary={dictionary} era={era} locale={locale} ownerPairs={ownerPairs} page={page} query={query} />
-      )}
+      <PaymentLinkDirectory dictionary={dictionary} locale={locale} ownerPairs={ownerPairs} page={page} query={query} />
     </div>
   );
 }
