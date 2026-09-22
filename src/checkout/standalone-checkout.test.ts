@@ -35,7 +35,7 @@ describe("standalone checkout orchestration", () => {
 
     await expect(service.checkout(identifiers.slug, validBody)).resolves.toEqual({ kind: "accepted", status: 201, payment: { state: "PENDING", pixCopyPaste: "000201" }, statusCapability: capability(created) });
     expect(provider.quote).toHaveBeenCalledWith(identifiers.owner, expect.objectContaining({ amount: { kind: "fiat", value: "12.5" } }));
-    expect(provider.createOrder).toHaveBeenCalledWith(identifiers.owner, { quoteUuid: "440e8400-e29b-41d4-a716-446655440044" }, {}, undefined, identifiers.order);
+    expect(provider.createOrder).toHaveBeenCalledWith(identifiers.owner, { quoteUuid: "440e8400-e29b-41d4-a716-446655440044" }, {}, identifiers.order);
     expect(provider.createOrder).toHaveBeenCalledTimes(1);
     expect(store.markCreating).toHaveBeenCalledWith(identifiers.attempt);
     expect(store.markPending).toHaveBeenCalledWith(identifiers.attempt);

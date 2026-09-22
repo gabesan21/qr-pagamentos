@@ -17,7 +17,6 @@ type MutationStore = {
   updatePassword(id: string, passwordHash: string): Promise<void>;
   markDeleted(id: string, deletedAt: Date): Promise<void>;
   disableStorefront(id: string): Promise<void>;
-  deactivatePaymentLinks(ownerId: string): Promise<void>;
   deactivatePaymentLinksV2(ownerId: string): Promise<void>;
   recordDeletion(deletion: { id: string; userId: string; actorId: string; createdAt: Date }): Promise<void>;
   revokeSessions(userId: string): Promise<void>;
@@ -134,7 +133,6 @@ export function createAdministrationService(store: AdministrationStore) {
         const deletedAt = new Date();
         await locked.markDeleted(target.id, deletedAt);
         await locked.disableStorefront(target.id);
-        await locked.deactivatePaymentLinks(target.id);
         await locked.deactivatePaymentLinksV2(target.id);
         await locked.recordDeletion({ id: randomUUID(), userId: target.id, actorId: actor.id, createdAt: deletedAt });
       });
@@ -154,7 +152,6 @@ function prismaStore(): AdministrationStore {
     async updatePassword(id, passwordHash) { await client.passwordCredential.update({ where: { userId: id }, data: { passwordHash } }); },
     async markDeleted(id, deletedAt) { await client.user.update({ where: { id }, data: { deletedAt, status: "DISABLED" } }); },
     async disableStorefront(id) { await client.user.update({ where: { id }, data: { storefrontEnabled: false } }); },
-    async deactivatePaymentLinks(ownerId) { await client.paymentLink.updateMany({ where: { ownerId }, data: { active: false } }); },
     async deactivatePaymentLinksV2(ownerId) { await client.paymentLinkV2.updateMany({ where: { ownerId }, data: { active: false } }); },
     async recordDeletion(deletion) { await client.userDeletion.create({ data: deletion }); },
     async revokeSessions(userId) { await client.session.deleteMany({ where: { userId } }); },
