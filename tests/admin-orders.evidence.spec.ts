@@ -374,7 +374,6 @@ test("creates the closed administrator orders evidence run", async ({ page }) =>
     "src/app/orders/order-v2-views.tsx",
     "src/app/admin/orders/page.tsx",
     "src/app/admin/orders/directory-query.ts",
-    "src/app/admin/orders/directory-copy.ts",
     "src/app/admin/orders/v2/[id]/page.tsx",
     "src/data-directory/ui/data-directory.tsx",
     "src/i18n/dictionaries/orders-directory/en.ts",
