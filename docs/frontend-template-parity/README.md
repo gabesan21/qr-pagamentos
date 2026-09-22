@@ -65,6 +65,17 @@ All other non-direct records carry a reason and a concrete candidate task ID.
 The terminal `excluded-unreachable-generated-ui` disposition alone permits a
 null owner, because its recorded reachability reason is the final resolution.
 
+`current-route:8f438933ee474351` (`/admin/orders/[id]`) and
+`current-route:e9d65a7e31ad5b73` (`/orders/[id]`) are retired: task `15.1.1`
+deleted both surfaces under the 2026-09-22 decision that V1 never existed as a
+product, so no current file backs either record any more. The supplied
+template's remaining V1/legacy checkout and payment-links wording
+(`docs/template/info.md`, `docs/template/plan.md`,
+`docs/template/app/src/mock/types.ts`, `docs/template/app/src/mock/fixtures.ts`,
+`docs/template/app/src/pages/checkout/CheckoutPage.tsx`) is reference-only: the
+supplied template is immutable, so it is never adopted into the current
+application and never edited to drop the V1 wording.
+
 ## Evidence protocol
 
 Every visual record fixes the repository's `chromium` Playwright project,
@@ -85,10 +96,14 @@ only `source.path` and `source.sha256` for the current-route inventory with
 `node scripts/check-frontend-template-parity-contract.mjs --refresh-semantic-contract`;
 current routes prefer exact `path` + `route` + `routeKind` identity and may fall
 back only to one unambiguous `route` + `routeKind` match. Missing, duplicate,
-ambiguous, reused, or unmatched mappings abort before writing. The refresh also
-asserts stable record count, IDs, targets, owners, dispositions, reasons, and
-evidence; all other record families remain byte-equivalent, and only the
-manifest obligation binding changes.
+ambiguous, reused, or unmatched mappings abort before writing. The same refresh
+also retires a `current-route` record when — and only when — its bound
+`source.path` no longer exists in the repository; retirement is never
+expressed by name, list, or flag argument, so a route stays mapped for as long
+as its current file exists. The refresh also
+asserts stable record count net of any retirement, IDs, targets, owners,
+dispositions, reasons, and evidence; all other record families remain
+byte-equivalent, and only the manifest obligation binding changes.
 Then validate the canonical contract with `pnpm frontend-parity:check`. Do not
 hand-edit the manifest or obligation records. A live current route with no
 `current-route` record at all — never a stale-source mismatch, which the
