@@ -4,7 +4,7 @@ import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 
 import { getDatabaseClient } from "@/db/client";
 import { loadEncryptionKey } from "@/lib/nautt-crypto";
-import type { PaymentLinkOrderState } from "@/orders/payment-link-order";
+import type { PaymentLinkOrderState } from "@/orders/order-v2-policies";
 
 const CAPABILITY_KEY_VERSION = "v1";
 const CAPABILITY_PATTERN = /^[A-Za-z0-9_-]{43}$/;

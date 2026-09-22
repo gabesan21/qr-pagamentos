@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 import type { PaymentLinkV2DerivedState } from "@/auth/payment-link-v2-view";
-import type { PaymentLinkType } from "@/auth/payment-link";
+import type { PaymentLinkType } from "@/orders/payment-link-v2-type";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ConfirmDialog } from "@/components/ui/modal";

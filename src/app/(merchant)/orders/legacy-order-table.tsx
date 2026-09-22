@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { formatProductPrice } from "@/app/admin/product-management";
 import { formatOrderV2Instant } from "@/app/orders/order-v2-views";
-import { orderStateLabel } from "@/app/orders/order-views";
+import { orderStateLabel } from "@/app/orders/order-state-views";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { CopyField } from "@/components/ui/copy-field";
@@ -13,7 +13,7 @@ import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, Tabl
 import type { getDictionary } from "@/i18n/dictionaries";
 import type { SupportedLocale } from "@/i18n/locales";
 import type { OrderSummary } from "@/orders/order-view";
-import type { PaymentLinkOrderState } from "@/orders/payment-link-order";
+import type { PaymentLinkOrderState } from "@/orders/order-v2-policies";
 
 type Dictionary = ReturnType<typeof getDictionary>;
 

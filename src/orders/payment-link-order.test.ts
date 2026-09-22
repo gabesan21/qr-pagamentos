@@ -6,15 +6,13 @@ vi.mock("server-only", () => ({}));
 
 import {
   createPaymentLinkOrderService,
-  normalizeCustomerSnapshotV1,
-  type CustomerSnapshotV1,
-  type PaymentLinkOrderState,
   type PaymentLinkOrderStore,
   type SettlementInputV1,
   type SettlementResult,
   type StoredLinkOrder,
   type ValidatedSettlementInput,
 } from "./payment-link-order";
+import { normalizeCustomerSnapshotV1, type CustomerSnapshotV1, type PaymentLinkOrderState } from "./order-v2-policies";
 
 const ids = {
   owner: "110e8400-e29b-41d4-a716-446655440011",

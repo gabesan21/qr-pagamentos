@@ -2,9 +2,7 @@ import { randomBytes } from "node:crypto";
 
 import { getDatabaseClient } from "../db/client";
 import { requireUserPrincipal, type Principal } from "./authorization";
-
-export const PAYMENT_LINK_TYPES = ["SINGLE_USE", "REUSABLE"] as const;
-export type PaymentLinkType = (typeof PAYMENT_LINK_TYPES)[number];
+import type { PaymentLinkType } from "../orders/payment-link-v2-type";
 
 export type PaymentLinkProduct = Readonly<{
   id: string;

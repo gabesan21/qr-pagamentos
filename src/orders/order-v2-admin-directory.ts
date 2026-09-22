@@ -23,7 +23,7 @@ import type {
 } from "../data-directory/server/query-contract";
 import { getDatabaseClient } from "../db/client";
 import type { Prisma, PrismaClient } from "../generated/prisma/client";
-import { PAYMENT_LINK_ORDER_STATES } from "./payment-link-order";
+import { PAYMENT_LINK_ORDER_STATES } from "./order-v2-policies";
 import type { OrderV2DirectoryUsdPair } from "./order-v2-directory";
 import {
   orderV2SummarySelect,

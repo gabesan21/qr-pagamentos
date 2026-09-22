@@ -11,7 +11,7 @@ import {
   type CheckoutDataPolicy,
   type CustomerSnapshotV1,
   type PaymentLinkOrderState,
-} from "./payment-link-order";
+} from "./order-v2-policies";
 
 // The source vocabulary and its link/state coherence are service-fenced: the
 // safe migration language cannot express a droppable closed-set check on

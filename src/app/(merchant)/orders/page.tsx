@@ -7,7 +7,7 @@ import {
   OrderV2PayerFacts,
   OrderV2SourceBadge,
 } from "@/app/orders/order-v2-views";
-import { orderStateLabel } from "@/app/orders/order-views";
+import { orderStateLabel } from "@/app/orders/order-state-views";
 import { WorkspaceHeading } from "@/app-shell/workspace-heading";
 import { formatCatalogPrice } from "@/app/(merchant)/catalog/price-format";
 import { Button } from "@/components/ui/button";

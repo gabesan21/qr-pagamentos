@@ -3,7 +3,7 @@ import "server-only";
 import { ForbiddenError, requireUserPrincipal, type Principal } from "../auth/authorization";
 import { getDatabaseClient } from "../db/client";
 import type { PrismaClient } from "../generated/prisma/client";
-import type { CheckoutDataPolicy, CustomerAddressV1, CustomerSnapshotV1, PaymentLinkOrderState } from "./payment-link-order";
+import type { CheckoutDataPolicy, CustomerAddressV1, CustomerSnapshotV1, PaymentLinkOrderState } from "./order-v2-policies";
 
 // Bounded recent window; pagination beyond it is intentionally out of scope.
 export const ORDER_VIEW_LIST_LIMIT = 50;

@@ -6,7 +6,7 @@ vi.mock("server-only", () => ({}));
 
 import type { Principal } from "../auth/authorization";
 import { ForbiddenError } from "../auth/authorization";
-import type { CheckoutDataPolicy, CustomerSnapshotV1 } from "./payment-link-order";
+import type { CheckoutDataPolicy, CustomerSnapshotV1 } from "./order-v2-policies";
 import {
   createOrderViewService,
   ORDER_VIEW_LIST_LIMIT,
