@@ -106,7 +106,7 @@ async function addValidFuture(root) {
 
 await withRepositoryFixture(async (root) => {
   const result = await verifyRepository(root);
-  assert(result.baselineCount === 19 && result.futureCount === 0, "real repository baseline count differs");
+  assert(result.baselineCount === 16 && result.futureCount === 0, "real repository baseline count differs");
   await addValidFuture(root);
   const futureResult = await verifyRepository(root);
   assert(futureResult.futureCount === 1, "valid future migration was not accepted");

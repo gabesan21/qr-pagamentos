@@ -15,10 +15,7 @@
     { "id": "20260718050000_nautt_webhook_recovery", "sha256": "75b6d9f3a65946d2d2c3f435d2c640fd6f05356aececb9a530f7001d848b0416" },
     { "id": "20260720230000_nautt_catalog", "sha256": "3537a3ecb43ed84e21768839191444159ec95cfa19a5f1b79c13394cf786fe6a" },
     { "id": "20260721010000_products", "sha256": "224a1734779d351733d9c6b6ef8685a87a9168d548095e48f09c22ccb3f5c2bf" },
-    { "id": "20260721020000_payment_links", "sha256": "ec09a39c68a4f08c5a00a5d24aae45b97f2e3ffea1ff2493291c8c6ad80c4655" },
-    { "id": "20260721030000_owner_isolation_checkout_policy", "sha256": "c4879ad2dc04c06e162e61b7fd37ea59eb9388b1c3e84edc2c394580da908a78" },
-    { "id": "20260721040000_payment_link_orders", "sha256": "e90bbdaa1749d0a94cb8b2ba4a1fe624849f68832d625b707ccc651fa635c419" },
-    { "id": "20260721050000_public_checkout_attempts", "sha256": "3c8dcf5b3c2cdc12bcf975bc323ce7711ed316b43c32fb7a831d424182db8a7f" },
+    { "id": "20260721030000_owner_isolation_checkout_policy", "sha256": "4ab57e47f5646144dd63bdd6e529500d29d9a5251fcf47058dbae6155184a810" },
     { "id": "20260721060000_storefront_settings", "sha256": "34ef18988add283e7f51b962450a78528f394d235577879ff21c85413001bb33" }
   ]
 }

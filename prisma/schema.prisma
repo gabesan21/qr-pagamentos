@@ -48,10 +48,7 @@ model User {
   providerOrders   ProviderOrder[]
   products         Product[]
   productCategories ProductCategory[]
-  paymentLinks     PaymentLink[]
   paymentLinksV2   PaymentLinkV2[]
-  paymentLinkOrders PaymentLinkOrder[]
-  checkoutAttempts CheckoutAttempt[]
   ordersV2         OrderV2[]
   orderCommentsV2  OrderCommentV2[]
   orderLocalOutcomesV2 OrderLocalOutcomeV2[]
@@ -208,7 +205,6 @@ model CatalogCurrencyPair {
   active               Boolean  @default(true)
   createdAt            DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt            DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
-  paymentLinks              PaymentLink[]
   paymentLinksV2            PaymentLinkV2[]
   supportedExchangeCurrency SupportedExchangeCurrency?
 
@@ -258,9 +254,7 @@ model Product {
   updatedAt       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
   owner           User     @relation(fields: [ownerId], references: [id], onDelete: Restrict)
   category        ProductCategory? @relation(fields: [categoryId, ownerId], references: [id, ownerId], onDelete: Restrict)
-  paymentLinks    PaymentLink[]
   paymentLinkV2Lines PaymentLinkV2Line[]
-  paymentLinkOrders PaymentLinkOrder[]
   orderV2Lines    OrderV2Line[]
 
   @@unique([id, ownerId], map: "product_id_owner_id_key")
@@ -287,33 +281,6 @@ model ProductCategory {
   @@unique([ownerId, nameEn], map: "product_category_owner_name_en_key")
   @@index([ownerId, active, namePtBr, id], map: "product_category_owner_active_name_idx")
   @@map("product_category")
-  @@schema("app")
-}
-
-model PaymentLink {
-  id             String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  identifier     String              @unique(map: "payment_link_identifier_key") @db.VarChar(24)
-  ownerId        String              @map("owner_id") @db.Uuid
-  productId      String              @map("product_id") @db.Uuid
-  currencyPairId String              @map("currency_pair_id") @db.Uuid
-  linkType       String              @map("link_type") @db.VarChar(10)
-  expiresAt      DateTime?           @map("expires_at") @db.Timestamptz(3)
-  active         Boolean             @default(true)
-  createdAt      DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
-  owner          User                @relation(fields: [ownerId], references: [id], onDelete: Restrict)
-  product        Product             @relation(fields: [productId, ownerId], references: [id, ownerId], onDelete: Restrict)
-  currencyPair   CatalogCurrencyPair @relation(fields: [currencyPairId], references: [id], onDelete: Restrict)
-  paymentLinkOrders PaymentLinkOrder[]
-  checkoutAttempts CheckoutAttempt[]
-  singleUseSettlement PaymentLinkSingleUseSettlement?
-
-  @@unique([id, ownerId], map: "payment_link_id_owner_id_key")
-  @@unique([id, ownerId, productId], map: "payment_link_id_owner_product_id_key")
-  @@index([createdAt, id], map: "payment_link_created_at_id_idx")
-  @@index([ownerId, createdAt, id], map: "payment_link_owner_created_at_id_idx")
-  @@index([productId], map: "payment_link_product_id_idx")
-  @@index([currencyPairId], map: "payment_link_currency_pair_id_idx")
-  @@map("payment_link")
   @@schema("app")
 }
 
@@ -554,7 +521,6 @@ model ProviderOrder {
   paymentMethod         String?   @map("payment_method") @db.Text
   pixCopyPaste          String?   @map("pix_copy_paste") @db.Text
   pixQrcodeUrl          String?   @map("pix_qrcode_url") @db.Text
-  paymentLinkOrderId    String?   @unique(map: "provider_order_payment_link_order_id_key") @map("payment_link_order_id") @db.Uuid
   orderV2Id             String?   @map("order_v2_id") @db.Uuid
   reconciliationVersion Int       @default(0) @map("reconciliation_version") @db.Integer
   createdAt             DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
@@ -563,92 +529,13 @@ model ProviderOrder {
   quote                 ProviderQuote @relation(fields: [quoteUuid, ownerId], references: [quoteUuid, ownerId], onDelete: Cascade)
   webhookDeliveries     WebhookDelivery[]
   webhookRecoveryLease  WebhookRecoveryLease?
-  paymentLinkOrder      PaymentLinkOrder? @relation("PaymentLinkOrderProviderOrder", fields: [paymentLinkOrderId, ownerId], references: [id, ownerId], onDelete: Restrict)
   orderV2               OrderV2? @relation(fields: [orderV2Id, ownerId], references: [id, ownerId], onDelete: Restrict)
 
   @@index([ownerId, status], map: "provider_order_owner_status_idx")
   @@unique([id, ownerId], map: "provider_order_id_owner_id_key")
   @@unique([quoteUuid, ownerId], map: "provider_order_quote_uuid_owner_id_key")
-  @@unique([paymentLinkOrderId, ownerId], map: "provider_order_payment_link_order_owner_key")
   @@unique([orderV2Id, ownerId], map: "provider_order_order_v2_owner_key")
   @@map("provider_order")
-  @@schema("app")
-}
-
-model PaymentLinkOrder {
-  id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  ownerId               String   @map("owner_id") @db.Uuid
-  paymentLinkId         String   @map("payment_link_id") @db.Uuid
-  productId             String   @map("product_id") @db.Uuid
-  productPrice          String   @map("product_price") @db.Text
-  currencyUuid          String   @map("currency_uuid") @db.Uuid
-  exchangeCurrencyUuid  String   @map("exchange_currency_uuid") @db.Uuid
-  checkoutDataPolicy    String   @map("checkout_data_policy") @db.VarChar(22)
-  name                  String?  @db.VarChar(160)
-  email                 String?  @db.VarChar(254)
-  cpf                   String?  @db.Char(11)
-  street                String?  @db.VarChar(160)
-  number                String?  @db.VarChar(32)
-  district              String?  @db.VarChar(120)
-  city                  String?  @db.VarChar(120)
-  stateUf               String?  @map("state_uf") @db.Char(2)
-  postalCode            String?  @map("postal_code") @db.Char(8)
-  country               String?  @db.Char(2)
-  complement            String?  @db.VarChar(160)
-  state                 String   @default("CREATED") @db.VarChar(13)
-  lifecycleVersion      Int      @default(0) @map("lifecycle_version") @db.Integer
-  settledAt             DateTime? @map("settled_at") @db.Timestamptz(3)
-  createdAt             DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt             DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
-  owner                 User     @relation(fields: [ownerId], references: [id], onDelete: Restrict)
-  paymentLink           PaymentLink @relation(fields: [paymentLinkId, ownerId, productId], references: [id, ownerId, productId], onDelete: Restrict)
-  product               Product  @relation(fields: [productId, ownerId], references: [id, ownerId], onDelete: Restrict)
-  providerOrder         ProviderOrder? @relation("PaymentLinkOrderProviderOrder")
-  singleUseSettlement   PaymentLinkSingleUseSettlement?
-  checkoutAttempt       CheckoutAttempt?
-
-  @@unique([id, ownerId], map: "payment_link_order_id_owner_id_key")
-  @@map("payment_link_order")
-  @@schema("app")
-}
-
-model CheckoutAttempt {
-  id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  ownerId               String   @map("owner_id") @db.Uuid
-  paymentLinkId         String   @map("payment_link_id") @db.Uuid
-  paymentLinkOrderId    String   @unique(map: "checkout_attempt_payment_link_order_id_key") @map("payment_link_order_id") @db.Uuid
-  retryKeyVerifier      String   @map("retry_key_verifier") @db.Char(64)
-  requestVerifier       String   @map("request_verifier") @db.Char(64)
-  capabilityNonce       String   @map("capability_nonce") @db.Char(43)
-  capabilityKeyVersion  String   @map("capability_key_version") @db.VarChar(16)
-  capabilityVerifier    String   @map("capability_verifier") @db.Char(64)
-  capabilityExpiresAt   DateTime @map("capability_expires_at") @db.Timestamptz(3)
-  capabilityRevokedAt   DateTime? @map("capability_revoked_at") @db.Timestamptz(3)
-  state                 String   @default("RESERVED") @db.VarChar(13)
-  createdAt             DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt             DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
-  owner                 User     @relation(fields: [ownerId], references: [id], onDelete: Restrict)
-  paymentLink           PaymentLink @relation(fields: [paymentLinkId, ownerId], references: [id, ownerId], onDelete: Restrict)
-  paymentLinkOrder      PaymentLinkOrder @relation(fields: [paymentLinkOrderId, ownerId], references: [id, ownerId], onDelete: Restrict)
-
-  @@unique([paymentLinkId, retryKeyVerifier], map: "checkout_attempt_link_retry_key_verifier_key")
-  @@unique([paymentLinkOrderId, ownerId], map: "checkout_attempt_order_owner_key")
-  @@index([ownerId, capabilityExpiresAt], map: "checkout_attempt_owner_capability_expiry_idx")
-  @@map("checkout_attempt")
-  @@schema("app")
-}
-
-model PaymentLinkSingleUseSettlement {
-  paymentLinkId      String           @id @map("payment_link_id") @db.Uuid
-  ownerId            String           @map("owner_id") @db.Uuid
-  paymentLinkOrderId String           @unique(map: "payment_link_single_use_settlement_order_key") @map("payment_link_order_id") @db.Uuid
-  claimedAt          DateTime         @default(now()) @map("claimed_at") @db.Timestamptz(3)
-  paymentLink        PaymentLink      @relation(fields: [paymentLinkId, ownerId], references: [id, ownerId], onDelete: Restrict)
-  paymentLinkOrder   PaymentLinkOrder @relation(fields: [paymentLinkOrderId, ownerId], references: [id, ownerId], onDelete: Restrict)
-
-  @@unique([paymentLinkId, ownerId], map: "payment_link_single_use_settlement_link_owner_key")
-  @@unique([paymentLinkOrderId, ownerId], map: "payment_link_single_use_settlement_order_owner_key")
-  @@map("payment_link_single_use_settlement")
   @@schema("app")
 }
 
