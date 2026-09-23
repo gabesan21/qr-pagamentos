@@ -24,7 +24,6 @@ function fakeDatabase() {
   };
   const database = {
     $transaction: vi.fn(async (operation: (transaction: unknown) => unknown) => operation(transaction)),
-    paymentLink: { count: vi.fn(async (): Promise<number> => 0) },
     paymentLinkV2: {
       count: vi.fn(async (): Promise<number> => 0),
       updateMany: transaction.paymentLinkV2.updateMany,
@@ -84,13 +83,12 @@ describe("payment-link-v2 prisma store", () => {
     expect(transaction.paymentLinkV2Line.createMany).not.toHaveBeenCalled();
   });
 
-  it("probes both identifier tables for the shared namespace", async () => {
+  it("probes the V2 identifier namespace", async () => {
     const { database } = fakeDatabase();
-    database.paymentLink.count.mockResolvedValueOnce(1);
+    database.paymentLinkV2.count.mockResolvedValueOnce(1);
     const store = createPaymentLinkV2Store(database as never);
 
     await expect(store.identifierTaken("b".repeat(24))).resolves.toBe(true);
-    expect(database.paymentLink.count).toHaveBeenCalledWith({ where: { identifier: "b".repeat(24) } });
     expect(database.paymentLinkV2.count).toHaveBeenCalledWith({ where: { identifier: "b".repeat(24) } });
   });
 

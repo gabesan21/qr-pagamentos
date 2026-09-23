@@ -31,7 +31,7 @@ const record = {
       descriptionPtBr: "Café especial.",
       descriptionEn: "Specialty coffee.",
       price: "12.50",
-      paymentLinks: [{ identifier: "AbCdEfGhIjKlMnOpQrStUvWx" }],
+      paymentLinkV2Lines: [{ paymentLink: { identifier: "AbCdEfGhIjKlMnOpQrStUvWx" } }],
     },
     {
       titlePtBr: "Indisponível",
@@ -39,7 +39,7 @@ const record = {
       descriptionPtBr: "Não deve aparecer.",
       descriptionEn: "Must not appear.",
       price: "9.00",
-      paymentLinks: [],
+      paymentLinkV2Lines: [],
     },
   ],
   catalog: {
@@ -371,7 +371,9 @@ describe("public storefront prisma store", () => {
         products: {
           where: {
             active: true,
-            paymentLinks: { some: { active: true, OR: [{ expiresAt: null }, { expiresAt: { gt: expect.any(Date) } }] } },
+            paymentLinkV2Lines: {
+              some: { paymentLink: { linkType: "REUSABLE", active: true, OR: [{ expiresAt: null }, { expiresAt: { gt: expect.any(Date) } }] } },
+            },
           },
           orderBy: [{ internalName: "asc" }, { id: "asc" }],
           select: {
@@ -380,11 +382,11 @@ describe("public storefront prisma store", () => {
             descriptionPtBr: true,
             descriptionEn: true,
             price: true,
-            paymentLinks: {
-              where: { active: true, OR: [{ expiresAt: null }, { expiresAt: { gt: expect.any(Date) } }] },
-              orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+            paymentLinkV2Lines: {
+              where: { paymentLink: { linkType: "REUSABLE", active: true, OR: [{ expiresAt: null }, { expiresAt: { gt: expect.any(Date) } }] } },
+              orderBy: [{ paymentLink: { createdAt: "asc" } }, { paymentLink: { id: "asc" } }],
               take: 1,
-              select: { identifier: true },
+              select: { paymentLink: { select: { identifier: true } } },
             },
           },
         },

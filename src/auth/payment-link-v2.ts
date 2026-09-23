@@ -352,11 +352,7 @@ export function createPaymentLinkV2Store(db: ReturnType<typeof getDatabaseClient
       return link ? toOwnerPaymentLinkV2(link) : null;
     },
     async identifierTaken(identifier) {
-      const collisions = await Promise.all([
-        db.paymentLink.count({ where: { identifier } }),
-        db.paymentLinkV2.count({ where: { identifier } }),
-      ]);
-      return collisions.some((count) => count > 0);
+      return (await db.paymentLinkV2.count({ where: { identifier } })) > 0;
     },
     async create(ownerId, values) {
       return db.$transaction(async (transaction) => {

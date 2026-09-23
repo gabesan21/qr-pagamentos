@@ -80,7 +80,6 @@ function sharedHarness(initialPasswordHash: string) {
     async revokeSessions() { rows.splice(0); },
     async markDeleted() {},
     async disableStorefront() {},
-    async deactivatePaymentLinks() {},
     async deactivatePaymentLinksV2() {},
     async recordDeletion() {},
     async resolveDefaultThemeId() { return "vault-blue"; },

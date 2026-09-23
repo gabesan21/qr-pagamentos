@@ -99,7 +99,9 @@ export type PublicStorefrontRecord = Readonly<{
     descriptionPtBr: string;
     descriptionEn: string;
     price: string;
-    paymentLinks: readonly Readonly<{ identifier: string }>[];
+    // Earliest-created, id-tiebroken active/unexpired REUSABLE V2 line — the
+    // one candidate that keeps every listed product payable (9.1.6 rule).
+    paymentLinkV2Lines: readonly Readonly<{ paymentLink: Readonly<{ identifier: string }> }>[];
   }>[];
   catalog: Readonly<{
     categories: readonly PublicStorefrontCatalogCategoryRecord[];
@@ -158,7 +160,7 @@ function localizeCatalog(record: PublicStorefrontRecord, locale: SupportedLocale
 function localizeStorefront(record: PublicStorefrontRecord, locale: SupportedLocale): PublicStorefront {
   const displayName = locale === "pt-BR" ? record.storefrontDisplayNamePtBr : record.storefrontDisplayNameEn;
   const products = record.products.flatMap((product) => {
-    const paymentLinkIdentifier = product.paymentLinks[0]?.identifier;
+    const paymentLinkIdentifier = product.paymentLinkV2Lines[0]?.paymentLink.identifier;
     if (!paymentLinkIdentifier) return [];
     const localized = locale === "pt-BR"
       ? { title: product.titlePtBr, description: product.descriptionPtBr }
@@ -215,7 +217,12 @@ function prismaStore(): PublicStorefrontStore {
           products: {
             where: {
               active: true,
-              paymentLinks: { some: { active: true, OR: [{ expiresAt: null }, { expiresAt: { gt: now } }] } },
+              // A member of `products` is an active product that appears in
+              // the lines of at least one active, unexpired REUSABLE Commerce
+              // V2 link of the same owner (9.1.6 rule).
+              paymentLinkV2Lines: {
+                some: { paymentLink: { linkType: "REUSABLE", active: true, OR: [{ expiresAt: null }, { expiresAt: { gt: now } }] } },
+              },
             },
             orderBy: [{ internalName: "asc" }, { id: "asc" }],
             select: {
@@ -224,11 +231,11 @@ function prismaStore(): PublicStorefrontStore {
               descriptionPtBr: true,
               descriptionEn: true,
               price: true,
-              paymentLinks: {
-                where: { active: true, OR: [{ expiresAt: null }, { expiresAt: { gt: now } }] },
-                orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+              paymentLinkV2Lines: {
+                where: { paymentLink: { linkType: "REUSABLE", active: true, OR: [{ expiresAt: null }, { expiresAt: { gt: now } }] } },
+                orderBy: [{ paymentLink: { createdAt: "asc" } }, { paymentLink: { id: "asc" } }],
                 take: 1,
-                select: { identifier: true },
+                select: { paymentLink: { select: { identifier: true } } },
               },
             },
           },
