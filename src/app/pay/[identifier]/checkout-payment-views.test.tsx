@@ -11,7 +11,6 @@ function render(state: CheckoutPaymentViewState, overrides: Partial<Parameters<t
     <CheckoutPaymentView
       dictionary={dictionary}
       merchantName="Ana's Shop"
-      onRetryPoll={vi.fn()}
       onStartOver={vi.fn()}
       state={state}
       total="12.50"
@@ -21,14 +20,16 @@ function render(state: CheckoutPaymentViewState, overrides: Partial<Parameters<t
 }
 
 describe("checkout payment view", () => {
-  it("renders exactly eight distinct outcome compositions — RESERVED/CREATING/CREATED share one live shell — with the confirmed total and the refunded neutral badge", () => {
+  it("renders exactly eight distinct outcome compositions — RESERVED/CREATING/CREATED share one waiting shell — with the confirmed total and the refunded neutral badge", () => {
     const states: readonly CheckoutPaymentViewState[] = [
       "CANCELLED", "CONFIRMED", "CREATED", "CREATING", "EXPIRED", "INDETERMINATE", "PENDING", "REFUNDED", "REJECTED", "RESERVED",
     ];
-    const renders = new Map(states.map((state) => [state, render(state)]));
+    const renders = new Map(states.map((state) => [state, render(state, { pixCopyPaste: "pix-payload" })]));
     // RESERVED, CREATING and CREATED all project to the same "created"
-    // provider state and the same live shell, so they render identically —
-    // the closed vocabulary still exposes exactly eight distinct views.
+    // provider state and the same waiting shell, so they render
+    // identically — the closed vocabulary still exposes exactly eight
+    // distinct views (PENDING with a payload renders the QR view; PENDING
+    // is otherwise supplied without a payload below).
     expect(new Set(renders.values()).size).toBe(8);
     expect(renders.get("RESERVED")).toBe(renders.get("CREATING"));
     expect(renders.get("CREATING")).toBe(renders.get("CREATED"));
@@ -45,29 +46,62 @@ describe("checkout payment view", () => {
       expect(renders.get(state)).toContain(dictionary.checkoutStartOver);
     }
 
-    for (const state of ["RESERVED", "CREATING", "CREATED", "PENDING", "INDETERMINATE"] as const) {
+    for (const state of ["RESERVED", "CREATING", "CREATED"] as const) {
       expect(renders.get(state)).toContain(dictionary.checkoutAmountDueLabel);
     }
-    expect(renders.get("INDETERMINATE")).toContain(dictionary.checkoutConfirmingWithBank);
+    expect(renders.get("INDETERMINATE")).toContain(dictionary.checkoutStartOver);
   });
 
-  it("renders the poll-error banner with retry only when a poll has failed, on a live state", () => {
-    const clean = render("CREATED", { pixCopyPaste: "pix-payload" });
-    expect(clean).not.toContain(dictionary.checkoutPollErrorBanner);
+  it("names PENDING without a payload, and INDETERMINATE, as PIX-unavailable — no QR frame, no retry action", () => {
+    const noPayload = render("PENDING");
+    expect(noPayload).toContain(dictionary.checkoutPixUnavailableTitle);
+    expect(noPayload).toContain(dictionary.checkoutStartOver);
+    expect(noPayload).not.toMatch(/role="img"/);
 
-    const failed = render("CREATED", { pixCopyPaste: "pix-payload", pollFailed: true });
-    expect(failed).toContain(dictionary.checkoutPollErrorBanner);
-    expect(failed).toContain(dictionary.checkoutCheckAgain);
+    const indeterminate = render("INDETERMINATE", { pixCopyPaste: "pix-payload" });
+    expect(indeterminate).toContain(dictionary.checkoutPixUnavailableTitle);
+    expect(indeterminate).not.toMatch(/role="img"/);
+  });
+
+  it("renders the honest waiting treatment for RESERVED/CREATING/CREATED — aria-busy, no QR frame, no caption promising data", () => {
+    for (const state of ["RESERVED", "CREATING", "CREATED"] as const) {
+      const markup = render(state, { pixCopyPaste: "pix-payload" });
+      expect(markup).toContain('aria-busy="true"');
+      expect(markup).not.toMatch(/role="img"/);
+      expect(markup).not.toContain(dictionary.checkoutScanCaption);
+    }
+  });
+
+  it("renders the status-unavailable named state whenever a status read has failed, regardless of the interrupted state", () => {
+    const markup = render("CREATED", { pixCopyPaste: "pix-payload", statusReadFailed: true });
+    expect(markup).toContain(dictionary.checkoutStatusUnavailableTitle);
+    expect(markup).toContain(dictionary.checkoutStartOver);
+    expect(markup).not.toMatch(/role="img"/);
+  });
+
+  it("renders PENDING with a payload as QR plus copy-paste", () => {
+    const markup = render("PENDING", { pixCopyPaste: "pix-payload" });
+    expect(markup).toContain(dictionary.checkoutScanCaption);
+    expect(markup).toMatch(/role="img"/);
   });
 
   it("feeds the merchant identity into the QR display's identity slot on the live view (C03.a)", () => {
-    const markup = render("CREATED", { merchantIdentity: <span data-testid="merchant-mark">mark</span>, pixCopyPaste: "pix-payload" });
+    const markup = render("PENDING", { merchantIdentity: <span data-testid="merchant-mark">mark</span>, pixCopyPaste: "pix-payload" });
     expect(markup).toContain('data-testid="merchant-mark"');
   });
 
   it("never emits a retired checkout-* class name in any state (C03.c)", () => {
     for (const state of ["CANCELLED", "CONFIRMED", "CREATED", "CREATING", "EXPIRED", "INDETERMINATE", "PENDING", "REFUNDED", "REJECTED", "RESERVED"] as const) {
       expect(render(state, { pixCopyPaste: "pix-payload" })).not.toMatch(/class="[^"]*\bcheckout-[a-z-]+/);
+    }
+  });
+
+  it("never emits the retired retry surfaces in any state", () => {
+    for (const state of ["CANCELLED", "CONFIRMED", "CREATED", "CREATING", "EXPIRED", "INDETERMINATE", "PENDING", "REFUNDED", "REJECTED", "RESERVED"] as const) {
+      const markup = render(state, { pixCopyPaste: "pix-payload", statusReadFailed: state === "PENDING" });
+      expect(markup).not.toContain("checkoutRetry");
+      expect(markup).not.toContain("checkoutCheckAgain");
+      expect(markup).not.toContain("checkoutPollErrorBanner");
     }
   });
 });

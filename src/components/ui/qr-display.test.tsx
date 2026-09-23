@@ -65,4 +65,21 @@ describe("QrDisplay", () => {
     await waitFor(() => expect(figure().getAttribute("aria-busy")).toBeNull());
     expect(container.querySelector('[data-pending="true"]')).toBeNull();
   });
+
+  it("reports a rejected generation to the caller through the additive optional onGenerationFailed prop (15.3.1)", async () => {
+    toString.mockRejectedValueOnce(new Error("encoding failed"));
+    const onGenerationFailed = vi.fn();
+    render(<QrDisplay graphicLabel="QR code" onGenerationFailed={onGenerationFailed} payload="pix-payload" />);
+
+    await waitFor(() => expect(onGenerationFailed).toHaveBeenCalledTimes(1));
+  });
+
+  it("never calls onGenerationFailed when generation resolves", async () => {
+    toString.mockResolvedValueOnce("<svg data-fixture=\"m-level\"></svg>");
+    const onGenerationFailed = vi.fn();
+    const { container } = render(<QrDisplay graphicLabel="QR code" onGenerationFailed={onGenerationFailed} payload="pix-payload" />);
+
+    await waitFor(() => expect(container.querySelector('[data-fixture="m-level"]')).not.toBeNull());
+    expect(onGenerationFailed).not.toHaveBeenCalled();
+  });
 });
