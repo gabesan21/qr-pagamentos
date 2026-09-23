@@ -33,7 +33,6 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[15.2.3-payment-method-visibility-and-public-dto-trim]] | Redacted provider `code` in logs, `paymentMethod` on the owner order detail, `pixQrCodeUrl` removed from public DTOs. · size: S | 003_human_approval |
 | [[15.2.4-phase-verification]] | Write/run the phase suite (reconciliation, adapter and checkout service tests) and repair only phase defects. · size: S | 001_initial_task |
 
 ## Phase 15.3 - Explicit checkout
