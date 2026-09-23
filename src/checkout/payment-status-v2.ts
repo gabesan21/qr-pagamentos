@@ -15,7 +15,6 @@ const CAPABILITY_PATTERN = /^[A-Za-z0-9_-]{43}$/;
 export type PublicPaymentStatusV2 = Readonly<{
   state: PaymentLinkOrderState;
   pixCopyPaste?: string;
-  pixQrCodeUrl?: string;
 }>;
 
 type StatusAttempt = Readonly<{
@@ -27,7 +26,7 @@ type StatusAttempt = Readonly<{
   capabilityRevokedAt: Date | null;
   order: Readonly<{
     state: PaymentLinkOrderState | null;
-    providerOrders: ReadonlyArray<Readonly<{ pixCopyPaste: string | null; pixQrcodeUrl: string | null }>>;
+    providerOrders: ReadonlyArray<Readonly<{ pixCopyPaste: string | null }>>;
   }>;
 }>;
 
@@ -48,7 +47,6 @@ function statusView(attempt: StatusAttempt): PublicPaymentStatusV2 | null {
   return {
     state: payment.state,
     ...(payment.state === "PENDING" && providerOrder?.pixCopyPaste ? { pixCopyPaste: providerOrder.pixCopyPaste } : {}),
-    ...(payment.state === "PENDING" && providerOrder?.pixQrcodeUrl ? { pixQrCodeUrl: providerOrder.pixQrcodeUrl } : {}),
   };
 }
 
@@ -87,7 +85,7 @@ function prismaStore(): PublicPaymentStatusV2Store {
         where: { capabilityVerifier },
         select: {
           id: true, capabilityNonce: true, capabilityKeyVersion: true, capabilityVerifier: true, capabilityExpiresAt: true, capabilityRevokedAt: true,
-          order: { select: { state: true, providerOrders: { select: { pixCopyPaste: true, pixQrcodeUrl: true } } } },
+          order: { select: { state: true, providerOrders: { select: { pixCopyPaste: true } } } },
         },
       }) as Promise<StatusAttempt | null>;
     },

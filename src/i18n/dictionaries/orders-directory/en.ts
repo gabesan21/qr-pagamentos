@@ -75,6 +75,8 @@ export const ordersDirectoryEn = {
   orderV2DetailLinkCard: "Payment link",
   orderV2DetailChronology: "Chronology",
   orderV2DetailProviderState: "Payment state",
+  orderV2DetailPaymentMethod: "Payment method",
+  orderV2DetailPaymentMethodNone: "Not available",
   orderV2DetailLocalOutcome: "Local outcome",
   orderV2DetailTotal: "Total",
   orderV2DetailLineTotal: "Line total",

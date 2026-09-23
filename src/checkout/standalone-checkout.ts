@@ -30,7 +30,7 @@ type CheckoutAttemptState = "RESERVED" | "CREATING" | "PENDING" | "INDETERMINATE
 // payment-view vocabulary above, since a failed attempt answers the
 // existing redacted provider-unavailable outcome instead of a payment view.
 type AttemptState = CheckoutAttemptState | "FAILED";
-type PaymentView = Readonly<{ state: CheckoutAttemptState; pixCopyPaste?: string; pixQrCodeUrl?: string }>;
+type PaymentView = Readonly<{ state: CheckoutAttemptState; pixCopyPaste?: string }>;
 export type StandaloneCheckoutResult =
   | Readonly<{ kind: "invalid" }>
   | Readonly<{ kind: "unavailable" }>
@@ -49,7 +49,7 @@ type AttemptRecord = Readonly<{
   capabilityRevokedAt: Date | null;
   state: AttemptState;
   owner: Readonly<{ storefrontEnabled: boolean; storefrontStandalonePaymentsEnabled: boolean }>;
-  order: Readonly<{ providerOrders: ReadonlyArray<Readonly<{ status: string | null; pixCopyPaste: string | null; pixQrcodeUrl: string | null }>> }>;
+  order: Readonly<{ providerOrders: ReadonlyArray<Readonly<{ status: string | null; pixCopyPaste: string | null }>> }>;
 }>;
 
 type LockedOwner = Readonly<{
@@ -97,7 +97,7 @@ function validCapability(key: Buffer, attempt: AttemptRecord, now: Date): string
 }
 function paymentView(attempt: AttemptRecord): PaymentView {
   const order = attempt.order.providerOrders[0];
-  if (attempt.state === "PENDING" && order?.status) return { state: "PENDING", ...(order.pixCopyPaste ? { pixCopyPaste: order.pixCopyPaste } : {}), ...(order.pixQrcodeUrl ? { pixQrCodeUrl: order.pixQrcodeUrl } : {}) };
+  if (attempt.state === "PENDING" && order?.status) return { state: "PENDING", ...(order.pixCopyPaste ? { pixCopyPaste: order.pixCopyPaste } : {}) };
   // Callers never reach here with a FAILED attempt: the checkout flow answers
   // provider-unavailable for a refusal, on first submit and on replay alike.
   return { state: attempt.state as CheckoutAttemptState };
@@ -152,7 +152,7 @@ export function createStandaloneCheckoutService(store: CheckoutStore, dependenci
 }
 
 export function createPrismaStandaloneCheckoutStore(db = getDatabaseClient(), key = loadEncryptionKey()): CheckoutStore {
-  const record = { include: { owner: { select: { storefrontEnabled: true, storefrontStandalonePaymentsEnabled: true } }, order: { select: { providerOrders: { select: { status: true, pixCopyPaste: true, pixQrcodeUrl: true } } } } } } as const;
+  const record = { include: { owner: { select: { storefrontEnabled: true, storefrontStandalonePaymentsEnabled: true } }, order: { select: { providerOrders: { select: { status: true, pixCopyPaste: true } } } } } } as const;
   const toAttempt = (value: unknown) => value as AttemptRecord;
   return {
     async reserve({ slug, retryKey, amount, customer, now }) {
