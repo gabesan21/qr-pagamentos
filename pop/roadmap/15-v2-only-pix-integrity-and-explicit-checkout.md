@@ -27,13 +27,12 @@
 
 ## Phase 15.2 - PIX integrity
 
-- **Status:** pendente
+- **Status:** concluída
 - **Description:** Reconciliation never erases PIX, documented provider creation errors fail closed, and the order's payment method is visible to its owner.
 - **Specs:** [[specs/nautt-finance-integration|Nautt Finance integration]], [[specs/checkout-and-order-lifecycle|Checkout and order lifecycle]]
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[15.2.4-phase-verification]] | Write/run the phase suite (reconciliation, adapter and checkout service tests) and repair only phase defects. · size: S | 003_human_approval |
 
 ## Phase 15.3 - Explicit checkout
 
