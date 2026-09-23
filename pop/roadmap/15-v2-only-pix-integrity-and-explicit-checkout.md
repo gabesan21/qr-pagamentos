@@ -2,7 +2,7 @@
 
 - **Project:** [[PROJECT|QR Pagamentos]]
 - **Roadmap:** [[ROADMAP|Roadmap]]
-- **Status:** em andamento
+- **Status:** concluída
 - **Description:** Remove the V1 payment-link/checkout/order line integrally, make PIX data durable and provider errors fail closed, and give the public checkout explicit no-retry states on the project's own template contract.
 - **Yolo:** não — every task stops at `003_human_approval` for coordination (user command 2026-09-22); the `005_closing` gate is the human PR.
 - **Pause if:** V1 removal would require touching the Nautt webhook URL registration surface, `NAUTT_API_BASE_URL`, or any Commerce V2 business/security/exact-decimal contract beyond the recorded amendments.
@@ -45,12 +45,11 @@
 
 ## Phase 15.4 - Visual drift sweep
 
-- **Status:** em andamento
+- **Status:** concluída
 - **Description:** Migrate remaining surfaces to the declared template vocabulary and 44 px targets; materialized after Phase 15.3 closes.
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[15.4.3-phase-verification]] | Write/run the phase suite and repair only phase defects; consolidates the epoch's human checklist for the `develop` → `main` PR. · size: S | 003_human_approval |
 
 ## Dependency and parallel-wave map
 
