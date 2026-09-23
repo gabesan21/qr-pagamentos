@@ -22,7 +22,7 @@ export function SegmentedControl({
   value: string;
 }>) {
   return (
-    <div aria-label={ariaLabel} className="inline-flex gap-1 rounded-md bg-muted p-1" role="radiogroup">
+    <div aria-label={ariaLabel} className="inline-flex gap-1 rounded-md bg-surface-2 p-1" role="radiogroup">
       {options.map((option) => {
         const selected = option.value === value;
         return (
@@ -31,8 +31,8 @@ export function SegmentedControl({
             className={cn(
               "rounded px-3 py-1.5 text-label font-medium transition-colors",
               selected
-                ? "bg-background text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground",
+                ? "bg-bg text-text shadow-sm"
+                : "text-text-2 hover:text-text",
               disabled && "opacity-50",
             )}
             disabled={disabled}

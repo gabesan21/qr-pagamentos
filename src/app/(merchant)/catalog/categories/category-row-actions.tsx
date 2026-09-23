@@ -79,14 +79,14 @@ export function CategoryRowActions({
         <input name="version" type="hidden" value={category.version} />
         <div className="grid gap-3 sm:grid-cols-2">
           <input
-            className="h-11 w-full rounded-md border border-input bg-background px-3 text-base text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring"
+            className="h-11 w-full rounded-md border border-input bg-bg px-3 text-base text-text outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring"
             name="namePtBr"
             onChange={(event) => setNamePtBr(event.target.value)}
             required
             value={namePtBr}
           />
           <input
-            className="h-11 w-full rounded-md border border-input bg-background px-3 text-base text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring"
+            className="h-11 w-full rounded-md border border-input bg-bg px-3 text-base text-text outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring"
             name="nameEn"
             onChange={(event) => setNameEn(event.target.value)}
             required

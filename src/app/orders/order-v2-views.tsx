@@ -122,20 +122,20 @@ export function OrderV2PayerFacts({ dictionary, payer }: Readonly<{ dictionary: 
 function FieldRow({ dictionary, hint, label, value }: Readonly<{ dictionary: Dictionary; hint?: string; label: string; value: string | null | undefined }>) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 py-1.5">
-      <span className="text-sm text-muted-foreground">{label}</span>
+      <span className="text-sm text-text-2">{label}</span>
       {value
         ? <CopyField labels={{ copy: dictionary.orderV2DirectoryCopy, pending: dictionary.orderV2DirectoryCopy, copied: dictionary.orderV2DirectoryCopied, failed: dictionary.orderV2DirectoryCopyFailed }} truncate={false} value={value} />
-        : <span className="text-sm text-muted-foreground">{hint ?? "—"}</span>}
+        : <span className="text-sm text-text-2">{hint ?? "—"}</span>}
     </div>
   );
 }
 
 function DetailBreadcrumb({ backHref, backLabel, current }: Readonly<{ backHref: string; backLabel: string; current: string }>) {
   return (
-    <nav aria-label="breadcrumb" className="flex items-center gap-1.5 text-sm text-muted-foreground">
-      <Link className="inline-flex min-h-11 items-center text-foreground underline-offset-4 hover:underline" href={backHref}>{backLabel}</Link>
+    <nav aria-label="breadcrumb" className="flex items-center gap-1.5 text-sm text-text-2">
+      <Link className="inline-flex min-h-11 items-center text-text underline-offset-4 hover:underline" href={backHref}>{backLabel}</Link>
       <span aria-hidden>›</span>
-      <span className="font-mono text-foreground">#{current}</span>
+      <span className="font-mono text-text">#{current}</span>
     </nav>
   );
 }
@@ -224,19 +224,19 @@ export function OrderV2DetailCard({
               />
               <div className="grid gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
                 <div>
-                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{dictionary.orderCreated}</p>
+                  <p className="text-xs font-medium uppercase tracking-wide text-text-2">{dictionary.orderCreated}</p>
                   <p className="mt-1 font-mono text-xs">{formatOrderV2Instant(order.createdAt, locale)}</p>
                 </div>
                 <div>
-                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{dictionary.orderUpdated}</p>
+                  <p className="text-xs font-medium uppercase tracking-wide text-text-2">{dictionary.orderUpdated}</p>
                   <p className="mt-1 font-mono text-xs">{formatOrderV2Instant(order.updatedAt, locale)}</p>
                 </div>
                 <div>
-                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{dictionary.orderSettled}</p>
+                  <p className="text-xs font-medium uppercase tracking-wide text-text-2">{dictionary.orderSettled}</p>
                   <p className="mt-1 font-mono text-xs">{order.settledAt ? formatOrderV2Instant(order.settledAt, locale) : dictionary.adminNotProvided}</p>
                 </div>
                 <div>
-                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{dictionary.checkoutPolicyHeading}</p>
+                  <p className="text-xs font-medium uppercase tracking-wide text-text-2">{dictionary.checkoutPolicyHeading}</p>
                   <p className="mt-1.5 text-sm">{orderV2PolicyLabel(dictionary, order.checkoutDataPolicy)}</p>
                 </div>
               </div>
@@ -244,7 +244,7 @@ export function OrderV2DetailCard({
                 <>
                   <Separator />
                   <div>
-                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{dictionary.adminOrderV2DetailOwnerHeading}</p>
+                    <p className="text-xs font-medium uppercase tracking-wide text-text-2">{dictionary.adminOrderV2DetailOwnerHeading}</p>
                     <div className="mt-2 flex items-center gap-3">
                       <Monogram name={owner.username} />
                       <span className="text-sm font-medium">{owner.username}</span>
@@ -268,7 +268,7 @@ export function OrderV2DetailCard({
               {order.lines.length > 0 ? (
                 <>
                   <Separator />
-                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{dictionary.orderV2DetailLines}</p>
+                  <p className="text-xs font-medium uppercase tracking-wide text-text-2">{dictionary.orderV2DetailLines}</p>
                   <Table>
                     <TableCaption>{dictionary.orderV2DetailLines}</TableCaption>
                     <TableHeader>
@@ -334,27 +334,27 @@ export function OrderV2DetailCard({
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{dictionary.orderV2DetailProviderState}</p>
+                <p className="text-xs font-medium uppercase tracking-wide text-text-2">{dictionary.orderV2DetailProviderState}</p>
                 <div className="mt-1.5 flex items-center gap-2">
                   <OrderV2StateBadge dictionary={dictionary} state={order.state} />
-                  <time className="font-mono text-xs text-muted-foreground">{formatOrderV2Instant(order.updatedAt, locale)}</time>
+                  <time className="font-mono text-xs text-text-2">{formatOrderV2Instant(order.updatedAt, locale)}</time>
                 </div>
               </div>
               <div>
-                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{dictionary.orderV2DetailPaymentMethod}</p>
+                <p className="text-xs font-medium uppercase tracking-wide text-text-2">{dictionary.orderV2DetailPaymentMethod}</p>
                 <p className="mt-1.5 text-sm">{order.paymentMethod ?? dictionary.orderV2DetailPaymentMethodNone}</p>
               </div>
               <Separator />
               <div>
-                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{dictionary.orderV2DetailLocalOutcome}</p>
+                <p className="text-xs font-medium uppercase tracking-wide text-text-2">{dictionary.orderV2DetailLocalOutcome}</p>
                 <div className="mt-1.5">
                   <OrderV2OutcomeBadge dictionary={dictionary} outcome={order.currentLocalOutcome} />
                 </div>
-                <p className="mt-1 text-xs text-muted-foreground">{dictionary.orderV2DetailRecordedByMerchant}</p>
+                <p className="mt-1 text-xs text-text-2">{dictionary.orderV2DetailRecordedByMerchant}</p>
               </div>
               <Separator />
               <div>
-                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{dictionary.orderV2DirectoryColumnSource}</p>
+                <p className="text-xs font-medium uppercase tracking-wide text-text-2">{dictionary.orderV2DirectoryColumnSource}</p>
                 <div className="mt-1.5">
                   <OrderV2SourceBadge dictionary={dictionary} source={order.source} />
                 </div>

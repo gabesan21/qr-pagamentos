@@ -164,10 +164,10 @@ export function CreateAccountModal({ dictionary }: Readonly<{ dictionary: Dictio
               {errors.password ? <FieldError>{errors.password}</FieldError> : null}
               {password ? (
                 <div className="mt-1 space-y-1">
-                  <div aria-hidden className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                  <div aria-hidden className="h-1.5 w-full overflow-hidden rounded-full bg-surface-2">
                     <div className={`h-full rounded-full transition-all ${STRENGTH_METER_CLASS[strength]}`} />
                   </div>
-                  <p className="text-xs text-muted-foreground">{strengthLabel}</p>
+                  <p className="text-xs text-text-2">{strengthLabel}</p>
                   {password.length >= 12 ? (
                     <CopyField
                       labels={{

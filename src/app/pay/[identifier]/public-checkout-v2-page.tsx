@@ -35,13 +35,13 @@ function CheckoutV2CompositionFacts({ composition }: Readonly<{ composition: Pub
       {composition.lines.map((line, index) => (
         <li className="grid gap-1" key={`${index}-${line.product.title}`}>
           <p className="m-0 font-semibold break-words">{line.product.title}</p>
-          <p className="m-0 max-w-[var(--layout-max)] whitespace-pre-wrap text-muted-foreground">{line.product.description}</p>
+          <p className="m-0 max-w-[var(--layout-max)] whitespace-pre-wrap text-text-2">{line.product.description}</p>
           <p className="m-0 tabular-nums">{line.quantity} × {line.product.price}</p>
         </li>
       ))}
     </ul>
   ) : (
-    <p className="m-0 max-w-[var(--layout-max)] whitespace-pre-wrap text-muted-foreground">{composition.description}</p>
+    <p className="m-0 max-w-[var(--layout-max)] whitespace-pre-wrap text-text-2">{composition.description}</p>
   );
 }
 
@@ -49,10 +49,10 @@ function CheckoutV2Total({ composition, currencyCode, dictionary }: Readonly<{ c
   const total = composition.kind === "PRODUCT_LINES" ? composition.total : composition.amount;
   return (
     <p className="m-0 flex items-baseline justify-between gap-2 tabular-nums">
-      <span className="text-sm font-semibold text-muted-foreground">{dictionary.checkoutTotalLabel}</span>
+      <span className="text-sm font-semibold text-text-2">{dictionary.checkoutTotalLabel}</span>
       <span className="inline-flex items-baseline gap-1.5">
         <MoneyText size="large" value={total} />
-        {currencyCode ? <MoneyText pairLabel={currencyCode} value="" /> : <span className="text-sm text-muted-foreground">{dictionary.checkoutUnlabeledCurrency}</span>}
+        {currencyCode ? <MoneyText pairLabel={currencyCode} value="" /> : <span className="text-sm text-text-2">{dictionary.checkoutUnlabeledCurrency}</span>}
       </span>
     </p>
   );
@@ -103,7 +103,7 @@ export function PublicCheckoutV2PaidPage({ dictionary, locale, presentation }: R
           <StatusBadge label={dictionary.checkoutPaidBadge} tone="success" />
           <div>
             <h2 className="font-display text-lg font-semibold leading-7">{dictionary.checkoutPaidHeading}</h2>
-            <p className="text-sm text-muted-foreground">{dictionary.checkoutPaidDescription}</p>
+            <p className="text-sm text-text-2">{dictionary.checkoutPaidDescription}</p>
           </div>
           <Separator />
           <CheckoutV2CompositionFacts composition={presentation.composition} />

@@ -14,7 +14,7 @@ export function CheckoutFooter({ dictionary, locale }: Readonly<{ dictionary: Di
   return (
     <footer className="flex flex-col items-center gap-3 border-t px-6 py-5 text-center">
       <div className="flex items-center gap-4">
-        <span className="text-xs text-muted-foreground">{dictionary.checkoutPoweredBy}</span>
+        <span className="text-xs text-text-2">{dictionary.checkoutPoweredBy}</span>
         <LanguageSwitcher label={dictionary.languageLabel} locale={locale} />
       </div>
       <CheckoutPrivacyNotice dictionary={dictionary} />

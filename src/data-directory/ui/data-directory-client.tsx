@@ -453,7 +453,7 @@ function DirectoryLoading({
     <div aria-live="polite" className="flex flex-col gap-4" data-directory-state="loading" role="status">
       <div className="flex flex-col gap-1">
         <span>{copy.loading}</span>
-        <span className="text-sm text-muted-foreground">{copy.loadingDescription}</span>
+        <span className="text-sm text-text-2">{copy.loadingDescription}</span>
       </div>
       <div className="hidden min-w-0 md:block">
         <Table>
@@ -693,7 +693,7 @@ export function DataDirectoryClient(props: DataDirectoryClientProps) {
                   <dl className="grid gap-3">
                     {props.columns.map((column, index) => (
                       <div className="grid gap-1 border-b border-border pb-3 last:border-b-0 last:pb-0" key={column.id}>
-                        <dt className="text-sm font-medium text-muted-foreground">{column.label}</dt>
+                        <dt className="text-sm font-medium text-text-2">{column.label}</dt>
                         <dd className={column.numeric ? "m-0 font-mono tabular-nums" : "m-0 break-words"}>{row.cells[index]}</dd>
                       </div>
                     ))}

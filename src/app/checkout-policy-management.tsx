@@ -66,7 +66,7 @@ export function CheckoutPolicyManagement({ dictionary, policy }: Readonly<{ dict
                   <button
                     aria-checked={isSelected}
                     className={cn(
-                      "rounded-lg border border-border bg-card p-4 text-left transition-colors",
+                      "rounded-card border border-border bg-surface p-4 text-left transition-colors",
                       isSelected ? "border-primary ring-3 ring-ring" : "hover:border-muted-foreground",
                       pending && "pointer-events-none opacity-50",
                     )}
@@ -76,13 +76,13 @@ export function CheckoutPolicyManagement({ dictionary, policy }: Readonly<{ dict
                     role="radio"
                     type="button"
                   >
-                    <p className="text-sm font-medium text-foreground">{labels[value]}</p>
+                    <p className="text-sm font-medium text-text">{labels[value]}</p>
                     <div className="mt-2 flex flex-wrap gap-1">
                       {fields.length === 0 ? (
-                        <span className="text-xs text-muted-foreground">{dictionary.checkoutPolicyFieldsNone}</span>
+                        <span className="text-xs text-text-2">{dictionary.checkoutPolicyFieldsNone}</span>
                       ) : (
                         fields.map((key) => (
-                          <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground" key={key}>
+                          <span className="rounded-full bg-surface-2 px-2 py-0.5 text-xs font-medium text-text-2" key={key}>
                             {dictionary[key] as string}
                           </span>
                         ))

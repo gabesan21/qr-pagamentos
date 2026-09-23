@@ -62,7 +62,7 @@ export function CatalogRecordsSection({
   return (
     <div className="space-y-4">
       {items.length === 0 ? (
-        <p className="py-6 text-center text-sm text-muted-foreground">{dictionary.adminEmptyRecords}</p>
+        <p className="py-6 text-center text-sm text-text-2">{dictionary.adminEmptyRecords}</p>
       ) : (
         <div className="overflow-x-auto">
         <Table>
@@ -101,7 +101,7 @@ export function CatalogRecordsSection({
                       ) : (
                         <span className="font-medium">{item.label}</span>
                       )}
-                      <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
+                      <div className="flex flex-wrap gap-2 text-sm text-text-2">
                         <CopyField className="max-w-40" labels={copyLabels} value={item.detailValue} />
                         {item.secondaryValue ? (
                           <CopyField className="max-w-40" labels={copyLabels} value={item.secondaryValue} />
@@ -110,7 +110,7 @@ export function CatalogRecordsSection({
                     </div>
                   )}
                 </TableCell>
-                <TableCell className="text-sm text-muted-foreground">
+                <TableCell className="text-sm text-text-2">
                   {new Date(item.createdAt).toLocaleDateString(locale)}
                 </TableCell>
                 <TableCell>
@@ -150,7 +150,7 @@ export function CatalogRecordsSection({
         <form
           action={formAction}
           method="post"
-          className="rounded-lg border bg-muted/50 p-4"
+          className="rounded-card border bg-surface-2/50 p-4"
           onSubmit={(event) => {
             const data = new FormData(event.currentTarget);
             const label = String(data.get("label") ?? "").trim();

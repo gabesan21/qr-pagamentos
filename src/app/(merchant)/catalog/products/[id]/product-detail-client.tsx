@@ -53,7 +53,7 @@ function ProductHeader({
         src={product.imageMediaId ? `/media/${product.imageMediaId}` : "/application-assets/product-fallback.svg"}
         width={48}
       />
-      <h1 className="font-heading text-2xl leading-snug font-medium text-foreground">{product.internalName}</h1>
+      <h1 className="font-heading text-2xl leading-snug font-medium text-text">{product.internalName}</h1>
       <EntityStateBadge
         labels={{
           active: dictionary.catalogProductStateActive,
@@ -163,7 +163,7 @@ export function ProductDetailClient({
 
       {archived ? <ArchivedBanner dictionary={dictionary} /> : null}
 
-      <div className={archived ? "rounded-lg border border-border bg-muted/40 p-5 saturate-50 sm:p-6" : ""}>
+      <div className={archived ? "rounded-card border border-border bg-surface-2/40 p-5 saturate-50 sm:p-6" : ""}>
         <ProductForm
           categories={categories}
           choices={choices}

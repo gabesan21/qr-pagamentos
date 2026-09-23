@@ -27,21 +27,21 @@ export function OrderV2BreadcrumbTrail({
   items,
 }: Readonly<{ items: ReadonlyArray<Readonly<{ label: string; href?: string; mono?: boolean }>> }>) {
   return (
-    <nav aria-label="breadcrumb" className="flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
+    <nav aria-label="breadcrumb" className="flex flex-wrap items-center gap-1.5 text-sm text-text-2">
       {items.map((item, index) => (
         <span className="flex items-center gap-1.5" key={`${item.label}-${index}`}>
           {index > 0 ? <span aria-hidden>›</span> : null}
           {item.href ? (
             <Link
               className={item.mono
-                ? "inline-flex min-h-11 items-center font-mono text-foreground underline-offset-4 hover:underline"
-                : "inline-flex min-h-11 items-center text-foreground underline-offset-4 hover:underline"}
+                ? "inline-flex min-h-11 items-center font-mono text-text underline-offset-4 hover:underline"
+                : "inline-flex min-h-11 items-center text-text underline-offset-4 hover:underline"}
               href={item.href}
             >
               {item.label}
             </Link>
           ) : (
-            <span className={item.mono ? "font-mono text-foreground" : "text-foreground"}>{item.label}</span>
+            <span className={item.mono ? "font-mono text-text" : "text-text"}>{item.label}</span>
           )}
         </span>
       ))}
@@ -104,8 +104,8 @@ function orderPolicyLabel(dictionary: Dictionary, policy: CheckoutDataPolicy) {
 function PayerFact({ dictionary, label, value }: Readonly<{ dictionary: Dictionary; label: string; value: string | null }>) {
   return (
     <div className="flex items-center justify-between gap-3">
-      <dt className="text-muted-foreground">{label}</dt>
-      <dd className={value ? undefined : "text-muted-foreground"}>{value ?? dictionary.adminNotProvided}</dd>
+      <dt className="text-text-2">{label}</dt>
+      <dd className={value ? undefined : "text-text-2"}>{value ?? dictionary.adminNotProvided}</dd>
     </div>
   );
 }
@@ -119,11 +119,11 @@ function CustomerFacts({ customer, dictionary }: Readonly<{ customer: CustomerSn
       <PayerFact dictionary={dictionary} label={dictionary.checkoutCpfLabel} value={customer.cpf} />
       {address ? (
         <>
-          <div className="flex items-center justify-between gap-3"><dt className="text-muted-foreground">{dictionary.checkoutStreetLabel}</dt><dd>{address.street}, {address.number}</dd></div>
-          <div className="flex items-center justify-between gap-3"><dt className="text-muted-foreground">{dictionary.checkoutDistrictLabel}</dt><dd>{address.district}</dd></div>
-          <div className="flex items-center justify-between gap-3"><dt className="text-muted-foreground">{dictionary.checkoutCityLabel}</dt><dd>{address.city} — {address.stateUf}</dd></div>
-          <div className="flex items-center justify-between gap-3"><dt className="text-muted-foreground">{dictionary.checkoutPostalCodeLabel}</dt><dd>{address.postalCode}</dd></div>
-          {address.complement ? <div className="flex items-center justify-between gap-3"><dt className="text-muted-foreground">{dictionary.checkoutComplementLabel}</dt><dd>{address.complement}</dd></div> : null}
+          <div className="flex items-center justify-between gap-3"><dt className="text-text-2">{dictionary.checkoutStreetLabel}</dt><dd>{address.street}, {address.number}</dd></div>
+          <div className="flex items-center justify-between gap-3"><dt className="text-text-2">{dictionary.checkoutDistrictLabel}</dt><dd>{address.district}</dd></div>
+          <div className="flex items-center justify-between gap-3"><dt className="text-text-2">{dictionary.checkoutCityLabel}</dt><dd>{address.city} — {address.stateUf}</dd></div>
+          <div className="flex items-center justify-between gap-3"><dt className="text-text-2">{dictionary.checkoutPostalCodeLabel}</dt><dd>{address.postalCode}</dd></div>
+          {address.complement ? <div className="flex items-center justify-between gap-3"><dt className="text-text-2">{dictionary.checkoutComplementLabel}</dt><dd>{address.complement}</dd></div> : null}
         </>
       ) : (
         <PayerFact dictionary={dictionary} label={dictionary.checkoutStreetLabel} value={null} />
@@ -208,12 +208,12 @@ export function OrderV2DrilldownDetailCard({
                 </Table>
               ) : (
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-muted-foreground">{dictionary.paymentLinkDetailFixedAmount}</span>
+                  <span className="text-sm font-medium text-text-2">{dictionary.paymentLinkDetailFixedAmount}</span>
                   <MoneyText className="justify-start" value={formatCatalogPrice(order.amount, null, locale)} />
                 </div>
               )}
               <div className="flex items-center justify-between border-t border-border pt-3">
-                <span className="text-sm font-medium text-muted-foreground">{dictionary.paymentLinkDetailSubtotal}</span>
+                <span className="text-sm font-medium text-text-2">{dictionary.paymentLinkDetailSubtotal}</span>
                 <MoneyText className="justify-start" size="large" value={formatCatalogPrice(order.amount, null, locale)} />
               </div>
             </CardContent>
@@ -237,7 +237,7 @@ export function OrderV2DrilldownDetailCard({
                 {order.comments.map((comment) => (
                   <figure className="border-b border-border pb-3 last:border-0 last:pb-0" key={comment.id}>
                     <blockquote className="text-sm">{comment.body}</blockquote>
-                    <figcaption className="mt-1 text-xs text-muted-foreground">{formatLinkInstant(comment.createdAt, locale)}</figcaption>
+                    <figcaption className="mt-1 text-xs text-text-2">{formatLinkInstant(comment.createdAt, locale)}</figcaption>
                   </figure>
                 ))}
               </CardContent>
@@ -253,25 +253,25 @@ export function OrderV2DrilldownDetailCard({
             <CardContent className="space-y-4">
               <dl className="space-y-2 text-sm">
                 <div className="flex items-center justify-between gap-3">
-                  <dt className="text-muted-foreground">{dictionary.orderState}</dt>
+                  <dt className="text-text-2">{dictionary.orderState}</dt>
                   <dd><OrderV2StateBadge dictionary={dictionary} state={order.state} /></dd>
                 </div>
                 <div className="flex items-center justify-between gap-3">
-                  <dt className="text-muted-foreground">{dictionary.paymentLinkOrderLocalOutcome}</dt>
+                  <dt className="text-text-2">{dictionary.paymentLinkOrderLocalOutcome}</dt>
                   <dd className="flex flex-wrap items-center gap-2">
                     <OrderV2LocalOutcomeBadge dictionary={dictionary} outcome={order.currentLocalOutcome} />
                     {order.currentLocalOutcome?.note ? <span className="text-sm">{order.currentLocalOutcome.note}</span> : null}
                   </dd>
                 </div>
                 <div className="flex items-center justify-between gap-3">
-                  <dt className="text-muted-foreground">{dictionary.orderPaymentLink}</dt>
+                  <dt className="text-text-2">{dictionary.orderPaymentLink}</dt>
                   <dd className="flex items-center gap-2">
                     <CopyField labels={copyLabels(dictionary)} value={link.identifier} />
                     <LinkStateBadge dictionary={dictionary} state={link.state} />
                   </dd>
                 </div>
                 <div className="flex items-center justify-between gap-3">
-                  <dt className="text-muted-foreground">{dictionary.checkoutPolicyHeading}</dt>
+                  <dt className="text-text-2">{dictionary.checkoutPolicyHeading}</dt>
                   <dd>{orderPolicyLabel(dictionary, order.checkoutDataPolicy)}</dd>
                 </div>
               </dl>
@@ -284,15 +284,15 @@ export function OrderV2DrilldownDetailCard({
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
               <div className="flex items-center justify-between gap-3">
-                <span className="text-muted-foreground">{dictionary.orderCreated}</span>
+                <span className="text-text-2">{dictionary.orderCreated}</span>
                 <span>{formatLinkInstant(order.createdAt, locale)}</span>
               </div>
               <div className="flex items-center justify-between gap-3">
-                <span className="text-muted-foreground">{dictionary.orderUpdated}</span>
+                <span className="text-text-2">{dictionary.orderUpdated}</span>
                 <span>{formatLinkInstant(order.updatedAt, locale)}</span>
               </div>
               <div className="flex items-center justify-between gap-3">
-                <span className="text-muted-foreground">{dictionary.orderSettled}</span>
+                <span className="text-text-2">{dictionary.orderSettled}</span>
                 <span>{order.settledAt ? formatLinkInstant(order.settledAt, locale) : dictionary.adminNotProvided}</span>
               </div>
             </CardContent>

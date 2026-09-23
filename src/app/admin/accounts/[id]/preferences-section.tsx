@@ -68,7 +68,7 @@ function CheckoutPolicyField({ detail, dictionary }: Readonly<{ detail: AdminUse
             <button
               aria-checked={selected}
               className={cn(
-                "min-h-11 rounded-lg border p-4 text-left transition-shadow",
+                "min-h-11 rounded-card border p-4 text-left transition-shadow",
                 selected ? "border-primary ring-3 ring-ring" : "border-border hover:border-muted-foreground",
               )}
               key={value}
@@ -95,7 +95,7 @@ function CheckoutPolicyField({ detail, dictionary }: Readonly<{ detail: AdminUse
 export function PreferencesSection({ detail, dictionary }: Readonly<{ detail: AdminUserDetail; dictionary: Dictionary }>) {
   return (
     <div className="space-y-6">
-      <p className="text-sm text-muted-foreground">{dictionary.adminUserProfileLocaleDescription}</p>
+      <p className="text-sm text-text-2">{dictionary.adminUserProfileLocaleDescription}</p>
       <LocaleField detail={detail} dictionary={dictionary} />
       <div className="border-t border-border pt-6">
         <CheckoutPolicyField detail={detail} dictionary={dictionary} />

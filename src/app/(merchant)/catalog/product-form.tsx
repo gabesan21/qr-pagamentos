@@ -155,8 +155,8 @@ function ProductPreview({
   const formattedPrice = formatCatalogPrice(price, null, locale);
   return (
     <div className="lg:col-span-4">
-      <div className="sticky top-20 rounded-lg border border-border bg-card p-5 shadow-sm">
-        <h3 className="font-heading text-compact-heading font-medium text-card-foreground">{dictionary.catalogProductPreviewTitle}</h3>
+      <div className="sticky top-20 rounded-card border border-border bg-surface p-5 shadow-sm">
+        <h3 className="font-heading text-compact-heading font-medium text-text">{dictionary.catalogProductPreviewTitle}</h3>
         <div className="mt-4 flex items-center gap-3">
           <Image
             alt=""
@@ -166,13 +166,13 @@ function ProductPreview({
             width={56}
           />
           <div className="min-w-0">
-            <p className="truncate text-sm font-medium text-card-foreground">
+            <p className="truncate text-sm font-medium text-text">
               {title || dictionary.catalogProductPreviewNoTitle}
             </p>
             <MoneyText className="mt-0.5" pairLabel={currencyCode ?? undefined} value={formattedPrice} />
           </div>
         </div>
-        {description ? <p className="mt-3 line-clamp-3 text-xs text-muted-foreground">{description}</p> : null}
+        {description ? <p className="mt-3 line-clamp-3 text-xs text-text-2">{description}</p> : null}
       </div>
     </div>
   );

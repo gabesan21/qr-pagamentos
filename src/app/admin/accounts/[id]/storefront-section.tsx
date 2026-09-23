@@ -50,13 +50,13 @@ export function StorefrontSection({
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-muted-foreground">{dictionary.adminUserProfileStorefrontDescription}</p>
+      <p className="text-sm text-text-2">{dictionary.adminUserProfileStorefrontDescription}</p>
       <form action={`/admin/users/${detail.id}/storefront`} method="post">
         <FieldGroup className="grid gap-4 sm:grid-cols-2">
           <Field>
             <FieldLabel htmlFor={`storefront-slug-${detail.id}`}>{dictionary.storefrontSlugLabel}</FieldLabel>
             <div className="flex items-center gap-2">
-              <span aria-hidden className="text-sm text-muted-foreground">/store/</span>
+              <span aria-hidden className="text-sm text-text-2">/store/</span>
               <Input
                 aria-describedby={`storefront-slug-help-${detail.id}`}
                 className="font-mono"
@@ -98,7 +98,7 @@ export function StorefrontSection({
                   <button
                     aria-checked={selected}
                     className={cn(
-                      "relative rounded-lg border p-1.5 text-left transition-shadow",
+                      "relative rounded-card border p-1.5 text-left transition-shadow",
                       selected ? "border-primary ring-3 ring-ring" : "border-border hover:border-muted-foreground",
                     )}
                     key={id}
@@ -114,7 +114,7 @@ export function StorefrontSection({
                       src={`/application-assets/theme-swatch-${id}.svg`}
                       width={96}
                     />
-                    <span className="mt-1 block text-xs font-medium text-muted-foreground">{label}</span>
+                    <span className="mt-1 block text-xs font-medium text-text-2">{label}</span>
                   </button>
                 );
               })}
@@ -191,7 +191,7 @@ export function StorefrontSection({
           </Button>
         </div>
       ) : (
-        <p className="border-t border-border pt-4 text-sm text-muted-foreground">{dictionary.adminUserProfileStoreUnavailable}</p>
+        <p className="border-t border-border pt-4 text-sm text-text-2">{dictionary.adminUserProfileStoreUnavailable}</p>
       )}
     </div>
   );

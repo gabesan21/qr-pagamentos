@@ -93,7 +93,7 @@ export function ExchangeCurrenciesSection({
         ]}
       />
       {mappings.length === 0 ? (
-        <p className="py-6 text-center text-sm text-muted-foreground">{dictionary.adminEmptyCurrencies}</p>
+        <p className="py-6 text-center text-sm text-text-2">{dictionary.adminEmptyCurrencies}</p>
       ) : (
         <div className="overflow-x-auto">
         <Table>
@@ -110,7 +110,7 @@ export function ExchangeCurrenciesSection({
               <TableRow key={mapping.code}>
                 <TableCell className="font-mono font-medium">{mapping.code}</TableCell>
                 <TableCell>
-                  <span className="text-sm text-muted-foreground">{mapping.label}</span>
+                  <span className="text-sm text-text-2">{mapping.label}</span>
                 </TableCell>
                 <TableCell>
                   <EntityStateBadge
@@ -147,7 +147,7 @@ export function ExchangeCurrenciesSection({
         <form
           action="/admin/exchange-currencies"
           method="post"
-          className="rounded-lg border bg-muted/50 p-4"
+          className="rounded-card border bg-surface-2/50 p-4"
           onSubmit={(event) => {
             if (!validate(event.currentTarget)) event.preventDefault();
           }}

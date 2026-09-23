@@ -119,10 +119,10 @@ function AccountMenu({
           ) : null}
           <ShellThemePicker groupLabel={labels.themeMenu} themeOptions={themeOptions} />
           <form action="/logout" className="app-shell__account-panel-signout" method="post" role="none">
-            <button className="app-shell__account-panel-item" role="menuitem" type="submit">
+            <Button className="app-shell__account-panel-item" role="menuitem" type="submit" variant="outline">
               <LogOutIcon aria-hidden="true" />
               <span>{labels.signOut}</span>
-            </button>
+            </Button>
           </form>
         </div>
       ) : null}

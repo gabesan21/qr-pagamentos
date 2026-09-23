@@ -61,13 +61,13 @@ export function PaymentLinkV2LifecycleCard({
           <CardTitle>{heading}</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="mb-4 text-sm text-muted-foreground">{description}</p>
+          <p className="mb-4 text-sm text-text-2">{description}</p>
           {settledSingleUse ? (
             <>
               <Button data-ds-hit-target disabled type="button" variant="secondary">
                 {dictionary.paymentLinkActivate}
               </Button>
-              <p className="mt-2 text-xs text-muted-foreground">{dictionary.paymentLinkActivateDisabledSettled}</p>
+              <p className="mt-2 text-xs text-text-2">{dictionary.paymentLinkActivateDisabledSettled}</p>
             </>
           ) : (
             <form action={`/payment-links-v2/${id}`} id={formId} method="post">
@@ -84,7 +84,7 @@ export function PaymentLinkV2LifecycleCard({
             </form>
           )}
           {expiredReopenCaption ? (
-            <p className="mt-2 text-xs text-muted-foreground">{dictionary.paymentLinkExpiredReopenCaption}</p>
+            <p className="mt-2 text-xs text-text-2">{dictionary.paymentLinkExpiredReopenCaption}</p>
           ) : null}
         </CardContent>
       </Card>

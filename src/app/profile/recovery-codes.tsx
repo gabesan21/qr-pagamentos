@@ -59,11 +59,11 @@ export function RecoveryCodes({
     <div className="space-y-4">
       <div>
         <h4 className="text-sm font-medium">{title}</h4>
-        <p className="text-sm text-muted-foreground">{description}</p>
+        <p className="text-sm text-text-2">{description}</p>
       </div>
       <ul aria-label={title} className="grid grid-cols-2 gap-2 font-mono text-sm" id={listId}>
         {codes.map((code) => (
-          <li className="rounded-md border bg-muted px-2.5 py-1.5 text-center" key={code}>
+          <li className="rounded-md border bg-surface-2 px-2.5 py-1.5 text-center" key={code}>
             {code}
           </li>
         ))}

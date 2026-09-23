@@ -37,7 +37,7 @@ export function SegmentedControl<Value extends string = string>({
   return (
     <div
       aria-label={ariaLabel}
-      className={cn("inline-flex flex-wrap gap-1 rounded-md bg-muted p-1", className)}
+      className={cn("inline-flex flex-wrap gap-1 rounded-md bg-surface-2 p-1", className)}
       role="radiogroup"
     >
       {options.map((option) => {
@@ -47,7 +47,7 @@ export function SegmentedControl<Value extends string = string>({
             aria-checked={selected}
             className={cn(
               "min-h-11 min-w-11 rounded px-3 py-2 text-sm font-medium transition-colors",
-              selected ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
+              selected ? "bg-bg text-text shadow-sm" : "text-text-2 hover:text-text",
               disabled && "pointer-events-none opacity-50",
             )}
             disabled={disabled}

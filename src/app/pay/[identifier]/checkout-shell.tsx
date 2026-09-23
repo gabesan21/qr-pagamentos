@@ -27,7 +27,7 @@ function CheckoutMerchantHeader({ branding, dictionary }: Readonly<{ branding: P
         <span aria-label={dictionary.checkoutMerchantFallbackAlt} role="img"><BrandIdentity variant="merchant-fallback" /></span>
       )}
       <h1 className="font-display text-lg font-semibold leading-7">{displayName}</h1>
-      <p className="text-xs text-muted-foreground">{dictionary.checkoutTrustLine}</p>
+      <p className="text-xs text-text-2">{dictionary.checkoutTrustLine}</p>
     </header>
   );
 }
@@ -44,7 +44,7 @@ export function CheckoutShell({ branding, busy, children, dictionary, locale }: 
   return (
     <main
       aria-busy={busy}
-      className="flex min-h-dvh w-full flex-col items-center bg-background px-4 py-8 text-foreground"
+      className="flex min-h-dvh w-full flex-col items-center bg-bg px-4 py-8 text-text"
       data-theme-preview={branding?.themeId}
       style={branding ? ({ "--storefront-accent": branding.accentColor } as CSSProperties) : undefined}
     >

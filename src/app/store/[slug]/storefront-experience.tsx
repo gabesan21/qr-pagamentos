@@ -280,7 +280,7 @@ export function StorefrontExperienceView({
   return (
     <div className="grid gap-8">
       <section aria-label={copy.productsHeading} className="grid gap-5" data-layout={layout}>
-        <h2 className="m-0 font-[family-name:var(--font-display)] text-lg font-semibold leading-7">{copy.productsHeading}</h2>
+        <h2 className="m-0 font-display text-lg font-semibold leading-7">{copy.productsHeading}</h2>
         {standalonePayments ? (
           layout === "table" ? (
             <Table>
@@ -391,7 +391,7 @@ export function StorefrontExperienceView({
         ))}
       </section>
       <section aria-labelledby="storefront-cart-heading" className="grid gap-4 border-t border-border pt-6">
-        <h2 className="m-0 font-[family-name:var(--font-display)] text-lg font-semibold leading-7" id="storefront-cart-heading">{copy.cartHeading}</h2>
+        <h2 className="m-0 font-display text-lg font-semibold leading-7" id="storefront-cart-heading">{copy.cartHeading}</h2>
         {recovered ? (
           <Alert>
             <AlertDescription>{copy.cartUpdated}</AlertDescription>

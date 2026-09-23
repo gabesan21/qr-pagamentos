@@ -74,7 +74,7 @@ export function MerchantDashboardPeriodControl({
               </span>
             ) : (
               <a
-                className="inline-flex min-h-11 items-center rounded-md border border-border px-4 text-sm text-foreground no-underline"
+                className="inline-flex min-h-11 items-center rounded-md border border-border px-4 text-sm text-text no-underline"
                 href={`/?period=${period.id}`}
                 key={period.id}
               >

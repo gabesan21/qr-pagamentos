@@ -188,23 +188,23 @@ export function LinkLinesEditor({
               key={line.key}
             >
               <div className="min-w-40 flex-1">
-                <p className="truncate text-sm font-medium text-foreground">{lineTitle(line, products, locale)}</p>
+                <p className="truncate text-sm font-medium text-text">{lineTitle(line, products, locale)}</p>
                 {!line.available ? <p className="text-xs text-destructive">{copy.unavailable}</p> : null}
               </div>
               <div className="flex items-center gap-1" role="group" aria-label={copy.quantity}>
                 <button
                   aria-label={copy.quantityDecrease}
-                  className="flex size-8 items-center justify-center rounded-md border text-muted-foreground hover:bg-muted disabled:pointer-events-none disabled:opacity-50"
+                  className="flex size-8 items-center justify-center rounded-md border text-text-2 hover:bg-surface-2 disabled:pointer-events-none disabled:opacity-50"
                   disabled={disabled || !line.available || line.quantity <= MIN_QUANTITY}
                   onClick={() => adjustQuantity(line.key, -1)}
                   type="button"
                 >
                   <MinusIcon aria-hidden className="size-3.5" />
                 </button>
-                <span className="w-10 text-center font-mono text-sm tabular-nums text-foreground">{line.quantity}</span>
+                <span className="w-10 text-center font-mono text-sm tabular-nums text-text">{line.quantity}</span>
                 <button
                   aria-label={copy.quantityIncrease}
-                  className="flex size-8 items-center justify-center rounded-md border text-muted-foreground hover:bg-muted disabled:pointer-events-none disabled:opacity-50"
+                  className="flex size-8 items-center justify-center rounded-md border text-text-2 hover:bg-surface-2 disabled:pointer-events-none disabled:opacity-50"
                   disabled={disabled || !line.available || line.quantity >= MAX_QUANTITY}
                   onClick={() => adjustQuantity(line.key, 1)}
                   type="button"
@@ -213,16 +213,16 @@ export function LinkLinesEditor({
                 </button>
               </div>
               <div className="w-24 text-right">
-                <p className="text-xs text-muted-foreground">{copy.unitPrice}</p>
+                <p className="text-xs text-text-2">{copy.unitPrice}</p>
                 <MoneyText value={formatCatalogPrice(lineUnitPrice(line, products), null, locale)} />
               </div>
               <div className="w-24 text-right">
-                <p className="text-xs text-muted-foreground">{copy.lineTotal}</p>
+                <p className="text-xs text-text-2">{copy.lineTotal}</p>
                 <MoneyText value={formatCatalogPrice(linkMoneyMultiply(lineUnitPrice(line, products), line.quantity), null, locale)} />
               </div>
               <button
                 aria-label={copy.remove}
-                className="rounded-md p-1.5 text-muted-foreground hover:text-destructive disabled:pointer-events-none disabled:opacity-50"
+                className="rounded-md p-1.5 text-text-2 hover:text-destructive disabled:pointer-events-none disabled:opacity-50"
                 disabled={disabled}
                 onClick={() => removeLine(line.key)}
                 type="button"
@@ -239,7 +239,7 @@ export function LinkLinesEditor({
           <Field>
             <FieldLabel htmlFor={`${formId}-${reactId}-search`}>{copy.searchLabel}</FieldLabel>
             <div className="relative">
-              <SearchIcon aria-hidden className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <SearchIcon aria-hidden className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-text-2" />
               <Input
                 className="pl-9"
                 id={`${formId}-${reactId}-search`}
@@ -255,11 +255,11 @@ export function LinkLinesEditor({
               {searchResults.map((product) => (
                 <li key={product.id}>
                   <button
-                    className="flex w-full items-center justify-between gap-3 rounded-md px-2 py-2 text-left hover:bg-muted"
+                    className="flex w-full items-center justify-between gap-3 rounded-md px-2 py-2 text-left hover:bg-surface-2"
                     onClick={() => addProduct(product)}
                     type="button"
                   >
-                    <span className="min-w-0 flex-1 truncate text-sm text-foreground">{locale === "pt-BR" ? product.titlePtBr : product.titleEn}</span>
+                    <span className="min-w-0 flex-1 truncate text-sm text-text">{locale === "pt-BR" ? product.titlePtBr : product.titleEn}</span>
                     <MoneyText value={formatCatalogPrice(product.price, null, locale)} />
                     <PlusIcon aria-hidden className="size-4 text-primary" />
                   </button>
@@ -271,7 +271,7 @@ export function LinkLinesEditor({
       ) : null}
 
       <div className="flex items-center justify-between border-t pt-3">
-        <span className="text-sm font-medium text-muted-foreground">{copy.runningTotal}</span>
+        <span className="text-sm font-medium text-text-2">{copy.runningTotal}</span>
         <MoneyText size="large" value={formatCatalogPrice(runningTotal, null, locale)} />
       </div>
     </div>

@@ -43,7 +43,7 @@ export function AppearanceSection({
             <button
               key={id}
               aria-pressed={selected}
-              className={`relative rounded-lg border p-1.5 text-left transition-shadow ${selected ? "border-primary ring-3 ring-ring" : "border-border hover:border-muted-foreground"}`}
+              className={`relative rounded-card border p-1.5 text-left transition-shadow ${selected ? "border-primary ring-3 ring-ring" : "border-border hover:border-muted-foreground"}`}
               data-theme-id={id}
               onClick={() => setThemeId(id)}
               type="button"
@@ -56,7 +56,7 @@ export function AppearanceSection({
                 src={`/application-assets/theme-swatch-${id}.svg`}
                 width={96}
               />
-              <span className="mt-1 block text-xs font-medium text-muted-foreground">{label}</span>
+              <span className="mt-1 block text-xs font-medium text-text-2">{label}</span>
             </button>
           );
         })}

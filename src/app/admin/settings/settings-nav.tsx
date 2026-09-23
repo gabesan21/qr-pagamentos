@@ -37,7 +37,7 @@ export function SettingsNav({
         <a
           key={id}
           aria-current={activeId === id ? "true" : undefined}
-          className="flex min-h-11 w-full items-center rounded-md px-3 text-left text-sm text-muted-foreground transition-colors hover:bg-muted aria-[current=true]:bg-muted aria-[current=true]:font-medium aria-[current=true]:text-foreground"
+          className="flex min-h-11 w-full items-center rounded-md px-3 text-left text-sm text-text-2 transition-colors hover:bg-surface-2 aria-[current=true]:bg-surface-2 aria-[current=true]:font-medium aria-[current=true]:text-text"
           href={`#sec-${id}`}
         >
           {label}
