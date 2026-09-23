@@ -43,7 +43,6 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[15.3.1-checkout-explicit-states-without-retry]] | Remove backoff, "check again", "try again" and the waiting placeholder; explicit PIX-unavailable, status-unavailable and submit-failure states with "Start over" only. · size: M | 003_human_approval |
 | [[15.3.2-checkout-customer-block-only-when-required]] | Policy `NONE` renders no customer heading, notice or field group on `/pay` and `/store/[slug]/pay`; pay action and privacy line keep their place. · size: S | 003_human_approval |
 | [[15.3.3-checkout-template-and-a11y-convergence]] | `aria-live` state badge, on-soft warning, locale-aware loading, `max-w-checkout`/`font-display`/`bg-accent`, 44 px privacy target, reduced-motion scroll. · size: M | 003_human_approval |
 | [[15.3.4-phase-verification]] | Write/run the phase suite (checkout view/controller/form tests, static gates) and repair only phase defects. · size: M | 001_initial_task |
