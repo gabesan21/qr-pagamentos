@@ -43,7 +43,7 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[15.3.3-checkout-template-and-a11y-convergence]] | `aria-live` state badge, on-soft warning, locale-aware loading, `max-w-checkout`/`font-display`/`bg-accent`, 44 px privacy target, reduced-motion scroll. · size: M | 003_human_approval |
+| [[15.3.3-checkout-template-and-a11y-convergence]] | `aria-live` state badge, on-soft warning, locale-aware loading, `max-w-checkout`/`font-display`/`bg-accent`, 44 px privacy target, reduced-motion scroll. · size: M | 005_closing |
 | [[15.3.4-phase-verification]] | Write/run the phase suite (checkout view/controller/form tests, static gates) and repair only phase defects. · size: M | 001_initial_task |
 
 ## Phase 15.4 - Visual drift sweep
