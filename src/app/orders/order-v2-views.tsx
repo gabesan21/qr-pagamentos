@@ -340,6 +340,10 @@ export function OrderV2DetailCard({
                   <time className="font-mono text-xs text-muted-foreground">{formatOrderV2Instant(order.updatedAt, locale)}</time>
                 </div>
               </div>
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{dictionary.orderV2DetailPaymentMethod}</p>
+                <p className="mt-1.5 text-sm">{order.paymentMethod ?? dictionary.orderV2DetailPaymentMethodNone}</p>
+              </div>
               <Separator />
               <div>
                 <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{dictionary.orderV2DetailLocalOutcome}</p>

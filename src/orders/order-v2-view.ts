@@ -53,6 +53,10 @@ export type OrderV2View = OrderV2Summary & Readonly<{
   customer: CustomerSnapshotV1;
   lines: ReadonlyArray<OrderV2LineSnapshot>;
   comments: ReadonlyArray<OrderV2CommentView>;
+  // Additive owner/admin-detail-only exposure (15.2.3): the persisted
+  // provider payment method, never selected by the summary projection or any
+  // public projection. `null` when no provider order or no method exists.
+  paymentMethod: string | null;
 }>;
 
 // Cross-owner, malformed, and missing order identities share this one outcome.
@@ -77,6 +81,9 @@ export type StoredOrderV2View = Omit<OrderV2Summary, "currentLocalOutcome" | "pa
   lines: ReadonlyArray<OrderV2LineSnapshot>;
   comments: ReadonlyArray<OrderV2CommentView>;
   latestLocalOutcome: OrderV2LocalOutcomeView | null;
+  // Detail-only (15.2.3): absent from the summary select, defaulted to null
+  // there exactly like `lifecycleVersion` defaults to 0.
+  paymentMethod: string | null;
 }>;
 
 export type OrderV2ViewStore = Readonly<{
@@ -123,7 +130,7 @@ export function toPolicySnapshotV2(policy: CheckoutDataPolicy, stored: StoredCus
 }
 
 function toSummary(stored: StoredOrderV2View): OrderV2Summary {
-  const { name, email, cpf, street, number, district, city, stateUf, postalCode, country, complement, lifecycleVersion, lines, comments, latestLocalOutcome, ...summary } = stored;
+  const { name, email, cpf, street, number, district, city, stateUf, postalCode, country, complement, lifecycleVersion, lines, comments, latestLocalOutcome, paymentMethod, ...summary } = stored;
   return {
     ...summary,
     payer: toPolicySnapshotV2(stored.checkoutDataPolicy, stored),
@@ -139,6 +146,7 @@ function toOrderV2View(stored: StoredOrderV2View): OrderV2View {
     customer: summary.payer,
     lines: stored.lines,
     comments: stored.comments,
+    paymentMethod: stored.paymentMethod,
   };
 }
 
@@ -210,6 +218,9 @@ const detailSelect = {
   lifecycleVersion: true,
   lines: { select: { productId: true, position: true, quantity: true, unitPrice: true }, orderBy: { position: "asc" } },
   comments: { select: { id: true, body: true, version: true, createdAt: true, editedAt: true }, orderBy: [{ createdAt: "asc" as const }, { id: "asc" as const }] },
+  // Detail-only (15.2.3): the provider payment method, one field only — never
+  // the PIX payload, provider UUID, or credential material.
+  providerOrders: { select: { paymentMethod: true }, take: 1 },
 } satisfies Prisma.OrderV2Select;
 
 type PrismaOrderV2Row = {
@@ -230,6 +241,7 @@ type PrismaOrderV2Row = {
   lifecycleVersion?: number;
   lines?: Array<OrderV2LineSnapshot>;
   comments?: Array<OrderV2CommentView>;
+  providerOrders?: Array<{ paymentMethod: string | null }>;
 } & Partial<StoredCustomerColumns>;
 
 function toStored(row: PrismaOrderV2Row): StoredOrderV2View {
@@ -267,6 +279,9 @@ function toStored(row: PrismaOrderV2Row): StoredOrderV2View {
     latestLocalOutcome: row.localOutcomes[0]
       ? { outcome: row.localOutcomes[0].outcome as OrderV2LocalOutcome, note: row.localOutcomes[0].note, createdAt: row.localOutcomes[0].createdAt }
       : null,
+    // Absent from the summary select (no `providerOrders` selected there);
+    // the detail select always populates it, defaulting to `null` otherwise.
+    paymentMethod: row.providerOrders?.[0]?.paymentMethod ?? null,
   };
 }
 

@@ -1,5 +1,6 @@
 import "server-only";
 
+import { logProviderFailure, providerFailureOperations } from "../../observability/provider-failure-log";
 import { loadNauttApiBaseUrl } from "./config";
 import { isExactDecimal, isExactPositiveDecimal, isUuid } from "./decimal";
 
@@ -310,18 +311,30 @@ export function createPricingOrdersAdapter(dependencies: AdapterDependencies = {
         throw new NauttPricingAdapterError();
       }
 
+      let response: Response;
       try {
-        const response = await fetch(`${loadNauttApiBaseUrl()}/pricing/panel/buy`, {
+        response = await fetch(`${loadNauttApiBaseUrl()}/pricing/panel/buy`, {
           method: "POST",
           headers: { "Content-Type": "application/json", "X-API-Key": apiKey },
           body,
           signal: createTimeoutSignal(DEFAULT_TIMEOUT_MS),
         });
-        if (response.status !== 200) throw new NauttPricingAdapterError();
+      } catch {
+        logProviderFailure(providerFailureOperations.quoteCreation, "transport_failure");
+        throw new NauttPricingAdapterError();
+      }
+
+      if (response.status !== 200) {
+        logProviderFailure(providerFailureOperations.quoteCreation, response.status);
+        throw new NauttPricingAdapterError();
+      }
+
+      try {
         const quote = parseQuoteSuccess(await response.json());
         const acceptedAt = now();
         return { ...quote, expiresAt: new Date(acceptedAt.getTime() + QUOTE_TTL_MS) };
       } catch (error) {
+        logProviderFailure(providerFailureOperations.quoteCreation, response.status);
         if (error instanceof NauttPricingAdapterError) throw error;
         throw new NauttPricingAdapterError();
       }
@@ -357,19 +370,37 @@ export function createPricingOrdersAdapter(dependencies: AdapterDependencies = {
           signal: createTimeoutSignal(DEFAULT_TIMEOUT_MS),
         });
       } catch {
+        logProviderFailure(providerFailureOperations.onrampOrderCreation, "transport_failure");
+        throw new NauttOrderCreationIndeterminateError();
+      }
+
+      if (response.status === 400 || response.status === 422) {
+        let refusalCode: NauttOrderRefusalCode | undefined;
+        try {
+          refusalCode = parseRefusalCode(await response.json());
+        } catch {
+          refusalCode = undefined;
+        }
+        if (refusalCode) {
+          // refusalCode already comes from the closed documented allowlist
+          // (parseRefusalCode), so logging it verbatim never echoes a raw
+          // provider-controlled string.
+          logProviderFailure(providerFailureOperations.onrampOrderCreation, response.status, refusalCode);
+          throw new NauttOrderRefusedError(refusalCode);
+        }
+        logProviderFailure(providerFailureOperations.onrampOrderCreation, response.status);
+        throw new NauttOrderCreationIndeterminateError();
+      }
+
+      if (response.status !== 201) {
+        logProviderFailure(providerFailureOperations.onrampOrderCreation, response.status);
         throw new NauttOrderCreationIndeterminateError();
       }
 
       try {
-        if (response.status === 400 || response.status === 422) {
-          const refusalCode = parseRefusalCode(await response.json());
-          if (refusalCode) throw new NauttOrderRefusedError(refusalCode);
-          throw new NauttOrderCreationIndeterminateError();
-        }
-        if (response.status !== 201) throw new NauttOrderCreationIndeterminateError();
         return parseOrderView(await response.json());
-      } catch (error) {
-        if (error instanceof NauttOrderCreationIndeterminateError || error instanceof NauttOrderRefusedError) throw error;
+      } catch {
+        logProviderFailure(providerFailureOperations.onrampOrderCreation, response.status);
         throw new NauttOrderCreationIndeterminateError();
       }
     },
@@ -386,16 +417,24 @@ export function createPricingOrdersAdapter(dependencies: AdapterDependencies = {
           signal: createTimeoutSignal(DEFAULT_TIMEOUT_MS),
         });
       } catch {
+        logProviderFailure(providerFailureOperations.orderRead, "transport_failure");
         throw new NauttOrderReadAdapterError();
       }
 
-      if (response.status === 403 || response.status === 404) throw new NauttOrderNotFoundError();
+      if (response.status === 403 || response.status === 404) {
+        logProviderFailure(providerFailureOperations.orderRead, response.status);
+        throw new NauttOrderNotFoundError();
+      }
+
+      if (response.status !== 200) {
+        logProviderFailure(providerFailureOperations.orderRead, response.status);
+        throw new NauttOrderReadAdapterError();
+      }
 
       try {
-        if (response.status !== 200) throw new NauttOrderReadAdapterError();
         return parseOrderView(await response.json());
-      } catch (error) {
-        if (error instanceof NauttOrderReadAdapterError) throw error;
+      } catch {
+        logProviderFailure(providerFailureOperations.orderRead, response.status);
         throw new NauttOrderReadAdapterError();
       }
     },
