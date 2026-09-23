@@ -27,7 +27,7 @@
 |------|-------------|--------|
 | [[13.1.1-restore-webhook-hmac-verification]] | Restore the signature gate, `verifyOwner` binding and `401`; drop `resolveOwner`; convert beta tests; add a redacted rejection log. · size: M · critical | 003_human_approval |
 | [[13.1.2-clear-beta-caveats-and-close-reversal-gate]] | Clear every `BETA(M-5.1)` caveat in spec/DOX/PROJECT, close the open question, update the research status. · size: S | 003_human_approval |
-| [[13.1.3-phase-verification]] | Write/run the phase suite (`pnpm check`, webhook suites) and repair only phase defects. · size: S | 002_planning |
+| [[13.1.3-phase-verification]] | Write/run the phase suite (`pnpm check`, webhook suites) and repair only phase defects. · size: S | 003_human_approval |
 
 ## Phase 13.2 - Lifecycle release blockers
 
@@ -40,7 +40,7 @@
 | [[13.2.1-define-in-flight-orders-on-link-disable]] | Specify and implement what happens to pending attempts/orders when an owner disables a reusable V2 link. · size: M · critical | 003_human_approval |
 | [[13.2.2-production-origin-guard]] | Production build refuses loopback `PUBLIC_ORIGIN`/callback unless the installer-written explicit allowance is set. · size: S | 003_human_approval |
 | [[13.2.3-encryption-key-rotation-procedure]] | Rotation procedure and tooling for `NAUTT_ENCRYPTION_KEY`/`TOTP_ENCRYPTION_KEY` with a dual-key read window; spec and runbook. · size: M · critical | 003_human_approval |
-| [[13.2.4-phase-verification]] | Write/run the phase suite and repair only phase defects. · size: S | 002_planning |
+| [[13.2.4-phase-verification]] | Write/run the phase suite and repair only phase defects. · size: S | 003_human_approval |
 
 ## Phase 13.3 - Deployment truth and release gates
 
@@ -53,7 +53,7 @@
 | [[13.3.1-sync-deployment-docs-to-v2-baseline]] | Runbook 19→16 baseline, README and PROJECT current state, release-evidence rows marked stale or still valid. · size: S | 003_human_approval |
 | [[13.3.2-close-admin-source-check-gate]] | Make `admin:source-check` exit 0 (F6): remove the inert shell token and add two rule-anchored typed exemptions to the checker; no primitive composition needed. · size: M | 003_human_approval |
 | [[13.3.3-release-rehearsal-protocol]] | Dated, repeatable rehearsal protocol (install, update, backup, restore, initial-admin recovery) with an evidence template the human executes. · size: S | 003_human_approval |
-| [[13.3.4-phase-verification]] | Write/run the phase suite, consolidate the epoch's human checklist and report, suggest the `develop` → `main` PR. · size: S | 002_planning |
+| [[13.3.4-phase-verification]] | Write/run the phase suite, consolidate the epoch's human checklist and report, suggest the `develop` → `main` PR. · size: S | 003_human_approval |
 
 ## Phase 13.4 - Provider configuration trust
 
