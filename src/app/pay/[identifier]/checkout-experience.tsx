@@ -63,12 +63,21 @@ function fieldErrors(dictionary: Dictionary, policy: CheckoutDataPolicy, values:
   return errors;
 }
 
+// Reduced motion still wins over the CSS `scroll-behavior` collapse: a JS
+// `scrollIntoView({ behavior: "smooth" })` overrides the computed value, so
+// the gate lives here. `matchMedia` is absent in some test environments —
+// feature-detected and treated as "no preference" rather than thrown.
+function prefersReducedMotion(): boolean {
+  if (typeof window === "undefined" || typeof window.matchMedia !== "function") return false;
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
 function focusFirstInvalid(errors: Partial<Record<CheckoutFieldName, string>>) {
   const target = FIELD_ORDER.find((name) => errors[name]);
   if (!target) return;
   const element = document.getElementById(`checkout-${target}`);
   if (!(element instanceof HTMLElement)) return;
-  element.scrollIntoView({ behavior: "smooth", block: "center" });
+  element.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth", block: "center" });
   element.focus({ preventScroll: true });
 }
 
