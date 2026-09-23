@@ -10,6 +10,7 @@ import {
 import {
   createPricingOrdersAdapter,
   NauttOrderCreationIndeterminateError,
+  NauttOrderRefusedError,
   NauttPricingAdapterError,
 } from "./pricing-orders-client";
 import { createInMemoryProviderOrderStore, type ProviderOrderStore, type StoredProviderOrder } from "./provider-order-store";
@@ -68,6 +69,10 @@ function orderCreated() {
     }),
     { status: 201, headers: { "content-type": "application/json" } },
   );
+}
+
+function orderRefused(code: string, status = 400) {
+  return new Response(JSON.stringify({ message: "refused", code }), { status });
 }
 
 function orderRetrieved() {
@@ -330,6 +335,25 @@ describe("owner order creation with quote ownership claims", () => {
     expect(fetch).toHaveBeenCalledTimes(2);
   });
 
+  it("discards the refused attempt but keeps the quote claimed, permanently unclaimable, with never a retry", async () => {
+    const { fetch, credentials, service } = harness();
+    fetch.mockResolvedValueOnce(quoteSuccess());
+    await service.quote(ownerA, fiatQuoteInput);
+    fetch.mockResolvedValueOnce(orderRefused("order.quote_expired"));
+
+    const error = await service.createOrder(ownerA, { quoteUuid }, {}).catch((caught: unknown) => caught);
+    expect(error).toBeInstanceOf(NauttOrderRefusedError);
+    expect((error as NauttOrderRefusedError).code).toBe("order.quote_expired");
+    expect(fetch).toHaveBeenCalledTimes(2);
+
+    // The quote is neither released nor recoverable: a second claim attempt
+    // fails closed with zero further decryption or dispatch — the discarded
+    // row leaves no trace to poll, recover, or reconcile.
+    await expect(service.createOrder(ownerA, { quoteUuid }, {})).rejects.toBeInstanceOf(OwnerPricingOrdersError);
+    expect(credentials.calls).toEqual([ownerA]);
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
+
   it("retains a validated provider UUID when complete local persistence fails and never posts twice", async () => {
     const base = createInMemoryProviderOrderStore();
     const store: ProviderOrderStore = {
@@ -393,6 +417,19 @@ describe("in-memory quote ownership store", () => {
     expect(await store.claimForCreation({ quoteUuid, ownerId: ownerB, now: T0 })).toEqual({ kind: "unavailable" });
     expect((await store.claimForCreation({ quoteUuid, ownerId: ownerA, now: T0 })).kind).toBe("claimed");
     expect(await store.claimForCreation({ quoteUuid, ownerId: ownerA, now: T0 })).toEqual({ kind: "unavailable" });
+  });
+
+  it("discardRefused removes the attempt row but never resets the quote claim, unlike releasePreDispatch", async () => {
+    const store = createInMemoryProviderOrderStore();
+    await store.register({ quoteUuid, ownerId: ownerA, expiresAt: new Date("2026-07-17T20:05:00.000Z") });
+    const claim = await store.claimForCreation({ quoteUuid, ownerId: ownerA, now: T0 });
+    if (claim.kind !== "claimed") throw new Error("expected claim to succeed");
+
+    await store.discardRefused(claim.attempt);
+
+    expect(await store.findPollable(ownerA, claim.attempt.id)).toBeNull();
+    expect(await store.findRecoverable(ownerA, claim.attempt.id)).toBeNull();
+    await expect(store.claimForCreation({ quoteUuid, ownerId: ownerA, now: T0 })).resolves.toEqual({ kind: "unavailable" });
   });
 });
 

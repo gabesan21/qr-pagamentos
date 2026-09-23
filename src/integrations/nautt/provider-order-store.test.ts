@@ -62,6 +62,19 @@ function durablePrismaFake(): PrismaClient {
       if (!row) throw new Error("provider order not found");
       return row;
     },
+    async deleteMany({ where }: { where: Record<string, unknown> }) {
+      const row = orders.get(where.id as string);
+      if (
+        !row ||
+        row.ownerId !== where.ownerId ||
+        row.quoteUuid !== where.quoteUuid ||
+        (where.creationState !== undefined && row.creationState !== where.creationState)
+      ) {
+        return { count: 0 };
+      }
+      orders.delete(where.id as string);
+      return { count: 1 };
+    },
   };
   const prisma = {
     providerQuote,
@@ -155,5 +168,20 @@ describe("Prisma provider order store", () => {
     expect(reconciled.pixCopyPaste).toBe("existing-pix-code");
     expect(reconciled.pixQrcodeUrl).toBe("https://example.com/qr.png");
     expect(reconciled.status).toBe("processing");
+  });
+
+  it("discardRefused deletes the CREATING row but leaves the quote's claimedAt untouched, unlike releasePreDispatch", async () => {
+    const prisma = durablePrismaFake();
+    const store = createPrismaProviderOrderStore(prisma);
+    await store.register({ quoteUuid, ownerId, expiresAt: new Date("2026-07-18T20:05:00.000Z") });
+    const claim = await store.claimForCreation({ quoteUuid, ownerId, now });
+    if (claim.kind !== "claimed") throw new Error("expected claim to succeed");
+
+    await store.discardRefused(claim.attempt);
+
+    // The quote row survives with its original `claimedAt` still set (never
+    // reset to null, unlike `releasePreDispatch`), so a fresh claim attempt
+    // fails closed even though the discarded order row is gone.
+    await expect(store.claimForCreation({ quoteUuid, ownerId, now })).resolves.toEqual({ kind: "unavailable" });
   });
 });
