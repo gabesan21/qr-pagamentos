@@ -34,6 +34,11 @@ export interface ProviderOrderStore extends QuoteOwnershipStore {
   claimForCreation(input: { quoteUuid: string; ownerId: string; now: Date; orderV2Id?: string }): Promise<QuoteClaimResult>;
   releasePreDispatch(attempt: ClaimedOrderAttempt): Promise<void>;
   markIndeterminate(attempt: ClaimedOrderAttempt, providerOrderUuid?: string): Promise<void>;
+  // A documented post-dispatch refusal (400/422 with a closed code): unlike
+  // `releasePreDispatch`, the quote's claim is never reset, so the quote stays
+  // permanently unclaimable — fail closed without a `creation_state` the
+  // closed database CHECK cannot express.
+  discardRefused(attempt: ClaimedOrderAttempt): Promise<void>;
   completeCreation(attempt: ClaimedOrderAttempt, order: NauttOrderView): Promise<StoredProviderOrder>;
   findPollable(ownerId: string, localOrderId: string): Promise<StoredProviderOrder | null>;
   findRecoverable(ownerId: string, localOrderId: string): Promise<StoredProviderOrder | null>;
@@ -113,6 +118,12 @@ export function createPrismaProviderOrderStore(prisma: PrismaClient): ProviderOr
       await prisma.providerOrder.updateMany({
         where: { id: attempt.id, ownerId: attempt.ownerId, quoteUuid: attempt.quoteUuid, creationState: "CREATING" },
         data: { creationState: "INDETERMINATE", providerOrderUuid: providerOrderUuid ?? null },
+      });
+    },
+
+    async discardRefused(attempt): Promise<void> {
+      await prisma.providerOrder.deleteMany({
+        where: { id: attempt.id, ownerId: attempt.ownerId, quoteUuid: attempt.quoteUuid, creationState: "CREATING" },
       });
     },
 
@@ -244,6 +255,11 @@ export function createInMemoryProviderOrderStore(): ProviderOrderStore {
       if (order?.creationState === "CREATING") {
         orders.set(attempt.id, { ...order, creationState: "INDETERMINATE", providerOrderUuid: providerOrderUuid ?? null });
       }
+      return Promise.resolve();
+    },
+    discardRefused(attempt) {
+      const order = orders.get(attempt.id);
+      if (order?.creationState === "CREATING") orders.delete(attempt.id);
       return Promise.resolve();
     },
     completeCreation(attempt, order) {

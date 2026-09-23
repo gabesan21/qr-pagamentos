@@ -13,6 +13,7 @@ import {
   type NauttOnrampOrderOptions,
   type NauttOrderView,
   NauttOrderCreationIndeterminateError,
+  NauttOrderRefusedError,
   type NauttQuote,
   type NauttQuoteAmount,
   NauttOrderValidationError,
@@ -144,6 +145,8 @@ export function createOwnerPricingOrdersService(
         } catch (error) {
           if (error instanceof NauttOrderValidationError) {
             await orderStore.releasePreDispatch(claim.attempt).catch(() => undefined);
+          } else if (error instanceof NauttOrderRefusedError) {
+            await orderStore.discardRefused(claim.attempt).catch(() => undefined);
           } else {
             await orderStore.markIndeterminate(claim.attempt).catch(() => undefined);
           }

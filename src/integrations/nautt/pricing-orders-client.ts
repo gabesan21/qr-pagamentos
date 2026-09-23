@@ -47,6 +47,30 @@ export class NauttOrderCreationIndeterminateError extends Error {
   }
 }
 
+// Documented POST /orders/onramp refusal codes (400/422 with a parseable
+// body): a deterministic, terminal local outcome, never retried and never
+// widened without a new approved research-backed entry.
+export const NAUTT_ORDER_REFUSAL_CODES = [
+  "order.quote_not_found",
+  "order.quote_expired",
+  "order.exchange_not_configured",
+  "order.payment_method_not_available",
+  "orders.deposit_bank_account_not_found",
+  "order.deposit_fields_required",
+  "order.deposit_fields_validation_failed",
+] as const;
+
+export type NauttOrderRefusalCode = (typeof NAUTT_ORDER_REFUSAL_CODES)[number];
+
+export class NauttOrderRefusedError extends Error {
+  readonly code: NauttOrderRefusalCode;
+  constructor(code: NauttOrderRefusalCode) {
+    super("Nautt order creation was refused");
+    this.name = "NauttOrderRefusedError";
+    this.code = code;
+  }
+}
+
 export class NauttOrderReadAdapterError extends Error {
   constructor() {
     super("Nautt order read failed");
@@ -209,6 +233,13 @@ function parseOrderView(payload: unknown): NauttOrderView {
   return view;
 }
 
+function parseRefusalCode(payload: unknown): NauttOrderRefusalCode | undefined {
+  if (!isPlainObject(payload) || typeof payload.code !== "string") return undefined;
+  return (NAUTT_ORDER_REFUSAL_CODES as readonly string[]).includes(payload.code)
+    ? (payload.code as NauttOrderRefusalCode)
+    : undefined;
+}
+
 function parseQuoteSuccess(payload: unknown): Omit<NauttQuote, "expiresAt"> {
   if (!isPlainObject(payload) || !isPlainObject(payload.data)) throw new NauttPricingAdapterError();
   const data = payload.data;
@@ -330,10 +361,15 @@ export function createPricingOrdersAdapter(dependencies: AdapterDependencies = {
       }
 
       try {
+        if (response.status === 400 || response.status === 422) {
+          const refusalCode = parseRefusalCode(await response.json());
+          if (refusalCode) throw new NauttOrderRefusedError(refusalCode);
+          throw new NauttOrderCreationIndeterminateError();
+        }
         if (response.status !== 201) throw new NauttOrderCreationIndeterminateError();
         return parseOrderView(await response.json());
       } catch (error) {
-        if (error instanceof NauttOrderCreationIndeterminateError) throw error;
+        if (error instanceof NauttOrderCreationIndeterminateError || error instanceof NauttOrderRefusedError) throw error;
         throw new NauttOrderCreationIndeterminateError();
       }
     },
