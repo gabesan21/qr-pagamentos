@@ -347,7 +347,6 @@ test("creates the closed merchant-catalog evidence run", async ({ page }) => {
   const sourceInventory = [
     "src/app/(merchant)/catalog/page.tsx",
     "src/app/(merchant)/catalog/directory-query.ts",
-    "src/app/(merchant)/catalog/directory-copy.ts",
     "src/app/(merchant)/catalog/catalog-notices.tsx",
     "src/app/(merchant)/catalog/catalog-submit.tsx",
     "src/app/(merchant)/catalog/price-format.ts",

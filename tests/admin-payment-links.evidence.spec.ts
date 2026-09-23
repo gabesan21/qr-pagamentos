@@ -407,7 +407,6 @@ test("creates the closed administrator payment-links evidence run", async ({ pag
     "src/app/(merchant)/links/link-v2-views.tsx",
     "src/app/admin/payment-links/page.tsx",
     "src/app/admin/payment-links/directory-query.ts",
-    "src/app/admin/payment-links/directory-copy.ts",
     "src/app/admin/payment-links/v2/[id]/page.tsx",
     "src/data-directory/ui/data-directory.tsx",
     "src/i18n/dictionaries/payment-links-directory/en.ts",

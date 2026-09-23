@@ -1,5 +1,5 @@
 // Client-side format validation and masks for the buyer form (14.6.1 F03).
-// Mirrors the shape the server normalization in `payment-link-order.ts`
+// Mirrors the shape the server normalization in `order-v2-policies.ts`
 // already accepts (digits-only or the punctuated grammar) so a masked value
 // submitted as-is is never rejected server-side. This module never loosens
 // or replaces the server's own validation — it only reports the same kind of

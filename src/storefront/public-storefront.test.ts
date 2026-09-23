@@ -278,8 +278,8 @@ describe("public storefront", () => {
       expect(serialized).not.toContain(forbidden);
     }
 
-    // The 9.2.2 amendment exposes exactly the policy member (the same public
-    // exposure V1 ships as `checkoutPolicy`) and nothing else about the owner.
+    // The 9.2.2 amendment exposes exactly the policy member and nothing else
+    // about the owner.
     expect(storefront?.checkoutDataPolicy).toBe("NAME_EMAIL_CPF");
   });
 

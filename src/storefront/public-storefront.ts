@@ -57,10 +57,8 @@ export type PublicStorefront = Readonly<{
   // surface (the deliberate 9.1.2 boundary amendment).
   standalonePaymentCurrencyCode: string | null;
   // The owner's checkout data policy, exposed so the standalone-payment page
-  // renders the policy-exact customer form before any submit — the same
-  // public-safe exposure V1 already ships as `checkoutPolicy` through
-  // `src/checkout/public-checkout-presentation.ts` (the deliberate 9.2.2
-  // boundary amendment). The server re-derives the policy from the locked
+  // renders the policy-exact customer form before any submit (the deliberate
+  // 9.2.2 boundary amendment). The server re-derives the policy from the locked
   // owner row on every checkout command; this member never grants authority.
   checkoutDataPolicy: CheckoutDataPolicy;
 }>;
@@ -245,7 +243,7 @@ function prismaStore(): PublicStorefrontStore {
 
       // The owner id scopes the two catalog reads and never leaves the store.
       // The policy column stores the closed CHECKOUT_DATA_POLICIES vocabulary;
-      // the cast mirrors the V1 public-checkout-presentation precedent.
+      // the cast narrows the column to that closed vocabulary.
       const { id: ownerId, ...storefront } = row;
       const [categories, catalogProducts] = await Promise.all([
         db.productCategory.findMany({

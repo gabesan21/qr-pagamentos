@@ -163,7 +163,7 @@ function stateLabel(dictionary: Dictionary, state: OrderV2State | null) {
 }
 
 // `OrderV2State` members are the upper-case mirror of `ProviderState`
-// (`payment-link-order.ts`'s `PAYMENT_LINK_ORDER_STATES`); every member has a
+// (`order-v2-policies.ts`'s `PAYMENT_LINK_ORDER_STATES`); every member has a
 // matching lower-case `ProviderState`, so the cast is total, never partial.
 function toProviderState(state: OrderV2State): ProviderState {
   return state.toLowerCase() as ProviderState;

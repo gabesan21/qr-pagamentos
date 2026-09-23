@@ -238,9 +238,7 @@ function AdminPaymentLinkV2Directory({
   );
 }
 
-// The administrator global Commerce V2 payment-link directory is V2-only and
-// read-only: no administrator V1 link projection exists, and V1 links remain
-// merchant-managed through the frozen V1 surfaces.
+// The administrator global Commerce V2 payment-link directory is read-only.
 export default async function AdminPaymentLinksPage({
   searchParams = Promise.resolve({}),
 }: Readonly<{
