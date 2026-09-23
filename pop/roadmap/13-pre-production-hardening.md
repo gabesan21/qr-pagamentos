@@ -1,0 +1,72 @@
+# Epoch 13 - Pre-production hardening
+
+- **Project:** [[PROJECT|QR Pagamentos]]
+- **Roadmap:** [[ROADMAP|Roadmap]]
+- **Status:** em andamento
+- **Description:** Restore the webhook trust gate, close the release-blocking lifecycle gaps, make deployment documentation and release gates truthful, and validate provider configuration before the first production deployment.
+- **Yolo:** não — every task stops at `003_human_approval` for the coordinator (user command 2026-09-23); the `005_closing` gate is the human PR.
+- **Pause if:** the HMAC reversal would require a contract Nautt never documented, or a task would need `NAUTT_API_BASE_URL`, local webhook delivery, or a change to the webhook URL registration surface.
+
+## Recon and forks
+
+- [[researches/pre-production-hardening/2026-09-23-hardening-inventory|Hardening inventory]] - confirmed footprint of the BETA seam, runbook drift, secret posture, provider-config gap and the Epoch 15 follow-ups, with file:line evidence.
+- [[notes/decisions/2026-09-23-epoch-13-decisions|2026-09-23 decisions]] - reversal against the documented contract, accepted caveats, opt-in loopback guard, research-blocked pair validation.
+- [[open_questions/2026-07-25-pre-production-gate-restore-webhook-hmac|HMAC reversal gate]] and [[notes/decisions/2026-07-25-beta-unverified-webhook-intake|M-5.1 decision]] - the verbatim reversal instructions.
+- [ ] RECON NEEDED: production dispatcher HMAC fixture - check: human runs `nautt-production-webhook-hmac-contract` ([[RESEARCHES|RESEARCHES]]); FAIL → new modification, never a silent re-suspension.
+- [ ] RECON NEEDED: `/exchange-currencies` semantics for PIX/BRL pairs - check: human runs `nautt-exchange-currencies-contract` ([[RESEARCHES|RESEARCHES]]) and ingests it; unblocks 13.4.1.
+- Fork: if production deliveries fail HMAC after 13.1, the rejection log (13.1.1) decides between a fixture defect and a contract gap; the answer is a modification, not a re-suspension.
+- Fork: if `admin:source-check` findings exceed one task, 13.3.2 splits by subtree write set into sibling tasks rather than inflating its budget.
+
+## Phase 13.1 - Webhook trust restoration
+
+- **Status:** em andamento
+- **Description:** Reverse M-5.1: signature verification, owner binding and `401` return; every beta caveat leaves the contracts.
+- **Specs:** [[specs/nautt-finance-integration|Nautt Finance integration]]
+
+| Task | Description | Status |
+|------|-------------|--------|
+| [[13.1.1-restore-webhook-hmac-verification]] | Restore the signature gate, `verifyOwner` binding and `401`; drop `resolveOwner`; convert beta tests; add a redacted rejection log. · size: M · critical | 002_planning |
+| [[13.1.2-clear-beta-caveats-and-close-reversal-gate]] | Clear every `BETA(M-5.1)` caveat in spec/DOX/PROJECT, close the open question, update the research status. · size: S | 002_planning |
+| [[13.1.3-phase-verification]] | Write/run the phase suite (`pnpm check`, webhook suites) and repair only phase defects. · size: S | 001_initial_task |
+
+## Phase 13.2 - Lifecycle release blockers
+
+- **Status:** pendente
+- **Description:** Define the undefined money-state transition, guard production origins, and give the encryption keys a rotation path.
+- **Specs:** [[specs/checkout-and-order-lifecycle|Checkout and order lifecycle]], [[specs/nautt-finance-integration|Nautt Finance integration]], [[specs/identity-security|Identity security]]
+
+| Task | Description | Status |
+|------|-------------|--------|
+| [[13.2.1-define-in-flight-orders-on-link-disable]] | Specify and implement what happens to pending attempts/orders when an owner disables a reusable V2 link. · size: M · critical | 002_planning |
+| [[13.2.2-production-origin-guard]] | Production build refuses loopback `PUBLIC_ORIGIN`/callback unless the installer-written explicit allowance is set. · size: S | 002_planning |
+| [[13.2.3-encryption-key-rotation-procedure]] | Rotation procedure and tooling for `NAUTT_ENCRYPTION_KEY`/`TOTP_ENCRYPTION_KEY` with a dual-key read window; spec and runbook. · size: M · critical | 002_planning |
+| [[13.2.4-phase-verification]] | Write/run the phase suite and repair only phase defects. · size: S | 001_initial_task |
+
+## Phase 13.3 - Deployment truth and release gates
+
+- **Status:** pendente
+- **Description:** Runbook, README and release evidence describe the 16-migration V2-only deployment; the red `admin:source-check` gate turns green; a dated rehearsal protocol replaces the 2026-07-31 waiver.
+- **Specs:** [[specs/administrative-foundation|Administrative foundation]], [[specs/application-frontend-system|Application frontend system]]
+
+| Task | Description | Status |
+|------|-------------|--------|
+| [[13.3.1-sync-deployment-docs-to-v2-baseline]] | Runbook 19→16 baseline, README and PROJECT current state, release-evidence rows marked stale or still valid. · size: S | 002_planning |
+| [[13.3.2-close-admin-source-check-gate]] | Compose owned primitives across `src/app-shell/**`, `src/app/admin/**`, `src/app/(merchant)/**` until `admin:source-check` exits 0 (F6). · size: L | 002_planning |
+| [[13.3.3-release-rehearsal-protocol]] | Dated, repeatable rehearsal protocol (install, update, backup, restore, initial-admin recovery) with an evidence template the human executes. · size: S | 002_planning |
+| [[13.3.4-phase-verification]] | Write/run the phase suite, consolidate the epoch's human checklist and report, suggest the `develop` → `main` PR. · size: S | 001_initial_task |
+
+## Phase 13.4 - Provider configuration trust
+
+- **Status:** pendente — blocked on research `nautt-exchange-currencies-contract`
+- **Description:** A registered currency pair is proven to yield a PIX/BRL onramp before it can be selected, and `GlobalPaymentSettings` is read by the checkout.
+
+| Task | Description | Status |
+|------|-------------|--------|
+| [[13.4.1-validate-currency-pair-and-wire-payment-settings]] | Admin "test pair" action via minimal quote, PIX/BRL assertion at selection, `GlobalPaymentSettings` enforced by checkout; blocked until the research is ingested. · size: L | 001_initial_task (blocked) |
+| `13.4.2-phase-verification` | Write/run the phase suite and repair only phase defects. · size: S | não iniciada |
+
+## Dependency and parallel-wave map
+
+- 13.1.1 → 13.1.2 → 13.1.3. 13.2.1, 13.2.2, 13.2.3 are write-set independent (checkout/orders vs `src/net`+installer vs `src/security`+`container`+`install`) and may run in parallel, at most three tasks at a time; 13.2.4 last.
+- 13.3.1 and 13.3.2 are independent; 13.3.3 waits for 13.3.1 (accurate runbook first); 13.3.4 last and it is the epoch's hand-off unless 13.4 unblocks before it.
+- 13.4 starts only after the research is ingested; if that happens before 13.3.4 closes, 13.4.2 becomes the hand-off instead.
