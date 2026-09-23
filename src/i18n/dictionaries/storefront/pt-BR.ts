@@ -14,7 +14,6 @@ export const storefrontPtBR = {
   storefrontProductsHeading: "Produtos",
   storefrontPriceLabel: "Preço",
   storefrontViewProduct: "Continuar para o pagamento",
-  storefrontLogoAlt: "Logotipo da loja",
   storefrontGroupUncategorized: "Mais produtos",
   storefrontQuantityLabel: "Quantidade",
   storefrontDecreaseQuantity: "Diminuir a quantidade",

@@ -194,7 +194,7 @@ export function LinkLinesEditor({
               <div className="flex items-center gap-1" role="group" aria-label={copy.quantity}>
                 <button
                   aria-label={copy.quantityDecrease}
-                  className="flex size-8 items-center justify-center rounded-md border text-text-2 hover:bg-surface-2 disabled:pointer-events-none disabled:opacity-50"
+                  className="flex min-h-11 min-w-11 items-center justify-center rounded-md border text-text-2 hover:bg-surface-2 disabled:pointer-events-none disabled:opacity-50"
                   disabled={disabled || !line.available || line.quantity <= MIN_QUANTITY}
                   onClick={() => adjustQuantity(line.key, -1)}
                   type="button"
@@ -204,7 +204,7 @@ export function LinkLinesEditor({
                 <span className="w-10 text-center font-mono text-sm tabular-nums text-text">{line.quantity}</span>
                 <button
                   aria-label={copy.quantityIncrease}
-                  className="flex size-8 items-center justify-center rounded-md border text-text-2 hover:bg-surface-2 disabled:pointer-events-none disabled:opacity-50"
+                  className="flex min-h-11 min-w-11 items-center justify-center rounded-md border text-text-2 hover:bg-surface-2 disabled:pointer-events-none disabled:opacity-50"
                   disabled={disabled || !line.available || line.quantity >= MAX_QUANTITY}
                   onClick={() => adjustQuantity(line.key, 1)}
                   type="button"
@@ -222,7 +222,7 @@ export function LinkLinesEditor({
               </div>
               <button
                 aria-label={copy.remove}
-                className="rounded-md p-1.5 text-text-2 hover:text-destructive disabled:pointer-events-none disabled:opacity-50"
+                className="flex min-h-11 min-w-11 items-center justify-center rounded-md text-text-2 hover:text-destructive disabled:pointer-events-none disabled:opacity-50"
                 disabled={disabled}
                 onClick={() => removeLine(line.key)}
                 type="button"
