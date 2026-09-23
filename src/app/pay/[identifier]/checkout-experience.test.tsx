@@ -4,12 +4,10 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { en as dictionary } from "@/i18n/dictionaries/en";
 
-import { PublicCheckoutForm } from "./public-checkout-form";
+import { PublicCheckoutV2Form } from "./public-checkout-v2-form";
 
 const identifier = "AbCdEfGhIjKlMnOpQrStUvWx";
-// The V1 form always resolves a total from `product.price`, so the submit
-// label is the exact-total button, never the generic `checkoutSubmit`.
-const submitLabel = dictionary.checkoutPayWithTotal.replace("{total}", "12.50");
+const submitLabel = dictionary.checkoutSubmit;
 
 function jsonResponse(body: unknown, status = 200) {
   return Promise.resolve(new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } }));
@@ -26,24 +24,24 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe("checkout experience state machine (public-checkout-form era)", () => {
+describe("checkout experience state machine (public-checkout-v2-form adapter)", () => {
   it("keeps typing free of side effects: field edits never touch attempt, payment or capability", () => {
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
-    render(<PublicCheckoutForm dictionary={dictionary} identifier={identifier} policy="NAME_EMAIL" product={{ title: "Donation", description: "Support the project.", price: "12.50" }} />);
+    render(<PublicCheckoutV2Form dictionary={dictionary} identifier={identifier} policy="NAME_EMAIL" />);
 
     fillMinimalForm();
     expect(fetchMock).not.toHaveBeenCalled();
     expect(screen.getByText(submitLabel)).not.toBeNull();
   });
 
-  it("submits one attempt, moves the form to the payment phase, and mints a single idempotency key across a retried submit", async () => {
+  it("submits one attempt and moves the form to the payment phase", async () => {
     const fetchMock = vi.fn().mockImplementation((input: RequestInfo | URL) => {
       if (String(input).endsWith("/checkout")) return jsonResponse({ payment: { state: "CREATED" }, statusCapability: "capability-1" });
       return jsonResponse({ payment: { state: "CREATED" } });
     });
     vi.stubGlobal("fetch", fetchMock);
-    render(<PublicCheckoutForm dictionary={dictionary} identifier={identifier} policy="NAME_EMAIL" product={{ title: "Donation", description: "Support the project.", price: "12.50" }} />);
+    render(<PublicCheckoutV2Form dictionary={dictionary} identifier={identifier} policy="NAME_EMAIL" />);
 
     fillMinimalForm();
     fireEvent.click(screen.getByText(submitLabel));
@@ -57,56 +55,71 @@ describe("checkout experience state machine (public-checkout-form era)", () => {
     await waitFor(() => expect(screen.queryByText(submitLabel)).toBeNull());
   });
 
-  it("a checkout failure alone (no payment yet) leaves the form in place, without requiring start-over", async () => {
-    const fetchMock = vi.fn().mockImplementation((input: RequestInfo | URL) => {
-      if (String(input).endsWith("/checkout")) return jsonResponse({}, 404);
-      return jsonResponse({});
-    });
+  it("a non-ok submit renders the named submit-failure state, replacing the form, with Start over as the only action (C06)", async () => {
+    const fetchMock = vi.fn().mockImplementation(() => jsonResponse({}, 500));
     vi.stubGlobal("fetch", fetchMock);
-    render(<PublicCheckoutForm dictionary={dictionary} identifier={identifier} policy="NAME_EMAIL" product={{ title: "Donation", description: "Support the project.", price: "12.50" }} />);
+    render(<PublicCheckoutV2Form dictionary={dictionary} identifier={identifier} policy="NAME_EMAIL" />);
 
     fillMinimalForm();
     fireEvent.click(screen.getByText(submitLabel));
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
-    // A 404 checkout response sets `unavailable`, but the controller has no
-    // payment yet, so the form (not the payment-phase Alert) still renders —
-    // start-over is not required to try again, and the field values survive.
-    expect((screen.getByLabelText(dictionary.checkoutNameLabel) as HTMLInputElement).value).toBe("Ana Buyer");
+
+    expect(await screen.findByText(dictionary.checkoutSubmitFailureTitle)).not.toBeNull();
+    expect(screen.queryByLabelText(dictionary.checkoutNameLabel)).toBeNull();
+    expect(screen.getByText(dictionary.checkoutStartOver)).not.toBeNull();
   });
 
-  it("clicking start-over in the payment phase returns to the form, clears the payment, and mints a distinct idempotency key on the next submit (C02)", async () => {
-    const fetchMock = vi.fn().mockImplementation((input: RequestInfo | URL) => {
-      if (String(input).endsWith("/checkout")) return jsonResponse({ payment: { state: "CREATED" }, statusCapability: "capability-1" });
-      return jsonResponse({ payment: { state: "REJECTED" } });
-    });
+  it("a submit-404 (opaque unavailable) leaves the form in place — distinct from the named submit-failure state", async () => {
+    const fetchMock = vi.fn().mockImplementation(() => jsonResponse({}, 404));
     vi.stubGlobal("fetch", fetchMock);
-    render(<PublicCheckoutForm dictionary={dictionary} identifier={identifier} policy="NAME_EMAIL" product={{ title: "Donation", description: "Support the project.", price: "12.50" }} />);
+    render(<PublicCheckoutV2Form dictionary={dictionary} identifier={identifier} policy="NAME_EMAIL" />);
+
+    fillMinimalForm();
+    fireEvent.click(screen.getByText(submitLabel));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    expect((screen.getByLabelText(dictionary.checkoutNameLabel) as HTMLInputElement).value).toBe("Ana Buyer");
+    expect(await screen.findByText(dictionary.checkoutUnavailableHeading)).not.toBeNull();
+  });
+
+  it("clicking start-over after a submit failure returns to a blank form and mints a distinct idempotency key on the next submit (C02, C06)", async () => {
+    const fetchMock = vi.fn().mockImplementation(() => jsonResponse({}, 500));
+    vi.stubGlobal("fetch", fetchMock);
+    render(<PublicCheckoutV2Form dictionary={dictionary} identifier={identifier} policy="NAME_EMAIL" />);
 
     fillMinimalForm();
     fireEvent.click(screen.getByText(submitLabel));
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
     const firstKey = (JSON.parse(String((fetchMock.mock.calls[0] as [string, RequestInit])[1].body)) as { idempotencyKey: string }).idempotencyKey;
 
-    // Poll resolves REJECTED (a terminal failure state), which renders
-    // `CheckoutPaymentView`'s start-over affordance.
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
-    const startOverButton = await screen.findByText(dictionary.checkoutStartOver);
-
-    fireEvent.click(startOverButton);
-    // Back in the form phase: the submit button is the exact-total label
-    // again, values are cleared, and the payment/attempt are gone.
+    fireEvent.click(await screen.findByText(dictionary.checkoutStartOver));
     expect(await screen.findByText(submitLabel)).not.toBeNull();
     expect((screen.getByLabelText(dictionary.checkoutNameLabel) as HTMLInputElement).value).toBe("");
 
     fillMinimalForm();
     fireEvent.click(screen.getByText(submitLabel));
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(3));
-    const secondKey = (JSON.parse(String((fetchMock.mock.calls[2] as [string, RequestInit])[1].body)) as { idempotencyKey: string }).idempotencyKey;
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    const secondKey = (JSON.parse(String((fetchMock.mock.calls[1] as [string, RequestInit])[1].body)) as { idempotencyKey: string }).idempotencyKey;
     expect(secondKey).not.toBe(firstKey);
   });
 
+  it("a failed status read stops the loop and renders the named status-unavailable state, no reschedule (C01, C02)", async () => {
+    const fetchMock = vi.fn().mockImplementation((input: RequestInfo | URL) => {
+      if (String(input).endsWith("/checkout")) return jsonResponse({ payment: { state: "CREATED" }, statusCapability: "capability-1" });
+      return jsonResponse({}, 500);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    render(<PublicCheckoutV2Form dictionary={dictionary} identifier={identifier} policy="NAME_EMAIL" />);
+
+    fillMinimalForm();
+    fireEvent.click(screen.getByText(submitLabel));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+
+    expect(await screen.findByText(dictionary.checkoutStatusUnavailableTitle)).not.toBeNull();
+    expect(screen.getByText(dictionary.checkoutStartOver)).not.toBeNull();
+  });
+
   it("marks CPF and postal code inputs with the numeric inputMode (C02)", () => {
-    render(<PublicCheckoutForm dictionary={dictionary} identifier={identifier} policy="NAME_EMAIL_CPF_ADDRESS" product={{ title: "Donation", description: "Support the project.", price: "12.50" }} />);
+    render(<PublicCheckoutV2Form dictionary={dictionary} identifier={identifier} policy="NAME_EMAIL_CPF_ADDRESS" />);
     expect(screen.getByLabelText(dictionary.checkoutCpfLabel).getAttribute("inputmode")).toBe("numeric");
     expect(screen.getByLabelText(dictionary.checkoutPostalCodeLabel).getAttribute("inputmode")).toBe("numeric");
     expect(screen.getByLabelText(dictionary.checkoutNameLabel).getAttribute("inputmode")).toBeNull();
@@ -115,7 +128,7 @@ describe("checkout experience state machine (public-checkout-form era)", () => {
   it("focuses the first invalid field, in field order, on an invalid submit (C02)", () => {
     // jsdom has no layout engine, so `Element.scrollIntoView` does not exist.
     Element.prototype.scrollIntoView = vi.fn();
-    render(<PublicCheckoutForm dictionary={dictionary} identifier={identifier} policy="NAME_EMAIL_CPF" product={{ title: "Donation", description: "Support the project.", price: "12.50" }} />);
+    render(<PublicCheckoutV2Form dictionary={dictionary} identifier={identifier} policy="NAME_EMAIL_CPF" />);
     // Only `email` is filled — `name` (first in field order) and `cpf` fail.
     fireEvent.change(screen.getByLabelText(dictionary.checkoutEmailLabel), { target: { value: "ana@example.com" } });
     fireEvent.click(screen.getByText(submitLabel));
@@ -129,7 +142,7 @@ describe("checkout experience state machine (public-checkout-form era)", () => {
       return jsonResponse({ payment: { state: "CREATED", pixCopyPaste: "pix-payload" } });
     });
     vi.stubGlobal("fetch", fetchMock);
-    const { container } = render(<PublicCheckoutForm dictionary={dictionary} identifier={identifier} policy="NAME_EMAIL" product={{ title: "Donation", description: "Support the project.", price: "12.50" }} />);
+    const { container } = render(<PublicCheckoutV2Form dictionary={dictionary} identifier={identifier} policy="NAME_EMAIL" />);
 
     fillMinimalForm();
     fireEvent.click(screen.getByText(submitLabel));
@@ -144,7 +157,7 @@ describe("checkout experience state machine (public-checkout-form era)", () => {
       return jsonResponse({}, 404);
     });
     vi.stubGlobal("fetch", fetchMock);
-    render(<PublicCheckoutForm dictionary={dictionary} identifier={identifier} policy="NAME_EMAIL" product={{ title: "Donation", description: "Support the project.", price: "12.50" }} />);
+    render(<PublicCheckoutV2Form dictionary={dictionary} identifier={identifier} policy="NAME_EMAIL" />);
 
     fillMinimalForm();
     fireEvent.click(screen.getByText(submitLabel));

@@ -13,7 +13,7 @@ import type { getDictionary } from "@/i18n/dictionaries";
 import type { CheckoutDataPolicy, PaymentLinkOrderState } from "@/orders/order-v2-policies";
 
 import { BRAZILIAN_UFS, requiredCheckoutFields, useCheckoutExperience, type CheckoutFieldName, type CheckoutPayment } from "./checkout-experience";
-import { CHECKOUT_PAYMENT_TERMINAL_STATES, CheckoutPaymentView } from "./checkout-payment-views";
+import { CHECKOUT_PAYMENT_TERMINAL_STATES, CheckoutNamedState, CheckoutPaymentView } from "./checkout-payment-views";
 
 type Dictionary = ReturnType<typeof getDictionary>;
 // The submit response carries attempt states (RESERVED/CREATING/PENDING/
@@ -66,7 +66,7 @@ export function PublicCheckoutV2Form({ currencyLabel, dictionary, identifier, me
     terminalStates: CHECKOUT_PAYMENT_TERMINAL_STATES,
     total,
   });
-  const { checkoutError, errors, payment, submit, submitLabel, submitting, unavailable, updateField, values } = experience;
+  const { checkoutError, errors, payment, startOver, statusReadFailed, submit, submitLabel, submitting, unavailable, updateField, values } = experience;
   const required = requiredCheckoutFields(policy);
 
   const field = (name: CheckoutFieldName, type = "text", autoComplete?: string) => (
@@ -87,16 +87,29 @@ export function PublicCheckoutV2Form({ currencyLabel, dictionary, identifier, me
             dictionary={dictionary}
             merchantIdentity={merchantIdentity}
             merchantName={dictionary.storefrontFallbackName}
-            onRetryPoll={experience.retryPoll}
-            onStartOver={experience.startOver}
+            onStartOver={startOver}
             pixCopyPaste={payment.pixCopyPaste}
             pixQrCodeUrl={payment.pixQrCodeUrl}
-            pollFailed={experience.pollFailed}
             state={payment.state}
+            statusReadFailed={statusReadFailed}
             total={total ?? ""}
           />
         )}
       </div>
+    );
+  }
+
+  // A failed submit (non-ok, network, malformed body) replaces the form with
+  // the named submit-failure state; `checkoutStartOver` is the only action,
+  // and it re-keys the next attempt (C06).
+  if (checkoutError) {
+    return (
+      <CheckoutNamedState
+        body={dictionary.checkoutSubmitFailureBody}
+        onStartOver={startOver}
+        startOverLabel={dictionary.checkoutStartOver}
+        title={dictionary.checkoutSubmitFailureTitle}
+      />
     );
   }
 
@@ -141,12 +154,6 @@ export function PublicCheckoutV2Form({ currencyLabel, dictionary, identifier, me
                   </Field>
                 </FieldGroup>
               </FieldSet>
-            ) : null}
-            {checkoutError ? (
-              <Alert variant="destructive">
-                <AlertTitle>{dictionary.checkoutErrorHeading}</AlertTitle>
-                <AlertDescription>{dictionary.checkoutErrorDescription}</AlertDescription>
-              </Alert>
             ) : null}
             {unavailable ? (
               <Alert variant="warning">

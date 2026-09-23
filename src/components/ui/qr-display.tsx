@@ -13,6 +13,7 @@ type QrDisplayProps = Readonly<{
   graphic?: ReactNode;
   graphicLabel: string;
   identity?: ReactNode;
+  onGenerationFailed?: () => void;
   payload?: string;
   pending?: boolean;
 }>;
@@ -25,7 +26,11 @@ type QrDisplayProps = Readonly<{
  * client-side pattern already used by src/app/profile/totp-qr-code.tsx.
  * `graphic` always wins when both are supplied. Error correction rises to
  * "H" whenever an `identity` centre-cut is present, because the covered
- * centre consumes redundancy the decoder needs back.
+ * centre consumes redundancy the decoder needs back. `onGenerationFailed`
+ * is additive and optional (15.3.1): a caller that supplies it learns of a
+ * rejected generation instead of only observing a cleared `aria-busy` on an
+ * otherwise blank frame; every existing caller keeps its current behavior
+ * unchanged when it omits the prop.
  */
 export function QrDisplay({
   alternativeLabel,
@@ -35,6 +40,7 @@ export function QrDisplay({
   graphic,
   graphicLabel,
   identity,
+  onGenerationFailed,
   payload,
   pending = false,
 }: QrDisplayProps) {
@@ -62,12 +68,16 @@ export function QrDisplay({
       .catch(() => {
         // A rejected generation must clear aria-busy, not pulse forever: mark this
         // exact (payload, level) pair as failed instead of leaving it "still generating".
-        if (!cancelled) setFailed({ forPayload: payload, forLevel: errorCorrectionLevel });
+        if (!cancelled) {
+          setFailed({ forPayload: payload, forLevel: errorCorrectionLevel });
+          onGenerationFailed?.();
+        }
       });
 
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- onGenerationFailed is a caller callback, not generation input; including it would re-run generation on every caller render.
   }, [errorCorrectionLevel, graphic, payload]);
 
   const isGenerating = Boolean(payload) && !graphic && !generatedSvg && !hasFailed;

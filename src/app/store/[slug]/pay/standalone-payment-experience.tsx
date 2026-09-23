@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 
 import { createPollingController } from "@/app/pay/[identifier]/public-checkout-form";
-import { CheckoutPaymentView } from "@/app/pay/[identifier]/checkout-payment-views";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { CheckoutNamedState, CheckoutPaymentView } from "@/app/pay/[identifier]/checkout-payment-views";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -103,20 +103,18 @@ export function StandalonePaymentUnavailable({ dictionary, slug }: Readonly<{ di
 export function StandalonePaymentView({
   amount,
   amountInvalid,
-  attemptMade,
   checkoutError,
   currencyCode,
   dictionary,
   invalid,
   onAmountChange,
   onFieldChange,
-  onRetryPoll,
   onStartOver,
   onSubmit,
   payment,
   policy,
-  pollFailed,
   slug,
+  statusReadFailed,
   submittedAmount,
   submitting,
   unavailable,
@@ -124,20 +122,18 @@ export function StandalonePaymentView({
 }: Readonly<{
   amount: string;
   amountInvalid: boolean;
-  attemptMade: boolean;
   checkoutError: boolean;
   currencyCode: string | null;
   dictionary: Dictionary;
   invalid: ReadonlySet<StandaloneFieldName>;
   onAmountChange: (value: string) => void;
   onFieldChange: (field: keyof StandaloneFormValues, value: string) => void;
-  onRetryPoll: () => void;
   onStartOver: () => void;
   onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
   payment: StandalonePayment | null;
   policy: CheckoutDataPolicy;
-  pollFailed: boolean;
   slug: string;
+  statusReadFailed: boolean;
   submittedAmount: string | null;
   submitting: boolean;
   unavailable: boolean;
@@ -153,13 +149,35 @@ export function StandalonePaymentView({
             currencyLabel={currencyCode ?? undefined}
             dictionary={dictionary}
             merchantName={dictionary.storefrontFallbackName}
-            onRetryPoll={onRetryPoll}
             onStartOver={onStartOver}
             pixCopyPaste={payment.pixCopyPaste}
             pixQrCodeUrl={payment.pixQrCodeUrl}
-            pollFailed={pollFailed}
             state={payment.state}
+            statusReadFailed={statusReadFailed}
             total={submittedAmount ?? amount}
+          />
+        </CardContent>
+        <CardFooter className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-xs text-muted-foreground">{dictionary.checkoutPrivacyNotice}</p>
+          <Button asChild variant="outline">
+            <a href={`/store/${slug}`}>{dictionary.storefrontPayReturn}</a>
+          </Button>
+        </CardFooter>
+      </Card>
+    );
+  }
+
+  // A failed submit (non-ok, network, malformed body) replaces the form with
+  // the named submit-failure state; `checkoutStartOver` is the only action.
+  if (checkoutError) {
+    return (
+      <Card className="w-full">
+        <CardContent>
+          <CheckoutNamedState
+            body={dictionary.checkoutSubmitFailureBody}
+            onStartOver={onStartOver}
+            startOverLabel={dictionary.checkoutStartOver}
+            title={dictionary.checkoutSubmitFailureTitle}
           />
         </CardContent>
         <CardFooter className="flex flex-wrap items-center justify-between gap-3">
@@ -228,8 +246,7 @@ export function StandalonePaymentView({
                 </FieldGroup>
               </FieldSet>
             ) : null}
-            {checkoutError ? <Alert variant="destructive"><AlertTitle>{dictionary.checkoutErrorHeading}</AlertTitle><AlertDescription>{dictionary.checkoutErrorDescription}</AlertDescription></Alert> : null}
-            <Button aria-busy={submitting || undefined} disabled={submitting} type="submit">{submitting ? <Spinner data-icon="inline-start" /> : null}{submitting ? dictionary.checkoutSubmitting : attemptMade ? dictionary.checkoutRetry : dictionary.checkoutSubmit}</Button>
+            <Button aria-busy={submitting || undefined} disabled={submitting} type="submit">{submitting ? <Spinner data-icon="inline-start" /> : null}{submitting ? dictionary.checkoutSubmitting : dictionary.checkoutSubmit}</Button>
           </FieldGroup>
         </form>
       </CardContent>
@@ -280,13 +297,11 @@ export function StandalonePaymentExperience({
   const [submitting, setSubmitting] = useState(false);
   const [unavailable, setUnavailable] = useState(false);
   const [checkoutError, setCheckoutError] = useState(false);
-  const [pollFailed, setPollFailed] = useState(false);
-  const [pollRetryTick, setPollRetryTick] = useState(0);
+  const [statusReadFailed, setStatusReadFailed] = useState(false);
   const terminalRef = useRef(false);
 
   useEffect(() => {
     if (!capability || terminalRef.current) return;
-    let failures = 0;
     const polling = createPollingController(document, async ({ signal, isCurrent, schedule }) => {
       try {
         const response = await fetch(`/api/store/${slug}/checkout/status`, { method: "POST", cache: "no-store", credentials: "omit", headers: { "content-type": "application/json" }, body: JSON.stringify({ statusCapability: capability }), signal });
@@ -299,24 +314,22 @@ export function StandalonePaymentExperience({
         if (!next) throw new Error("status-read-failed");
         setPayment(next);
         terminalRef.current = TERMINAL_STATES.has(next.state);
-        setPollFailed(false);
-        failures = 0;
+        setStatusReadFailed(false);
         if (!terminalRef.current) schedule(5_000);
       } catch (error) {
-        if (isCurrent() && !(error instanceof DOMException && error.name === "AbortError")) {
-          failures += 1;
-          if (failures >= 3) setPollFailed(true);
-          else schedule(1_000 * 2 ** failures);
-        }
+        // A failed read stops the loop (no reschedule, no backoff, no
+        // failure counter): the next 5 s tick never happens on its own.
+        if (isCurrent() && !(error instanceof DOMException && error.name === "AbortError")) setStatusReadFailed(true);
       }
     });
     polling.start();
     return polling.stop;
-  }, [capability, slug, pollRetryTick]);
+  }, [capability, slug]);
 
   // The only reset (C04, mirrored from 14.6.1's `startOver`): field and
   // amount edits below never call this — they only clear their own
-  // validation flag — so an issued payment survives every keystroke.
+  // validation flag — so an issued payment survives every keystroke. Also
+  // clears the failed-status-read flag.
   const startOver = () => {
     terminalRef.current = false;
     setAmount("");
@@ -329,7 +342,7 @@ export function StandalonePaymentExperience({
     setSubmitting(false);
     setUnavailable(false);
     setCheckoutError(false);
-    setPollFailed(false);
+    setStatusReadFailed(false);
   };
 
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -339,7 +352,10 @@ export function StandalonePaymentExperience({
     setAmountInvalid(!amountValid);
     setInvalid(formSnapshot.invalid);
     if (!amountValid || formSnapshot.invalid.size) return;
-    const currentAttempt = attempt ?? { idempotencyKey: createRetryKey(), amount, customer: formSnapshot.customer };
+    // Every submit mints a fresh idempotency key (no reused attempt): a
+    // failed submit renders the named submit-failure state and the only way
+    // back is `startOver`, which re-keys the next attempt anyway.
+    const currentAttempt = { idempotencyKey: createRetryKey(), amount, customer: formSnapshot.customer };
     setAttempt(currentAttempt); setSubmitting(true); setCheckoutError(false); setUnavailable(false);
     try {
       const response = await fetch(`/api/store/${slug}/checkout`, { method: "POST", cache: "no-store", credentials: "omit", headers: { "content-type": "application/json" }, body: JSON.stringify(currentAttempt) });
@@ -359,7 +375,6 @@ export function StandalonePaymentExperience({
     <StandalonePaymentView
       amount={amount}
       amountInvalid={amountInvalid}
-      attemptMade={attempt !== null}
       checkoutError={checkoutError}
       currencyCode={currencyCode}
       dictionary={dictionary}
@@ -369,13 +384,12 @@ export function StandalonePaymentExperience({
         setValues((current) => ({ ...current, [field]: value }));
         setInvalid((current) => { const next = new Set(current); next.delete(field as StandaloneFieldName); return next; });
       }}
-      onRetryPoll={() => setPollRetryTick((value) => value + 1)}
       onStartOver={startOver}
       onSubmit={(event) => { void submit(event); }}
       payment={payment}
       policy={policy}
-      pollFailed={pollFailed}
       slug={slug}
+      statusReadFailed={statusReadFailed}
       submittedAmount={attempt?.amount ?? null}
       submitting={submitting}
       unavailable={unavailable}
