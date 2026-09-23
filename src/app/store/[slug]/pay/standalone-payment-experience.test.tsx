@@ -116,13 +116,28 @@ describe("standalone payment view", () => {
     ["RESERVED", "Preparing payment"],
     ["CREATING", "Preparing payment"],
     ["CREATED", "Preparing payment"],
-    ["PENDING", "Waiting for payment"],
-    ["INDETERMINATE", "Payment status is being checked"],
-  ] as const)("renders %s as the waiting treatment, never an error", (state: StandalonePaymentState, label: string) => {
+  ] as const)("renders %s as the honest waiting treatment, never an error", (state: StandalonePaymentState, label: string) => {
     const markup = renderView({ payment: { state }, submittedAmount: "12.5" });
 
     expect(textContent(markup)).toContain(label);
     expect(textContent(markup)).toContain("12.5 BRL");
+    expect(markup).not.toContain("bg-danger-soft");
+    expect(markup).toContain('href="/store/ana-store"');
+  });
+
+  // PENDING without a payload and INDETERMINATE are named PIX-unavailable
+  // states, not the waiting shell (15.3.1 C05/C03): the badge label still
+  // carries the provider state, but the amount is not restated and
+  // `checkoutStartOver` is the only action — no retry, never a danger tone.
+  it.each([
+    ["PENDING", "Waiting for payment"],
+    ["INDETERMINATE", "Payment status is being checked"],
+  ] as const)("names %s as PIX-unavailable, never an error", (state: StandalonePaymentState, label: string) => {
+    const markup = renderView({ payment: { state }, submittedAmount: "12.5" });
+
+    expect(textContent(markup)).toContain(label);
+    expect(markup).toContain(dictionary.checkoutPixUnavailableTitle);
+    expect(markup).toContain(dictionary.checkoutStartOver);
     expect(markup).not.toContain("bg-danger-soft");
     expect(markup).toContain('href="/store/ana-store"');
   });
