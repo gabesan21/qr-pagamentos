@@ -23,9 +23,8 @@ status: active
   each closed with PR merged into `develop` and a memory ledger under
   `pop/memory/2026-09-22/` and `pop/memory/2026-09-23/`.
 - **This task's gate on this worktree (branch base `a20fda17`, commit(s)
-  below):** `tsc --noEmit` fails on one file outside this task's `owns`
-  (see "Known follow-ups"); `pnpm lint` 0 errors/54 warnings; `vitest run`
-  2179 passed/28 skipped/0 failed; `next build` exit 0;
+  below):** `tsc --noEmit` exit 0; `pnpm lint` 0 errors/54 warnings;
+  `vitest run` 2179 passed/28 skipped/0 failed; `next build` exit 0;
   `admin:contract-check` and `design-system:source-check` exit 0;
   `frontend-parity:check` `FRONTEND_PARITY_OK records=2226`, 27/27 semantic
   mutation probes green; `admin:source-check` fails widely (pre-existing,
@@ -67,7 +66,8 @@ status: active
    A fresh worktree needs `SHARP_IGNORE_GLOBAL_LIBVIPS=1 pnpm install
    --frozen-lockfile` (prebuilt `sharp` binary, see
    [[pop/notes/references/limites-de-verificacao|verification limits]]).
-2. Repair the one known lacuna first (below), then `pnpm check`.
+2. `pnpm check` (the `tests/merchant-dashboard.evidence.spec.ts` lacuna
+   found during this task's first pass is already repaired, below).
 3. Docker-driven evidence and database/install checks: the full list with
    commands is in the checklist note.
 4. Browser pass: run the app and walk the checklist note by area — public
@@ -76,14 +76,21 @@ status: active
 5. Merge the PR (once opened) when the checklist has no severity ≥ 2
    finding.
 
+## Fixed during this task
+
+- **`tests/merchant-dashboard.evidence.spec.ts` `tsc` failure** — it
+  asserted `dictionary.merchantDashboardSalesEmpty` and
+  `.merchantDashboardLinksEmpty`, both retired by 15.4.2's dictionary-debt
+  sweep; genuinely falsified by the phase's own diff. `owns` was widened
+  for this one file (`2d92f612`): the sales-empty assertion now reads
+  `dictionary.merchantDashboardNoSales` (the real key the UI uses,
+  confirmed at `dashboard.tsx:132,136,512,513`); the links-empty assertion
+  was removed outright (no current equivalent — the dashboard only shows
+  an active-links stat count). `tsc --noEmit` and `vitest run` (2179
+  passed / 28 skipped) both confirmed green afterward.
+
 ## Known follow-ups (not blocking, not fixed here)
 
-- **`tests/merchant-dashboard.evidence.spec.ts` fails `tsc`** — asserts
-  `dictionary.merchantDashboardSalesEmpty` and
-  `.merchantDashboardLinksEmpty`, both retired by 15.4.2's dictionary-debt
-  sweep. The file is under `tests/**`, outside every 15.4.x task's `owns`
-  (`src/**` only) — genuinely falsified by the phase's own diff, but this
-  task cannot touch it. **Two lines to fix**, named in the checklist note.
 - **`admin:source-check` fails widely and predates this epoch's phases** —
   dozens of `raw_controls` (native `<button>`/`<input>`/`<select>`) and
   `local_variants` (BEM/CSS-var classNames) findings across

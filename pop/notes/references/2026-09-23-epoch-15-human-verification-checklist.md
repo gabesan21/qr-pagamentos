@@ -25,12 +25,12 @@ locales (`pt-BR`, `en`); wider matrices are named per row. Sources:
 
 - **15.1.4 C11** — recapture the affected `tests/*.evidence.spec.ts`:
   V2-only captures, no missing screen, no V1 page targeted.
-- **This task's C1 lacuna** — `tests/merchant-dashboard.evidence.spec.ts`
-  still asserts two dictionary keys (`merchantDashboardSalesEmpty`,
-  `merchantDashboardLinksEmpty`) retired by 15.4.2; `tsc --noEmit` fails on
-  it today. The file is outside this task's `owns` (`tests/**` is not
-  `src/**`) — repair it (assert the surviving empty-state keys) before or
-  during this recapture, then re-run `pnpm check`.
+- **`tests/merchant-dashboard.evidence.spec.ts`** — fixed at 15.4.3
+  (`2d92f612`, `owns` widened for this one file): the sales-empty
+  assertion now reads `dictionary.merchantDashboardNoSales` and the
+  `merchantDashboardLinksEmpty` assertion (no current equivalent) was
+  removed. `tsc --noEmit` and `vitest run` both confirmed green; recapture
+  this spec normally, no repair needed first.
 
 ## Checkout and standalone payment (15.3.1/15.3.3)
 
@@ -93,5 +93,5 @@ Every pair below sits behind `docker compose`; none ran in this task.
 ## Close-out
 
 Run `pnpm check` at the repository root on integrated `develop` before
-opening the `develop` → `main` PR (repair the lacuna above first); review
-and merge the PR yourself — the agent only suggests it.
+opening the `develop` → `main` PR; review and merge the PR yourself — the
+agent only suggests it.
