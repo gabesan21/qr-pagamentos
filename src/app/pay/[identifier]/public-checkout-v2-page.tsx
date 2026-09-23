@@ -102,7 +102,7 @@ export function PublicCheckoutV2PaidPage({ dictionary, locale, presentation }: R
         <CardContent className="flex flex-col items-center gap-4 p-6 text-center">
           <StatusBadge label={dictionary.checkoutPaidBadge} tone="success" />
           <div>
-            <h2 className="font-[family-name:var(--font-display)] text-lg font-semibold leading-7">{dictionary.checkoutPaidHeading}</h2>
+            <h2 className="font-display text-lg font-semibold leading-7">{dictionary.checkoutPaidHeading}</h2>
             <p className="text-sm text-muted-foreground">{dictionary.checkoutPaidDescription}</p>
           </div>
           <Separator />

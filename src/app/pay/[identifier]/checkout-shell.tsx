@@ -15,7 +15,7 @@ function CheckoutMerchantHeader({ branding, dictionary }: Readonly<{ branding: P
   return (
     <header className="flex flex-col items-center gap-2 text-center">
       {branding.logoMediaIdentifier ? (
-        <div className="rounded-full bg-primary p-1.5">
+        <div className="rounded-full bg-accent p-1.5">
           {/* The owner-activated public media object renders directly; the
               official merchant fallback stays the only placeholder identity. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -26,7 +26,7 @@ function CheckoutMerchantHeader({ branding, dictionary }: Readonly<{ branding: P
       ) : (
         <span aria-label={dictionary.checkoutMerchantFallbackAlt} role="img"><BrandIdentity variant="merchant-fallback" /></span>
       )}
-      <h1 className="font-[family-name:var(--font-display)] text-lg font-semibold leading-7">{displayName}</h1>
+      <h1 className="font-display text-lg font-semibold leading-7">{displayName}</h1>
       <p className="text-xs text-muted-foreground">{dictionary.checkoutTrustLine}</p>
     </header>
   );
@@ -48,11 +48,11 @@ export function CheckoutShell({ branding, busy, children, dictionary, locale }: 
       data-theme-preview={branding?.themeId}
       style={branding ? ({ "--storefront-accent": branding.accentColor } as CSSProperties) : undefined}
     >
-      <div className="flex w-full max-w-[var(--checkout-max)] flex-1 flex-col gap-6">
+      <div className="flex w-full max-w-checkout flex-1 flex-col gap-6">
         {branding ? <CheckoutMerchantHeader branding={branding} dictionary={dictionary} /> : null}
         {children}
       </div>
-      <div className="mt-8 w-full max-w-[var(--checkout-max)]">
+      <div className="mt-8 w-full max-w-checkout">
         <CheckoutFooter dictionary={dictionary} locale={locale} />
       </div>
     </main>

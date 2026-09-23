@@ -85,6 +85,24 @@ describe("checkout payment view", () => {
     expect(markup).toMatch(/role="img"/);
   });
 
+  it("wraps the state badge in exactly one polite live region on the live payment view, never enclosing a role=alert node (C1)", () => {
+    for (const state of ["RESERVED", "CREATING", "CREATED"] as const) {
+      const markup = render(state, { pixCopyPaste: "pix-payload" });
+      expect(markup.match(/aria-live="polite"/g)).toHaveLength(1);
+      expect(markup).not.toContain('role="alert"');
+    }
+
+    const pending = render("PENDING", { pixCopyPaste: "pix-payload" });
+    expect(pending.match(/aria-live="polite"/g)).toHaveLength(1);
+    expect(pending).not.toContain('role="alert"');
+
+    // The named states (terminal failures, INDETERMINATE, status-unavailable)
+    // render through `EmptyState`'s own `role="alert"`/`role="status"` and
+    // carry no live region of their own.
+    const indeterminate = render("INDETERMINATE", { pixCopyPaste: "pix-payload" });
+    expect(indeterminate).not.toContain('aria-live="polite"');
+  });
+
   it("feeds the merchant identity into the QR display's identity slot on the live view (C03.a)", () => {
     const markup = render("PENDING", { merchantIdentity: <span data-testid="merchant-mark">mark</span>, pixCopyPaste: "pix-payload" });
     expect(markup).toContain('data-testid="merchant-mark"');

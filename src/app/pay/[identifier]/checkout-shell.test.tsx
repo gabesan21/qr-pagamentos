@@ -18,7 +18,7 @@ function render(branding?: PublicCheckoutV2Branding) {
 describe("checkout shell", () => {
   it("caps the column at the 560px checkout token and always renders the footer with the language switcher", () => {
     const markup = render();
-    expect(markup).toContain("max-w-[var(--checkout-max)]");
+    expect(markup).toContain("max-w-checkout");
     expect(markup).toContain(dictionary.checkoutPoweredBy);
     expect(markup).toContain(dictionary.languageLabel);
   });

@@ -136,6 +136,28 @@ describe("checkout experience state machine (public-checkout-v2-form adapter)", 
     expect(document.activeElement).toBe(screen.getByLabelText(dictionary.checkoutNameLabel));
   });
 
+  it("scrolls smoothly to the first invalid field when no reduced-motion preference is reported, and preserves the native scroll focus guard (C6)", () => {
+    const scrollIntoView = vi.fn();
+    Element.prototype.scrollIntoView = scrollIntoView;
+    render(<PublicCheckoutV2Form dictionary={dictionary} identifier={identifier} policy="NAME_EMAIL_CPF" />);
+    fireEvent.change(screen.getByLabelText(dictionary.checkoutEmailLabel), { target: { value: "ana@example.com" } });
+    fireEvent.click(screen.getByText(submitLabel));
+
+    expect(scrollIntoView).toHaveBeenCalledWith(expect.objectContaining({ behavior: "smooth" }));
+  });
+
+  it("collapses the scroll to an instant jump when `prefers-reduced-motion: reduce` is reported (C6)", () => {
+    const scrollIntoView = vi.fn();
+    Element.prototype.scrollIntoView = scrollIntoView;
+    vi.stubGlobal("matchMedia", vi.fn().mockReturnValue({ matches: true }));
+    render(<PublicCheckoutV2Form dictionary={dictionary} identifier={identifier} policy="NAME_EMAIL_CPF" />);
+    fireEvent.change(screen.getByLabelText(dictionary.checkoutEmailLabel), { target: { value: "ana@example.com" } });
+    fireEvent.click(screen.getByText(submitLabel));
+
+    expect(scrollIntoView).toHaveBeenCalledWith(expect.objectContaining({ behavior: "auto" }));
+    expect(document.activeElement).toBe(screen.getByLabelText(dictionary.checkoutNameLabel));
+  });
+
   it("never emits a retired checkout-card/-form/-payment/-description class once the form yields to the payment phase (C03.c)", async () => {
     const fetchMock = vi.fn().mockImplementation((input: RequestInfo | URL) => {
       if (String(input).endsWith("/checkout")) return jsonResponse({ payment: { state: "CREATED", pixCopyPaste: "pix-payload" }, statusCapability: "capability-1" });

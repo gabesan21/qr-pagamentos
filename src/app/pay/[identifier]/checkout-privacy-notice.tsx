@@ -17,7 +17,7 @@ export function CheckoutPrivacyNotice({ dictionary }: Readonly<{ dictionary: Dic
     <>
       <p className="text-center text-xs text-muted-foreground">
         {dictionary.checkoutPrivacyLine}{" "}
-        <button className="underline underline-offset-2 hover:text-foreground" onClick={() => setOpen(true)} type="button">
+        <button className="inline-flex min-h-11 min-w-11 items-center justify-center underline underline-offset-2 hover:text-foreground" onClick={() => setOpen(true)} type="button">
           {dictionary.checkoutPrivacyLinkLabel}
         </button>
       </p>
