@@ -18,13 +18,12 @@
 
 ## Phase 15.1 - V1 removal
 
-- **Status:** em andamento
+- **Status:** concluída
 - **Description:** Delete every V1 surface, table and contract; the application, its specs and its parity records describe Commerce V2 only.
 - **Specs:** [[specs/checkout-and-order-lifecycle|Checkout and order lifecycle]], [[specs/catalog-and-payment-links|Catalog and payment links]], [[specs/administrative-foundation|Administrative foundation]]
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[15.1.4-phase-verification]] | Write/run the phase suite (`pnpm check`, contract checks, parity check) and repair only phase defects. · size: M | 004_processing |
 
 ## Phase 15.2 - PIX integrity
 
