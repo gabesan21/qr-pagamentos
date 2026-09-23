@@ -20,6 +20,18 @@
       "test_seconds": 0,
       "return_kind": null,
       "result": "advanced"
+    },
+    {
+      "at": "2026-09-22T18:50:34-03:00",
+      "event": "transition",
+      "from": "003_human_approval",
+      "to": "004_processing",
+      "contexts": [
+        "pop-phase-verifier"
+      ],
+      "test_seconds": 0,
+      "return_kind": null,
+      "result": "advanced"
     }
   ]
 }

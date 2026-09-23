@@ -12,5 +12,6 @@ Blockers observed in this project (evidence: epoch 12 rounds, 2026-08-02/03):
 - **`spawnSync git EPERM` in the sandbox** — verifier tests that spawn `git` as a subprocess fail on permissions, not on a product defect (seen in 12.2.4, C08: 4 blocked tests).
 - **Non-deterministic screenshots** — toast/animation races produce false pixel diffs between identical runs (seen in 12.2.4: the `en/midnight-clearing/375` repeat diverged by 23,808 pixels because of a retained toast). Pixel-level visual comparison without freezing animations/toasts is flaky by construction.
 - **The full capture matrix (themes × widths × locales) is expensive evidence** — regenerating everything per round costs ~700s; a re-entry regenerates only the delta's slice and reuses the rest by stamp (the WORKFLOW's "expensive evidence is reused" rule).
+- **`pnpm install` in a fresh worktree fails on `sharp`** — the host has a global libvips, so sharp's install check forces a source build that fails; `SHARP_IGNORE_GLOBAL_LIBVIPS=1 pnpm install --frozen-lockfile` uses the prebuilt binary (seen in 15.1.4, 2026-09-22). Setup, not a criterion failure.
 
 When a new blocker of the same kind appears, add a line here (with the task and evidence) — this is what keeps the next plan from demanding impossible verification.

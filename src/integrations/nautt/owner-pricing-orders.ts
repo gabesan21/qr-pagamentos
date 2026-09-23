@@ -108,7 +108,6 @@ export function createOwnerPricingOrdersService(
       ownerId: string,
       quoteReference: NauttQuoteReference,
       input: NauttOnrampOrderOptions,
-      paymentLinkOrderId?: string,
       orderV2Id?: string,
     ): Promise<NauttOrderView> {
       if (
@@ -124,7 +123,7 @@ export function createOwnerPricingOrdersService(
 
       let claim: Awaited<ReturnType<ProviderOrderStore["claimForCreation"]>>;
       try {
-        claim = await orderStore.claimForCreation({ quoteUuid: quoteReference.quoteUuid, ownerId, now: now(), paymentLinkOrderId, orderV2Id });
+        claim = await orderStore.claimForCreation({ quoteUuid: quoteReference.quoteUuid, ownerId, now: now(), orderV2Id });
       } catch {
         throw new OwnerPricingOrdersError();
       }

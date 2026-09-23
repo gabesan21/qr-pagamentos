@@ -24,7 +24,7 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[15.1.4-phase-verification]] | Write/run the phase suite (`pnpm check`, contract checks, parity check) and repair only phase defects. · size: M | 003_human_approval |
+| [[15.1.4-phase-verification]] | Write/run the phase suite (`pnpm check`, contract checks, parity check) and repair only phase defects. · size: M | 004_processing |
 
 ## Phase 15.2 - PIX integrity
 
