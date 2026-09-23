@@ -102,10 +102,10 @@ export type CheckoutExperience<S extends string> = Readonly<{
  * Shared client controller for `/pay/[identifier]` (14.6.1 F03): one buyer
  * attempt survives typing and a failed request, the form yields to the
  * payment/outcome view the moment a payment is issued, and start-over is the
- * only path back — it alone re-keys the idempotency key. `PublicCheckoutForm`
- * and `PublicCheckoutV2Form` are thin adapters that supply their own state
- * union, response parser and terminal-state set (they must not share a loose
- * union that accepts a state their era cannot return).
+ * only path back — it alone re-keys the idempotency key. `PublicCheckoutV2Form`
+ * is a thin adapter that supplies its own state union, response parser and
+ * terminal-state set (must not share a loose union that accepts a state its
+ * era cannot return).
  */
 export function useCheckoutExperience<S extends string>(config: UseCheckoutExperienceConfig<S>): CheckoutExperience<S> {
   const { currencyLabel, dictionary, identifier, parsePayment, policy, terminalStates, total } = config;
