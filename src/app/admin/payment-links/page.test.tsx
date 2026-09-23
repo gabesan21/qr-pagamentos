@@ -107,7 +107,7 @@ describe("administrator payment-links directory page", () => {
     // Directory facts from the owner projection: identifier, amount for the
     // fixed-amount link, and the localized product count for the other.
     expect(markup).toContain("abcdefghijklmnopqrstuvwx");
-    expect(markup).toContain("1 products");
+    expect(markup).toContain("1 product");
     expect(markup).toContain(">Fixed amount</");
     expect(markup).toContain(">Product lines</");
     expect(markup).toContain(">Reusable</");
