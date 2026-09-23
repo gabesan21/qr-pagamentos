@@ -2,9 +2,17 @@ import { rejectCrossOrigin } from "@/app/origin-guard";
 import { ownerProtectedMutationResponse, requireOwnerFromCookie } from "@/app/owner-guard";
 import { relativeRedirect } from "@/app/relative-redirect";
 import { getProfileService } from "@/auth/profile";
-import { getLocalePreferenceService } from "@/i18n/locale-preference";
-import { defaultLocale, localePreferenceCookieName } from "@/i18n/locales";
+import { getSessionService, SESSION_ABSOLUTE_MS } from "@/auth/session";
+import { getTotpService } from "@/auth/totp-store";
 import { serverRequestRoutes, withServerRequestLog } from "@/observability/server-request-log";
+
+const sessionCookieOptions = {
+  httpOnly: true,
+  sameSite: "lax" as const,
+  secure: process.env.NODE_ENV === "production",
+  path: "/",
+  maxAge: SESSION_ABSOLUTE_MS / 1000,
+};
 
 export async function POST(request: Request) {
   return withServerRequestLog(request.headers.get("x-request-id"), { method: "POST", route: serverRequestRoutes.profilePassword }, async () => {
@@ -18,22 +26,16 @@ export async function POST(request: Request) {
         newPassword: form.get("newPassword"),
         confirmation: form.get("confirmation"),
       });
-      const locale = await getLocalePreferenceService().resolve(actor.id).catch(() => defaultLocale);
-      const response = relativeRedirect("/login?password=changed");
-      response.cookies.set("qr_session", "", {
-        httpOnly: true,
-        sameSite: "lax",
-        secure: process.env.NODE_ENV === "production",
-        path: "/",
-        maxAge: 0,
-      });
-      response.cookies.set(localePreferenceCookieName, locale, {
-        httpOnly: true,
-        sameSite: "lax",
-        secure: process.env.NODE_ENV === "production",
-        path: "/",
-        maxAge: 31_536_000,
-      });
+      // The service already revoked every prior session (including the
+      // submitting one) inside the user lock. Issue one fresh session for
+      // the same actor so the merchant stays signed in; use the
+      // MFA-verified constructor when TOTP is active so the recorded
+      // fact is not silently downgraded.
+      const totpActive = await getTotpService().isEnrolled(actor.id);
+      const sessionService = getSessionService();
+      const token = totpActive ? await sessionService.createMfaVerified(actor.id) : await sessionService.create(actor.id);
+      const response = relativeRedirect("/profile?password=changed");
+      response.cookies.set("qr_session", token, sessionCookieOptions);
       return response;
     } catch (error) {
       const protectedResponse = ownerProtectedMutationResponse(error);

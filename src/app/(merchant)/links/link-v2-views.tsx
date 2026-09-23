@@ -1,11 +1,12 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 
-import type { PaymentLinkV2DerivedState, PaymentLinkV2View } from "@/auth/payment-link-v2-view";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import type { PaymentLinkV2DerivedState, PaymentLinkV2LineSummary, PaymentLinkV2View } from "@/auth/payment-link-v2-view";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CopyField } from "@/components/ui/copy-field";
+import { EmptyState } from "@/components/ui/empty-state";
 import { MoneyText } from "@/components/ui/money-text";
 import { Monogram } from "@/components/ui/monogram";
 import { Separator } from "@/components/ui/separator";
@@ -16,8 +17,18 @@ import type { getDictionary } from "@/i18n/dictionaries";
 import type { SupportedLocale } from "@/i18n/locales";
 
 import { formatCatalogPrice } from "../catalog/price-format";
+import { linkMoneyMultiply, linkMoneySum } from "./link-money";
 
 type Dictionary = ReturnType<typeof getDictionary>;
+
+// The base `PaymentLinkV2View` line carries no availability fact; the
+// owner-only `findForOwner` projection adds it per line. Optional here keeps
+// this shared file accepting both the owner detail (available always set)
+// and the administrator's redacted reuse (field absent) with zero prop drift
+// for either caller.
+type PaymentLinkV2DetailLine = PaymentLinkV2LineSummary & Readonly<{ available?: boolean }>;
+
+type PaymentLinkV2DetailLink = Omit<PaymentLinkV2View, "lines"> & Readonly<{ lines: ReadonlyArray<PaymentLinkV2DetailLine> }>;
 
 export function formatLinkInstant(value: Date, locale: SupportedLocale) {
   return new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short", timeZone: "UTC" }).format(value);
@@ -78,10 +89,10 @@ export function copyLabels(dictionary: Dictionary) {
 
 function DetailBreadcrumb({ backHref, backLabel, current }: Readonly<{ backHref: string; backLabel: string; current: string }>) {
   return (
-    <nav aria-label="breadcrumb" className="flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
-      <Link className="inline-flex min-h-11 items-center text-foreground underline-offset-4 hover:underline" href={backHref}>{backLabel}</Link>
+    <nav aria-label="breadcrumb" className="flex flex-wrap items-center gap-1.5 text-sm text-text-2">
+      <Link className="inline-flex min-h-11 items-center text-text underline-offset-4 hover:underline" href={backHref}>{backLabel}</Link>
       <span aria-hidden>›</span>
-      <span className="font-mono text-foreground">#{current}</span>
+      <span className="font-mono text-text">#{current}</span>
     </nav>
   );
 }
@@ -136,28 +147,28 @@ function SummaryCard({
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid gap-3 sm:grid-cols-2">
-          <div className="rounded-md border bg-muted/50 p-3">
-            <p className="text-xs font-semibold uppercase text-muted-foreground">PT-BR</p>
+          <div className="rounded-md border bg-surface-2/50 p-3">
+            <p className="text-xs font-semibold uppercase text-text-2">PT-BR</p>
             <p className="mt-1 text-sm">{link.descriptionPtBr ?? "—"}</p>
           </div>
-          <div className="rounded-md border bg-muted/50 p-3">
-            <p className="text-xs font-semibold uppercase text-muted-foreground">EN</p>
+          <div className="rounded-md border bg-surface-2/50 p-3">
+            <p className="text-xs font-semibold uppercase text-text-2">EN</p>
             <p className="mt-1 text-sm">{link.descriptionEn ?? "—"}</p>
           </div>
         </div>
         <Separator />
-        <div className="grid gap-2 border-t border-border pt-3 text-xs text-muted-foreground sm:grid-cols-3">
+        <div className="grid gap-2 border-t border-border pt-3 text-xs text-text-2 sm:grid-cols-3">
           <div>
             <p>{dictionary.paymentLinkDirectoryCreated}</p>
-            <p className="font-mono text-foreground">{formatLinkInstant(link.createdAt, locale)}</p>
+            <p className="font-mono text-text">{formatLinkInstant(link.createdAt, locale)}</p>
           </div>
           <div>
             <p>{dictionary.paymentLinkDirectoryUpdated}</p>
-            <p className="font-mono text-foreground">{formatLinkInstant(link.updatedAt, locale)}</p>
+            <p className="font-mono text-text">{formatLinkInstant(link.updatedAt, locale)}</p>
           </div>
           <div>
             <p>{dictionary.paymentLinkDirectoryColumnExpiry}</p>
-            <p className="font-mono text-foreground">{link.expiresAt ? formatLinkInstant(link.expiresAt, locale) : dictionary.adminPaymentLinkNoExpiry}</p>
+            <p className="font-mono text-text">{link.expiresAt ? formatLinkInstant(link.expiresAt, locale) : dictionary.adminPaymentLinkNoExpiry}</p>
           </div>
         </div>
       </CardContent>
@@ -169,7 +180,7 @@ function CompositionCard({
   dictionary,
   link,
   locale,
-}: Readonly<{ dictionary: Dictionary; link: PaymentLinkV2View; locale: SupportedLocale }>) {
+}: Readonly<{ dictionary: Dictionary; link: PaymentLinkV2DetailLink; locale: SupportedLocale }>) {
   if (link.compositionKind === "FIXED_AMOUNT") {
     return (
       <Card>
@@ -178,7 +189,7 @@ function CompositionCard({
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-muted-foreground">{dictionary.paymentLinkDetailFixedAmount}</span>
+            <span className="text-sm font-medium text-text-2">{dictionary.paymentLinkDetailFixedAmount}</span>
             <MoneyText className="justify-start" pairLabel={link.currencyPairLabel} size="large" value={link.amount ? formatCatalogPrice(link.amount, null, locale) : "—"} />
           </div>
         </CardContent>
@@ -186,10 +197,10 @@ function CompositionCard({
     );
   }
 
-  const subtotal = link.lines.reduce((sum, line) => {
-    const amount = Number(line.unitPrice);
-    return sum + (Number.isNaN(amount) ? 0 : amount * line.quantity);
-  }, 0);
+  // Exact-decimal line totals and subtotal: BigInt micro-units end to end,
+  // never `Number()` on a money amount.
+  const lineTotals = link.lines.map((line) => linkMoneyMultiply(line.unitPrice, line.quantity));
+  const subtotal = linkMoneySum(lineTotals);
 
   return (
     <Card>
@@ -208,23 +219,24 @@ function CompositionCard({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {link.lines.map((line) => {
-              const unit = Number(line.unitPrice);
-              const total = Number.isNaN(unit) ? 0 : unit * line.quantity;
-              return (
-                <TableRow key={line.position}>
-                  <TableCell>{locale === "pt-BR" ? line.titlePtBr : line.titleEn}</TableCell>
-                  <TableCell className="text-right font-mono tabular-nums">{line.quantity}</TableCell>
-                  <TableCell className="text-right font-mono tabular-nums">{formatCatalogPrice(line.unitPrice, null, locale)}</TableCell>
-                  <TableCell className="text-right font-mono tabular-nums">{formatCatalogPrice(String(total), null, locale)}</TableCell>
-                </TableRow>
-              );
-            })}
+            {link.lines.map((line, index) => (
+              <TableRow key={line.position}>
+                <TableCell>
+                  {locale === "pt-BR" ? line.titlePtBr : line.titleEn}
+                  {line.available === false ? (
+                    <Badge className="ml-2" variant="outline">{dictionary.paymentLinkDetailLineUnavailable}</Badge>
+                  ) : null}
+                </TableCell>
+                <TableCell className="text-right font-mono tabular-nums">{line.quantity}</TableCell>
+                <TableCell className="text-right font-mono tabular-nums">{formatCatalogPrice(line.unitPrice, null, locale)}</TableCell>
+                <TableCell className="text-right font-mono tabular-nums">{formatCatalogPrice(lineTotals[index], null, locale)}</TableCell>
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
         <div className="flex items-center justify-between border-t border-border pt-3">
-          <span className="text-sm font-medium text-muted-foreground">{dictionary.paymentLinkDetailSubtotal}</span>
-          <MoneyText className="justify-start" pairLabel={link.currencyPairLabel} size="large" value={formatCatalogPrice(String(subtotal), null, locale)} />
+          <span className="text-sm font-medium text-text-2">{dictionary.paymentLinkDetailSubtotal}</span>
+          <MoneyText className="justify-start" pairLabel={link.currencyPairLabel} size="large" value={formatCatalogPrice(subtotal, null, locale)} />
         </div>
       </CardContent>
     </Card>
@@ -252,15 +264,15 @@ function OrdersSummaryCard({
       <CardContent className="space-y-4">
         <dl className="space-y-2 text-sm">
           <div className="flex items-center justify-between">
-            <dt className="text-muted-foreground">{dictionary.paymentLinkDetailOrdersTotal}</dt>
+            <dt className="text-text-2">{dictionary.paymentLinkDetailOrdersTotal}</dt>
             <dd className="font-mono tabular-nums">{total}</dd>
           </div>
           <div className="flex items-center justify-between">
-            <dt className="text-muted-foreground">{dictionary.paymentLinkDetailOrdersConfirmed}</dt>
+            <dt className="text-text-2">{dictionary.paymentLinkDetailOrdersConfirmed}</dt>
             <dd className="font-mono tabular-nums">{confirmed}</dd>
           </div>
           <div className="flex items-center justify-between border-t border-border pt-2">
-            <dt className="text-muted-foreground">{dictionary.paymentLinkDetailOrdersVolume}</dt>
+            <dt className="text-text-2">{dictionary.paymentLinkDetailOrdersVolume}</dt>
             <dd><MoneyText className="justify-start" pairLabel={link.currencyPairLabel} value={volume} /></dd>
           </div>
         </dl>
@@ -327,6 +339,7 @@ function TimelineCard({ dictionary, link }: Readonly<{ dictionary: Dictionary; l
 }
 
 export function PaymentLinkV2DetailCard({
+  actions,
   backHref,
   backLabel,
   dictionary,
@@ -336,10 +349,14 @@ export function PaymentLinkV2DetailCard({
   owner,
   showShareUrl = true,
 }: Readonly<{
+  // Owner-only action row (open checkout, edit, new version, view orders,
+  // lifecycle control): renders directly under the header badge row, above
+  // the summary/composition grid. The administrator reuse never passes it.
+  actions?: ReactNode;
   backHref: string;
   backLabel?: string;
   dictionary: Dictionary;
-  link: PaymentLinkV2View;
+  link: PaymentLinkV2DetailLink;
   locale: SupportedLocale;
   orders?: Readonly<{ total: number; confirmed: number; volume: string }>;
   owner?: Readonly<{ username: string; deletedAt: Date | null }>;
@@ -355,6 +372,8 @@ export function PaymentLinkV2DetailCard({
         <Badge variant="outline">{linkTypeLabel(dictionary, link.linkType)}</Badge>
         <Badge variant="outline">{linkKindLabel(dictionary, link.compositionKind)}</Badge>
       </div>
+
+      {actions}
 
       <div className="grid gap-4 lg:grid-cols-12">
         <div className="space-y-4 lg:col-span-8">
@@ -381,12 +400,12 @@ export function PaymentLinkV2DetailCard({
 
 export function PaymentLinkV2UnavailableCard({ backHref, dictionary }: Readonly<{ backHref: string; dictionary: Dictionary }>) {
   return (
-    <div className="space-y-4">
-      <Alert variant="destructive">
-        <AlertTitle>{dictionary.paymentLinkDirectoryUnavailable}</AlertTitle>
-        <AlertDescription>{dictionary.paymentLinkDirectoryUnavailableDescription}</AlertDescription>
-      </Alert>
-      <Button asChild data-ds-hit-target variant="outline"><Link href={backHref}>{dictionary.paymentLinkDirectoryBack}</Link></Button>
-    </div>
+    <EmptyState
+      action={<Button asChild data-ds-hit-target variant="outline"><Link href={backHref}>{dictionary.paymentLinkDirectoryBack}</Link></Button>}
+      body={dictionary.paymentLinkDirectoryUnavailableDescription}
+      illustration="unavailable"
+      kind="unavailable"
+      title={dictionary.paymentLinkDirectoryUnavailable}
+    />
   );
 }

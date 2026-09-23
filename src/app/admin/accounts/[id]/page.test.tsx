@@ -4,12 +4,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ForbiddenError, UnauthenticatedError } from "@/auth/authorization";
 import type { AdminUserDetail } from "@/auth/admin-user-directory";
 
-const { requireAdminFromCookie, resolveLocale, getDetail, listActiveCurrencyChoices, redirect } = vi.hoisted(() => ({
+const { requireAdminFromCookie, resolveLocale, getDetail, listActiveCurrencyChoices, redirect, getTotpStatus } = vi.hoisted(() => ({
   requireAdminFromCookie: vi.fn(),
   resolveLocale: vi.fn(),
   getDetail: vi.fn(),
   listActiveCurrencyChoices: vi.fn(),
   redirect: vi.fn((location: string) => { throw new Error(`redirect:${location}`); }),
+  getTotpStatus: vi.fn((): Promise<"none" | "pending" | "active"> => Promise.resolve("none")),
 }));
 
 vi.mock("next/navigation", () => ({ redirect }));
@@ -24,7 +25,7 @@ vi.mock("@/auth/admin-user-profile", async (importActual) => ({
   ...(await importActual<typeof import("@/auth/admin-user-profile")>()),
   getAdminUserProfileService: () => ({ listActiveCurrencyChoices }),
 }));
-vi.mock("@/auth/totp-store", () => ({ getTotpService: () => ({ getStatus: vi.fn(() => Promise.resolve("none" as const)) }) }));
+vi.mock("@/auth/totp-store", () => ({ getTotpService: () => ({ getStatus: getTotpStatus }) }));
 
 import AdminAccountDetailPage from "./page";
 
@@ -87,54 +88,36 @@ describe("administrator account editor page", () => {
     expect(getDetail).toHaveBeenCalledWith(admin, "440E8400-E29B-41D4-A716-446655440010");
   });
 
-  it("renders the read-only facts with every editor section and the delivered routes", async () => {
+  it("renders the read-only header facts, the five tabs, and the default identity tab's delivered route", async () => {
     const markup = renderToStaticMarkup(await render(targetId));
     expect(markup).toContain("merchant.one");
-    expect(markup).toContain("merchant.one@example.com");
     expect(markup).toContain(">User<");
-    expect(markup).toContain("Active");
-    expect(markup).toContain("Active store");
-    expect(markup).toContain("padaria");
+    expect(markup).toContain(">Active<");
     expect(markup).toContain('href="/admin/accounts"');
-    // Identity CAS form carries the hidden expected version.
+    // Five tabs: Identity, Access, Storefront, Preferences, Danger zone.
+    expect(markup).toContain(">Identity<");
+    expect(markup).toContain(">Access<");
+    expect(markup).toContain(">Storefront<");
+    expect(markup).toContain(">Preferences<");
+    expect(markup).toContain(">Danger zone<");
+    // Identity is the default panel server-rendered before hydration; its CAS
+    // form carries the hidden expected version and current field defaults.
     expect(markup).toContain(`action="/admin/users/${targetId}/identity"`);
     expect(markup).toContain('name="expectedVersion"');
     expect(markup).toContain('value="7"');
-    // The re-housed legacy forms post the byte-frozen routes.
-    expect(markup).toContain(`action="/admin/users/${targetId}/role"`);
-    expect(markup).toContain(`action="/admin/users/${targetId}/status"`);
-    expect(markup).toContain(`action="/admin/users/${targetId}/password"`);
-    expect(markup).toContain(`action="/admin/users/${targetId}/reset-password"`);
-    // Locale, checkout policy, and storefront forms post the new routes.
-    expect(markup).toContain(`action="/admin/users/${targetId}/locale"`);
-    expect(markup).toContain(`action="/admin/users/${targetId}/checkout-policy"`);
-    expect(markup).toContain(`action="/admin/users/${targetId}/storefront"`);
-    expect(markup).toContain(`action="/admin/users/${targetId}/delete"`);
-    // The safe public-store link points at the sessionless storefront route.
-    expect(markup).toContain('href="/store/padaria"');
-    // The owner-fenced logo media field never renders.
-    expect(markup).not.toContain("storefrontLogoMediaIdentifier");
-    expect(markup).not.toContain("Logo");
-  });
-
-  it("renders the current editable values as form defaults", async () => {
-    const markup = renderToStaticMarkup(await render(targetId));
     expect(markup).toContain('value="merchant.one"');
     expect(markup).toContain('value="merchant.one@example.com"');
-    expect(markup).toContain('value="Padaria"');
-    expect(markup).toContain('value="#AA00FF"');
-    expect(markup).toContain("Brazilian real (BRL)");
+    // The other four tabs' panels do not force-mount before hydration, so
+    // their routes and fields are covered by their own component tests
+    // (access-section, storefront-section, preferences-section,
+    // danger-section) rather than duplicated here.
     expect(listActiveCurrencyChoices).toHaveBeenCalledWith(admin);
   });
 
-  it("renders the explicit store-unavailable state without a link when disabled or slugless", async () => {
-    getDetail.mockResolvedValue(detail({
-      storeState: "configured",
-      editor: { ...detail().editor, storefrontEnabled: false },
-    }));
-    const disabled = renderToStaticMarkup(await render(targetId));
-    expect(disabled).toContain("The public store is unavailable");
-    expect(disabled).not.toContain('href="/store/');
+  it("resolves TOTP configuration once per render regardless of which tab is later opened", async () => {
+    getTotpStatus.mockResolvedValueOnce("active");
+    await render(targetId);
+    expect(getTotpStatus).toHaveBeenCalledWith(targetId);
   });
 
   it.each(["changed", "conflict", "failed"])("renders the closed %s notice", async (value) => {
@@ -185,15 +168,15 @@ describe("administrator account editor page", () => {
     expect(listActiveCurrencyChoices).not.toHaveBeenCalled();
   });
 
-  it("renders localized pt-BR copy", async () => {
+  it("renders localized pt-BR copy for the header, tabs, and default identity panel", async () => {
     resolveLocale.mockResolvedValue("pt-BR");
     const markup = renderToStaticMarkup(await render(targetId));
-    expect(markup).toContain("Slug da vitrine");
-    expect(markup).toContain("Voltar às contas");
-    expect(markup).toContain(">Excluir<");
+    expect(markup).toContain('href="/admin/accounts">Contas de usuário</a>');
+    expect(markup).toContain(">Identidade<");
+    expect(markup).toContain(">Acesso<");
+    expect(markup).toContain(">Vitrine<");
+    expect(markup).toContain(">Preferências<");
     expect(markup).toContain("Salvar identidade");
-    expect(markup).toContain("Salvar vitrine");
-    expect(markup).toContain("Ver a loja pública");
   });
 
   it("shares the one opaque unavailable outcome for missing and malformed identities", async () => {

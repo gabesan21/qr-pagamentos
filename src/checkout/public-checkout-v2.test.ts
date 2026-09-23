@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("server-only", () => ({}));
 
 import { createPrismaCheckoutV2Store, createPublicCheckoutV2Service } from "./public-checkout-v2";
-import { NauttOrderCreationIndeterminateError } from "@/integrations/nautt/pricing-orders-client";
+import { NauttOrderCreationIndeterminateError, NauttOrderRefusedError } from "@/integrations/nautt/pricing-orders-client";
 
 const now = new Date("2026-07-26T15:00:00.000Z");
 const key = Buffer.alloc(32, 7);
@@ -16,13 +16,13 @@ const validBody = { idempotencyKey: "retry-key-with-enough-entropy", customer };
 function capability(attempt: { id: string; capabilityNonce: string; capabilityExpiresAt: Date; capabilityKeyVersion: string }) {
   return createHmac("sha256", key).update(`checkout-v2-capability:${attempt.capabilityKeyVersion}:${attempt.id}:${attempt.capabilityExpiresAt.toISOString()}:${attempt.capabilityNonce}`).digest("base64url");
 }
-function attempt(state: "RESERVED" | "PENDING" | "INDETERMINATE" = "RESERVED") {
+function attempt(state: "RESERVED" | "PENDING" | "INDETERMINATE" | "FAILED" = "RESERVED") {
   const value = { id: identifiers.attempt, ownerId: identifiers.owner, orderV2Id: identifiers.order, requestVerifier: "a".repeat(64), capabilityNonce: "n".repeat(43), capabilityKeyVersion: "v1", capabilityVerifier: "", capabilityExpiresAt: new Date("2026-07-27T15:00:00.000Z"), capabilityRevokedAt: null, state, paymentLink: { active: true, expiresAt: null }, order: { providerOrders: state === "PENDING" ? [{ status: "new", pixCopyPaste: "000201", pixQrcodeUrl: null }] : [] } };
   return { ...value, capabilityVerifier: createHash("sha256").update(capability(value)).digest("hex") };
 }
 function harness(reservation: unknown) {
   const pending = attempt("PENDING");
-  const store = { reserve: vi.fn().mockResolvedValue(reservation), markCreating: vi.fn().mockResolvedValue(true), markPending: vi.fn().mockResolvedValue(pending), markIndeterminate: vi.fn().mockResolvedValue(attempt("INDETERMINATE")) };
+  const store = { reserve: vi.fn().mockResolvedValue(reservation), markCreating: vi.fn().mockResolvedValue(true), markPending: vi.fn().mockResolvedValue(pending), markIndeterminate: vi.fn().mockResolvedValue(attempt("INDETERMINATE")), markFailed: vi.fn().mockResolvedValue(undefined) };
   const provider = { quote: vi.fn().mockResolvedValue({ quoteUuid: "550e8400-e29b-41d4-a716-446655440055" }), createOrder: vi.fn().mockResolvedValue({}) };
   return { store, provider, service: createPublicCheckoutV2Service(store, { now: () => now, capabilityKey: () => key, provider: provider as never }) };
 }
@@ -35,7 +35,7 @@ describe("public checkout V2 orchestration", () => {
 
     await expect(service.checkout(identifiers.link, validBody)).resolves.toEqual({ kind: "accepted", status: 201, payment: { state: "PENDING", pixCopyPaste: "000201" }, statusCapability: capability(created) });
     expect(provider.quote).toHaveBeenCalledWith(identifiers.owner, expect.objectContaining({ amount: { kind: "fiat", value: "12.50" } }));
-    expect(provider.createOrder).toHaveBeenCalledWith(identifiers.owner, { quoteUuid: "550e8400-e29b-41d4-a716-446655440055" }, {}, undefined, identifiers.order);
+    expect(provider.createOrder).toHaveBeenCalledWith(identifiers.owner, { quoteUuid: "550e8400-e29b-41d4-a716-446655440055" }, {}, identifiers.order);
     expect(provider.createOrder).toHaveBeenCalledTimes(1);
     expect(store.markCreating).toHaveBeenCalledWith(identifiers.attempt);
     expect(store.markPending).toHaveBeenCalledWith(identifiers.attempt);
@@ -73,6 +73,26 @@ describe("public checkout V2 orchestration", () => {
     expect(provider.quote).toHaveBeenCalledTimes(1);
     expect(provider.createOrder).toHaveBeenCalledTimes(1);
     expect(store.markIndeterminate).toHaveBeenCalledWith(identifiers.attempt);
+  });
+
+  it("fails closed on a documented creation refusal: marks the attempt FAILED and answers the redacted outcome, never a payment view", async () => {
+    const { service, provider, store } = harness(createdReservation());
+    provider.createOrder.mockRejectedValueOnce(new NauttOrderRefusedError("order.quote_expired"));
+
+    await expect(service.checkout(identifiers.link, validBody)).resolves.toEqual({ kind: "provider-unavailable" });
+    expect(store.markFailed).toHaveBeenCalledWith(identifiers.attempt, now);
+    expect(store.markIndeterminate).not.toHaveBeenCalled();
+  });
+
+  it("answers the same redacted outcome on an exact replay of a previously refused attempt, with zero provider calls", async () => {
+    const failed = attempt("FAILED");
+    const { service, provider, store } = harness({ kind: "replay", attempt: failed });
+
+    await expect(service.checkout(identifiers.link, validBody)).resolves.toEqual({ kind: "provider-unavailable" });
+    expect(provider.quote).not.toHaveBeenCalled();
+    expect(provider.createOrder).not.toHaveBeenCalled();
+    expect(store.markCreating).not.toHaveBeenCalled();
+    expect(store.markFailed).not.toHaveBeenCalled();
   });
 
   it.each([

@@ -13,6 +13,7 @@ import {
   type NauttOnrampOrderOptions,
   type NauttOrderView,
   NauttOrderCreationIndeterminateError,
+  NauttOrderRefusedError,
   type NauttQuote,
   type NauttQuoteAmount,
   NauttOrderValidationError,
@@ -108,7 +109,6 @@ export function createOwnerPricingOrdersService(
       ownerId: string,
       quoteReference: NauttQuoteReference,
       input: NauttOnrampOrderOptions,
-      paymentLinkOrderId?: string,
       orderV2Id?: string,
     ): Promise<NauttOrderView> {
       if (
@@ -124,7 +124,7 @@ export function createOwnerPricingOrdersService(
 
       let claim: Awaited<ReturnType<ProviderOrderStore["claimForCreation"]>>;
       try {
-        claim = await orderStore.claimForCreation({ quoteUuid: quoteReference.quoteUuid, ownerId, now: now(), paymentLinkOrderId, orderV2Id });
+        claim = await orderStore.claimForCreation({ quoteUuid: quoteReference.quoteUuid, ownerId, now: now(), orderV2Id });
       } catch {
         throw new OwnerPricingOrdersError();
       }
@@ -145,6 +145,8 @@ export function createOwnerPricingOrdersService(
         } catch (error) {
           if (error instanceof NauttOrderValidationError) {
             await orderStore.releasePreDispatch(claim.attempt).catch(() => undefined);
+          } else if (error instanceof NauttOrderRefusedError) {
+            await orderStore.discardRefused(claim.attempt).catch(() => undefined);
           } else {
             await orderStore.markIndeterminate(claim.attempt).catch(() => undefined);
           }

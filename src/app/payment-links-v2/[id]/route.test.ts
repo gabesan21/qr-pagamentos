@@ -37,15 +37,15 @@ describe("owner payment-link-v2 action route", () => {
 
     const editResponse = await POST(request(new URLSearchParams({ action: "edit", version: "3", expiresAt: "", lines: "[{\"productId\":\"p\",\"quantity\":1}]" })), context);
     expect(edit).toHaveBeenCalledWith(owner, "link-id", "3", { expiresAt: "", lines: "[{\"productId\":\"p\",\"quantity\":1}]" });
-    expect(editResponse.headers.get("location")).toBe("/links?payment-links-v2=edited");
+    expect(editResponse.headers.get("location")).toBe("/links/v2/link-id?payment-links-v2=edited");
 
     const activateResponse = await POST(request(new URLSearchParams({ action: "activate", version: "4" })), context);
     expect(setActive).toHaveBeenCalledWith(owner, "link-id", "4", "true");
-    expect(activateResponse.headers.get("location")).toBe("/links?payment-links-v2=activated");
+    expect(activateResponse.headers.get("location")).toBe("/links/v2/link-id?payment-links-v2=activated");
 
     const deactivateResponse = await POST(request(new URLSearchParams({ action: "deactivate", version: "5" })), context);
     expect(setActive).toHaveBeenCalledWith(owner, "link-id", "5", "false");
-    expect(deactivateResponse.headers.get("location")).toBe("/links?payment-links-v2=deactivated");
+    expect(deactivateResponse.headers.get("location")).toBe("/links/v2/link-id?payment-links-v2=deactivated");
   });
 
   it("omits unsubmitted edit fields so absent means unchanged", async () => {
@@ -61,12 +61,12 @@ describe("owner payment-link-v2 action route", () => {
     ownerProtectedMutationResponse.mockReturnValue(null);
 
     const unsupported = await POST(request(new URLSearchParams({ action: "delete" })), context);
-    expect(unsupported.headers.get("location")).toBe("/links?payment-links-v2=failed");
+    expect(unsupported.headers.get("location")).toBe("/links/v2/link-id?payment-links-v2=failed");
     expect(edit).not.toHaveBeenCalled();
     expect(setActive).not.toHaveBeenCalled();
 
     edit.mockRejectedValueOnce(new Error("conflict"));
     const failed = await POST(request(new URLSearchParams({ action: "edit", version: "3" })), context);
-    expect(failed.headers.get("location")).toBe("/links?payment-links-v2=failed");
+    expect(failed.headers.get("location")).toBe("/links/v2/link-id/edit?payment-links-v2=failed");
   });
 });

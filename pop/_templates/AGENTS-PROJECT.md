@@ -7,6 +7,10 @@
 - **Escopo:** este diretório é o escopo inteiro do fluxo — o harness viaja com ele e **nada acima desta raiz faz parte dele**, mesmo que a ferramenta carregue sozinha um `AGENTS.md` de diretório ancestral (seção "Escopo corrente" do [[WORKFLOW|WORKFLOW]]).
 - **Idioma do projeto:** <pt-BR> — specs, notes, pesquisas, comentários de código e todo o fluxo do kanban seguem este idioma.
 - **Idiomas suportados (i18n):** <lista de idiomas que a aplicação deve suportar — tratados no roadmap e nas specs. Só para aplicações; remova se não se aplica.>
+- **Type:** <uni-repo | multi-repo> — `uni-repo`: esta pasta **é** o próprio repositório — ou raiz livre sem repo, versionada no repositório que a hospeda — com o `pop/` inteiro aqui dentro | `multi-repo`: esta pasta é a **mãe sem harness** — só este AGENTS.md, INDEX.md e o ROADMAP.md geral; cada repo clonado na raiz carrega o próprio `pop/` completo e declara `type: uni-repo`.
+
+> **Mãe de `multi-repo`:** sem `pop/` — remova as seções que dependem do harness (Workflow, Skills, DOX); o arquivo fica com type, repositórios e os links de INDEX/ROADMAP geral.
+
 - **Ficha:** [[pop/PROJECT|PROJECT]] · **Roadmap:** [[pop/ROADMAP|ROADMAP]] · **Modifications:** [[pop/MODIFICATIONS|MODIFICATIONS]] (criado sob demanda)
 
 ## O que NÃO entra neste arquivo
@@ -17,7 +21,7 @@ Fonte única: o que está no harness não se copia para cá, porque duplicata é
 
 - narração dos estágios do kanban (nomes, ordem, o que cada um faz) — só [[WORKFLOW|WORKFLOW]];
 - protocolo de contexto e qualquer heurística de leitura/busca — [[WORKFLOW|WORKFLOW]] e as skills;
-- regras gerais do fluxo (kanban obrigatório, memory/roadmap enxuto, soberania do comando humano) — "Regras transversais" do [[WORKFLOW|WORKFLOW]], que o instalador entrega junto do harness;
+- regras gerais do fluxo (kanban opcional com tracking sempre, memory/roadmap enxuto, soberania do comando humano) — "Regras transversais" do [[WORKFLOW|WORKFLOW]], que o instalador entrega junto do harness;
 - qualquer trecho copiável do [[WORKFLOW|WORKFLOW]] — linke com gatilho em vez de reproduzir.
 
 Aqui entra só o que é **deste projeto**: idioma, repos e branch de PR, skills e comandos de verificação, DOX. **Teto: ~60 linhas** — a única exceção é a seção DOX das aplicações.
@@ -32,8 +36,10 @@ _Sem repositório externo: o trabalho vive no repositório que hospeda este harn
 
 ## Workflow
 
-Toda alteração no projeto passa pelo kanban em `pop/kanban/`, com tasks vindas do roadmap (`<n>.<m>.<t>-<slug>`) ou das modifications (`M-<n>.<t>-<slug>`).
+Alterações de conteúdo entram por triagem: fix direto, **rota sem kanban** (plan mode do coding agent, memory `D-` obrigatória) ou kanban em `pop/kanban/` — recomendado para alterações grandes e default para yolo e itens do roadmap (`<n>.<m>.<t>-<slug>`) ou das modifications (`M-<n>.<t>-<slug>`).
 
+- **Principal delegation-first:** não existe custom agent `pop-orchestrator`; o agente principal **sempre delega** planejamento, recon, execução, julgamento e verificação aos seis especialistas, salvo trabalho pontual e simples abaixo do piso.
+- Cada especialista adquire o contexto diretamente nos paths autorizados; o principal envia só o envelope de autorização e conserva roteamento, gates, transições e integração.
 - Pedido de alteração sem card aciona `new-task` → `advance-task`; “iniciar o fluxo em yolo” materializa/libera a task e percorre a rota yolo inteira, nunca execução direta.
 - **Entrega:** o PR da task aponta para a **branch de PR declarada** na tabela de repositórios acima; o merge é sempre do humano.
 - **Estágios, gates, rota yolo e protocolo de contexto:** [[WORKFLOW|WORKFLOW]] é a fonte única — leia antes de criar, avançar, verificar ou fechar qualquer task deste projeto, e não replique nada dele aqui.
@@ -70,4 +76,4 @@ Toda alteração no projeto passa pelo kanban em `pop/kanban/`, com tasks vindas
 - Conteúdo no idioma declarado acima; wikilinks para referências internas; arquivos ≤~150 linhas; datas AAAA-MM-DD.
 - **Nunca** marcar `- [ ] Feito` nem executar itens `(user)` — são exclusivos do humano.
 - **Nunca** fazer merge de PR de task — o merge é do humano (ou comandado por ele na rodada de merge).
-- **Regras gerais do fluxo** — kanban obrigatório para tocar o projeto, memory + roadmap enxuto no fechamento, soberania do comando humano sem waiver implícito: seção "Regras transversais" do [[WORKFLOW|WORKFLOW]], que acompanha o harness instalado. *Leia antes de agir fora de uma task ou de interpretar um pedido como dispensa do fluxo.*
+- **Regras gerais do fluxo** — kanban opcional com tracking sempre, memory + roadmap enxuto no fechamento, soberania do comando humano sem waiver implícito: seção "Regras transversais" do [[WORKFLOW|WORKFLOW]], que acompanha o harness instalado. *Leia antes de agir fora de uma task ou de interpretar um pedido como dispensa do fluxo.*

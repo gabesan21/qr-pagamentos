@@ -38,7 +38,7 @@ export default async function MerchantSettingsPage({
   return (
     <>
       <WorkspaceHeading
-        description={dictionary.adminLanguageDescription}
+        description={dictionary.settingsPageDescription}
         eyebrow={dictionary.shellMerchantEyebrow}
         title={dictionary.shellSettings}
       />

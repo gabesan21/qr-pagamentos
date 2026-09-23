@@ -23,4 +23,10 @@ export const nauttPtBR = {
   nauttToken: "Token",
   nauttNetwork: "Rede",
   nauttBalance: "Saldo",
+  nauttValidate: "Validar",
+  nauttValidating: "Validando…",
+  nauttLastUpdated: "Credencial atualizada pela última vez em {date}",
+  nauttReplaceBlockedActive: "Não é possível trocar esta chave de API enquanto a conexão está ativa. A recuperação é limitada aos estados de configuração pendente/incerta; esta é uma limitação conhecida.",
+  nauttResetConfirmTitle: "Reiniciar a configuração do webhook?",
+  nauttResetConfirmFailed: "Não foi possível reiniciar a configuração. Tente novamente.",
 } as const;

@@ -1,18 +1,24 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
-const { requireOwner, protectedResponse, changePassword, resolveLocale } = vi.hoisted(() => ({
+const { requireOwner, protectedResponse, changePassword, isEnrolled, createSession, createMfaVerifiedSession } = vi.hoisted(() => ({
   requireOwner: vi.fn(),
   protectedResponse: vi.fn(),
   changePassword: vi.fn(),
-  resolveLocale: vi.fn(),
+  isEnrolled: vi.fn(),
+  createSession: vi.fn(),
+  createMfaVerifiedSession: vi.fn(),
 }));
 vi.mock("@/app/owner-guard", () => ({
   requireOwnerFromCookie: requireOwner,
   ownerProtectedMutationResponse: protectedResponse,
 }));
 vi.mock("@/auth/profile", () => ({ getProfileService: () => ({ changePassword }) }));
-vi.mock("@/i18n/locale-preference", () => ({ getLocalePreferenceService: () => ({ resolve: resolveLocale }) }));
+vi.mock("@/auth/totp-store", () => ({ getTotpService: () => ({ isEnrolled }) }));
+vi.mock("@/auth/session", () => ({
+  getSessionService: () => ({ create: createSession, createMfaVerified: createMfaVerifiedSession }),
+  SESSION_ABSOLUTE_MS: 12 * 60 * 60 * 1000,
+}));
 
 import { POST } from "./route";
 
@@ -27,8 +33,9 @@ describe("profile password route", () => {
     requireOwner.mockReset();
     protectedResponse.mockReset();
     changePassword.mockReset().mockResolvedValue(undefined);
-    resolveLocale.mockReset();
-    resolveLocale.mockResolvedValue("pt-BR");
+    isEnrolled.mockReset().mockResolvedValue(false);
+    createSession.mockReset().mockResolvedValue("fresh-session-token");
+    createMfaVerifiedSession.mockReset().mockResolvedValue("fresh-mfa-session-token");
   });
 
   it("rejects origin and protected principals before parsing", async () => {
@@ -42,7 +49,7 @@ describe("profile password route", () => {
     expect(parse).not.toHaveBeenCalled();
   });
 
-  it("clears the session only on success and exposes no submitted value", async () => {
+  it("rotates the session only on success and exposes no submitted value", async () => {
     requireOwner.mockResolvedValue(actor);
     protectedResponse.mockReturnValue(null);
     const success = await POST(request({
@@ -56,11 +63,11 @@ describe("profile password route", () => {
       newPassword: "replacement phrase",
       confirmation: "replacement phrase",
     });
-    expect(success.headers.get("location")).toBe("/login?password=changed");
-    expect(success.headers.get("set-cookie")).toMatch(/qr_session=;.*Path=\/.*Max-Age=0.*HttpOnly.*SameSite=lax/i);
-    expect(success.headers.get("set-cookie")).toMatch(/qr_locale=pt-BR;.*Path=\/.*Max-Age=31536000.*HttpOnly.*SameSite=lax/i);
-    expect(resolveLocale).toHaveBeenCalledWith(actor.id);
-    expect(changePassword.mock.invocationCallOrder[0]).toBeLessThan(resolveLocale.mock.invocationCallOrder[0]);
+    expect(success.headers.get("location")).toBe("/profile?password=changed");
+    expect(success.headers.get("set-cookie")).toMatch(/qr_session=fresh-session-token;.*Path=\/.*HttpOnly.*SameSite=lax/i);
+    expect(createSession).toHaveBeenCalledWith(actor.id);
+    expect(createMfaVerifiedSession).not.toHaveBeenCalled();
+    expect(changePassword.mock.invocationCallOrder[0]).toBeLessThan(createSession.mock.invocationCallOrder[0]);
 
     changePassword.mockRejectedValue(new Error("private detail"));
     const failed = await POST(request({ currentPassword: "secret", newPassword: "new secret phrase", confirmation: "new secret phrase" }));
@@ -69,18 +76,33 @@ describe("profile password route", () => {
     expect(`${await failed.text()}${failed.headers.get("location")}`).not.toMatch(/secret|private detail|forged/);
   });
 
-  it("carries each persisted locale through the fixed signed-out completion redirect", async () => {
+  it("issues an MFA-verified session when the actor has TOTP enrolled", async () => {
     requireOwner.mockResolvedValue(actor);
     protectedResponse.mockReturnValue(null);
-    for (const locale of ["pt-BR", "en"]) {
-      resolveLocale.mockResolvedValueOnce(locale);
+    isEnrolled.mockResolvedValue(true);
+    const response = await POST(request({
+      currentPassword: "current secret phrase",
+      newPassword: "replacement phrase",
+      confirmation: "replacement phrase",
+    }));
+    expect(response.headers.get("location")).toBe("/profile?password=changed");
+    expect(createMfaVerifiedSession).toHaveBeenCalledWith(actor.id);
+    expect(createSession).not.toHaveBeenCalled();
+    expect(response.headers.get("set-cookie")).toContain("qr_session=fresh-mfa-session-token");
+  });
+
+  it("keeps the merchant signed in on /profile across repeated password changes", async () => {
+    requireOwner.mockResolvedValue(actor);
+    protectedResponse.mockReturnValue(null);
+    for (const token of ["session-a", "session-b"]) {
+      createSession.mockResolvedValueOnce(token);
       const response = await POST(request({
         currentPassword: "current secret phrase",
         newPassword: "replacement phrase",
         confirmation: "replacement phrase",
       }));
-      expect(response.headers.get("location")).toBe("/login?password=changed");
-      expect(response.headers.get("set-cookie")).toContain(`qr_locale=${locale}`);
+      expect(response.headers.get("location")).toBe("/profile?password=changed");
+      expect(response.headers.get("set-cookie")).toContain(`qr_session=${token}`);
     }
   });
 });

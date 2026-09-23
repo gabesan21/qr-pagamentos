@@ -3,10 +3,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ForbiddenError, UnauthenticatedError } from "@/auth/authorization";
 
-const { requireOwnerFromCookie, resolveLocale, listV1, getForOwner, getPrefill, redirect } = vi.hoisted(() => ({
+const { requireOwnerFromCookie, resolveLocale, listProducts, listPairs, getForOwner, getPrefill, redirect } = vi.hoisted(() => ({
   requireOwnerFromCookie: vi.fn(),
   resolveLocale: vi.fn(),
-  listV1: vi.fn(),
+  listProducts: vi.fn(),
+  listPairs: vi.fn(),
   getForOwner: vi.fn(),
   getPrefill: vi.fn(),
   redirect: vi.fn((location: string) => { throw new Error(`redirect:${location}`); }),
@@ -16,7 +17,8 @@ vi.mock("next/navigation", () => ({ redirect }));
 vi.mock("server-only", () => ({}));
 vi.mock("@/app/owner-guard", () => ({ requireOwnerFromCookie, ownerProtectedMutationResponse: vi.fn() }));
 vi.mock("@/i18n/locale-preference", () => ({ getLocalePreferenceService: () => ({ resolve: resolveLocale }) }));
-vi.mock("@/auth/payment-link", () => ({ getPaymentLinkService: () => ({ listForOwner: listV1 }) }));
+vi.mock("@/auth/storefront-settings", () => ({ getStorefrontSettingsService: () => ({ getForOwner: () => Promise.resolve({ storefrontEnabled: false, storefrontSlug: null }) }) }));
+vi.mock("@/auth/payment-link-v2-catalog", () => ({ listActivePaymentLinkProducts: listProducts, listActivePaymentLinkCurrencyPairs: listPairs }));
 vi.mock("@/auth/payment-link-v2-view", () => ({ getPaymentLinkV2ViewService: () => ({ getForOwner }) }));
 vi.mock("@/auth/payment-link-v2-prefill", () => ({ getPaymentLinkV2PrefillService: () => ({ getForOwner: getPrefill }) }));
 
@@ -27,7 +29,6 @@ const sourceId = "440e8400-e29b-41d4-a716-446655440010";
 const productId = "440e8400-e29b-41d4-a716-446655440030";
 
 const ownerData = {
-  links: [],
   activeProducts: [{ id: productId, internalName: "Espresso", titlePtBr: "Café expresso", titleEn: "Espresso shot", price: "12.5" }],
   activeCurrencyPairs: [{ id: "440e8400-e29b-41d4-a716-446655440020", label: "BRL/USDT" }],
 };
@@ -35,7 +36,8 @@ const ownerData = {
 function ready(locale: "pt-BR" | "en" = "en") {
   requireOwnerFromCookie.mockResolvedValue(principal);
   resolveLocale.mockResolvedValue(locale);
-  listV1.mockResolvedValue(ownerData);
+  listProducts.mockResolvedValue(ownerData.activeProducts);
+  listPairs.mockResolvedValue(ownerData.activeCurrencyPairs);
   getForOwner.mockResolvedValue({ kind: "unavailable" });
   getPrefill.mockResolvedValue(null);
 }
@@ -48,13 +50,14 @@ describe("merchant V2 payment-link create page", () => {
     await expect(NewPaymentLinkPage()).rejects.toThrow("redirect:/login");
     requireOwnerFromCookie.mockRejectedValueOnce(new ForbiddenError("administrators stay out"));
     await expect(NewPaymentLinkPage()).rejects.toThrow("redirect:/admin");
-    expect(listV1).not.toHaveBeenCalled();
+    expect(listProducts).not.toHaveBeenCalled();
+    expect(listPairs).not.toHaveBeenCalled();
   });
 
   it.each([
-    ["en", "New payment link", "Espresso shot", "BRL/USDT"],
-    ["pt-BR", "Novo link de pagamento", "Café expresso", "BRL/USDT"],
-  ] as const)("renders the bilingual create form posting the delivered field grammar in %s", async (locale, title, productTitle, pairLabel) => {
+    ["en", "New payment link", "Espresso shot", "BRL/USDT", "Search active products…"],
+    ["pt-BR", "Novo link de pagamento", "Café expresso", "BRL/USDT", "Buscar produtos ativos…"],
+  ] as const)("renders the bilingual create form posting the delivered field grammar in %s", async (locale, title, productTitle, pairLabel, searchPlaceholder) => {
     ready(locale);
     const markup = renderToStaticMarkup(await NewPaymentLinkPage());
     expect(markup).toContain(title);
@@ -64,7 +67,11 @@ describe("merchant V2 payment-link create page", () => {
     expect(markup).toContain('name="linkType"');
     expect(markup).toContain('name="expiresAt"');
     expect(markup).toContain('name="lines"');
-    expect(markup).toContain(productTitle);
+    // The product picker is search-driven client-side (`link-lines-editor.tsx`):
+    // titles render only once a non-empty query filters `products`, so the
+    // initial static markup carries the search affordance, never the title.
+    expect(markup).toContain(searchPlaceholder);
+    expect(markup).not.toContain(productTitle);
     expect(markup).toContain(pairLabel);
     // The identifier is server-generated; no identifier input exists anywhere.
     expect(markup).not.toContain('name="identifier"');
@@ -73,7 +80,7 @@ describe("merchant V2 payment-link create page", () => {
 
   it("renders the empty-picker warning and disables submission without active pairs", async () => {
     ready("en");
-    listV1.mockResolvedValue({ links: [], activeProducts: ownerData.activeProducts, activeCurrencyPairs: [] });
+    listPairs.mockResolvedValue([]);
     const markup = renderToStaticMarkup(await NewPaymentLinkPage());
     expect(markup).toContain("No active currency pair is available");
     expect(markup).toContain("disabled");
@@ -81,7 +88,7 @@ describe("merchant V2 payment-link create page", () => {
 
   it("renders the product-lines empty-picker warning without active products", async () => {
     ready("pt-BR");
-    listV1.mockResolvedValue({ links: [], activeProducts: [], activeCurrencyPairs: ownerData.activeCurrencyPairs });
+    listProducts.mockResolvedValue([]);
     const markup = renderToStaticMarkup(await NewPaymentLinkPage());
     expect(markup).toContain("Nenhum produto ativo está disponível");
   });

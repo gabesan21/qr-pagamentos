@@ -3,7 +3,7 @@ import "server-only";
 import { getDatabaseClient } from "../db/client";
 import { DEFAULT_STOREFRONT_THEME_ID } from "../design-system/themes";
 import type { SupportedLocale } from "../i18n/locales";
-import type { CheckoutDataPolicy } from "../orders/payment-link-order";
+import type { CheckoutDataPolicy } from "../orders/order-v2-policies";
 
 const STOREFRONT_SLUG_PATTERN = /^[a-z0-9](-?[a-z0-9])*$/;
 const STOREFRONT_SLUG_MAXIMUM_LENGTH = 63;
@@ -57,10 +57,8 @@ export type PublicStorefront = Readonly<{
   // surface (the deliberate 9.1.2 boundary amendment).
   standalonePaymentCurrencyCode: string | null;
   // The owner's checkout data policy, exposed so the standalone-payment page
-  // renders the policy-exact customer form before any submit — the same
-  // public-safe exposure V1 already ships as `checkoutPolicy` through
-  // `src/checkout/public-checkout-presentation.ts` (the deliberate 9.2.2
-  // boundary amendment). The server re-derives the policy from the locked
+  // renders the policy-exact customer form before any submit (the deliberate
+  // 9.2.2 boundary amendment). The server re-derives the policy from the locked
   // owner row on every checkout command; this member never grants authority.
   checkoutDataPolicy: CheckoutDataPolicy;
 }>;
@@ -99,7 +97,9 @@ export type PublicStorefrontRecord = Readonly<{
     descriptionPtBr: string;
     descriptionEn: string;
     price: string;
-    paymentLinks: readonly Readonly<{ identifier: string }>[];
+    // Earliest-created, id-tiebroken active/unexpired REUSABLE V2 line — the
+    // one candidate that keeps every listed product payable (9.1.6 rule).
+    paymentLinkV2Lines: readonly Readonly<{ paymentLink: Readonly<{ identifier: string }> }>[];
   }>[];
   catalog: Readonly<{
     categories: readonly PublicStorefrontCatalogCategoryRecord[];
@@ -158,7 +158,7 @@ function localizeCatalog(record: PublicStorefrontRecord, locale: SupportedLocale
 function localizeStorefront(record: PublicStorefrontRecord, locale: SupportedLocale): PublicStorefront {
   const displayName = locale === "pt-BR" ? record.storefrontDisplayNamePtBr : record.storefrontDisplayNameEn;
   const products = record.products.flatMap((product) => {
-    const paymentLinkIdentifier = product.paymentLinks[0]?.identifier;
+    const paymentLinkIdentifier = product.paymentLinkV2Lines[0]?.paymentLink.identifier;
     if (!paymentLinkIdentifier) return [];
     const localized = locale === "pt-BR"
       ? { title: product.titlePtBr, description: product.descriptionPtBr }
@@ -215,7 +215,12 @@ function prismaStore(): PublicStorefrontStore {
           products: {
             where: {
               active: true,
-              paymentLinks: { some: { active: true, OR: [{ expiresAt: null }, { expiresAt: { gt: now } }] } },
+              // A member of `products` is an active product that appears in
+              // the lines of at least one active, unexpired REUSABLE Commerce
+              // V2 link of the same owner (9.1.6 rule).
+              paymentLinkV2Lines: {
+                some: { paymentLink: { linkType: "REUSABLE", active: true, OR: [{ expiresAt: null }, { expiresAt: { gt: now } }] } },
+              },
             },
             orderBy: [{ internalName: "asc" }, { id: "asc" }],
             select: {
@@ -224,11 +229,11 @@ function prismaStore(): PublicStorefrontStore {
               descriptionPtBr: true,
               descriptionEn: true,
               price: true,
-              paymentLinks: {
-                where: { active: true, OR: [{ expiresAt: null }, { expiresAt: { gt: now } }] },
-                orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+              paymentLinkV2Lines: {
+                where: { paymentLink: { linkType: "REUSABLE", active: true, OR: [{ expiresAt: null }, { expiresAt: { gt: now } }] } },
+                orderBy: [{ paymentLink: { createdAt: "asc" } }, { paymentLink: { id: "asc" } }],
                 take: 1,
-                select: { identifier: true },
+                select: { paymentLink: { select: { identifier: true } } },
               },
             },
           },
@@ -238,7 +243,7 @@ function prismaStore(): PublicStorefrontStore {
 
       // The owner id scopes the two catalog reads and never leaves the store.
       // The policy column stores the closed CHECKOUT_DATA_POLICIES vocabulary;
-      // the cast mirrors the V1 public-checkout-presentation precedent.
+      // the cast narrows the column to that closed vocabulary.
       const { id: ownerId, ...storefront } = row;
       const [categories, catalogProducts] = await Promise.all([
         db.productCategory.findMany({

@@ -55,6 +55,10 @@
         "$type": "color",
         "$value": "{color.primitive.audit.template.midnight-clearing.accent-soft}"
       },
+      "accent-soft-foreground": {
+        "$type": "color",
+        "$value": "{color.primitive.accessibility.midnight-clearing.accent-soft-foreground}"
+      },
       "success": {
         "$type": "color",
         "$value": "{color.primitive.accessibility.midnight-clearing.feedback-success}"
@@ -66,6 +70,10 @@
       "success-soft": {
         "$type": "color",
         "$value": "{color.primitive.audit.template.midnight-clearing.success-soft}"
+      },
+      "success-soft-foreground": {
+        "$type": "color",
+        "$value": "{color.primitive.accessibility.midnight-clearing.success-soft-foreground}"
       },
       "warning": {
         "$type": "color",
@@ -79,6 +87,10 @@
         "$type": "color",
         "$value": "{color.primitive.audit.template.midnight-clearing.warning-soft}"
       },
+      "warning-soft-foreground": {
+        "$type": "color",
+        "$value": "{color.primitive.accessibility.midnight-clearing.warning-soft-foreground}"
+      },
       "danger": {
         "$type": "color",
         "$value": "{color.primitive.accessibility.midnight-clearing.feedback-danger}"
@@ -91,6 +103,10 @@
         "$type": "color",
         "$value": "{color.primitive.audit.template.midnight-clearing.danger-soft}"
       },
+      "danger-soft-foreground": {
+        "$type": "color",
+        "$value": "{color.primitive.accessibility.midnight-clearing.danger-soft-foreground}"
+      },
       "info": {
         "$type": "color",
         "$value": "{color.primitive.accessibility.midnight-clearing.feedback-info}"
@@ -102,6 +118,10 @@
       "info-soft": {
         "$type": "color",
         "$value": "{color.primitive.audit.template.midnight-clearing.info-soft}"
+      },
+      "info-soft-foreground": {
+        "$type": "color",
+        "$value": "{color.primitive.accessibility.midnight-clearing.info-soft-foreground}"
       },
       "focus-ring": {
         "$type": "color",

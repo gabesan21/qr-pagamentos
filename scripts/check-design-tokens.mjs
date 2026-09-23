@@ -10,7 +10,7 @@ const allowedAccentStyles = [
   { path: "src/app/store/[slug]/page.tsx", pattern: /style=\{\{ "--storefront-accent": storefront\.accentColor \} as CSSProperties\}/g },
   { path: "src/app/store/[slug]/pay/page.tsx", pattern: /style=\{\{ "--storefront-accent": storefront\.accentColor \} as CSSProperties\}/g },
   { path: "src/app/storefront-preview.tsx", pattern: /style=\{\{ "--storefront-accent": accentColor \} as CSSProperties\}/g },
-  { path: "src/app/pay/[identifier]/public-checkout-v2-page.tsx", pattern: /style=\{\{ "--storefront-accent": presentation\.branding\.accentColor \} as CSSProperties\}/g },
+  { path: "src/app/pay/[identifier]/checkout-shell.tsx", pattern: /style=\{branding \? \(\{ "--storefront-accent": branding\.accentColor \} as CSSProperties\) : undefined\}/g },
   { path: "src/app/admin/accounts/[id]/page.tsx", pattern: /style=\{\{ "--storefront-accent": editor\.storefrontAccentColor \?\? "transparent" \} as CSSProperties\}/g },
 ];
 
@@ -29,11 +29,12 @@ function removeTokenSource(path, source) {
     : source;
   if (path.endsWith("globals.css")) {
     return withoutGeneratedTokens
-      .replaceAll("(min-width: 900px)", "(min-width: var(--breakpoint-auth))");
+      .replaceAll("(min-width: 900px)", "(min-width: var(--breakpoint-auth))")
+      .replaceAll("(min-width: 64rem)", "(min-width: var(--breakpoint-lg))");
   }
   if (!path.endsWith("app-shell.css")) return withoutGeneratedTokens;
   return withoutGeneratedTokens
-    .replaceAll("(max-width: 48rem)", "(max-width: var(--shell-mobile-breakpoint))")
+    .replaceAll("(max-width: 63.9375rem)", "(max-width: var(--shell-mobile-breakpoint))")
     .replaceAll("(max-width: 23.4375rem)", "(max-width: var(--shell-compact-breakpoint))");
 }
 

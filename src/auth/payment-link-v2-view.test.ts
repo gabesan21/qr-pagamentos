@@ -10,6 +10,7 @@ import {
   type PaymentLinkV2DirectoryRow,
   type PaymentLinkV2ViewStore,
   type PaymentLinkV2WindowQuery,
+  type StoredPaymentLinkV2OwnerDetail,
   type StoredPaymentLinkV2View,
 } from "./payment-link-v2-view";
 
@@ -42,11 +43,26 @@ function stored(overrides: Partial<StoredPaymentLinkV2View> = {}): StoredPayment
   };
 }
 
-function createStore(rows: StoredPaymentLinkV2View[] = [], detail: StoredPaymentLinkV2View | null = null) {
+// Mechanical widening for the `findForOwner`-only additive projection: wraps
+// a base `stored()` fixture into the owner-detail shape the store interface
+// now requires, with no new case or assertion.
+function detailStored(base: StoredPaymentLinkV2View): StoredPaymentLinkV2OwnerDetail {
+  return {
+    ...base,
+    lines: base.lines.map((line) => ({ ...line, available: true })),
+    confirmedOrderCount: 0,
+    confirmedVolume: "0",
+  };
+}
+
+function createStore(rows: StoredPaymentLinkV2View[] = [], detail: StoredPaymentLinkV2OwnerDetail | null = null) {
   const listWindow = vi.fn<(query: PaymentLinkV2WindowQuery) => Promise<StoredPaymentLinkV2View[]>>(async () => rows);
-  const findForOwner = vi.fn<(ownerId: string, id: string) => Promise<StoredPaymentLinkV2View | null>>(async () => detail);
-  const store: PaymentLinkV2ViewStore = { listWindow, findForOwner };
-  return { store, listWindow, findForOwner };
+  const findForOwner = vi.fn<(ownerId: string, id: string) => Promise<StoredPaymentLinkV2OwnerDetail | null>>(async () => detail);
+  // Additive (14.5.2 F03): the order detail's link-badge lookup by public
+  // identifier, unused by the directory/detail suites above.
+  const findForOwnerByIdentifier = vi.fn<(ownerId: string, identifier: string) => Promise<StoredPaymentLinkV2OwnerDetail | null>>(async () => null);
+  const store: PaymentLinkV2ViewStore = { listWindow, findForOwner, findForOwnerByIdentifier };
+  return { store, listWindow, findForOwner, findForOwnerByIdentifier };
 }
 
 function readInput(overrides: Partial<DirectoryReadInput<PaymentLinkV2DirectoryRow>> = {}): DirectoryReadInput<PaymentLinkV2DirectoryRow> {
@@ -147,7 +163,7 @@ describe("payment-link V2 directory adapter", () => {
 
   it("carries the stored LINK-order count onto directory rows and the owner detail", async () => {
     const detail = stored({ orderCount: 3, paid: true });
-    const { store } = createStore([detail], detail);
+    const { store } = createStore([detail], detailStored(detail));
     const adapter = createPaymentLinkV2DirectoryAdapter(store, now);
     const window = await adapter.readWindow(readInput());
     expect(window[0].orderCount).toBe(3);
@@ -160,7 +176,7 @@ describe("payment-link V2 directory adapter", () => {
 describe("payment-link V2 owner detail view", () => {
   it("returns the found link with its derived state for the owning merchant", async () => {
     const detail = stored({ lines: [{ position: 1, quantity: 2, titlePtBr: "Café", titleEn: "Coffee", unitPrice: "9.9" }] });
-    const { store, findForOwner } = createStore([], detail);
+    const { store, findForOwner } = createStore([], detailStored(detail));
     const service = createPaymentLinkV2ViewService(store, now);
     const result = await service.getForOwner(merchant, detail.id.toUpperCase());
     expect(findForOwner).toHaveBeenCalledWith(merchant.id, detail.id);
@@ -175,6 +191,25 @@ describe("payment-link V2 owner detail view", () => {
     });
   });
 
+  it("carries the owner-only confirmed count/volume and per-line product availability", async () => {
+    const detail = {
+      ...stored({ lines: [{ position: 1, quantity: 2, titlePtBr: "Café", titleEn: "Coffee", unitPrice: "9.9" }] }),
+    };
+    const withConfirmed: StoredPaymentLinkV2OwnerDetail = {
+      ...detail,
+      lines: detail.lines.map((line) => ({ ...line, available: false })),
+      confirmedOrderCount: 4,
+      confirmedVolume: "39.60",
+    };
+    const { store } = createStore([], withConfirmed);
+    const service = createPaymentLinkV2ViewService(store, now);
+    const result = await service.getForOwner(merchant, detail.id);
+    if (result.kind !== "found") throw new Error("expected found");
+    expect(result.link.confirmedOrderCount).toBe(4);
+    expect(result.link.confirmedVolume).toBe("39.60");
+    expect(result.link.lines[0].available).toBe(false);
+  });
+
   it("shares one opaque unavailable outcome for malformed, missing, and cross-owner identities", async () => {
     const { store, findForOwner } = createStore();
     const service = createPaymentLinkV2ViewService(store, now);
@@ -184,7 +219,7 @@ describe("payment-link V2 owner detail view", () => {
   });
 
   it("requires an active merchant principal before any read", async () => {
-    const { store, findForOwner } = createStore([], stored());
+    const { store, findForOwner } = createStore([], detailStored(stored()));
     const service = createPaymentLinkV2ViewService(store, now);
     await expect(service.getForOwner(administrator, stored().id)).rejects.toThrow();
     expect(findForOwner).not.toHaveBeenCalled();

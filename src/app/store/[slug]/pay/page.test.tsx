@@ -46,7 +46,10 @@ describe("standalone payment page", () => {
     expect(markup).toContain('data-theme-preview="vault-blue"');
     expect(markup).toContain('style="--storefront-accent:#106B5B"');
     expect(markup).toContain("Loja da Ana");
-    expect(markup).toContain('data-brand-identity="merchant-fallback"');
+    // No logo but a display name: 14.6.1's header renders the `Monogram`
+    // initials, not the merchant-fallback mark (14.6.2 F02, C1).
+    expect(markup).not.toContain('data-brand-identity="merchant-fallback"');
+    expect(markup).toContain(">LD<");
     expect(markup).toContain("Informe o valor e seus dados para pagar esta loja.");
     expect(markup).toContain("Valor (BRL)");
     expect(markup).toContain('value="12.5"');
@@ -78,7 +81,10 @@ describe("standalone payment page", () => {
 
     const markup = await renderPage({ ...storefront, checkoutDataPolicy: "NONE" });
 
-    expect(markup).toContain("Este pagamento não exige dados do cliente.");
+    // NONE renders no customer heading or notice (15.3.2 C6); the amount
+    // field's own `field-group` still renders — the amount is not customer
+    // data and this route always collects it, regardless of policy.
+    expect(markup).not.toContain('role="status"');
     expect(markup).not.toContain('id="standalone-name"');
     expect(markup).not.toContain('id="standalone-email"');
   });

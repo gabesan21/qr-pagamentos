@@ -49,9 +49,9 @@ Desempate: use a ferramenta **instalada** (`command -v cursor-agent opencode cod
 - [ ] Formato JSON e captura do id de sessão
 - [ ] Plano de verificação do resultado (diff, testes)
 
-## Modelo por effort
+## Perfil da invocação
 
-Modelo se escolhe pelo tier da task, não por hábito: consulte **`pop/scripts/models.json`** (`cheap | medium | strong`) com a matriz papel × size da Orquestração do [[WORKFLOW|WORKFLOW]]. O executor recebe objetivo, contexto, specs, skill, ownership e critérios suficientes para agir com autonomia; não precisa de reasoning persistido nem microinstruções do planejador. A flag de modelo de cada ferramenta está na skill dela (seção "Modelo"); disponibilidade se confere com o comando de listagem da ferramenta (lookup pontual).
+Modelo e effort vêm do perfil explícito do coding agent invocado; `size`, `critical` e retornos não os selecionam nem escalam. O executor recebe objetivo, contexto, specs, skill, ownership e critérios suficientes para agir com autonomia; não precisa de reasoning persistido nem microinstruções do planejador. A flag de modelo de cada ferramenta está na skill dela (seção "Modelo"); disponibilidade se confere com o comando de listagem da ferramenta (lookup pontual).
 
 ## Skills desta família
 

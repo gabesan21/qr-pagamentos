@@ -44,7 +44,7 @@ describe("owner order-v2 engagement route", () => {
 
     const response = await POST(request(new URLSearchParams({ action: "append-comment", body: "Primeira nota" })), { params });
     expect(appendComment).toHaveBeenCalledWith(owner, "440e8400-e29b-41d4-a716-446655440044", "Primeira nota");
-    expect(response.headers.get("location")).toBe("/orders?orders-v2=commented");
+    expect(response.headers.get("location")).toBe("/orders/v2/440e8400-e29b-41d4-a716-446655440044?orders-v2=commented");
   });
 
   it("dispatches edit-comment with the supplied comment identity and version", async () => {
@@ -54,7 +54,7 @@ describe("owner order-v2 engagement route", () => {
 
     const response = await POST(request(new URLSearchParams({ action: "edit-comment", commentId: "550e8400-e29b-41d4-a716-446655440055", commentVersion: "0", body: "Revisada" })), { params });
     expect(editComment).toHaveBeenCalledWith(owner, "550e8400-e29b-41d4-a716-446655440055", "0", "Revisada");
-    expect(response.headers.get("location")).toBe("/orders?orders-v2=comment-edited");
+    expect(response.headers.get("location")).toBe("/orders/v2/440e8400-e29b-41d4-a716-446655440044?orders-v2=comment-edited");
   });
 
   it("dispatches set-outcome to the local-outcome service", async () => {
@@ -64,7 +64,7 @@ describe("owner order-v2 engagement route", () => {
 
     const response = await POST(request(new URLSearchParams({ action: "set-outcome", version: "3", outcome: "LOCAL_CANCELLED", note: "Cliente desistiu" })), { params });
     expect(appendOutcome).toHaveBeenCalledWith(owner, "440e8400-e29b-41d4-a716-446655440044", "3", "LOCAL_CANCELLED", "Cliente desistiu");
-    expect(response.headers.get("location")).toBe("/orders?orders-v2=outcome-set");
+    expect(response.headers.get("location")).toBe("/orders/v2/440e8400-e29b-41d4-a716-446655440044?orders-v2=outcome-set");
   });
 
   it("maps unknown actions and service failures to the opaque failed redirect", async () => {
@@ -72,10 +72,10 @@ describe("owner order-v2 engagement route", () => {
     ownerProtectedMutationResponse.mockReturnValue(null);
 
     const unknown = await POST(request(new URLSearchParams({ action: "delete" })), { params });
-    expect(unknown.headers.get("location")).toBe("/orders?orders-v2=failed");
+    expect(unknown.headers.get("location")).toBe("/orders/v2/440e8400-e29b-41d4-a716-446655440044?orders-v2=failed");
 
     appendOutcome.mockRejectedValueOnce(new Error("conflict"));
     const failed = await POST(request(new URLSearchParams({ action: "set-outcome", version: "3", outcome: "LOCAL_FINALIZED" })), { params });
-    expect(failed.headers.get("location")).toBe("/orders?orders-v2=failed");
+    expect(failed.headers.get("location")).toBe("/orders/v2/440e8400-e29b-41d4-a716-446655440044?orders-v2=failed");
   });
 });

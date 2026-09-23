@@ -4,19 +4,17 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ForbiddenError, UnauthenticatedError } from "@/auth/authorization";
 import type { AdminOrderV2Summary } from "@/orders/order-v2-admin-directory";
 
-const { requireAdminFromCookie, resolveLocale, listForAdmin, queryDirectory, redirect } = vi.hoisted(() => ({
+const { requireAdminFromCookie, resolveLocale, queryDirectory, redirect } = vi.hoisted(() => ({
   requireAdminFromCookie: vi.fn(),
   resolveLocale: vi.fn(),
-  listForAdmin: vi.fn(),
   queryDirectory: vi.fn(),
   redirect: vi.fn((location: string) => { throw new Error(`redirect:${location}`); }),
 }));
 
-vi.mock("next/navigation", () => ({ redirect }));
+vi.mock("next/navigation", () => ({ redirect, useRouter: () => ({ replace: vi.fn(), push: vi.fn() }) }));
 vi.mock("server-only", () => ({}));
 vi.mock("@/app/admin/guard", () => ({ requireAdminFromCookie, protectedMutationResponse: vi.fn() }));
 vi.mock("@/i18n/locale-preference", () => ({ getLocalePreferenceService: () => ({ resolve: resolveLocale }) }));
-vi.mock("@/orders/order-view", () => ({ getOrderViewService: () => ({ listForAdmin }) }));
 vi.mock("@/app/admin/product-management", () => ({ formatProductPrice: (price: string) => `BRL ${price}` }));
 vi.mock("@/orders/order-v2-admin-directory", async (importActual) => ({
   ...(await importActual<typeof import("@/orders/order-v2-admin-directory")>()),
@@ -26,20 +24,6 @@ vi.mock("@/orders/order-v2-admin-directory", async (importActual) => ({
 import AdminOrdersPage from "./page";
 
 const admin = { id: "440e8400-e29b-41d4-a716-446655440001", username: "admin", email: null, role: "ADMIN" as const, status: "ACTIVE" as const, createdAt: new Date() };
-
-const v1Order = {
-  id: "440e8400-e29b-41d4-a716-446655440044",
-  paymentLinkIdentifier: "link-identifier",
-  productTitlePtBr: "Doação",
-  productTitleEn: "Donation",
-  amount: "10.50",
-  currencyPairLabel: "BRL/USDT",
-  state: "PENDING" as const,
-  checkoutDataPolicy: "NONE" as const,
-  createdAt: new Date("2026-07-01T12:00:00.000Z"),
-  updatedAt: new Date("2026-07-02T12:00:00.000Z"),
-  settledAt: null,
-};
 
 function row(overrides: Partial<AdminOrderV2Summary> = {}): AdminOrderV2Summary {
   return {
@@ -66,7 +50,6 @@ function row(overrides: Partial<AdminOrderV2Summary> = {}): AdminOrderV2Summary 
 function ready(locale: "pt-BR" | "en" = "en", rows: AdminOrderV2Summary[] = [row()]) {
   requireAdminFromCookie.mockResolvedValue(admin);
   resolveLocale.mockResolvedValue(locale);
-  listForAdmin.mockResolvedValue([v1Order]);
   queryDirectory.mockResolvedValue({ status: "ready", rows, pageSize: 50 });
 }
 
@@ -78,7 +61,6 @@ describe("administrator orders directory page", () => {
     await expect(AdminOrdersPage()).rejects.toThrow("redirect:/login");
     requireAdminFromCookie.mockRejectedValueOnce(new ForbiddenError("merchants stay out"));
     await expect(AdminOrdersPage()).rejects.toThrow("redirect:/");
-    expect(listForAdmin).not.toHaveBeenCalled();
     expect(queryDirectory).not.toHaveBeenCalled();
   });
 
@@ -88,7 +70,7 @@ describe("administrator orders directory page", () => {
     await expect(AdminOrdersPage()).rejects.toBe(failure);
   });
 
-  it("renders the ready global directory with owner attribution above the untouched V1 ledger", async () => {
+  it("renders the ready global directory with owner attribution", async () => {
     ready("en", [
       row(),
       row({
@@ -103,7 +85,6 @@ describe("administrator orders directory page", () => {
     ]);
 
     const markup = renderToStaticMarkup(await AdminOrdersPage());
-    expect(listForAdmin).toHaveBeenCalledWith(admin);
     expect(markup).toContain("Global order directory");
     // Owner attribution: usernames link to the interim accounts surface, and
     // the soft-deleted owner keeps its row with the localized badge.
@@ -128,17 +109,12 @@ describe("administrator orders directory page", () => {
     // Redaction: currency pair UUIDs never render.
     expect(markup).not.toContain("990e8400-e29b-41d4-a716-446655440099");
     expect(markup).not.toContain("aa0e8400-e29b-41d4-a716-4466554400aa");
-    // The byte-frozen V1 ledger below, with its own detail route.
-    expect(markup).toContain("Single-product orders");
-    expect(markup).toContain("Donation");
-    expect(markup).toContain('href="/admin/orders/440e8400-e29b-41d4-a716-446655440044"');
   });
 
   it("renders localized pt-BR copy including the deleted badge", async () => {
     ready("pt-BR", [row({ owner: { username: "gone.owner", deletedAt: new Date("2026-07-20T00:00:00.000Z") } })]);
     const markup = renderToStaticMarkup(await AdminOrdersPage());
     expect(markup).toContain("Diretório global de pedidos");
-    expect(markup).toContain("Pedidos de produto único");
     expect(markup).toContain(">Pagamento confirmado</");
     expect(markup).toContain(">Excluída</");
   });
@@ -152,21 +128,17 @@ describe("administrator orders directory page", () => {
     expect(filtered).toContain("No matching records");
   });
 
-  it("renders the invalid-query state without directory I/O and without echoing input", async () => {
+  it("resets to the reset redirect without directory I/O and without echoing input", async () => {
     ready("en");
-    const markup = renderToStaticMarkup(await AdminOrdersPage({ searchParams: Promise.resolve({ forged: "1" }) }));
-    expect(markup).toContain("The directory request is unavailable");
-    expect(markup).not.toContain("forged");
+    await expect(AdminOrdersPage({ searchParams: Promise.resolve({ forged: "1" }) })).rejects.toThrow("redirect:/admin/orders?filters=ignored");
     expect(queryDirectory).not.toHaveBeenCalled();
   });
 
-  it("renders the invalid-query state when the delivered service rejects a calendar day", async () => {
+  it("resets to the reset redirect when the delivered service rejects a calendar day", async () => {
     ready("en");
     queryDirectory.mockResolvedValue({ status: "invalid-query" });
 
-    const markup = renderToStaticMarkup(await AdminOrdersPage({ searchParams: Promise.resolve({ "filter.from": "2026-13-99" }) }));
-    expect(markup).toContain("The directory request is unavailable");
-    expect(markup).not.toContain("2026-13-99");
+    await expect(AdminOrdersPage({ searchParams: Promise.resolve({ "filter.from": "2026-13-99" }) })).rejects.toThrow("redirect:/admin/orders?filters=ignored");
   });
 
   it("resets non-canonical queries before any read", async () => {
@@ -175,18 +147,16 @@ describe("administrator orders directory page", () => {
     expect(queryDirectory).not.toHaveBeenCalled();
   });
 
-  it("renders the error state when the directory read fails while the V1 section stays", async () => {
+  it("renders the error state when the directory read fails", async () => {
     ready("en");
     queryDirectory.mockRejectedValue(new Error("database unavailable"));
     const markup = renderToStaticMarkup(await AdminOrdersPage());
     expect(markup).toContain("The directory could not be loaded");
-    expect(markup).toContain("Single-product orders");
   });
 
   it("passes the canonical target into the delivered directory service and renders pagination URLs", async () => {
     requireAdminFromCookie.mockResolvedValue(admin);
     resolveLocale.mockResolvedValue("en");
-    listForAdmin.mockResolvedValue([]);
     queryDirectory.mockResolvedValue({ status: "ready", rows: [row()], pageSize: 20, nextCursor: "next-token", previousCursor: "previous-token" });
 
     const markup = renderToStaticMarkup(await AdminOrdersPage({

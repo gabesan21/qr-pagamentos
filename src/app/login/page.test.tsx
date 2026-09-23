@@ -35,7 +35,18 @@ describe("login page contract", () => {
     expect(markup).toContain("Nome de usuário ou senha inválidos.");
     expect(markup).not.toContain("database unavailable");
     expect(markup).toContain('class="auth-card__panel"');
-    expect(markup).toContain('class="auth-card__form login-form"');
+    expect(markup).toContain('class="auth-card__form"');
+  });
+
+  it("renders the show/hide toggle, forgot-password link, and inline required copy", async () => {
+    const dictionary = getDictionary("pt-BR");
+    const markup = renderToStaticMarkup(await LoginPage({ searchParams: Promise.resolve({}) }));
+
+    expect(markup).toContain('type="button"');
+    expect(markup).toContain(`aria-label="${dictionary.showPassword}"`);
+    expect(markup).toContain('href="/reset-password"');
+    expect(markup).toContain(dictionary.forgotPassword);
+    expect(markup).toContain(dictionary.forgotPasswordNote);
   });
 
   it("composes the page exclusively from the approved shared inventory", async () => {
@@ -51,10 +62,10 @@ describe("login page contract", () => {
   });
 
   it("permits only the six owned UI sources and no login-local visual primitive", () => {
-    const allowedSources = new Set(["alert", "button", "card", "field", "input", "spinner"]);
-    const requiredExports = ["Alert", "Button", "Card", "Field", "Input", "Spinner"];
+    const allowedSources = new Set(["alert", "button", "card", "field", "input", "input-otp", "spinner"]);
+    const requiredExports = ["Alert", "Button", "CardContent", "Field", "Input", "InputOTP", "Spinner"];
     const importPattern = /import\s+(?:type\s+)?([^;]+?)\s+from\s+"([^"]+)"/g;
-    const files = ["page.tsx", "login-submit.tsx", "totp-challenge-form.tsx"];
+    const files = ["page.tsx", "login-form.tsx", "login-submit.tsx", "totp-challenge-form.tsx"];
     const importedNames = new Set<string>();
 
     for (const file of files) {
@@ -68,10 +79,15 @@ describe("login page contract", () => {
             if (imported) importedNames.add(imported);
           }
         } else if (specifier === "@/brand/brand-identity") {
-          expect(file).toBe("page.tsx");
+          expect(["page.tsx", "login-form.tsx"]).toContain(file);
         } else if (specifier.startsWith(".")) {
-          expect(["./login-submit", "./totp-challenge-form"]).toContain(specifier);
-          expect(file).toBe("page.tsx");
+          if (file === "page.tsx") {
+            expect(["./login-form", "./totp-challenge-form"]).toContain(specifier);
+          } else if (file === "login-form.tsx") {
+            expect(specifier).toBe("./login-submit");
+          } else {
+            throw new Error(`unexpected relative import ${specifier} in ${file}`);
+          }
         }
       }
     }
@@ -114,10 +130,17 @@ describe("login page contract", () => {
 
     expect(markup).toContain(dictionary.mfaHeading);
     expect(markup).toContain('action="/login/totp-challenge"');
-    expect(markup).toContain('id="mfa-code"');
+    expect(markup).toContain('id="mfa-totp-code"');
     expect(markup).toContain('autoComplete="one-time-code"');
     expect(markup).toContain(dictionary.mfaCodeLabel);
     expect(markup).toContain(dictionary.mfaRecoveryLink);
+    // Six owned InputOTP slots, digits-only pattern, and the Back link —
+    // the retired single text box never comes back.
+    expect(markup.match(/data-slot="input-otp-slot"/g)).toHaveLength(6);
+    expect(markup).toContain('pattern="^\\d+$"');
+    expect(markup).toContain('href="/login"');
+    expect(markup).toContain(dictionary.backToCredentials);
+    expect(markup).not.toContain('type="text" id="mfa-code"');
   });
 
   it.each(["pt-BR", "en"] as const)("renders the failed MFA alert opaquely in %s", async (locale) => {
@@ -127,5 +150,17 @@ describe("login page contract", () => {
 
     expect(markup).toContain(dictionary.mfaFailed);
     expect(markup).toContain('action="/login/totp-challenge"');
+  });
+
+  it("renders the labelled PT/EN language switcher posting to /language-preference, ≥44px, with no principal read added", async () => {
+    const markup = renderToStaticMarkup(await LoginPage({ searchParams: Promise.resolve({}) }));
+
+    expect(markup).toContain('action="/language-preference"');
+    expect(markup).toContain('name="locale"');
+    expect(markup).toMatch(/aria-label="[^"]+"/);
+    expect(markup).toContain(">PT<");
+    expect(markup).toContain(">EN<");
+    expect(markup).toContain("h-11");
+    expect(readCookie).not.toHaveBeenCalledWith("qr_session");
   });
 });

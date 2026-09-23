@@ -1,0 +1,18 @@
+{
+  "capabilities": {
+    "kimi-for-coding/k3-256k": {"variants": ["high"]},
+    "openrouter/deepseek/deepseek-v4-pro": {"variants": ["high"]},
+    "openrouter/qwen/qwen3-coder-next": {"variants": ["standard"]},
+    "openrouter/qwen/qwen3.5-flash-02-23": {"variants": ["standard"]}
+  },
+  "roles": {
+    "pop-execution-orchestrator": {"mode": "subagent", "model": "openrouter/deepseek/deepseek-v4-pro", "variant": "high", "permissions": ["read", "glob", "grep", "list", "edit"], "skills": ["create-agent-generic"]},
+    "pop-executor": {"mode": "subagent", "model": "openrouter/qwen/qwen3-coder-next", "variant": "standard", "permissions": ["read", "glob", "grep", "list", "edit", "bash", "lsp"], "skills": ["clean-code-change", "create-agent-generic"]},
+    "pop-judge-dredd": {"mode": "subagent", "model": "kimi-for-coding/k3-256k", "variant": "high", "permissions": ["read", "glob", "grep", "list", "edit", "bash"], "skills": ["judge-dredd"]},
+    "pop-phase-verifier": {"mode": "subagent", "model": "openrouter/deepseek/deepseek-v4-pro", "variant": "high", "permissions": ["read", "glob", "grep", "list", "edit", "bash", "lsp"], "skills": ["clean-code-review", "sync-specs"]},
+    "pop-planner": {"mode": "subagent", "model": "kimi-for-coding/k3-256k", "variant": "high", "permissions": ["read", "glob", "grep", "list", "edit"], "skills": ["clean-code-change", "sync-specs"]},
+    "pop-recon": {"mode": "subagent", "model": "openrouter/qwen/qwen3.5-flash-02-23", "variant": "standard", "permissions": ["read", "glob", "grep", "list", "edit"], "skills": ["recon-project"]}
+  },
+  "subagent_depth": 2,
+  "version": 1
+}

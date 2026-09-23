@@ -49,6 +49,9 @@
       },
       "soft": {
         "$value": "{theme.color.accent-soft}"
+      },
+      "soft-foreground": {
+        "$value": "{theme.color.accent-soft-foreground}"
       }
     },
     "feedback": {
@@ -64,7 +67,7 @@
           "$value": "{theme.color.success-foreground}"
         },
         "soft-foreground": {
-          "$value": "{theme.color.text-primary}"
+          "$value": "{theme.color.success-soft-foreground}"
         }
       },
       "warning": {
@@ -79,7 +82,7 @@
           "$value": "{theme.color.warning-foreground}"
         },
         "soft-foreground": {
-          "$value": "{theme.color.text-primary}"
+          "$value": "{theme.color.warning-soft-foreground}"
         }
       },
       "danger": {
@@ -94,7 +97,7 @@
           "$value": "{theme.color.danger-foreground}"
         },
         "soft-foreground": {
-          "$value": "{theme.color.text-primary}"
+          "$value": "{theme.color.danger-soft-foreground}"
         }
       },
       "info": {
@@ -109,7 +112,7 @@
           "$value": "{theme.color.info-foreground}"
         },
         "soft-foreground": {
-          "$value": "{theme.color.text-primary}"
+          "$value": "{theme.color.info-soft-foreground}"
         }
       }
     },

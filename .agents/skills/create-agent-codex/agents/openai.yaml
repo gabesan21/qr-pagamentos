@@ -1,0 +1,4 @@
+interface:
+  display_name: "Create Codex Agent"
+  short_description: "Gerar agents Codex com validação segura"
+  default_prompt: "Use $create-agent-codex para traduzir um papel canônico em um custom agent Codex validado."

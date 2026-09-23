@@ -4,10 +4,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ForbiddenError, UnauthenticatedError } from "@/auth/authorization";
 import type { AdminPaymentLinkV2DirectoryRow } from "@/auth/payment-link-v2-admin-directory";
 
-const { requireAdminFromCookie, resolveLocale, getForAdmin, redirect } = vi.hoisted(() => ({
+const { requireAdminFromCookie, resolveLocale, getForAdmin, queryDirectory, redirect } = vi.hoisted(() => ({
   requireAdminFromCookie: vi.fn(),
   resolveLocale: vi.fn(),
   getForAdmin: vi.fn(),
+  queryDirectory: vi.fn((..._: unknown[]) => Promise.resolve({ status: "ready" as const, rows: [], pageSize: 5 })),
   redirect: vi.fn((location: string) => { throw new Error(`redirect:${location}`); }),
 }));
 
@@ -18,6 +19,10 @@ vi.mock("@/i18n/locale-preference", () => ({ getLocalePreferenceService: () => (
 vi.mock("@/auth/payment-link-v2-admin-directory", async (importActual) => ({
   ...(await importActual<typeof import("@/auth/payment-link-v2-admin-directory")>()),
   getAdminPaymentLinkV2DirectoryService: () => ({ getForAdmin }),
+}));
+vi.mock("@/orders/order-v2-admin-directory", async (importActual) => ({
+  ...(await importActual<typeof import("@/orders/order-v2-admin-directory")>()),
+  queryAdminOrderV2Directory: (...args: unknown[]) => queryDirectory(...args),
 }));
 
 import AdminPaymentLinkV2DetailPage from "./page";
@@ -80,12 +85,18 @@ describe("administrator payment-link V2 detail page", () => {
     expect(markup).toContain('href="/admin/payment-links"');
     // The drill-down navigates to the administrator orders directory filtered
     // by this link's identifier.
-    expect(markup).toContain('href="/admin/orders?link=abcdefghijklmnopqrstuvwx"');
-    // Read-only: no owner mutation surface, no edit or lifecycle actions, no public share URL.
+    expect(markup).toContain('href="/admin/orders?filter.link=abcdefghijklmnopqrstuvwx"');
+    // Read-only: no owner mutation surface, no edit or lifecycle actions.
+    // The public URL card now shows the share path rather than hiding it.
     expect(markup).not.toContain("/links/v2/");
     expect(markup).not.toContain('method="post"');
     expect(markup).not.toContain(">Deleted</");
-    expect(markup).not.toContain(link.sharePath);
+    expect(markup).toContain("Public URL");
+    expect(markup).toContain(link.sharePath);
+    // The associated-orders card runs one bounded admin-directory read
+    // filtered by this link's identifier, at most five rows deep.
+    expect(queryDirectory).toHaveBeenCalledWith(expect.stringContaining("filter.link=abcdefghijklmnopqrstuvwx"));
+    expect(markup).toContain("Associated orders");
   });
 
   it("renders the deleted badge for a soft-deleted owner", async () => {

@@ -21,20 +21,53 @@
   arbitrary sorting, client-side full-list filtering, or snapshot promises.
 - `ui/` receives only localized copy, redacted rows, column/fact definitions,
   canonical URLs, and optional consumer actions. Never import auth, a business
-  service/store, or theme/role branching.
+  service/store, or theme/role branching; `next/navigation` and the owned
+  shadcn primitives are the only allowed non-copy imports.
 - `DataDirectory` is the only production owner for shared table, native-GET
   filter and canonical previous/next pagination responsibilities; never add a
-  parallel `DataTable`, `FilterBar`, total-count or page-number owner.
+  parallel `DataTable`, `FilterBar`, total-count or page-number owner. Its
+  client shell is a thin URL-state controller over the native `<form
+  method="get">` foundation: search commits on a fixed debounce, every other
+  toolbar control and the page-size select commit on `change` through
+  `router.replace` inside a transition, and every commit drops `cursor` and
+  keeps the remaining canonical pairs. Apply/Reset render only inside
+  `<noscript>`; the visible action is a ghost "Clear filters" anchor shown
+  only when a filter is active. A documented `interactive={false}` opt-out
+  renders the same composition with no live commit, for non-navigating demo
+  surfaces only. Never add offset, total count, page numbers, arbitrary
+  sorting, client-side row filtering, or a snapshot promise.
+- Active filters render as removable chips resolved through the caller's
+  registered filter definitions (enum option label, or the submitted text for
+  text/calendar filters); the raw filter value is never printed. Rows accept
+  an optional server-evaluated href and navigate on row/card click; the
+  explicit consumer action stays the keyboard-reachable path, and a click
+  landing on an interactive descendant (link, button, control) never
+  triggers row navigation.
 - At narrow widths render ruled `dl` facts; at wide widths render one captioned
   native table. CSS must leave exactly one renderer/action set in the
   accessibility tree, preserve DOM/focus/reading order, and avoid page overflow.
 - Keep the six mutually exclusive states: ready, loading, empty,
-  filtered-empty, invalid-query, and error. Invalid/error copy never echoes
-  input, identity, scope, or exception detail.
+  filtered-empty, invalid-query, and error. `invalid-query` stays a declared
+  state (specimen, coverage) with no production producer: a page or its query
+  resolver that cannot canonicalize URL input redirects to its reset path
+  carrying the reserved `?filters=ignored` pair instead of rendering this
+  state, and the reset render raises one informational, echo-free notice.
+  Invalid/error copy never echoes input, identity, scope, or exception detail.
 - Generic copy belongs to the bilingual `data-directory` dictionary domain.
 - The toolbar's page-size options and labelled text/calendar-day filter fields
   are optional registered props (defaults 25/50/100, enum-only filters);
   never hardcode a concrete directory's sizes or filters into the composition.
+- **Byte-frozen, cursorless source exception (14.5.2):** a consumer whose only
+  data source is a byte-frozen list with no cursor (merchant `/links`'
+  legacy V1 era) may render its full owner-scoped list through this
+  composition's UI shell with query-param filtering applied client-side
+  instead of a `server/` adapter. This is the one authorized exception to
+  "never add ... client-side full-list filtering" above; it never extends to
+  any source with a registered adapter or cursor, and it never blends with a
+  keyset page from another source on the same directory render.
+
+- The directory shell and its six states are Tailwind-utility composed; no
+  page-scoped BEM class styles this subtree.
 
 ## Related contracts
 

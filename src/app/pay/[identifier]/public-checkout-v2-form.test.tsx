@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("server-only", () => ({}));
 
 import { getDictionary } from "@/i18n/dictionaries";
-import type { CheckoutDataPolicy } from "@/orders/payment-link-order";
+import type { CheckoutDataPolicy } from "@/orders/order-v2-policies";
 
 import { paymentFromResponse, PublicCheckoutV2Form } from "./public-checkout-v2-form";
 
@@ -36,7 +36,31 @@ describe("public checkout V2 form", () => {
     expect(rendered).toContain('data-slot="field-set"');
     expect(rendered).toContain('type="submit"');
     expect(rendered).toContain('for="checkout-stateUf"');
-    expect(markup("NONE")).toContain('role="status"');
+  });
+
+  it("renders no customer heading, notice, or field group when the policy needs no fields", () => {
+    const rendered = markup("NONE");
+
+    expect(rendered).not.toContain("Customer details");
+    expect(rendered).not.toContain('role="status"');
+    expect(rendered).not.toContain('data-slot="field-group"');
+    expect(rendered).toContain('type="submit"');
+  });
+
+  it("renders the customer heading and field group, without the status notice, when the policy needs fields", () => {
+    const rendered = markup("NAME_EMAIL");
+
+    expect(rendered).toContain("Customer details");
+    expect(rendered).not.toContain('role="status"');
+    expect(rendered).toContain('data-slot="field-group"');
+  });
+
+  // C03.c (14.6.1 round-1 repair 508e21d8): the V2 form was the other
+  // component that used to emit the retired classes — pin by exact class
+  // name, never by prefix.
+  it("never emits a retired checkout-card/-form/-payment/-description class in the form phase", () => {
+    const rendered = markup("NAME_EMAIL_CPF_ADDRESS");
+    expect(rendered).not.toMatch(/\bcheckout-(card|form|payment|description)\b/);
   });
 
   it.each([

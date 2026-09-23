@@ -177,6 +177,22 @@ describe("DTCG 2025.10 application token graph", () => {
     }
   });
 
+  it.each(themeNames)("pins every %s soft-foreground primitive (success/warning/danger/info/accent) to its derived AA projection", (theme: ThemeName) => {
+    const audit = documents["themes.tokens.json"].color.primitive.audit.template[theme];
+    const accessibility = documents["themes.tokens.json"].color.primitive.accessibility[theme];
+    const primary = audit.text.$value.hex;
+    const roles = { success: "success", warning: "warning", danger: "danger", info: "info", accent: "accent" } as const;
+    for (const [role, auditName] of Object.entries(roles)) {
+      const origin = audit[auditName].$value.hex;
+      const softSurface = audit[`${auditName}-soft`].$value.hex;
+      const primitive = accessibility[`${role}-soft-foreground`];
+      const derived = deriveAccessibleProjection(origin, primary, [softSurface], { minimumRatio: 4.5 });
+      expect(primitive.$value.hex, role).toBe(derived.hex);
+      expect(primitive.$extensions["com.qr-pagamentos.contrast"].interpolationStep, role).toBe(derived.step);
+      expect(contrastRatio(primitive.$value.hex, softSurface), role).toBeGreaterThanOrEqual(4.5);
+    }
+  });
+
   it.each(themeNames)("projects %s focus to an opaque three-pixel indicator with 3:1 contrast", (theme: ThemeName) => {
     const tokens = resolved(theme);
     const audit = documents["themes.tokens.json"].color.primitive.audit.template[theme];

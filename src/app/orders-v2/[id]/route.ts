@@ -8,10 +8,11 @@ export async function POST(request: Request, { params }: Readonly<{ params: Prom
   return withServerRequestLog(request.headers.get("x-request-id"), { method: "POST", route: serverRequestRoutes.orderV2 }, async () => {
     const crossOrigin = rejectCrossOrigin(request);
     if (crossOrigin) return crossOrigin;
+    const id = (await params).id;
+    const encodedId = encodeURIComponent(id);
     try {
       const actor = await requireOwnerFromCookie();
       const form = await request.formData();
-      const id = (await params).id;
       const action = form.get("action");
       let outcome: string;
       if (action === "append-comment") {
@@ -24,11 +25,11 @@ export async function POST(request: Request, { params }: Readonly<{ params: Prom
         await getOrderLocalOutcomeV2Service().append(actor, id, form.get("version"), form.get("outcome"), form.get("note"));
         outcome = "outcome-set";
       } else {
-        return relativeRedirect("/orders?orders-v2=failed");
+        return relativeRedirect(`/orders/v2/${encodedId}?orders-v2=failed`);
       }
-      return relativeRedirect(`/orders?orders-v2=${outcome}`);
+      return relativeRedirect(`/orders/v2/${encodedId}?orders-v2=${outcome}`);
     } catch (error) {
-      return ownerProtectedMutationResponse(error) ?? relativeRedirect("/orders?orders-v2=failed");
+      return ownerProtectedMutationResponse(error) ?? relativeRedirect(`/orders/v2/${encodedId}?orders-v2=failed`);
     }
   });
 }

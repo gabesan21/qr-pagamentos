@@ -5,6 +5,7 @@ vi.mock("server-only", () => ({}));
 import { createOwnerPricingOrdersService, OwnerPricingOrdersError } from "./owner-pricing-orders";
 import {
   ACTIVE_ORDER_STATUSES,
+  createInMemoryProviderOrderStore,
   FINAL_ORDER_STATUSES,
   type ProviderOrderStore,
   type StoredProviderOrder,
@@ -43,7 +44,6 @@ function row(overrides: Partial<StoredProviderOrder> = {}): StoredProviderOrder 
     paymentMethod: "pix",
     pixCopyPaste: null,
     pixQrcodeUrl: null,
-    paymentLinkOrderId: null,
     orderV2Id: null,
     reconciliationVersion: 1,
     ...overrides,
@@ -58,6 +58,7 @@ function harness(observed: StoredProviderOrder | null, reconciled = view()) {
     releasePreDispatch: vi.fn(),
     markIndeterminate: vi.fn(),
     completeCreation: vi.fn(),
+    discardRefused: vi.fn(),
     findPollable: vi.fn().mockResolvedValue(observed),
     findRecoverable: vi.fn().mockResolvedValue(observed),
     findWebhookActionable: vi.fn().mockResolvedValue(observed),
@@ -173,5 +174,45 @@ describe("provider order transition lattice", () => {
     await expect(service.pollOrder(ownerId, localOrderId)).rejects.toBeInstanceOf(OwnerPricingOrdersError);
     expect(getOrder).toHaveBeenCalledOnce();
     expect(store.reconcile).not.toHaveBeenCalled();
+  });
+});
+
+describe("in-memory provider order store reconciliation preserves PIX", () => {
+  it("keeps a stored PIX payload when the authoritative read omits it, and still advances status/version", async () => {
+    const store = createInMemoryProviderOrderStore();
+    const seedQuoteUuid = "660e8400-e29b-41d4-a716-446655440066";
+    const seedOwnerId = "770e8400-e29b-41d4-a716-446655440077";
+
+    await store.register({ quoteUuid: seedQuoteUuid, ownerId: seedOwnerId, expiresAt: new Date("2026-07-18T20:05:00.000Z") });
+    const claim = await store.claimForCreation({ quoteUuid: seedQuoteUuid, ownerId: seedOwnerId, now: new Date("2026-07-18T20:00:00.000Z") });
+    if (claim.kind !== "claimed") throw new Error("expected claim to succeed");
+
+    const created = await store.completeCreation(claim.attempt, {
+      orderUuid: providerOrderUuid,
+      status: "new",
+      fiatAmount: "1000.0000",
+      cryptoAmount: "196.0784",
+      nauttQuote: "5.1000",
+      expiresAt: new Date("2026-07-18T22:00:00.000Z"),
+      paymentMethod: "pix",
+      pixCopyPaste: "existing-pix-code",
+      pixQrcodeUrl: "https://example.com/qr.png",
+    });
+    expect(created.pixCopyPaste).toBe("existing-pix-code");
+
+    const reconciled = await store.reconcile(created, {
+      orderUuid: providerOrderUuid,
+      status: "processing",
+      fiatAmount: "1000.0000",
+      cryptoAmount: "196.0784",
+      nauttQuote: "5.1000",
+      expiresAt: new Date("2026-07-18T22:00:00.000Z"),
+      paymentMethod: "pix",
+    });
+
+    expect(reconciled.pixCopyPaste).toBe("existing-pix-code");
+    expect(reconciled.pixQrcodeUrl).toBe("https://example.com/qr.png");
+    expect(reconciled.status).toBe("processing");
+    expect(reconciled.reconciliationVersion).toBe(created.reconciliationVersion + 1);
   });
 });

@@ -63,6 +63,23 @@ describe("administrator settings hub", () => {
       expect(html).toContain('action="/language-preference"');
       expect(html).toContain('value="vault-blue"');
       expect(html).toContain("BRL/USDT");
+
+      // §4 payment settings: the closed catalog posts hidden inputs named
+      // after the route's expected fields (payment-settings/route.ts reads
+      // `currencies`/`paymentMethods`). The confirm-before-disable gate
+      // itself is covered in payment-settings-section.test.tsx (it only
+      // mounts once a row is toggled off).
+      expect(html).toContain('name="currencies"');
+      expect(html).toContain('name="paymentMethods"');
+      expect(html).toContain('value="BRL"');
+      expect(html).toContain('value="PIX"');
+
+      // Language section: every locale button is a real `type="submit"`
+      // named `locale` that applies on click, with no separate Save step.
+      const languageMarkup = html.slice(html.indexOf('id="sec-language"'));
+      expect(languageMarkup).toContain('name="locale"');
+      expect(languageMarkup).toContain('type="submit"');
+      expect(languageMarkup).not.toContain(dictionary.save);
     }
   });
 

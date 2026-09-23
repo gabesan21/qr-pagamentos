@@ -2,6 +2,10 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
+// `ValidateAction` reads the app router directly (14.5.3).
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ replace: vi.fn(), push: vi.fn(), refresh: vi.fn() }),
+}));
 
 import { getDictionary } from "@/i18n/dictionaries";
 import type { OwnerNauttStatus } from "@/integrations/nautt/owner-onboarding";
@@ -10,7 +14,7 @@ import { NauttCredentialSurface } from "./nautt-credential-surface";
 const emptyCredential = { hasCredential: false, credentialRevision: null, webhookRegistrationState: null, updatedAt: null };
 
 function markup(locale: "en" | "pt-BR", status: OwnerNauttStatus, notice?: string) {
-  return renderToStaticMarkup(<NauttCredentialSurface dictionary={getDictionary(locale)} notice={notice} status={status} />);
+  return renderToStaticMarkup(<NauttCredentialSurface dictionary={getDictionary(locale)} locale={locale} notice={notice} status={status} />);
 }
 
 describe("Nautt credential surface", () => {
@@ -48,7 +52,10 @@ describe("Nautt credential surface", () => {
     for (const state of ["REGISTERING", "INDETERMINATE"] as const) {
       const html = markup(locale, { credential: { ...emptyCredential, hasCredential: true, credentialRevision: "revision", webhookRegistrationState: state, updatedAt: new Date() }, balance: null, balanceUnavailable: true }, "recovery");
       expect(html).toContain('action="/nautt-credentials/reset"');
-      expect(html).toContain('form="nautt-reset-form"');
+      // The reset button is nested inside its own `<form id="nautt-reset-form">`
+      // (confirm-gated, `requestSubmit()`), not a cross-referenced `form=`
+      // attribute like the credential/registration forms above.
+      expect(html).toContain('id="nautt-reset-form"');
       expect(html).toContain(dictionary.nauttResetDisclosure);
       expect(html).toContain(dictionary.nauttReset);
     }

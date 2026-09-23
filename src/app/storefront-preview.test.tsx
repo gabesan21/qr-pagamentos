@@ -30,9 +30,13 @@ describe("storefront preview", () => {
   it("scopes the chosen theme and declares only the validated accent custom property", () => {
     const markup = render();
     expect(markup).toContain('data-theme-preview="vault-blue"');
-    expect(markup).toContain("--storefront-accent:#1A2B3C");
+    expect(markup).toContain('style="--storefront-accent:#1A2B3C"');
+    // The header border always references the CSS custom property through a
+    // Tailwind arbitrary value with an `--action-primary` fallback; only the
+    // inline `style` declaration is conditional on a validated accent.
     const withoutAccent = render({ accentColor: null });
-    expect(withoutAccent).not.toContain("--storefront-accent");
+    expect(withoutAccent).not.toContain('style="--storefront-accent');
+    expect(withoutAccent).toContain("var(--storefront-accent,var(--action-primary))");
   });
 
   it("renders the official merchant fallback lockup when no logo is set, never a page-local mark", () => {
@@ -54,7 +58,9 @@ describe("storefront preview", () => {
   it("swaps between the boxed card and the table row arrangements", () => {
     const boxed = render();
     expect(boxed).toContain('data-layout="boxed"');
-    expect(boxed).toContain("storefront-preview__card");
+    // The retired `.storefront-preview__card` BEM block converged onto the
+    // owned shadcn `Card` primitive.
+    expect(boxed).toContain('data-slot="card"');
     expect(boxed).not.toContain("<table");
     const table = render({ layout: "table" });
     expect(table).toContain('data-layout="table"');

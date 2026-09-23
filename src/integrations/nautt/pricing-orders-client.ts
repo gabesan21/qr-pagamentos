@@ -1,5 +1,6 @@
 import "server-only";
 
+import { logProviderFailure, providerFailureOperations } from "../../observability/provider-failure-log";
 import { loadNauttApiBaseUrl } from "./config";
 import { isExactDecimal, isExactPositiveDecimal, isUuid } from "./decimal";
 
@@ -44,6 +45,30 @@ export class NauttOrderCreationIndeterminateError extends Error {
   constructor() {
     super("Nautt order creation is indeterminate");
     this.name = "NauttOrderCreationIndeterminateError";
+  }
+}
+
+// Documented POST /orders/onramp refusal codes (400/422 with a parseable
+// body): a deterministic, terminal local outcome, never retried and never
+// widened without a new approved research-backed entry.
+export const NAUTT_ORDER_REFUSAL_CODES = [
+  "order.quote_not_found",
+  "order.quote_expired",
+  "order.exchange_not_configured",
+  "order.payment_method_not_available",
+  "orders.deposit_bank_account_not_found",
+  "order.deposit_fields_required",
+  "order.deposit_fields_validation_failed",
+] as const;
+
+export type NauttOrderRefusalCode = (typeof NAUTT_ORDER_REFUSAL_CODES)[number];
+
+export class NauttOrderRefusedError extends Error {
+  readonly code: NauttOrderRefusalCode;
+  constructor(code: NauttOrderRefusalCode) {
+    super("Nautt order creation was refused");
+    this.name = "NauttOrderRefusedError";
+    this.code = code;
   }
 }
 
@@ -209,6 +234,13 @@ function parseOrderView(payload: unknown): NauttOrderView {
   return view;
 }
 
+function parseRefusalCode(payload: unknown): NauttOrderRefusalCode | undefined {
+  if (!isPlainObject(payload) || typeof payload.code !== "string") return undefined;
+  return (NAUTT_ORDER_REFUSAL_CODES as readonly string[]).includes(payload.code)
+    ? (payload.code as NauttOrderRefusalCode)
+    : undefined;
+}
+
 function parseQuoteSuccess(payload: unknown): Omit<NauttQuote, "expiresAt"> {
   if (!isPlainObject(payload) || !isPlainObject(payload.data)) throw new NauttPricingAdapterError();
   const data = payload.data;
@@ -279,18 +311,30 @@ export function createPricingOrdersAdapter(dependencies: AdapterDependencies = {
         throw new NauttPricingAdapterError();
       }
 
+      let response: Response;
       try {
-        const response = await fetch(`${loadNauttApiBaseUrl()}/pricing/panel/buy`, {
+        response = await fetch(`${loadNauttApiBaseUrl()}/pricing/panel/buy`, {
           method: "POST",
           headers: { "Content-Type": "application/json", "X-API-Key": apiKey },
           body,
           signal: createTimeoutSignal(DEFAULT_TIMEOUT_MS),
         });
-        if (response.status !== 200) throw new NauttPricingAdapterError();
+      } catch {
+        logProviderFailure(providerFailureOperations.quoteCreation, "transport_failure");
+        throw new NauttPricingAdapterError();
+      }
+
+      if (response.status !== 200) {
+        logProviderFailure(providerFailureOperations.quoteCreation, response.status);
+        throw new NauttPricingAdapterError();
+      }
+
+      try {
         const quote = parseQuoteSuccess(await response.json());
         const acceptedAt = now();
         return { ...quote, expiresAt: new Date(acceptedAt.getTime() + QUOTE_TTL_MS) };
       } catch (error) {
+        logProviderFailure(providerFailureOperations.quoteCreation, response.status);
         if (error instanceof NauttPricingAdapterError) throw error;
         throw new NauttPricingAdapterError();
       }
@@ -326,14 +370,37 @@ export function createPricingOrdersAdapter(dependencies: AdapterDependencies = {
           signal: createTimeoutSignal(DEFAULT_TIMEOUT_MS),
         });
       } catch {
+        logProviderFailure(providerFailureOperations.onrampOrderCreation, "transport_failure");
+        throw new NauttOrderCreationIndeterminateError();
+      }
+
+      if (response.status === 400 || response.status === 422) {
+        let refusalCode: NauttOrderRefusalCode | undefined;
+        try {
+          refusalCode = parseRefusalCode(await response.json());
+        } catch {
+          refusalCode = undefined;
+        }
+        if (refusalCode) {
+          // refusalCode already comes from the closed documented allowlist
+          // (parseRefusalCode), so logging it verbatim never echoes a raw
+          // provider-controlled string.
+          logProviderFailure(providerFailureOperations.onrampOrderCreation, response.status, refusalCode);
+          throw new NauttOrderRefusedError(refusalCode);
+        }
+        logProviderFailure(providerFailureOperations.onrampOrderCreation, response.status);
+        throw new NauttOrderCreationIndeterminateError();
+      }
+
+      if (response.status !== 201) {
+        logProviderFailure(providerFailureOperations.onrampOrderCreation, response.status);
         throw new NauttOrderCreationIndeterminateError();
       }
 
       try {
-        if (response.status !== 201) throw new NauttOrderCreationIndeterminateError();
         return parseOrderView(await response.json());
-      } catch (error) {
-        if (error instanceof NauttOrderCreationIndeterminateError) throw error;
+      } catch {
+        logProviderFailure(providerFailureOperations.onrampOrderCreation, response.status);
         throw new NauttOrderCreationIndeterminateError();
       }
     },
@@ -350,16 +417,24 @@ export function createPricingOrdersAdapter(dependencies: AdapterDependencies = {
           signal: createTimeoutSignal(DEFAULT_TIMEOUT_MS),
         });
       } catch {
+        logProviderFailure(providerFailureOperations.orderRead, "transport_failure");
         throw new NauttOrderReadAdapterError();
       }
 
-      if (response.status === 403 || response.status === 404) throw new NauttOrderNotFoundError();
+      if (response.status === 403 || response.status === 404) {
+        logProviderFailure(providerFailureOperations.orderRead, response.status);
+        throw new NauttOrderNotFoundError();
+      }
+
+      if (response.status !== 200) {
+        logProviderFailure(providerFailureOperations.orderRead, response.status);
+        throw new NauttOrderReadAdapterError();
+      }
 
       try {
-        if (response.status !== 200) throw new NauttOrderReadAdapterError();
         return parseOrderView(await response.json());
-      } catch (error) {
-        if (error instanceof NauttOrderReadAdapterError) throw error;
+      } catch {
+        logProviderFailure(providerFailureOperations.orderRead, response.status);
         throw new NauttOrderReadAdapterError();
       }
     },

@@ -1,5 +1,7 @@
 import "server-only";
 
+import { isAcceptableOperatorOrigin } from "../../net/local-origin";
+
 import { loadNauttApiBaseUrl } from "./config";
 
 const DEFAULT_TIMEOUT_MS = 10_000;
@@ -43,7 +45,7 @@ export function validateNauttWebhookCallbackUrl(candidate: string): string {
   } catch {
     throw new NauttWebhookAdapterError("Nautt webhook registration failed");
   }
-  if (url.protocol !== "https:" || url.username || url.password || url.hash) {
+  if (!isAcceptableOperatorOrigin(url)) {
     throw new NauttWebhookAdapterError("Nautt webhook registration failed");
   }
   return url.toString();

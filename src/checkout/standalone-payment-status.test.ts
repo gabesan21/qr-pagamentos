@@ -17,7 +17,7 @@ describe("standalone payment status", () => {
     const findByCapabilityVerifier = vi.fn().mockResolvedValue(attempt);
     const service = createStandalonePaymentStatusService({ findByCapabilityVerifier }, { now: () => new Date("2026-07-26T12:00:00Z"), capabilityKey: () => key });
 
-    await expect(service.read(bearer)).resolves.toEqual({ state: "PENDING", pixCopyPaste: "000201", pixQrCodeUrl: "https://qr.example.test/opaque" });
+    await expect(service.read(bearer)).resolves.toEqual({ state: "PENDING", pixCopyPaste: "000201" });
     expect(findByCapabilityVerifier).toHaveBeenCalledWith(createHash("sha256").update(bearer).digest("hex"));
   });
 

@@ -4,13 +4,14 @@
 `add` cria a worktree no harness do projeto da task (`pop/worktrees/<task-id>`
 na anatomia nova, `worktrees/<task-id>` na legada), com a branch
 `task/<task-id>`. A rota vem de `poplib.delivery_route`: meta PoP recusa
-worktree e fica em `main`; task yolo externa parte de `develop` e declara PR
-final para `main`. Repositório alvo: `--repo`, ou a própria pasta do projeto
-quando ela é um repo git (clone `included` / repo embutido de
-`full-multi-repo`), senão a raiz do vault. `--repo <nome>` que case com um
+worktree e fica em `main`; task yolo externa parte da branch corrente de
+trabalho do repo (salvo `--base` explícito) e o PR final só existe a pedido
+do humano. Repositório alvo: `--repo`, ou a própria pasta do projeto
+quando ela é um repo git (projeto uni-repo / repo de multi-repo), senão a
+raiz do vault. `--repo <nome>` que case com um
 clone do projeto — `<nome>/` na anatomia nova, `project/<nome>/` na legada —
 usa esse clone e aninha a worktree em `.../worktrees/<task-id>/<nome>/` (task
-cross de `multi-repo`/`full-multi-repo` — repita o comando para cada repo
+cross de `multi-repo` — repita o comando para cada repo
 afetado). `remove` desfaz a worktree e apaga a branch se já estiver mergeada
 (`--delete-branch` força a exclusão).
 
@@ -111,14 +112,15 @@ def main():
     project, stage, task_dir = found
     card = task_dir / f"{args.task_id}.md"
     meta = poplib.read_card(card)
-    route = poplib.delivery_route(root, project, yolo=bool(meta.get("yolo")))
+    yolo = bool(meta.get("yolo"))
+    route = poplib.delivery_route(root, project, yolo=yolo)
     print(f"Task {args.task_id} em {poplib.project_label(root, project)} "
           f"({stage}).")
     if args.action == "route":
         print(f"worktree={'sim' if route['worktree'] else 'não'}")
-        print(f"integration_branch={route['task_branch']}")
-        print(f"final_pr={'sim' if route['scope_pr'] else 'não'}")
-        print(f"target_branch={route['target_branch'] or 'configurada-no-projeto'}")
+        print(f"integration_branch={route['task_branch'] or 'atual'}")
+        print(f"final_pr={'a-pedido' if yolo and route['worktree'] else 'sim' if route['scope_pr'] else 'não'}")
+        print(f"target_branch={route['target_branch'] or ('a-pedido' if yolo else 'configurada-no-projeto')}")
         print(f"merge_owner={route['merge_owner']}")
         return 0
     if not route["worktree"]:
@@ -139,7 +141,7 @@ def main():
         else:
             repo = poplib.vault_root(args.repo)
     elif (project / ".git").exists():
-        repo = project  # clone included ou repo embutido de full-multi-repo
+        repo = project  # projeto uni-repo ou repo de multi-repo
     else:
         repo = root
     if not (repo / ".git").exists():
@@ -148,15 +150,18 @@ def main():
     branch = f"task/{args.task_id}"
     if args.action == "add":
         base = args.base
-        if meta.get("yolo"):
-            if base and base != route["task_branch"]:
-                print("Operação recusada: task yolo externa deve partir de "
-                      f"{route['task_branch']} e fechar PR para "
-                      f"{route['target_branch']}.")
-                return 1
-            base = route["task_branch"]
-            print(f"Rota yolo: integração em {base}; PR final automático "
-                  f"para {route['target_branch']}; merge {route['merge_owner']}.")
+        if yolo:
+            if not base:
+                current = git(repo, "branch", "--show-current")
+                base = current.stdout.strip()
+                if current.returncode != 0 or not base:
+                    print("Operação recusada: repo em HEAD destacado; task yolo "
+                          "externa precisa de uma branch de trabalho corrente "
+                          "(ou --base explícito).")
+                    return 1
+            print(f"Rota yolo: worktree a partir de {base} e integração nela "
+                  f"mesma; PR final somente a pedido do humano; merge "
+                  f"{route['merge_owner']}.")
         return cmd_add(repo, worktree, branch, base,
                        worktree.relative_to(project).as_posix())
     return cmd_remove(repo, worktree, branch, args.delete_branch)

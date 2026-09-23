@@ -12,6 +12,7 @@ function resolveNotice(search: Record<string, SearchValue>): ProfileNotice {
   if (search.identity === "changed") return "identity-changed";
   if (search.identity === "conflict") return "identity-conflict";
   if (search.identity === "failed") return "identity-failed";
+  if (search.password === "changed") return "password-changed";
   if (search.password === "failed") return "password-failed";
   return null;
 }

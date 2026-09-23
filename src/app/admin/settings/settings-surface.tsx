@@ -12,6 +12,8 @@ import { CatalogRecordsSection } from "./catalog-records-section";
 import { ExchangeCurrenciesSection } from "./exchange-currencies-section";
 import { LanguageSection } from "./language-section";
 import { PaymentSettingsSection } from "./payment-settings-section";
+import { SettingsNav } from "./settings-nav";
+import type { SectionNotice } from "./settings-section-notice";
 
 export type Dictionary = ReturnType<typeof getDictionary>;
 export type Settings = Readonly<{ currencies: string[]; paymentMethods: string[] }>;
@@ -35,20 +37,28 @@ export function AdminSettingsSurface({
   currencyPairs,
   defaultThemeId,
   dictionary,
+  exchangeCurrencyNotice,
+  languageNotice,
   locale,
   mappings,
   notice,
   paymentMethods,
+  paymentSettingsNotice,
   settings,
+  themeNotice,
 }: Readonly<{
   currencyPairs: CurrencyPair[];
   defaultThemeId: string;
   dictionary: Dictionary;
+  exchangeCurrencyNotice: SectionNotice;
+  languageNotice: SectionNotice;
   locale: SupportedLocale;
   mappings: ExchangeCurrencyMapping[];
   notice: Notice;
   paymentMethods: PaymentMethod[];
+  paymentSettingsNotice: SectionNotice;
   settings: Settings;
+  themeNotice: SectionNotice;
 }>) {
   const sectionLabels: Record<SectionId, string> = {
     currencies: dictionary.adminSecCurrencies,
@@ -68,20 +78,13 @@ export function AdminSettingsSurface({
       />
       {notice ? <SettingsNotice dictionary={dictionary} notice={notice} /> : null}
       <div className="flex gap-6">
-        <nav aria-label={dictionary.adminSettingsSectionsLabel} className="sticky top-20 hidden h-fit w-48 shrink-0 flex-col gap-1 lg:flex">
-          {SECTION_IDS.map((id) => (
-            <a
-              key={id}
-              className="flex min-h-11 w-full items-center rounded-md px-3 text-left text-sm text-muted-foreground transition-colors hover:bg-muted"
-              href={`#sec-${id}`}
-            >
-              {sectionLabels[id]}
-            </a>
-          ))}
-        </nav>
+        <SettingsNav
+          ariaLabel={dictionary.adminSettingsSectionsLabel}
+          sections={SECTION_IDS.map((id) => ({ id, label: sectionLabels[id] }))}
+        />
         <div className="flex min-w-0 flex-1 flex-col gap-6">
           <SectionCard id="sec-currencies" title={dictionary.adminSecCurrencies} description={dictionary.adminSecCurrenciesDesc}>
-            <ExchangeCurrenciesSection dictionary={dictionary} mappings={mappings} />
+            <ExchangeCurrenciesSection dictionary={dictionary} mappings={mappings} notice={exchangeCurrencyNotice} />
           </SectionCard>
           <SectionCard id="sec-pairs" title={dictionary.adminSecPairs} description={dictionary.adminSecPairsDesc}>
             <CatalogRecordsSection
@@ -98,6 +101,7 @@ export function AdminSettingsSurface({
                 secondaryValue: pair.exchangeCurrencyUuid,
               }))}
               kind="pair"
+              locale={locale}
             />
           </SectionCard>
           <SectionCard id="sec-methods" title={dictionary.adminSecMethods} description={dictionary.adminSecMethodsDesc}>
@@ -113,16 +117,17 @@ export function AdminSettingsSurface({
                 detailValue: method.paymentMethodUuid,
               }))}
               kind="method"
+              locale={locale}
             />
           </SectionCard>
           <SectionCard id="sec-globalPayments" title={dictionary.adminSecGlobalPayments} description={dictionary.adminSecGlobalPaymentsDesc}>
-            <PaymentSettingsSection dictionary={dictionary} settings={settings} />
+            <PaymentSettingsSection dictionary={dictionary} notice={paymentSettingsNotice} settings={settings} />
           </SectionCard>
           <SectionCard id="sec-appearance" title={dictionary.adminAppearanceHeading} description={dictionary.adminAppearanceDescription}>
-            <AppearanceSection defaultThemeId={defaultThemeId} dictionary={dictionary} themeIds={STOREFRONT_THEME_IDS} />
+            <AppearanceSection defaultThemeId={defaultThemeId} dictionary={dictionary} notice={themeNotice} themeIds={STOREFRONT_THEME_IDS} />
           </SectionCard>
           <SectionCard id="sec-language" title={dictionary.languageHeading} description={dictionary.adminLanguageDescription}>
-            <LanguageSection dictionary={dictionary} locale={locale} />
+            <LanguageSection dictionary={dictionary} locale={locale} notice={languageNotice} />
           </SectionCard>
         </div>
       </div>

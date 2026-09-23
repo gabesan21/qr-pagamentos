@@ -3,7 +3,10 @@ import type { Principal } from "@/auth/authorization";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { getAdminAnalyticsService, type AdminAnalyticsView } from "@/orders/admin-analytics";
 
-import { AdminDashboard, AdminDashboardPeriodNavigation } from "./dashboard";
+import { NoticeToast, type NoticeToastEntry } from "@/app/notice-toast";
+
+import { AdminDashboard } from "./dashboard";
+import { AdminDashboardPeriodControl } from "./period-control";
 import { requireAdminShellContext } from "./shell-context";
 
 // The period controls emit only the closed set; an absent or hand-edited value
@@ -36,22 +39,32 @@ export default async function AdminPage({
     : query.error === "catalog-create-failed" ? dictionary.adminCatalogCreateFailed
     : query.error === "catalog-change-failed" ? dictionary.adminCatalogChangeFailed
     : dictionary.adminChangeFailed;
+  const noticeEntry: NoticeToastEntry | undefined = succeeded
+    ? { param: "success", value: query.success ?? "", kind: "success", message: noticeText }
+    : failed
+      ? { param: "error", value: query.error ?? "", kind: "error", message: noticeText }
+      : undefined;
 
   return (
     <>
-      <div className="admin-dashboard__header">
-        <WorkspaceHeading
-          description={dictionary.shellAdminDashboardDescription}
-          eyebrow={dictionary.shellAdminEyebrow}
-          title={dictionary.shellAdminDashboardTitle}
-        />
-        <AdminDashboardPeriodNavigation current={view.period.id} dictionary={dictionary} />
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="min-w-[min(100%,calc(var(--space-12)*7))] flex-1">
+          <WorkspaceHeading
+            description={dictionary.shellAdminDashboardDescription}
+            eyebrow={dictionary.shellAdminEyebrow}
+            title={dictionary.shellAdminDashboardTitle}
+          />
+        </div>
+        <AdminDashboardPeriodControl current={view.period.id} dictionary={dictionary} />
       </div>
+      {noticeEntry ? <NoticeToast notices={[noticeEntry]} /> : null}
       {succeeded || failed ? (
-        <Alert role={failed ? "alert" : "status"} variant={failed ? "destructive" : "success"}>
-          <AlertTitle>{failed ? dictionary.adminErrorHeading : dictionary.adminSuccessHeading}</AlertTitle>
-          <AlertDescription>{noticeText}</AlertDescription>
-        </Alert>
+        <noscript>
+          <Alert role={failed ? "alert" : "status"} variant={failed ? "destructive" : "success"}>
+            <AlertTitle>{failed ? dictionary.adminErrorHeading : dictionary.adminSuccessHeading}</AlertTitle>
+            <AlertDescription>{noticeText}</AlertDescription>
+          </Alert>
+        </noscript>
       ) : null}
       <AdminDashboard dictionary={dictionary} locale={locale} view={view} />
     </>

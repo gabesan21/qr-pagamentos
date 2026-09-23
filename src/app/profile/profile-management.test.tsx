@@ -50,11 +50,16 @@ describe("profile management composition", () => {
     expect(html).toContain(dictionary.profileTotpEnroll);
   });
 
-  it("keeps native controls enabled before submission", () => {
+  it("keeps native controls enabled before submission, except the dirty-gated identity save", () => {
     const html = renderToStaticMarkup(<ProfileManagement dictionary={getDictionary("en")} notice={null} profile={profile} />);
     expect(html).not.toContain('aria-busy="true"');
-    expect(html).not.toContain('disabled=""');
     expect(html).not.toContain('data-slot="spinner"');
+    // The identity form's save button starts disabled until a field is
+    // dirty (`ProfileFormBody`'s `disableSubmit`); the password form's own
+    // submit carries no such gate and stays enabled.
+    expect(html).toContain('disabled="" type="submit"><span aria-live="polite">Save identity</span>');
+    expect(html).toContain('type="submit"><span aria-live="polite">Change password</span>');
+    expect(html).not.toContain('disabled="" type="submit"><span aria-live="polite">Change password</span>');
   });
 
   it("observes native submission without replacing browser POST navigation", () => {
@@ -62,6 +67,9 @@ describe("profile management composition", () => {
 
     expect(source).toContain('addEventListener("submit"');
     expect(source).toContain('addEventListener("formdata"');
-    expect(source).not.toMatch(/preventDefault|requestSubmit|fetch\s*\(/);
+    // Matches an actual interception call, not the defensive-check comment
+    // above the listener that merely mentions a sibling field's own
+    // `preventDefault()` call in prose.
+    expect(source).not.toMatch(/\.preventDefault\(|\.requestSubmit\(|fetch\s*\(/);
   });
 });

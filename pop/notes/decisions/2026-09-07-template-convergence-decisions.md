@@ -13,3 +13,4 @@ Recorded from the user's command on 2026-09-07 ("faça tudo o que precisa fazer 
 - **Checkout width:** V2 returns to the template's 560px single column; the 1280px two-column sanction in DESIGN.md is superseded in Phase 14.6.
 - **Verification route:** evidence runners require Docker and stay user-exclusive; agent gates are `pnpm check` and component tests; rendered screenshots are a human checklist item on the final PR.
 - **Functional first:** Phase 14.1 repairs the five blocking defects before any visual convergence, instead of a separate `M-8` modification.
+- **Scope boundary (user command 2026-09-08):** the yolo run stops when Epoch 14 closes — no epoch starts after it in this run. Delivery at the end: the `develop` -> `main` PR plus a basic report of what was done and how the user tests it (the consolidated human checklist and the Docker-only evidence runners).

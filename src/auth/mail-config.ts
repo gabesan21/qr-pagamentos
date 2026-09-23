@@ -2,6 +2,8 @@ import "server-only";
 
 import { readFileSync } from "node:fs";
 
+import { isAcceptableOperatorOrigin } from "../net/local-origin.ts";
+
 import { normalizeOptionalEmail } from "./identity.ts";
 
 export const SMTP_TLS_MODES = ["none", "starttls", "tls"] as const;
@@ -92,7 +94,7 @@ export function loadPublicOrigin(): string {
   } catch {
     throw new MailConfigError("Public origin configuration is invalid");
   }
-  if (url.protocol !== "https:" || url.username || url.password || url.hash) {
+  if (!isAcceptableOperatorOrigin(url)) {
     throw new MailConfigError("Public origin configuration is invalid");
   }
   return url.toString();

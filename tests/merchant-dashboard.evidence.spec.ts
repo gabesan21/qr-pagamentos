@@ -235,10 +235,9 @@ test("creates the closed merchant-dashboard evidence run", async ({ page }) => {
     await page.evaluate(() => { document.documentElement.dataset.theme = "pix-paper"; });
     await page.emulateMedia({ reducedMotion: "reduce" });
     for (const empty of [
-      dictionary.merchantDashboardSalesEmpty,
+      dictionary.merchantDashboardNoSales,
       dictionary.merchantDashboardFunnelEmpty,
       dictionary.merchantDashboardBestSellersEmpty,
-      dictionary.merchantDashboardLinksEmpty,
       dictionary.merchantDashboardRecentEmpty,
     ]) {
       await expect(loadedDashboard()).toContainText(empty);

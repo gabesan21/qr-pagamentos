@@ -11,7 +11,7 @@ const { requireAdminFromCookie, resolveLocale, queryDirectory, redirect } = vi.h
   redirect: vi.fn((location: string) => { throw new Error(`redirect:${location}`); }),
 }));
 
-vi.mock("next/navigation", () => ({ redirect }));
+vi.mock("next/navigation", () => ({ redirect, useRouter: () => ({ replace: vi.fn(), push: vi.fn() }) }));
 vi.mock("server-only", () => ({}));
 vi.mock("@/app/admin/guard", () => ({ requireAdminFromCookie, protectedMutationResponse: vi.fn() }));
 vi.mock("@/i18n/locale-preference", () => ({ getLocalePreferenceService: () => ({ resolve: resolveLocale }) }));
@@ -80,8 +80,10 @@ describe("administrator accounts directory page", () => {
 
     const markup = renderToStaticMarkup(await AdminAccountsPage());
     expect(markup).toContain("User directory");
-    // The unchanged create-account section posts to the delivered route.
-    expect(markup).toContain('action="/admin/users"');
+    // Create moved into a header modal, closed by default; its trigger is
+    // the only always-visible surface — the form itself is covered by
+    // create-account-modal.test.tsx (byte-identical action/method/fields).
+    expect(markup).toContain(">Create account<");
     // Row facts: usernames, email redaction fallback, role/state/store facts.
     expect(markup).toContain("merchant.one");
     expect(markup).toContain("merchant.one@example.com");
@@ -97,6 +99,9 @@ describe("administrator accounts directory page", () => {
     expect(markup).toContain(">Deleted</");
     expect(markup).toContain('href="/admin/accounts/440e8400-e29b-41d4-a716-446655440010"');
     expect(markup).toContain('action="/admin/users/440e8400-e29b-41d4-a716-446655440010/delete"');
+    // The delete action is a real POST form gated by DestructiveActionForm's
+    // confirmation dialog, not a bare link or an inert placeholder.
+    expect(markup).toContain('action="/admin/users/440e8400-e29b-41d4-a716-446655440010/delete" method="post"');
     expect(markup).not.toContain('href="/admin/accounts/440e8400-e29b-41d4-a716-446655440011"');
     expect(markup).not.toContain('action="/admin/users/440e8400-e29b-41d4-a716-446655440011/delete"');
     // The legacy inline role/status/password forms retired from the page;
@@ -133,29 +138,23 @@ describe("administrator accounts directory page", () => {
     expect(filtered).toContain("No matching records");
   });
 
-  it("renders the invalid-query state without directory I/O and without echoing input", async () => {
+  it("resets to the reset redirect without directory I/O and without echoing input", async () => {
     ready("en");
-    const markup = renderToStaticMarkup(await AdminAccountsPage({ searchParams: Promise.resolve({ forged: "1" }) }));
-    expect(markup).toContain("The directory request is unavailable");
-    expect(markup).not.toContain("forged");
+    await expect(AdminAccountsPage({ searchParams: Promise.resolve({ forged: "1" }) })).rejects.toThrow("redirect:/admin/accounts?filters=ignored");
     expect(queryDirectory).not.toHaveBeenCalled();
   });
 
-  it("renders the invalid-query state for a forged notice without directory I/O", async () => {
+  it("resets to the reset redirect for a forged notice without directory I/O", async () => {
     ready("en");
-    const markup = renderToStaticMarkup(await AdminAccountsPage({ searchParams: Promise.resolve({ success: "deleted" }) }));
-    expect(markup).toContain("The directory request is unavailable");
-    expect(markup).not.toContain("deleted");
+    await expect(AdminAccountsPage({ searchParams: Promise.resolve({ success: "deleted" }) })).rejects.toThrow("redirect:/admin/accounts?filters=ignored");
     expect(queryDirectory).not.toHaveBeenCalled();
   });
 
-  it("renders the invalid-query state when the delivered service rejects a calendar day", async () => {
+  it("resets to the reset redirect when the delivered service rejects a calendar day", async () => {
     ready("en");
     queryDirectory.mockResolvedValue({ status: "invalid-query" });
 
-    const markup = renderToStaticMarkup(await AdminAccountsPage({ searchParams: Promise.resolve({ "filter.from": "2026-13-99" }) }));
-    expect(markup).toContain("The directory request is unavailable");
-    expect(markup).not.toContain("2026-13-99");
+    await expect(AdminAccountsPage({ searchParams: Promise.resolve({ "filter.from": "2026-13-99" }) })).rejects.toThrow("redirect:/admin/accounts?filters=ignored");
   });
 
   it("renders the delivered notice strip inside a canonical query", async () => {

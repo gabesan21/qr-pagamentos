@@ -5,7 +5,7 @@ import { relativeRedirect } from "@/app/relative-redirect";
 import { serverRequestRoutes, withServerRequestLog } from "@/observability/server-request-log";
 
 function redirect(value: string) {
-  return relativeRedirect(`/admin?${value}`);
+  return relativeRedirect(`/admin/accounts?${value}`);
 }
 
 export async function POST(request: Request) {

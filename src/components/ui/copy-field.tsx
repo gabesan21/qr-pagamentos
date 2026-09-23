@@ -20,34 +20,38 @@ type CopyFieldLabels = {
   failed: string
 }
 
+type CopyFieldVariant = "button" | "compact"
+
 type CopyFieldProps = {
   value: string
   labels: CopyFieldLabels
   truncate?: boolean
+  variant?: CopyFieldVariant
   className?: string
   onCopy?: (state: CopyState) => void
 }
 
-function CopyStateIcon({ state }: { state: CopyState }) {
+function CopyStateIcon({ state, className }: { state: CopyState; className?: string }) {
   if (state === "pending") {
-    return <LoaderCircleIcon aria-hidden="true" className="animate-spin" />
+    return <LoaderCircleIcon aria-hidden="true" className={cn(className, "animate-spin")} />
   }
 
   if (state === "copied") {
-    return <CheckIcon aria-hidden="true" />
+    return <CheckIcon aria-hidden="true" className={className} />
   }
 
   if (state === "failed") {
-    return <TriangleAlertIcon aria-hidden="true" />
+    return <TriangleAlertIcon aria-hidden="true" className={className} />
   }
 
-  return <CopyIcon aria-hidden="true" />
+  return <CopyIcon aria-hidden="true" className={className} />
 }
 
 function CopyField({
   value,
   labels,
   truncate = true,
+  variant = "button",
   className,
   onCopy,
 }: CopyFieldProps) {
@@ -90,6 +94,44 @@ function CopyField({
     }
   }
 
+  const statusAnnouncement = (
+    <span
+      id={statusId}
+      role={state === "failed" ? "alert" : "status"}
+      aria-live={state === "failed" ? "assertive" : "polite"}
+      className="sr-only"
+    >
+      {statusLabel}
+    </span>
+  )
+
+  if (variant === "compact") {
+    return (
+      <span className={cn("inline-flex max-w-full flex-col items-start gap-1", className)}>
+        <button
+          type="button"
+          disabled={state === "pending"}
+          aria-describedby={statusId}
+          aria-label={statusLabel}
+          onClick={() => void handleCopy()}
+          className="group inline-flex min-h-11 max-w-full items-center gap-2 rounded-md border border-border bg-surface-2 px-2.5 py-1 text-left transition-colors hover:border-accent focus-visible:border-ring focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+        >
+          <span className={cn("min-w-0 font-money text-xs text-text-2", truncate && "truncate")}>
+            {value}
+          </span>
+          <CopyStateIcon
+            state={state}
+            className={cn(
+              "size-3.5 shrink-0",
+              state === "failed" ? "text-destructive" : "text-text-3 group-hover:text-accent",
+            )}
+          />
+        </button>
+        {statusAnnouncement}
+      </span>
+    )
+  }
+
   return (
     <span className={cn("inline-flex max-w-full flex-col items-start gap-1", className)}>
       <Button
@@ -106,17 +148,10 @@ function CopyField({
         </span>
         <CopyStateIcon state={state} />
       </Button>
-      <span
-        id={statusId}
-        role={state === "failed" ? "alert" : "status"}
-        aria-live={state === "failed" ? "assertive" : "polite"}
-        className="sr-only"
-      >
-        {statusLabel}
-      </span>
+      {statusAnnouncement}
     </span>
   )
 }
 
 export { CopyField }
-export type { CopyFieldLabels, CopyFieldProps }
+export type { CopyFieldLabels, CopyFieldProps, CopyFieldVariant }

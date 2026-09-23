@@ -10,6 +10,7 @@ import {
 import {
   createPricingOrdersAdapter,
   NauttOrderCreationIndeterminateError,
+  NauttOrderRefusedError,
   NauttPricingAdapterError,
 } from "./pricing-orders-client";
 import { createInMemoryProviderOrderStore, type ProviderOrderStore, type StoredProviderOrder } from "./provider-order-store";
@@ -68,6 +69,10 @@ function orderCreated() {
     }),
     { status: 201, headers: { "content-type": "application/json" } },
   );
+}
+
+function orderRefused(code: string, status = 400) {
+  return new Response(JSON.stringify({ message: "refused", code }), { status });
 }
 
 function orderRetrieved() {
@@ -330,6 +335,28 @@ describe("owner order creation with quote ownership claims", () => {
     expect(fetch).toHaveBeenCalledTimes(2);
   });
 
+  it("discards the refused attempt but keeps the quote claimed, permanently unclaimable, with never a retry", async () => {
+    const { fetch, credentials, service } = harness();
+    fetch.mockResolvedValueOnce(quoteSuccess());
+    await service.quote(ownerA, fiatQuoteInput);
+    fetch.mockResolvedValueOnce(orderRefused("order.quote_expired"));
+
+    const error = await service.createOrder(ownerA, { quoteUuid }, {}).catch((caught: unknown) => caught);
+    expect(error).toBeInstanceOf(NauttOrderRefusedError);
+    expect((error as NauttOrderRefusedError).code).toBe("order.quote_expired");
+    expect(fetch).toHaveBeenCalledTimes(2);
+
+    // The quote is neither released nor recoverable: a second claim attempt
+    // fails closed at the claim itself — before any further decryption or
+    // dispatch — the discarded row leaves no trace to poll, recover, or
+    // reconcile. `credentials.calls` already carries one decrypt from the
+    // quote step and one from the refused attempt above; the failed claim on
+    // retry adds no third call.
+    await expect(service.createOrder(ownerA, { quoteUuid }, {})).rejects.toBeInstanceOf(OwnerPricingOrdersError);
+    expect(credentials.calls).toEqual([ownerA, ownerA]);
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
+
   it("retains a validated provider UUID when complete local persistence fails and never posts twice", async () => {
     const base = createInMemoryProviderOrderStore();
     const store: ProviderOrderStore = {
@@ -394,6 +421,19 @@ describe("in-memory quote ownership store", () => {
     expect((await store.claimForCreation({ quoteUuid, ownerId: ownerA, now: T0 })).kind).toBe("claimed");
     expect(await store.claimForCreation({ quoteUuid, ownerId: ownerA, now: T0 })).toEqual({ kind: "unavailable" });
   });
+
+  it("discardRefused removes the attempt row but never resets the quote claim, unlike releasePreDispatch", async () => {
+    const store = createInMemoryProviderOrderStore();
+    await store.register({ quoteUuid, ownerId: ownerA, expiresAt: new Date("2026-07-17T20:05:00.000Z") });
+    const claim = await store.claimForCreation({ quoteUuid, ownerId: ownerA, now: T0 });
+    if (claim.kind !== "claimed") throw new Error("expected claim to succeed");
+
+    await store.discardRefused(claim.attempt);
+
+    expect(await store.findPollable(ownerA, claim.attempt.id)).toBeNull();
+    expect(await store.findRecoverable(ownerA, claim.attempt.id)).toBeNull();
+    await expect(store.claimForCreation({ quoteUuid, ownerId: ownerA, now: T0 })).resolves.toEqual({ kind: "unavailable" });
+  });
 });
 
 describe("Commerce V2 attach and settlement wiring", () => {
@@ -404,14 +444,13 @@ describe("Commerce V2 attach and settlement wiring", () => {
     fetch.mockResolvedValueOnce(quoteSuccess());
     await service.quote(ownerA, fiatQuoteInput);
 
-    await expect(service.createOrder(ownerA, { quoteUuid }, {}, undefined, "not-a-uuid")).rejects.toBeInstanceOf(OwnerPricingOrdersError);
+    await expect(service.createOrder(ownerA, { quoteUuid }, {}, "not-a-uuid")).rejects.toBeInstanceOf(OwnerPricingOrdersError);
     expect(fetch).toHaveBeenCalledTimes(1);
 
     fetch.mockResolvedValueOnce(orderCreated());
-    await service.createOrder(ownerA, { quoteUuid }, {}, undefined, orderV2Id);
+    await service.createOrder(ownerA, { quoteUuid }, {}, orderV2Id);
     const persisted = await store.findWebhookActionable(ownerA, orderUuid);
     expect(persisted?.orderV2Id).toBe(orderV2Id);
-    expect(persisted?.paymentLinkOrderId).toBeNull();
   });
 
   it("invokes the settlement hook with the persisted row only after the authoritative reconciliation", async () => {
@@ -424,7 +463,7 @@ describe("Commerce V2 attach and settlement wiring", () => {
     fetch.mockResolvedValueOnce(quoteSuccess());
     const quote = await service.quote(ownerA, fiatQuoteInput);
     fetch.mockResolvedValueOnce(orderCreated());
-    await service.createOrder(ownerA, { quoteUuid: quote.quoteUuid }, {}, undefined, orderV2Id);
+    await service.createOrder(ownerA, { quoteUuid: quote.quoteUuid }, {}, orderV2Id);
     fetch.mockResolvedValueOnce(orderRetrieved());
 
     await expect(service.reconcileWebhookOrder(ownerA, orderUuid)).resolves.toEqual({ kind: "processed", localOrderId: expect.any(String) });
@@ -472,7 +511,6 @@ describe("order V2 settlement hook", () => {
       paymentMethod: "pix",
       pixCopyPaste: null,
       pixQrcodeUrl: null,
-      paymentLinkOrderId: null,
       orderV2Id,
       reconciliationVersion: 4,
       ...overrides,

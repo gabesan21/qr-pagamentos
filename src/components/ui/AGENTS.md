@@ -10,10 +10,35 @@
 - Never branch component classes or geometry by theme identifier; the six
   themes replace semantic color values only and unknown identifiers fall back
   to `pix-paper`.
+- `accent` is the **strong** template accent (`bg-accent`/`text-accent`);
+  `accent-soft` is the pale tint a consumer wants for a hover/checked/active
+  surface. The legacy shadcn `accent-foreground` is **not** the on-accent
+  foreground — use `accent-fg` for text placed on a strong `bg-accent`
+  surface.
+- Text over a soft-tinted surface (`bg-<role>-soft` for `success`/`warning`/
+  `danger`/`info`/`accent`) must use the AA-projected `text-<role>-on-soft`
+  (`text-accent-on-soft` for the accent role) — never the strong `text-<role>`,
+  which fails 4.5:1 on several themes; see `pop/specs/application-frontend-system.md`.
 - Keep components server-renderable unless their official primitive requires a
-  client boundary. Clipboard, localized-field selection, dialogs, tabs and
-  toast are the only composition client boundaries; preserve Radix `asChild`
+  client boundary. Clipboard, localized-field selection, dialogs, tabs, toast,
+  the drop-tile `ImageUploader`, and `QrDisplay`'s client-side QR generation
+  are the only composition client boundaries; preserve Radix `asChild`
   composition and native semantics.
+- `status-badge.tsx` exports `StatusBadge` plus five domain families
+  (`ProviderStateBadge`, `LocalOutcomeBadge`, `LinkLifecycleBadge`,
+  `AccountStateBadge`, `EntityStateBadge`) over one owned tone map; `copy-field.tsx`
+  adds a compact chip `variant`, `monogram.tsx` adds an `xl` accent-soft size,
+  `qr-display.tsx` accepts an optional `payload` and generates the QR itself
+  with the pinned `qrcode` package, `stat-card.tsx` accepts an optional
+  `sparkline`, and `timeline.tsx` accepts an optional per-entry `action` slot
+  (14.5.1, e.g. an author-only edit control) absent by default. Every family
+  and prop is additive; callers still supply their own localized `labels` and
+  no shared owner imports a domain enum.
+- A genuinely new component that a template obligation excludes as
+  `excluded-unreachable-generated-ui` (e.g. `ImageUploader`) is recorded in
+  `inventory.json`'s `localAdditions` section — owner, public API, states, and
+  a one-line insufficiency finding — and never enters `owners`; `owners` stays
+  exactly the 20 reachable template sources.
 - Forms compose `FieldGroup` and `Field`; validation pairs `data-invalid` on the
   field with `aria-invalid` on its control.
 - Prefer built-in variants. `className` may arrange layout but must not create a
@@ -21,8 +46,12 @@
 - Button icons use the configured Lucide source, `data-icon`, and component-owned
   sizing. Loading buttons compose `Spinner` and remain disabled.
 - Run `node scripts/check-shared-ui-inventory.mjs` after inventory changes; each
-  template obligation maps once and excluded generated sources never become
-  reachable owners.
+  template obligation maps once, excluded generated sources never become
+  reachable owners, and each `localAdditions` entry's owner never collides with
+  `owners` or an excluded source.
+- Owned primitives style exclusively through the projected Tailwind utility
+  system; a page-scoped BEM class in `../../app/globals.css` never styles an
+  owned primitive.
 - Update [`../../../DESIGN.md`](../../../DESIGN.md) with inventory or state
   changes. `/design-system` is the role-neutral evidence specimen for this
   inventory; it composes these owners but never becomes a production-owner

@@ -49,11 +49,24 @@ export type MerchantAnalyticsFunnel = Readonly<{
 }>;
 
 export type MerchantAnalyticsBestSeller = Readonly<{
+  // Owner-own product id (14.5.1): the same identifier the owner already
+  // carries on `/catalog/products/<id>`, never a cross-owner value. Optional
+  // so the admin-analytics reuse of this type (10.1.1's global leaderboard,
+  // which never exposes a clickable per-owner product route) stays valid
+  // without adding the id there.
+  id?: string;
   titlePtBr: string;
   titleEn: string;
   confirmedQuantity: number;
   revenue: ReadonlyArray<MerchantAnalyticsCurrencyAmount>;
 }>;
+
+// Orders-in-period grouping (14.5.1): created-in-period counts by provider
+// state (the eight `OrderV2State` members plus the stateless `null` bucket
+// AD_HOC orders carry) and by source, mirroring the admin-analytics grouping
+// shape but owner-scoped.
+export type MerchantAnalyticsStateCount = Readonly<{ state: OrderV2State | null; count: number }>;
+export type MerchantAnalyticsSourceCount = Readonly<{ source: OrderV2Source; count: number }>;
 
 export type MerchantAnalyticsLinkMetrics = Readonly<{
   identifier: string;
@@ -65,9 +78,19 @@ export type MerchantAnalyticsLinkMetrics = Readonly<{
 }>;
 
 export type MerchantAnalyticsRecentOrder = Readonly<{
+  // Owner-own order id (14.5.1): the same identifier the owner already
+  // carries on `/orders/v2/<id>`, never a cross-owner value. Optional so a
+  // pre-14.5.1 literal (this type predates the id/payer addition) stays
+  // structurally valid; the production service always supplies it.
+  id?: string;
   source: OrderV2Source;
   descriptionPtBr: string | null;
   descriptionEn: string | null;
+  // The redacted payer display name (14.5.1): the same policy-exact snapshot
+  // the owner already reads on their own order detail page — name, falling
+  // back to email, never the full customer snapshot (address/cpf stay out).
+  // Optional for the same pre-14.5.1-literal reason as `id` above.
+  payerName?: string | null;
   amount: string;
   currency: MerchantAnalyticsCurrencyLabel;
   state: OrderV2State | null;
@@ -79,12 +102,26 @@ export type MerchantAnalyticsRecentOrder = Readonly<{
 
 export type MerchantAnalyticsView = Readonly<{
   period: Readonly<{ id: MerchantAnalyticsPeriod; from: Date; to: Date }>;
+  // Orders created in period (14.5.1), broken down by provider state and by
+  // source; additive to the sales/funnel definitions above, never merged
+  // with them. Optional (with the two other 14.5.1 additions below) so a
+  // pre-14.5.1 literal built against this type — this type predates the
+  // extension — stays structurally valid; the production service always
+  // supplies every one of them.
+  ordersInPeriod?: number;
+  byProviderState?: ReadonlyArray<MerchantAnalyticsStateCount>;
+  byOrigin?: ReadonlyArray<MerchantAnalyticsSourceCount>;
   confirmedSales: ReadonlyArray<MerchantAnalyticsSalesGroup>;
   locallyFinalizedSales: ReadonlyArray<MerchantAnalyticsSalesGroup>;
   funnel: MerchantAnalyticsFunnel;
   bestSellers: ReadonlyArray<MerchantAnalyticsBestSeller>;
-  paymentLinks: Readonly<{ activeCount: number; metrics: ReadonlyArray<MerchantAnalyticsLinkMetrics> }>;
+  paymentLinks: Readonly<{ activeCount: number; totalCount?: number; metrics: ReadonlyArray<MerchantAnalyticsLinkMetrics> }>;
+  // Owner-scoped catalog inventory counts (14.5.1), independent of period.
+  products?: Readonly<{ activeCount: number; archivedCount: number }>;
   recentActivity: ReadonlyArray<MerchantAnalyticsRecentOrder>;
+  // Derived, never read: true exactly when the owner has no payment link and
+  // no recent order activity (14.5.1).
+  isFirstRun?: boolean;
 }>;
 
 export type MerchantAnalyticsResult =
@@ -132,6 +169,8 @@ export type StoredProductTitle = Readonly<{
   titleEn: string;
 }>;
 
+export type StoredProductCounts = Readonly<{ activeCount: number; archivedCount: number }>;
+
 export type MerchantAnalyticsStore = Readonly<{
   listConfirmedOrders(ownerId: string, from: Date, to: Date): Promise<StoredConfirmedOrder[]>;
   listAdHocOutcomeOrders(ownerId: string, from: Date, to: Date): Promise<StoredAdHocOutcomeOrder[]>;
@@ -140,6 +179,11 @@ export type MerchantAnalyticsStore = Readonly<{
   listRecentOrders(ownerId: string, limit: number): Promise<OrderV2Summary[]>;
   listCurrencyLabels(): Promise<StoredCurrencyLabel[]>;
   listProductTitles(ownerId: string, productIds: ReadonlyArray<string>): Promise<StoredProductTitle[]>;
+  // Additive (14.5.1), optional so pre-existing store doubles that predate
+  // this projection extension stay structurally valid; `getForOwner` treats
+  // an absent capability as zero counts, never a thrown error.
+  countOrdersBySourceAndState?(ownerId: string, from: Date, to: Date): Promise<ReadonlyArray<Readonly<{ source: OrderV2Source; state: OrderV2State | null; count: number }>>>;
+  countProducts?(ownerId: string): Promise<StoredProductCounts>;
 }>;
 
 type Dependencies = Readonly<{ now: () => Date }>;
@@ -241,15 +285,40 @@ export function createMerchantAnalyticsService(store: MerchantAnalyticsStore, de
       const now = dependencies.now();
       const bounds = resolvePeriodBounds(periodId, now);
 
-      const [confirmedOrders, adHocOrders, attempts, links, recentOrders, currencyLabels] = await Promise.all([
+      const [confirmedOrders, adHocOrders, attempts, links, recentOrders, currencyLabels, orderCounts, productCounts] = await Promise.all([
         store.listConfirmedOrders(actor.id, bounds.from, bounds.to),
         store.listAdHocOutcomeOrders(actor.id, bounds.from, bounds.to),
         store.listAttempts(actor.id, bounds.from, bounds.to),
         store.listLinks(actor.id),
         store.listRecentOrders(actor.id, MERCHANT_ANALYTICS_RECENT_LIMIT),
         store.listCurrencyLabels(),
+        store.countOrdersBySourceAndState?.(actor.id, bounds.from, bounds.to) ?? Promise.resolve([]),
+        store.countProducts?.(actor.id) ?? Promise.resolve({ activeCount: 0, archivedCount: 0 }),
       ]);
       const labels = new Map(currencyLabels.map((entry) => [pairKey(entry.pair), entry]));
+
+      // Deterministic order: count descending, then the grouping key
+      // ascending with the stateless (null) group last — mirrors admin-analytics.
+      const bySourceMap = new Map<OrderV2Source, number>();
+      const byStateMap = new Map<OrderV2State | null, number>();
+      let ordersInPeriod = 0;
+      for (const row of orderCounts) {
+        ordersInPeriod += row.count;
+        bySourceMap.set(row.source, (bySourceMap.get(row.source) ?? 0) + row.count);
+        byStateMap.set(row.state, (byStateMap.get(row.state) ?? 0) + row.count);
+      }
+      const byOrigin = [...bySourceMap.entries()]
+        .map(([source, count]) => ({ source, count }))
+        .sort((a, b) => b.count - a.count || a.source.localeCompare(b.source));
+      const byProviderState = [...byStateMap.entries()]
+        .map(([state, count]) => ({ state, count }))
+        .sort((a, b) => {
+          if (a.count !== b.count) return b.count - a.count;
+          if (a.state === b.state) return 0;
+          if (a.state === null) return 1;
+          if (b.state === null) return -1;
+          return a.state.localeCompare(b.state);
+        });
 
       const confirmedGroups = new Map<string, AccumulatedGroup>();
       const confirmedCounts = new Map<string, number>();
@@ -316,6 +385,7 @@ export function createMerchantAnalyticsService(store: MerchantAnalyticsStore, de
         .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
         .slice(0, MERCHANT_ANALYTICS_BEST_SELLER_LIMIT)
         .map(([productId, confirmedQuantity]) => ({
+          id: productId,
           titlePtBr: titles.get(productId)?.titlePtBr ?? "",
           titleEn: titles.get(productId)?.titleEn ?? "",
           confirmedQuantity,
@@ -335,9 +405,11 @@ export function createMerchantAnalyticsService(store: MerchantAnalyticsStore, de
         .sort((a, b) => b.confirmedOrders - a.confirmedOrders || b.attempts - a.attempts || a.identifier.localeCompare(b.identifier));
 
       const recentActivity = recentOrders.map((order) => ({
+        id: order.id,
         source: order.source,
         descriptionPtBr: order.descriptionPtBr,
         descriptionEn: order.descriptionEn,
+        payerName: order.payer.name ?? order.payer.email,
         amount: order.amount,
         currency: labelFor(labels, { currencyUuid: order.currencyUuid, exchangeCurrencyUuid: order.exchangeCurrencyUuid }),
         state: order.state,
@@ -353,12 +425,17 @@ export function createMerchantAnalyticsService(store: MerchantAnalyticsStore, de
         kind: "ready",
         view: {
           period: { id: periodId, from: bounds.from, to: bounds.to },
+          ordersInPeriod,
+          byProviderState,
+          byOrigin,
           confirmedSales,
           locallyFinalizedSales,
           funnel,
           bestSellers,
-          paymentLinks: { activeCount: links.filter((link) => link.active).length, metrics: linkMetrics },
+          paymentLinks: { activeCount: links.filter((link) => link.active).length, totalCount: links.length, metrics: linkMetrics },
+          products: productCounts,
           recentActivity,
+          isFirstRun: links.length === 0 && recentActivity.length === 0,
         },
       };
     },
@@ -470,6 +547,24 @@ export function createPrismaMerchantAnalyticsStore(prisma: PrismaClient): Mercha
         where: { ownerId, id: { in: [...productIds] } },
         select: { id: true, titlePtBr: true, titleEn: true },
       });
+    },
+    // Owner-scoped mirror of admin-analytics' `countOrdersBySourceAndState`,
+    // grouped by created-in-period `createdAt` (never `settledAt`), so an
+    // in-flight order still counts toward `ordersInPeriod`.
+    async countOrdersBySourceAndState(ownerId, from, to) {
+      const rows = await prisma.orderV2.groupBy({
+        by: ["source", "state"],
+        where: { ownerId, createdAt: { gte: from, lt: to } },
+        _count: true,
+      });
+      return rows.map((row) => ({ source: row.source as OrderV2Source, state: row.state as OrderV2State | null, count: row._count }));
+    },
+    async countProducts(ownerId) {
+      const [activeCount, archivedCount] = await Promise.all([
+        prisma.product.count({ where: { ownerId, active: true } }),
+        prisma.product.count({ where: { ownerId, archivedAt: { not: null } } }),
+      ]);
+      return { activeCount, archivedCount };
     },
   };
 }

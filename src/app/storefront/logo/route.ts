@@ -18,7 +18,7 @@ export async function POST(request: Request) {
       const actor = await requireOwnerFromCookie();
       const contentLength = Number(request.headers.get("content-length"));
       if (!Number.isInteger(contentLength) || contentLength <= 0 || contentLength > MAX_BODY_BYTES) {
-        return relativeRedirect("/settings?storefront-logo=failed");
+        return relativeRedirect("/settings?storefront-logo=failed#settings-store");
       }
       const form = await request.formData();
       const file = form.get("logo");
@@ -26,11 +26,11 @@ export async function POST(request: Request) {
         throw new Error("Logo upload is invalid");
       }
       const staged = await getMediaService().create(actor, "STOREFRONT_LOGO", new Uint8Array(await file.arrayBuffer()));
-      return relativeRedirect(`/settings?storefront-logo=staged&logo=${staged.identifier}`);
+      return relativeRedirect(`/settings?storefront-logo=staged&logo=${staged.identifier}#settings-store`);
     } catch (error) {
       const protectedResponse = ownerProtectedMutationResponse(error);
       if (protectedResponse) return protectedResponse;
-      return relativeRedirect("/settings?storefront-logo=failed");
+      return relativeRedirect("/settings?storefront-logo=failed#settings-store");
     }
   });
 }

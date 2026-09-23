@@ -20,7 +20,7 @@ describe("Timeline", () => {
     expect(markup).toContain("lucide-check");
   });
 
-  it("keeps every F02 owner server-safe and free of business or formatting dependencies", () => {
+  it("keeps every F02 owner free of business or formatting dependencies and forced dark/hex literals", () => {
     const owners = [
       "empty-state",
       "money-text",
@@ -31,11 +31,17 @@ describe("Timeline", () => {
       "status-badge",
       "timeline",
     ];
+    // qr-display alone is a documented exception to server-safety: it needs "use client" and
+    // the pinned "qrcode" package to generate its SVG in-browser (src/components/ui/qr-display.tsx).
+    const clientExceptions = ["qr-display"];
 
     for (const owner of owners) {
       const source = readFileSync(new URL(`./${owner}.tsx`, import.meta.url), "utf8");
-      expect(source.startsWith('"use client"'), owner).toBe(false);
-      expect(source, owner).not.toMatch(/@\/i18n|@\/mock|@\/auth|@\/orders|@\/checkout|qrcode|framer-motion/u);
+      if (!clientExceptions.includes(owner)) {
+        expect(source.startsWith('"use client"'), owner).toBe(false);
+        expect(source, owner).not.toMatch(/qrcode/u);
+      }
+      expect(source, owner).not.toMatch(/@\/i18n|@\/mock|@\/auth|@\/orders|@\/checkout|framer-motion/u);
       expect(source, owner).not.toMatch(/\bdark:|#[\da-f]{3,8}\b/u);
     }
   });

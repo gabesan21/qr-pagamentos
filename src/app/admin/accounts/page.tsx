@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { AdminAccountsSurface } from "@/app/admin/admin-surface";
+import { dataDirectoryCopy, DirectoryInvalidFiltersNotice } from "@/app/directory-support";
 import {
   ADMIN_USER_DIRECTORY_PAGE_SIZE_POLICY,
   ADMIN_USER_DIRECTORY_PATH,
@@ -11,18 +12,23 @@ import {
 } from "@/auth/admin-user-directory";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
+import {
+  DIRECTORY_INVALID_FILTERS_PARAM,
+  DIRECTORY_INVALID_FILTERS_VALUE,
+  directoryInvalidFiltersLocation,
+} from "@/data-directory/server/notice";
 import { DataDirectory, type DataDirectoryColumn, type DataDirectoryState } from "@/data-directory/ui/data-directory";
 import type { getDictionary } from "@/i18n/dictionaries";
 import type { SupportedLocale } from "@/i18n/locales";
 
 import { requireAdminShellContext } from "../shell-context";
-import { adminAccountsDirectoryCopy } from "./directory-copy";
+import { DestructiveActionForm } from "./destructive-confirm";
 import {
   adminAccountsCanonicalTarget,
   resolveAdminAccountsDirectoryQuery,
   type AdminAccountsSearchParams,
 } from "./directory-query";
-import { formatAccountInstant } from "./instant";
+import { formatAccountInstant, formatRelativeAccountActivity } from "./instant";
 
 type Dictionary = ReturnType<typeof getDictionary>;
 
@@ -116,11 +122,20 @@ function RowActions({ dictionary, row }: Readonly<{ dictionary: Dictionary; row:
       <Button asChild data-ds-hit-target variant="outline">
         <Link href={`/admin/accounts/${row.id}`}>{dictionary.adminUsersDirectoryEdit}</Link>
       </Button>
-      <form action={`/admin/users/${row.id}/delete`} method="post">
-        <Button data-ds-hit-target type="submit" variant="destructive">
-          {dictionary.adminUsersDirectoryDelete}
-        </Button>
-      </form>
+      <DestructiveActionForm
+        action={`/admin/users/${row.id}/delete`}
+        cancelLabel={dictionary.cancel}
+        confirmLabel={dictionary.adminUsersDirectoryDelete}
+        confirmation={{
+          expectedValue: row.username,
+          label: dictionary.adminUsersDirectoryDeleteConfirmFieldLabel,
+        }}
+        dialogDescription={dictionary.adminUsersDirectoryDeleteConfirmDescription}
+        dialogTitle={dictionary.adminUsersDirectoryDeleteConfirmTitle}
+        failureMessage={dictionary.adminUsersDirectoryDeleteConfirmFailure}
+        pendingLabel={dictionary.loading}
+        triggerLabel={dictionary.adminUsersDirectoryDelete}
+      />
     </span>
   );
 }
@@ -130,15 +145,16 @@ function AdminUserDirectory({
   locale,
   page,
   query,
-  serviceInvalid = false,
 }: Readonly<{
   dictionary: Dictionary;
   locale: SupportedLocale;
   page: Extract<AdminUserDirectoryResult, { status: "ready" }> | null;
-  query: Extract<ReturnType<typeof resolveAdminAccountsDirectoryQuery>, { status: "ready" | "invalid-query" }>;
-  serviceInvalid?: boolean;
+  query: Extract<ReturnType<typeof resolveAdminAccountsDirectoryQuery>, { status: "ready" }>;
 }>) {
-  const copy = adminAccountsDirectoryCopy(dictionary);
+  const copy = dataDirectoryCopy(dictionary, {
+    title: dictionary.adminUsersDirectoryEmpty,
+    description: dictionary.adminUsersDirectoryEmptyDescription,
+  });
   const columns: readonly DataDirectoryColumn<AdminUserSummary>[] = [
     { id: "username", label: dictionary.adminUsersDirectoryColumnUsername, value: (row) => <UsernameCell dictionary={dictionary} row={row} /> },
     { id: "email", label: dictionary.adminUsersDirectoryColumnEmail, value: (row) => <span className="text-sm text-muted-foreground">{row.email ?? dictionary.adminNotProvided}</span> },
@@ -146,24 +162,22 @@ function AdminUserDirectory({
     { id: "state", label: dictionary.adminUsersDirectoryColumnState, value: (row) => <StateBadge dictionary={dictionary} row={row} /> },
     { id: "store", label: dictionary.adminUsersDirectoryColumnStore, value: (row) => <StoreBadge dictionary={dictionary} row={row} /> },
     { id: "created", label: dictionary.adminUsersDirectoryColumnCreated, numeric: true, value: (row) => <span className="font-mono">{formatAccountInstant(row.createdAt, locale)}</span> },
-    { id: "lastActivity", label: dictionary.adminUsersDirectoryColumnLastActivity, numeric: true, value: (row) => <span className="font-mono">{row.lastActivityAt ? formatAccountInstant(row.lastActivityAt, locale) : dictionary.adminUsersDirectoryLastActivityNever}</span> },
+    {
+      id: "lastActivity",
+      label: dictionary.adminUsersDirectoryColumnLastActivity,
+      numeric: true,
+      value: (row) => row.lastActivityAt ? (
+        <span className="font-mono">
+          {formatAccountInstant(row.lastActivityAt, locale)}{" "}
+          <span className="text-muted-foreground">
+            ({formatRelativeAccountActivity(row.lastActivityAt, locale, dictionary.adminUsersDirectoryLastActivityToday)})
+          </span>
+        </span>
+      ) : (
+        <span className="font-mono">{dictionary.adminUsersDirectoryLastActivityNever}</span>
+      ),
+    },
   ];
-
-  if (query.status === "invalid-query" || serviceInvalid) {
-    return (
-      <DataDirectory
-        caption={dictionary.adminUsersDirectoryHeading}
-        columns={columns}
-        copy={copy}
-        formAction={ADMIN_USER_DIRECTORY_PATH}
-        idPrefix="admin-users"
-        resetUrl={ADMIN_USER_DIRECTORY_PATH}
-        rowKey={(row) => row.id}
-        rows={[]}
-        state="invalid-query"
-      />
-    );
-  }
 
   const rows = page?.rows ?? [];
   const filtering = Boolean(query.query.q) || Object.keys(query.query.filters).length > 0 || query.cursor !== undefined;
@@ -176,6 +190,7 @@ function AdminUserDirectory({
   return (
     <DataDirectory
       actionsLabel={dictionary.adminUsersDirectoryColumnActions}
+      canonicalFilterQuery={query.query.canonicalFilterQuery}
       caption={dictionary.adminUsersDirectoryHeading}
       columns={columns}
       copy={copy}
@@ -204,6 +219,7 @@ function AdminUserDirectory({
       ]}
       formAction={ADMIN_USER_DIRECTORY_PATH}
       getRowActions={(row) => <RowActions dictionary={dictionary} row={row} />}
+      getRowHref={(row) => (row.state === "deleted" ? undefined : `/admin/accounts/${row.id}`)}
       idPrefix="admin-users"
       {...(page?.nextCursor ? { nextUrl: pageUrl(query.query, page.nextCursor) } : {})}
       pageSize={query.query.pageSize}
@@ -239,29 +255,31 @@ export default async function AdminAccountsPage({
   searchParams?: Promise<AdminAccountsSearchParams>;
 }> = {}) {
   const { dictionary, locale, principal } = await requireAdminShellContext();
-  const query = resolveAdminAccountsDirectoryQuery({ searchParams: await searchParams, principal });
+  const params = await searchParams;
+  const invalidFiltersNotice = params[DIRECTORY_INVALID_FILTERS_PARAM] === DIRECTORY_INVALID_FILTERS_VALUE;
+  const query = resolveAdminAccountsDirectoryQuery({ searchParams: params, principal });
   if (query.status === "redirect") redirect(query.location);
+  if (query.status === "invalid-query") redirect(directoryInvalidFiltersLocation(ADMIN_USER_DIRECTORY_PATH));
 
   let page: Extract<AdminUserDirectoryResult, { status: "ready" }> | null = null;
-  // The delivered service rejects ungrammatical calendar days after
-  // canonicalization; that is the same zero-I/O invalid-query state.
-  let serviceInvalid = false;
   let serviceRedirect: string | null = null;
-  if (query.status === "ready") {
-    try {
-      const result = await queryAdminUserDirectory(adminAccountsCanonicalTarget(query));
-      if (result.status === "ready") page = result;
-      else if (result.status === "invalid-query") serviceInvalid = true;
-      else serviceRedirect = result.location;
-    } catch {
-      page = null;
-    }
+  try {
+    const result = await queryAdminUserDirectory(adminAccountsCanonicalTarget(query));
+    // The delivered service rejects ungrammatical calendar days after
+    // canonicalization; that is the same zero-I/O invalid-query state, routed
+    // the same way as a page-level invalid query.
+    if (result.status === "ready") page = result;
+    else if (result.status === "invalid-query") serviceRedirect = directoryInvalidFiltersLocation(ADMIN_USER_DIRECTORY_PATH);
+    else serviceRedirect = result.location;
+  } catch {
+    page = null;
   }
   if (serviceRedirect !== null) redirect(serviceRedirect);
 
   const notice = query.status === "ready" && query.notice
     ? {
         tone: query.notice.tone,
+        value: query.notice.value,
         text: query.notice.value === "created"
           ? dictionary.adminCreated
           : query.notice.value === "changed"
@@ -274,7 +292,8 @@ export default async function AdminAccountsPage({
 
   return (
     <AdminAccountsSurface dictionary={dictionary} notice={notice}>
-      <AdminUserDirectory dictionary={dictionary} locale={locale} page={page} query={query} serviceInvalid={serviceInvalid} />
+      {invalidFiltersNotice ? <DirectoryInvalidFiltersNotice dictionary={dictionary} /> : null}
+      <AdminUserDirectory dictionary={dictionary} locale={locale} page={page} query={query} />
     </AdminAccountsSurface>
   );
 }

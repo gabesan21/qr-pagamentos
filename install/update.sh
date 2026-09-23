@@ -198,12 +198,16 @@ validate_secret_continuity() {
 }
 
 validate_urls() {
-  local value
-  for value in "$NAUTT_WEBHOOK_CALLBACK_URL" ${NAUTT_API_BASE_URL:+"$NAUTT_API_BASE_URL"}; do
+  # The callback may be HTTP on a loopback host for local testing; the provider
+  # base URL is remote and stays HTTPS-only.
+  docker run --rm --pull=never --network none --read-only --user "$(id -u):$(id -g)" "$NODE_HELPER" \
+    node -e 'const u=new URL(process.argv[1]);const loopback=new Set(["localhost","127.0.0.1","[::1]"]);const scheme=u.protocol==="https:"||(u.protocol==="http:"&&loopback.has(u.hostname));process.exit(scheme&&!u.username&&!u.password&&!u.hash?0:1)' -- "$NAUTT_WEBHOOK_CALLBACK_URL" >/dev/null \
+    || die 'the Nautt callback URL must be an absolute HTTPS URL (or HTTP on a loopback host) without credentials or a fragment'
+  if [[ -n ${NAUTT_API_BASE_URL:-} ]]; then
     docker run --rm --pull=never --network none --read-only --user "$(id -u):$(id -g)" "$NODE_HELPER" \
-      node -e 'const u=new URL(process.argv[1]);process.exit(u.protocol==="https:"&&!u.username&&!u.password&&!u.hash?0:1)' -- "$value" >/dev/null \
-      || die 'Nautt URLs must be absolute HTTPS URLs without credentials or fragments'
-  done
+      node -e 'const u=new URL(process.argv[1]);process.exit(u.protocol==="https:"&&!u.username&&!u.password&&!u.hash?0:1)' -- "$NAUTT_API_BASE_URL" >/dev/null \
+      || die 'the Nautt API base URL must be an absolute HTTPS URL without credentials or fragments'
+  fi
 }
 
 inspect_installation() {

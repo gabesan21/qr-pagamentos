@@ -1,10 +1,10 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
+import { clearFormDraft, hasFailureNotice, readFormDraft, saveFormDraft } from "@/app/form-draft";
 import type { OwnerProductCategory } from "@/auth/product-category";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { ConfirmDialog, Modal } from "@/components/ui/modal";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import type { getDictionary } from "@/i18n/dictionaries";
@@ -12,6 +12,9 @@ import type { getDictionary } from "@/i18n/dictionaries";
 import { Banner } from "../catalog-fields";
 
 type Dictionary = ReturnType<typeof getDictionary>;
+
+const CATEGORY_NOTICE_KEY = "categories";
+const CATEGORY_FAILURE_NOTICES = ["conflict", "failed"] as const;
 
 export function CategoryRowActions({
   activeReplacements,
@@ -33,6 +36,24 @@ export function CategoryRowActions({
 
   const editFormId = `category-${category.id}-edit`;
   const deactivateFormId = `category-${category.id}-deactivate`;
+  const draftKey = `category-edit-${category.id}`;
+
+  useEffect(() => {
+    if (!hasFailureNotice(CATEGORY_NOTICE_KEY, CATEGORY_FAILURE_NOTICES)) {
+      clearFormDraft(draftKey);
+      return;
+    }
+    const draft = readFormDraft(draftKey);
+    if (!draft) return;
+    // sessionStorage is a client-only external system unavailable during the
+    // server render, so reopening the edit form with its draft cannot happen
+    // before mount.
+    /* eslint-disable react-hooks/set-state-in-effect */
+    if (typeof draft.namePtBr === "string") setNamePtBr(draft.namePtBr);
+    if (typeof draft.nameEn === "string") setNameEn(draft.nameEn);
+    setEditing(true);
+    /* eslint-enable react-hooks/set-state-in-effect */
+  }, [draftKey]);
 
   function handleCancel() {
     setEditing(false);
@@ -50,6 +71,7 @@ export function CategoryRowActions({
         hidden={!editing}
         id={editFormId}
         method="post"
+        onSubmit={() => saveFormDraft(draftKey, { namePtBr, nameEn })}
         ref={editFormRef}
       >
         <input name="action" type="hidden" value="edit" />
@@ -57,14 +79,14 @@ export function CategoryRowActions({
         <input name="version" type="hidden" value={category.version} />
         <div className="grid gap-3 sm:grid-cols-2">
           <input
-            className="h-11 w-full rounded-md border border-input bg-background px-3 text-base text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring"
+            className="h-11 w-full rounded-md border border-input bg-bg px-3 text-base text-text outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring"
             name="namePtBr"
             onChange={(event) => setNamePtBr(event.target.value)}
             required
             value={namePtBr}
           />
           <input
-            className="h-11 w-full rounded-md border border-input bg-background px-3 text-base text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring"
+            className="h-11 w-full rounded-md border border-input bg-bg px-3 text-base text-text outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring"
             name="nameEn"
             onChange={(event) => setNameEn(event.target.value)}
             required
@@ -126,7 +148,7 @@ export function CategoryRowActions({
         />
       ) : (
         <Modal
-          closeLabel={dictionary.dataDirectoryResetFilters}
+          closeLabel={dictionary.close}
           footer={
             <>
               <Button onClick={() => setDialogOpen(false)} type="button" variant="ghost">

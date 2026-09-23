@@ -56,4 +56,58 @@ describe("shared UI anti-drift inventory", () => {
     writeFileSync(inventoryPath, JSON.stringify(inventory));
     await expect(checkSharedUiInventory(root)).rejects.toThrow("current primitive evidence inventory drifted");
   });
+
+  it("rejects a localAddition with an incomplete public contract", async () => {
+    const root = fixture();
+    const inventoryPath = path.join(root, "src/components/ui/inventory.json");
+    const inventory = JSON.parse(readFileSync(inventoryPath, "utf8"));
+    delete inventory.localAdditions[0].publicApi;
+    writeFileSync(inventoryPath, JSON.stringify(inventory));
+    await expect(checkSharedUiInventory(root)).rejects.toThrow("incomplete local addition public contract");
+  });
+
+  it("rejects a localAddition without a recorded insufficiency finding", async () => {
+    const root = fixture();
+    const inventoryPath = path.join(root, "src/components/ui/inventory.json");
+    const inventory = JSON.parse(readFileSync(inventoryPath, "utf8"));
+    inventory.localAdditions[0].insufficiency = "too short";
+    writeFileSync(inventoryPath, JSON.stringify(inventory));
+    await expect(checkSharedUiInventory(root)).rejects.toThrow("missing local addition insufficiency finding");
+  });
+
+  it("rejects a localAddition that collides with a reachable owner", async () => {
+    const root = fixture();
+    const inventoryPath = path.join(root, "src/components/ui/inventory.json");
+    const inventory = JSON.parse(readFileSync(inventoryPath, "utf8"));
+    inventory.localAdditions[0].owner = inventory.owners[0].owner;
+    writeFileSync(inventoryPath, JSON.stringify(inventory));
+    await expect(checkSharedUiInventory(root)).rejects.toThrow("local addition collides with a reachable owner");
+  });
+
+  it("rejects a localAddition whose templateSource is not a recorded exclusion", async () => {
+    const root = fixture();
+    const inventoryPath = path.join(root, "src/components/ui/inventory.json");
+    const inventory = JSON.parse(readFileSync(inventoryPath, "utf8"));
+    inventory.localAdditions[0].templateSource = "docs/template/app/src/components/ui/NotExcluded.tsx";
+    writeFileSync(inventoryPath, JSON.stringify(inventory));
+    await expect(checkSharedUiInventory(root)).rejects.toThrow("local addition templateSource is not a recorded exclusion");
+  });
+
+  it("rejects a duplicate localAddition owner", async () => {
+    const root = fixture();
+    const inventoryPath = path.join(root, "src/components/ui/inventory.json");
+    const inventory = JSON.parse(readFileSync(inventoryPath, "utf8"));
+    inventory.localAdditions.push(inventory.localAdditions[0]);
+    writeFileSync(inventoryPath, JSON.stringify(inventory));
+    await expect(checkSharedUiInventory(root)).rejects.toThrow("duplicate local addition");
+  });
+
+  it("rejects an empty localAdditions section", async () => {
+    const root = fixture();
+    const inventoryPath = path.join(root, "src/components/ui/inventory.json");
+    const inventory = JSON.parse(readFileSync(inventoryPath, "utf8"));
+    inventory.localAdditions = [];
+    writeFileSync(inventoryPath, JSON.stringify(inventory));
+    await expect(checkSharedUiInventory(root)).rejects.toThrow("localAdditions section missing or empty");
+  });
 });

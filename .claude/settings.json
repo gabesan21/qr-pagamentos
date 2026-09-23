@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "availableModels": ["opus", "sonnet"],
+  "effortLevel": "high",
+  "env": {
+    "CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH": "2"
+  },
+  "model": "opus",
+  "permissions": {
+    "defaultMode": "dontAsk",
+    "deny": ["WebFetch", "WebSearch"]
+  }
+}

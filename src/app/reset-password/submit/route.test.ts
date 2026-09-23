@@ -49,7 +49,7 @@ describe("public password reset consume route", () => {
 
     expect(consumeResetChallenge).toHaveBeenCalledWith("valid-token", "new strong password");
     expect(response.status).toBe(303);
-    expect(response.headers.get("location")).toBe("/login?password=changed");
+    expect(response.headers.get("location")).toBe("/reset-password?status=changed");
   });
 
   it("redirects opaquely when the confirmation does not match the new password", async () => {
@@ -104,7 +104,7 @@ describe("public password reset consume route", () => {
     const response = await POST(request({ token, newPassword: password, confirmation: password }));
 
     expect(response.status).toBe(303);
-    expect(response.headers.get("location")).toBe("/login?password=changed");
+    expect(response.headers.get("location")).toBe("/reset-password?status=changed");
     expect(write).toHaveBeenCalledOnce();
     const record = JSON.parse(String(write.mock.calls[0][0]));
     expect(Object.keys(record).sort()).toEqual([

@@ -8,4 +8,9 @@ export const checkoutPolicyPtBR = {
   checkoutPolicyEmail: "E-mail",
   checkoutPolicyNameEmailCpf: "Nome, e-mail e CPF",
   checkoutPolicyNameEmailCpfAddress: "Nome, e-mail, CPF e endereço",
+  checkoutPolicyFieldsNone: "Nenhum dado coletado",
+  checkoutPolicyFieldName: "Nome",
+  checkoutPolicyFieldEmail: "E-mail",
+  checkoutPolicyFieldCpf: "CPF",
+  checkoutPolicyFieldAddress: "Endereço",
 } as const;

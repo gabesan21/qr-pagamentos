@@ -11,10 +11,13 @@ import {
 import { validatePaymentLinkV2DirectoryTuple } from "@/auth/payment-link-v2-view";
 import { canonicalizeDirectoryRequest, type CanonicalDirectoryRequest } from "@/data-directory/server/canonical-request";
 import { createDirectoryCursorCodec, type DirectoryCursorCodec } from "@/data-directory/server/cursor";
+import { DIRECTORY_INVALID_FILTERS_PARAM } from "@/data-directory/server/notice";
 
 // URL resolution for the administrator global payment-link directory: strict
 // canonicalization against the delivered service contract, bound to the
-// ADMIN_GLOBAL scope purpose. No notice keys exist on this read-only surface.
+// ADMIN_GLOBAL scope purpose. The reserved invalid-filters pair is stripped
+// before canonicalization so a redirect that carries it never loops; no
+// other notice keys exist on this read-only surface.
 export type AdminPaymentLinksSearchParams = Readonly<Record<string, string | readonly string[] | undefined>>;
 
 export type AdminPaymentLinksDirectoryQuery = CanonicalDirectoryRequest;
@@ -26,6 +29,7 @@ export function resolveAdminPaymentLinksDirectoryQuery(
   const entries: Array<[string, string]> = [];
   for (const [key, value] of Object.entries(input.searchParams)) {
     if (value === undefined) continue;
+    if (key === DIRECTORY_INVALID_FILTERS_PARAM) continue;
     const values = typeof value === "string" ? [value] : value;
     if (values.length === 0) return { status: "invalid-query" };
     for (const item of values) entries.push([key, item]);

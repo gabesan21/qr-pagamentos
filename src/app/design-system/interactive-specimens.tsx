@@ -16,7 +16,7 @@ import { SimpleTabs } from "@/components/ui/simple-tabs";
 import { Spinner } from "@/components/ui/spinner";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { showToast, ToastViewport } from "@/components/ui/toast";
+import { showToast } from "@/components/ui/toast";
 
 import { SpecimenBinding } from "./specimen-binding";
 import "./specimen-state.module.css";
@@ -166,8 +166,8 @@ export function DesignSystemInteractiveSpecimens({ dictionary }: Readonly<{ dict
 
   return (
     <>
-      <section aria-labelledby="actions" className="ds-section" data-ds-section="actions">
-        <div className="ds-section__heading"><h2 id="actions">{dictionary.designSystemActions}</h2><p data-ds-prose>{dictionary.designSystemActionsDescription}</p></div>
+      <section aria-labelledby="actions" className="grid gap-5 border-t-[length:var(--focus-width)] border-border pt-6" data-ds-section="actions">
+        <div className="grid gap-2"><h2 className="m-0" id="actions">{dictionary.designSystemActions}</h2><p className="m-0 max-w-[var(--layout-max)] text-muted-foreground">{dictionary.designSystemActionsDescription}</p></div>
         <div className="flex min-w-0 flex-wrap gap-3 [&_button]:h-auto [&_button]:max-w-full [&_button]:whitespace-normal [&_button]:py-2" id="ds-primitive-button">
           <SpecimenBinding owner="button" state="default"><Button>{dictionary.designSystemPrimaryAction}</Button></SpecimenBinding>
           <SpecimenBinding owner="button" state="hover"><Button data-probe="hover">{dictionary.designSystemPrimaryAction}</Button></SpecimenBinding>
@@ -177,8 +177,8 @@ export function DesignSystemInteractiveSpecimens({ dictionary }: Readonly<{ dict
         </div>
       </section>
 
-      <section aria-labelledby="controls" className="ds-section" data-ds-section="controls">
-        <div className="ds-section__heading"><h2 id="controls">{dictionary.designSystemControlsHeading}</h2><p data-ds-prose>{dictionary.designSystemControlsDescription}</p></div>
+      <section aria-labelledby="controls" className="grid gap-5 border-t-[length:var(--focus-width)] border-border pt-6" data-ds-section="controls">
+        <div className="grid gap-2"><h2 className="m-0" id="controls">{dictionary.designSystemControlsHeading}</h2><p className="m-0 max-w-[var(--layout-max)] text-muted-foreground">{dictionary.designSystemControlsDescription}</p></div>
         <div className="grid gap-6 lg:grid-cols-2">
           <FieldGroup id="ds-primitive-field">
             <Field><FieldLabel htmlFor="specimen-reference" id="ds-primitive-label">{dictionary.designSystemFieldLabel}</FieldLabel><div id="ds-primitive-input"><Input data-ds-hit-target defaultValue="FIX-2026-001" id="specimen-reference" /></div><FieldDescription>{dictionary.designSystemFieldHelp}</FieldDescription></Field>
@@ -219,8 +219,8 @@ export function DesignSystemInteractiveSpecimens({ dictionary }: Readonly<{ dict
         </div>
       </section>
 
-      <section aria-labelledby="interactions" className="ds-section" data-ds-section="interactions">
-        <div className="ds-section__heading"><h2 id="interactions">{dictionary.designSystemInteractionsHeading}</h2><p data-ds-prose>{dictionary.designSystemInteractionsDescription}</p></div>
+      <section aria-labelledby="interactions" className="grid gap-5 border-t-[length:var(--focus-width)] border-border pt-6" data-ds-section="interactions">
+        <div className="grid gap-2"><h2 className="m-0" id="interactions">{dictionary.designSystemInteractionsHeading}</h2><p className="m-0 max-w-[var(--layout-max)] text-muted-foreground">{dictionary.designSystemInteractionsDescription}</p></div>
         <div className="grid gap-4" id="ds-primitive-sonner">
           <div className="flex min-w-0 flex-wrap gap-3 [&_button]:h-auto [&_button]:max-w-full [&_button]:whitespace-normal [&_button]:py-2">
             {(["info", "success", "warning", "error"] as const).map((kind) => (
@@ -286,7 +286,6 @@ export function DesignSystemInteractiveSpecimens({ dictionary }: Readonly<{ dict
       <ConfirmDialog cancelLabel={dictionary.designSystemCancel} confirmLabel={dictionary.designSystemConfirm} description={dictionary.designSystemConfirmDescription} failureMessage={dictionary.designSystemConfirmFailure} onConfirm={() => Promise.resolve()} onOpenChange={setConfirmOpen} open={confirmOpen} pendingLabel={dictionary.designSystemPending} title={dictionary.designSystemConfirmTitle} />
       <ConfirmDialog cancelLabel={dictionary.designSystemCancel} confirmLabel={dictionary.designSystemConfirm} description={dictionary.designSystemConfirmDescription} failureMessage={dictionary.designSystemConfirmFailure} onConfirm={() => new Promise<void>((resolve) => { setTimeout(resolve, 2_000); })} onOpenChange={setPendingOpen} open={pendingOpen} pendingLabel={dictionary.designSystemPending} title={dictionary.designSystemConfirmTitle} />
       <ConfirmDialog cancelLabel={dictionary.designSystemCancel} confirmLabel={dictionary.designSystemConfirm} description={dictionary.designSystemConfirmDescription} failureMessage={dictionary.designSystemConfirmFailure} onConfirm={() => Promise.reject(new Error("deterministic fixture"))} onOpenChange={setFailureOpen} open={failureOpen} pendingLabel={dictionary.designSystemPending} title={dictionary.designSystemConfirmTitle} />
-      <ToastViewport label={dictionary.designSystemToastRegion} />
     </>
   );
 }

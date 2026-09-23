@@ -8,7 +8,7 @@ import { getDictionary } from "@/i18n/dictionaries";
 function textContent(markup: string): string {
   return markup.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
 }
-import type { CheckoutDataPolicy } from "@/orders/payment-link-order";
+import type { CheckoutDataPolicy } from "@/orders/order-v2-policies";
 
 import {
   StandalonePaymentExperience,
@@ -26,21 +26,18 @@ function renderView(overrides: Partial<Parameters<typeof StandalonePaymentView>[
     <StandalonePaymentView
       amount=""
       amountInvalid={false}
-      attemptMade={false}
       checkoutError={false}
-      copyState={null}
       currencyCode="BRL"
       dictionary={dictionary}
       invalid={new Set()}
       onAmountChange={vi.fn()}
-      onCopyPix={vi.fn()}
       onFieldChange={vi.fn()}
-      onStatusRetry={vi.fn()}
+      onStartOver={vi.fn()}
       onSubmit={vi.fn()}
       payment={null}
       policy="NAME_EMAIL_CPF"
       slug="ana-store"
-      statusError={false}
+      statusReadFailed={false}
       submittedAmount={null}
       submitting={false}
       unavailable={false}
@@ -67,6 +64,20 @@ describe("standalone payment view", () => {
     expect(markup).toContain("Amount (BRL)");
   });
 
+  it("renders no status notice when the policy needs no customer fields", () => {
+    const markup = renderView({ policy: "NONE" });
+
+    expect(markup).not.toContain('role="status"');
+    expect(markup).toContain('id="standalone-amount"');
+  });
+
+  it("renders no status notice when the policy needs customer fields", () => {
+    const markup = renderView({ policy: "NAME_EMAIL" });
+
+    expect(markup).not.toContain('role="status"');
+    expect(markup).toContain('id="standalone-name"');
+  });
+
   it("renders the amount validation error inline with aria-invalid", () => {
     const markup = renderView({ amount: "abc", amountInvalid: true });
 
@@ -88,69 +99,78 @@ describe("standalone payment view", () => {
     expect(markup).toContain("disabled");
   });
 
-  it("offers the retry label after a failed attempt and the opaque submit error", () => {
-    const markup = renderView({ attemptMade: true, checkoutError: true });
+  it("renders the named submit-failure state with Start over as the only action, no resubmit affordance", () => {
+    const markup = renderView({ checkoutError: true });
 
-    expect(markup).toContain("Try payment again");
-    expect(markup).toContain("Payment could not be prepared");
+    expect(markup).toContain("Payment could not be submitted");
+    expect(markup).toContain(dictionary.checkoutStartOver);
+    expect(markup).not.toContain('id="standalone-amount"');
+    expect(markup).not.toContain("<form");
     expect(markup).toContain('href="/store/ana-store"');
   });
 
+  // Payment/outcome phases render through 14.6.1's `CheckoutPaymentView`
+  // (14.6.2 F02, C3/C4): no page-local tone map, `QrDisplay`/`CopyField`
+  // composition, or terminal markup survives here.
   it.each([
     ["RESERVED", "Preparing payment"],
     ["CREATING", "Preparing payment"],
     ["CREATED", "Preparing payment"],
-    ["PENDING", "Waiting for payment"],
-    ["INDETERMINATE", "Payment status is being checked"],
-  ] as const)("renders %s as the waiting treatment, never an error", (state: StandalonePaymentState, label: string) => {
+  ] as const)("renders %s as the honest waiting treatment, never an error", (state: StandalonePaymentState, label: string) => {
     const markup = renderView({ payment: { state }, submittedAmount: "12.5" });
 
     expect(textContent(markup)).toContain(label);
     expect(textContent(markup)).toContain("12.5 BRL");
-    expect(markup).not.toContain("bg-destructive");
-    expect(textContent(markup)).toContain("Payment details are still being prepared.");
+    expect(markup).not.toContain("bg-danger-soft");
     expect(markup).toContain('href="/store/ana-store"');
   });
 
-  it("renders the QR and copy affordances without the waiting notice when payment data exists", () => {
-    const markup = renderView({ payment: { state: "PENDING", pixCopyPaste: "pix-code", pixQrCodeUrl: "https://provider.example/qr.png" }, submittedAmount: "12.5" });
+  // PENDING without a payload and INDETERMINATE are named PIX-unavailable
+  // states, not the waiting shell (15.3.1 C05/C03): the badge label still
+  // carries the provider state, but the amount is not restated and
+  // `checkoutStartOver` is the only action — no retry, never a danger tone.
+  it.each([
+    ["PENDING", "Waiting for payment"],
+    ["INDETERMINATE", "Payment status is being checked"],
+  ] as const)("names %s as PIX-unavailable, never an error", (state: StandalonePaymentState, label: string) => {
+    const markup = renderView({ payment: { state }, submittedAmount: "12.5" });
 
-    expect(markup).toContain('src="https://provider.example/qr.png"');
-    expect(markup).toContain('alt="PIX payment QR code"');
+    expect(textContent(markup)).toContain(label);
+    expect(markup).toContain(dictionary.checkoutPixUnavailableTitle);
+    expect(markup).toContain(dictionary.checkoutStartOver);
+    expect(markup).not.toContain("bg-danger-soft");
+    expect(markup).toContain('href="/store/ana-store"');
+  });
+
+  it("renders the QR and copy affordances once payment data exists", () => {
+    const markup = renderView({ payment: { state: "PENDING", pixCopyPaste: "pix-code", pixQrCodeUrl: undefined }, submittedAmount: "12.5" });
+
     expect(textContent(markup)).toContain("pix-code");
     expect(textContent(markup)).toContain("Copy PIX code");
-    expect(textContent(markup)).not.toContain("Payment details are still being prepared.");
   });
 
-  it("announces copy feedback politely", () => {
-    const success = renderView({ copyState: "success", payment: { state: "PENDING", pixCopyPaste: "pix-code" } });
-    expect(success).toContain("PIX code copied.");
-    expect(success).toContain('aria-live="polite"');
+  it("renders the named status-unavailable state on a failed status read, Start over as the only action", () => {
+    const markup = renderView({ payment: { state: "PENDING" }, statusReadFailed: true });
 
-    const failure = renderView({ copyState: "error", payment: { state: "PENDING", pixCopyPaste: "pix-code" } });
-    expect(failure).toContain("The PIX code could not be copied.");
-  });
-
-  it("renders the polling status error with the manual retry and the return link", () => {
-    const markup = renderView({ payment: { state: "PENDING" }, statusError: true });
-
-    expect(markup).toContain("Payment status could not be refreshed");
-    expect(markup).toContain("Check status again");
+    expect(markup).toContain(dictionary.checkoutStatusUnavailableTitle);
+    expect(markup).toContain(dictionary.checkoutStartOver);
     expect(markup).toContain('href="/store/ana-store"');
   });
 
+  // C3: refunded renders neutral, never the danger tone the other terminal
+  // outcomes use — `ProviderStateBadge`'s own domain-tone map, not a
+  // page-local one.
   it.each([
     ["CONFIRMED", "Payment confirmed", false],
     ["REJECTED", "Payment rejected", true],
     ["CANCELLED", "Payment cancelled", true],
     ["EXPIRED", "Payment expired", true],
-    ["REFUNDED", "Payment refunded", true],
-  ] as const)("renders the terminal %s view with the return link", (state: StandalonePaymentState, label: string, destructive: boolean) => {
+    ["REFUNDED", "Payment refunded", false],
+  ] as const)("renders the terminal %s view with the return link", (state: StandalonePaymentState, label: string, danger: boolean) => {
     const markup = renderView({ payment: { state }, submittedAmount: "12.5" });
 
     expect(markup).toContain(label);
-    expect(markup.includes("bg-destructive")).toBe(destructive);
-    expect(markup).not.toContain("Payment details are still being prepared.");
+    expect(markup.includes("bg-danger-soft")).toBe(danger);
     expect(markup).toContain('href="/store/ana-store"');
   });
 

@@ -257,6 +257,16 @@ compose() {
     "${DOCKER[@]}" compose -f "$ROOT_DIR/compose.yaml" -p "$PROJECT" "$@"
 }
 
+# Operator origins must be HTTPS on every real host. Plain HTTP is accepted only
+# on a loopback host, where the traffic never leaves the machine and no
+# certificate can be provisioned for local testing.
+validate_operator_origin() {
+  run_node_helper -e 'const u = new URL(process.argv[1]);
+const loopback = new Set(["localhost", "127.0.0.1", "[::1]"]);
+const scheme = u.protocol === "https:" || (u.protocol === "http:" && loopback.has(u.hostname));
+process.exit(scheme && !u.username && !u.password && !u.hash ? 0 : 1)' "$1" >/dev/null 2>&1
+}
+
 resolve_release_identity() {
   if "$DRY_RUN"; then
     RELEASE_REVISION=0000000000000000000000000000000000000000
@@ -323,16 +333,16 @@ check_docker
 load_install_env
 resolve_release_identity
 if ! "$DRY_RUN"; then operation_lock "$ROOT_DIR"; fi
-if ! run_node_helper -e 'const u = new URL(process.argv[1]); process.exit(u.protocol === "https:" && !u.username && !u.password && !u.hash ? 0 : 1)' "$NAUTT_WEBHOOK_CALLBACK_URL" >/dev/null 2>&1; then
-  die 'NAUTT_WEBHOOK_CALLBACK_URL must be an absolute HTTPS URL without credentials or a fragment'
+if ! validate_operator_origin "$NAUTT_WEBHOOK_CALLBACK_URL"; then
+  die 'NAUTT_WEBHOOK_CALLBACK_URL must be an absolute HTTPS URL (or HTTP on a loopback host) without credentials or a fragment'
 fi
 if [[ -n ${NAUTT_API_BASE_URL:-} ]]; then
   if ! run_node_helper -e 'const u = new URL(process.argv[1]); process.exit(u.protocol === "https:" && !u.username && !u.password && !u.hash ? 0 : 1)' "$NAUTT_API_BASE_URL" >/dev/null 2>&1; then
     die 'NAUTT_API_BASE_URL must be an absolute HTTPS URL without credentials or a fragment'
   fi
 fi
-if ! run_node_helper -e 'const u = new URL(process.argv[1]); process.exit(u.protocol === "https:" && !u.username && !u.password && !u.hash ? 0 : 1)' "$PUBLIC_ORIGIN" >/dev/null 2>&1; then
-  die 'PUBLIC_ORIGIN must be an absolute HTTPS URL without credentials or a fragment'
+if ! validate_operator_origin "$PUBLIC_ORIGIN"; then
+  die 'PUBLIC_ORIGIN must be an absolute HTTPS URL (or HTTP on a loopback host) without credentials or a fragment'
 fi
 [[ $POSTGRES_ADMIN_PASSWORD != "$MIGRATOR_PASSWORD" && $POSTGRES_ADMIN_PASSWORD != "$RUNTIME_PASSWORD" && $MIGRATOR_PASSWORD != "$RUNTIME_PASSWORD" ]] || die 'passwords must be distinct'
 retained=false

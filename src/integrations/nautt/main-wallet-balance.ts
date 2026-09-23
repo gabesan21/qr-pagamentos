@@ -1,5 +1,6 @@
 import "server-only";
 
+import { logProviderFailure, providerFailureOperations } from "../../observability/provider-failure-log";
 import { loadNauttApiBaseUrl } from "./config";
 import { isExactDecimal } from "./decimal";
 
@@ -60,15 +61,27 @@ export function createMainWalletBalanceAdapter(dependencies: Dependencies = {}) 
     async read(apiKeyCandidate: string): Promise<MainWalletBalance> {
       const apiKey = apiKeyCandidate.trim();
       if (!apiKey) throw new MainWalletBalanceError();
+      let response: Response;
       try {
-        const response = await fetch(`${loadNauttApiBaseUrl()}/users/wallets/main/balances`, {
+        response = await fetch(`${loadNauttApiBaseUrl()}/users/wallets/main/balances`, {
           method: "GET",
           headers: { "X-API-Key": apiKey },
           signal: createTimeoutSignal(DEFAULT_TIMEOUT_MS),
         });
-        if (response.status !== 200) throw new MainWalletBalanceError();
+      } catch {
+        logProviderFailure(providerFailureOperations.mainWalletBalanceRead, "transport_failure");
+        throw new MainWalletBalanceError();
+      }
+
+      if (response.status !== 200) {
+        logProviderFailure(providerFailureOperations.mainWalletBalanceRead, response.status);
+        throw new MainWalletBalanceError();
+      }
+
+      try {
         return parseBalance(await response.json());
       } catch {
+        logProviderFailure(providerFailureOperations.mainWalletBalanceRead, response.status);
         throw new MainWalletBalanceError();
       }
     },

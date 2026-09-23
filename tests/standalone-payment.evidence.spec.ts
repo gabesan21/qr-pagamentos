@@ -282,9 +282,10 @@ test("creates the closed standalone payment evidence run", async ({ page }) => {
     }
     updateOwner("checkout_data_policy", "NONE");
 
-    // ---- Payment flow one: waiting, QR, copy, polling status error with
-    // manual retry, and the terminal view — all over the real capability
-    // verification path against the seeded rows. ----
+    // ---- Payment flow one: honest waiting, QR, copy, a failed status read
+    // (named status-unavailable, Start over only), and the terminal view —
+    // all over the real capability verification path against the seeded
+    // rows. ----
     const first = seedAttempt({ state: "CREATED" });
     seedDatabase(first.sql);
     await interceptSubmit(first.bearer);
@@ -292,7 +293,7 @@ test("creates the closed standalone payment evidence run", async ({ page }) => {
     await page.locator("#standalone-amount").fill("25");
     await page.getByRole("button", { name: checkout.checkoutSubmit }).click();
     const payment = page.locator("section.checkout-payment");
-    await expect(payment).toContainText(checkout.checkoutWaitingPaymentData);
+    await expect(payment).toContainText(checkout.checkoutStateCreated);
     await expect(page.locator(`main a[href="/store/${storefrontSlug}"]`)).toBeVisible();
     assertions.push({ state: `${locale}-payment-waiting`, waitingVisible: true, returnLink: true });
     await screenshot(`interaction-${locale}-payment-waiting`);
@@ -312,20 +313,28 @@ test("creates the closed standalone payment evidence run", async ({ page }) => {
     assertions.push({ state: `${locale}-payment-copy`, copied: true });
     await screenshot(`interaction-${locale}-payment-copy`);
 
+    // A failed status read stops the loop permanently (no reschedule, no
+    // manual retry): the named status-unavailable state is the only
+    // outcome, and "Start over" is the only path back — it re-keys the
+    // next attempt, so a fresh submit against the same mocked capability
+    // reaches the terminal state seeded below.
     const statusUrl = `**/api/store/${storefrontSlug}/checkout/status`;
     await page.route(statusUrl, (route) => route.fulfill({ status: 500, body: "" }));
-    await expect(payment).toContainText(checkout.checkoutStatusErrorHeading, { timeout: 30_000 });
-    await expect(page.getByRole("button", { name: checkout.checkoutRetryStatus })).toBeVisible();
-    assertions.push({ state: `${locale}-payment-status-error`, statusErrorVisible: true, retryVisible: true, returnLink: true });
-    await screenshot(`interaction-${locale}-payment-status-error`);
+    await expect(payment).toContainText(checkout.checkoutStatusUnavailableTitle, { timeout: 30_000 });
+    await expect(page.getByRole("button", { name: checkout.checkoutStartOver })).toBeVisible();
+    assertions.push({ state: `${locale}-payment-status-unavailable`, statusUnavailableVisible: true, startOverOnly: true, returnLink: true });
+    await screenshot(`interaction-${locale}-payment-status-unavailable`);
     await page.unroute(statusUrl);
     // The deliberate 500s above log browser resource errors; drain them so the
     // global console gate keeps proving every other state is error-free.
     consoleErrors.length = 0;
 
     const terminal = locale === "pt-BR" ? "CONFIRMED" : "REJECTED";
-    await page.getByRole("button", { name: checkout.checkoutRetryStatus }).click();
     seedDatabase(`UPDATE app.order_v2 SET state = '${terminal}', updated_at = now() WHERE id = '${first.orderId}';\n`);
+    await page.getByRole("button", { name: checkout.checkoutStartOver }).click();
+    await expect(page.locator("#standalone-amount")).toBeVisible();
+    await page.locator("#standalone-amount").fill("25");
+    await page.getByRole("button", { name: checkout.checkoutSubmit }).click();
     const terminalLabel = terminal === "CONFIRMED" ? checkout.checkoutStateConfirmed : checkout.checkoutStateRejected;
     await expect(payment).toContainText(terminalLabel, { timeout: 20_000 });
     const destructive = await payment.locator('[data-slot="badge"]').evaluate((badge) => badge.className.includes("bg-destructive"));
@@ -354,15 +363,18 @@ test("creates the closed standalone payment evidence run", async ({ page }) => {
     // The deliberate 404 above logs one browser resource error; drain it.
     consoleErrors.length = 0;
 
-    // ---- Submit failure: 503 keeps the form behind one opaque error. ----
+    // ---- Submit failure: a non-ok submit replaces the form with the named
+    // submit-failure state — Start over is the only action, no resubmit. ----
     await page.route(checkoutUrl, (route) => route.fulfill({ status: 503, body: "" }));
     await openPay();
     await page.locator("#standalone-amount").fill("25");
     await page.getByRole("button", { name: checkout.checkoutSubmit }).click();
-    await expect(page.locator("main")).toContainText(checkout.checkoutErrorHeading);
+    await expect(page.locator("main")).toContainText(checkout.checkoutSubmitFailureTitle);
+    await expect(page.locator("#standalone-amount")).toHaveCount(0);
+    await expect(page.getByRole("button", { name: checkout.checkoutStartOver })).toBeVisible();
     await expect(page.locator(`main a[href="/store/${storefrontSlug}"]`)).toBeVisible();
-    assertions.push({ state: `${locale}-payment-submit-failed`, errorVisible: true, returnLink: true });
-    await screenshot(`interaction-${locale}-payment-submit-failed`);
+    assertions.push({ state: `${locale}-payment-submit-failure`, submitFailureVisible: true, startOverOnly: true, returnLink: true });
+    await screenshot(`interaction-${locale}-payment-submit-failure`);
     await page.unroute(checkoutUrl);
     consoleErrors.length = 0;
 

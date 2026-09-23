@@ -12,10 +12,11 @@ const { requireOwnerFromCookie, resolveLocale, getForOwner, queryDirectory, redi
   redirect: vi.fn((location: string) => { throw new Error(`redirect:${location}`); }),
 }));
 
-vi.mock("next/navigation", () => ({ redirect }));
+vi.mock("next/navigation", () => ({ redirect, useRouter: () => ({ replace: vi.fn(), push: vi.fn() }) }));
 vi.mock("server-only", () => ({}));
 vi.mock("@/app/owner-guard", () => ({ requireOwnerFromCookie, ownerProtectedMutationResponse: vi.fn() }));
 vi.mock("@/i18n/locale-preference", () => ({ getLocalePreferenceService: () => ({ resolve: resolveLocale }) }));
+vi.mock("@/auth/storefront-settings", () => ({ getStorefrontSettingsService: () => ({ getForOwner: () => Promise.resolve({ storefrontEnabled: false, storefrontSlug: null }) }) }));
 vi.mock("@/auth/payment-link-v2-view", () => ({ getPaymentLinkV2ViewService: () => ({ getForOwner }) }));
 vi.mock("@/orders/order-v2-directory", () => ({ queryOwnerOrderV2Directory: (...args: unknown[]) => queryDirectory(...args) }));
 
@@ -109,12 +110,18 @@ describe("merchant V2 payment-link order drilldown list page", () => {
     expect(queryDirectory).toHaveBeenCalledWith(`${path}?filter.link=${identifier}`, path);
     const [target] = queryDirectory.mock.calls[0];
     expect(target).not.toContain("forged");
-    expect(markup).toContain("Monthly donation");
+    // The row shows the order id (CopyField) and payer, not the link
+    // description, which no longer has a column here.
+    expect(markup).toContain("440e8400-e29b-41d4-a716-446655440020");
+    expect(markup).toContain("Not provided");
     expect(markup).toContain("34.9");
     expect(markup).toContain("Payment confirmed");
     expect(markup).toContain(`href="${path}/440e8400-e29b-41d4-a716-446655440020"`);
     expect(markup).toContain(`action="${path}"`);
     expect(markup).toContain(`href="/links/v2/${linkId}"`);
+    // The parent link's own domain lifecycle badge (14.5.2), distinct from
+    // the order state badge asserted above.
+    expect(markup).toContain(">Paid</");
   });
 
   it("keeps other filters and the search alongside the forced identifier", async () => {
@@ -133,7 +140,7 @@ describe("merchant V2 payment-link order drilldown list page", () => {
       order({ id: "440e8400-e29b-41d4-a716-446655440021", descriptionPtBr: null, descriptionEn: null, state: null }),
     ]);
     const markup = renderToStaticMarkup(await PaymentLinkV2OrdersPage(request()));
-    expect(markup).toContain("Monthly donation");
+    expect(markup).toContain("440e8400-e29b-41d4-a716-446655440020");
     expect(markup).toContain("440e8400-e29b-41d4-a716-446655440021");
     expect(markup).toContain("Not provided");
     expect(markup).not.toContain("440e8400-e29b-41d4-a716-446655440022");
@@ -159,15 +166,13 @@ describe("merchant V2 payment-link order drilldown list page", () => {
     await expect(PaymentLinkV2OrdersPage(request())).rejects.toThrow(`redirect:${path}?filter.link=${identifier}`);
   });
 
-  it("renders the invalid-query state without echoing input", async () => {
+  it("resets to the reset redirect without echoing input", async () => {
     requireOwnerFromCookie.mockResolvedValue(principal);
     resolveLocale.mockResolvedValue("en");
     getForOwner.mockResolvedValue({ kind: "found", link });
     queryDirectory.mockResolvedValue({ status: "invalid-query" });
 
-    const markup = renderToStaticMarkup(await PaymentLinkV2OrdersPage(request({ forged: "1" })));
-    expect(markup).toContain("The directory request is unavailable");
-    expect(markup).not.toContain("forged");
+    await expect(PaymentLinkV2OrdersPage(request({ forged: "1" }))).rejects.toThrow(`redirect:${path}?filters=ignored`);
   });
 
   it("renders the empty and filtered-empty states", async () => {
@@ -193,7 +198,7 @@ describe("merchant V2 payment-link order drilldown list page", () => {
     ready("pt-BR", [order({ currentLocalOutcome: { outcome: "LOCAL_FINALIZED", note: "Conferido", createdAt: new Date("2026-07-04T12:00:00.000Z") } })]);
     const markup = renderToStaticMarkup(await PaymentLinkV2OrdersPage(request()));
     expect(markup).toContain("Pedidos do link");
-    expect(markup).toContain("Doação mensal");
+    expect(markup).toContain("440e8400-e29b-41d4-a716-446655440020");
     expect(markup).toContain("Pagamento confirmado");
     expect(markup).toContain("Finalizado localmente");
     expect(markup).toContain("Voltar ao link de pagamento");

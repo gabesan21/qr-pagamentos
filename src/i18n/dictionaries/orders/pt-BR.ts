@@ -4,9 +4,7 @@ export const ordersPtBR = {
   ordersEmpty: "Nenhum pedido está disponível.",
   ordersEmptyDescription: "Os pedidos aparecem aqui após um cliente iniciar um checkout por um link de pagamento.",
   ordersView: "Ver pedido",
-  orderBackToList: "Voltar aos pedidos",
   orderPaymentLink: "Link de pagamento",
-  orderProduct: "Produto",
   orderAmount: "Valor",
   orderCurrencyPair: "Par de moedas",
   orderState: "Estado",
@@ -15,4 +13,7 @@ export const ordersPtBR = {
   orderSettled: "Liquidado em",
   orderUnavailableHeading: "Este pedido está indisponível",
   orderUnavailableDescription: "O pedido não existe ou não está disponível para esta conta.",
+  orderV2OutcomeSelectLabel: "Resultado local",
+  orderV2OutcomePrecedenceCaption: "Um resultado local é um registro seu. Ele nunca grava, mascara ou substitui o estado de pagamento.",
+  orderV2OutcomeFailed: "Não foi possível registrar o resultado local. Tente novamente.",
 } as const;

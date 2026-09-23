@@ -410,7 +410,6 @@ test("creates the closed administrator users evidence run", async ({ page }) => 
     "src/auth/admin-user-profile.ts",
     "src/app/admin/accounts/page.tsx",
     "src/app/admin/accounts/directory-query.ts",
-    "src/app/admin/accounts/directory-copy.ts",
     "src/app/admin/accounts/instant.ts",
     "src/app/admin/accounts/[id]/page.tsx",
     "src/app/admin/users/[id]/identity/route.ts",

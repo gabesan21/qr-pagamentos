@@ -1,9 +1,9 @@
 import type { ReactNode } from "react";
 
-import { Button } from "@/components/ui/button";
+import { Monogram } from "@/components/ui/monogram";
 
 import { DesktopShellNavigation, TopBarShellControls } from "./shell-navigation";
-import type { ShellLabels, ShellNavigationItem } from "./shell-types";
+import type { ShellLabels, ShellNavigationItem, ShellThemeOption, ShellTitleRoute } from "./shell-types";
 
 export function AppShell({
   children,
@@ -11,10 +11,12 @@ export function AppShell({
   labels,
   locale,
   navigation,
-  pageTitle,
   profileLink,
   roleLabel,
   storefrontLink,
+  themeOptions,
+  titleFallback,
+  titleRoutes,
   username,
 }: Readonly<{
   children: ReactNode;
@@ -22,10 +24,14 @@ export function AppShell({
   labels: ShellLabels;
   locale: string;
   navigation: readonly ShellNavigationItem[];
-  pageTitle: string;
   profileLink?: Readonly<{ href: string; label: string }>;
   roleLabel: string;
   storefrontLink?: Readonly<{ href: string; label: string }>;
+  themeOptions?: readonly ShellThemeOption[];
+  // The top-bar title falls back to this label (the role's dashboard entry)
+  // when the active route matches none of `titleRoutes`.
+  titleFallback: string;
+  titleRoutes: readonly ShellTitleRoute[];
   username: string;
 }>) {
   return (
@@ -38,14 +44,13 @@ export function AppShell({
         <DesktopShellNavigation items={navigation} label={labels.navigation} />
         <div className="app-shell__rail-footer">
           <div className="app-shell__rail-principal">
-            <span className="app-shell__username">{username}</span>
-            <span>{roleLabel}</span>
+            <Monogram name={username} size="default" />
+            <div className="app-shell__rail-principal-text">
+              <span className="app-shell__username">{username}</span>
+              <span className="app-shell__rail-role-pill">{roleLabel}</span>
+            </div>
           </div>
-          <form action="/logout" className="app-shell__rail-sign-out" method="post">
-            <Button className="app-shell__sign-out" type="submit" variant="outline">
-              {labels.signOut}
-            </Button>
-          </form>
+          <span className="app-shell__rail-caption">{labels.railCaption}</span>
         </div>
       </aside>
       <TopBarShellControls
@@ -54,9 +59,11 @@ export function AppShell({
         labels={labels}
         locale={locale}
         mobileNavigation={{ items: navigation, label: labels.navigation }}
-        pageTitle={pageTitle}
         roleLabel={roleLabel}
         storefrontLink={storefrontLink}
+        themeOptions={themeOptions}
+        titleFallback={titleFallback}
+        titleRoutes={titleRoutes}
         username={username}
       />
       <main className="app-shell__content" id="app-shell-content" tabIndex={-1}>

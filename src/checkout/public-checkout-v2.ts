@@ -6,10 +6,10 @@ import { getNauttCredentialService } from "@/auth/nautt-credential";
 import { getDatabaseClient } from "@/db/client";
 import type { Prisma, PrismaClient } from "@/generated/prisma/client";
 import { loadEncryptionKey } from "@/lib/nautt-crypto";
-import { normalizeCustomerSnapshotV1, type CheckoutDataPolicy, type CustomerSnapshotV1 } from "@/orders/payment-link-order";
+import { normalizeCustomerSnapshotV1, type CheckoutDataPolicy, type CustomerSnapshotV1 } from "@/orders/order-v2-policies";
 import { createOrderV2Service, createOrderV2Store, type StoredOrderV2 } from "@/orders/order-v2";
 import { createOwnerPricingOrdersService } from "@/integrations/nautt/owner-pricing-orders";
-import { getPricingOrdersAdapter, NauttOrderCreationIndeterminateError } from "@/integrations/nautt/pricing-orders-client";
+import { getPricingOrdersAdapter, NauttOrderCreationIndeterminateError, NauttOrderRefusedError } from "@/integrations/nautt/pricing-orders-client";
 import { createPrismaProviderOrderStore } from "@/integrations/nautt/provider-order-store";
 
 // Sessionless Commerce V2 public checkout (9.3.1): the V1 reservation fences
@@ -25,7 +25,12 @@ const CAPABILITY_KEY_VERSION = "v1";
 const CAPABILITY_TTL_MS = 24 * 60 * 60 * 1000;
 
 type CheckoutAttemptState = "RESERVED" | "CREATING" | "PENDING" | "INDETERMINATE";
-type PaymentView = Readonly<{ state: CheckoutAttemptState; pixCopyPaste?: string; pixQrCodeUrl?: string }>;
+// FAILED is a service-fenced terminal attempt state for a documented
+// creation refusal (never a database check): it never joins the public
+// payment-view vocabulary above, since a failed attempt answers the
+// existing redacted provider-unavailable outcome instead of a payment view.
+type AttemptState = CheckoutAttemptState | "FAILED";
+type PaymentView = Readonly<{ state: CheckoutAttemptState; pixCopyPaste?: string }>;
 export type PublicCheckoutV2Result =
   | Readonly<{ kind: "invalid" }>
   | Readonly<{ kind: "unavailable" }>
@@ -42,9 +47,9 @@ type AttemptRecord = Readonly<{
   capabilityVerifier: string;
   capabilityExpiresAt: Date;
   capabilityRevokedAt: Date | null;
-  state: CheckoutAttemptState;
+  state: AttemptState;
   paymentLink: Readonly<{ active: boolean; expiresAt: Date | null }>;
-  order: Readonly<{ providerOrders: ReadonlyArray<Readonly<{ status: string | null; pixCopyPaste: string | null; pixQrcodeUrl: string | null }>> }>;
+  order: Readonly<{ providerOrders: ReadonlyArray<Readonly<{ status: string | null; pixCopyPaste: string | null }>> }>;
 }>;
 
 type LockedLink = Readonly<{
@@ -65,6 +70,7 @@ type CheckoutV2Store = Readonly<{
   markCreating(attempt: AttemptRecord["id"]): Promise<boolean>;
   markPending(attempt: AttemptRecord["id"]): Promise<AttemptRecord | null>;
   markIndeterminate(attempt: AttemptRecord["id"]): Promise<AttemptRecord | null>;
+  markFailed(attempt: AttemptRecord["id"], now: Date): Promise<void>;
 }>;
 
 type Dependencies = Readonly<{
@@ -96,8 +102,10 @@ function validCapability(key: Buffer, attempt: AttemptRecord, now: Date): string
 }
 function paymentView(attempt: AttemptRecord): PaymentView {
   const order = attempt.order.providerOrders[0];
-  if (attempt.state === "PENDING" && order?.status) return { state: "PENDING", ...(order.pixCopyPaste ? { pixCopyPaste: order.pixCopyPaste } : {}), ...(order.pixQrcodeUrl ? { pixQrCodeUrl: order.pixQrcodeUrl } : {}) };
-  return { state: attempt.state };
+  if (attempt.state === "PENDING" && order?.status) return { state: "PENDING", ...(order.pixCopyPaste ? { pixCopyPaste: order.pixCopyPaste } : {}) };
+  // Callers never reach here with a FAILED attempt: the checkout flow answers
+  // provider-unavailable for a refusal, on first submit and on replay alike.
+  return { state: attempt.state as CheckoutAttemptState };
 }
 function accepted(attempt: AttemptRecord, key: Buffer, now: Date): PublicCheckoutV2Result {
   const statusCapability = validCapability(key, attempt, now);
@@ -119,17 +127,27 @@ export function createPublicCheckoutV2Service(store: CheckoutV2Store, dependenci
         return { kind: "unavailable" };
       }
       if (reservation.kind === "invalid" || reservation.kind === "unavailable") return reservation;
-      if (reservation.kind === "replay") return accepted(reservation.attempt, dependencies.capabilityKey(), now);
+      if (reservation.kind === "replay") {
+        // A refusal answers the same redacted outcome on replay as on first
+        // submit: the capability was revoked at failure time, so no payment
+        // view is ever derived from a FAILED attempt.
+        if (reservation.attempt.state === "FAILED") return { kind: "provider-unavailable" };
+        return accepted(reservation.attempt, dependencies.capabilityKey(), now);
+      }
       try {
         if (!await store.markCreating(reservation.attempt.id)) return { kind: "provider-unavailable" };
         const quote = await dependencies.provider.quote(reservation.ownerId, { currencyUuid: reservation.currencyUuid, exchangeCurrencyUuid: reservation.exchangeCurrencyUuid, amount: { kind: "fiat", value: reservation.amount } });
-        await dependencies.provider.createOrder(reservation.ownerId, { quoteUuid: quote.quoteUuid }, {}, undefined, reservation.attempt.orderV2Id);
+        await dependencies.provider.createOrder(reservation.ownerId, { quoteUuid: quote.quoteUuid }, {}, reservation.attempt.orderV2Id);
         const completed = await store.markPending(reservation.attempt.id);
         return completed ? accepted(completed, dependencies.capabilityKey(), dependencies.now()) : { kind: "unavailable" };
       } catch (error) {
         if (error instanceof NauttOrderCreationIndeterminateError) {
           const indeterminate = await store.markIndeterminate(reservation.attempt.id).catch(() => null);
           return indeterminate ? accepted(indeterminate, dependencies.capabilityKey(), dependencies.now()) : { kind: "provider-unavailable" };
+        }
+        if (error instanceof NauttOrderRefusedError) {
+          await store.markFailed(reservation.attempt.id, dependencies.now()).catch(() => undefined);
+          return { kind: "provider-unavailable" };
         }
         await store.markIndeterminate(reservation.attempt.id).catch(() => undefined);
         return { kind: "provider-unavailable" };
@@ -139,7 +157,7 @@ export function createPublicCheckoutV2Service(store: CheckoutV2Store, dependenci
 }
 
 export function createPrismaCheckoutV2Store(db = getDatabaseClient(), key = loadEncryptionKey(), createOrder: OrderFromLinkCreator = createOrderFromLink): CheckoutV2Store {
-  const record = { include: { paymentLink: { select: { active: true, expiresAt: true } }, order: { select: { providerOrders: { select: { status: true, pixCopyPaste: true, pixQrcodeUrl: true } } } } } } as const;
+  const record = { include: { paymentLink: { select: { active: true, expiresAt: true } }, order: { select: { providerOrders: { select: { status: true, pixCopyPaste: true } } } } } } as const;
   const toAttempt = (value: unknown) => value as AttemptRecord;
   return {
     async reserve({ identifier, retryKey, customer, now }) {
@@ -190,6 +208,12 @@ export function createPrismaCheckoutV2Store(db = getDatabaseClient(), key = load
       });
       const attempt = await db.checkoutAttemptV2.findUnique({ where: { id }, ...record });
       return attempt ? toAttempt(attempt) : null;
+    },
+    async markFailed(id, now) {
+      await db.$transaction(async (tx) => {
+        const updated = await tx.checkoutAttemptV2.updateMany({ where: { id, state: { in: ["RESERVED", "CREATING"] } }, data: { state: "FAILED", capabilityRevokedAt: now } });
+        if (updated.count === 1) await tx.orderV2.updateMany({ where: { checkoutAttempt: { is: { id } }, state: "CREATED" }, data: { state: "REJECTED" } });
+      });
     },
   };
 }

@@ -1,6 +1,5 @@
 # <Nome do projeto>
 
-- **Categoria:** [[applications/INDEX|applications]] | [[work/INDEX|work]]
 - **Status:** ideia | planejando | em andamento | pausado | concluído | abandonado
 - **Prioridade:** alta | média | baixa
 - **Criado em:** AAAA-MM-DD

@@ -3,10 +3,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ForbiddenError, UnauthenticatedError } from "@/auth/authorization";
 
-const { requireOwnerFromCookie, resolveLocale, listV1, getForOwner, getPrefill, redirect } = vi.hoisted(() => ({
+const { requireOwnerFromCookie, resolveLocale, listProducts, getForOwner, getPrefill, redirect } = vi.hoisted(() => ({
   requireOwnerFromCookie: vi.fn(),
   resolveLocale: vi.fn(),
-  listV1: vi.fn(),
+  listProducts: vi.fn(),
   getForOwner: vi.fn(),
   getPrefill: vi.fn(),
   redirect: vi.fn((location: string) => { throw new Error(`redirect:${location}`); }),
@@ -16,7 +16,8 @@ vi.mock("next/navigation", () => ({ redirect }));
 vi.mock("server-only", () => ({}));
 vi.mock("@/app/owner-guard", () => ({ requireOwnerFromCookie, ownerProtectedMutationResponse: vi.fn() }));
 vi.mock("@/i18n/locale-preference", () => ({ getLocalePreferenceService: () => ({ resolve: resolveLocale }) }));
-vi.mock("@/auth/payment-link", () => ({ getPaymentLinkService: () => ({ listForOwner: listV1 }) }));
+vi.mock("@/auth/storefront-settings", () => ({ getStorefrontSettingsService: () => ({ getForOwner: () => Promise.resolve({ storefrontEnabled: false, storefrontSlug: null }) }) }));
+vi.mock("@/auth/payment-link-v2-catalog", () => ({ listActivePaymentLinkProducts: listProducts }));
 vi.mock("@/auth/payment-link-v2-view", () => ({ getPaymentLinkV2ViewService: () => ({ getForOwner }) }));
 vi.mock("@/auth/payment-link-v2-prefill", () => ({ getPaymentLinkV2PrefillService: () => ({ getForOwner: getPrefill }) }));
 
@@ -51,13 +52,9 @@ const fixedFound = {
 function ready(locale: "pt-BR" | "en" = "en") {
   requireOwnerFromCookie.mockResolvedValue(principal);
   resolveLocale.mockResolvedValue(locale);
-  listV1.mockResolvedValue({
-    links: [],
-    activeProducts: [{ id: productId, internalName: "Espresso", titlePtBr: "Café expresso", titleEn: "Espresso shot", price: "12.5" }],
-    activeCurrencyPairs: [{ id: "440e8400-e29b-41d4-a716-446655440020", label: "BRL/USDT" }],
-  });
+  listProducts.mockResolvedValue([{ id: productId, internalName: "Espresso", titlePtBr: "Café expresso", titleEn: "Espresso shot", price: "12.5" }]);
   getForOwner.mockResolvedValue(fixedFound);
-  getPrefill.mockResolvedValue({ version: 5, lineProductIds: [] });
+  getPrefill.mockResolvedValue({ version: 5, lineProductIds: [], hasCheckoutAttempt: false });
 }
 
 beforeEach(() => { vi.clearAllMocks(); });
@@ -102,11 +99,25 @@ describe("merchant V2 payment-link edit page", () => {
 
   it("carries the bilingual attempt-lock explanation and the supersede affordance", async () => {
     ready("pt-BR");
+    // The lock banner and supersede affordance render only when the prefill's
+    // additive `hasCheckoutAttempt` flag is true (14.5.2 F02).
+    getPrefill.mockResolvedValue({ version: 5, lineProductIds: [], hasCheckoutAttempt: true });
     const markup = renderToStaticMarkup(await EditPaymentLinkPage({ params: Promise.resolve({ id: linkId }) }));
     expect(markup).toContain("A composição bloqueia após a primeira tentativa de checkout");
     expect(markup).toContain(`href="/links/new?from=${linkId}"`);
     expect(markup).toContain("Criar uma nova versão");
     expect(markup).toContain(`href="/links/v2/${linkId}"`);
+  });
+
+  // 14.5.2 F02 regression: without a genuine checkout attempt, the edit page
+  // shows neither the lock banner nor the supersede affordance.
+  it("omits the attempt-lock banner and the supersede affordance without a checkout attempt", async () => {
+    ready("pt-BR");
+    getPrefill.mockResolvedValue({ version: 5, lineProductIds: [], hasCheckoutAttempt: false });
+    const markup = renderToStaticMarkup(await EditPaymentLinkPage({ params: Promise.resolve({ id: linkId }) }));
+    expect(markup).not.toContain("A composição bloqueia após a primeira tentativa de checkout");
+    expect(markup).not.toContain(`href="/links/new?from=${linkId}"`);
+    expect(markup).not.toContain("Criar uma nova versão");
   });
 
   it("prefills ordered line product identifiers from the seam over the redacted view", async () => {

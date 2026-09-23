@@ -1,6 +1,14 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { readFileSync } from "node:fs";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+// The client shell now drives its own URL-state commits through
+// `next/navigation`; a static-markup pass never mounts an app router, so the
+// module is mocked the same way `notice-toast.test.tsx` mocks it.
+const { useRouter } = vi.hoisted(() => ({
+  useRouter: vi.fn(() => ({ replace: vi.fn(), push: vi.fn() })),
+}));
+vi.mock("next/navigation", () => ({ useRouter }));
 
 import { DataDirectory, type DataDirectoryCopy } from "./data-directory";
 

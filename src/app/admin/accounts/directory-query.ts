@@ -10,12 +10,14 @@ import {
 } from "@/auth/admin-user-directory";
 import { canonicalizeDirectoryRequest, type CanonicalDirectoryRequest } from "@/data-directory/server/canonical-request";
 import { createDirectoryCursorCodec, type DirectoryCursorCodec, type DirectoryCursorEnvelope } from "@/data-directory/server/cursor";
+import { DIRECTORY_INVALID_FILTERS_PARAM } from "@/data-directory/server/notice";
 
 // URL resolution for the administrator user directory: the delivered notice
 // keys are stripped and validated against their closed sets before strict
 // canonicalization (the merchant orders `noticeKey` pattern), so a forged or
 // repeated value resolves to the zero-I/O invalid-query state and a canonical
-// redirect drops the notice.
+// redirect drops the notice. The reserved invalid-filters pair is stripped
+// the same way, unconditionally, so a redirect that carries it never loops.
 export const ADMIN_ACCOUNTS_NOTICE_SUCCESS_VALUES = ["created", "changed"] as const;
 export const ADMIN_ACCOUNTS_NOTICE_ERROR_VALUES = ["create-failed", "change-failed"] as const;
 export type AdminAccountsNotice =
@@ -53,6 +55,7 @@ export function resolveAdminAccountsDirectoryQuery(
   const entries: Array<[string, string]> = [];
   for (const [key, value] of Object.entries(input.searchParams)) {
     if (value === undefined) continue;
+    if (key === DIRECTORY_INVALID_FILTERS_PARAM) continue;
     if (key === "success" || key === "error") {
       if (typeof value !== "string" || notice !== undefined) return { status: "invalid-query" };
       if (key === "success" && (ADMIN_ACCOUNTS_NOTICE_SUCCESS_VALUES as readonly string[]).includes(value)) {

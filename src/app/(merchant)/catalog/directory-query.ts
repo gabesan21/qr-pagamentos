@@ -1,5 +1,6 @@
 import "server-only";
 
+import { DIRECTORY_INVALID_FILTERS_PARAM } from "@/data-directory/server/notice";
 import {
   parseDirectoryQuery,
   type DefaultDirectoryPageSize,
@@ -17,6 +18,7 @@ export type CatalogDirectoryQuery = Readonly<{
   q?: string;
   filters: Readonly<Record<string, string | readonly string[]>>;
   pageSize: DefaultDirectoryPageSize;
+  canonicalFilterQuery: string;
   notice?: string;
 }> | Readonly<{ status: "redirect"; location: string }> | Readonly<{ status: "invalid-query" }>;
 
@@ -37,6 +39,10 @@ export function resolveCatalogDirectoryQuery(input: ResolveInput): CatalogDirect
   const entries: Array<[string, string]> = [];
   for (const [key, value] of Object.entries(input.searchParams)) {
     if (value === undefined) continue;
+    // The reserved invalid-filters notice pair is a redirect artifact, not a
+    // directory param: dropping it here is what keeps the reset redirect from
+    // looping back into another invalid-query resolution.
+    if (key === DIRECTORY_INVALID_FILTERS_PARAM) continue;
     if (key === input.noticeKey) {
       if (typeof value !== "string" || !input.noticeValues.includes(value)) return { status: "invalid-query" };
       if (notice !== undefined) return { status: "invalid-query" };
@@ -62,6 +68,7 @@ export function resolveCatalogDirectoryQuery(input: ResolveInput): CatalogDirect
     ...(parsed.value.q ? { q: parsed.value.q } : {}),
     filters: parsed.value.filters,
     pageSize: parsed.value.pageSize,
+    canonicalFilterQuery: parsed.value.canonicalFilterQuery,
     ...(notice ? { notice } : {}),
   };
 }

@@ -6,6 +6,7 @@ import { CheckCircle2Icon } from "lucide-react";
 
 import { AdminSubmit } from "@/app/admin/admin-submit";
 import type { Dictionary } from "./settings-surface";
+import { SettingsSectionNotice, type SectionNotice } from "./settings-section-notice";
 
 const THEME_NAMES: Record<string, keyof Dictionary> = {
   "pix-paper": "storefrontThemePixPaper",
@@ -19,12 +20,21 @@ const THEME_NAMES: Record<string, keyof Dictionary> = {
 export function AppearanceSection({
   defaultThemeId,
   dictionary,
+  notice,
   themeIds,
-}: Readonly<{ defaultThemeId: string; dictionary: Dictionary; themeIds: readonly string[] }>) {
+}: Readonly<{ defaultThemeId: string; dictionary: Dictionary; notice: SectionNotice; themeIds: readonly string[] }>) {
   const [themeId, setThemeId] = useState(defaultThemeId);
 
   return (
     <form action="/admin/settings/default-theme" method="post">
+      <SettingsSectionNotice
+        dictionary={dictionary}
+        notice={notice}
+        toastEntries={[
+          { param: "success", value: "theme-default", kind: "success", message: dictionary.adminThemeDefaultSaved },
+          { param: "error", value: "theme-default-failed", kind: "error", message: dictionary.adminThemeDefaultFailed },
+        ]}
+      />
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {themeIds.map((id) => {
           const selected = themeId === id;
@@ -33,7 +43,7 @@ export function AppearanceSection({
             <button
               key={id}
               aria-pressed={selected}
-              className={`relative rounded-lg border p-1.5 text-left transition-shadow ${selected ? "border-primary ring-3 ring-ring" : "border-border hover:border-muted-foreground"}`}
+              className={`relative rounded-card border p-1.5 text-left transition-shadow ${selected ? "border-primary ring-3 ring-ring" : "border-border hover:border-muted-foreground"}`}
               data-theme-id={id}
               onClick={() => setThemeId(id)}
               type="button"
@@ -46,7 +56,7 @@ export function AppearanceSection({
                 src={`/application-assets/theme-swatch-${id}.svg`}
                 width={96}
               />
-              <span className="mt-1 block text-xs font-medium text-muted-foreground">{label}</span>
+              <span className="mt-1 block text-xs font-medium text-text-2">{label}</span>
             </button>
           );
         })}

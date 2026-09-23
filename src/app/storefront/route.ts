@@ -36,11 +36,15 @@ export async function POST(request: Request) {
         if (form.has(field)) input[field] = form.get(field);
       }
       await getStorefrontSettingsService().update(actor, input);
-      return relativeRedirect("/?storefront=changed");
+      return relativeRedirect("/settings?storefront=changed#settings-identity");
     } catch (error) {
       const protectedResponse = ownerProtectedMutationResponse(error);
       if (protectedResponse) return protectedResponse;
-      return relativeRedirect(error instanceof StorefrontSettingsConflictError ? "/?storefront=conflict" : "/?storefront=failed");
+      return relativeRedirect(
+        error instanceof StorefrontSettingsConflictError
+          ? "/settings?storefront=conflict#settings-identity"
+          : "/settings?storefront=failed#settings-identity",
+      );
     }
   });
 }

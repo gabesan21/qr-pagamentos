@@ -65,7 +65,7 @@ describe("language dictionaries", () => {
       "adminProductsHeading", "adminProductsEmpty", "adminProductCreate",
       "adminProductDeleteConfirm", "adminProductConflict", "adminProductMutationFailed",
       "ordersHeading", "ordersDescription", "ordersEmpty", "ordersEmptyDescription",
-      "ordersView", "orderBackToList", "orderPaymentLink", "orderProduct", "orderAmount",
+      "ordersView", "orderPaymentLink", "orderAmount",
       "orderCurrencyPair", "orderState", "orderCreated", "orderUpdated", "orderSettled",
       "orderUnavailableHeading", "orderUnavailableDescription",
       "storefrontHeading", "storefrontDescription", "storefrontSlugLabel", "storefrontSlugHelp",

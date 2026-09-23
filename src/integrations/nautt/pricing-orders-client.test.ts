@@ -4,9 +4,11 @@ vi.mock("server-only", () => ({}));
 
 import {
   createPricingOrdersAdapter,
+  NAUTT_ORDER_REFUSAL_CODES,
   NauttOrderCreationIndeterminateError,
   NauttOrderNotFoundError,
   NauttOrderReadAdapterError,
+  NauttOrderRefusedError,
   NauttOrderValidationError,
   NauttPricingAdapterError,
 } from "./pricing-orders-client";
@@ -435,6 +437,60 @@ describe("Nautt order creation adapter", () => {
 
   it("treats a non-JSON 201 as indeterminate with one fetch and no body leakage", async () => {
     const fetch = vi.fn(async () => new Response(`<html>${apiKey}${payerName}</html>`, { status: 201 }));
+    const adapter = createPricingOrdersAdapter({ fetch });
+
+    const error = await adapter.createOnrampOrder({ apiKey, quoteUuid }).catch((caught: unknown) => caught);
+
+    expect(error).toBeInstanceOf(NauttOrderCreationIndeterminateError);
+    expectRedacted(error);
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    [400, "order.quote_not_found"],
+    [400, "order.quote_expired"],
+    [400, "order.exchange_not_configured"],
+    [400, "order.payment_method_not_available"],
+    [400, "orders.deposit_bank_account_not_found"],
+    [422, "order.deposit_fields_required"],
+    [422, "order.deposit_fields_validation_failed"],
+  ] as const)("classifies documented refusal %s %s as a typed, code-carrying error with one fetch and no retry", async (status, code) => {
+    const fetch = vi.fn(async () => new Response(JSON.stringify({ message: "refused", code }), { status }));
+    const adapter = createPricingOrdersAdapter({ fetch });
+
+    const error = await adapter.createOnrampOrder({ apiKey, quoteUuid }).catch((caught: unknown) => caught);
+
+    expect(error).toBeInstanceOf(NauttOrderRefusedError);
+    expect((error as NauttOrderRefusedError).code).toBe(code);
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("covers exactly the seven documented refusal codes and no more", () => {
+    expect(NAUTT_ORDER_REFUSAL_CODES).toHaveLength(7);
+  });
+
+  it.each([400, 422])("treats an undocumented code on %s as indeterminate, never refused", async (status) => {
+    const fetch = vi.fn(async () => new Response(JSON.stringify({ message: "other", code: "order.unexpected" }), { status }));
+    const adapter = createPricingOrdersAdapter({ fetch });
+
+    const error = await adapter.createOnrampOrder({ apiKey, quoteUuid }).catch((caught: unknown) => caught);
+
+    expect(error).toBeInstanceOf(NauttOrderCreationIndeterminateError);
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([400, 422])("treats a %s body with no code as indeterminate, never refused", async (status) => {
+    const fetch = vi.fn(async () => new Response(JSON.stringify({ message: "no code here" }), { status }));
+    const adapter = createPricingOrdersAdapter({ fetch });
+
+    const error = await adapter.createOnrampOrder({ apiKey, quoteUuid }).catch((caught: unknown) => caught);
+
+    expect(error).toBeInstanceOf(NauttOrderCreationIndeterminateError);
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([400, 422])("treats an unparseable %s body as indeterminate with no leakage", async (status) => {
+    const fetch = vi.fn(async () => new Response(`<html>${apiKey}</html>`, { status }));
     const adapter = createPricingOrdersAdapter({ fetch });
 
     const error = await adapter.createOnrampOrder({ apiKey, quoteUuid }).catch((caught: unknown) => caught);

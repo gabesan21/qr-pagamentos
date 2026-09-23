@@ -2,6 +2,8 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 
+import { DIRECTORY_INVALID_FILTERS_PARAM, DIRECTORY_INVALID_FILTERS_VALUE, directoryInvalidFiltersLocation } from "@/data-directory/server/notice";
+
 import { ordersCanonicalTarget, resolveOrdersDirectoryQuery } from "./directory-query";
 
 const principal = { id: "440e8400-e29b-41d4-a716-446655440001", username: "owner", email: null, role: "USER" as const, status: "ACTIVE" as const, createdAt: new Date() };
@@ -62,5 +64,37 @@ describe("resolveOrdersDirectoryQuery", () => {
 
   it("rejects page sizes outside the registered subset", () => {
     expect(resolve({ pageSize: "25" }).status).toBe("invalid-query");
+  });
+});
+
+describe("resolveOrdersDirectoryQuery reserved invalid-filters pair", () => {
+  it("strips the reserved pair before canonicalization and resolves the canonical result for the remaining params", () => {
+    const withPair = resolve({ [DIRECTORY_INVALID_FILTERS_PARAM]: DIRECTORY_INVALID_FILTERS_VALUE, q: "ana" });
+    const withoutPair = resolve({ q: "ana" });
+    expect(withPair).toEqual(withoutPair);
+    expect(withPair.status).toBe("ready");
+    if (withPair.status !== "ready") return;
+    expect(ordersCanonicalTarget(withPair)).toBe("/orders?q=ana");
+  });
+
+  it("never redirects back to a URL carrying the reserved pair", () => {
+    const bare = resolve({ [DIRECTORY_INVALID_FILTERS_PARAM]: DIRECTORY_INVALID_FILTERS_VALUE });
+    expect(bare.status).toBe("ready");
+    const redirect = resolve({ [DIRECTORY_INVALID_FILTERS_PARAM]: DIRECTORY_INVALID_FILTERS_VALUE, pageSize: "20" });
+    expect(redirect).toEqual({ status: "redirect", location: "/orders" });
+    if (redirect.status === "redirect") expect(redirect.location).not.toContain(DIRECTORY_INVALID_FILTERS_PARAM);
+  });
+
+  it("redirects an otherwise-invalid request to directoryInvalidFiltersLocation(path) exactly once, and resolving that redirect location never loops", () => {
+    expect(resolve({ forged: "1" }).status).toBe("invalid-query");
+    const location = directoryInvalidFiltersLocation("/orders");
+    expect(location).toBe("/orders?filters=ignored");
+
+    const [, query] = location.split("?");
+    const searchParams = Object.fromEntries(new URLSearchParams(query));
+    const resolved = resolve(searchParams);
+    expect(resolved.status).toBe("ready");
+    if (resolved.status !== "ready") return;
+    expect(ordersCanonicalTarget(resolved)).toBe("/orders");
   });
 });

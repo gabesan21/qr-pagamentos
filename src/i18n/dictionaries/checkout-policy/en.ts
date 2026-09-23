@@ -8,4 +8,9 @@ export const checkoutPolicyEn = {
   checkoutPolicyEmail: "Email",
   checkoutPolicyNameEmailCpf: "Name, email, and CPF",
   checkoutPolicyNameEmailCpfAddress: "Name, email, CPF, and address",
+  checkoutPolicyFieldsNone: "No fields collected",
+  checkoutPolicyFieldName: "Name",
+  checkoutPolicyFieldEmail: "Email",
+  checkoutPolicyFieldCpf: "CPF",
+  checkoutPolicyFieldAddress: "Address",
 } as const;

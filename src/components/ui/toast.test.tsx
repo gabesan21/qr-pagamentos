@@ -12,6 +12,16 @@ afterEach(() => {
 })
 
 describe("ToastViewport", () => {
+  it("mounts at the template's top-right position", async () => {
+    render(<ToastViewport label="Payment feedback" />)
+    showToast({ kind: "success", message: "Positioned toast" })
+    await screen.findByText("Positioned toast")
+
+    const region = document.querySelector("[data-sonner-toaster]")
+    expect(region?.getAttribute("data-x-position")).toBe("right")
+    expect(region?.getAttribute("data-y-position")).toBe("top")
+  })
+
   it("mounts assertive failure feedback with retry and a dismiss control", async () => {
     const user = userEvent.setup()
     const retry = vi.fn()

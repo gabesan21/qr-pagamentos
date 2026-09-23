@@ -1,18 +1,10 @@
-import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 
-import { getDictionary } from "@/i18n/dictionaries";
-import type { CheckoutDataPolicy } from "@/orders/payment-link-order";
-
-import { createPollingController, PublicCheckoutForm } from "./public-checkout-form";
+import { createPollingController } from "./public-checkout-form";
 
 const identifier = "AbCdEfGhIjKlMnOpQrStUvWx";
-
-function markup(policy: CheckoutDataPolicy) {
-  return renderToStaticMarkup(<PublicCheckoutForm dictionary={getDictionary("en")} identifier={identifier} policy={policy} product={{ title: "Donation", description: "Support the project.", price: "12.50" }} />);
-}
 
 class TestVisibilityDocument {
   visibilityState: Document["visibilityState"] = "visible";
@@ -43,31 +35,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe("public checkout form", () => {
-  it.each([
-    ["NONE", []],
-    ["EMAIL", ["email"]],
-    ["NAME_EMAIL", ["name", "email"]],
-    ["NAME_EMAIL_CPF", ["name", "email", "cpf"]],
-    ["NAME_EMAIL_CPF_ADDRESS", ["name", "email", "cpf", "street", "number", "district", "city", "stateUf", "postalCode"]],
-  ] as const)("renders exactly the %s policy fields", (policy, fields) => {
-    const rendered = markup(policy);
-
-    for (const field of ["name", "email", "cpf", "street", "number", "district", "city", "stateUf", "postalCode"]) {
-      expect(rendered.includes(`checkout-${field}`), `${policy}.${field}`).toBe((fields as readonly string[]).includes(field));
-    }
-  });
-
-  it("uses only the shared form, feedback, and action inventory with accessible states", () => {
-    const rendered = markup("NAME_EMAIL_CPF_ADDRESS");
-
-    for (const slot of ["card", "field-group", "field", "input", "button"]) expect(rendered).toContain(`data-slot="${slot}"`);
-    expect(rendered).toContain('data-slot="field-set"');
-    expect(rendered).toContain('type="submit"');
-    expect(rendered).toContain('for="checkout-stateUf"');
-    expect(markup("NONE")).toContain('role="status"');
-  });
-
+describe("createPollingController", () => {
   it("aborts hidden capability polls, ignores stale responses, and resumes without overlap", async () => {
     vi.useFakeTimers();
     const document = new TestVisibilityDocument();

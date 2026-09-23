@@ -63,7 +63,7 @@ describe("administrative mutation route contract", () => {
     const created = await create(request(new URLSearchParams({ username: "new.user", password: "correct horse battery staple", role: "USER", actorId: "attacker" })));
     expect(createUser).toHaveBeenCalledWith(actor, expect.objectContaining({ username: "new.user", role: "USER" }));
     expect(created.status).toBe(303);
-    expect(created.headers.get("location")).toBe("/admin?success=created");
+    expect(created.headers.get("location")).toBe("/admin/accounts?success=created");
 
     for (const [handler, form] of [[role, new URLSearchParams({ role: "USER" })], [status, new URLSearchParams({ status: "DISABLED" })], [password, new URLSearchParams({ password: "correct horse battery staple" })]] as const) {
       requireAdminFromCookie.mockResolvedValue(actor);
@@ -71,6 +71,17 @@ describe("administrative mutation route contract", () => {
       expect(response.status).toBe(303);
       expect(response.headers.get("location")).toBe("/admin?success=" + (handler === role ? "role" : handler === status ? "status" : "password"));
     }
+  });
+
+  it("redirects account creation failure to the accounts directory, not the dashboard", async () => {
+    requireAdminFromCookie.mockResolvedValue(actor);
+    protectedMutationResponse.mockReturnValue(null);
+    createUser.mockRejectedValue(new Error("username taken"));
+
+    const response = await create(request(new URLSearchParams({ username: "new.user", password: "correct horse battery staple", role: "USER" })));
+
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toBe("/admin/accounts?error=create-failed");
   });
 
   it.each([

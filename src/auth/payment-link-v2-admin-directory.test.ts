@@ -6,6 +6,7 @@ import { createDirectoryCursorCodec } from "../data-directory/server/cursor";
 import { DirectoryAuthorizationError } from "../data-directory/server/directory-page";
 import { ForbiddenError } from "./authorization";
 import {
+  ADMIN_PAYMENT_LINK_V2_DIRECTORY_FILTERS,
   createAdminPaymentLinkV2DirectoryService,
   type AdminPaymentLinkV2DirectoryRead,
   type AdminPaymentLinkV2DirectoryStore,
@@ -53,8 +54,10 @@ function storedLink(index: number, owner: AdminPaymentLinkV2Owner = ownerAttribu
 function storeWith(rows: readonly AdminStoredPaymentLinkV2[]) {
   const readWindow = vi.fn(async (_input: AdminPaymentLinkV2DirectoryRead) => [...rows]);
   const findForAdmin = vi.fn<AdminPaymentLinkV2DirectoryStore["findForAdmin"]>(async (_id: string) => rows[0] ?? null);
-  const store: AdminPaymentLinkV2DirectoryStore = { readWindow, findForAdmin };
-  return { store, readWindow, findForAdmin };
+  const findForAdminByIdentifier = vi.fn<AdminPaymentLinkV2DirectoryStore["findForAdminByIdentifier"]>(async (_identifier: string) => rows[0] ?? null);
+  const findActiveUsdPairId = vi.fn<AdminPaymentLinkV2DirectoryStore["findActiveUsdPairId"]>(async () => "usd-pair-id");
+  const store: AdminPaymentLinkV2DirectoryStore = { findActiveUsdPairId, findForAdmin, findForAdminByIdentifier, readWindow };
+  return { findActiveUsdPairId, findForAdmin, findForAdminByIdentifier, readWindow, store };
 }
 
 const codecKey = () => Buffer.alloc(32, 9);
@@ -261,6 +264,30 @@ describe("administrator payment-link V2 directory", () => {
     }
   });
 
+  it("registers exactly seven filters, including merchant (exact case-insensitive equality) and money (USD via the active pair)", async () => {
+    expect(ADMIN_PAYMENT_LINK_V2_DIRECTORY_FILTERS).toHaveLength(7);
+
+    const { store, readWindow, findActiveUsdPairId } = storeWith([storedLink(1)]);
+    const service = serviceWith(store);
+
+    await service.query(admin, "/admin/payment-links?filter.merchant=Merchant.One");
+    expect(readWindow.mock.calls.at(-1)?.[0].where).toEqual({
+      AND: [{ owner: { is: { username: { equals: "Merchant.One", mode: "insensitive" } } } }],
+    });
+
+    await service.query(admin, "/admin/payment-links?filter.money=USD");
+    expect(findActiveUsdPairId).toHaveBeenCalled();
+    expect(readWindow.mock.calls.at(-1)?.[0].where).toEqual({ AND: [{ currencyPairId: "usd-pair-id" }] });
+
+    await service.query(admin, "/admin/payment-links?filter.money=FIAT");
+    expect(readWindow.mock.calls.at(-1)?.[0].where).toEqual({ AND: [{ NOT: { currencyPairId: "usd-pair-id" } }] });
+
+    // No active USD pair: USD narrows to nothing, FIAT stays unconstrained.
+    findActiveUsdPairId.mockResolvedValueOnce(null);
+    const noUsdPair = await service.query(admin, "/admin/payment-links?filter.money=USD");
+    expect(noUsdPair).toMatchObject({ rows: [] });
+  });
+
   it("keeps every derived-state filter in exact agreement with derivePaymentLinkV2State", async () => {
     const past = new Date(NOW.getTime() - 60_000);
     const future = new Date(NOW.getTime() + 60_000);
@@ -379,15 +406,38 @@ describe("administrator payment-link V2 directory", () => {
   });
 
   it("denies every read to non-administrator principals before any I/O", async () => {
-    const { store, readWindow, findForAdmin } = storeWith([storedLink(1)]);
+    const { store, readWindow, findForAdmin, findForAdminByIdentifier } = storeWith([storedLink(1)]);
     const service = serviceWith(store);
     await expect(service.query(merchant, "/admin/payment-links")).rejects.toBeInstanceOf(DirectoryAuthorizationError);
     await expect(service.getForAdmin(merchant, "440e8400-e29b-41d4-a716-000000000001")).rejects.toBeInstanceOf(ForbiddenError);
+    await expect(service.getForAdminByIdentifier(merchant, "identifier000000000000001")).rejects.toBeInstanceOf(ForbiddenError);
     const disabledAdmin = { ...admin, status: "DISABLED" as const };
     await expect(service.query(disabledAdmin, "/admin/payment-links")).rejects.toBeInstanceOf(DirectoryAuthorizationError);
     await expect(service.getForAdmin(disabledAdmin, "440e8400-e29b-41d4-a716-000000000001")).rejects.toBeInstanceOf(ForbiddenError);
     expect(readWindow).not.toHaveBeenCalled();
     expect(findForAdmin).not.toHaveBeenCalled();
+    expect(findForAdminByIdentifier).not.toHaveBeenCalled();
+  });
+
+  it("resolves the additive identifier lookup consumed by the admin order detail's link card", async () => {
+    const identifier = storedLink(1).link.identifier;
+    const { store, findForAdminByIdentifier } = storeWith([storedLink(1)]);
+    const service = serviceWith(store);
+
+    const found = await service.getForAdminByIdentifier(admin, identifier);
+    expect(findForAdminByIdentifier).toHaveBeenCalledWith(identifier);
+    if (found.kind !== "found") throw new Error("expected a found detail");
+    expect(found.link.identifier).toBe(identifier);
+
+    // One opaque unavailable outcome for a malformed identifier, without I/O.
+    findForAdminByIdentifier.mockClear();
+    await expect(service.getForAdminByIdentifier(admin, "too-short")).resolves.toEqual({ kind: "unavailable" });
+    await expect(service.getForAdminByIdentifier(admin, 42)).resolves.toEqual({ kind: "unavailable" });
+    expect(findForAdminByIdentifier).not.toHaveBeenCalled();
+
+    // And the same opaque outcome when the store finds nothing.
+    findForAdminByIdentifier.mockResolvedValueOnce(null);
+    await expect(service.getForAdminByIdentifier(admin, identifier)).resolves.toEqual({ kind: "unavailable" });
   });
 
   it("resolves the bounded detail read with the one opaque unavailable outcome", async () => {

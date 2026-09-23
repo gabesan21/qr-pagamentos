@@ -1,6 +1,6 @@
 ---
 id: <n>.<m>.<t>
-project: <categoria>/<projeto>
+project: <projeto>
 origin: roadmap
 epoch: <n>
 phase: "<n>.<m>"
