@@ -131,13 +131,13 @@ export function CheckoutPaymentView(props: CheckoutPaymentViewProps): ReactNode 
   if (state === "CONFIRMED") {
     const copy = terminalCopy(dictionary, "CONFIRMED");
     return (
-      <div className="flex flex-col items-center gap-3 rounded-lg border border-border bg-card p-6 text-center">
+      <div className="flex flex-col items-center gap-3 rounded-card border border-border bg-surface p-6 text-center">
         <CircleCheckIcon aria-hidden className="size-10 text-success" />
         <ProviderStateBadge labels={labels} state={toProviderState(state)} />
         <h2 className="font-display text-lg font-semibold">{copy.title}</h2>
-        <p className="text-sm text-muted-foreground">{copy.body}</p>
+        <p className="text-sm text-text-2">{copy.body}</p>
         <div className="mt-1 flex items-baseline justify-between gap-3">
-          <span className="text-sm text-muted-foreground">{dictionary.checkoutAmountDueLabel}</span>
+          <span className="text-sm text-text-2">{dictionary.checkoutAmountDueLabel}</span>
           <MoneyText className="ml-3" pairLabel={props.currencyLabel} size="large" value={props.total} />
         </div>
       </div>
@@ -147,10 +147,10 @@ export function CheckoutPaymentView(props: CheckoutPaymentViewProps): ReactNode 
   if (state === "REFUNDED") {
     const copy = terminalCopy(dictionary, "REFUNDED");
     return (
-      <div className="flex flex-col items-center gap-3 rounded-lg border border-border bg-card p-6 text-center">
+      <div className="flex flex-col items-center gap-3 rounded-card border border-border bg-surface p-6 text-center">
         <ProviderStateBadge labels={labels} state={toProviderState(state)} />
         <h2 className="font-display text-lg font-semibold">{copy.title}</h2>
-        <p className="text-sm text-muted-foreground">{copy.body}</p>
+        <p className="text-sm text-text-2">{copy.body}</p>
       </div>
     );
   }
@@ -188,12 +188,12 @@ export function CheckoutPaymentView(props: CheckoutPaymentViewProps): ReactNode 
     // square and no caption promising data — the next 5 s read can still
     // change the outcome, so nothing here claims data has arrived.
     return (
-      <div aria-busy className="flex flex-col items-center gap-4 rounded-lg border border-border bg-card p-6">
+      <div aria-busy className="flex flex-col items-center gap-4 rounded-card border border-border bg-surface p-6">
         <div aria-live="polite">
           <ProviderStateBadge labels={labels} state={toProviderState(state)} />
         </div>
         <div className="flex w-full items-baseline justify-between border-t border-border pt-4">
-          <span className="text-sm text-muted-foreground">{dictionary.checkoutAmountDueLabel}</span>
+          <span className="text-sm text-text-2">{dictionary.checkoutAmountDueLabel}</span>
           <MoneyText pairLabel={props.currencyLabel} size="large" value={props.total} />
         </div>
       </div>
@@ -215,7 +215,7 @@ export function CheckoutPaymentView(props: CheckoutPaymentViewProps): ReactNode 
 
   // PENDING with a payload: QR plus copy-paste.
   return (
-    <div className="flex flex-col items-center gap-4 rounded-lg border border-border bg-card p-6">
+    <div className="flex flex-col items-center gap-4 rounded-card border border-border bg-surface p-6">
       <div aria-live="polite">
         <ProviderStateBadge labels={labels} state={toProviderState(state)} />
       </div>
@@ -232,7 +232,7 @@ export function CheckoutPaymentView(props: CheckoutPaymentViewProps): ReactNode 
         variant="compact"
       />
       <div className="flex w-full items-baseline justify-between border-t border-border pt-4">
-        <span className="text-sm text-muted-foreground">{dictionary.checkoutAmountDueLabel}</span>
+        <span className="text-sm text-text-2">{dictionary.checkoutAmountDueLabel}</span>
         <MoneyText pairLabel={props.currencyLabel} size="large" value={props.total} />
       </div>
     </div>

@@ -47,10 +47,10 @@ export function StorefrontPreview({
   const action = <Button asChild><span>{sampleAction}</span></Button>;
   return (
     <div className="space-y-3">
-      <h3 className="text-sm font-semibold text-foreground" id="storefront-preview-heading">{heading}</h3>
+      <h3 className="text-sm font-semibold text-text" id="storefront-preview-heading">{heading}</h3>
       <section
         aria-labelledby="storefront-preview-heading"
-        className="grid gap-5 rounded-lg border border-border bg-card p-5 text-card-foreground"
+        className="grid gap-5 rounded-card border border-border bg-surface p-5 text-text"
         data-layout={layout}
         data-theme-preview={themeId}
         style={{ "--storefront-accent": accentColor } as CSSProperties}
@@ -59,7 +59,7 @@ export function StorefrontPreview({
           {logoMediaIdentifier
             ? <img alt={logoAlt} className="size-8 object-contain" src={`/media/${logoMediaIdentifier}`} />
             : <span aria-label={fallbackAlt} role="img"><BrandIdentity variant="merchant-fallback" /></span>}
-          <p className="truncate text-lg font-semibold leading-tight text-foreground">{displayName}</p>
+          <p className="truncate text-lg font-semibold leading-tight text-text">{displayName}</p>
         </header>
         {layout === "table" ? (
           <Table>
@@ -73,8 +73,8 @@ export function StorefrontPreview({
             <TableBody>
               <TableRow>
                 <TableCell>
-                  <p className="font-medium text-foreground">{sampleTitle}</p>
-                  <p className="text-sm text-muted-foreground">{sampleDescription}</p>
+                  <p className="font-medium text-text">{sampleTitle}</p>
+                  <p className="text-sm text-text-2">{sampleDescription}</p>
                 </TableCell>
                 <TableCell className="tabular-nums">{samplePrice}</TableCell>
                 <TableCell>{action}</TableCell>
@@ -84,7 +84,7 @@ export function StorefrontPreview({
         ) : (
           <Card>
             <CardHeader><CardTitle>{sampleTitle}</CardTitle><CardDescription>{sampleDescription}</CardDescription></CardHeader>
-            <CardContent><p className="tabular-nums"><span className="text-sm font-medium text-muted-foreground">{priceLabel}</span> {samplePrice}</p></CardContent>
+            <CardContent><p className="tabular-nums"><span className="text-sm font-medium text-text-2">{priceLabel}</span> {samplePrice}</p></CardContent>
             <CardFooter>{action}</CardFooter>
           </Card>
         )}

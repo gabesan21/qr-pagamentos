@@ -38,7 +38,7 @@ export function OrderOutcomeEditor({
 
   return (
     <div className="flex flex-col gap-5">
-      <p className="text-sm text-muted-foreground">{dictionary.orderV2OutcomePrecedenceCaption}</p>
+      <p className="text-sm text-text-2">{dictionary.orderV2OutcomePrecedenceCaption}</p>
       <FormDraftGuard
         draftKey={draftKey}
         fieldNames={["outcome", "note"]}

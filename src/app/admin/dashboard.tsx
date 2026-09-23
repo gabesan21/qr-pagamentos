@@ -243,7 +243,7 @@ function OrdersCard({ dictionary, view }: Readonly<{ dictionary: Dictionary; vie
           <p className="m-0 max-w-prose text-text-2">{dictionary.adminDashboardOrdersEmpty}</p>
         ) : (
           <section aria-label={dictionary.adminDashboardOrdersBySource} className="grid gap-3 border-t border-border pt-4">
-            <div aria-label={`${dictionary.adminDashboardOrdersBySource}: ${total}`} className="flex h-3 w-full overflow-hidden rounded-full bg-muted" role="img">
+            <div aria-label={`${dictionary.adminDashboardOrdersBySource}: ${total}`} className="flex h-3 w-full overflow-hidden rounded-full bg-surface-2" role="img">
               {sourceRows.map((row) => {
                 const pct = total === 0 ? 0 : (row.count / total) * 100;
                 return (
@@ -326,7 +326,7 @@ function FunnelBar({
         <span>{label}</span>
         <span className="tabular-nums">{count} · {rate}%</span>
       </div>
-      <div className="h-2 overflow-hidden rounded-full bg-muted">
+      <div className="h-2 overflow-hidden rounded-full bg-surface-2">
         <div className={`h-full transition-all ${cls} ${progressWidthClass(rate)}`} />
       </div>
     </div>
@@ -429,7 +429,7 @@ function TopOwnersCard({ dictionary, locale, view }: Readonly<{ dictionary: Dict
             {view.topOwners.map((entry, index) => (
               <li key={entry.owner.username}>
                 <Link
-                  className="flex min-h-11 items-center gap-3 rounded-md p-2 no-underline hover:bg-muted"
+                  className="flex min-h-11 items-center gap-3 rounded-md p-2 no-underline hover:bg-surface-2"
                   href={`/admin/orders?filter.merchant=${encodeURIComponent(entry.owner.username)}`}
                 >
                   <span aria-hidden className="bg-accent text-accent-foreground font-money inline-flex size-7 items-center justify-center rounded-full text-xs font-semibold">

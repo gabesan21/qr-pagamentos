@@ -155,19 +155,19 @@ function RadioCard({
 }>) {
   return (
     <label
-      className="flex-1 cursor-pointer rounded-lg border p-4 transition-colors has-[:checked]:border-primary has-[:checked]:bg-accent-soft has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-60 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring has-[:focus-visible]:ring-offset-2"
+      className="flex-1 cursor-pointer rounded-card border p-4 transition-colors has-[:checked]:border-primary has-[:checked]:bg-accent-soft has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-60 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring has-[:focus-visible]:ring-offset-2"
       htmlFor={id}
     >
       <input checked={checked} className="sr-only" disabled={disabled} id={id} name={name} onChange={onChange} type="radio" value={value} />
-      <p className="text-sm font-medium text-foreground">{title}</p>
-      <p className="mt-1 text-xs text-muted-foreground">{caption}</p>
+      <p className="text-sm font-medium text-text">{title}</p>
+      <p className="mt-1 text-xs text-text-2">{caption}</p>
     </label>
   );
 }
 
 function LockNote({ label }: Readonly<{ label: string }>) {
   return (
-    <p className="mt-1.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+    <p className="mt-1.5 flex items-center gap-1.5 text-xs text-text-2">
       <LockIcon aria-hidden className="size-3" /> {label}
     </p>
   );
@@ -176,8 +176,8 @@ function LockNote({ label }: Readonly<{ label: string }>) {
 function StructuralFact({ label, value }: Readonly<{ label: string; value: string }>) {
   return (
     <div>
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="text-sm font-medium text-foreground">{value}</p>
+      <p className="text-xs text-text-2">{label}</p>
+      <p className="text-sm font-medium text-text">{value}</p>
     </div>
   );
 }
@@ -680,35 +680,35 @@ export function LinkV2Form({
             <CardContent>
               <dl className="space-y-3 text-sm">
                 <div className="flex items-center justify-between">
-                  <dt className="text-muted-foreground">{copy.previewType}</dt>
-                  <dd className="text-foreground">{linkType === "REUSABLE" ? copy.reusable : copy.singleUse}</dd>
+                  <dt className="text-text-2">{copy.previewType}</dt>
+                  <dd className="text-text">{linkType === "REUSABLE" ? copy.reusable : copy.singleUse}</dd>
                 </div>
                 <div className="flex items-center justify-between">
-                  <dt className="text-muted-foreground">{copy.previewComposition}</dt>
-                  <dd className="text-foreground">{kind === "PRODUCT_LINES" ? copy.kindProductLines : copy.kindFixedAmount}</dd>
+                  <dt className="text-text-2">{copy.previewComposition}</dt>
+                  <dd className="text-text">{kind === "PRODUCT_LINES" ? copy.kindProductLines : copy.kindFixedAmount}</dd>
                 </div>
                 <div className="flex items-center justify-between">
-                  <dt className="text-muted-foreground">{copy.previewCurrency}</dt>
-                  <dd className="text-foreground">{editing ? currencyPairLabel ?? "—" : pairs.find((pair) => pair.id === currencyPairId)?.label ?? "—"}</dd>
+                  <dt className="text-text-2">{copy.previewCurrency}</dt>
+                  <dd className="text-text">{editing ? currencyPairLabel ?? "—" : pairs.find((pair) => pair.id === currencyPairId)?.label ?? "—"}</dd>
                 </div>
                 <div className="flex items-center justify-between">
-                  <dt className="text-muted-foreground">{copy.previewExpiry}</dt>
-                  <dd className="text-foreground">{expiresAtValue !== "" ? new Date(expiresAtValue).toLocaleString(locale) : copy.previewNoExpiry}</dd>
+                  <dt className="text-text-2">{copy.previewExpiry}</dt>
+                  <dd className="text-text">{expiresAtValue !== "" ? new Date(expiresAtValue).toLocaleString(locale) : copy.previewNoExpiry}</dd>
                 </div>
                 {kind === "PRODUCT_LINES" ? (
                   <div className="flex items-center justify-between">
-                    <dt className="text-muted-foreground">{copy.previewLines}</dt>
-                    <dd className="font-mono text-foreground">{lines.length}</dd>
+                    <dt className="text-text-2">{copy.previewLines}</dt>
+                    <dd className="font-mono text-text">{lines.length}</dd>
                   </div>
                 ) : null}
                 {(kind === "PRODUCT_LINES" && lines.length === 0)
                 || (kind === "FIXED_AMOUNT" && fixedAmount === "" && fixedDescriptionPtBr === "" && fixedDescriptionEn === "") ? (
-                  <p className="border-t pt-3 text-muted-foreground">{copy.previewEmpty}</p>
+                  <p className="border-t pt-3 text-text-2">{copy.previewEmpty}</p>
                 ) : (
                   <div className="border-t pt-3">
-                    <dt className="text-muted-foreground">{copy.previewTotal}</dt>
+                    <dt className="text-text-2">{copy.previewTotal}</dt>
                     <dd className="mt-1">
-                      <span className="font-mono text-lg font-semibold text-foreground">
+                      <span className="font-mono text-lg font-semibold text-text">
                         {kind === "FIXED_AMOUNT"
                           ? (isLinkMoneyAmount(fixedAmount) ? formatCatalogPrice(fixedAmount, null, locale) : (fixedAmount || "—"))
                           : formatCatalogPrice(runningTotal, null, locale)}

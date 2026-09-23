@@ -33,7 +33,7 @@ export function IdentityForm({ detail, dictionary }: Readonly<{ detail: AdminUse
         noticeKey="editor"
         noticeValues={IDENTITY_FAILURE_NOTICES}
       />
-      <p className="mb-4 text-sm text-muted-foreground">{dictionary.adminUserProfileIdentityDescription}</p>
+      <p className="mb-4 text-sm text-text-2">{dictionary.adminUserProfileIdentityDescription}</p>
       <Input name="expectedVersion" readOnly type="hidden" value={String(detail.editor.profileVersion)} />
       <FieldGroup className="grid gap-4 sm:grid-cols-2">
         <Field>

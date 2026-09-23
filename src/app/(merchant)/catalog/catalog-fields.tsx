@@ -34,16 +34,16 @@ type BreadcrumbItem = Readonly<{ label: string; href?: string }>;
 
 export function Breadcrumb({ items }: Readonly<{ items: readonly BreadcrumbItem[] }>) {
   return (
-    <nav aria-label="breadcrumb" className="flex items-center gap-1.5 text-sm text-muted-foreground">
+    <nav aria-label="breadcrumb" className="flex items-center gap-1.5 text-sm text-text-2">
       {items.map((item, index) => (
         <span className="flex items-center gap-1.5" key={item.label + index}>
           {index > 0 ? <ChevronRight aria-hidden className="size-3.5" /> : null}
           {item.href ? (
-            <a className="hover:text-foreground hover:underline" href={item.href}>
+            <a className="hover:text-text hover:underline" href={item.href}>
               {item.label}
             </a>
           ) : (
-            <span className="text-foreground">{item.label}</span>
+            <span className="text-text">{item.label}</span>
           )}
         </span>
       ))}
@@ -67,13 +67,13 @@ export function SectionCard({
   return (
     <section
       className={cn(
-        "scroll-mt-20 rounded-lg border border-border bg-card p-5 shadow-sm sm:p-6",
+        "scroll-mt-20 rounded-card border border-border bg-surface p-5 shadow-sm sm:p-6",
         className,
       )}
       id={id}
     >
-      <h2 className="font-heading text-lg leading-snug font-medium text-card-foreground">{title}</h2>
-      {description ? <p className="mt-1 text-sm text-muted-foreground">{description}</p> : null}
+      <h2 className="font-heading text-lg leading-snug font-medium text-text">{title}</h2>
+      {description ? <p className="mt-1 text-sm text-text-2">{description}</p> : null}
       <div className="mt-4">{children}</div>
     </section>
   );

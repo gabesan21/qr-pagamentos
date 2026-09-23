@@ -129,11 +129,11 @@ function KeyStatsGrid({
     .join(" · ");
 
   const confirmedValue = view.confirmedSales.length === 0
-    ? <span className="text-muted-foreground">{dictionary.merchantDashboardNoSales}</span>
+    ? <span className="text-text-2">{dictionary.merchantDashboardNoSales}</span>
     : <AmountLines amounts={view.confirmedSales} dictionary={dictionary} locale={locale} />;
 
   const finalizedValue = view.locallyFinalizedSales.length === 0
-    ? <span className="text-muted-foreground">{dictionary.merchantDashboardNoSales}</span>
+    ? <span className="text-text-2">{dictionary.merchantDashboardNoSales}</span>
     : <AmountLines amounts={view.locallyFinalizedSales} dictionary={dictionary} locale={locale} />;
 
   const conversionValue = view.funnel.conversionRate === null
@@ -220,10 +220,10 @@ function ByBreakdownCard({
                             <ProviderStateBadge labels={providerStateBadgeLabels(dictionary)} state={toProviderState(row.state)} />
                           )}
                         </div>
-                        <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
+                        <div className="h-2 flex-1 overflow-hidden rounded-full bg-surface-2">
                           <div className={`h-full bg-primary transition-all ${progressWidthClass((row.count / stateMax) * 100)}`} />
                         </div>
-                        <span className="w-8 text-right text-xs tabular-nums text-muted-foreground">{row.count}</span>
+                        <span className="w-8 text-right text-xs tabular-nums text-text-2">{row.count}</span>
                       </div>
                     ))}
                   </div>
@@ -237,10 +237,10 @@ function ByBreakdownCard({
                     {originRows.map((row) => (
                       <div className="flex items-center gap-3" key={row.source}>
                         <span className="w-36 shrink-0 truncate text-sm font-medium">{sourceLabel(dictionary, row.source)}</span>
-                        <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
+                        <div className="h-2 flex-1 overflow-hidden rounded-full bg-surface-2">
                           <div className={`h-full bg-primary transition-all ${progressWidthClass((row.count / originMax) * 100)}`} />
                         </div>
-                        <span className="w-8 text-right text-xs tabular-nums text-muted-foreground">{row.count}</span>
+                        <span className="w-8 text-right text-xs tabular-nums text-text-2">{row.count}</span>
                       </div>
                     ))}
                   </div>
@@ -267,7 +267,7 @@ function FunnelBar({
         <span>{label}</span>
         <span className="tabular-nums">{count} · {rate}%</span>
       </div>
-      <div className="h-2 overflow-hidden rounded-full bg-muted">
+      <div className="h-2 overflow-hidden rounded-full bg-surface-2">
         <div className={`h-full transition-all ${cls} ${progressWidthClass(rate)}`} />
       </div>
     </div>
@@ -381,7 +381,7 @@ function LeadingProductsCard({
                   />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm font-medium">{title}</span>
-                    <span className="block text-xs text-muted-foreground">
+                    <span className="block text-xs text-text-2">
                       {dictionary.merchantDashboardBestSellerColumnQuantity}:{" "}
                       <span className="tabular-nums">{seller.confirmedQuantity}</span>
                     </span>
@@ -392,7 +392,7 @@ function LeadingProductsCard({
               return (
                 <li key={bestSellerKey(seller)}>
                   {seller.id ? (
-                    <Link className="flex items-center gap-3 rounded-md py-2.5 transition-colors hover:bg-muted/50" href={`/catalog/products/${seller.id}`}>
+                    <Link className="flex items-center gap-3 rounded-md py-2.5 transition-colors hover:bg-surface-2/50" href={`/catalog/products/${seller.id}`}>
                       {row}
                     </Link>
                   ) : (
@@ -410,7 +410,7 @@ function LeadingProductsCard({
 
 function RecentOrderBadges({ dictionary, order }: Readonly<{ dictionary: Dictionary; order: MerchantAnalyticsRecentOrder }>) {
   if (order.state === null && order.currentLocalOutcome === null) {
-    return <span className="text-sm text-muted-foreground">{dictionary.merchantDashboardStateUnavailable}</span>;
+    return <span className="text-sm text-text-2">{dictionary.merchantDashboardStateUnavailable}</span>;
   }
   return (
     <>
@@ -454,8 +454,8 @@ function RecentActivityCard({
               const row = (
                 <>
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate font-mono text-xs text-muted-foreground">#{order.id ?? "—"}</span>
-                    <span className="block truncate text-xs text-muted-foreground">
+                    <span className="block truncate font-mono text-xs text-text-2">#{order.id ?? "—"}</span>
+                    <span className="block truncate text-xs text-text-2">
                       {order.payerName ?? dictionary.merchantDashboardPayerUnknown} · {instant(order.createdAt)}
                     </span>
                   </span>
@@ -467,7 +467,7 @@ function RecentActivityCard({
               return (
                 <li key={recentOrderKey(order)}>
                   {order.id ? (
-                    <Link className="flex flex-wrap items-center gap-2 rounded-md py-2.5 transition-colors hover:bg-muted/50" href={`/orders/v2/${order.id}`}>
+                    <Link className="flex flex-wrap items-center gap-2 rounded-md py-2.5 transition-colors hover:bg-surface-2/50" href={`/orders/v2/${order.id}`}>
                       {row}
                     </Link>
                   ) : (
@@ -509,8 +509,8 @@ function FirstRunState({
       </Card>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label={dictionary.merchantDashboardOrdersInPeriod} value={0} />
-        <StatCard label={dictionary.merchantDashboardConfirmedSales} value={<span className="text-muted-foreground">{dictionary.merchantDashboardNoSales}</span>} />
-        <StatCard label={dictionary.merchantDashboardLocallyFinalizedSales} value={<span className="text-muted-foreground">{dictionary.merchantDashboardNoSales}</span>} />
+        <StatCard label={dictionary.merchantDashboardConfirmedSales} value={<span className="text-text-2">{dictionary.merchantDashboardNoSales}</span>} />
+        <StatCard label={dictionary.merchantDashboardLocallyFinalizedSales} value={<span className="text-text-2">{dictionary.merchantDashboardNoSales}</span>} />
         <StatCard label={dictionary.merchantDashboardFunnelConversionRate} value={dictionary.merchantDashboardRateUnavailable} />
       </div>
     </div>

@@ -262,8 +262,8 @@ export function TotpSection({ dictionary, status, notice }: TotpSectionProps) {
         {resolvedStatus === "none" && (
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-start gap-3">
-              <ShieldCheck className="mt-0.5 size-5 text-muted-foreground" aria-hidden />
-              <p className="text-sm text-muted-foreground">{dictionary.profileTotpNoneDescription}</p>
+              <ShieldCheck className="mt-0.5 size-5 text-text-2" aria-hidden />
+              <p className="text-sm text-text-2">{dictionary.profileTotpNoneDescription}</p>
             </div>
             <Button aria-busy={enrollPending || undefined} disabled={enrollPending} onClick={() => void handleEnroll()} type="button">
               {enrollPending && <Spinner data-icon="inline-start" />}
@@ -275,7 +275,7 @@ export function TotpSection({ dictionary, status, notice }: TotpSectionProps) {
           <div className="space-y-4">
             <div className="flex flex-wrap items-center gap-3">
               <StatusBadge label={dictionary.profileTotpEnabledBadge} tone="warning" />
-              <p className="text-sm text-muted-foreground">{dictionary.profileTotpPendingDescription}</p>
+              <p className="text-sm text-text-2">{dictionary.profileTotpPendingDescription}</p>
             </div>
             {enrollment ? (
               <Button onClick={() => setEnrollOpen(true)} type="button" variant="secondary">
@@ -288,7 +288,7 @@ export function TotpSection({ dictionary, status, notice }: TotpSectionProps) {
           <div className="space-y-5">
             <div className="flex flex-wrap items-center gap-3">
               <StatusBadge label={dictionary.profileTotpEnabledBadge} tone="success" />
-              <p className="text-sm text-muted-foreground">{dictionary.profileTotpActiveDescription}</p>
+              <p className="text-sm text-text-2">{dictionary.profileTotpActiveDescription}</p>
             </div>
             <div className="flex flex-wrap gap-3">
               <Button onClick={() => setRegenerateConfirmOpen(true)} type="button" variant="secondary">
@@ -310,7 +310,7 @@ export function TotpSection({ dictionary, status, notice }: TotpSectionProps) {
       >
         {enrollment && enrollStep === "confirm" ? (
           <div className="space-y-5">
-            <p className="text-sm text-muted-foreground">{dictionary.profileTotpConfirmStepBody}</p>
+            <p className="text-sm text-text-2">{dictionary.profileTotpConfirmStepBody}</p>
             <TotpQrCode caption={dictionary.profileTotpQrCaption} label={dictionary.profileTotpQrLabel} provisioningUri={enrollment.provisioningUri} />
             <div>
               <p className="text-sm font-medium">{dictionary.profileTotpManualSecretLabel}</p>
@@ -425,7 +425,7 @@ export function TotpSection({ dictionary, status, notice }: TotpSectionProps) {
         title={dictionary.profileTotpDisableTitle}
       >
         <div className="space-y-5">
-          <p className="text-sm text-muted-foreground">{dictionary.profileTotpDisableBody}</p>
+          <p className="text-sm text-text-2">{dictionary.profileTotpDisableBody}</p>
           <form action="/profile/totp/disable" className="space-y-4" method="post">
             <FieldGroup>
               <Field>

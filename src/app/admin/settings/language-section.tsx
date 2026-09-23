@@ -26,20 +26,20 @@ export function LanguageSection({
           Alert fallback, so it passes no toast entries of its own to avoid
           stacking a duplicate toast on every language change. */}
       <SettingsSectionNotice dictionary={dictionary} notice={notice} toastEntries={[]} />
-      <div className="inline-flex gap-1 rounded-md bg-muted p-1">
+      <div className="inline-flex gap-1 rounded-md bg-surface-2 p-1">
         {LOCALES.map((item) => {
           const active = locale === item.id;
           return (
             <button
               key={item.id}
               aria-pressed={active}
-              className={`relative flex min-h-11 items-center justify-center rounded px-4 text-xs font-semibold uppercase transition-colors ${active ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+              className={`relative flex min-h-11 items-center justify-center rounded px-4 text-xs font-semibold uppercase transition-colors ${active ? "text-text" : "text-text-2 hover:text-text"}`}
               disabled={active}
               name="locale"
               type="submit"
               value={item.id}
             >
-              {active ? <span className="absolute inset-0 rounded bg-background shadow-sm" /> : null}
+              {active ? <span className="absolute inset-0 rounded bg-bg shadow-sm" /> : null}
               <span className="relative">{item.label}</span>
             </button>
           );

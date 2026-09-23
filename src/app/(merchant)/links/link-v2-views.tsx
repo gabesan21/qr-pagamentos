@@ -89,10 +89,10 @@ export function copyLabels(dictionary: Dictionary) {
 
 function DetailBreadcrumb({ backHref, backLabel, current }: Readonly<{ backHref: string; backLabel: string; current: string }>) {
   return (
-    <nav aria-label="breadcrumb" className="flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
-      <Link className="inline-flex min-h-11 items-center text-foreground underline-offset-4 hover:underline" href={backHref}>{backLabel}</Link>
+    <nav aria-label="breadcrumb" className="flex flex-wrap items-center gap-1.5 text-sm text-text-2">
+      <Link className="inline-flex min-h-11 items-center text-text underline-offset-4 hover:underline" href={backHref}>{backLabel}</Link>
       <span aria-hidden>›</span>
-      <span className="font-mono text-foreground">#{current}</span>
+      <span className="font-mono text-text">#{current}</span>
     </nav>
   );
 }
@@ -147,28 +147,28 @@ function SummaryCard({
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid gap-3 sm:grid-cols-2">
-          <div className="rounded-md border bg-muted/50 p-3">
-            <p className="text-xs font-semibold uppercase text-muted-foreground">PT-BR</p>
+          <div className="rounded-md border bg-surface-2/50 p-3">
+            <p className="text-xs font-semibold uppercase text-text-2">PT-BR</p>
             <p className="mt-1 text-sm">{link.descriptionPtBr ?? "—"}</p>
           </div>
-          <div className="rounded-md border bg-muted/50 p-3">
-            <p className="text-xs font-semibold uppercase text-muted-foreground">EN</p>
+          <div className="rounded-md border bg-surface-2/50 p-3">
+            <p className="text-xs font-semibold uppercase text-text-2">EN</p>
             <p className="mt-1 text-sm">{link.descriptionEn ?? "—"}</p>
           </div>
         </div>
         <Separator />
-        <div className="grid gap-2 border-t border-border pt-3 text-xs text-muted-foreground sm:grid-cols-3">
+        <div className="grid gap-2 border-t border-border pt-3 text-xs text-text-2 sm:grid-cols-3">
           <div>
             <p>{dictionary.paymentLinkDirectoryCreated}</p>
-            <p className="font-mono text-foreground">{formatLinkInstant(link.createdAt, locale)}</p>
+            <p className="font-mono text-text">{formatLinkInstant(link.createdAt, locale)}</p>
           </div>
           <div>
             <p>{dictionary.paymentLinkDirectoryUpdated}</p>
-            <p className="font-mono text-foreground">{formatLinkInstant(link.updatedAt, locale)}</p>
+            <p className="font-mono text-text">{formatLinkInstant(link.updatedAt, locale)}</p>
           </div>
           <div>
             <p>{dictionary.paymentLinkDirectoryColumnExpiry}</p>
-            <p className="font-mono text-foreground">{link.expiresAt ? formatLinkInstant(link.expiresAt, locale) : dictionary.adminPaymentLinkNoExpiry}</p>
+            <p className="font-mono text-text">{link.expiresAt ? formatLinkInstant(link.expiresAt, locale) : dictionary.adminPaymentLinkNoExpiry}</p>
           </div>
         </div>
       </CardContent>
@@ -189,7 +189,7 @@ function CompositionCard({
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-muted-foreground">{dictionary.paymentLinkDetailFixedAmount}</span>
+            <span className="text-sm font-medium text-text-2">{dictionary.paymentLinkDetailFixedAmount}</span>
             <MoneyText className="justify-start" pairLabel={link.currencyPairLabel} size="large" value={link.amount ? formatCatalogPrice(link.amount, null, locale) : "—"} />
           </div>
         </CardContent>
@@ -235,7 +235,7 @@ function CompositionCard({
           </TableBody>
         </Table>
         <div className="flex items-center justify-between border-t border-border pt-3">
-          <span className="text-sm font-medium text-muted-foreground">{dictionary.paymentLinkDetailSubtotal}</span>
+          <span className="text-sm font-medium text-text-2">{dictionary.paymentLinkDetailSubtotal}</span>
           <MoneyText className="justify-start" pairLabel={link.currencyPairLabel} size="large" value={formatCatalogPrice(subtotal, null, locale)} />
         </div>
       </CardContent>
@@ -264,15 +264,15 @@ function OrdersSummaryCard({
       <CardContent className="space-y-4">
         <dl className="space-y-2 text-sm">
           <div className="flex items-center justify-between">
-            <dt className="text-muted-foreground">{dictionary.paymentLinkDetailOrdersTotal}</dt>
+            <dt className="text-text-2">{dictionary.paymentLinkDetailOrdersTotal}</dt>
             <dd className="font-mono tabular-nums">{total}</dd>
           </div>
           <div className="flex items-center justify-between">
-            <dt className="text-muted-foreground">{dictionary.paymentLinkDetailOrdersConfirmed}</dt>
+            <dt className="text-text-2">{dictionary.paymentLinkDetailOrdersConfirmed}</dt>
             <dd className="font-mono tabular-nums">{confirmed}</dd>
           </div>
           <div className="flex items-center justify-between border-t border-border pt-2">
-            <dt className="text-muted-foreground">{dictionary.paymentLinkDetailOrdersVolume}</dt>
+            <dt className="text-text-2">{dictionary.paymentLinkDetailOrdersVolume}</dt>
             <dd><MoneyText className="justify-start" pairLabel={link.currencyPairLabel} value={volume} /></dd>
           </div>
         </dl>

@@ -15,15 +15,15 @@ export function CheckoutPrivacyNotice({ dictionary }: Readonly<{ dictionary: Dic
   const [open, setOpen] = useState(false);
   return (
     <>
-      <p className="text-center text-xs text-muted-foreground">
+      <p className="text-center text-xs text-text-2">
         {dictionary.checkoutPrivacyLine}{" "}
-        <button className="inline-flex min-h-11 min-w-11 items-center justify-center underline underline-offset-2 hover:text-foreground" onClick={() => setOpen(true)} type="button">
+        <button className="inline-flex min-h-11 min-w-11 items-center justify-center underline underline-offset-2 hover:text-text" onClick={() => setOpen(true)} type="button">
           {dictionary.checkoutPrivacyLinkLabel}
         </button>
       </p>
       <Modal closeLabel={dictionary.close} onOpenChange={setOpen} open={open} size="md" title={dictionary.checkoutPrivacyModalTitle}>
         {dictionary.checkoutPrivacyModalBody.split("\n\n").map((paragraph) => (
-          <p className="mb-3 text-sm leading-6 text-muted-foreground last:mb-0" key={paragraph}>{paragraph}</p>
+          <p className="mb-3 text-sm leading-6 text-text-2 last:mb-0" key={paragraph}>{paragraph}</p>
         ))}
       </Modal>
     </>

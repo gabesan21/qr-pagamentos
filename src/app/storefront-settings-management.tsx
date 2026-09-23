@@ -185,7 +185,7 @@ export function StorefrontSettingsManagement({
         <div className="space-y-8">
           <section aria-labelledby="settings-identity-heading" className="grid gap-4 scroll-mt-[calc(var(--top-bar-height)+var(--space-6))]" id="settings-identity">
             <h2 className="m-0" id="settings-identity-heading">{dictionary.storefrontIdentityHeading}</h2>
-            <p className="m-0 max-w-[var(--layout-max)] text-muted-foreground">{dictionary.storefrontIdentityDescription}</p>
+            <p className="m-0 max-w-[var(--layout-max)] text-text-2">{dictionary.storefrontIdentityDescription}</p>
             {notice ? (
               <Alert role={noticeFailed ? "alert" : "status"} variant={noticeFailed ? "destructive" : "success"}>
                 <AlertTitle>{noticeFailed ? dictionary.adminErrorHeading : dictionary.adminSuccessHeading}</AlertTitle>
@@ -229,7 +229,7 @@ export function StorefrontSettingsManagement({
 
           <section aria-labelledby="settings-store-heading" className="grid gap-4 scroll-mt-[calc(var(--top-bar-height)+var(--space-6))]" id="settings-store">
             <h2 className="m-0" id="settings-store-heading">{dictionary.storefrontAppearanceHeading}</h2>
-            <p className="m-0 max-w-[var(--layout-max)] text-muted-foreground">{dictionary.storefrontAppearanceDescription}</p>
+            <p className="m-0 max-w-[var(--layout-max)] text-text-2">{dictionary.storefrontAppearanceDescription}</p>
             <Card>
               <CardContent>
                 <FieldGroup>
@@ -242,7 +242,7 @@ export function StorefrontSettingsManagement({
                           <button
                             aria-checked={selected}
                             className={cn(
-                              "relative rounded-lg border p-1.5 text-left transition-shadow",
+                              "relative rounded-card border p-1.5 text-left transition-shadow",
                               selected ? "border-primary ring-3 ring-ring" : "border-border hover:border-muted-foreground",
                             )}
                             key={id}
@@ -252,7 +252,7 @@ export function StorefrontSettingsManagement({
                           >
                             {selected ? <CheckCircle2Icon aria-hidden className="absolute right-2 top-2 size-4 text-primary" /> : null}
                             <img alt="" className="w-full rounded-md" height={64} src={`/application-assets/theme-swatch-${id}.svg`} width={96} />
-                            <span className="mt-1 block px-1 text-xs font-medium text-muted-foreground">{themeNames[id] ?? id}</span>
+                            <span className="mt-1 block px-1 text-xs font-medium text-text-2">{themeNames[id] ?? id}</span>
                           </button>
                         );
                       })}
@@ -284,7 +284,7 @@ export function StorefrontSettingsManagement({
                           swatch synced with the paired hex field. */}
                       <input
                         aria-label={dictionary.storefrontAccentColorLabel}
-                        className="h-10 w-12 cursor-pointer rounded-md border border-border bg-background p-1"
+                        className="h-10 w-12 cursor-pointer rounded-md border border-border bg-bg p-1"
                         defaultValue={previewAccent ?? undefined}
                         key={previewAccent ?? "unset"}
                         onChange={(event) => setAccent(event.target.value)}
@@ -352,7 +352,7 @@ export function StorefrontSettingsManagement({
 
           <section aria-labelledby="settings-payments-heading" className="grid gap-4 scroll-mt-[calc(var(--top-bar-height)+var(--space-6))]" id="settings-payments">
             <h2 className="m-0" id="settings-payments-heading">{dictionary.storefrontPaymentsHeading}</h2>
-            <p className="m-0 max-w-[var(--layout-max)] text-muted-foreground">{dictionary.storefrontPaymentsDescription}</p>
+            <p className="m-0 max-w-[var(--layout-max)] text-text-2">{dictionary.storefrontPaymentsDescription}</p>
             <Card>
               <CardContent>
                 <FieldGroup>
@@ -369,7 +369,7 @@ export function StorefrontSettingsManagement({
 
           <section aria-labelledby="settings-currency-heading" className="grid gap-4 scroll-mt-[calc(var(--top-bar-height)+var(--space-6))]" id="settings-currency">
             <h2 className="m-0" id="settings-currency-heading">{dictionary.storefrontCurrencyHeading}</h2>
-            <p className="m-0 max-w-[var(--layout-max)] text-muted-foreground">{dictionary.storefrontCurrencyDescription}</p>
+            <p className="m-0 max-w-[var(--layout-max)] text-text-2">{dictionary.storefrontCurrencyDescription}</p>
             <Card>
               <CardContent>
                 <FieldGroup>

@@ -87,7 +87,7 @@ function CredentialForm({ dictionary, idPrefix, secondary = false }: Readonly<{ 
             />
             <button
               aria-label={showKey ? dictionary.hidePassword : dictionary.showPassword}
-              className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground hover:text-foreground"
+              className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-text-2 hover:text-text"
               onClick={() => setShowKey((s) => !s)}
               type="button"
             >
@@ -247,24 +247,24 @@ export function NauttCredentialSurface({
             </div>
             <CardDescription>{dictionary.nauttConfigured}</CardDescription>
             {lastUpdated ? (
-              <p className="text-sm text-muted-foreground">{dictionary.nauttLastUpdated.replace("{date}", lastUpdated)}</p>
+              <p className="text-sm text-text-2">{dictionary.nauttLastUpdated.replace("{date}", lastUpdated)}</p>
             ) : null}
           </CardHeader>
           <CardContent className="space-y-4">
             {status.balance ? (
               <dl className="flex flex-col gap-4 tabular-nums">
                 <div className="flex flex-col gap-1">
-                  <dt className="text-xs font-semibold text-muted-foreground">{dictionary.nauttToken}</dt>
+                  <dt className="text-xs font-semibold text-text-2">{dictionary.nauttToken}</dt>
                   <dd className="m-0 wrap-anywhere">
                     {status.balance.tokenName} ({status.balance.tokenSymbol})
                   </dd>
                 </div>
                 <div className="flex flex-col gap-1">
-                  <dt className="text-xs font-semibold text-muted-foreground">{dictionary.nauttNetwork}</dt>
+                  <dt className="text-xs font-semibold text-text-2">{dictionary.nauttNetwork}</dt>
                   <dd className="m-0 wrap-anywhere">{status.balance.networkName}</dd>
                 </div>
                 <div className="flex flex-col gap-1">
-                  <dt className="text-xs font-semibold text-muted-foreground">{dictionary.nauttBalance}</dt>
+                  <dt className="text-xs font-semibold text-text-2">{dictionary.nauttBalance}</dt>
                   <dd className="m-0 wrap-anywhere">
                     {status.balance.balance} {status.balance.tokenSymbol}
                   </dd>

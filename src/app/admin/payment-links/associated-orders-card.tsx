@@ -99,7 +99,7 @@ export async function AssociatedOrdersCard({
       </CardHeader>
       <CardContent className="space-y-4">
         {visible.length === 0
-          ? <p className="text-sm text-muted-foreground">{dictionary.adminPaymentLinkOrdersCardEmpty}</p>
+          ? <p className="text-sm text-text-2">{dictionary.adminPaymentLinkOrdersCardEmpty}</p>
           : (
             <ul className="space-y-3">
               {visible.map((order) => (

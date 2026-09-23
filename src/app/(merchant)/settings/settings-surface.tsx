@@ -89,7 +89,7 @@ export function SettingsSurface({
               <a
                 key={id}
                 aria-current={activeId === id ? "true" : undefined}
-                className="flex min-h-11 items-center rounded-md px-3 text-xs text-muted-foreground no-underline transition-colors hover:bg-muted hover:text-foreground aria-[current=true]:bg-muted aria-[current=true]:font-semibold aria-[current=true]:text-foreground"
+                className="flex min-h-11 items-center rounded-md px-3 text-xs text-text-2 no-underline transition-colors hover:bg-surface-2 hover:text-text aria-[current=true]:bg-surface-2 aria-[current=true]:font-semibold aria-[current=true]:text-text"
                 href={`#settings-${id}`}
               >
                 {dictionary[labelKey as keyof Dictionary] as string}
@@ -103,7 +103,7 @@ export function SettingsSurface({
             <h2 className="m-0" id="settings-connection-heading">
               {dictionary.nauttHeading}
             </h2>
-            <p className="m-0 max-w-[var(--layout-max)] text-muted-foreground">{dictionary.nauttDescription}</p>
+            <p className="m-0 max-w-[var(--layout-max)] text-text-2">{dictionary.nauttDescription}</p>
             <NauttCredentialSurface dictionary={dictionary} locale={locale} notice={notices.nautt} status={nauttStatus} />
           </section>
 
@@ -111,7 +111,7 @@ export function SettingsSurface({
             <h2 className="m-0" id="settings-policy-heading">
               {dictionary.checkoutPolicyHeading}
             </h2>
-            <p className="m-0 max-w-[var(--layout-max)] text-muted-foreground">{dictionary.checkoutPolicyDescription}</p>
+            <p className="m-0 max-w-[var(--layout-max)] text-text-2">{dictionary.checkoutPolicyDescription}</p>
             {notices["checkout-policy"] ? (
               <Alert role={checkoutPolicyFailed ? "alert" : "status"} variant={checkoutPolicyFailed ? "destructive" : "success"}>
                 <AlertTitle>{checkoutPolicyFailed ? dictionary.adminErrorHeading : dictionary.adminSuccessHeading}</AlertTitle>
@@ -135,7 +135,7 @@ export function SettingsSurface({
             <h2 className="m-0" id="settings-language-heading">
               {dictionary.languageHeading}
             </h2>
-            <p className="m-0 max-w-[var(--layout-max)] text-muted-foreground">{dictionary.settingsLanguageDescription}</p>
+            <p className="m-0 max-w-[var(--layout-max)] text-text-2">{dictionary.settingsLanguageDescription}</p>
             {notices.language === "saved" ? (
               <noscript>
                 <Alert role="status" variant="success">

@@ -108,7 +108,7 @@ export function ResetPasswordForm({ dictionary, hasError, token }: ResetPassword
             </div>
             <FieldDescription id={requirementId}>{dictionary.resetPasswordRequirement}</FieldDescription>
             <div aria-hidden="true" className="flex items-center gap-3">
-              <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+              <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-2">
                 <div
                   className={`h-full transition-all ${sufficient ? "bg-primary" : "bg-warning"} ${
                     progress === 0
@@ -123,7 +123,7 @@ export function ResetPasswordForm({ dictionary, hasError, token }: ResetPassword
                   }`}
                 />
               </div>
-              <span className={`text-xs ${sufficient ? "text-primary" : "text-muted-foreground"}`} id={meterId}>
+              <span className={`text-xs ${sufficient ? "text-primary" : "text-text-2"}`} id={meterId}>
                 {dictionary.resetPasswordLengthMeter.replace("{{len}}", String(length))}
               </span>
             </div>

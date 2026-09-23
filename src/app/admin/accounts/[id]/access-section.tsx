@@ -104,7 +104,7 @@ function PasswordResetAction({
     <div className="flex items-center justify-between border-t border-border pt-4">
       <div>
         <p className="text-sm font-medium">{dictionary.adminUserProfilePasswordResetHeading}</p>
-        <p className="text-xs text-muted-foreground">{dictionary.adminUserProfilePasswordResetDescription}</p>
+        <p className="text-xs text-text-2">{dictionary.adminUserProfilePasswordResetDescription}</p>
       </div>
       <form action={action} className="contents" method="post" ref={formRef}>
         <Button data-ds-hit-target onClick={() => setOpen(true)} type="button" variant="outline">
@@ -136,7 +136,7 @@ function TotpRecoverySection({
   return (
     <div className="border-t border-border pt-4">
       <p className="text-sm font-medium">{dictionary.adminUserProfileTotpHeading}</p>
-      <div className="mt-1 flex items-start gap-3 text-sm text-muted-foreground">
+      <div className="mt-1 flex items-start gap-3 text-sm text-text-2">
         <TriangleAlertIcon aria-hidden className="mt-0.5 size-5 shrink-0 text-warning" />
         <p>{configured ? dictionary.adminUserProfileTotpConfigured : dictionary.adminUserProfileTotpNotConfigured}</p>
       </div>
@@ -168,7 +168,7 @@ export function AccessSection({
 }: Readonly<{ detail: AdminUserDetail; dictionary: Dictionary; totpConfigured: boolean }>) {
   return (
     <div className="space-y-6">
-      <p className="text-sm text-muted-foreground">{dictionary.adminUserProfileAccessDescription}</p>
+      <p className="text-sm text-text-2">{dictionary.adminUserProfileAccessDescription}</p>
       <SegmentedMutationField
         action={`/admin/users/${detail.id}/role`}
         cancelLabel={dictionary.adminCancel}
@@ -208,7 +208,7 @@ export function AccessSection({
       <div className="flex items-center justify-between border-t border-border pt-4">
         <div>
           <p className="text-sm font-medium">{dictionary.adminChangePassword}</p>
-          <p className="text-xs text-muted-foreground" id={`password-help-${detail.id}`}>{dictionary.adminPasswordHelp}</p>
+          <p className="text-xs text-text-2" id={`password-help-${detail.id}`}>{dictionary.adminPasswordHelp}</p>
         </div>
         <form action={`/admin/users/${detail.id}/password`} method="post">
           <FieldGroup className="flex items-end gap-3">

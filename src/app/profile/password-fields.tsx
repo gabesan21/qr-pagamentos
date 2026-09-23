@@ -141,10 +141,10 @@ export function PasswordFields({ dictionary }: PasswordFieldsProps) {
         />
         <FieldDescription id={requirementId}>{dictionary.profilePasswordRequirement}</FieldDescription>
         <div aria-hidden className="flex items-center gap-3">
-          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-2">
             <div className={`h-full transition-all ${sufficient ? "bg-primary" : "bg-warning"} ${meterWidth}`} />
           </div>
-          <span className={`text-xs ${sufficient ? "text-primary" : "text-muted-foreground"}`} id={meterId}>
+          <span className={`text-xs ${sufficient ? "text-primary" : "text-text-2"}`} id={meterId}>
             {dictionary.profilePasswordLengthMeter.replace("{{len}}", String(length))}
           </span>
         </div>
