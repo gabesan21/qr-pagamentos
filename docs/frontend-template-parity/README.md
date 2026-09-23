@@ -116,4 +116,13 @@ fails its own reproducibility check. The disposable negative suite is
 `node scripts/check-frontend-template-parity-contract.mjs --semantic-mutation-probes`;
 it makes an isolated in-memory clone for each field removal/tamper, runs the same
 independent source-derived semantic validator used by the canonical gate, and
-asserts the dimension-specific diagnostic without changing repository files.
+asserts the dimension-specific diagnostic without changing repository files. The
+same suite also proves the discovery boundary below: it writes a throwaway file
+under `src/generated/`, asserts the derived semantic contract is byte-identical
+(same IDs, same count), and removes the probe file and any directory it created
+before returning.
+
+Semantic derivation discovers current-tree files only through the git-tracked
+set (`git ls-files -- src`), never the raw directory walk, so a present but
+gitignored `src/generated/prisma` client can never be baked into
+`obligations.ndjson` by `--refresh-semantic-contract`.
