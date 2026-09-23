@@ -13,7 +13,7 @@
 - [[notes/decisions/2026-09-23-epoch-13-decisions|2026-09-23 decisions]] - reversal against the documented contract, accepted caveats, opt-in loopback guard, research-blocked pair validation.
 - [[open_questions/2026-07-25-pre-production-gate-restore-webhook-hmac|HMAC reversal gate]] and [[notes/decisions/2026-07-25-beta-unverified-webhook-intake|M-5.1 decision]] - the verbatim reversal instructions.
 - [ ] RECON NEEDED: production dispatcher HMAC fixture - check: human runs `nautt-production-webhook-hmac-contract` ([[RESEARCHES|RESEARCHES]]); FAIL → new modification, never a silent re-suspension.
-- [ ] RECON NEEDED: `/exchange-currencies` semantics for PIX/BRL pairs - check: human runs `nautt-exchange-currencies-contract` ([[RESEARCHES|RESEARCHES]]) and ingests it; unblocks 13.4.1.
+- [ ] RECON NEEDED: `/exchange-currencies` semantics for PIX/BRL pairs - check: human runs `nautt-exchange-currencies-contract` ([[RESEARCHES|RESEARCHES]]) — standing gap; 13.4.1 is planned from the in-repo documentation and declares what it cannot prove.
 - Fork: if production deliveries fail HMAC after 13.1, the rejection log (13.1.1) decides between a fixture defect and a contract gap; the answer is a modification, not a re-suspension.
 - Fork: if `admin:source-check` findings exceed one task, 13.3.2 splits by subtree write set into sibling tasks rather than inflating its budget.
 
@@ -57,13 +57,13 @@
 
 ## Phase 13.4 - Provider configuration trust
 
-- **Status:** pendente — blocked on research `nautt-exchange-currencies-contract`
+- **Status:** em andamento — planned from in-repo Nautt documentation (user command 2026-09-23); the `/exchange-currencies` research stays a standing gap
 - **Description:** A registered currency pair is proven to yield a PIX/BRL onramp before it can be selected, and `GlobalPaymentSettings` is read by the checkout.
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[13.4.1-validate-currency-pair-and-wire-payment-settings]] | Admin "test pair" action via minimal quote, PIX/BRL assertion at selection, `GlobalPaymentSettings` enforced by checkout; blocked until the research is ingested. · size: L | 001_initial_task (blocked) |
-| `13.4.2-phase-verification` | Write/run the phase suite and repair only phase defects. · size: S | não iniciada |
+| [[13.4.1-validate-currency-pair-and-wire-payment-settings]] | Admin "test pair" action via minimal quote, PIX/BRL assertion from documented order fields, `GlobalPaymentSettings` enforced by checkout; gaps declared from in-repo docs. · size: L | 002_planning |
+| [[13.4.2-phase-verification]] | Write/run the phase suite and repair only phase defects. · size: S | 001_initial_task |
 
 ## Dependency and parallel-wave map
 
