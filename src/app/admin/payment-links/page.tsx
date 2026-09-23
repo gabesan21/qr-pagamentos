@@ -82,12 +82,21 @@ function lifecycleLabels(dictionary: Dictionary): Readonly<Record<LinkLifecycle,
 }
 
 // Fixed-amount links render the redacted pair-labelled amount; product-line
-// links render the localized line count instead — never a stored total.
-function AmountOrProductsCell({ dictionary, row }: Readonly<{ dictionary: Dictionary; row: AdminPaymentLinkV2DirectoryRow }>) {
+// links render the localized line count instead — never a stored total. The
+// count is pluralized via the platform's `Intl.PluralRules` (no bespoke
+// pluralization table), matching the precedent in `admin/accounts/instant.ts`.
+function AmountOrProductsCell({
+  dictionary,
+  locale,
+  row,
+}: Readonly<{ dictionary: Dictionary; locale: SupportedLocale; row: AdminPaymentLinkV2DirectoryRow }>) {
   if (row.compositionKind === "FIXED_AMOUNT") {
     return <MoneyText pairLabel={row.currencyPairLabel} value={row.amount ?? "—"} />;
   }
-  return <span className="font-mono tabular-nums">{dictionary.paymentLinkDirectoryProductsCount.replace("{count}", String(row.lines.length))}</span>;
+  const count = row.lines.length;
+  const plural = new Intl.PluralRules(locale).select(count);
+  const template = plural === "one" ? dictionary.paymentLinkDirectoryProductsCountOne : dictionary.paymentLinkDirectoryProductsCountOther;
+  return <span className="font-mono tabular-nums">{template.replace("{count}", String(count))}</span>;
 }
 
 // Created date with the expiry beneath it, styled in the danger tone once the
@@ -129,7 +138,7 @@ function AdminPaymentLinkV2Directory({
     { id: "composition", label: dictionary.paymentLinkDirectoryColumnComposition, value: (row) => <Badge variant="outline">{linkKindLabel(dictionary, row.compositionKind)}</Badge> },
     { id: "type", label: dictionary.paymentLinkDirectoryColumnType, value: (row) => <Badge variant="outline">{linkTypeLabel(dictionary, row.linkType)}</Badge> },
     { id: "state", label: dictionary.paymentLinkDirectoryColumnState, value: (row) => <LinkLifecycleBadge labels={lifecycleLabelSet} lifecycle={row.state} /> },
-    { id: "amount", label: dictionary.paymentLinkDirectoryAmount, numeric: true, value: (row) => <AmountOrProductsCell dictionary={dictionary} row={row} /> },
+    { id: "amount", label: dictionary.paymentLinkDirectoryAmount, numeric: true, value: (row) => <AmountOrProductsCell dictionary={dictionary} locale={locale} row={row} /> },
     { id: "orders", label: dictionary.paymentLinkDirectoryColumnOrders, numeric: true, value: (row) => <span className="font-mono tabular-nums">{row.orderCount}</span> },
     { id: "created", label: dictionary.paymentLinkDirectoryCreated, numeric: true, value: (row) => <CreatedCell dictionary={dictionary} locale={locale} row={row} /> },
   ];

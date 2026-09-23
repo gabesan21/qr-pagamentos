@@ -14,7 +14,6 @@ export const storefrontEn = {
   storefrontProductsHeading: "Products",
   storefrontPriceLabel: "Price",
   storefrontViewProduct: "Continue to payment",
-  storefrontLogoAlt: "Store logo",
   storefrontGroupUncategorized: "More products",
   storefrontQuantityLabel: "Quantity",
   storefrontDecreaseQuantity: "Decrease quantity",

@@ -28,7 +28,6 @@ export const adminUsersDirectoryEn = {
   adminUsersDirectoryDeleteConfirmDescription: "Deletion is terminal: it blocks sign-in, ends every session, disables the storefront, and deactivates every payment link. Identifiers stay reserved.",
   adminUsersDirectoryDeleteConfirmFieldLabel: "Type the username to confirm",
   adminUsersDirectoryDeleteConfirmFailure: "The account could not be deleted. Try again.",
-  adminUsersDirectoryDetailDescription: "Account facts, the profile editor sections, and the delivered soft-delete action.",
   adminUsersDirectoryDetailStorefrontSlug: "Storefront slug",
   adminUsersDirectoryDetailBack: "Back to accounts",
   adminUsersDirectoryDetailUnavailable: "This account is unavailable",

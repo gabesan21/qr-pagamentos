@@ -28,7 +28,6 @@ export const adminUsersDirectoryPtBR = {
   adminUsersDirectoryDeleteConfirmDescription: "A exclusão é definitiva: bloqueia o acesso, encerra todas as sessões, desativa a vitrine e desativa todos os links de pagamento. Os identificadores permanecem reservados.",
   adminUsersDirectoryDeleteConfirmFieldLabel: "Digite o nome de usuário para confirmar",
   adminUsersDirectoryDeleteConfirmFailure: "Não foi possível excluir a conta. Tente novamente.",
-  adminUsersDirectoryDetailDescription: "Dados da conta, as seções do editor de perfil e a ação de exclusão definitiva entregue.",
   adminUsersDirectoryDetailStorefrontSlug: "Slug da vitrine",
   adminUsersDirectoryDetailBack: "Voltar às contas",
   adminUsersDirectoryDetailUnavailable: "Esta conta está indisponível",

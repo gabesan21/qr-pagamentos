@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
-import { readFile, readdir, stat, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import ts from "typescript";
 
@@ -34,6 +34,11 @@ async function filesUnder(directory) {
 }
 async function hashFile(file) { return sha256(await readFile(absolute(file))); }
 async function exists(file) { try { return (await stat(absolute(file))).isFile(); } catch { return false; } }
+async function dirExists(directory) { try { return (await stat(absolute(directory))).isDirectory(); } catch { return false; } }
+async function trackedFilesUnder(directory) {
+  const { stdout } = await execFileAsync("git", ["ls-files", "--", directory], { cwd: root });
+  return new Set(stdout.trim().split("\n").filter(Boolean));
+}
 
 function routeFor(file) {
   const parts = file.slice(`${currentRoot}/`.length).split("/");
@@ -257,7 +262,8 @@ function evidenceFixture(kind, file, source, target, fixtureImports) {
 }
 async function semanticObligations(graph, currentRoutes) {
   const records = { "authored-class-occurrence": [], state: [], interaction: [] };
-  const currentFiles = (await filesUnder("src")).filter((file) => /\.(?:css|ts|tsx)$/.test(file));
+  const trackedSrcFiles = await trackedFilesUnder("src");
+  const currentFiles = (await filesUnder("src")).filter((file) => /\.(?:css|ts|tsx)$/.test(file) && trackedSrcFiles.has(file));
   const targetFor = currentTargetContext(graph, await templateRouteEntries(), currentRoutes, currentFiles);
   for (const file of graph.reachableFiles) {
     if (!/\.tsx?$/.test(file.path)) continue;
@@ -661,6 +667,21 @@ async function runSemanticMutationProbes() {
   if (graphFailures.length) throw new Error(graphFailures.join("\n"));
   const currentRoutes = await currentRouteInventory();
   const expectedByKind = await semanticObligations(graph, currentRoutes);
+  const boundarySnapshot = (obligations) => stable(Object.fromEntries(Object.entries(obligations).map(([kind, list]) => [kind, list.map((record) => record.id)])));
+  const beforeGeneratedTreeBoundary = boundarySnapshot(expectedByKind);
+  const generatedProbeDir = "src/generated";
+  const generatedProbeFile = `${generatedProbeDir}/parity-boundary-probe.tsx`;
+  const generatedProbeDirPreexisted = await dirExists(generatedProbeDir);
+  await mkdir(absolute(generatedProbeDir), { recursive: true });
+  await writeFile(absolute(generatedProbeFile), "export function ParityBoundaryProbe() {\n  return <div className=\"probe\" onClick={() => {}} />;\n}\n");
+  try {
+    const afterGeneratedTreeBoundary = boundarySnapshot(await semanticObligations(graph, currentRoutes));
+    if (afterGeneratedTreeBoundary !== beforeGeneratedTreeBoundary) throw new Error("PARITY_MUTATION_PROBE_GENERATED_TREE_LEAKED semantic derivation changed with an untracked src/generated file present");
+    console.log("FRONTEND_PARITY_MUTATION_OK generated-tree-excluded=STABLE");
+  } finally {
+    await rm(absolute(generatedProbeFile), { force: true });
+    if (!generatedProbeDirPreexisted) await rm(absolute(generatedProbeDir), { recursive: true, force: true });
+  }
   const literalClass = originalRecords.find((record) => record.kind === "authored-class-occurrence" && record.semantics?.classValue !== null);
   const mixedCatalogClass = originalRecords.find((record) => record.kind === "authored-class-occurrence" && record.source?.path === "docs/template/app/src/pages/catalog/fields.tsx");
   const accountSaving = originalRecords.filter((record) => record.kind === "state" && record.source?.path === "docs/template/app/src/pages/admin/AdminAccountDetail.tsx" && record.semantics?.name === "saving");
@@ -743,7 +764,7 @@ async function runSemanticMutationProbes() {
   registrationProtectedTamper.target = { route: "/tampered-registration", surface: "src/app/tampered-registration/page.tsx" };
   expectRefreshFailure("current-route-register-protected-tamper", "REFRESH_INVARIANT_PROTECTED", () => assertRefreshInvariants(originalRecords, originalRecords.map((record) => (record.id === routeRecord.id ? registrationProtectedTamper : record)), { registeredIds: new Set([routeRecord.id]) }));
 
-  return { probes: cases.length + 8 };
+  return { probes: cases.length + 9 };
 }
 
 export async function checkFrontendTemplateParity() {
