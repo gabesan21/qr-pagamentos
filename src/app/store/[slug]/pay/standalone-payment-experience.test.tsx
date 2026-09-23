@@ -26,20 +26,18 @@ function renderView(overrides: Partial<Parameters<typeof StandalonePaymentView>[
     <StandalonePaymentView
       amount=""
       amountInvalid={false}
-      attemptMade={false}
       checkoutError={false}
       currencyCode="BRL"
       dictionary={dictionary}
       invalid={new Set()}
       onAmountChange={vi.fn()}
       onFieldChange={vi.fn()}
-      onRetryPoll={vi.fn()}
       onStartOver={vi.fn()}
       onSubmit={vi.fn()}
       payment={null}
       policy="NAME_EMAIL_CPF"
-      pollFailed={false}
       slug="ana-store"
+      statusReadFailed={false}
       submittedAmount={null}
       submitting={false}
       unavailable={false}
@@ -87,11 +85,13 @@ describe("standalone payment view", () => {
     expect(markup).toContain("disabled");
   });
 
-  it("offers the retry label after a failed attempt and the opaque submit error", () => {
-    const markup = renderView({ attemptMade: true, checkoutError: true });
+  it("renders the named submit-failure state with Start over as the only action, no resubmit affordance", () => {
+    const markup = renderView({ checkoutError: true });
 
-    expect(markup).toContain("Try payment again");
-    expect(markup).toContain("Payment could not be prepared");
+    expect(markup).toContain("Payment could not be submitted");
+    expect(markup).toContain(dictionary.checkoutStartOver);
+    expect(markup).not.toContain('id="standalone-amount"');
+    expect(markup).not.toContain("<form");
     expect(markup).toContain('href="/store/ana-store"');
   });
 
@@ -120,11 +120,11 @@ describe("standalone payment view", () => {
     expect(textContent(markup)).toContain("Copy PIX code");
   });
 
-  it("renders the polling status error with the manual retry and the return link", () => {
-    const markup = renderView({ payment: { state: "PENDING" }, pollFailed: true });
+  it("renders the named status-unavailable state on a failed status read, Start over as the only action", () => {
+    const markup = renderView({ payment: { state: "PENDING" }, statusReadFailed: true });
 
-    expect(markup).toContain("We could not check the payment status.");
-    expect(markup).toContain("Check again");
+    expect(markup).toContain(dictionary.checkoutStatusUnavailableTitle);
+    expect(markup).toContain(dictionary.checkoutStartOver);
     expect(markup).toContain('href="/store/ana-store"');
   });
 

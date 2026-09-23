@@ -450,9 +450,12 @@ test("creates the closed public checkout evidence run", async ({ page }) => {
   await expect(page.getByRole("button", { name: /Preparando pagamento/ })).toHaveAttribute("aria-busy", "true");
   assertions.push({ state: "submit-pending", busy: true, disabled: true });
   await captureState("state-pt-BR-submit-pending-1440");
-  await expect(page.getByText("Não foi possível preparar o pagamento")).toBeVisible();
-  assertions.push({ state: "checkout-error", opaque: true });
-  await captureState("state-pt-BR-checkout-error-1440");
+  // A failed submit replaces the form with the named submit-failure state
+  // (no resubmit affordance): "Start a new payment" is the only action.
+  await expect(page.getByText("Não foi possível enviar o pagamento")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Iniciar um novo pagamento" })).toBeVisible();
+  assertions.push({ state: "submit-failure", startOverOnly: true });
+  await captureState("state-pt-BR-submit-failure-1440");
   await page.unroute("**/api/payment-links/*/checkout");
 
   // ---- en pass: policy variants, QR/copy, polling, terminal states ----
@@ -488,14 +491,22 @@ test("creates the closed public checkout evidence run", async ({ page }) => {
   assertions.push({ state: "qr-copy", qrVisible: true, copy: "success", capabilityReal: true });
   await captureState("state-en-qr-copy-1440");
 
+  // A failed status read stops the loop permanently (no reschedule, no
+  // manual retry): the named status-unavailable state is the only outcome,
+  // and "Start a new payment" is the only path back — it re-keys the next
+  // attempt, so the same seeded attempt is replayed to reach CONFIRMED below.
   await page.route("**/api/payment-links/*/checkout/status", async (route) => { await route.abort(); });
-  await expect(page.getByText("Payment status could not be refreshed")).toBeVisible({ timeout: 30_000 });
-  await captureState("state-en-status-error-1440");
+  await expect(page.getByText("Payment status unavailable")).toBeVisible({ timeout: 30_000 });
+  assertions.push({ state: "status-unavailable", startOverOnly: true });
+  await captureState("state-en-status-unavailable-1440");
   await page.unroute("**/api/payment-links/*/checkout/status");
-  await page.getByRole("button", { name: "Check status again" }).click();
-  await expect(page.getByText("Payment status could not be refreshed")).toHaveCount(0);
-  await expect(page.locator("img.checkout-qr")).toBeVisible();
-  assertions.push({ state: "status-error-retry", recovered: true });
+  await page.getByRole("button", { name: "Start a new payment" }).click();
+  await expect(page.getByRole("button", { name: "Continue to payment" })).toBeVisible();
+  assertions.push({ state: "status-unavailable-start-over", recovered: false });
+
+  await submitWhenHydrated("Continue to payment", async () => {
+    await expect(page.locator("img.checkout-qr")).toBeVisible({ timeout: 5_000 });
+  });
 
   seedDatabase(`UPDATE app.order_v2 SET state = 'CONFIRMED', settled_at = CURRENT_TIMESTAMP WHERE id = '${seededAttempts.qr.attempt.orderId}';\n`);
   await expect(page.getByText("Payment confirmed")).toBeVisible({ timeout: 30_000 });
@@ -503,13 +514,15 @@ test("creates the closed public checkout evidence run", async ({ page }) => {
   assertions.push({ state: "terminal-confirmed", badge: "CONFIRMED" });
   await captureState("state-en-confirmed-1440");
 
+  // PENDING without a PIX payload is the named PIX-unavailable state (no
+  // pulsing placeholder, no promise that data is still arriving).
   await rewriteRetryKey(seededAttempts.waiting.attempt.retryKey, true);
   await page.goto(`${baseUrl}/pay/${links.main.identifier}`);
   await submitWhenHydrated("Continue to payment", async () => {
-    await expect(page.getByText("Payment details are still being prepared.")).toBeVisible({ timeout: 2_000 });
+    await expect(page.getByText("PIX code unavailable")).toBeVisible({ timeout: 2_000 });
   });
-  assertions.push({ state: "waiting-payment-data", shown: true });
-  await captureState("state-en-waiting-payment-data-1440");
+  assertions.push({ state: "pix-unavailable-pending-no-payload", startOverOnly: true });
+  await captureState("state-en-pix-unavailable-1440");
 
   await rewriteRetryKey(seededAttempts.rejected.attempt.retryKey, true);
   await page.goto(`${baseUrl}/pay/${links.fixed.identifier}`);
@@ -628,7 +641,7 @@ test("creates the closed public checkout evidence run", async ({ page }) => {
     "",
     `- Run: \`${runId}\``,
     `- Manifest SHA-256: \`${sha256(manifestBytes)}\``,
-    "- Grid: six persisted merchant themes × two locales × 375/768/1440 branded checkout captures, mirrored by the 9.3.2 paid terminal grid (both composition kinds: the consumed product-lines link and the consumed fixed-amount link) under the same themes, locales, and widths, plus nineteen localized state captures covering both compositions, all five policy variants, 320-pixel reflow, inline validation, submit-pending, the opaque checkout error, QR/copy feedback, waiting-for-payment-data, status-error with manual retry, both terminal badges, the expired-capability opaque unavailable, the unknown/inactive/expired opaque unavailable views, and the unbranded paid view with the non-color paid marker.",
+    "- Grid: six persisted merchant themes × two locales × 375/768/1440 branded checkout captures, mirrored by the 9.3.2 paid terminal grid (both composition kinds: the consumed product-lines link and the consumed fixed-amount link) under the same themes, locales, and widths, plus nineteen localized state captures covering both compositions, all five policy variants, 320-pixel reflow, inline validation, submit-pending, the named submit-failure state (no resubmit affordance), QR/copy feedback, the named PIX-unavailable state (PENDING without a payload), the named status-unavailable state with Start over as the only path back, both terminal badges, the expired-capability opaque unavailable, the unknown/inactive/expired opaque unavailable views, and the unbranded paid view with the non-color paid marker.",
     "- The paid terminal views are claim-keyed: every consumed order is flipped to REFUNDED before any paid capture, and one consumed link carries a past expiry — the paid view persists unchanged in both cases, proving the persisted settlement claim (never live order state, active flag, or expiry) is the only consumption signal.",
     "- Branding resolves from the owner's persisted settings with the storefront disabled: the real settings workspace saves the display names, accent, and logo, and the checkout renders them through the scoped theme mechanism.",
     "- QR, polling, and terminal states run against checkout_attempt_v2/order_v2/provider_order rows seeded directly in the disposable database with the capability HMAC computed from the harness's own disposable NAUTT_ENCRYPTION_KEY; no provider call occurs in the run.",

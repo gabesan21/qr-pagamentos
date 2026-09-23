@@ -88,9 +88,8 @@ export type CheckoutExperience<S extends string> = Readonly<{
   errors: Partial<Record<CheckoutFieldName, string>>;
   payment: CheckoutPayment<S> | null;
   phase: CheckoutExperiencePhase;
-  pollFailed: boolean;
-  retryPoll: () => void;
   startOver: () => void;
+  statusReadFailed: boolean;
   submit: (event: React.FormEvent<HTMLFormElement>) => void;
   submitLabel: string;
   submitting: boolean;
@@ -118,13 +117,11 @@ export function useCheckoutExperience<S extends string>(config: UseCheckoutExper
   const [submitting, setSubmitting] = useState(false);
   const [unavailable, setUnavailable] = useState(false);
   const [checkoutError, setCheckoutError] = useState(false);
-  const [pollFailed, setPollFailed] = useState(false);
-  const [pollRetryTick, setPollRetryTick] = useState(0);
+  const [statusReadFailed, setStatusReadFailed] = useState(false);
   const terminalRef = useRef(false);
 
   useEffect(() => {
     if (!capability || terminalRef.current) return;
-    let failures = 0;
     const polling = createPollingController(document, async ({ signal, isCurrent, schedule }) => {
       try {
         const response = await fetch(`/api/payment-links/${identifier}/checkout/status`, { method: "POST", cache: "no-store", credentials: "omit", headers: { "content-type": "application/json" }, body: JSON.stringify({ statusCapability: capability }), signal });
@@ -137,22 +134,17 @@ export function useCheckoutExperience<S extends string>(config: UseCheckoutExper
         if (!next) throw new Error("status-read-failed");
         setPayment(next);
         terminalRef.current = terminalStates.has(next.state);
-        setPollFailed(false);
-        failures = 0;
+        setStatusReadFailed(false);
         if (!terminalRef.current) schedule(5_000);
       } catch (error) {
-        if (isCurrent() && !(error instanceof DOMException && error.name === "AbortError")) {
-          failures += 1;
-          // Retry affordance on the first failure (C07), not the third; the
-          // 1s·2^n backoff and the visibility-aware cadence stay unchanged.
-          setPollFailed(true);
-          schedule(1_000 * 2 ** failures);
-        }
+        // A failed read stops the loop (no reschedule, no backoff, no
+        // failure counter): the next 5 s tick never happens on its own.
+        if (isCurrent() && !(error instanceof DOMException && error.name === "AbortError")) setStatusReadFailed(true);
       }
     });
     polling.start();
     return polling.stop;
-  }, [capability, identifier, parsePayment, pollRetryTick, terminalStates]);
+  }, [capability, identifier, parsePayment, terminalStates]);
 
   const updateField = (field: keyof CheckoutFormValues, rawValue: string) => {
     const value = field === "cpf" ? maskCpf(rawValue) : field === "postalCode" ? maskPostalCode(rawValue) : rawValue;
@@ -174,9 +166,10 @@ export function useCheckoutExperience<S extends string>(config: UseCheckoutExper
       return;
     }
     setErrors({});
-    // Same-attempt idempotent retry (C07): a checkout/unavailable failure
-    // never mints a new key while `attempt` still holds the last one.
-    const currentAttempt = attempt ?? { idempotencyKey: createRetryKey(), customer: customerSnapshot(policy, values) };
+    // Every submit mints a fresh idempotency key (no reused attempt): a
+    // failed submit renders the named submit-failure state and the only way
+    // back is `startOver`, which re-keys the next attempt anyway.
+    const currentAttempt = { idempotencyKey: createRetryKey(), customer: customerSnapshot(policy, values) };
     setAttempt(currentAttempt);
     setSubmitting(true);
     setCheckoutError(false);
@@ -202,11 +195,9 @@ export function useCheckoutExperience<S extends string>(config: UseCheckoutExper
     })();
   };
 
-  const retryPoll = () => setPollRetryTick((value) => value + 1);
-
   // The only reset (C03): clears attempt, payment and capability and returns
   // to the form; the next submit mints a fresh idempotency key because
-  // `attempt` is null again.
+  // `attempt` is null again. Also clears the failed-status-read flag.
   const startOver = () => {
     terminalRef.current = false;
     setValues(CHECKOUT_INITIAL_VALUES);
@@ -217,14 +208,14 @@ export function useCheckoutExperience<S extends string>(config: UseCheckoutExper
     setSubmitting(false);
     setUnavailable(false);
     setCheckoutError(false);
-    setPollFailed(false);
+    setStatusReadFailed(false);
   };
 
   const isTerminal = payment ? terminalStates.has(payment.state) : false;
   const phase: CheckoutExperiencePhase = payment ? (isTerminal ? "terminal" : "payment") : (submitting ? "submitting" : "form");
   const submitLabel = total
     ? dictionary.checkoutPayWithTotal.replace("{total}", currencyLabel ? `${total} ${currencyLabel}` : total)
-    : (attempt ? dictionary.checkoutRetry : dictionary.checkoutSubmit);
+    : dictionary.checkoutSubmit;
 
-  return { attempt, checkoutError, errors, payment, phase, pollFailed, retryPoll, startOver, submit, submitLabel, submitting, unavailable, updateField, values };
+  return { attempt, checkoutError, errors, payment, phase, startOver, statusReadFailed, submit, submitLabel, submitting, unavailable, updateField, values };
 }
