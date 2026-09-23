@@ -25,7 +25,6 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[13.1.1-restore-webhook-hmac-verification]] | Restore the signature gate, `verifyOwner` binding and `401`; drop `resolveOwner`; convert beta tests; add a redacted rejection log. · size: M · critical | 003_human_approval |
 | [[13.1.2-clear-beta-caveats-and-close-reversal-gate]] | Clear every `BETA(M-5.1)` caveat in spec/DOX/PROJECT, close the open question, update the research status. · size: S | 003_human_approval |
 | [[13.1.3-phase-verification]] | Write/run the phase suite (`pnpm check`, webhook suites) and repair only phase defects. · size: S | 003_human_approval |
 
@@ -62,11 +61,11 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[13.4.1-validate-currency-pair-and-wire-payment-settings]] | Admin "test pair" action via minimal quote, PIX/BRL assertion from documented order fields, `GlobalPaymentSettings` enforced by checkout; gaps declared from in-repo docs. · size: L | 002_planning |
+| [[13.4.1-validate-currency-pair-and-wire-payment-settings]] | Admin "test pair" action via minimal quote, PIX/BRL assertion from documented order fields, `GlobalPaymentSettings` enforced by checkout; gaps declared from in-repo docs. · size: L | 003_human_approval |
 | [[13.4.2-phase-verification]] | Write/run the phase suite and repair only phase defects. · size: S | 001_initial_task |
 
 ## Dependency and parallel-wave map
 
 - Serialized by `depends_on` after the 002 plans exposed shared files (spec Nautt, DOX nautt, installer, runbook, `PROJECT.md`): 13.1.1 → 13.1.2 → 13.2.2 → 13.2.3 → 13.3.1 → 13.3.3. 13.2.1 (checkout/orders) and 13.3.2 (shell + checker) are write-set independent and may run in parallel with that chain, at most three tasks at a time; each phase verification runs last in its phase.
 - 13.3.4 is the epoch's hand-off unless 13.4 unblocks before it.
-- 13.4 starts only after the research is ingested; if that happens before 13.3.4 closes, 13.4.2 becomes the hand-off instead.
+- 13.4 is planned from the in-repo Nautt documentation (user command 2026-09-23); 13.4.1 has no kanban prerequisite. If 13.4.2 closes after 13.3.4, it becomes the epoch's hand-off instead.
