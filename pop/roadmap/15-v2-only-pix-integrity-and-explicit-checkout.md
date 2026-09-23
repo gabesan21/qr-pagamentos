@@ -33,7 +33,7 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[15.2.4-phase-verification]] | Write/run the phase suite (reconciliation, adapter and checkout service tests) and repair only phase defects. · size: S | 001_initial_task |
+| [[15.2.4-phase-verification]] | Write/run the phase suite (reconciliation, adapter and checkout service tests) and repair only phase defects. · size: S | 003_human_approval |
 
 ## Phase 15.3 - Explicit checkout
 
