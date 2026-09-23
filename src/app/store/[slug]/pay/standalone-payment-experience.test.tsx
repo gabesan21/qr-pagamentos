@@ -64,6 +64,20 @@ describe("standalone payment view", () => {
     expect(markup).toContain("Amount (BRL)");
   });
 
+  it("renders no status notice when the policy needs no customer fields", () => {
+    const markup = renderView({ policy: "NONE" });
+
+    expect(markup).not.toContain('role="status"');
+    expect(markup).toContain('id="standalone-amount"');
+  });
+
+  it("renders no status notice when the policy needs customer fields", () => {
+    const markup = renderView({ policy: "NAME_EMAIL" });
+
+    expect(markup).not.toContain('role="status"');
+    expect(markup).toContain('id="standalone-name"');
+  });
+
   it("renders the amount validation error inline with aria-invalid", () => {
     const markup = renderView({ amount: "abc", amountInvalid: true });
 

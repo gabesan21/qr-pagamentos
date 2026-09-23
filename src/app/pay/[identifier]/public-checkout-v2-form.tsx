@@ -68,6 +68,7 @@ export function PublicCheckoutV2Form({ currencyLabel, dictionary, identifier, me
   });
   const { checkoutError, errors, payment, startOver, statusReadFailed, submit, submitLabel, submitting, unavailable, updateField, values } = experience;
   const required = requiredCheckoutFields(policy);
+  const hasFields = required.length > 0;
 
   const field = (name: CheckoutFieldName, type = "text", autoComplete?: string) => (
     <CheckoutField autoComplete={autoComplete} dictionary={dictionary} errors={errors} name={name} onChange={(value) => updateField(name, value)} required={required.includes(name)} type={type} value={values[name]} />
@@ -115,57 +116,60 @@ export function PublicCheckoutV2Form({ currencyLabel, dictionary, identifier, me
 
   return (
     <Card className="w-full">
-      <CardHeader>
-        <CardTitle>{dictionary.checkoutCustomerHeading}</CardTitle>
-      </CardHeader>
+      {hasFields ? (
+        <CardHeader>
+          <CardTitle>{dictionary.checkoutCustomerHeading}</CardTitle>
+        </CardHeader>
+      ) : null}
       <CardContent>
         <form className="grid gap-6" noValidate onSubmit={submit}>
-          <FieldGroup>
-            {required.length === 0 ? <Alert role="status"><AlertDescription>{dictionary.checkoutNoCustomerData}</AlertDescription></Alert> : null}
-            {required.includes("name") ? field("name", "text", "name") : null}
-            {required.includes("email") ? field("email", "email", "email") : null}
-            {required.includes("cpf") ? field("cpf", "text", "off") : null}
-            {policy === "NAME_EMAIL_CPF_ADDRESS" ? (
-              <FieldSet>
-                <FieldLegend>{dictionary.checkoutAddressLegend}</FieldLegend>
-                <FieldGroup>
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_auto]">
-                    {field("street", "text", "street-address")}
-                    {field("number")}
-                  </div>
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    {field("district")}
-                    {field("city", "text", "address-level2")}
-                  </div>
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <Field data-invalid={errors.stateUf ? true : undefined}>
-                      <FieldLabel htmlFor="checkout-stateUf">{dictionary.checkoutStateUfLabel}</FieldLabel>
-                      <NativeSelect aria-invalid={errors.stateUf ? true : undefined} id="checkout-stateUf" name="stateUf" onChange={(event) => updateField("stateUf", event.target.value)} required value={values.stateUf}>
-                        <NativeSelectOption value="">{dictionary.checkoutStateUfPlaceholder}</NativeSelectOption>
-                        {BRAZILIAN_UFS.map((uf) => <NativeSelectOption key={uf} value={uf}>{uf}</NativeSelectOption>)}
-                      </NativeSelect>
-                      {errors.stateUf ? <FieldError>{errors.stateUf}</FieldError> : null}
+          {hasFields ? (
+            <FieldGroup>
+              {required.includes("name") ? field("name", "text", "name") : null}
+              {required.includes("email") ? field("email", "email", "email") : null}
+              {required.includes("cpf") ? field("cpf", "text", "off") : null}
+              {policy === "NAME_EMAIL_CPF_ADDRESS" ? (
+                <FieldSet>
+                  <FieldLegend>{dictionary.checkoutAddressLegend}</FieldLegend>
+                  <FieldGroup>
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_auto]">
+                      {field("street", "text", "street-address")}
+                      {field("number")}
+                    </div>
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      {field("district")}
+                      {field("city", "text", "address-level2")}
+                    </div>
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      <Field data-invalid={errors.stateUf ? true : undefined}>
+                        <FieldLabel htmlFor="checkout-stateUf">{dictionary.checkoutStateUfLabel}</FieldLabel>
+                        <NativeSelect aria-invalid={errors.stateUf ? true : undefined} id="checkout-stateUf" name="stateUf" onChange={(event) => updateField("stateUf", event.target.value)} required value={values.stateUf}>
+                          <NativeSelectOption value="">{dictionary.checkoutStateUfPlaceholder}</NativeSelectOption>
+                          {BRAZILIAN_UFS.map((uf) => <NativeSelectOption key={uf} value={uf}>{uf}</NativeSelectOption>)}
+                        </NativeSelect>
+                        {errors.stateUf ? <FieldError>{errors.stateUf}</FieldError> : null}
+                      </Field>
+                      {field("postalCode", "text", "postal-code")}
+                    </div>
+                    <Field>
+                      <FieldLabel htmlFor="checkout-complement">{dictionary.checkoutComplementLabel}</FieldLabel>
+                      <Input autoComplete="address-line2" id="checkout-complement" name="complement" onChange={(event) => updateField("complement", event.target.value)} value={values.complement} />
                     </Field>
-                    {field("postalCode", "text", "postal-code")}
-                  </div>
-                  <Field>
-                    <FieldLabel htmlFor="checkout-complement">{dictionary.checkoutComplementLabel}</FieldLabel>
-                    <Input autoComplete="address-line2" id="checkout-complement" name="complement" onChange={(event) => updateField("complement", event.target.value)} value={values.complement} />
-                  </Field>
-                </FieldGroup>
-              </FieldSet>
-            ) : null}
-            {unavailable ? (
-              <Alert variant="warning">
-                <AlertTitle>{dictionary.checkoutUnavailableHeading}</AlertTitle>
-                <AlertDescription>{dictionary.checkoutUnavailableDescription}</AlertDescription>
-              </Alert>
-            ) : null}
-            <Button aria-busy={submitting || undefined} disabled={submitting || unavailable} size="lg" type="submit">
-              {submitting ? <Spinner data-icon="inline-start" /> : null}
-              {submitting ? dictionary.checkoutSubmitting : submitLabel}
-            </Button>
-          </FieldGroup>
+                  </FieldGroup>
+                </FieldSet>
+              ) : null}
+            </FieldGroup>
+          ) : null}
+          {unavailable ? (
+            <Alert variant="warning">
+              <AlertTitle>{dictionary.checkoutUnavailableHeading}</AlertTitle>
+              <AlertDescription>{dictionary.checkoutUnavailableDescription}</AlertDescription>
+            </Alert>
+          ) : null}
+          <Button aria-busy={submitting || undefined} disabled={submitting || unavailable} size="lg" type="submit">
+            {submitting ? <Spinner data-icon="inline-start" /> : null}
+            {submitting ? dictionary.checkoutSubmitting : submitLabel}
+          </Button>
         </form>
       </CardContent>
     </Card>

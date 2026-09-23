@@ -36,7 +36,23 @@ describe("public checkout V2 form", () => {
     expect(rendered).toContain('data-slot="field-set"');
     expect(rendered).toContain('type="submit"');
     expect(rendered).toContain('for="checkout-stateUf"');
-    expect(markup("NONE")).toContain('role="status"');
+  });
+
+  it("renders no customer heading, notice, or field group when the policy needs no fields", () => {
+    const rendered = markup("NONE");
+
+    expect(rendered).not.toContain("Customer details");
+    expect(rendered).not.toContain('role="status"');
+    expect(rendered).not.toContain('data-slot="field-group"');
+    expect(rendered).toContain('type="submit"');
+  });
+
+  it("renders the customer heading and field group, without the status notice, when the policy needs fields", () => {
+    const rendered = markup("NAME_EMAIL");
+
+    expect(rendered).toContain("Customer details");
+    expect(rendered).not.toContain('role="status"');
+    expect(rendered).toContain('data-slot="field-group"');
   });
 
   // C03.c (14.6.1 round-1 repair 508e21d8): the V2 form was the other

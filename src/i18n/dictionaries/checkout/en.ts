@@ -1,6 +1,5 @@
 export const checkoutEn = {
   checkoutCustomerHeading: "Customer details",
-  checkoutNoCustomerData: "No customer details are required for this payment.",
   checkoutNameLabel: "Name",
   checkoutEmailLabel: "Email",
   checkoutCpfLabel: "CPF",

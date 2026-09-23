@@ -1,6 +1,5 @@
 export const checkoutPtBR = {
   checkoutCustomerHeading: "Dados do cliente",
-  checkoutNoCustomerData: "Este pagamento não exige dados do cliente.",
   checkoutNameLabel: "Nome",
   checkoutEmailLabel: "E-mail",
   checkoutCpfLabel: "CPF",
