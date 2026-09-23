@@ -85,7 +85,9 @@ describe("public checkout page", () => {
     expect(markup).toContain("Monthly donation");
     expect(markup).toContain("10.50");
     expect(markup).toContain("moeda sem rótulo");
-    expect(markup).toContain("Este pagamento não exige dados do cliente.");
+    // NONE renders no customer heading, notice, or field group (15.3.2 C6).
+    expect(markup).not.toContain('role="status"');
+    expect(markup).not.toContain('data-slot="field-group"');
     expect(markup).not.toContain("/media/");
   });
 

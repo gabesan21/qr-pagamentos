@@ -86,21 +86,26 @@ describe("checkout payment view", () => {
   });
 
   it("wraps the state badge in exactly one polite live region on the live payment view, never enclosing a role=alert node (C1)", () => {
+    // Scoped to the badge's own wrapper (`<div aria-live="polite">`), not a
+    // document-wide count: `CopyField`'s unrelated sr-only copy-status
+    // announcement (`role="status" aria-live="polite"`) also renders on the
+    // PENDING-with-payload view and must not be conflated with the badge.
+    const badgeLiveRegion = /<div aria-live="polite">/g;
     for (const state of ["RESERVED", "CREATING", "CREATED"] as const) {
       const markup = render(state, { pixCopyPaste: "pix-payload" });
-      expect(markup.match(/aria-live="polite"/g)).toHaveLength(1);
+      expect(markup.match(badgeLiveRegion)).toHaveLength(1);
       expect(markup).not.toContain('role="alert"');
     }
 
     const pending = render("PENDING", { pixCopyPaste: "pix-payload" });
-    expect(pending.match(/aria-live="polite"/g)).toHaveLength(1);
+    expect(pending.match(badgeLiveRegion)).toHaveLength(1);
     expect(pending).not.toContain('role="alert"');
 
     // The named states (terminal failures, INDETERMINATE, status-unavailable)
     // render through `EmptyState`'s own `role="alert"`/`role="status"` and
     // carry no live region of their own.
     const indeterminate = render("INDETERMINATE", { pixCopyPaste: "pix-payload" });
-    expect(indeterminate).not.toContain('aria-live="polite"');
+    expect(indeterminate).not.toMatch(badgeLiveRegion);
   });
 
   it("feeds the merchant identity into the QR display's identity slot on the live view (C03.a)", () => {

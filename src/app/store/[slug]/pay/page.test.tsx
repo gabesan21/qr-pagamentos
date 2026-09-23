@@ -81,7 +81,10 @@ describe("standalone payment page", () => {
 
     const markup = await renderPage({ ...storefront, checkoutDataPolicy: "NONE" });
 
-    expect(markup).toContain("Este pagamento não exige dados do cliente.");
+    // NONE renders no customer heading or notice (15.3.2 C6); the amount
+    // field's own `field-group` still renders — the amount is not customer
+    // data and this route always collects it, regardless of policy.
+    expect(markup).not.toContain('role="status"');
     expect(markup).not.toContain('id="standalone-name"');
     expect(markup).not.toContain('id="standalone-email"');
   });
