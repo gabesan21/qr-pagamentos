@@ -20,6 +20,28 @@
       "test_seconds": 0,
       "return_kind": null,
       "result": "advanced"
+    },
+    {
+      "at": "2026-09-23T09:07:18-03:00",
+      "event": "transition",
+      "from": "003_human_approval",
+      "to": "004_processing",
+      "contexts": [],
+      "test_seconds": 0,
+      "return_kind": null,
+      "result": "advanced"
+    },
+    {
+      "at": "2026-09-23T09:16:28-03:00",
+      "event": "transition",
+      "from": "004_processing",
+      "to": "005_closing",
+      "contexts": [
+        "pop-executor: 2"
+      ],
+      "test_seconds": 0,
+      "return_kind": null,
+      "result": "advanced"
     }
   ]
 }
