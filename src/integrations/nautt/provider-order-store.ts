@@ -59,6 +59,19 @@ function orderData(order: NauttOrderView) {
   };
 }
 
+// Reconciliation never clears a stored PIX payload: an authoritative read
+// that omits `pixCopyPaste`/`pixQrcodeUrl` omits those keys from the write
+// (Prisma leaves an omitted column untouched; the in-memory spread keeps the
+// current value), while a present value still overwrites the stored one.
+function reconcileOrderData(order: NauttOrderView) {
+  const { pixCopyPaste: _droppedPixCopyPaste, pixQrcodeUrl: _droppedPixQrcodeUrl, ...rest } = orderData(order);
+  return {
+    ...rest,
+    ...(order.pixCopyPaste ? { pixCopyPaste: order.pixCopyPaste } : {}),
+    ...(order.pixQrcodeUrl ? { pixQrcodeUrl: order.pixQrcodeUrl } : {}),
+  };
+}
+
 export function createPrismaProviderOrderStore(prisma: PrismaClient): ProviderOrderStore {
   return {
     async register(registration: QuoteOwnershipRegistration): Promise<boolean> {
@@ -157,7 +170,7 @@ export function createPrismaProviderOrderStore(prisma: PrismaClient): ProviderOr
         },
         data: {
           creationState: "CREATED",
-          ...orderData(order),
+          ...reconcileOrderData(order),
           reconciliationVersion: { increment: 1 },
         },
       });
@@ -267,7 +280,7 @@ export function createInMemoryProviderOrderStore(): ProviderOrderStore {
       const isActiveCreated = observed.creationState === "CREATED" && ACTIVE_ORDER_STATUSES.includes(observed.status as never);
       const isKnownRecovery = observed.creationState === "INDETERMINATE" && observed.status === null && observed.providerOrderUuid !== null;
       if (order.orderUuid === observed.providerOrderUuid && (isActiveCreated || isKnownRecovery) && current && current.ownerId === observed.ownerId && current.providerOrderUuid === observed.providerOrderUuid && current.creationState === observed.creationState && current.status === observed.status && current.reconciliationVersion === observed.reconciliationVersion) {
-        orders.set(observed.id, { ...current, creationState: "CREATED", ...orderData(order), reconciliationVersion: current.reconciliationVersion + 1 });
+        orders.set(observed.id, { ...current, creationState: "CREATED", ...reconcileOrderData(order), reconciliationVersion: current.reconciliationVersion + 1 });
       }
       const result = orders.get(observed.id);
       return result ? Promise.resolve(result) : Promise.reject(new Error("order unavailable"));

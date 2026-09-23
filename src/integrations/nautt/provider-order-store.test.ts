@@ -37,6 +37,31 @@ function durablePrismaFake(): PrismaClient {
       orders.set(stored.id, stored);
       return stored;
     },
+    async updateMany({ where, data }: { where: Record<string, unknown>; data: Record<string, unknown> }) {
+      const row = orders.get(where.id as string);
+      if (
+        !row ||
+        row.ownerId !== where.ownerId ||
+        (where.providerOrderUuid !== undefined && row.providerOrderUuid !== where.providerOrderUuid) ||
+        (where.creationState !== undefined && row.creationState !== where.creationState) ||
+        (where.status !== undefined && row.status !== where.status) ||
+        (where.reconciliationVersion !== undefined && row.reconciliationVersion !== where.reconciliationVersion)
+      ) {
+        return { count: 0 };
+      }
+      const { reconciliationVersion, ...rest } = data;
+      const nextVersion =
+        reconciliationVersion && typeof reconciliationVersion === "object" && "increment" in (reconciliationVersion as Record<string, unknown>)
+          ? (row.reconciliationVersion as number) + (reconciliationVersion as { increment: number }).increment
+          : (row.reconciliationVersion as number);
+      orders.set(row.id as string, { ...row, ...rest, reconciliationVersion: nextVersion });
+      return { count: 1 };
+    },
+    async findUniqueOrThrow({ where }: { where: { id: string } }) {
+      const row = orders.get(where.id);
+      if (!row) throw new Error("provider order not found");
+      return row;
+    },
   };
   const prisma = {
     providerQuote,
@@ -82,5 +107,53 @@ describe("Prisma provider order store", () => {
     await expect(store.claimForCreation({ quoteUuid, ownerId, now, orderV2Id })).resolves.toMatchObject({ kind: "claimed" });
 
     expect(createSpy).toHaveBeenCalledWith({ data: expect.objectContaining({ orderV2Id }) });
+  });
+
+  it("reconcile omits PIX keys from the write when the authoritative read carries none, and the row keeps its stored payload", async () => {
+    const prisma = durablePrismaFake();
+    const store = createPrismaProviderOrderStore(prisma);
+    const providerOrderInternal = (prisma as unknown as { providerOrder: { updateMany: (input: unknown) => Promise<{ count: number }>; findUniqueOrThrow: (input: unknown) => Promise<Record<string, unknown>> } }).providerOrder;
+    const providerOrderUuid = "440e8400-e29b-41d4-a716-446655440044";
+
+    await store.register({ quoteUuid, ownerId, expiresAt: new Date("2026-07-18T20:05:00.000Z") });
+    const claim = await store.claimForCreation({ quoteUuid, ownerId, now });
+    if (claim.kind !== "claimed") throw new Error("expected claim to succeed");
+
+    await providerOrderInternal.updateMany({
+      where: { id: claim.attempt.id, ownerId, quoteUuid, creationState: "CREATING" },
+      data: {
+        creationState: "CREATED",
+        providerOrderUuid,
+        status: "new",
+        fiatAmount: "1000.0000",
+        cryptoAmount: "196.0784",
+        nauttQuote: "5.1000",
+        providerExpiresAt: new Date("2026-07-18T22:00:00.000Z"),
+        paymentMethod: "pix",
+        pixCopyPaste: "existing-pix-code",
+        pixQrcodeUrl: "https://example.com/qr.png",
+        reconciliationVersion: { increment: 1 },
+      },
+    });
+    const observed = await providerOrderInternal.findUniqueOrThrow({ where: { id: claim.attempt.id } });
+
+    const updateManySpy = vi.spyOn(providerOrderInternal, "updateMany");
+    const reconciled = await store.reconcile(observed as never, {
+      orderUuid: providerOrderUuid,
+      status: "processing",
+      fiatAmount: "1000.0000",
+      cryptoAmount: "196.0784",
+      nauttQuote: "5.1000",
+      expiresAt: new Date("2026-07-18T22:00:00.000Z"),
+      paymentMethod: "pix",
+    });
+
+    expect(updateManySpy).toHaveBeenCalledOnce();
+    const writtenData = updateManySpy.mock.calls[0]?.[0] as { data: Record<string, unknown> };
+    expect(writtenData.data).not.toHaveProperty("pixCopyPaste");
+    expect(writtenData.data).not.toHaveProperty("pixQrcodeUrl");
+    expect(reconciled.pixCopyPaste).toBe("existing-pix-code");
+    expect(reconciled.pixQrcodeUrl).toBe("https://example.com/qr.png");
+    expect(reconciled.status).toBe("processing");
   });
 });
