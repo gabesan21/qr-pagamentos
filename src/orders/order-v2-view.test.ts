@@ -51,6 +51,7 @@ function stored(overrides: Partial<StoredOrderV2View> = {}): StoredOrderV2View {
     lines: [],
     comments: [{ id: "550e8400-e29b-41d4-a716-446655440055", body: "nota", version: 0, createdAt: new Date("2026-07-25T12:00:00.000Z"), editedAt: null }],
     latestLocalOutcome: { outcome: "LOCAL_FINALIZED", note: null, createdAt: new Date("2026-07-25T12:30:00.000Z") },
+    paymentMethod: null,
     ...overrides,
   };
 }
@@ -81,6 +82,18 @@ describe("order-v2 view service", () => {
     expect(result.order).not.toHaveProperty("cpf");
   });
 
+  it("carries the stored provider payment method on detail, with an explicit absent state", async () => {
+    const present = createOrderV2ViewService(storeWith({ findForOwner: async () => stored({ paymentMethod: "pix" }) }));
+    const presentResult = await present.getForOwner(owner, orderId);
+    expect(presentResult.kind).toBe("found");
+    if (presentResult.kind === "found") expect(presentResult.order.paymentMethod).toBe("pix");
+
+    const absent = createOrderV2ViewService(storeWith({ findForOwner: async () => stored({ paymentMethod: null }) }));
+    const absentResult = await absent.getForOwner(owner, orderId);
+    expect(absentResult.kind).toBe("found");
+    if (absentResult.kind === "found") expect(absentResult.order.paymentMethod).toBeNull();
+  });
+
   it("scopes owner reads to the principal and exposes only summaries on lists", async () => {
     const store = storeWith();
     const service = createOrderV2ViewService(store);
@@ -95,7 +108,11 @@ describe("order-v2 view service", () => {
 
   it("never carries verifiers, key material, provider, credential, or retry-key fields out of the module", async () => {
     const source = await readFile("src/orders/order-v2-view.ts", "utf8");
-    for (const forbidden of ["Verifier", "verifier", "nonce", "Nonce", "capability", "Capability", "providerOrder", "provider_order", "apiKey", "credential", "retryKey"]) {
+    // `providerOrders` (15.2.3): a select-only Prisma relation read exclusively
+    // for the additive `paymentMethod` detail field (spec-documented, never a
+    // secret); the real internal identifier that must never leak is the raw
+    // provider order id, guarded below as `providerOrderUuid`/`provider_order`.
+    for (const forbidden of ["Verifier", "verifier", "nonce", "Nonce", "capability", "Capability", "providerOrderUuid", "provider_order", "apiKey", "credential", "retryKey"]) {
       expect(source.includes(forbidden), forbidden).toBe(false);
     }
 
@@ -107,8 +124,9 @@ describe("order-v2 view service", () => {
     expect(Object.keys(result.order).sort()).toEqual([
       "amount", "checkoutDataPolicy", "comments", "createdAt", "currencyUuid", "currentLocalOutcome", "customer",
       "descriptionEn", "descriptionPtBr", "exchangeCurrencyUuid", "id", "lifecycleVersion", "lines", "payer",
-      "paymentLinkV2Identifier", "settledAt", "source", "state", "updatedAt",
+      "paymentLinkV2Identifier", "paymentMethod", "settledAt", "source", "state", "updatedAt",
     ]);
+    expect(result.order.paymentMethod).toBeNull();
     expect(Object.keys(result.order.customer).sort()).toEqual(["address", "cpf", "email", "name"]);
 
     const list = await service.listForOwner(owner);

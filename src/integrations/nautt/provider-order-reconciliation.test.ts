@@ -58,6 +58,7 @@ function harness(observed: StoredProviderOrder | null, reconciled = view()) {
     releasePreDispatch: vi.fn(),
     markIndeterminate: vi.fn(),
     completeCreation: vi.fn(),
+    discardRefused: vi.fn(),
     findPollable: vi.fn().mockResolvedValue(observed),
     findRecoverable: vi.fn().mockResolvedValue(observed),
     findWebhookActionable: vi.fn().mockResolvedValue(observed),

@@ -53,6 +53,7 @@ const order: OrderV2View = {
   createdAt: new Date("2026-07-01T12:00:00.000Z"),
   updatedAt: new Date("2026-07-02T12:00:00.000Z"),
   settledAt: new Date("2026-07-02T12:00:00.000Z"),
+  paymentMethod: null,
 };
 
 function found(locale: "pt-BR" | "en" = "en", owner = { username: "merchant.one", deletedAt: null as Date | null }) {

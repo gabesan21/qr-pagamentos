@@ -347,10 +347,13 @@ describe("owner order creation with quote ownership claims", () => {
     expect(fetch).toHaveBeenCalledTimes(2);
 
     // The quote is neither released nor recoverable: a second claim attempt
-    // fails closed with zero further decryption or dispatch — the discarded
-    // row leaves no trace to poll, recover, or reconcile.
+    // fails closed at the claim itself — before any further decryption or
+    // dispatch — the discarded row leaves no trace to poll, recover, or
+    // reconcile. `credentials.calls` already carries one decrypt from the
+    // quote step and one from the refused attempt above; the failed claim on
+    // retry adds no third call.
     await expect(service.createOrder(ownerA, { quoteUuid }, {})).rejects.toBeInstanceOf(OwnerPricingOrdersError);
-    expect(credentials.calls).toEqual([ownerA]);
+    expect(credentials.calls).toEqual([ownerA, ownerA]);
     expect(fetch).toHaveBeenCalledTimes(2);
   });
 

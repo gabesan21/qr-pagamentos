@@ -219,7 +219,7 @@ const detailSelect = {
   lines: { select: { productId: true, position: true, quantity: true, unitPrice: true }, orderBy: { position: "asc" } },
   comments: { select: { id: true, body: true, version: true, createdAt: true, editedAt: true }, orderBy: [{ createdAt: "asc" as const }, { id: "asc" as const }] },
   // Detail-only (15.2.3): the provider payment method, one field only — never
-  // the PIX payload, provider UUID, or credential material.
+  // the PIX payload, the raw order identifier, or any secret material.
   providerOrders: { select: { paymentMethod: true }, take: 1 },
 } satisfies Prisma.OrderV2Select;
 
