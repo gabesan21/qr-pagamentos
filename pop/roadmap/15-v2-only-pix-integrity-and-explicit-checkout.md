@@ -46,14 +46,14 @@
 
 ## Phase 15.4 - Visual drift sweep
 
-- **Status:** pendente
+- **Status:** em andamento
 - **Description:** Migrate remaining surfaces to the declared template vocabulary and 44 px targets; materialized after Phase 15.3 closes.
 
 | Task | Description | Status |
 |------|-------------|--------|
-| `15.4.1-migrate-template-vocabulary` | Replace `text-muted-foreground`/`bg-card`/`rounded-lg` with the declared names where the template maps the screen. · size: M | não iniciada |
-| `15.4.2-fix-target-sizes-and-dictionary-debt` | 44 px steppers and period controls, dead key `merchantDashboardSalesEmpty`, plural form of `{count} products`. · size: S | não iniciada |
-| `15.4.3-phase-verification` | Write/run the phase suite and repair only phase defects. · size: S | não iniciada |
+| [[15.4.1-migrate-template-vocabulary]] | Replace the legacy shadcn vocabulary with the declared template utilities where the template maps the screen; absorb the `admin:source-check` raw-control findings (F6). · size: M | 003_human_approval |
+| [[15.4.2-fix-target-sizes-and-dictionary-debt]] | 44 px steppers and period controls, the 143 unreferenced keys (F4) and plural form, and the two parity-gate repairs (F2 tracked-tree derivation, F5 checkout loading obligations). · size: M | 003_human_approval |
+| [[15.4.3-phase-verification]] | Write/run the phase suite and repair only phase defects; consolidates the epoch's human checklist for the `develop` → `main` PR. · size: S | 002_planning |
 
 ## Dependency and parallel-wave map
 
