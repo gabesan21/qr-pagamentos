@@ -43,7 +43,7 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[15.3.4-phase-verification]] | Write/run the phase suite (checkout view/controller/form tests, static gates) and repair only phase defects. · size: M | 001_initial_task |
+| [[15.3.4-phase-verification]] | Write/run the phase suite (checkout view/controller/form tests, static gates) and repair only phase defects. · size: M | 003_human_approval |
 
 ## Phase 15.4 - Visual drift sweep
 
