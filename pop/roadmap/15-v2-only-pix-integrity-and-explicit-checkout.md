@@ -37,13 +37,12 @@
 
 ## Phase 15.3 - Explicit checkout
 
-- **Status:** pendente
+- **Status:** concluída
 - **Description:** The buyer checkout shows explicit states with "Start over" as the only action, hides the customer block for policy `NONE`, and converges on the template's vocabulary and AA rules.
 - **Specs:** [[specs/checkout-and-order-lifecycle|Checkout and order lifecycle]], [[specs/application-frontend-system|Application frontend system]]
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[15.3.4-phase-verification]] | Write/run the phase suite (checkout view/controller/form tests, static gates) and repair only phase defects. · size: M | 005_closing |
 
 ## Phase 15.4 - Visual drift sweep
 
