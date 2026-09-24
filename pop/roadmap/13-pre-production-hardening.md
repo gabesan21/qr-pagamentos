@@ -37,7 +37,6 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[13.3.1-sync-deployment-docs-to-v2-baseline]] | Runbook 19→16 baseline, README and PROJECT current state, release-evidence rows marked stale or still valid. · size: S | 003_human_approval |
 | [[13.3.2-close-admin-source-check-gate]] | Make `admin:source-check` exit 0 (F6): remove the inert shell token and add two rule-anchored typed exemptions to the checker; no primitive composition needed. · size: M | 003_human_approval |
 | [[13.3.3-release-rehearsal-protocol]] | Dated, repeatable rehearsal protocol (install, update, backup, restore, initial-admin recovery) with an evidence template the human executes. · size: S | 003_human_approval |
 | [[13.3.4-phase-verification]] | Write/run the phase suite, consolidate the epoch's human checklist and report, suggest the `develop` → `main` PR. · size: S | 003_human_approval |
