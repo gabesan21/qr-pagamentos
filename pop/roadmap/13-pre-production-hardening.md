@@ -25,7 +25,6 @@
 
 | Task | Description | Status |
 |------|-------------|--------|
-| [[13.1.2-clear-beta-caveats-and-close-reversal-gate]] | Clear every `BETA(M-5.1)` caveat in spec/DOX/PROJECT, close the open question, update the research status. · size: S | 003_human_approval |
 | [[13.1.3-phase-verification]] | Write/run the phase suite (`pnpm check`, webhook suites) and repair only phase defects. · size: S | 003_human_approval |
 
 ## Phase 13.2 - Lifecycle release blockers
