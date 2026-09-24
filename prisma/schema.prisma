@@ -61,6 +61,7 @@ model User {
   totpCredential    TotpCredential?
   totpRecoveryActions TotpRecoveryAction[]
   mfaChallenges     MfaChallenge[]
+  currencyPairVerifications CurrencyPairVerification[]
 
   @@map("user")
   @@schema("app")
@@ -207,9 +208,33 @@ model CatalogCurrencyPair {
   updatedAt            DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
   paymentLinksV2            PaymentLinkV2[]
   supportedExchangeCurrency SupportedExchangeCurrency?
+  verifications             CurrencyPairVerification[]
 
   @@unique([currencyUuid, exchangeCurrencyUuid], map: "catalog_currency_pair_uuids_key")
   @@map("catalog_currency_pair")
+  @@schema("app")
+}
+
+// Additive per-(owner, pair) evidence row (13.4.1): quote-probe diagnosis and
+// the latest observed order payment method/currency, both nullable until the
+// respective event happens. Never a verdict cache — only the shared
+// enabled-observation predicate in `src/auth/payment-settings.ts` interprets
+// it, and F02/F03 gate/refuse from it, never from an assumption.
+model CurrencyPairVerification {
+  ownerId                 String    @map("owner_id") @db.Uuid
+  pairId                  String    @map("pair_id") @db.Uuid
+  quoteCheckedAt          DateTime? @map("quote_checked_at") @db.Timestamptz(3)
+  quoteOutcome            String?   @map("quote_outcome") @db.VarChar(40)
+  observedPaymentMethod   String?   @map("observed_payment_method") @db.VarChar(32)
+  observedCurrencySymbol  String?   @map("observed_currency_symbol") @db.VarChar(16)
+  observedAt              DateTime? @map("observed_at") @db.Timestamptz(3)
+  updatedAt               DateTime  @map("updated_at") @db.Timestamptz(3)
+  owner                   User      @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  pair                    CatalogCurrencyPair @relation(fields: [pairId], references: [id], onDelete: Restrict)
+
+  @@id([ownerId, pairId], map: "currency_pair_verification_pkey")
+  @@index([pairId], map: "currency_pair_verification_pair_idx")
+  @@map("currency_pair_verification")
   @@schema("app")
 }
 
@@ -521,6 +546,7 @@ model ProviderOrder {
   paymentMethod         String?   @map("payment_method") @db.Text
   pixCopyPaste          String?   @map("pix_copy_paste") @db.Text
   pixQrcodeUrl          String?   @map("pix_qrcode_url") @db.Text
+  currencySymbol        String?   @map("currency_symbol") @db.VarChar(16)
   orderV2Id             String?   @map("order_v2_id") @db.Uuid
   reconciliationVersion Int       @default(0) @map("reconciliation_version") @db.Integer
   createdAt             DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)

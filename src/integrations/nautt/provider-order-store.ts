@@ -2,7 +2,7 @@ import "server-only";
 
 import { randomUUID } from "node:crypto";
 
-import type { PrismaClient } from "../../generated/prisma/client";
+import type { Prisma, PrismaClient } from "../../generated/prisma/client";
 
 import type { NauttOrderStatus, NauttOrderView } from "./pricing-orders-client";
 import type { ClaimedOrderAttempt, QuoteClaimResult, QuoteOwnershipRegistration, QuoteOwnershipStore } from "./quote-ownership";
@@ -24,6 +24,9 @@ export type StoredProviderOrder = {
   readonly paymentMethod: string | null;
   readonly pixCopyPaste: string | null;
   readonly pixQrcodeUrl: string | null;
+  // Optional so a fixture built before this field existed (in another
+  // front's owned test file) still satisfies the type.
+  readonly currencySymbol?: string | null;
   readonly orderV2Id: string | null;
   readonly reconciliationVersion: number;
 };
@@ -61,20 +64,66 @@ function orderData(order: NauttOrderView) {
     paymentMethod: order.paymentMethod,
     pixCopyPaste: order.pixCopyPaste ?? null,
     pixQrcodeUrl: order.pixQrcodeUrl ?? null,
+    currencySymbol: order.currencySymbol ?? null,
   };
 }
 
-// Reconciliation never clears a stored PIX payload: an authoritative read
-// that omits `pixCopyPaste`/`pixQrcodeUrl` omits those keys from the write
-// (Prisma leaves an omitted column untouched; the in-memory spread keeps the
-// current value), while a present value still overwrites the stored one.
+// Reconciliation never clears a stored PIX payload or currency symbol: an
+// authoritative read that omits `pixCopyPaste`/`pixQrcodeUrl`/`currencySymbol`
+// omits those keys from the write (Prisma leaves an omitted column
+// untouched; the in-memory spread keeps the current value), while a present
+// value still overwrites the stored one.
 function reconcileOrderData(order: NauttOrderView) {
-  const { pixCopyPaste: _droppedPixCopyPaste, pixQrcodeUrl: _droppedPixQrcodeUrl, ...rest } = orderData(order);
+  const {
+    pixCopyPaste: _droppedPixCopyPaste,
+    pixQrcodeUrl: _droppedPixQrcodeUrl,
+    currencySymbol: _droppedCurrencySymbol,
+    ...rest
+  } = orderData(order);
   return {
     ...rest,
     ...(order.pixCopyPaste ? { pixCopyPaste: order.pixCopyPaste } : {}),
     ...(order.pixQrcodeUrl ? { pixQrcodeUrl: order.pixQrcodeUrl } : {}),
+    ...(order.currencySymbol ? { currencySymbol: order.currencySymbol } : {}),
   };
+}
+
+// Recording (13.4.1): a successful creation observes the pair from the
+// attempt's `order_v2` (`currency_uuid`, `exchange_currency_uuid` -> the
+// unique pair key) and upserts the (owner, pair) evidence triple, latest
+// wins. A provider order without `orderV2Id`, or an `order_v2` whose pair no
+// longer resolves to a registered catalog pair, records nothing and never
+// widens the buyer-visible failure surface — the caller's creation result is
+// unaffected either way.
+async function recordObservation(tx: Prisma.TransactionClient, stored: StoredProviderOrder, order: NauttOrderView): Promise<void> {
+  if (!stored.orderV2Id) return;
+  const orderV2 = await tx.orderV2.findFirst({
+    where: { id: stored.orderV2Id, ownerId: stored.ownerId },
+    select: { currencyUuid: true, exchangeCurrencyUuid: true },
+  });
+  if (!orderV2) return;
+  const pair = await tx.catalogCurrencyPair.findUnique({
+    where: {
+      currencyUuid_exchangeCurrencyUuid: {
+        currencyUuid: orderV2.currencyUuid,
+        exchangeCurrencyUuid: orderV2.exchangeCurrencyUuid,
+      },
+    },
+    select: { id: true },
+  });
+  if (!pair) return;
+  const observedAt = new Date();
+  const observation = {
+    observedPaymentMethod: order.paymentMethod,
+    observedCurrencySymbol: order.currencySymbol ?? null,
+    observedAt,
+    updatedAt: observedAt,
+  };
+  await tx.currencyPairVerification.upsert({
+    where: { ownerId_pairId: { ownerId: stored.ownerId, pairId: pair.id } },
+    create: { ownerId: stored.ownerId, pairId: pair.id, ...observation },
+    update: observation,
+  });
 }
 
 export function createPrismaProviderOrderStore(prisma: PrismaClient): ProviderOrderStore {
@@ -128,12 +177,16 @@ export function createPrismaProviderOrderStore(prisma: PrismaClient): ProviderOr
     },
 
     async completeCreation(attempt, order): Promise<StoredProviderOrder> {
-      const result = await prisma.providerOrder.updateMany({
-        where: { id: attempt.id, ownerId: attempt.ownerId, quoteUuid: attempt.quoteUuid, creationState: "CREATING" },
-        data: { creationState: "CREATED", ...orderData(order), reconciliationVersion: { increment: 1 } },
+      return prisma.$transaction(async (tx) => {
+        const result = await tx.providerOrder.updateMany({
+          where: { id: attempt.id, ownerId: attempt.ownerId, quoteUuid: attempt.quoteUuid, creationState: "CREATING" },
+          data: { creationState: "CREATED", ...orderData(order), reconciliationVersion: { increment: 1 } },
+        });
+        if (result.count !== 1) throw new Error("creation attempt changed");
+        const stored = asStored(await tx.providerOrder.findUniqueOrThrow({ where: { id: attempt.id } }));
+        await recordObservation(tx, stored, order);
+        return stored;
       });
-      if (result.count !== 1) throw new Error("creation attempt changed");
-      return asStored(await prisma.providerOrder.findUniqueOrThrow({ where: { id: attempt.id } }));
     },
 
     async findPollable(ownerId, localOrderId): Promise<StoredProviderOrder | null> {
@@ -205,6 +258,7 @@ export function storedOrderView(order: StoredProviderOrder): NauttOrderView {
     paymentMethod: order.paymentMethod,
     ...(order.pixCopyPaste ? { pixCopyPaste: order.pixCopyPaste } : {}),
     ...(order.pixQrcodeUrl ? { pixQrcodeUrl: order.pixQrcodeUrl } : {}),
+    ...(order.currencySymbol ? { currencySymbol: order.currencySymbol } : {}),
   };
 }
 
@@ -236,6 +290,7 @@ export function createInMemoryProviderOrderStore(): ProviderOrderStore {
         paymentMethod: null,
         pixCopyPaste: null,
         pixQrcodeUrl: null,
+        currencySymbol: null,
         orderV2Id: orderV2Id ?? null,
         reconciliationVersion: 0,
       });

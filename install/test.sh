@@ -114,6 +114,27 @@ for missing in SMTP_HOST SMTP_PORT SMTP_USER SMTP_PASSWORD SMTP_FROM SMTP_TLS_MO
   if "$INSTALL_DIR/install.sh" --dry-run --env-file "$TMP/missing-$missing.env" >/dev/null 2>&1; then fail "missing $missing succeeded"; fi
 done
 
+# Production origin guard: a loopback operator origin derives and forwards the
+# installer allowance with a visible warning; a real HTTPS origin does not.
+expect_contains "$INSTALL_DIR/install.sh" 'ALLOW_LOOPBACK_OPERATOR_ORIGINS'
+expect_contains "$INSTALL_DIR/update.sh" 'ALLOW_LOOPBACK_OPERATOR_ORIGINS'
+expect_contains "$INSTALL_DIR/../compose.yaml" 'ALLOW_LOOPBACK_OPERATOR_ORIGINS: ${ALLOW_LOOPBACK_OPERATOR_ORIGINS:-}'
+sed 's|^PUBLIC_ORIGIN=.*|PUBLIC_ORIGIN=http://localhost:33013|' "$TMP/install.env" > "$TMP/loopback-public-origin.env"
+loopback_out=$TMP/loopback.out
+loopback_err=$TMP/loopback.err
+"$INSTALL_DIR/install.sh" --dry-run --env-file "$TMP/loopback-public-origin.env" > "$loopback_out" 2> "$loopback_err" \
+  || fail 'loopback public origin dry-run failed'
+expect_contains "$loopback_err" 'ALLOW_LOOPBACK_OPERATOR_ORIGINS=1'
+https_err=$TMP/https.err
+"$INSTALL_DIR/install.sh" --dry-run --env-file "$TMP/install.env" >/dev/null 2> "$https_err" \
+  || fail 'HTTPS-only dry-run failed'
+expect_absent "$https_err" 'ALLOW_LOOPBACK_OPERATOR_ORIGINS'
+sed '$a ALLOW_LOOPBACK_OPERATOR_ORIGINS=1' "$TMP/install.env" > "$TMP/hand-edited-allowance.env"
+for script in install.sh uninstall.sh; do
+  "$INSTALL_DIR/$script" --dry-run --env-file "$TMP/hand-edited-allowance.env" >/dev/null 2>&1 \
+    || fail "$script rejected a hand-edited ALLOW_LOOPBACK_OPERATOR_ORIGINS key"
+done
+
 git -C "$INSTALL_DIR/.." check-ignore -q install/.env || fail 'install/.env is not ignored by Git'
 git -C "$INSTALL_DIR/.." check-ignore -q .update-evidence/ || fail '.update-evidence is not ignored by Git'
 

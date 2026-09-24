@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { decrypt, encrypt, loadEncryptionKey, NauttCryptoError } from "./nautt-crypto";
+import { decrypt, encrypt, loadEncryptionKey, loadPreviousEncryptionKey, NauttCryptoError } from "./nautt-crypto";
 
 const key = Buffer.alloc(32, 0xab);
 const otherKey = Buffer.alloc(32, 0xcd);
@@ -85,5 +85,56 @@ describe("nautt-crypto", () => {
     process.env.NAUTT_ENCRYPTION_KEY = "aG9zdA";
     expect(() => loadEncryptionKey()).toThrow(NauttCryptoError);
     process.env.NAUTT_ENCRYPTION_KEY = previous;
+  });
+
+  it("decrypts ciphertext of the current key without a previous key configured", () => {
+    const ciphertext = encrypt("secret", key);
+    expect(decrypt(ciphertext, key)).toBe("secret");
+  });
+
+  it("decrypts ciphertext of the previous key during the rotation window", () => {
+    const ciphertext = encrypt("secret", otherKey);
+    expect(decrypt(ciphertext, key, otherKey)).toBe("secret");
+  });
+
+  it("prefers the current key over the previous key when both would decrypt", () => {
+    const ciphertext = encrypt("secret", key);
+    expect(decrypt(ciphertext, key, otherKey)).toBe("secret");
+  });
+
+  it("fails closed when neither the current nor the previous key matches", () => {
+    const thirdKey = Buffer.alloc(32, 0xef);
+    const ciphertext = encrypt("secret", thirdKey);
+    expect(() => decrypt(ciphertext, key, otherKey)).toThrow(NauttCryptoError);
+  });
+
+  it("reproduces today's behavior byte for byte when no previous key is configured", () => {
+    const ciphertext = encrypt("secret", otherKey);
+    expect(() => decrypt(ciphertext, key)).toThrow(NauttCryptoError);
+    expect(() => decrypt(ciphertext, key, undefined)).toThrow(NauttCryptoError);
+  });
+
+  it("returns undefined for the previous key when the environment variable is unset", () => {
+    const previous = process.env.NAUTT_ENCRYPTION_KEY_PREVIOUS;
+    delete process.env.NAUTT_ENCRYPTION_KEY_PREVIOUS;
+    expect(loadPreviousEncryptionKey()).toBeUndefined();
+    process.env.NAUTT_ENCRYPTION_KEY_PREVIOUS = previous;
+  });
+
+  it("loads the previous encryption key from the environment when configured", () => {
+    const previous = process.env.NAUTT_ENCRYPTION_KEY_PREVIOUS;
+    process.env.NAUTT_ENCRYPTION_KEY_PREVIOUS = validBase64urlKey;
+    try {
+      expect(loadPreviousEncryptionKey()).toEqual(key);
+    } finally {
+      process.env.NAUTT_ENCRYPTION_KEY_PREVIOUS = previous;
+    }
+  });
+
+  it("fails loudly when the previous key is configured but malformed", () => {
+    const previous = process.env.NAUTT_ENCRYPTION_KEY_PREVIOUS;
+    process.env.NAUTT_ENCRYPTION_KEY_PREVIOUS = "aG9zdA";
+    expect(() => loadPreviousEncryptionKey()).toThrow(NauttCryptoError);
+    process.env.NAUTT_ENCRYPTION_KEY_PREVIOUS = previous;
   });
 });

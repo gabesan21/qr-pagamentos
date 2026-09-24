@@ -19,7 +19,15 @@ export type Dictionary = ReturnType<typeof getDictionary>;
 export type Settings = Readonly<{ currencies: string[]; paymentMethods: string[] }>;
 export type CurrencyPair = Readonly<{ id: string; label: string; currencyUuid: string; exchangeCurrencyUuid: string; active: boolean; createdAt: string }>;
 export type PaymentMethod = Readonly<{ id: string; label: string; paymentMethodUuid: string; active: boolean; createdAt: string }>;
-export type ExchangeCurrencyMapping = Readonly<{ code: string; label: string }>;
+// 13.4.1 F02: read-only probe evidence next to each mapping — never an
+// action, never an admin-triggered provider call.
+export type ExchangeCurrencyEvidence = Readonly<{
+  checkedAt: string | null;
+  outcome: string | null;
+  observedPaymentMethod: string | null;
+  observedCurrencySymbol: string | null;
+}>;
+export type ExchangeCurrencyMapping = Readonly<{ code: string; label: string; evidence: ExchangeCurrencyEvidence }>;
 export type Notice = Readonly<{ tone: "success" | "error"; text: string }> | null;
 
 const SECTION_IDS = [

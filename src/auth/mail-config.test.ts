@@ -262,6 +262,41 @@ describe("loadSmtpConfig", () => {
 });
 
 describe("loadPublicOrigin", () => {
+  const savedProductionEnv: { ALLOW_LOOPBACK_OPERATOR_ORIGINS: string | undefined } = {
+    ALLOW_LOOPBACK_OPERATOR_ORIGINS: undefined,
+  };
+
+  beforeEach(() => {
+    savedProductionEnv.ALLOW_LOOPBACK_OPERATOR_ORIGINS = process.env.ALLOW_LOOPBACK_OPERATOR_ORIGINS;
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    if (savedProductionEnv.ALLOW_LOOPBACK_OPERATOR_ORIGINS === undefined) delete process.env.ALLOW_LOOPBACK_OPERATOR_ORIGINS;
+    else process.env.ALLOW_LOOPBACK_OPERATOR_ORIGINS = savedProductionEnv.ALLOW_LOOPBACK_OPERATOR_ORIGINS;
+  });
+
+  it("refuses a loopback HTTP origin in production without the allowance", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    delete process.env.ALLOW_LOOPBACK_OPERATOR_ORIGINS;
+    process.env.PUBLIC_ORIGIN = "http://localhost:3000";
+    expect(() => loadPublicOrigin()).toThrow(MailConfigError);
+  });
+
+  it("accepts a loopback HTTP origin in production with the allowance set to exactly 1", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    process.env.ALLOW_LOOPBACK_OPERATOR_ORIGINS = "1";
+    process.env.PUBLIC_ORIGIN = "http://localhost:3000";
+    expect(loadPublicOrigin()).toBe("http://localhost:3000/");
+  });
+
+  it.each(["true", "0", "", "   "])("treats allowance value %j as absent in production", (value) => {
+    vi.stubEnv("NODE_ENV", "production");
+    process.env.ALLOW_LOOPBACK_OPERATOR_ORIGINS = value;
+    process.env.PUBLIC_ORIGIN = "http://localhost:3000";
+    expect(() => loadPublicOrigin()).toThrow(MailConfigError);
+  });
+
   it("loads and canonicalizes a valid HTTPS origin", () => {
     process.env.PUBLIC_ORIGIN = "https://payments.example.com";
     expect(loadPublicOrigin()).toBe("https://payments.example.com/");

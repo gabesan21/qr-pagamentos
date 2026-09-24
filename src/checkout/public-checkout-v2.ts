@@ -5,12 +5,13 @@ import { createHash, createHmac, randomBytes, randomUUID, timingSafeEqual } from
 import { getNauttCredentialService } from "@/auth/nautt-credential";
 import { getDatabaseClient } from "@/db/client";
 import type { Prisma, PrismaClient } from "@/generated/prisma/client";
-import { loadEncryptionKey } from "@/lib/nautt-crypto";
+import { loadEncryptionKey, loadPreviousEncryptionKey } from "@/lib/nautt-crypto";
 import { normalizeCustomerSnapshotV1, type CheckoutDataPolicy, type CustomerSnapshotV1 } from "@/orders/order-v2-policies";
 import { createOrderV2Service, createOrderV2Store, type StoredOrderV2 } from "@/orders/order-v2";
 import { createOwnerPricingOrdersService } from "@/integrations/nautt/owner-pricing-orders";
 import { getPricingOrdersAdapter, NauttOrderCreationIndeterminateError, NauttOrderRefusedError } from "@/integrations/nautt/pricing-orders-client";
 import { createPrismaProviderOrderStore } from "@/integrations/nautt/provider-order-store";
+import { getCheckoutPaymentPolicy, type CheckoutPaymentPolicy } from "./payment-policy";
 
 // Sessionless Commerce V2 public checkout (9.3.1): the V1 reservation fences
 // rebound to checkout_attempt_v2 over payment_link_v2 identities. The browser
@@ -76,8 +77,17 @@ type CheckoutV2Store = Readonly<{
 type Dependencies = Readonly<{
   now: () => Date;
   capabilityKey: () => Buffer;
+  previousCapabilityKey?: () => Buffer | undefined;
   provider: ReturnType<typeof createOwnerPricingOrdersService>;
+  policy?: CheckoutPaymentPolicy;
 }>;
+
+function capabilityKeys(dependencies: Dependencies): readonly Buffer[] {
+  const keys: Buffer[] = [dependencies.capabilityKey()];
+  const previous = dependencies.previousCapabilityKey?.();
+  if (previous) keys.push(previous);
+  return keys;
+}
 
 // The only order-shaping seam: the delivered createFromLink service method,
 // executed on the open reservation transaction so its internal transaction
@@ -94,11 +104,16 @@ function canonicalCustomer(customer: CustomerSnapshotV1): string { return JSON.s
 function capability(key: Buffer, attempt: Pick<AttemptRecord, "id" | "capabilityNonce" | "capabilityExpiresAt" | "capabilityKeyVersion">): string {
   return createHmac("sha256", key).update(`checkout-v2-capability:${attempt.capabilityKeyVersion}:${attempt.id}:${attempt.capabilityExpiresAt.toISOString()}:${attempt.capabilityNonce}`).digest("base64url");
 }
-function validCapability(key: Buffer, attempt: AttemptRecord, now: Date): string | null {
+function validCapability(keys: readonly Buffer[], attempt: AttemptRecord, now: Date): string | null {
   if (attempt.capabilityKeyVersion !== CAPABILITY_KEY_VERSION || attempt.capabilityRevokedAt || attempt.capabilityExpiresAt <= now || !attempt.paymentLink.active || (attempt.paymentLink.expiresAt && attempt.paymentLink.expiresAt <= now)) return null;
-  const bearer = capability(key, attempt);
-  const verifier = createHash("sha256").update(bearer).digest("hex");
-  return timingSafeEqual(Buffer.from(verifier), Buffer.from(attempt.capabilityVerifier)) ? bearer : null;
+  // Rederive with the current key, then the previous one when configured
+  // (rotation window); the first match wins.
+  for (const key of keys) {
+    const bearer = capability(key, attempt);
+    const verifier = createHash("sha256").update(bearer).digest("hex");
+    if (timingSafeEqual(Buffer.from(verifier), Buffer.from(attempt.capabilityVerifier))) return bearer;
+  }
+  return null;
 }
 function paymentView(attempt: AttemptRecord): PaymentView {
   const order = attempt.order.providerOrders[0];
@@ -107,8 +122,8 @@ function paymentView(attempt: AttemptRecord): PaymentView {
   // provider-unavailable for a refusal, on first submit and on replay alike.
   return { state: attempt.state as CheckoutAttemptState };
 }
-function accepted(attempt: AttemptRecord, key: Buffer, now: Date): PublicCheckoutV2Result {
-  const statusCapability = validCapability(key, attempt, now);
+function accepted(attempt: AttemptRecord, keys: readonly Buffer[], now: Date): PublicCheckoutV2Result {
+  const statusCapability = validCapability(keys, attempt, now);
   if (!statusCapability) return { kind: "unavailable" };
   return { kind: "accepted", status: attempt.state === "PENDING" ? 201 : 202, payment: paymentView(attempt), statusCapability };
 }
@@ -132,18 +147,30 @@ export function createPublicCheckoutV2Service(store: CheckoutV2Store, dependenci
         // submit: the capability was revoked at failure time, so no payment
         // view is ever derived from a FAILED attempt.
         if (reservation.attempt.state === "FAILED") return { kind: "provider-unavailable" };
-        return accepted(reservation.attempt, dependencies.capabilityKey(), now);
+        return accepted(reservation.attempt, capabilityKeys(dependencies), now);
       }
       try {
+        // Pre-dispatch settings refusal (13.4.1 F03): before spending the
+        // quote or calling the provider, refuse a pair whose recorded
+        // observation falls outside GlobalPaymentSettings, reusing the
+        // existing redacted FAILED/provider-unavailable outcome.
+        if (await dependencies.policy?.refuseDispatch({ ownerId: reservation.ownerId, currencyUuid: reservation.currencyUuid, exchangeCurrencyUuid: reservation.exchangeCurrencyUuid })) {
+          await store.markFailed(reservation.attempt.id, dependencies.now()).catch(() => undefined);
+          return { kind: "provider-unavailable" };
+        }
         if (!await store.markCreating(reservation.attempt.id)) return { kind: "provider-unavailable" };
         const quote = await dependencies.provider.quote(reservation.ownerId, { currencyUuid: reservation.currencyUuid, exchangeCurrencyUuid: reservation.exchangeCurrencyUuid, amount: { kind: "fiat", value: reservation.amount } });
         await dependencies.provider.createOrder(reservation.ownerId, { quoteUuid: quote.quoteUuid }, {}, reservation.attempt.orderV2Id);
         const completed = await store.markPending(reservation.attempt.id);
-        return completed ? accepted(completed, dependencies.capabilityKey(), dependencies.now()) : { kind: "unavailable" };
+        return completed ? accepted(completed, capabilityKeys(dependencies), dependencies.now()) : { kind: "unavailable" };
       } catch (error) {
         if (error instanceof NauttOrderCreationIndeterminateError) {
           const indeterminate = await store.markIndeterminate(reservation.attempt.id).catch(() => null);
-          return indeterminate ? accepted(indeterminate, dependencies.capabilityKey(), dependencies.now()) : { kind: "provider-unavailable" };
+          return indeterminate ? accepted(indeterminate, capabilityKeys(dependencies), dependencies.now()) : { kind: "provider-unavailable" };
+        }
+        if (error instanceof NauttOrderRefusedError) {
+          await store.markFailed(reservation.attempt.id, dependencies.now()).catch(() => undefined);
+          return { kind: "provider-unavailable" };
         }
         if (error instanceof NauttOrderRefusedError) {
           await store.markFailed(reservation.attempt.id, dependencies.now()).catch(() => undefined);
@@ -220,6 +247,12 @@ export function createPrismaCheckoutV2Store(db = getDatabaseClient(), key = load
 
 let shared: ReturnType<typeof createPublicCheckoutV2Service> | undefined;
 export function getPublicCheckoutV2Service() {
-  shared ??= createPublicCheckoutV2Service(createPrismaCheckoutV2Store(), { now: () => new Date(), capabilityKey: loadEncryptionKey, provider: createOwnerPricingOrdersService(getNauttCredentialService(), getPricingOrdersAdapter(), createPrismaProviderOrderStore(getDatabaseClient())) });
+  shared ??= createPublicCheckoutV2Service(createPrismaCheckoutV2Store(), {
+    now: () => new Date(),
+    capabilityKey: loadEncryptionKey,
+    previousCapabilityKey: loadPreviousEncryptionKey,
+    provider: createOwnerPricingOrdersService(getNauttCredentialService(), getPricingOrdersAdapter(), createPrismaProviderOrderStore(getDatabaseClient())),
+    policy: getCheckoutPaymentPolicy(),
+  });
   return shared;
 }

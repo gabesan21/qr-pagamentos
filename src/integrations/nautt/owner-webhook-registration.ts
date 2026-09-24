@@ -2,7 +2,7 @@ import "server-only";
 
 import { type NauttCredentialRecord, type NauttWebhookRegistrationState } from "../../auth/nautt-credential";
 import { getDatabaseClient } from "../../db/client";
-import { decrypt, encrypt, loadEncryptionKey } from "../../lib/nautt-crypto";
+import { decrypt, encrypt, loadEncryptionKey, loadPreviousEncryptionKey } from "../../lib/nautt-crypto";
 
 import {
   getClientWebhooksAdapter,
@@ -42,8 +42,9 @@ type RegistrationAdapter = {
 
 type CryptoAdapter = {
   encrypt(plaintext: string, key: Buffer): string;
-  decrypt(ciphertext: string, key: Buffer): string;
+  decrypt(ciphertext: string, key: Buffer, previousKey?: Buffer): string;
   loadKey(): Buffer;
+  loadPreviousKey(): Buffer | undefined;
 };
 
 export class OwnerWebhookRegistrationError extends Error {}
@@ -114,7 +115,7 @@ export function createOwnerWebhookRegistrationService(
 
       let apiKey: string;
       try {
-        apiKey = crypto.decrypt(encryptedApiKey, crypto.loadKey());
+        apiKey = crypto.decrypt(encryptedApiKey, crypto.loadKey(), crypto.loadPreviousKey());
       } catch {
         await preserveIndeterminate(userId);
         throw recoveryRequired();
@@ -240,5 +241,6 @@ export function getOwnerWebhookRegistrationService() {
     encrypt,
     decrypt,
     loadKey: loadEncryptionKey,
+    loadPreviousKey: loadPreviousEncryptionKey,
   });
 }

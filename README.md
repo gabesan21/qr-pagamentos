@@ -8,7 +8,13 @@ Operators should follow the [production runbook](docs/production-runbook.md) and
 review the redacted [release evidence ledger](docs/release-evidence.md) before
 deploying. The ledger separates historical candidate skips from later dated
 disposable task evidence; neither is live-deployment certification, and every
-remaining skip requires human execution.
+remaining skip requires human execution. Before merging or operating a
+release, run the dated [release rehearsal protocol](docs/release-rehearsal.md)
+and append its result to the release evidence's dated-run section. Before the
+first checkout works, follow the runbook's
+[first currency-pair setup](docs/production-runbook.md#first-currency-pair-setup)
+(panel-sourced UUIDs, admin registration, merchant key and probe, first-order
+proof).
 
 ## Prerequisites
 
@@ -201,12 +207,14 @@ pnpm container:test --clean-clone --scenario install-lifecycle
 pnpm container:test --clean-clone --scenario update
 pnpm container:test --clean-clone --scenario media-backup
 pnpm container:test --clean-clone --scenario media-restore
+pnpm container:test --clean-clone --scenario identity-recovery
+pnpm container:test --clean-clone --scenario production-rehearsal
 ```
 
 ## Critical verification in 005
 
-Only during stage 005, create fresh disposable secret files and follow the production startup block. Confirm both `http://127.0.0.1:${APP_PORT}/pt-BR` and `/en`, then `GET /api/health`; inspect successful one-shot exits, non-root app/PostgreSQL server users, absence of a published database port, and a second runtime preflight after restarting only app. Finish with the documented test-only cleanup and verify the disposable project has no containers, networks, or volumes. Keep the human `Feito` item unchecked until that stage.
+Only during stage 005, create fresh disposable secret files and follow the production startup block. Confirm `http://127.0.0.1:${APP_PORT}/` (unprefixed; legacy locale-prefixed routes return 404), then `GET /api/health`; inspect successful one-shot exits, non-root app/PostgreSQL server users, absence of a published database port, and a second runtime preflight after restarting only app. Finish with the documented test-only cleanup and verify the disposable project has no containers, networks, or volumes. Keep the human `Feito` item unchecked until that stage.
 
 See `PROJECT.md`, `ROADMAP.md`, and `AGENTS.md` before changing the application or harness.
 
-Nautt Finance source documentation should be placed in `researches/nautt-finance/raw/` without credentials or production data.
+Nautt Finance source documentation should be placed in `pop/researches/nautt-finance/raw/` without credentials or production data.

@@ -3,7 +3,7 @@ import "server-only";
 import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 
 import { getDatabaseClient } from "@/db/client";
-import { loadEncryptionKey } from "@/lib/nautt-crypto";
+import { loadEncryptionKey, loadPreviousEncryptionKey } from "@/lib/nautt-crypto";
 import type { PaymentLinkOrderState } from "@/orders/order-v2-policies";
 
 // Sessionless standalone payment status (9.2.1): the same opaque
@@ -50,9 +50,18 @@ function statusView(attempt: StatusAttempt): StandalonePaymentStatus | null {
   };
 }
 
+type Dependencies = Readonly<{ now: () => Date; capabilityKey: () => Buffer; previousCapabilityKey?: () => Buffer | undefined }>;
+
+function capabilityKeys(dependencies: Dependencies): readonly Buffer[] {
+  const keys: Buffer[] = [dependencies.capabilityKey()];
+  const previous = dependencies.previousCapabilityKey?.();
+  if (previous) keys.push(previous);
+  return keys;
+}
+
 export function createStandalonePaymentStatusService(
   store: StandalonePaymentStatusStore,
-  dependencies: Readonly<{ now: () => Date; capabilityKey: () => Buffer }>,
+  dependencies: Dependencies,
 ) {
   return {
     async read(value: unknown): Promise<StandalonePaymentStatus | null> {
@@ -64,14 +73,24 @@ export function createStandalonePaymentStatusService(
         return null;
       }
       if (!attempt || attempt.capabilityKeyVersion !== CAPABILITY_KEY_VERSION || attempt.capabilityRevokedAt || attempt.capabilityExpiresAt <= dependencies.now()) return null;
-      let expected: string;
-      try {
-        expected = rederiveCapability(dependencies.capabilityKey(), attempt);
-      } catch {
-        return null;
-      }
       const verifier = createHash("sha256").update(value).digest("hex");
-      if (!timingSafeEqual(Buffer.from(value), Buffer.from(expected)) || !timingSafeEqual(Buffer.from(verifier), Buffer.from(attempt.capabilityVerifier))) return null;
+      if (!timingSafeEqual(Buffer.from(verifier), Buffer.from(attempt.capabilityVerifier))) return null;
+      // Rederive with the current key, then the previous one when configured
+      // (rotation window); the first match wins.
+      let matched = false;
+      for (const key of capabilityKeys(dependencies)) {
+        let expected: string;
+        try {
+          expected = rederiveCapability(key, attempt);
+        } catch {
+          continue;
+        }
+        if (timingSafeEqual(Buffer.from(value), Buffer.from(expected))) {
+          matched = true;
+          break;
+        }
+      }
+      if (!matched) return null;
       return statusView(attempt);
     },
   };
@@ -94,6 +113,10 @@ function prismaStore(): StandalonePaymentStatusStore {
 
 let shared: ReturnType<typeof createStandalonePaymentStatusService> | undefined;
 export function getStandalonePaymentStatusService() {
-  shared ??= createStandalonePaymentStatusService(prismaStore(), { now: () => new Date(), capabilityKey: loadEncryptionKey });
+  shared ??= createStandalonePaymentStatusService(prismaStore(), {
+    now: () => new Date(),
+    capabilityKey: loadEncryptionKey,
+    previousCapabilityKey: loadPreviousEncryptionKey,
+  });
   return shared;
 }
