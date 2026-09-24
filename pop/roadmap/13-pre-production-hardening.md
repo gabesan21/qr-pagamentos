@@ -25,13 +25,9 @@
 
 ## Phase 13.2 - Lifecycle release blockers
 
-- **Status:** pendente
+- **Status:** concluída (2026-09-24)
 - **Description:** Define the undefined money-state transition, guard production origins, and give the encryption keys a rotation path.
 - **Specs:** [[specs/checkout-and-order-lifecycle|Checkout and order lifecycle]], [[specs/nautt-finance-integration|Nautt Finance integration]], [[specs/identity-security|Identity security]]
-
-| Task | Description | Status |
-|------|-------------|--------|
-| [[13.2.4-phase-verification]] | Write/run the phase suite and repair only phase defects. · size: S | 003_human_approval |
 
 ## Phase 13.3 - Deployment truth and release gates
 
