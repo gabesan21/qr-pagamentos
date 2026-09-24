@@ -31,13 +31,9 @@
 
 ## Phase 13.3 - Deployment truth and release gates
 
-- **Status:** pendente
-- **Description:** Runbook, README and release evidence describe the 16-migration V2-only deployment; the red `admin:source-check` gate turns green; a dated rehearsal protocol replaces the 2026-07-31 waiver.
+- **Status:** concluída (2026-09-24)
+- **Description:** Runbook, README and release evidence describe the 16-migration V2-only deployment; the `admin:source-check` gate's shell-class/token findings turn green (raw-control debt elsewhere is a tracked follow-up, out of phase); a dated rehearsal protocol replaces the 2026-07-31 waiver.
 - **Specs:** [[specs/administrative-foundation|Administrative foundation]], [[specs/application-frontend-system|Application frontend system]]
-
-| Task | Description | Status |
-|------|-------------|--------|
-| [[13.3.4-phase-verification]] | Write/run the phase suite, consolidate the epoch's human checklist and report, suggest the `develop` → `main` PR. · size: S | 003_human_approval |
 
 ## Phase 13.4 - Provider configuration trust
 
