@@ -32,7 +32,6 @@
 | Task | Description | Status |
 |------|-------------|--------|
 | [[13.2.1-define-in-flight-orders-on-link-disable]] | Specify and implement what happens to pending attempts/orders when an owner disables a reusable V2 link. · size: M · critical | 003_human_approval |
-| [[13.2.2-production-origin-guard]] | Production build refuses loopback `PUBLIC_ORIGIN`/callback unless the installer-written explicit allowance is set. · size: S | 003_human_approval |
 | [[13.2.3-encryption-key-rotation-procedure]] | Rotation procedure and tooling for `NAUTT_ENCRYPTION_KEY`/`TOTP_ENCRYPTION_KEY` with a dual-key read window; spec and runbook. · size: M · critical | 003_human_approval |
 | [[13.2.4-phase-verification]] | Write/run the phase suite and repair only phase defects. · size: S | 003_human_approval |
 
