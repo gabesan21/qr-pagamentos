@@ -96,4 +96,17 @@ export const storefrontEn = {
   storefrontLogoRemoved: "Logo removed.",
   storefrontLogoInvalidType: "Use a JPEG, PNG, or WebP file.",
   storefrontLogoTooLarge: "The logo exceeds the 5 MiB limit.",
+  // 13.4.1 F02: per-code reachability probe on the currency section.
+  currencyProbeAction: "Test pair",
+  currencyProbeStatusNever: "Not checked yet.",
+  currencyProbeStatusChecked: "Last checked {when}.",
+  currencyProbeOutcomeOk: "Reachable.",
+  currencyProbeOutcomeRefused: "Not confirmed reachable yet.",
+  currencyProbeOutcomeUnavailable: "Last check was inconclusive; try again.",
+  currencyProbeObserved: "Observed on a real order: {method} / {currency}.",
+  currencyProbeNoticeOk: "The pair responded and is now reachable.",
+  currencyProbeNoticeRefused: "The pair could not be confirmed reachable. Review the pair or try again shortly.",
+  currencyProbeNoticeThrottled: "A check for this pair already ran recently. Wait a minute and try again.",
+  currencyProbeNoticeInvalid: "This currency has no active registered pair to test.",
+  currencyProbeNoticeFailed: "The check could not be completed. Try again.",
 } as const;

@@ -1,9 +1,10 @@
+import { listLatestEvidenceByCode } from "@/auth/currency-pair-verification";
 import { getNauttCatalogService } from "@/auth/nautt-catalog";
 import { getPaymentSettingsService } from "@/auth/payment-settings";
 import { getSupportedExchangeCurrencyService } from "@/auth/supported-exchange-currency";
 import { getSystemSettingsService } from "@/auth/system-settings";
 
-import { AdminSettingsSurface, type CurrencyPair, type PaymentMethod } from "./settings-surface";
+import { AdminSettingsSurface, type CurrencyPair, type ExchangeCurrencyMapping, type PaymentMethod } from "./settings-surface";
 import type { SectionNotice } from "./settings-section-notice";
 import { requireAdminShellContext } from "../shell-context";
 
@@ -11,14 +12,28 @@ export default async function AdminSettingsPage({
   searchParams,
 }: Readonly<{ searchParams: Promise<{ error?: string; language?: string; success?: string }> }>) {
   const { dictionary, locale, principal } = await requireAdminShellContext();
-  const [settings, currencyPairs, paymentMethods, mappings, defaultThemeId, query] = await Promise.all([
+  const [settings, currencyPairs, paymentMethods, mappings, evidenceByCode, defaultThemeId, query] = await Promise.all([
     getPaymentSettingsService().list(principal),
     getNauttCatalogService().listCurrencyPairs(principal),
     getNauttCatalogService().listPaymentMethods(principal),
     getSupportedExchangeCurrencyService().listMappings(principal),
+    listLatestEvidenceByCode(principal),
     getSystemSettingsService().getDefaultTheme(principal),
     searchParams,
   ]);
+  const evidenceMap = new Map(evidenceByCode.map((row) => [row.code, row]));
+  const mappingsWithEvidence: ExchangeCurrencyMapping[] = mappings.map((mapping) => {
+    const evidence = evidenceMap.get(mapping.code);
+    return {
+      ...mapping,
+      evidence: {
+        checkedAt: evidence?.checkedAt ?? null,
+        outcome: evidence?.outcome ?? null,
+        observedPaymentMethod: evidence?.observedPaymentMethod ?? null,
+        observedCurrencySymbol: evidence?.observedCurrencySymbol ?? null,
+      },
+    };
+  });
 
   // The two catalog outcomes (`catalog-created`/`catalog-changed`, raised by
   // `/admin/catalog/*`) cannot be attributed to §2 or §3 with the vocabulary
@@ -73,7 +88,7 @@ export default async function AdminSettingsPage({
       exchangeCurrencyNotice={exchangeCurrencyNotice}
       languageNotice={languageNotice}
       locale={locale}
-      mappings={mappings}
+      mappings={mappingsWithEvidence}
       notice={notice}
       paymentMethods={paymentMethods.map<PaymentMethod>((method) => ({
         id: method.id,

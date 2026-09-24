@@ -17,11 +17,32 @@ import {
 } from "@/components/ui/table";
 
 import { ConfirmToggleButton } from "./confirm-toggle";
-import type { Dictionary, ExchangeCurrencyMapping } from "./settings-surface";
+import type { Dictionary, ExchangeCurrencyEvidence, ExchangeCurrencyMapping } from "./settings-surface";
 import { SettingsSectionNotice, type SectionNotice } from "./settings-section-notice";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const CODE_RE = /^[A-Z]{3}$/;
+
+// 13.4.1 F02: read-only rendering of the evidence row — never an action,
+// never a provider call triggered from this admin surface.
+function EvidenceCell({ dictionary, evidence }: Readonly<{ dictionary: Dictionary; evidence: ExchangeCurrencyEvidence }>) {
+  if (!evidence.checkedAt) return <span className="text-sm text-text-2">{dictionary.adminEvidenceNever}</span>;
+  const checked = dictionary.adminEvidenceChecked.replace("{when}", new Date(evidence.checkedAt).toLocaleString());
+  const outcomeLabel = evidence.outcome === "ok" ? dictionary.adminEvidenceOutcomeOk : dictionary.adminEvidenceOutcomeRefused;
+  return (
+    <div className="text-sm text-text-2">
+      <p className="m-0">{checked}</p>
+      <p className="m-0">{outcomeLabel}</p>
+      {evidence.observedPaymentMethod && evidence.observedCurrencySymbol ? (
+        <p className="m-0">
+          {dictionary.adminEvidenceObserved
+            .replace("{method}", evidence.observedPaymentMethod)
+            .replace("{currency}", evidence.observedCurrencySymbol)}
+        </p>
+      ) : null}
+    </div>
+  );
+}
 
 export function ExchangeCurrenciesSection({
   dictionary,
@@ -102,6 +123,7 @@ export function ExchangeCurrenciesSection({
               <TableHead>{dictionary.adminColCode}</TableHead>
               <TableHead>{dictionary.adminCatalogLabelLabel}</TableHead>
               <TableHead>{dictionary.adminColStatus}</TableHead>
+              <TableHead>{dictionary.adminColEvidence}</TableHead>
               <TableHead className="text-right">{dictionary.adminColActions}</TableHead>
             </TableRow>
           </TableHeader>
@@ -117,6 +139,9 @@ export function ExchangeCurrenciesSection({
                     labels={{ active: dictionary.adminStatusActive, archived: dictionary.adminStatusInactive, inactive: dictionary.adminStatusInactive }}
                     state="active"
                   />
+                </TableCell>
+                <TableCell>
+                  <EvidenceCell dictionary={dictionary} evidence={mapping.evidence} />
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
