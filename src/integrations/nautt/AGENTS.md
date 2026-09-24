@@ -39,7 +39,6 @@
 - The Commerce V2 attach is additive: `claimForCreation` accepts an optional `orderV2Id`, and `createOrder` validates it pre-claim. After the authoritative owner-bound webhook GET reconciliation persists status/version, the injected settlement hook settles a V2-attached provider order via `orderV2Service.settle` with exact persisted identities/versions plus the fresh local lifecycle fence; the V1 settle path stays unwired (open question), and poll/recover never invoke the hook.
 ## Webhook intake
 
-- BETA(M-5.1) OVERRIDE (human decision 2026-07-25, MUST be reversed before production): HMAC verification is suspended for the closed beta — see `pop/notes/decisions/2026-07-25-beta-unverified-webhook-intake.md`; reversal gate: `pop/open_questions/2026-07-25-pre-production-gate-restore-webhook-hmac.md`. The rules below are the permanent post-beta contract.
 - Bound the body at 256 KiB while streaming once; never parse, decode, concatenate an oversized stream, or call `arrayBuffer()`/`json()` before authentication.
 - Accept only one lowercase `sha256=<64 hex>` signature and compare the exact raw bytes against every active encrypted owner secret without early exit; zero or multiple matches disclose nothing and change no state.
 - Persist normalized delivery/attempt evidence only after authentication. The processing lease must exceed the 14.5-second accepted-work budget with a safety margin; terminal replay, unknown/final order, and a live lease perform zero API-key decryption and provider GETs.
