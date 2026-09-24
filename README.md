@@ -205,8 +205,8 @@ pnpm container:test --clean-clone --scenario media-restore
 
 ## Critical verification in 005
 
-Only during stage 005, create fresh disposable secret files and follow the production startup block. Confirm both `http://127.0.0.1:${APP_PORT}/pt-BR` and `/en`, then `GET /api/health`; inspect successful one-shot exits, non-root app/PostgreSQL server users, absence of a published database port, and a second runtime preflight after restarting only app. Finish with the documented test-only cleanup and verify the disposable project has no containers, networks, or volumes. Keep the human `Feito` item unchecked until that stage.
+Only during stage 005, create fresh disposable secret files and follow the production startup block. Confirm `http://127.0.0.1:${APP_PORT}/` (unprefixed; legacy locale-prefixed routes return 404), then `GET /api/health`; inspect successful one-shot exits, non-root app/PostgreSQL server users, absence of a published database port, and a second runtime preflight after restarting only app. Finish with the documented test-only cleanup and verify the disposable project has no containers, networks, or volumes. Keep the human `Feito` item unchecked until that stage.
 
 See `PROJECT.md`, `ROADMAP.md`, and `AGENTS.md` before changing the application or harness.
 
-Nautt Finance source documentation should be placed in `researches/nautt-finance/raw/` without credentials or production data.
+Nautt Finance source documentation should be placed in `pop/researches/nautt-finance/raw/` without credentials or production data.
