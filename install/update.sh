@@ -211,6 +211,14 @@ validate_urls() {
   fi
 }
 
+# True when a caller-validated operator origin (validate_urls above) is
+# loopback plain HTTP — the sole case the app container's
+# ALLOW_LOOPBACK_OPERATOR_ORIGINS allowance covers.
+origin_is_loopback_http() {
+  docker run --rm --pull=never --network none --read-only --user "$(id -u):$(id -g)" "$NODE_HELPER" \
+    node -e 'const u=new URL(process.argv[1]);const loopback=new Set(["localhost","127.0.0.1","[::1]"]);process.exit(u.protocol==="http:"&&loopback.has(u.hostname)?0:1)' -- "$1" >/dev/null 2>&1
+}
+
 # Rederive the allowance the app container needs on every recreate from the
 # operator origins this run already trusts; install/.env is never rewritten so
 # this must be recomputed each invocation, exactly like install.sh.

@@ -268,6 +268,15 @@ const scheme = u.protocol === "https:" || (u.protocol === "http:" && loopback.ha
 process.exit(scheme && !u.username && !u.password && !u.hash ? 0 : 1)' "$1" >/dev/null 2>&1
 }
 
+# True when a caller-validated operator origin (validate_operator_origin above)
+# is loopback plain HTTP — the sole case the app container's
+# ALLOW_LOOPBACK_OPERATOR_ORIGINS allowance covers.
+origin_is_loopback_http() {
+  run_node_helper -e 'const u = new URL(process.argv[1]);
+const loopback = new Set(["localhost", "127.0.0.1", "[::1]"]);
+process.exit(u.protocol === "http:" && loopback.has(u.hostname) ? 0 : 1)' "$1" >/dev/null 2>&1
+}
+
 resolve_release_identity() {
   if "$DRY_RUN"; then
     RELEASE_REVISION=0000000000000000000000000000000000000000

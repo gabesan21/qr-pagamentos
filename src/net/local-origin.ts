@@ -15,9 +15,9 @@ function loopbackAllowanceGranted(): boolean {
  * production build that loopback exception additionally requires the operator
  * to set `ALLOW_LOOPBACK_OPERATOR_ORIGINS=1`, so a real deployment misconfigured
  * with a loopback origin fails closed instead of running unprotected. This is
- * the single production decision; `container/runtime.mjs:14-15` restates it for
- * the file-backed startup preflight because that wrapper cannot import this
- * module — keep both in sync.
+ * the single production decision; `assertProductionOperatorOrigin` in
+ * `container/runtime.mjs` restates it for the file-backed startup preflight
+ * because that wrapper cannot import this module — keep both in sync.
  */
 export function isAcceptableOperatorOrigin(url: URL): boolean {
   if (url.username || url.password || url.hash) return false;

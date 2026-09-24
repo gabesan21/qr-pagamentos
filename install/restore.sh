@@ -58,6 +58,13 @@ STAGED_SECRETS_DIR=$ROOT_DIR/.container-secrets
 POSTGRES_ADMIN_PASSWORD_FILE=$SOURCE_SECRETS_DIR/postgres_admin_password
 MIGRATOR_PASSWORD_FILE=$SOURCE_SECRETS_DIR/migrator_password
 RUNTIME_PASSWORD_FILE=$SOURCE_SECRETS_DIR/runtime_password
+# True when a caller-validated operator origin is loopback plain HTTP — the
+# sole case the app container's ALLOW_LOOPBACK_OPERATOR_ORIGINS allowance
+# covers (same classification as install.sh/update.sh).
+origin_is_loopback_http() {
+  docker run --rm --pull=never --network none --read-only --user "$(id -u):$(id -g)" "$NODE_HELPER" \
+    node -e 'const u=new URL(process.argv[1]);const loopback=new Set(["localhost","127.0.0.1","[::1]"]);process.exit(u.protocol==="http:"&&loopback.has(u.hostname)?0:1)' -- "$1" >/dev/null 2>&1
+}
 # This run's compose() recreates the full stack (including app); rederive the
 # allowance the same way update.sh does, since install/.env is never rewritten.
 ALLOW_LOOPBACK_OPERATOR_ORIGINS=

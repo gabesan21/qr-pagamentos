@@ -1,4 +1,3 @@
-import { readFileSync } from "node:fs";
 import { spawn } from "node:child_process";
 import pg from "pg";
 import { databaseUrl, readSecret, safeFailure } from "./lib.mjs";
@@ -30,9 +29,9 @@ function assertProductionOperatorOrigin(url, variableName) {
   }
 }
 
-function readPublicOriginRaw() {
+async function readPublicOriginRaw() {
   const filePath = process.env.PUBLIC_ORIGIN_FILE;
-  if (filePath) return readFileSync(filePath, "utf8").trim();
+  if (filePath) return readSecret(filePath);
   return process.env.PUBLIC_ORIGIN;
 }
 
@@ -46,7 +45,7 @@ async function main() {
   assertProductionOperatorOrigin(callbackUrl, "NAUTT_WEBHOOK_CALLBACK_URL");
   let publicOriginUrl;
   try {
-    publicOriginUrl = new URL(readPublicOriginRaw() ?? "invalid:");
+    publicOriginUrl = new URL((await readPublicOriginRaw()) ?? "invalid:");
   } catch {
     throw new Error("invalid PUBLIC_ORIGIN configuration");
   }
