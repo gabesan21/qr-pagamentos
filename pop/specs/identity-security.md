@@ -7,7 +7,7 @@ status: active
 implementation: implemented
 origin: "roadmap/11-identity-security-and-release"
 created: 2026-07-28
-updated: 2026-09-08
+updated: 2026-09-24
 supersedes: []
 superseded_by:
 ---
@@ -27,6 +27,7 @@ This spec defines the durable contracts for time-based one-time password (TOTP) 
 
 - TOTP state is derived from the credential row: not configured when absent; pending when present but unconfirmed; active when confirmed.
 - The plaintext TOTP secret is encrypted with AES-256-GCM using a deployment-owned `TOTP_ENCRYPTION_KEY` loaded from a file-backed secret; the key is never reused for Nautt credentials or stored in Git/image layers.
+- `TOTP_ENCRYPTION_KEY` is rotatable through the same explicit, operator-invoked procedure as `NAUTT_ENCRYPTION_KEY` ([[pop/specs/nautt-finance-integration|Nautt Finance integration]]): decryption accepts the current key or an optional previous key, an idempotent one-shot rewraps the stored `encrypted_secret` column under the current key, and encryption always uses the current key only. Recovery-code digests are SHA-256 hashes, not ciphertext, and are unaffected by rotation.
 - Validation follows RFC 6238 with SHA-1, 30-second step, and 6 digits, accepting a ±1-step window for clock skew.
 - Replay protection stores the highest accepted counter and rejects equal or lower counters; any code accepted within the window is recorded and cannot be reused.
 - Recovery codes are generated as random one-time values, displayed exactly once to the user, and stored only as SHA-256 digests; use marks the row consumed and rejects reuse.
@@ -59,6 +60,7 @@ This spec defines the durable contracts for time-based one-time password (TOTP) 
 - [x] Recovery codes are hashed, one-time, and opaque after generation.
 - [x] Challenge cookies are short-lived, single-use, and promote to a real session only on valid proof.
 - [x] Disablement revokes target sessions and appends one audit row.
+- [x] `TOTP_ENCRYPTION_KEY` rotates through the explicit dual-key/rewrap procedure with no change to recovery-code digests.
 - [x] Routes are origin-guarded, role-bound, and produce only opaque outcomes.
 
 ## Implementation notes

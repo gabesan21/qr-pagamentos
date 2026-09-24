@@ -15,12 +15,13 @@ const testKey = Buffer.alloc(32, 0x12);
 const crypto = {
   encrypt: vi.fn((plaintext: string, key: Buffer) => `enc:${plaintext}:${key.toString("base64url")}`),
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  decrypt: vi.fn((ciphertext: string, _key: Buffer) => {
+  decrypt: vi.fn((ciphertext: string, _key: Buffer, _previousKey?: Buffer) => {
     const payload = ciphertext.split(":")[1];
     if (!payload) throw new Error("Invalid ciphertext");
     return payload;
   }),
   loadKey: () => testKey,
+  loadPreviousKey: () => undefined,
 };
 
 function store(): NauttCredentialStore & { records: Map<string, NauttCredentialRecord> } {
@@ -174,5 +175,25 @@ describe("nautt credential service", () => {
     const redacted = await service.getRedacted(owner, owner.id);
     expect(JSON.stringify(redacted)).not.toContain("leak-test");
     expect(JSON.stringify(redacted)).not.toContain("enc:");
+  });
+
+  it("passes the current and previous keys through to decrypt for the rotation window", async () => {
+    const previousKey = Buffer.alloc(32, 0x34);
+    const rotationCrypto = {
+      ...crypto,
+      decrypt: vi.fn((ciphertext: string) => {
+        const payload = ciphertext.split(":")[1];
+        if (!payload) throw new Error("Invalid ciphertext");
+        return payload;
+      }),
+      loadPreviousKey: () => previousKey,
+    };
+    const repository = store();
+    const service = createNauttCredentialService(repository, rotationCrypto);
+    await service.save(owner, owner.id, "rotated-key");
+    rotationCrypto.decrypt.mockClear();
+    const decrypted = await service.getDecryptedApiKey(owner.id);
+    expect(decrypted).toBe("rotated-key");
+    expect(rotationCrypto.decrypt).toHaveBeenCalledWith(expect.any(String), testKey, previousKey);
   });
 });

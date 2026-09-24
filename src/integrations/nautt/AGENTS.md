@@ -22,6 +22,7 @@
 - Once dispatch starts, preserve an ambiguous result as `INDETERMINATE` or `REGISTERING`; never authorize another POST from that state.
 - Encrypt the one-time webhook secret immediately after parsing and return only redacted UUID, state, and timestamp metadata.
 - Never invent list, get, delete, recreate, or key-rotation recovery semantics against the provider. The single documented recovery is the owner-initiated local-only reset: one atomic CAS from `REGISTERING`/`INDETERMINATE` to `UNREGISTERED` that nulls `providerWebhookId`/`encryptedWebhookSecret`/`webhookRegisteredAt` with zero provider calls and zero decryption, never touches `ACTIVE`, keeps the API key, and leaves any provider-side orphan webhook inert (its unknown secret fails HMAC). A concurrent in-flight claim must lose its `activate()`/`markIndeterminate` CAS after a reset.
+- The stored `encryptedWebhookSecret` is rewrapped locally under `NAUTT_ENCRYPTION_KEY` by the explicit key-rotation one-shot (`src/security/key-rotation.ts`); that rewrap is local-only, never calls the provider, and does not close the provider-side webhook list/delete/recreate gap above.
 
 ## Pricing and order boundary
 

@@ -121,8 +121,12 @@ services:
         target: runtime_password
       - source: nautt_encryption_key
         target: nautt_encryption_key
+      - source: nautt_encryption_key_previous
+        target: nautt_encryption_key_previous
       - source: totp_encryption_key
         target: totp_encryption_key
+      - source: totp_encryption_key_previous
+        target: totp_encryption_key_previous
       - source: smtp_host
         target: smtp_host
       - source: smtp_port
@@ -146,6 +150,36 @@ services:
       identity-seed:
         condition: service_completed_successfully
     restart: unless-stopped
+
+  rotate-encryption-keys:
+    image: ${DB_OPS_IMAGE:-qr-pagamentos-db-ops:local}
+    command: ["container/rotate-encryption-keys.mjs"]
+    user: "1000:1000"
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_PORT: ${POSTGRES_PORT:-5433}
+    secrets:
+      - source: runtime_password
+        target: runtime_password
+      - source: nautt_encryption_key
+        target: nautt_encryption_key
+      - source: nautt_encryption_key_previous
+        target: nautt_encryption_key_previous
+      - source: totp_encryption_key
+        target: totp_encryption_key
+      - source: totp_encryption_key_previous
+        target: totp_encryption_key_previous
+    networks:
+      - database
+    depends_on:
+      db:
+        condition: service_healthy
+    # Explicit operator invocation only: `docker compose --profile rotate run
+    # --rm rotate-encryption-keys`. Never started by a plain `up`, install, or
+    # update — the profile is not activated by default.
+    profiles:
+      - rotate
+    restart: "no"
 
 volumes:
   postgres-data:
@@ -174,6 +208,10 @@ secrets:
     file: ${STAGED_SECRETS_DIR:-.container-secrets}/initial_admin_password
   nautt_encryption_key:
     file: ${STAGED_SECRETS_DIR:-.container-secrets}/nautt_encryption_key
+  nautt_encryption_key_previous:
+    file: ${STAGED_SECRETS_DIR:-.container-secrets}/nautt_encryption_key_previous
+  totp_encryption_key_previous:
+    file: ${STAGED_SECRETS_DIR:-.container-secrets}/totp_encryption_key_previous
   smtp_host:
     file: ${STAGED_SECRETS_DIR:-.container-secrets}/smtp_host
   smtp_port:

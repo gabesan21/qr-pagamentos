@@ -136,7 +136,12 @@ load_update_env() {
     [[ $line == *=* ]] || die "invalid line in $ENV_FILE"
     key=${line%%=*}; value=$(strip_quotes "${line#*=}")
     case "$key" in
-      APP_PORT|POSTGRES_ADMIN_PASSWORD|MIGRATOR_PASSWORD|RUNTIME_PASSWORD|INITIAL_ADMIN_USERNAME|INITIAL_ADMIN_EMAIL|NAUTT_ENCRYPTION_KEY|TOTP_ENCRYPTION_KEY|NAUTT_WEBHOOK_CALLBACK_URL|NAUTT_API_BASE_URL|PUBLIC_ORIGIN) printf -v "$key" '%s' "$value" ;;
+      APP_PORT|POSTGRES_ADMIN_PASSWORD|MIGRATOR_PASSWORD|RUNTIME_PASSWORD|INITIAL_ADMIN_USERNAME|INITIAL_ADMIN_EMAIL|NAUTT_ENCRYPTION_KEY|NAUTT_ENCRYPTION_KEY_PREVIOUS|TOTP_ENCRYPTION_KEY|TOTP_ENCRYPTION_KEY_PREVIOUS|NAUTT_WEBHOOK_CALLBACK_URL|NAUTT_API_BASE_URL|PUBLIC_ORIGIN)
+        # Rotation-window previous keys are accepted here only so update.sh
+        # tolerates the shared install/.env file carrying them; update never
+        # stages, validates, or rotates them — the rewrap one-shot and its
+        # own staged secret files are the only path that touches them.
+        printf -v "$key" '%s' "$value" ;;
       *) die "unsupported variable in $ENV_FILE: $key" ;;
     esac
   done < "$ENV_FILE"
@@ -190,8 +195,8 @@ validate_secret_continuity() {
   uid=$(id -u)
   [[ -d $SOURCE_SECRETS_DIR && ! -L $SOURCE_SECRETS_DIR && $(stat -c '%u:%a' "$SOURCE_SECRETS_DIR") == "$uid:700" ]] || die 'source secret directory is unsafe'
   [[ -d $STAGED_SECRETS_DIR && ! -L $STAGED_SECRETS_DIR && $(stat -c '%a' "$STAGED_SECRETS_DIR") == 700 ]] || die 'staged secret directory is unsafe'
-  for name in postgres_admin_password migrator_password runtime_password nautt_encryption_key totp_encryption_key initial_admin_username initial_admin_email initial_admin_password; do require_protected_file "$SOURCE_SECRETS_DIR/$name" 600 "$uid"; done
-  for name in admin_password migrator_password runtime_password nautt_encryption_key totp_encryption_key initial_admin_username initial_admin_email initial_admin_password; do require_protected_file "$STAGED_SECRETS_DIR/$name" 400 1000; done
+  for name in postgres_admin_password migrator_password runtime_password nautt_encryption_key nautt_encryption_key_previous totp_encryption_key totp_encryption_key_previous initial_admin_username initial_admin_email initial_admin_password; do require_protected_file "$SOURCE_SECRETS_DIR/$name" 600 "$uid"; done
+  for name in admin_password migrator_password runtime_password nautt_encryption_key nautt_encryption_key_previous totp_encryption_key totp_encryption_key_previous initial_admin_username initial_admin_email initial_admin_password; do require_protected_file "$STAGED_SECRETS_DIR/$name" 400 1000; done
   validate_retained_credentials "$ROOT_DIR"
   source_key=$(<"$SOURCE_SECRETS_DIR/nautt_encryption_key")
   [[ $source_key =~ ^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$ ]] || die 'stored Nautt encryption key is invalid'
@@ -371,6 +376,10 @@ run_offline_policy
 assert_target_checkout
 validate_urls
 derive_loopback_allowance
+# Backfill the two optional rotation-window secrets for a deployment installed
+# before this feature; never touches an existing value.
+ensure_optional_previous_key_secret "$SOURCE_SECRETS_DIR" "$STAGED_SECRETS_DIR" nautt_encryption_key_previous "$NODE_HELPER"
+ensure_optional_previous_key_secret "$SOURCE_SECRETS_DIR" "$STAGED_SECRETS_DIR" totp_encryption_key_previous "$NODE_HELPER"
 validate_secret_continuity
 validate_retained_database_roles "$ROOT_DIR" "$PROJECT" "$POSTGRES_IMAGE"
 ensure_media_volume "$ROOT_DIR" "$PROJECT" "$POSTGRES_IMAGE"
