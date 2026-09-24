@@ -1,5 +1,7 @@
 import { randomUUID } from "node:crypto";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+vi.mock("server-only", () => ({}));
 
 import { createPaymentLinkV2Store } from "./payment-link-v2";
 import { createPrismaCheckoutV2Store } from "../checkout/public-checkout-v2";
