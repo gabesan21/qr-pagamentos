@@ -301,3 +301,7 @@ a scoped ledger, not live-deployment proof. It separates the historical static
 candidate's explicit skips from later dated disposable task evidence. A later
 PASS applies only to its named command and scope; a human must still plan and
 record every remaining skip before declaring the deployment operational.
+
+Before merging or operating a release, run the dated
+[release rehearsal protocol](release-rehearsal.md) and append its result to
+the release evidence's dated-run section.

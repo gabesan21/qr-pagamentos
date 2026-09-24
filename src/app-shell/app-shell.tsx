@@ -73,7 +73,7 @@ export function AppShell({
         <footer className="app-shell__footer">
           <span>{labels.copyright}</span>
           <span>{labels.privacy}</span>
-          <span className="app-shell__footer-locale">
+          <span>
             {labels.locale}: {locale}
           </span>
         </footer>
