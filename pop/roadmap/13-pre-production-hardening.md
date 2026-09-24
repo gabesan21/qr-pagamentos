@@ -19,13 +19,9 @@
 
 ## Phase 13.1 - Webhook trust restoration
 
-- **Status:** em andamento
+- **Status:** concluída (2026-09-23)
 - **Description:** Reverse M-5.1: signature verification, owner binding and `401` return; every beta caveat leaves the contracts.
 - **Specs:** [[specs/nautt-finance-integration|Nautt Finance integration]]
-
-| Task | Description | Status |
-|------|-------------|--------|
-| [[13.1.3-phase-verification]] | Write/run the phase suite (`pnpm check`, webhook suites) and repair only phase defects. · size: S | 003_human_approval |
 
 ## Phase 13.2 - Lifecycle release blockers
 
