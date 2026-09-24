@@ -1,6 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { describe, expect, it, vi } from "vitest";
 
+vi.mock("server-only", () => ({}));
+
 import { createPaymentLinkV2Store } from "./payment-link-v2";
 
 const ownerId = randomUUID();
@@ -26,6 +28,15 @@ function fakeDatabase() {
     },
     orderV2: {
       updateMany: vi.fn(async (): Promise<unknown> => ({ count: 0 })),
+    },
+    // 13.4.1 F02: `isSelectable` reads both inside the same transaction —
+    // default to a passing, unobserved probe so pre-existing scenarios stay
+    // selectable without asserting anything about payment settings.
+    currencyPairVerification: {
+      findUnique: vi.fn(async (): Promise<unknown> => ({ quoteOutcome: "ok", observedPaymentMethod: null, observedCurrencySymbol: null })),
+    },
+    globalPaymentSettings: {
+      findUnique: vi.fn(async (): Promise<unknown> => ({ currencies: [], paymentMethods: [] })),
     },
   };
   const database = {

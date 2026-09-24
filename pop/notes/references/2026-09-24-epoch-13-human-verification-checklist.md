@@ -53,6 +53,23 @@ for the full text and evidence of:
   B1-B5, C1. **Pass:** a dated section of `docs/release-evidence.md` filled
   with PASS rows for blocks A/B/C, or a recorded FAIL with its stop decision.
 
+## Phase 13.4 — provider configuration trust
+
+- **13.4.1 #11 (U1)** — On a real install: the additive migration applies, a
+  registered pair probes green, the first order records `pix`/`BRL`, and
+  disabling PIX in settings refuses the next checkout. **Check:** real Nautt
+  account on the user's Docker install, following the runbook's first-pair
+  setup (`docs/production-runbook.md`). **Pass:** each step observed in
+  order, no manual database edit.
+- **13.4.2 U2** — The database battery and the probe-surface captures pass on
+  the user's install. **Check:** `pnpm db:test` (Docker, user-exclusive) +
+  captures of the merchant probe section
+  (`src/app/storefront-settings-management.tsx`) and the admin evidence
+  column (`src/app/admin/settings/exchange-currencies-section.tsx`) in both
+  locales. **Pass:** suite green; each required state (never-checked,
+  ok/reachable, refused, throttled, invalid, failed) legible in the
+  captures.
+
 ## Permanent Docker-exclusive project checks
 
 Not phase-scoped `verify: user` items, but standing project boundaries the

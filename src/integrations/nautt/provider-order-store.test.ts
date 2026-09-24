@@ -13,7 +13,11 @@ const otherOwnerId = "220e8400-e29b-41d4-a716-446655440022";
 const quoteUuid = "330e8400-e29b-41d4-a716-446655440033";
 const now = new Date("2026-07-18T20:00:00.000Z");
 
-function durablePrismaFake(): PrismaClient {
+function durablePrismaFake(): PrismaClient & {
+  __seedOrderV2: (row: { id: string; ownerId: string; currencyUuid: string; exchangeCurrencyUuid: string }) => void;
+  __seedPair: (row: { id: string; currencyUuid: string; exchangeCurrencyUuid: string }) => void;
+  __verificationRow: (ownerId: string, pairId: string) => Record<string, unknown> | undefined;
+} {
   const quotes = new Map<string, { quoteUuid: string; ownerId: string; expiresAt: Date; claimedAt: Date | null }>();
   const orders = new Map<string, Record<string, unknown>>();
   const providerQuote = {

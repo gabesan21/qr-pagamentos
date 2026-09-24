@@ -170,7 +170,9 @@ describe("storefront settings management", () => {
   // form renders as a document-level sibling, after the settings form closes.
   it("binds the noscript logo fallback to a sibling form, never nested inside the settings form", () => {
     const markup = render();
-    expect(markup.match(/<form\b/g)).toHaveLength(2);
+    // 13.4.1 F02 added one probe <form> per active currency choice (2 in this fixture),
+    // alongside the settings form and the noscript logo-fallback form: 4 total.
+    expect(markup.match(/<form\b/g)).toHaveLength(4);
     expect(markup).toContain('form="storefront-logo-upload"');
     expect(markup).toContain('id="storefront-logo-upload"');
     const settingsFormEnd = markup.indexOf("</form>");

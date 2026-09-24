@@ -133,3 +133,11 @@ This report and its companion checklist were produced by
 `0b81b81f`, `3033a842`, `502390ca` against their parents) and running the
 phase's own suite via direct `pnpm` — never through Docker, never via a
 migration, never touching webhook code or Nautt secrets. No PR was opened.
+
+## Phase 13.4 — provider configuration trust (13.4.2 hand-off)
+
+- **Scope:** 13.4.1 (PR #39, `bb5d0bb2`) — pair evidence, merchant probe, admin evidence, selection gates, pre-dispatch settings refusal. Phase 13.4 replaces 13.3 as the epoch's hand-off; the `develop` → `main` PR is **suggested** to the human, never opened by the agent.
+- **Gate (direct binaries — host Node 26.10.0 vs pin 26.4.0 aborts `pnpm <script>`):** `tsc --noEmit` 0; lint 0 errors/55 warnings; `vitest run` 257 files, 2318 passed/30 skipped/0 failed; `next build` 0; migration-policy + `db-contract-check` 0 (`PASS documentation-contract`); `admin:contract-check`, `design-system:source-check` 0. `admin:source-check` still fails with the same 14 pre-existing `raw_controls` in 10 files 13.4.1 never touched — not a Phase 13.4 regression.
+- **Boundary/review:** no `deposit_fields` on any request path, no hosted Nautt link, one `pricing/panel/buy` call site (A5); zero blocking finding over `bb5d0bb2` (A6); probe/evidence surfaces use declared tokens and all states in both locales — nit: no client-side loading affordance on the no-JS POST form (A7, severity <2).
+- **Repaired (test-only, rooted in 13.4.1):** `provider-order-store.test.ts` fake return type (A1); `payment-link-v2-store.test.ts` `server-only` mock + gate fakes (A1/A2); `storefront-settings-management.test.tsx` form count 2→4 (A1/A2).
+- **Follow-ups (not fixed):** register `src/app/currency-pair-probe/route.ts` in `src/observability/server-request-log.ts` (modification proposal); the `admin:source-check` debt above. U1/U2 are on the companion checklist.
