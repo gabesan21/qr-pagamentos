@@ -7,6 +7,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vites
 vi.mock("server-only", () => ({}));
 
 import { PrismaClient } from "../generated/prisma/client";
+import { createPaymentLinkV2Store } from "../auth/payment-link-v2";
 import { createPrismaCheckoutV2Store, createPublicCheckoutV2Service } from "./public-checkout-v2";
 
 const enabled = process.env.PUBLIC_CHECKOUT_V2_DATABASE_TEST === "1";
@@ -24,11 +25,15 @@ const linesLinkId = "110e8400-e29b-41d4-a716-446655440036";
 const singleUseLinkId = "110e8400-e29b-41d4-a716-446655440037";
 const inactiveLinkId = "110e8400-e29b-41d4-a716-446655440038";
 const expiredLinkId = "110e8400-e29b-41d4-a716-446655440039";
+const raceLinkSweptId = "110e8400-e29b-41d4-a716-446655440040";
+const raceLinkUntouchedId = "110e8400-e29b-41d4-a716-446655440041";
 const linesIdentifier = "v2dbLinesLink00000000001";
 const singleUseIdentifier = "v2dbSingleLink0000000001";
 const inactiveIdentifier = "v2dbInactiveLink00000001";
 const expiredIdentifier = "v2dbExpiredLink000000001";
 const unknownIdentifier = "v2dbUnknownLink000000001";
+const raceSweptIdentifier = "v2dbRaceSweptLink0000001";
+const raceUntouchedIdentifier = "v2dbRaceUntouchedLink001";
 const key = Buffer.alloc(32, 9);
 const now = new Date("2026-07-26T15:00:00.000Z");
 const customer = { name: null, email: null, cpf: null, address: null };
@@ -83,6 +88,16 @@ describe.skipIf(!enabled)("public checkout V2 PostgreSQL contract", () => {
       `INSERT INTO app.payment_link_v2 (id, identifier, owner_id, composition_kind, description_pt_br, description_en, amount, currency_pair_id, link_type, expires_at, active, version, created_at, updated_at)
        VALUES ($1, $2, $3, 'FIXED_AMOUNT', 'Lote antigo', 'Old batch', '55', $4, 'REUSABLE', '2026-07-26T14:00:00.000Z', true, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
       [expiredLinkId, expiredIdentifier, ownerId, pairId],
+    );
+    await admin.query(
+      `INSERT INTO app.payment_link_v2 (id, identifier, owner_id, composition_kind, description_pt_br, description_en, amount, currency_pair_id, link_type, active, version, created_at, updated_at)
+       VALUES ($1, $2, $3, 'FIXED_AMOUNT', 'Corrida varrida', 'Race swept', '20', $4, 'REUSABLE', true, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
+      [raceLinkSweptId, raceSweptIdentifier, ownerId, pairId],
+    );
+    await admin.query(
+      `INSERT INTO app.payment_link_v2 (id, identifier, owner_id, composition_kind, description_pt_br, description_en, amount, currency_pair_id, link_type, active, version, created_at, updated_at)
+       VALUES ($1, $2, $3, 'FIXED_AMOUNT', 'Corrida intacta', 'Race untouched', '20', $4, 'REUSABLE', true, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
+      [raceLinkUntouchedId, raceUntouchedIdentifier, ownerId, pairId],
     );
     provider = { quote: vi.fn(async () => ({ quoteUuid: randomUUID(), expiresAt: new Date("2026-07-26T15:05:00.000Z") })), createOrder: vi.fn(async () => ({})) };
     service = createPublicCheckoutV2Service(createPrismaCheckoutV2Store(prisma as never, key), {
@@ -177,5 +192,51 @@ describe.skipIf(!enabled)("public checkout V2 PostgreSQL contract", () => {
     expect(provider.quote).not.toHaveBeenCalled();
     const attempts = await admin.query(`SELECT count(*)::int AS count FROM app.checkout_attempt_v2 WHERE payment_link_v2_id = ANY($1::uuid[])`, [[inactiveLinkId, expiredLinkId]]);
     expect(attempts.rows[0].count).toBe(0);
+  });
+
+  // 13.2.1: deactivate x reservation serialization — exactly one outcome per
+  // race ordering, proved against real Postgres row locking (no fakes).
+  it("deactivate-then-dispatch: a RESERVED attempt swept by deactivation is refused by the unmodified RESERVED-only dispatch CAS", async () => {
+    const checkoutStore = createPrismaCheckoutV2Store(prisma as never, key);
+    const linkStore = createPaymentLinkV2Store(prisma as never);
+    const reservation = await checkoutStore.reserve({ identifier: raceSweptIdentifier, retryKey: "database-v2-race-swept-01", customer, now });
+    if (reservation.kind !== "created") throw new Error("expected a created reservation");
+
+    await linkStore.setActive(ownerId, raceLinkSweptId, 0, false, now);
+
+    const attempt = await admin.query(`SELECT state, capability_revoked_at FROM app.checkout_attempt_v2 WHERE id = $1`, [reservation.attempt.id]);
+    expect(attempt.rows[0].state).toBe("FAILED");
+    expect(attempt.rows[0].capability_revoked_at).not.toBeNull();
+    const order = await admin.query(`SELECT state FROM app.order_v2 WHERE id = $1`, [reservation.attempt.orderV2Id]);
+    expect(order.rows[0].state).toBe("REJECTED");
+
+    // Exactly one outcome for this ordering: the pre-existing, unmodified
+    // markCreating CAS (src/checkout/public-checkout-v2.ts) never dispatches
+    // a swept attempt.
+    await expect(checkoutStore.markCreating(reservation.attempt.id)).resolves.toBe(false);
+    expect(provider.quote).not.toHaveBeenCalled();
+  });
+
+  it("dispatch-then-deactivate: an attempt already CREATING is never swept and keeps reconciling to PENDING", async () => {
+    const checkoutStore = createPrismaCheckoutV2Store(prisma as never, key);
+    const linkStore = createPaymentLinkV2Store(prisma as never);
+    const reservation = await checkoutStore.reserve({ identifier: raceUntouchedIdentifier, retryKey: "database-v2-race-untouched-01", customer, now });
+    if (reservation.kind !== "created") throw new Error("expected a created reservation");
+    await expect(checkoutStore.markCreating(reservation.attempt.id)).resolves.toBe(true);
+
+    await linkStore.setActive(ownerId, raceLinkUntouchedId, 0, false, now);
+
+    const midway = await admin.query(`SELECT state, capability_revoked_at FROM app.checkout_attempt_v2 WHERE id = $1`, [reservation.attempt.id]);
+    expect(midway.rows[0].state).toBe("CREATING");
+    expect(midway.rows[0].capability_revoked_at).toBeNull();
+    const midwayOrder = await admin.query(`SELECT state FROM app.order_v2 WHERE id = $1`, [reservation.attempt.orderV2Id]);
+    expect(midwayOrder.rows[0].state).toBe("CREATED");
+
+    // Exactly one outcome for this ordering: the sweep already ran and left
+    // this attempt alone, so it completes reconciliation normally.
+    const completed = await checkoutStore.markPending(reservation.attempt.id);
+    expect(completed?.state).toBe("PENDING");
+    const order = await admin.query(`SELECT state FROM app.order_v2 WHERE id = $1`, [reservation.attempt.orderV2Id]);
+    expect(order.rows[0].state).toBe("PENDING");
   });
 });

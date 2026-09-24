@@ -436,13 +436,33 @@ export function createPaymentLinkV2Store(db: ReturnType<typeof getDatabaseClient
       });
     },
     async setActive(ownerId, id, version, active, updatedAt) {
-      const updated = await db.paymentLinkV2.updateMany({
-        where: { id, ownerId, version },
-        data: { active, version: { increment: 1 }, updatedAt },
+      return db.$transaction(async (transaction) => {
+        const updated = await transaction.paymentLinkV2.updateMany({
+          where: { id, ownerId, version },
+          data: { active, version: { increment: 1 }, updatedAt },
+        });
+        if (updated.count !== 1) return null;
+        // Deactivation sweep (13.2.1): a live reservation cannot be left able
+        // to dispatch money once its link goes inactive. In the same
+        // transaction as the version CAS above, sweep every RESERVED attempt
+        // of this link to the service-fenced terminal FAILED state (the same
+        // shape the 15.2.2 creation-refusal path produces) and reject its
+        // paired CREATED order. CREATING/PENDING/INDETERMINATE attempts are
+        // never touched — the single predicate below is state: "RESERVED" —
+        // and keep reconciling to their authoritative outcome unchanged.
+        if (active === false) {
+          await transaction.checkoutAttemptV2.updateMany({
+            where: { paymentLinkV2Id: id, state: "RESERVED" },
+            data: { state: "FAILED", capabilityRevokedAt: updatedAt },
+          });
+          await transaction.orderV2.updateMany({
+            where: { paymentLinkV2Id: id, state: "CREATED", checkoutAttempt: { is: { state: "FAILED" } } },
+            data: { state: "REJECTED" },
+          });
+        }
+        const link = await transaction.paymentLinkV2.findFirst({ where: { id, ownerId }, select: projection });
+        return link ? toOwnerPaymentLinkV2(link) : null;
       });
-      if (updated.count !== 1) return null;
-      const link = await db.paymentLinkV2.findFirst({ where: { id, ownerId }, select: projection });
-      return link ? toOwnerPaymentLinkV2(link) : null;
     },
     // 8.1.3 wiring: the real attempt-existence read over checkout_attempt_v2,
     // queried by the link identity the financial-edit gate receives.
