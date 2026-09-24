@@ -91,6 +91,34 @@ creates a protected initial password file once. Use
 administrator: recovery targets its immutable UUID, reactivates its ADMIN role,
 and rotates its credential without a username/email lookup.
 
+## First currency-pair setup
+
+A fresh install has no working currency pair until this sequence runs once
+(task 13.4.1). No seed or scripted bootstrap performs any of it.
+
+1. In the Nautt panel, obtain the `currency_uuid` and `exchange_currency_uuid`
+   for the pair you want (for example BRL via PIX). The `/exchange-currencies`
+   listing endpoint exists in Nautt's API, but its response schema is not
+   ingested into this repository, so the panel is the only source this
+   runbook documents.
+2. As an administrator, register that pair in `/admin/settings` (the exchange
+   currencies section): paste both UUIDs and a label. The admin never holds a
+   Nautt API key and never calls Nautt directly.
+3. Each merchant `USER` who will sell against that pair saves its own Nautt
+   API key under `/settings`, then runs the pair probe from the same screen.
+   The probe issues only one `POST /pricing/panel/buy` with a minimal amount
+   — reachability only, never proof of PIX/BRL — and is throttled to one
+   attempt per pair per 60 seconds.
+4. The pair earns selection eligibility for that merchant's payment links and
+   storefront default currency only after a passing probe. `GlobalPaymentSettings`
+   (`/admin/settings`) must also enable the corresponding currency and payment
+   method, or checkout refuses to dispatch.
+5. The first real order for that pair records the payment method and currency
+   Nautt actually returned (`payment_data.payment_method`, `currency.symbol`)
+   as the pair's durable evidence. Only from that point does checkout have
+   observed proof the pair is PIX/BRL; before it, an unobserved pair still
+   dispatches on a passing probe alone.
+
 ## Encryption key rotation
 
 Rotate `NAUTT_ENCRYPTION_KEY` or `TOTP_ENCRYPTION_KEY` only through this

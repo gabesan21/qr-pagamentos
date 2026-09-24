@@ -10,6 +10,7 @@ import { createStandaloneOrderRow, isCanonicalOrderAmount } from "@/orders/order
 import { createOwnerPricingOrdersService } from "@/integrations/nautt/owner-pricing-orders";
 import { getPricingOrdersAdapter, NauttOrderCreationIndeterminateError, NauttOrderRefusedError } from "@/integrations/nautt/pricing-orders-client";
 import { createPrismaProviderOrderStore } from "@/integrations/nautt/provider-order-store";
+import { getCheckoutPaymentPolicy, type CheckoutPaymentPolicy } from "./payment-policy";
 
 // Sessionless standalone checkout (9.2.1): mirrors the V1 public checkout
 // fencing with the store slug as the only browser-supplied identity. The
@@ -81,6 +82,7 @@ type Dependencies = Readonly<{
   capabilityKey: () => Buffer;
   previousCapabilityKey?: () => Buffer | undefined;
   provider: ReturnType<typeof createOwnerPricingOrdersService>;
+  policy?: CheckoutPaymentPolicy;
 }>;
 
 function capabilityKeys(dependencies: Dependencies): readonly Buffer[] {
@@ -143,6 +145,14 @@ export function createStandaloneCheckoutService(store: CheckoutStore, dependenci
         return accepted(reservation.attempt, capabilityKeys(dependencies), now);
       }
       try {
+        // Pre-dispatch settings refusal (13.4.1 F03): before spending the
+        // quote or calling the provider, refuse a pair whose recorded
+        // observation falls outside GlobalPaymentSettings, reusing the
+        // existing redacted FAILED/provider-unavailable outcome.
+        if (await dependencies.policy?.refuseDispatch({ ownerId: reservation.ownerId, currencyUuid: reservation.currencyUuid, exchangeCurrencyUuid: reservation.exchangeCurrencyUuid })) {
+          await store.markFailed(reservation.attempt.id, dependencies.now()).catch(() => undefined);
+          return { kind: "provider-unavailable" };
+        }
         if (!await store.markCreating(reservation.attempt.id)) return { kind: "provider-unavailable" };
         const quote = await dependencies.provider.quote(reservation.ownerId, { currencyUuid: reservation.currencyUuid, exchangeCurrencyUuid: reservation.exchangeCurrencyUuid, amount: { kind: "fiat", value: reservation.amount } });
         await dependencies.provider.createOrder(reservation.ownerId, { quoteUuid: quote.quoteUuid }, {}, reservation.attempt.orderV2Id);
@@ -239,6 +249,7 @@ export function getStandaloneCheckoutService() {
     capabilityKey: loadEncryptionKey,
     previousCapabilityKey: loadPreviousEncryptionKey,
     provider: createOwnerPricingOrdersService(getNauttCredentialService(), getPricingOrdersAdapter(), createPrismaProviderOrderStore(getDatabaseClient())),
+    policy: getCheckoutPaymentPolicy(),
   });
   return shared;
 }

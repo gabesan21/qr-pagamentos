@@ -10,7 +10,11 @@ deploying. The ledger separates historical candidate skips from later dated
 disposable task evidence; neither is live-deployment certification, and every
 remaining skip requires human execution. Before merging or operating a
 release, run the dated [release rehearsal protocol](docs/release-rehearsal.md)
-and append its result to the release evidence's dated-run section.
+and append its result to the release evidence's dated-run section. Before the
+first checkout works, follow the runbook's
+[first currency-pair setup](docs/production-runbook.md#first-currency-pair-setup)
+(panel-sourced UUIDs, admin registration, merchant key and probe, first-order
+proof).
 
 ## Prerequisites
 
