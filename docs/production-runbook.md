@@ -12,6 +12,13 @@ the database network is internal. Run one application instance for this
 topology: the public payment-link limiter is intentionally bounded and
 process-local, not a distributed protection.
 
+Three production caveats are accepted, permanent decisions, not open work
+(see the [2026-09-23 decisions](../pop/notes/decisions/2026-09-23-epoch-13-decisions.md)):
+no Content-Security-Policy and no middleware (durable decision of task 5.3.1);
+the public rate limiter above is process-local, so the deployment is
+single-instance; and observability is console-sink JSON logs only, with no
+external alerting.
+
 Put a separately operated TLS reverse proxy in front of that loopback listener.
 The proxy, not this repository, owns the public listener, certificates and TLS
 redirects. It must reject direct public access to the loopback service and must
@@ -235,7 +242,11 @@ The digest-pinned Node helper image must already exist locally. Before any
 managed build or database operation, the updater runs the pulled
 `migration-policy.mjs` with `--pull=never`, no network, a read-only source mount,
 and no database mount, secret file or passed environment. The verifier pins the
-exact 19-migration baseline through an independent reviewed inventory digest and accepts each later migration only when its
+16-migration baseline through `20260721060000_storefront_settings` by an
+independent reviewed inventory digest — rebased once, on 2026-09-22 (task
+15.1.2), to drop the never-shipped V1 `payment_link`/`payment_link_order`/
+`checkout_attempt`/`payment_link_single_use_settlement` tables, the single
+authorized historical exception to baseline immutability — and accepts each later migration only when its
 canonical closed manifest regenerates `migration.sql` byte for byte. That
 language permits only data-preserving table, column, index, typed-constraint
 and privilege operations; raw SQL, destructive DDL/DML, rename/type changes,
