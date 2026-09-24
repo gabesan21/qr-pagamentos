@@ -134,6 +134,35 @@ describe("standalone checkout orchestration", () => {
     await expect(service.checkout(identifiers.slug, validBody)).resolves.toEqual({ kind: "provider-unavailable" });
     expect(store.markIndeterminate).toHaveBeenCalledWith(identifiers.attempt);
   });
+
+  describe("rotation window", () => {
+    const previousKey = Buffer.alloc(32, 9);
+    function previousCapability(value: { id: string; capabilityNonce: string; capabilityExpiresAt: Date; capabilityKeyVersion: string }) {
+      return createHmac("sha256", previousKey).update(`standalone-checkout-capability:${value.capabilityKeyVersion}:${value.id}:${value.capabilityExpiresAt.toISOString()}:${value.capabilityNonce}`).digest("base64url");
+    }
+    function rotatedAttempt(state: "PENDING" = "PENDING") {
+      const value = { id: identifiers.attempt, ownerId: identifiers.owner, orderV2Id: identifiers.order, requestVerifier: "a".repeat(64), capabilityNonce: "n".repeat(43), capabilityKeyVersion: "v1", capabilityVerifier: "", capabilityExpiresAt: new Date("2026-07-27T15:00:00.000Z"), capabilityRevokedAt: null, state, owner: { storefrontEnabled: true, storefrontStandalonePaymentsEnabled: true }, order: { providerOrders: [{ status: "new", pixCopyPaste: "000201", pixQrcodeUrl: null }] } };
+      return { ...value, capabilityVerifier: createHash("sha256").update(previousCapability(value)).digest("hex") };
+    }
+
+    it("reissues a capability minted under the previous key when configured", async () => {
+      const replay = rotatedAttempt();
+      const store = { reserve: vi.fn().mockResolvedValue({ kind: "replay", attempt: replay }), markCreating: vi.fn(), markPending: vi.fn(), markIndeterminate: vi.fn(), markFailed: vi.fn() };
+      const provider = { quote: vi.fn(), createOrder: vi.fn() };
+      const service = createStandaloneCheckoutService(store, { now: () => now, capabilityKey: () => key, previousCapabilityKey: () => previousKey, provider: provider as never });
+
+      await expect(service.checkout(identifiers.slug, validBody)).resolves.toEqual({ kind: "accepted", status: 201, payment: { state: "PENDING", pixCopyPaste: "000201" }, statusCapability: previousCapability(replay) });
+    });
+
+    it("fails closed on a previous-key capability when no previous key is configured", async () => {
+      const replay = rotatedAttempt();
+      const store = { reserve: vi.fn().mockResolvedValue({ kind: "replay", attempt: replay }), markCreating: vi.fn(), markPending: vi.fn(), markIndeterminate: vi.fn(), markFailed: vi.fn() };
+      const provider = { quote: vi.fn(), createOrder: vi.fn() };
+      const service = createStandaloneCheckoutService(store, { now: () => now, capabilityKey: () => key, provider: provider as never });
+
+      await expect(service.checkout(identifiers.slug, validBody)).resolves.toEqual({ kind: "unavailable" });
+    });
+  });
 });
 
 describe("standalone checkout reservation store", () => {

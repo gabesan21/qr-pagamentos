@@ -1,5 +1,5 @@
 import { getDatabaseClient } from "../db/client";
-import { decrypt, encrypt, loadEncryptionKey } from "../lib/nautt-crypto";
+import { decrypt, encrypt, loadEncryptionKey, loadPreviousEncryptionKey } from "../lib/nautt-crypto";
 import { randomUUID } from "node:crypto";
 
 import { ForbiddenError, requireUserPrincipal, type Principal } from "./authorization";
@@ -56,8 +56,9 @@ export function normalizeNauttCredentialRecord(
 
 type CryptoAdapter = {
   encrypt(plaintext: string, key: Buffer): string;
-  decrypt(ciphertext: string, key: Buffer): string;
+  decrypt(ciphertext: string, key: Buffer, previousKey?: Buffer): string;
   loadKey(): Buffer;
+  loadPreviousKey(): Buffer | undefined;
 };
 
 function requireOwner(actor: Principal, targetUserId: string) {
@@ -123,7 +124,7 @@ export function createNauttCredentialService(
       if (!record) {
         throw new NauttCredentialNotFoundError("Credential not found");
       }
-      return crypto.decrypt(record.encryptedApiKey, crypto.loadKey());
+      return crypto.decrypt(record.encryptedApiKey, crypto.loadKey(), crypto.loadPreviousKey());
     },
   };
 }
@@ -159,5 +160,10 @@ function prismaStore(): NauttCredentialStore {
 }
 
 export function getNauttCredentialService() {
-  return createNauttCredentialService(prismaStore(), { encrypt, decrypt, loadKey: loadEncryptionKey });
+  return createNauttCredentialService(prismaStore(), {
+    encrypt,
+    decrypt,
+    loadKey: loadEncryptionKey,
+    loadPreviousKey: loadPreviousEncryptionKey,
+  });
 }

@@ -83,11 +83,12 @@ function store(initial: NauttCredentialRecord | null = record()): OwnerWebhookRe
   };
 }
 
-function crypto(overrides: Partial<{ decrypt: () => string; encrypt: () => string }> = {}) {
+function crypto(overrides: Partial<{ decrypt: () => string; encrypt: () => string; previousKey: Buffer | undefined }> = {}) {
   return {
     decrypt: vi.fn(overrides.decrypt ?? (() => plaintextApiKey)),
     encrypt: vi.fn(overrides.encrypt ?? (() => "encrypted-webhook-secret")),
     loadKey: vi.fn(() => encryptionKey),
+    loadPreviousKey: vi.fn(() => overrides.previousKey),
   };
 }
 
@@ -162,8 +163,19 @@ describe("owner webhook registration", () => {
     expect(fetch).not.toHaveBeenCalled();
 
     await expect(service.register(ownerId, callbackUrl, "revision-b")).resolves.toEqual({ providerWebhookId, state: "ACTIVE", registeredAt });
-    expect(cryptography.decrypt).toHaveBeenCalledWith("encrypted-key-b", encryptionKey);
+    expect(cryptography.decrypt).toHaveBeenCalledWith("encrypted-key-b", encryptionKey, undefined);
     expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("passes the previous key through to decrypt during the rotation window", async () => {
+    const repository = store();
+    const fetch = vi.fn(async () => providerSuccess());
+    const previousKey = Buffer.alloc(32, 0x42);
+    const cryptography = crypto({ previousKey });
+    const service = createOwnerWebhookRegistrationService(repository, createClientWebhooksAdapter({ fetch }), cryptography);
+
+    await expect(service.register(ownerId, callbackUrl)).resolves.toEqual({ providerWebhookId, state: "ACTIVE", registeredAt });
+    expect(cryptography.decrypt).toHaveBeenCalledWith("encrypted-api-key", encryptionKey, previousKey);
   });
 
   it("persists encrypted success and returns only redacted metadata", async () => {
