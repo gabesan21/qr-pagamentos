@@ -71,7 +71,7 @@ export const paymentLinksDirectoryEn = {
   paymentLinkActivate: "Activate link",
   paymentLinkDeactivateHeading: "Deactivate payment link",
   paymentLinkDeactivateConfirm: "Confirm deactivation",
-  paymentLinkDeactivateDescription: "The link stops accepting new checkouts; existing orders are unaffected.",
+  paymentLinkDeactivateDescription: "The link stops accepting new checkouts, and any pending checkout in progress on it is failed.",
   paymentLinkDeactivate: "Deactivate link",
   paymentLinkActivateDisabledSettled: "A settled single-use link cannot be reactivated.",
   paymentLinkExpiredReopenCaption: "Reopening this expired link requires editing its expiry.",
