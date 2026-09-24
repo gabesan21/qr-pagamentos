@@ -132,3 +132,20 @@ task 13.3.3's deliverable, not performed here.
 | TLS proxy reachability, forwarding-header trust, and public network exposure checks | Stale | Never exercised; unchanged standing gap. |
 | Backup creation, restore rehearsal, upgrade rehearsal, rollback rehearsal, and data-recovery verification | Stale | The migration-rebase changes what "restore"/"upgrade" replay against; a dated rehearsal is task 13.3.3's deliverable. |
 | Live `GET /api/health` and runtime preflight verification | Stale | Never exercised; unchanged standing gap. |
+
+## Dated rehearsal runs
+
+Each run of [`docs/release-rehearsal.md`](release-rehearsal.md) appends one
+dated section here, oldest to newest; existing rows are never edited. No
+credentials, account identifiers, customer data, request payloads, proxy
+configuration, or secret-file contents belong in any row — restate that rule
+before recording a run.
+
+### Template — copy this table for each dated run
+
+| Date | Revision SHA | Operator | Command | PASS/FAIL | Evidence path | Residual risk |
+|---|---|---|---|---|---|---|
+| YYYY-MM-DD | `<40-char SHA>` | `<operator>` | `<exact command from release-rehearsal.md>` | PASS or FAIL | `<path to retained logs/evidence file>` | `<what remains unverified after this run>` |
+
+No credentials, account identifiers, customer data, request payloads, proxy
+configuration, or secret-file contents belong in this table.

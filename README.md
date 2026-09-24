@@ -8,7 +8,9 @@ Operators should follow the [production runbook](docs/production-runbook.md) and
 review the redacted [release evidence ledger](docs/release-evidence.md) before
 deploying. The ledger separates historical candidate skips from later dated
 disposable task evidence; neither is live-deployment certification, and every
-remaining skip requires human execution.
+remaining skip requires human execution. Before merging or operating a
+release, run the dated [release rehearsal protocol](docs/release-rehearsal.md)
+and append its result to the release evidence's dated-run section.
 
 ## Prerequisites
 
@@ -201,6 +203,8 @@ pnpm container:test --clean-clone --scenario install-lifecycle
 pnpm container:test --clean-clone --scenario update
 pnpm container:test --clean-clone --scenario media-backup
 pnpm container:test --clean-clone --scenario media-restore
+pnpm container:test --clean-clone --scenario identity-recovery
+pnpm container:test --clean-clone --scenario production-rehearsal
 ```
 
 ## Critical verification in 005
