@@ -17,6 +17,16 @@ operation_lock() {
   fi
 }
 
+# True when a caller-validated operator origin (see validate_operator_origin in
+# install.sh, validate_urls in update.sh) is loopback plain HTTP — the sole case
+# the app container's ALLOW_LOOPBACK_OPERATOR_ORIGINS allowance covers. Callers
+# must validate overall shape first; this only classifies an already-accepted
+# origin for the allowance decision.
+origin_is_loopback_http() {
+  local url=$1
+  [[ $url =~ ^http://(localhost|127\.0\.0\.1|\[::1\])(:[0-9]+)?(/.*)?$ ]]
+}
+
 volume_contract() {
   local project=$1 logical=$2 name=$3 metadata
   metadata=$(docker volume inspect --format \

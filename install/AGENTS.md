@@ -11,6 +11,7 @@
 - Normal install requires a clean exact Git commit and binds both operational image tags and revision labels to that full SHA.
 - Treat only exact local Compose-labeled PostgreSQL and media volume IDs as managed. Default uninstall preserves both volumes, protected source/staged credentials, backups, recovery sets, and deployment identity.
 - Purge requires the exact Compose project token and removes the verified PostgreSQL/media pair together; never use `down --volumes` for an operator deployment.
+- In production, a loopback HTTP `PUBLIC_ORIGIN`/`NAUTT_WEBHOOK_CALLBACK_URL` needs `ALLOW_LOOPBACK_OPERATOR_ORIGINS=1` forwarded to the app container; derive it from the origins already validated, never trust a hand-set value, never write it into `install/.env`, and warn the operator when it applies.
 - With retained data, validate every PostgreSQL, Nautt, and TOTP encryption source/staged/supplied value and authenticate all three database roles before secret or deployment mutation. Never rotate, regenerate, overwrite, print, hash-log, or path-log continuity material.
 - Pin the previous image content before candidate build. Seal every build, preflight, checkout, helper, promotion, health, and final-proof failure with bounded redacted evidence and exact old-app/volume proof or pinned-image rollback. After database work begins, never claim database rollback.
 - Backup stops only the app and publishes one immutable PostgreSQL/media pair after descriptor/digest, archive, checksum, and manifest verification.

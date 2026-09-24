@@ -1,8 +1,13 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 
-import { createClientWebhooksAdapter, NAUTT_WEBHOOK_EVENT_TYPES, NauttWebhookAdapterError } from "./client-webhooks";
+import {
+  createClientWebhooksAdapter,
+  NAUTT_WEBHOOK_EVENT_TYPES,
+  NauttWebhookAdapterError,
+  validateNauttWebhookCallbackUrl,
+} from "./client-webhooks";
 
 const callbackUrl = "https://payments.example.com/api/nautt/webhooks";
 const apiKey = "owner-api-key";
@@ -149,4 +154,60 @@ describe("Nautt client webhooks adapter", () => {
       expect(String(error)).not.toContain(apiKey);
     },
   );
+});
+
+describe("validateNauttWebhookCallbackUrl", () => {
+  const saved: { NODE_ENV: string | undefined; ALLOW_LOOPBACK_OPERATOR_ORIGINS: string | undefined } = {
+    NODE_ENV: undefined,
+    ALLOW_LOOPBACK_OPERATOR_ORIGINS: undefined,
+  };
+
+  beforeEach(() => {
+    saved.NODE_ENV = process.env.NODE_ENV;
+    saved.ALLOW_LOOPBACK_OPERATOR_ORIGINS = process.env.ALLOW_LOOPBACK_OPERATOR_ORIGINS;
+  });
+
+  afterEach(() => {
+    if (saved.NODE_ENV === undefined) delete process.env.NODE_ENV;
+    else process.env.NODE_ENV = saved.NODE_ENV;
+    if (saved.ALLOW_LOOPBACK_OPERATOR_ORIGINS === undefined) delete process.env.ALLOW_LOOPBACK_OPERATOR_ORIGINS;
+    else process.env.ALLOW_LOOPBACK_OPERATOR_ORIGINS = saved.ALLOW_LOOPBACK_OPERATOR_ORIGINS;
+  });
+
+  it("accepts a loopback HTTP callback outside production", () => {
+    delete process.env.NODE_ENV;
+    expect(validateNauttWebhookCallbackUrl("http://localhost:3000/api/nautt/webhooks")).toBe(
+      "http://localhost:3000/api/nautt/webhooks",
+    );
+  });
+
+  it("refuses a loopback HTTP callback in production without the allowance", () => {
+    process.env.NODE_ENV = "production";
+    delete process.env.ALLOW_LOOPBACK_OPERATOR_ORIGINS;
+    expect(() => validateNauttWebhookCallbackUrl("http://localhost:3000/api/nautt/webhooks")).toThrow(
+      NauttWebhookAdapterError,
+    );
+  });
+
+  it("accepts a loopback HTTP callback in production with the allowance set to exactly 1", () => {
+    process.env.NODE_ENV = "production";
+    process.env.ALLOW_LOOPBACK_OPERATOR_ORIGINS = "1";
+    expect(validateNauttWebhookCallbackUrl("http://localhost:3000/api/nautt/webhooks")).toBe(
+      "http://localhost:3000/api/nautt/webhooks",
+    );
+  });
+
+  it.each(["true", "0", "", "   "])("treats allowance value %j as absent in production", (value) => {
+    process.env.NODE_ENV = "production";
+    process.env.ALLOW_LOOPBACK_OPERATOR_ORIGINS = value;
+    expect(() => validateNauttWebhookCallbackUrl("http://localhost:3000/api/nautt/webhooks")).toThrow(
+      NauttWebhookAdapterError,
+    );
+  });
+
+  it("keeps a non-loopback HTTPS callback unaffected by production and the allowance", () => {
+    process.env.NODE_ENV = "production";
+    delete process.env.ALLOW_LOOPBACK_OPERATOR_ORIGINS;
+    expect(validateNauttWebhookCallbackUrl(callbackUrl)).toBe(callbackUrl);
+  });
 });
