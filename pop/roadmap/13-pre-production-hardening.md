@@ -62,7 +62,7 @@
 | Task | Description | Status |
 |------|-------------|--------|
 | [[13.4.1-validate-currency-pair-and-wire-payment-settings]] | Admin "test pair" action via minimal quote, PIX/BRL assertion from documented order fields, `GlobalPaymentSettings` enforced by checkout; gaps declared from in-repo docs. · size: L | 003_human_approval |
-| [[13.4.2-phase-verification]] | Write/run the phase suite and repair only phase defects. · size: S | 001_initial_task |
+| [[13.4.2-phase-verification]] | Write/run the phase suite and repair only phase defects. · size: S | 003_human_approval |
 
 ## Dependency and parallel-wave map
 
