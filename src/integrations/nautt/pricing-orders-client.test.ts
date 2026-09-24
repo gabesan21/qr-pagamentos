@@ -5,12 +5,14 @@ vi.mock("server-only", () => ({}));
 import {
   createPricingOrdersAdapter,
   NAUTT_ORDER_REFUSAL_CODES,
+  NAUTT_PRICING_REFUSAL_CODES,
   NauttOrderCreationIndeterminateError,
   NauttOrderNotFoundError,
   NauttOrderReadAdapterError,
   NauttOrderRefusedError,
   NauttOrderValidationError,
   NauttPricingAdapterError,
+  NauttPricingRefusedError,
 } from "./pricing-orders-client";
 
 const apiKey = "ntt_owner-secret-key";
@@ -180,6 +182,51 @@ describe("Nautt pricing adapter", () => {
   });
 
   it.each([
+    [400, "validation.exchange_currency_invalid"],
+    [404, "validation.currency_not_found"],
+    [404, "validation.exchange_currency_not_found"],
+    [422, "validation.failed"],
+  ] as const)("raises a typed refusal for the documented %s code %s", async (status, code) => {
+    const fetch = vi.fn(async () => new Response(JSON.stringify({ message: "refused", code }), { status }));
+    const adapter = createPricingOrdersAdapter({ fetch });
+
+    const error = await adapter
+      .createQuote({ apiKey, currencyUuid, exchangeCurrencyUuid, amount: { kind: "fiat", value: "500.00" } })
+      .catch((caught: unknown) => caught);
+
+    expect(error).toBeInstanceOf(NauttPricingRefusedError);
+    expect(error).toBeInstanceOf(NauttPricingAdapterError);
+    expect((error as InstanceType<typeof NauttPricingRefusedError>).code).toBe(code);
+    expect(JSON.stringify(error)).not.toContain(apiKey);
+  });
+
+  it("covers exactly the four documented quote-refusal codes and no more", () => {
+    expect([...NAUTT_PRICING_REFUSAL_CODES].sort()).toEqual(
+      [
+        "validation.exchange_currency_invalid",
+        "validation.currency_not_found",
+        "validation.exchange_currency_not_found",
+        "validation.failed",
+      ].sort(),
+    );
+  });
+
+  it.each([undefined, "validation.invalid_parameters", 42])(
+    "stays the plain adapter error for an undocumented or missing code: %s",
+    async (code) => {
+      const fetch = vi.fn(async () => new Response(JSON.stringify({ message: "refused", code }), { status: 400 }));
+      const adapter = createPricingOrdersAdapter({ fetch });
+
+      const error = await adapter
+        .createQuote({ apiKey, currencyUuid, exchangeCurrencyUuid, amount: { kind: "fiat", value: "500.00" } })
+        .catch((caught: unknown) => caught);
+
+      expect(error).toBeInstanceOf(NauttPricingAdapterError);
+      expect(error).not.toBeInstanceOf(NauttPricingRefusedError);
+    },
+  );
+
+  it.each([
     new Error(`transport leaked ${apiKey}`),
     new DOMException("timed out", "TimeoutError"),
     new DOMException("aborted", "AbortError"),
@@ -334,6 +381,38 @@ describe("Nautt order creation adapter", () => {
     expect(result.paymentMethod).toBe("webpay");
     expect("pixCopyPaste" in result).toBe(false);
     expect("pixQrcodeUrl" in result).toBe(false);
+  });
+
+  it("carries the observed currency symbol from a documented onramp order", async () => {
+    const fetch = vi.fn(async () =>
+      orderSuccess(
+        { payment_method: "pix", qrcode: pixCopyPasteCode },
+        { currency: { uuid: exchangeCurrencyUuid, name: "Brazilian Real", symbol: "BRL", prefix: "R$" } },
+      ),
+    );
+    const adapter = createPricingOrdersAdapter({ fetch });
+
+    const result = await adapter.createOnrampOrder({ apiKey, quoteUuid });
+
+    expect(result.currencySymbol).toBe("BRL");
+  });
+
+  it("leaves the currency symbol absent for a documented crypto-kind order with no currency object", async () => {
+    const fetch = vi.fn(async () => orderSuccess({ payment_method: "pix", deposit_address: "0xabc" }));
+    const adapter = createPricingOrdersAdapter({ fetch });
+
+    const result = await adapter.createOnrampOrder({ apiKey, quoteUuid });
+
+    expect("currencySymbol" in result).toBe(false);
+  });
+
+  it("rejects a present but malformed currency object instead of silently dropping it", async () => {
+    const fetch = vi.fn(async () =>
+      orderSuccess({ payment_method: "pix", qrcode: pixCopyPasteCode }, { currency: { uuid: exchangeCurrencyUuid, symbol: "" } }),
+    );
+    const adapter = createPricingOrdersAdapter({ fetch });
+
+    await expect(adapter.createOnrampOrder({ apiKey, quoteUuid })).rejects.toBeInstanceOf(NauttOrderCreationIndeterminateError);
   });
 
   it.each([

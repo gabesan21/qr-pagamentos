@@ -1,6 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { describe, expect, it, vi } from "vitest";
 
+vi.mock("server-only", () => ({}));
+
 import { ForbiddenError } from "./authorization";
 import {
   createPaymentLinkV2Service,

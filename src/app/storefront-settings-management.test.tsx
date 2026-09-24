@@ -28,6 +28,7 @@ function render(overrides: Readonly<Partial<Parameters<typeof StorefrontSettings
   return renderToStaticMarkup(
     <StorefrontSettingsManagement
       currencyChoices={choices}
+      currencyEvidence={[]}
       dictionary={getDictionary("en")}
       locale="en"
       settings={settings}
@@ -94,6 +95,35 @@ describe("storefront settings management", () => {
     expect(markup).toContain('disabled="" id="storefront-currency"');
     expect(markup).toContain(dictionary.storefrontCurrencyUnavailable);
     expect(markup).toContain(dictionary.storefrontCurrencyNone);
+  });
+
+  it("renders one probe control per active code and the never-checked status by default (13.4.1)", () => {
+    const markup = render();
+    expect(markup.match(/action="\/currency-pair-probe"/g) ?? []).toHaveLength(2);
+    expect(markup).toContain('value="BRL"');
+    expect(markup).toContain('value="USD"');
+    expect(markup).toContain(getDictionary("en").currencyProbeAction);
+    expect(markup.match(new RegExp(getDictionary("en").currencyProbeStatusNever, "g")) ?? []).toHaveLength(2);
+  });
+
+  it("renders the checked outcome and the observed method/currency line when evidence is present (13.4.1)", () => {
+    const dictionary = getDictionary("en");
+    const markup = render({
+      currencyEvidence: [
+        { code: "BRL", checkedAt: "2026-01-01T00:00:00.000Z", outcome: "ok", observedPaymentMethod: "pix", observedCurrencySymbol: "BRL" },
+      ],
+    });
+    expect(markup).toContain(dictionary.currencyProbeOutcomeOk);
+    expect(markup).toContain(
+      dictionary.currencyProbeObserved.replace("{method}", "pix").replace("{currency}", "BRL"),
+    );
+  });
+
+  it("renders the top-level probe notice for a recognized outcome and never for an unrecognized one (13.4.1)", () => {
+    const dictionary = getDictionary("en");
+    expect(render({ currencyProbeNotice: "ok" })).toContain(dictionary.currencyProbeNoticeOk);
+    expect(render({ currencyProbeNotice: "throttled" })).toContain(dictionary.currencyProbeNoticeThrottled);
+    expect(render({ currencyProbeNotice: "unrelated-param" })).not.toContain(dictionary.currencyProbeNoticeOk);
   });
 
   it("renders the standalone toggle with its mirrored hidden field", () => {

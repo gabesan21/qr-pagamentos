@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("server-only", () => ({}));
 
 import { ForbiddenError } from "./authorization";
+import { CurrencyPairSelectionRefusedError } from "./currency-pair-verification";
 import { NoActiveExchangeCurrencyMappingError } from "./supported-exchange-currency";
 import {
   createStorefrontSettingsService,
@@ -54,7 +55,8 @@ function store(
 
 function deps(overrides: Partial<StorefrontSettingsDeps> = {}) {
   const mocks = {
-    requireActiveCurrencyPair: vi.fn(async () => ({})),
+    requireActiveCurrencyPair: vi.fn(async () => ({ currencyUuid: "currency-uuid", exchangeCurrencyUuid: "exchange-currency-uuid" })),
+    requireSelectablePair: vi.fn(async () => undefined),
     activateOwnedLogo: vi.fn(async () => ({})),
     orphanOwnedLogo: vi.fn(async () => ({})),
   };
@@ -241,10 +243,23 @@ describe("storefront-settings service", () => {
       storefrontDefaultCurrencyCode: "USD",
     });
     expect(testDeps.requireActiveCurrencyPair).toHaveBeenCalledWith("USD");
+    expect(testDeps.requireSelectablePair).toHaveBeenCalledWith(owner.id, "currency-uuid", "exchange-currency-uuid");
 
     testDeps.requireActiveCurrencyPair.mockRejectedValueOnce(new NoActiveExchangeCurrencyMappingError("No active exchange currency mapping"));
     await expect(service.update(owner, { storefrontDefaultCurrencyCode: "ARS" })).rejects.toBeInstanceOf(NoActiveExchangeCurrencyMappingError);
     expect(testStore.values.get(owner.id)?.storefrontDefaultCurrencyCode).toBe("USD");
+  });
+
+  it("gates a new currency assignment on an owner-selectable pair (13.4.1)", async () => {
+    const testStore = store();
+    const testDeps = deps({
+      requireSelectablePair: vi.fn(async () => {
+        throw new CurrencyPairSelectionRefusedError();
+      }),
+    });
+    const service = createStorefrontSettingsService(testStore, testDeps);
+    await expect(service.update(owner, { storefrontDefaultCurrencyCode: "USD" })).rejects.toBeInstanceOf(CurrencyPairSelectionRefusedError);
+    expect(testStore.values.get(owner.id)?.storefrontDefaultCurrencyCode).toBeNull();
   });
 
   it("keeps reading a stored currency code after its mapping is deactivated", async () => {

@@ -20,11 +20,11 @@ function attempt(state: "RESERVED" | "PENDING" | "INDETERMINATE" | "FAILED" = "R
   const value = { id: identifiers.attempt, ownerId: identifiers.owner, orderV2Id: identifiers.order, requestVerifier: "a".repeat(64), capabilityNonce: "n".repeat(43), capabilityKeyVersion: "v1", capabilityVerifier: "", capabilityExpiresAt: new Date("2026-07-27T15:00:00.000Z"), capabilityRevokedAt: null, state, owner, order: { providerOrders: state === "PENDING" ? [{ status: "new", pixCopyPaste: "000201", pixQrcodeUrl: null }] : [] } };
   return { ...value, capabilityVerifier: createHash("sha256").update(capability(value)).digest("hex") };
 }
-function harness(reservation: unknown) {
+function harness(reservation: unknown, policy = { refuseDispatch: vi.fn().mockResolvedValue(false) }) {
   const pending = attempt("PENDING");
   const store = { reserve: vi.fn().mockResolvedValue(reservation), markCreating: vi.fn().mockResolvedValue(true), markPending: vi.fn().mockResolvedValue(pending), markIndeterminate: vi.fn().mockResolvedValue(attempt("INDETERMINATE")), markFailed: vi.fn().mockResolvedValue(undefined) };
   const provider = { quote: vi.fn().mockResolvedValue({ quoteUuid: "440e8400-e29b-41d4-a716-446655440044" }), createOrder: vi.fn().mockResolvedValue({}) };
-  return { store, provider, service: createStandaloneCheckoutService(store, { now: () => now, capabilityKey: () => key, provider: provider as never }) };
+  return { store, provider, policy, service: createStandaloneCheckoutService(store, { now: () => now, capabilityKey: () => key, provider: provider as never, policy: policy as never }) };
 }
 const createdReservation = () => ({ kind: "created", attempt: attempt(), ownerId: identifiers.owner, amount: "12.5", currencyUuid: "550e8400-e29b-41d4-a716-446655440055", exchangeCurrencyUuid: "660e8400-e29b-41d4-a716-446655440066" });
 
@@ -85,6 +85,26 @@ describe("standalone checkout orchestration", () => {
     await expect(service.checkout(identifiers.slug, validBody)).resolves.toEqual({ kind: "provider-unavailable" });
     expect(store.markFailed).toHaveBeenCalledWith(identifiers.attempt, now);
     expect(store.markIndeterminate).not.toHaveBeenCalled();
+  });
+
+  it("refuses before dispatch when the payment policy rejects the pair, spending no quote and calling no provider", async () => {
+    const policy = { refuseDispatch: vi.fn().mockResolvedValue(true) };
+    const { service, provider, store } = harness(createdReservation(), policy);
+
+    await expect(service.checkout(identifiers.slug, validBody)).resolves.toEqual({ kind: "provider-unavailable" });
+    expect(policy.refuseDispatch).toHaveBeenCalledWith({ ownerId: identifiers.owner, currencyUuid: "550e8400-e29b-41d4-a716-446655440055", exchangeCurrencyUuid: "660e8400-e29b-41d4-a716-446655440066" });
+    expect(store.markFailed).toHaveBeenCalledWith(identifiers.attempt, now);
+    expect(store.markCreating).not.toHaveBeenCalled();
+    expect(provider.quote).not.toHaveBeenCalled();
+    expect(provider.createOrder).not.toHaveBeenCalled();
+  });
+
+  it("dispatches when the payment policy has no observation to refuse", async () => {
+    const policy = { refuseDispatch: vi.fn().mockResolvedValue(false) };
+    const { service, provider } = harness(createdReservation(), policy);
+
+    await expect(service.checkout(identifiers.slug, validBody)).resolves.toMatchObject({ kind: "accepted" });
+    expect(provider.quote).toHaveBeenCalledTimes(1);
   });
 
   it("answers the same redacted outcome on an exact replay of a previously refused attempt, with zero provider calls", async () => {

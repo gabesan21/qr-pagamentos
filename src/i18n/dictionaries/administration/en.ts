@@ -106,4 +106,12 @@ export const administrationEn = {
   adminEmptyCurrencies: "No exchange currencies are active.",
   adminEmptyRecords: "No records are configured.",
   adminThemeSwatchAlt: "Theme swatch for {{name}}",
+  // 13.4.1 F02: read-only probe evidence column — never an action, never a
+  // provider call triggered from this surface.
+  adminColEvidence: "Probe evidence",
+  adminEvidenceNever: "Not checked yet",
+  adminEvidenceOutcomeOk: "Reachable",
+  adminEvidenceOutcomeRefused: "Not confirmed reachable",
+  adminEvidenceChecked: "Checked {when}",
+  adminEvidenceObserved: "Observed: {method} / {currency}",
 } as const;

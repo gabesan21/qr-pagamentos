@@ -27,6 +27,7 @@ function markup(locale: "en" | "pt-BR" = "en") {
     <SettingsSurface
       checkoutPolicy="NONE"
       currencyChoices={[{ code: "BRL", label: "Brazilian real" }]}
+      currencyEvidence={[{ code: "BRL", checkedAt: null, outcome: null, observedPaymentMethod: null, observedCurrencySymbol: null }]}
       dictionary={getDictionary(locale)}
       locale={locale}
       nauttStatus={{ credential: emptyCredential, balance: null, balanceUnavailable: false }}

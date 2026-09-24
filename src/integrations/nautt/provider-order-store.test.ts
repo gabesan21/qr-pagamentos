@@ -76,14 +76,53 @@ function durablePrismaFake(): PrismaClient {
       return { count: 1 };
     },
   };
+  const orderV2Rows = new Map<string, { id: string; ownerId: string; currencyUuid: string; exchangeCurrencyUuid: string }>();
+  const pairRows = new Map<string, { id: string; currencyUuid: string; exchangeCurrencyUuid: string }>();
+  const verificationRows = new Map<string, Record<string, unknown>>();
+  const orderV2 = {
+    async findFirst({ where }: { where: { id: string; ownerId: string } }) {
+      const row = orderV2Rows.get(where.id);
+      return row && row.ownerId === where.ownerId ? row : null;
+    },
+  };
+  const catalogCurrencyPair = {
+    async findUnique({ where }: { where: { currencyUuid_exchangeCurrencyUuid: { currencyUuid: string; exchangeCurrencyUuid: string } } }) {
+      const key = `${where.currencyUuid_exchangeCurrencyUuid.currencyUuid}:${where.currencyUuid_exchangeCurrencyUuid.exchangeCurrencyUuid}`;
+      return [...pairRows.values()].find((pair) => `${pair.currencyUuid}:${pair.exchangeCurrencyUuid}` === key) ?? null;
+    },
+  };
+  const currencyPairVerification = {
+    async upsert({ where, create, update }: { where: { ownerId_pairId: { ownerId: string; pairId: string } }; create: Record<string, unknown>; update: Record<string, unknown> }) {
+      const key = `${where.ownerId_pairId.ownerId}:${where.ownerId_pairId.pairId}`;
+      const next = verificationRows.has(key) ? { ...verificationRows.get(key), ...update } : { ...create };
+      verificationRows.set(key, next);
+      return next;
+    },
+  };
   const prisma = {
     providerQuote,
     providerOrder,
+    orderV2,
+    catalogCurrencyPair,
+    currencyPairVerification,
     async $transaction<T>(callback: (tx: unknown) => Promise<T>) {
-      return callback({ providerQuote, providerOrder });
+      return callback({ providerQuote, providerOrder, orderV2, catalogCurrencyPair, currencyPairVerification });
+    },
+    __seedOrderV2(row: { id: string; ownerId: string; currencyUuid: string; exchangeCurrencyUuid: string }) {
+      orderV2Rows.set(row.id, row);
+    },
+    __seedPair(row: { id: string; currencyUuid: string; exchangeCurrencyUuid: string }) {
+      pairRows.set(row.id, row);
+    },
+    __verificationRow(ownerId: string, pairId: string) {
+      return verificationRows.get(`${ownerId}:${pairId}`);
     },
   };
-  return prisma as unknown as PrismaClient;
+  return prisma as unknown as PrismaClient & {
+    __seedOrderV2: (row: { id: string; ownerId: string; currencyUuid: string; exchangeCurrencyUuid: string }) => void;
+    __seedPair: (row: { id: string; currencyUuid: string; exchangeCurrencyUuid: string }) => void;
+    __verificationRow: (ownerId: string, pairId: string) => Record<string, unknown> | undefined;
+  };
 }
 
 describe("Prisma provider order store", () => {
@@ -183,5 +222,70 @@ describe("Prisma provider order store", () => {
     // reset to null, unlike `releasePreDispatch`), so a fresh claim attempt
     // fails closed even though the discarded order row is gone.
     await expect(store.claimForCreation({ quoteUuid, ownerId, now })).resolves.toEqual({ kind: "unavailable" });
+  });
+
+  describe("completeCreation recording", () => {
+    const orderV2Id = "550e8400-e29b-41d4-a716-446655440055";
+    const pairId = "660e8400-e29b-41d4-a716-446655440066";
+    const currencyUuid = "770e8400-e29b-41d4-a716-446655440077";
+    const exchangeCurrencyUuid = "880e8400-e29b-41d4-a716-446655440088";
+    const providerOrderUuid = "990e8400-e29b-41d4-a716-446655440099";
+
+    function orderView(overrides: Record<string, unknown> = {}) {
+      return {
+        orderUuid: providerOrderUuid,
+        status: "new" as const,
+        fiatAmount: "1000.0000",
+        cryptoAmount: "196.0784",
+        nauttQuote: "5.1000",
+        expiresAt: new Date("2026-07-18T22:00:00.000Z"),
+        paymentMethod: "pix",
+        currencySymbol: "BRL",
+        ...overrides,
+      };
+    }
+
+    it("records the observed (owner, pair) evidence in the same transaction as the order write", async () => {
+      const prisma = durablePrismaFake();
+      prisma.__seedOrderV2({ id: orderV2Id, ownerId, currencyUuid, exchangeCurrencyUuid });
+      prisma.__seedPair({ id: pairId, currencyUuid, exchangeCurrencyUuid });
+      const store = createPrismaProviderOrderStore(prisma);
+      await store.register({ quoteUuid, ownerId, expiresAt: new Date("2026-07-18T20:05:00.000Z") });
+      const claim = await store.claimForCreation({ quoteUuid, ownerId, now, orderV2Id });
+      if (claim.kind !== "claimed") throw new Error("expected claim to succeed");
+
+      const stored = await store.completeCreation(claim.attempt, orderView());
+
+      expect(stored.creationState).toBe("CREATED");
+      expect(prisma.__verificationRow(ownerId, pairId)).toMatchObject({
+        ownerId,
+        pairId,
+        observedPaymentMethod: "pix",
+        observedCurrencySymbol: "BRL",
+      });
+    });
+
+    it("records nothing and raises nothing when the provider order has no orderV2Id", async () => {
+      const prisma = durablePrismaFake();
+      const store = createPrismaProviderOrderStore(prisma);
+      await store.register({ quoteUuid, ownerId, expiresAt: new Date("2026-07-18T20:05:00.000Z") });
+      const claim = await store.claimForCreation({ quoteUuid, ownerId, now });
+      if (claim.kind !== "claimed") throw new Error("expected claim to succeed");
+
+      await expect(store.completeCreation(claim.attempt, orderView())).resolves.toMatchObject({ creationState: "CREATED" });
+      expect(prisma.__verificationRow(ownerId, pairId)).toBeUndefined();
+    });
+
+    it("records nothing when the order_v2 pair no longer resolves to a registered catalog pair", async () => {
+      const prisma = durablePrismaFake();
+      prisma.__seedOrderV2({ id: orderV2Id, ownerId, currencyUuid, exchangeCurrencyUuid });
+      const store = createPrismaProviderOrderStore(prisma);
+      await store.register({ quoteUuid, ownerId, expiresAt: new Date("2026-07-18T20:05:00.000Z") });
+      const claim = await store.claimForCreation({ quoteUuid, ownerId, now, orderV2Id });
+      if (claim.kind !== "claimed") throw new Error("expected claim to succeed");
+
+      await expect(store.completeCreation(claim.attempt, orderView())).resolves.toMatchObject({ creationState: "CREATED" });
+      expect(prisma.__verificationRow(ownerId, pairId)).toBeUndefined();
+    });
   });
 });
