@@ -5,11 +5,15 @@ import { describe, expect, it } from "vitest";
 
 import { checkAdminUiInventory } from "./check-admin-ui-inventory.mjs";
 
-function fixture(source: string) {
+function fixture(source: string, shellSource = "export function Frame(){return <main className=\"app-shell__content\" />}") {
   const root = mkdtempSync(path.join(tmpdir(), "admin-source-check-"));
   for (const directory of ["src/app/(merchant)", "src/app/admin", "src/app-shell", "src/app/language-preference"]) mkdirSync(path.join(root, directory), { recursive: true });
   writeFileSync(path.join(root, "src/app/(merchant)/page.tsx"), source);
-  writeFileSync(path.join(root, "src/app-shell/frame.tsx"), "export function Frame(){return <main className=\"app-shell__content\" />}");
+  writeFileSync(path.join(root, "src/app-shell/frame.tsx"), shellSource);
+  // 13.3.2 gate precision: Exemption 1 is rule-backed, so the shell fixture must
+  // define the selector it exercises or "app-shell__content" would fail as an
+  // unresolved shell class instead of passing as sanctioned chrome.
+  writeFileSync(path.join(root, "src/app-shell/app-shell.css"), ".app-shell__content {\n  min-height: 100svh;\n}\n");
   writeFileSync(path.join(root, "src/app/admin/page.tsx"), "export default function Page(){return <main className=\"admin-shell\" />}");
   writeFileSync(path.join(root, "src/app/language-preference/form.tsx"), "export function Form(){return <form />}");
   return root;
@@ -35,5 +39,29 @@ describe("admin UI source inventory", () => {
   it("allows Tailwind utility classes", async () => {
     const result = await checkAdminUiInventory(fixture("export default function Home(){return <main className=\"bg-blue-500 p-4 flex items-center\" />}"));
     expect(result.counters).toEqual({ raw_controls: 0, adapter_imports: 0, inline_styles: 0, local_variants: 0 });
+  });
+
+  it("sanctions a shell BEM class only when app-shell.css defines the matching selector", async () => {
+    const backed = await checkAdminUiInventory(
+      fixture("export default function Home(){return <main className=\"admin-shell\" />}", "export function Frame(){return <main className=\"app-shell__content\" />}"),
+    );
+    expect(backed.counters.local_variants).toBe(0);
+
+    await expect(
+      checkAdminUiInventory(
+        fixture("export default function Home(){return <main className=\"admin-shell\" />}", "export function Frame(){return <main className=\"app-shell__ghost\" />}"),
+      ),
+    ).rejects.toThrow("local_variants");
+  });
+
+  it("sanctions a `--` token only inside a var(--…) reference", async () => {
+    const tokenReference = await checkAdminUiInventory(
+      fixture("export default function Home(){return <main className=\"max-w-[var(--layout-max)]\" />}"),
+    );
+    expect(tokenReference.counters.local_variants).toBe(0);
+
+    await expect(
+      checkAdminUiInventory(fixture("export default function Home(){return <main className=\"my-token--modifier\" />}")),
+    ).rejects.toThrow("local_variants");
   });
 });
