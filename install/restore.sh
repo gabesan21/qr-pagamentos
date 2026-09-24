@@ -52,15 +52,30 @@ db_ops_image=$(node -e 'const m=require(process.argv[1]);process.stdout.write(m.
 
 APP_PORT=$(sed -n 's/^APP_PORT=//p' "$ENV_FILE" | tail -1)
 NAUTT_WEBHOOK_CALLBACK_URL=$(sed -n 's/^NAUTT_WEBHOOK_CALLBACK_URL=//p' "$ENV_FILE" | tail -1)
+PUBLIC_ORIGIN=$(sed -n 's/^PUBLIC_ORIGIN=//p' "$ENV_FILE" | tail -1)
 SOURCE_SECRETS_DIR=$ROOT_DIR/.install-secrets
 STAGED_SECRETS_DIR=$ROOT_DIR/.container-secrets
 POSTGRES_ADMIN_PASSWORD_FILE=$SOURCE_SECRETS_DIR/postgres_admin_password
 MIGRATOR_PASSWORD_FILE=$SOURCE_SECRETS_DIR/migrator_password
 RUNTIME_PASSWORD_FILE=$SOURCE_SECRETS_DIR/runtime_password
+# True when a caller-validated operator origin is loopback plain HTTP — the
+# sole case the app container's ALLOW_LOOPBACK_OPERATOR_ORIGINS allowance
+# covers (same classification as install.sh/update.sh).
+origin_is_loopback_http() {
+  docker run --rm --pull=never --network none --read-only --user "$(id -u):$(id -g)" "$NODE_HELPER" \
+    node -e 'const u=new URL(process.argv[1]);const loopback=new Set(["localhost","127.0.0.1","[::1]"]);process.exit(u.protocol==="http:"&&loopback.has(u.hostname)?0:1)' -- "$1" >/dev/null 2>&1
+}
+# This run's compose() recreates the full stack (including app); rederive the
+# allowance the same way update.sh does, since install/.env is never rewritten.
+ALLOW_LOOPBACK_OPERATOR_ORIGINS=
+if origin_is_loopback_http "$NAUTT_WEBHOOK_CALLBACK_URL" || { [[ -n $PUBLIC_ORIGIN ]] && origin_is_loopback_http "$PUBLIC_ORIGIN"; }; then
+  ALLOW_LOOPBACK_OPERATOR_ORIGINS=1
+fi
 compose() {
   APP_PORT=$APP_PORT POSTGRES_ADMIN_PASSWORD_FILE=$POSTGRES_ADMIN_PASSWORD_FILE \
     MIGRATOR_PASSWORD_FILE=$MIGRATOR_PASSWORD_FILE RUNTIME_PASSWORD_FILE=$RUNTIME_PASSWORD_FILE \
     STAGED_SECRETS_DIR=$STAGED_SECRETS_DIR NAUTT_WEBHOOK_CALLBACK_URL=$NAUTT_WEBHOOK_CALLBACK_URL \
+    ALLOW_LOOPBACK_OPERATOR_ORIGINS=$ALLOW_LOOPBACK_OPERATOR_ORIGINS \
     APP_IMAGE=$app_image DB_OPS_IMAGE=$db_ops_image RELEASE_REVISION=$revision \
     docker compose -f "$ROOT_DIR/compose.yaml" -p "$PROJECT" "$@"
 }

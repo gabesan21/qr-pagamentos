@@ -136,7 +136,7 @@ load_update_env() {
     [[ $line == *=* ]] || die "invalid line in $ENV_FILE"
     key=${line%%=*}; value=$(strip_quotes "${line#*=}")
     case "$key" in
-      APP_PORT|POSTGRES_ADMIN_PASSWORD|MIGRATOR_PASSWORD|RUNTIME_PASSWORD|INITIAL_ADMIN_USERNAME|INITIAL_ADMIN_EMAIL|NAUTT_ENCRYPTION_KEY|TOTP_ENCRYPTION_KEY|NAUTT_WEBHOOK_CALLBACK_URL|NAUTT_API_BASE_URL) printf -v "$key" '%s' "$value" ;;
+      APP_PORT|POSTGRES_ADMIN_PASSWORD|MIGRATOR_PASSWORD|RUNTIME_PASSWORD|INITIAL_ADMIN_USERNAME|INITIAL_ADMIN_EMAIL|NAUTT_ENCRYPTION_KEY|TOTP_ENCRYPTION_KEY|NAUTT_WEBHOOK_CALLBACK_URL|NAUTT_API_BASE_URL|PUBLIC_ORIGIN) printf -v "$key" '%s' "$value" ;;
       *) die "unsupported variable in $ENV_FILE: $key" ;;
     esac
   done < "$ENV_FILE"
@@ -175,6 +175,7 @@ compose() {
     POSTGRES_ADMIN_PASSWORD_FILE=$POSTGRES_ADMIN_PASSWORD_FILE MIGRATOR_PASSWORD_FILE=$MIGRATOR_PASSWORD_FILE \
     RUNTIME_PASSWORD_FILE=$RUNTIME_PASSWORD_FILE NAUTT_WEBHOOK_CALLBACK_URL=$NAUTT_WEBHOOK_CALLBACK_URL \
     NAUTT_API_BASE_URL=${NAUTT_API_BASE_URL:-} STAGED_SECRETS_DIR=$STAGED_SECRETS_DIR \
+    ALLOW_LOOPBACK_OPERATOR_ORIGINS=${ALLOW_LOOPBACK_OPERATOR_ORIGINS:-} \
     docker compose -f "$ROOT_DIR/compose.yaml" -p "$PROJECT" "$@"
 }
 
@@ -207,6 +208,25 @@ validate_urls() {
     docker run --rm --pull=never --network none --read-only --user "$(id -u):$(id -g)" "$NODE_HELPER" \
       node -e 'const u=new URL(process.argv[1]);process.exit(u.protocol==="https:"&&!u.username&&!u.password&&!u.hash?0:1)' -- "$NAUTT_API_BASE_URL" >/dev/null \
       || die 'the Nautt API base URL must be an absolute HTTPS URL without credentials or fragments'
+  fi
+}
+
+# True when a caller-validated operator origin (validate_urls above) is
+# loopback plain HTTP — the sole case the app container's
+# ALLOW_LOOPBACK_OPERATOR_ORIGINS allowance covers.
+origin_is_loopback_http() {
+  docker run --rm --pull=never --network none --read-only --user "$(id -u):$(id -g)" "$NODE_HELPER" \
+    node -e 'const u=new URL(process.argv[1]);const loopback=new Set(["localhost","127.0.0.1","[::1]"]);process.exit(u.protocol==="http:"&&loopback.has(u.hostname)?0:1)' -- "$1" >/dev/null 2>&1
+}
+
+# Rederive the allowance the app container needs on every recreate from the
+# operator origins this run already trusts; install/.env is never rewritten so
+# this must be recomputed each invocation, exactly like install.sh.
+derive_loopback_allowance() {
+  ALLOW_LOOPBACK_OPERATOR_ORIGINS=
+  if origin_is_loopback_http "$NAUTT_WEBHOOK_CALLBACK_URL" || { [[ -n ${PUBLIC_ORIGIN:-} ]] && origin_is_loopback_http "$PUBLIC_ORIGIN"; }; then
+    ALLOW_LOOPBACK_OPERATOR_ORIGINS=1
+    printf 'WARN: a loopback HTTP operator origin was detected; forwarding ALLOW_LOOPBACK_OPERATOR_ORIGINS=1 to the recreated app container for local testing only.\n' >&2
   fi
 }
 
@@ -350,6 +370,7 @@ check_prerequisites
 run_offline_policy
 assert_target_checkout
 validate_urls
+derive_loopback_allowance
 validate_secret_continuity
 validate_retained_database_roles "$ROOT_DIR" "$PROJECT" "$POSTGRES_IMAGE"
 ensure_media_volume "$ROOT_DIR" "$PROJECT" "$POSTGRES_IMAGE"
