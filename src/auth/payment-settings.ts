@@ -58,3 +58,21 @@ function prismaStore(): PaymentSettingsStore {
 export function getPaymentSettingsService() {
   return createPaymentSettingsService(prismaStore());
 }
+
+// Server-side gating primitive for dependent backends (checkout pre-dispatch
+// refusal in F03, selection gates in F02); never wired to a public or
+// sessionless route, mirroring the convention in
+// `src/auth/supported-exchange-currency.ts:116-125`. Fail closed: either
+// enabled set being empty means nothing is enabled, never "anything goes".
+export function isObservedPaymentEnabled(
+  settings: GlobalPaymentSettings,
+  observed: { paymentMethod: string; currencySymbol: string },
+): boolean {
+  if (settings.currencies.length === 0 || settings.paymentMethods.length === 0) return false;
+  const currency = observed.currencySymbol.toUpperCase();
+  const method = observed.paymentMethod.toUpperCase();
+  return (
+    settings.currencies.some((value) => value.toUpperCase() === currency) &&
+    settings.paymentMethods.some((value) => value.toUpperCase() === method)
+  );
+}

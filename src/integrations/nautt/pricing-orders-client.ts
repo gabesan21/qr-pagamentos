@@ -34,6 +34,29 @@ export class NauttPricingAdapterError extends Error {
   }
 }
 
+// Documented POST /pricing/panel/buy refusal codes (any non-200 with a
+// parseable body): a deterministic diagnosis of the probed pair, never
+// widened without new approved research. Every other status, an unparseable
+// body, or a transport failure stays the plain `NauttPricingAdapterError`
+// above, so every existing call site behaves byte for byte as today.
+export const NAUTT_PRICING_REFUSAL_CODES = [
+  "validation.exchange_currency_invalid",
+  "validation.currency_not_found",
+  "validation.exchange_currency_not_found",
+  "validation.failed",
+] as const;
+
+export type NauttPricingRefusalCode = (typeof NAUTT_PRICING_REFUSAL_CODES)[number];
+
+export class NauttPricingRefusedError extends NauttPricingAdapterError {
+  readonly code: NauttPricingRefusalCode;
+  constructor(code: NauttPricingRefusalCode) {
+    super();
+    this.name = "NauttPricingRefusedError";
+    this.code = code;
+  }
+}
+
 export class NauttOrderValidationError extends Error {
   constructor() {
     super("Nautt order input is invalid");
@@ -126,6 +149,10 @@ export type NauttOrderView = {
   readonly paymentMethod: string;
   readonly pixCopyPaste?: string;
   readonly pixQrcodeUrl?: string;
+  // `data.currency.symbol`: documented on onramp/offramp orders, absent by
+  // design on crypto-kind orders (`get-order.md`); an order without a
+  // `currency` object never fails parsing over this field alone.
+  readonly currencySymbol?: string;
 };
 
 type AdapterDependencies = {
@@ -208,6 +235,16 @@ function parseOrderView(payload: unknown): NauttOrderView {
   }
   const expiresAt = new Date(data.expire_at);
   if (Number.isNaN(expiresAt.getTime())) throw new InvalidOrderPayloadError();
+  // `currency` is documented absent on crypto-kind orders (`get-order.md:22-31`);
+  // when present it must be a strict object carrying a non-empty `symbol`, so a
+  // malformed present `currency` still fails parsing like every other field.
+  let currencySymbol: string | undefined;
+  if (data.currency !== undefined) {
+    if (!isPlainObject(data.currency) || typeof data.currency.symbol !== "string" || !data.currency.symbol.trim()) {
+      throw new InvalidOrderPayloadError();
+    }
+    currencySymbol = data.currency.symbol;
+  }
   const view: {
     orderUuid: string;
     status: NauttOrderStatus;
@@ -218,6 +255,7 @@ function parseOrderView(payload: unknown): NauttOrderView {
     paymentMethod: string;
     pixCopyPaste?: string;
     pixQrcodeUrl?: string;
+    currencySymbol?: string;
   } = {
     orderUuid: data.uuid,
     status: data.status as NauttOrderStatus,
@@ -231,7 +269,15 @@ function parseOrderView(payload: unknown): NauttOrderView {
   if (pixCopyPaste) view.pixCopyPaste = pixCopyPaste;
   const pixQrcodeUrl = nonEmptyString(data.payment_data.pix_qrcode_url);
   if (pixQrcodeUrl) view.pixQrcodeUrl = pixQrcodeUrl;
+  if (currencySymbol) view.currencySymbol = currencySymbol;
   return view;
+}
+
+function parseQuoteRefusalCode(payload: unknown): NauttPricingRefusalCode | undefined {
+  if (!isPlainObject(payload) || typeof payload.code !== "string") return undefined;
+  return (NAUTT_PRICING_REFUSAL_CODES as readonly string[]).includes(payload.code)
+    ? (payload.code as NauttPricingRefusalCode)
+    : undefined;
 }
 
 function parseRefusalCode(payload: unknown): NauttOrderRefusalCode | undefined {
@@ -325,6 +371,19 @@ export function createPricingOrdersAdapter(dependencies: AdapterDependencies = {
       }
 
       if (response.status !== 200) {
+        let refusalCode: NauttPricingRefusalCode | undefined;
+        try {
+          refusalCode = parseQuoteRefusalCode(await response.json());
+        } catch {
+          refusalCode = undefined;
+        }
+        if (refusalCode) {
+          // refusalCode already comes from the closed documented allowlist
+          // (parseQuoteRefusalCode), so logging it verbatim never echoes a
+          // raw provider-controlled string.
+          logProviderFailure(providerFailureOperations.quoteCreation, response.status, refusalCode);
+          throw new NauttPricingRefusedError(refusalCode);
+        }
         logProviderFailure(providerFailureOperations.quoteCreation, response.status);
         throw new NauttPricingAdapterError();
       }

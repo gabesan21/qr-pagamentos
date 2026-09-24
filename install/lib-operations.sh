@@ -62,6 +62,27 @@ require_secret_pair() {
   fi
 }
 
+
+# Backfills an absent rotation-window previous-key secret pair as an empty
+# file (source 0600, staged 1000:1000 0400) so a deployment installed before
+# this feature keeps working through update.sh once compose.yaml declares the
+# optional secret. Never touches an existing file's content — an operator who
+# already opened a rotation window keeps whatever value they staged.
+ensure_optional_previous_key_secret() {
+  local source_dir=$1 staged_dir=$2 target=$3 node_helper=$4
+  local source="$source_dir/$target" staged="$staged_dir/$target"
+  if [[ ! -f $source ]]; then
+    (umask 077; : > "$source")
+    chmod 0600 "$source"
+  fi
+  if [[ ! -f $staged ]]; then
+    docker run --rm --pull=never --network none --read-only --tmpfs /tmp \
+      --volume "$staged_dir:/staged" "$node_helper" \
+      sh -eu -c "umask 077; : > /staged/$target; chown 1000:1000 /staged/$target; chmod 0400 /staged/$target" \
+      || die "cannot stage empty $target"
+  fi
+}
+
 validate_retained_credentials() {
   local root=$1
   require_secret_pair "$root/.install-secrets/postgres_admin_password" "$root/.container-secrets/admin_password" "${POSTGRES_ADMIN_PASSWORD:-}"

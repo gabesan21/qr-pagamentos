@@ -6,7 +6,7 @@ import { createDirectoryCursorCodec, MAX_CURSOR_DECODED_BYTES } from "./cursor";
 
 const keyA = Buffer.alloc(32, 1);
 const keyB = Buffer.alloc(32, 2);
-const codec = createDirectoryCursorCodec(() => keyA);
+const codec = createDirectoryCursorCodec(() => keyA, () => undefined);
 const context = {
   directory: "specimen",
   scopePurpose: "MERCHANT_OWN" as const,
@@ -46,7 +46,7 @@ describe("authenticated directory cursor", () => {
     for (const candidate of invalidContexts) {
       expect(codec.decode(token, candidate, () => true)).toEqual({ status: "invalid" });
     }
-    expect(createDirectoryCursorCodec(() => keyB).decode(token, context, () => true)).toEqual({ status: "invalid" });
+    expect(createDirectoryCursorCodec(() => keyB, () => undefined).decode(token, context, () => true)).toEqual({ status: "invalid" });
     expect(codec.decode(token, context, () => false)).toEqual({ status: "invalid" });
     const [payload, tag] = token.split(".");
     const tamperedPayload = `${payload.slice(0, -1)}${payload.endsWith("A") ? "B" : "A"}.${tag}`;
@@ -73,5 +73,38 @@ describe("authenticated directory cursor", () => {
     const huge = `${Buffer.alloc(513).toString("base64url")}.${Buffer.alloc(32).toString("base64url")}`;
     expect(codec.decode(huge, context, () => true)).toEqual({ status: "invalid" });
     expect(codec.decode("abc=.def", context, () => true)).toEqual({ status: "invalid" });
+  });
+
+  it("decodes a cursor minted under the previous key during the rotation window", () => {
+    const previousCodec = createDirectoryCursorCodec(() => keyB, () => undefined);
+    const token = previousCodec.encode(context, "forward", [10, "row-2"]);
+    const rotatedCodec = createDirectoryCursorCodec(() => keyA, () => keyB);
+    expect(rotatedCodec.decode(token, context, () => true)).toMatchObject({ status: "valid" });
+  });
+
+  it("prefers the current key over the previous key when both would decode", () => {
+    const token = codec.encode(context, "forward", [10, "row-2"]);
+    const rotatedCodec = createDirectoryCursorCodec(() => keyA, () => keyB);
+    expect(rotatedCodec.decode(token, context, () => true)).toMatchObject({ status: "valid" });
+  });
+
+  it("fails closed when no previous key is configured for a cursor minted under a different key", () => {
+    const previousCodec = createDirectoryCursorCodec(() => keyB, () => undefined);
+    const token = previousCodec.encode(context, "forward", [10, "row-2"]);
+    expect(codec.decode(token, context, () => true)).toEqual({ status: "invalid" });
+  });
+
+  it("fails closed when neither the current nor the previous key matches", () => {
+    const thirdCodec = createDirectoryCursorCodec(() => Buffer.alloc(32, 3), () => undefined);
+    const token = thirdCodec.encode(context, "forward", [10, "row-2"]);
+    const rotatedCodec = createDirectoryCursorCodec(() => keyA, () => keyB);
+    expect(rotatedCodec.decode(token, context, () => true)).toEqual({ status: "invalid" });
+  });
+
+  it("still encodes with the current key only, never the previous one", () => {
+    const rotatedCodec = createDirectoryCursorCodec(() => keyA, () => keyB);
+    const token = rotatedCodec.encode(context, "forward", [10, "row-2"]);
+    expect(createDirectoryCursorCodec(() => keyB, () => undefined).decode(token, context, () => true)).toEqual({ status: "invalid" });
+    expect(createDirectoryCursorCodec(() => keyA, () => undefined).decode(token, context, () => true)).toMatchObject({ status: "valid" });
   });
 });

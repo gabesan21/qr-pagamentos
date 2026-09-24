@@ -136,7 +136,12 @@ load_update_env() {
     [[ $line == *=* ]] || die "invalid line in $ENV_FILE"
     key=${line%%=*}; value=$(strip_quotes "${line#*=}")
     case "$key" in
-      APP_PORT|POSTGRES_ADMIN_PASSWORD|MIGRATOR_PASSWORD|RUNTIME_PASSWORD|INITIAL_ADMIN_USERNAME|INITIAL_ADMIN_EMAIL|NAUTT_ENCRYPTION_KEY|TOTP_ENCRYPTION_KEY|NAUTT_WEBHOOK_CALLBACK_URL|NAUTT_API_BASE_URL) printf -v "$key" '%s' "$value" ;;
+      APP_PORT|POSTGRES_ADMIN_PASSWORD|MIGRATOR_PASSWORD|RUNTIME_PASSWORD|INITIAL_ADMIN_USERNAME|INITIAL_ADMIN_EMAIL|NAUTT_ENCRYPTION_KEY|NAUTT_ENCRYPTION_KEY_PREVIOUS|TOTP_ENCRYPTION_KEY|TOTP_ENCRYPTION_KEY_PREVIOUS|NAUTT_WEBHOOK_CALLBACK_URL|NAUTT_API_BASE_URL|PUBLIC_ORIGIN)
+        # Rotation-window previous keys are accepted here only so update.sh
+        # tolerates the shared install/.env file carrying them; update never
+        # stages, validates, or rotates them — the rewrap one-shot and its
+        # own staged secret files are the only path that touches them.
+        printf -v "$key" '%s' "$value" ;;
       *) die "unsupported variable in $ENV_FILE: $key" ;;
     esac
   done < "$ENV_FILE"
@@ -175,6 +180,7 @@ compose() {
     POSTGRES_ADMIN_PASSWORD_FILE=$POSTGRES_ADMIN_PASSWORD_FILE MIGRATOR_PASSWORD_FILE=$MIGRATOR_PASSWORD_FILE \
     RUNTIME_PASSWORD_FILE=$RUNTIME_PASSWORD_FILE NAUTT_WEBHOOK_CALLBACK_URL=$NAUTT_WEBHOOK_CALLBACK_URL \
     NAUTT_API_BASE_URL=${NAUTT_API_BASE_URL:-} STAGED_SECRETS_DIR=$STAGED_SECRETS_DIR \
+    ALLOW_LOOPBACK_OPERATOR_ORIGINS=${ALLOW_LOOPBACK_OPERATOR_ORIGINS:-} \
     docker compose -f "$ROOT_DIR/compose.yaml" -p "$PROJECT" "$@"
 }
 
@@ -189,8 +195,8 @@ validate_secret_continuity() {
   uid=$(id -u)
   [[ -d $SOURCE_SECRETS_DIR && ! -L $SOURCE_SECRETS_DIR && $(stat -c '%u:%a' "$SOURCE_SECRETS_DIR") == "$uid:700" ]] || die 'source secret directory is unsafe'
   [[ -d $STAGED_SECRETS_DIR && ! -L $STAGED_SECRETS_DIR && $(stat -c '%a' "$STAGED_SECRETS_DIR") == 700 ]] || die 'staged secret directory is unsafe'
-  for name in postgres_admin_password migrator_password runtime_password nautt_encryption_key totp_encryption_key initial_admin_username initial_admin_email initial_admin_password; do require_protected_file "$SOURCE_SECRETS_DIR/$name" 600 "$uid"; done
-  for name in admin_password migrator_password runtime_password nautt_encryption_key totp_encryption_key initial_admin_username initial_admin_email initial_admin_password; do require_protected_file "$STAGED_SECRETS_DIR/$name" 400 1000; done
+  for name in postgres_admin_password migrator_password runtime_password nautt_encryption_key nautt_encryption_key_previous totp_encryption_key totp_encryption_key_previous initial_admin_username initial_admin_email initial_admin_password; do require_protected_file "$SOURCE_SECRETS_DIR/$name" 600 "$uid"; done
+  for name in admin_password migrator_password runtime_password nautt_encryption_key nautt_encryption_key_previous totp_encryption_key totp_encryption_key_previous initial_admin_username initial_admin_email initial_admin_password; do require_protected_file "$STAGED_SECRETS_DIR/$name" 400 1000; done
   validate_retained_credentials "$ROOT_DIR"
   source_key=$(<"$SOURCE_SECRETS_DIR/nautt_encryption_key")
   [[ $source_key =~ ^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$ ]] || die 'stored Nautt encryption key is invalid'
@@ -207,6 +213,25 @@ validate_urls() {
     docker run --rm --pull=never --network none --read-only --user "$(id -u):$(id -g)" "$NODE_HELPER" \
       node -e 'const u=new URL(process.argv[1]);process.exit(u.protocol==="https:"&&!u.username&&!u.password&&!u.hash?0:1)' -- "$NAUTT_API_BASE_URL" >/dev/null \
       || die 'the Nautt API base URL must be an absolute HTTPS URL without credentials or fragments'
+  fi
+}
+
+# True when a caller-validated operator origin (validate_urls above) is
+# loopback plain HTTP — the sole case the app container's
+# ALLOW_LOOPBACK_OPERATOR_ORIGINS allowance covers.
+origin_is_loopback_http() {
+  docker run --rm --pull=never --network none --read-only --user "$(id -u):$(id -g)" "$NODE_HELPER" \
+    node -e 'const u=new URL(process.argv[1]);const loopback=new Set(["localhost","127.0.0.1","[::1]"]);process.exit(u.protocol==="http:"&&loopback.has(u.hostname)?0:1)' -- "$1" >/dev/null 2>&1
+}
+
+# Rederive the allowance the app container needs on every recreate from the
+# operator origins this run already trusts; install/.env is never rewritten so
+# this must be recomputed each invocation, exactly like install.sh.
+derive_loopback_allowance() {
+  ALLOW_LOOPBACK_OPERATOR_ORIGINS=
+  if origin_is_loopback_http "$NAUTT_WEBHOOK_CALLBACK_URL" || { [[ -n ${PUBLIC_ORIGIN:-} ]] && origin_is_loopback_http "$PUBLIC_ORIGIN"; }; then
+    ALLOW_LOOPBACK_OPERATOR_ORIGINS=1
+    printf 'WARN: a loopback HTTP operator origin was detected; forwarding ALLOW_LOOPBACK_OPERATOR_ORIGINS=1 to the recreated app container for local testing only.\n' >&2
   fi
 }
 
@@ -350,6 +375,11 @@ check_prerequisites
 run_offline_policy
 assert_target_checkout
 validate_urls
+derive_loopback_allowance
+# Backfill the two optional rotation-window secrets for a deployment installed
+# before this feature; never touches an existing value.
+ensure_optional_previous_key_secret "$SOURCE_SECRETS_DIR" "$STAGED_SECRETS_DIR" nautt_encryption_key_previous "$NODE_HELPER"
+ensure_optional_previous_key_secret "$SOURCE_SECRETS_DIR" "$STAGED_SECRETS_DIR" totp_encryption_key_previous "$NODE_HELPER"
 validate_secret_continuity
 validate_retained_database_roles "$ROOT_DIR" "$PROJECT" "$POSTGRES_IMAGE"
 ensure_media_volume "$ROOT_DIR" "$PROJECT" "$POSTGRES_IMAGE"

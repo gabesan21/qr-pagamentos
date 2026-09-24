@@ -28,6 +28,7 @@ function render(overrides: Readonly<Partial<Parameters<typeof StorefrontSettings
   return renderToStaticMarkup(
     <StorefrontSettingsManagement
       currencyChoices={choices}
+      currencyEvidence={[]}
       dictionary={getDictionary("en")}
       locale="en"
       settings={settings}
@@ -96,6 +97,35 @@ describe("storefront settings management", () => {
     expect(markup).toContain(dictionary.storefrontCurrencyNone);
   });
 
+  it("renders one probe control per active code and the never-checked status by default (13.4.1)", () => {
+    const markup = render();
+    expect(markup.match(/action="\/currency-pair-probe"/g) ?? []).toHaveLength(2);
+    expect(markup).toContain('value="BRL"');
+    expect(markup).toContain('value="USD"');
+    expect(markup).toContain(getDictionary("en").currencyProbeAction);
+    expect(markup.match(new RegExp(getDictionary("en").currencyProbeStatusNever, "g")) ?? []).toHaveLength(2);
+  });
+
+  it("renders the checked outcome and the observed method/currency line when evidence is present (13.4.1)", () => {
+    const dictionary = getDictionary("en");
+    const markup = render({
+      currencyEvidence: [
+        { code: "BRL", checkedAt: "2026-01-01T00:00:00.000Z", outcome: "ok", observedPaymentMethod: "pix", observedCurrencySymbol: "BRL" },
+      ],
+    });
+    expect(markup).toContain(dictionary.currencyProbeOutcomeOk);
+    expect(markup).toContain(
+      dictionary.currencyProbeObserved.replace("{method}", "pix").replace("{currency}", "BRL"),
+    );
+  });
+
+  it("renders the top-level probe notice for a recognized outcome and never for an unrecognized one (13.4.1)", () => {
+    const dictionary = getDictionary("en");
+    expect(render({ currencyProbeNotice: "ok" })).toContain(dictionary.currencyProbeNoticeOk);
+    expect(render({ currencyProbeNotice: "throttled" })).toContain(dictionary.currencyProbeNoticeThrottled);
+    expect(render({ currencyProbeNotice: "unrelated-param" })).not.toContain(dictionary.currencyProbeNoticeOk);
+  });
+
   it("renders the standalone toggle with its mirrored hidden field", () => {
     const markup = render();
     expect(markup).toContain(getDictionary("en").storefrontStandalonePaymentsLabel);
@@ -140,7 +170,9 @@ describe("storefront settings management", () => {
   // form renders as a document-level sibling, after the settings form closes.
   it("binds the noscript logo fallback to a sibling form, never nested inside the settings form", () => {
     const markup = render();
-    expect(markup.match(/<form\b/g)).toHaveLength(2);
+    // 13.4.1 F02 added one probe <form> per active currency choice (2 in this fixture),
+    // alongside the settings form and the noscript logo-fallback form: 4 total.
+    expect(markup.match(/<form\b/g)).toHaveLength(4);
     expect(markup).toContain('form="storefront-logo-upload"');
     expect(markup).toContain('id="storefront-logo-upload"');
     const settingsFormEnd = markup.indexOf("</form>");

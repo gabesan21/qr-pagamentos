@@ -12,6 +12,13 @@ the database network is internal. Run one application instance for this
 topology: the public payment-link limiter is intentionally bounded and
 process-local, not a distributed protection.
 
+Three production caveats are accepted, permanent decisions, not open work
+(see the [2026-09-23 decisions](../pop/notes/decisions/2026-09-23-epoch-13-decisions.md)):
+no Content-Security-Policy and no middleware (durable decision of task 5.3.1);
+the public rate limiter above is process-local, so the deployment is
+single-instance; and observability is console-sink JSON logs only, with no
+external alerting.
+
 Put a separately operated TLS reverse proxy in front of that loopback listener.
 The proxy, not this repository, owns the public listener, certificates and TLS
 redirects. It must reject direct public access to the loopback service and must
@@ -55,6 +62,16 @@ encryption key is a separate protected secret: store an independently protected
 copy outside the host. A database copy without this key cannot recover
 encrypted Nautt credentials.
 
+A production build (`NODE_ENV=production`) refuses to start when
+`PUBLIC_ORIGIN` or `NAUTT_WEBHOOK_CALLBACK_URL` is a loopback HTTP origin
+(`localhost`, `127.0.0.1`, `[::1]`) unless `ALLOW_LOOPBACK_OPERATOR_ORIGINS` is
+set to exactly `1`; every other value counts as absent, and every non-loopback
+HTTPS origin is unaffected. The installer derives and forwards this allowance
+automatically whenever the operator's own chosen origin is loopback and prints
+a warning when it does; never set it for a real deployment. `container/runtime.mjs`
+enforces the same rule at container startup for both origins, alongside its
+existing database and media preflights.
+
 Self-hosted password-reset email delivery requires seven additional file-backed
 secrets mounted under `/run/secrets/` in the `app` container: `smtp_host`,
 `smtp_port`, `smtp_user`, `smtp_password`, `smtp_from`, `smtp_tls_mode`, and
@@ -73,6 +90,77 @@ creates a protected initial password file once. Use
 `install/install.sh --recover-initial-admin` only for the recorded initial
 administrator: recovery targets its immutable UUID, reactivates its ADMIN role,
 and rotates its credential without a username/email lookup.
+
+## First currency-pair setup
+
+A fresh install has no working currency pair until this sequence runs once
+(task 13.4.1). No seed or scripted bootstrap performs any of it.
+
+1. In the Nautt panel, obtain the `currency_uuid` and `exchange_currency_uuid`
+   for the pair you want (for example BRL via PIX). The `/exchange-currencies`
+   listing endpoint exists in Nautt's API, but its response schema is not
+   ingested into this repository, so the panel is the only source this
+   runbook documents.
+2. As an administrator, register that pair in `/admin/settings` (the exchange
+   currencies section): paste both UUIDs and a label. The admin never holds a
+   Nautt API key and never calls Nautt directly.
+3. Each merchant `USER` who will sell against that pair saves its own Nautt
+   API key under `/settings`, then runs the pair probe from the same screen.
+   The probe issues only one `POST /pricing/panel/buy` with a minimal amount
+   — reachability only, never proof of PIX/BRL — and is throttled to one
+   attempt per pair per 60 seconds.
+4. The pair earns selection eligibility for that merchant's payment links and
+   storefront default currency only after a passing probe. `GlobalPaymentSettings`
+   (`/admin/settings`) must also enable the corresponding currency and payment
+   method, or checkout refuses to dispatch.
+5. The first real order for that pair records the payment method and currency
+   Nautt actually returned (`payment_data.payment_method`, `currency.symbol`)
+   as the pair's durable evidence. Only from that point does checkout have
+   observed proof the pair is PIX/BRL; before it, an unobserved pair still
+   dispatches on a passing probe alone.
+
+## Encryption key rotation
+
+Rotate `NAUTT_ENCRYPTION_KEY` or `TOTP_ENCRYPTION_KEY` only through this
+explicit, operator-invoked procedure. No install or update path rotates,
+regenerates, or overwrites either key, and the procedure never prints or
+records key material and never touches webhook registration or
+`NAUTT_API_BASE_URL`.
+
+1. Take a verified backup (`install/backup.sh`) before touching either key.
+   A backup is bound to the key set active when it was created: restoring it
+   later still needs the key it was encrypted under, so retain the outgoing
+   key for as long as any such backup lives.
+2. Generate the replacement key and stage it as the new current secret; stage
+   the outgoing key as the matching `NAUTT_ENCRYPTION_KEY_PREVIOUS` or
+   `TOTP_ENCRYPTION_KEY_PREVIOUS` secret (`.env.compose.example` /
+   `install/.env.example` document both variables and their file-backed
+   secret names).
+3. Restart the app so both the new current key and the previous key are
+   mounted. While both are configured, decryption and MAC verification try
+   the current key first, then the previous key, so a half-finished rotation
+   never loses access to a stored Nautt API key, webhook secret, or TOTP
+   secret, and an in-flight checkout capability or directory cursor minted
+   under the old key still verifies.
+4. Stop the app, then run the one-shot:
+   `docker compose --profile rotate run --rm rotate-encryption-keys`. It
+   rewraps the three stored ciphertext columns (Nautt API key, Nautt webhook
+   secret, TOTP secret) under the current key and prints only per-table
+   counts, one line per table:
+   `PASS rewrap table=<table> scanned=<n> rewrapped=<n> skipped=<n>
+   unreadable=<n>`. The `rotate` profile is never activated by a plain `up`,
+   install, or update.
+5. Re-run the one-shot until every table reports `rewrapped=0` (nothing left
+   to convert). A nonzero `unreadable` count is an abort condition: stop and
+   investigate before continuing rather than re-running blindly.
+6. Keep the previous secret configured for at least 24 hours after the last
+   rewrap run, so every checkout capability and directory cursor issued
+   before rotation outlives its TTL under the previous key. Only after that
+   window, remove the `*_ENCRYPTION_KEY_PREVIOUS` secret and restart once
+   more to close the read window.
+
+TOTP recovery codes are stored as SHA-256 digests, not ciphertext; they are
+untouched by this procedure.
 
 ## Deployment and startup
 
@@ -182,7 +270,11 @@ The digest-pinned Node helper image must already exist locally. Before any
 managed build or database operation, the updater runs the pulled
 `migration-policy.mjs` with `--pull=never`, no network, a read-only source mount,
 and no database mount, secret file or passed environment. The verifier pins the
-exact 19-migration baseline through an independent reviewed inventory digest and accepts each later migration only when its
+16-migration baseline through `20260721060000_storefront_settings` by an
+independent reviewed inventory digest — rebased once, on 2026-09-22 (task
+15.1.2), to drop the never-shipped V1 `payment_link`/`payment_link_order`/
+`checkout_attempt`/`payment_link_single_use_settlement` tables, the single
+authorized historical exception to baseline immutability — and accepts each later migration only when its
 canonical closed manifest regenerates `migration.sql` byte for byte. That
 language permits only data-preserving table, column, index, typed-constraint
 and privilege operations; raw SQL, destructive DDL/DML, rename/type changes,
@@ -237,3 +329,7 @@ a scoped ledger, not live-deployment proof. It separates the historical static
 candidate's explicit skips from later dated disposable task evidence. A later
 PASS applies only to its named command and scope; a human must still plan and
 record every remaining skip before declaring the deployment operational.
+
+Before merging or operating a release, run the dated
+[release rehearsal protocol](release-rehearsal.md) and append its result to
+the release evidence's dated-run section.

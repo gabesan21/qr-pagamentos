@@ -106,4 +106,12 @@ export const administrationPtBR = {
   adminEmptyCurrencies: "Nenhuma moeda de troca está ativa.",
   adminEmptyRecords: "Nenhum registro está configurado.",
   adminThemeSwatchAlt: "Amostra do tema {{name}}",
+  // 13.4.1 F02: coluna somente leitura de evidência da sondagem — nunca uma
+  // ação, nunca uma chamada ao provedor disparada por esta superfície.
+  adminColEvidence: "Evidência da sondagem",
+  adminEvidenceNever: "Ainda não verificado",
+  adminEvidenceOutcomeOk: "Alcançável",
+  adminEvidenceOutcomeRefused: "Não confirmado como alcançável",
+  adminEvidenceChecked: "Verificado em {when}",
+  adminEvidenceObserved: "Observado: {method} / {currency}",
 } as const;

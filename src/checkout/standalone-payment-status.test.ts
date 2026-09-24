@@ -40,4 +40,42 @@ describe("standalone payment status", () => {
 
     await expect(service.read(bearer)).resolves.toEqual({ state: "CONFIRMED" });
   });
+
+  describe("rotation window", () => {
+    const previousKey = Buffer.from("98765432109876543210987654321098");
+    const previousBearer = createHmac("sha256", previousKey)
+      .update(`standalone-checkout-capability:v1:${attempt.id}:${expiresAt.toISOString()}:${attempt.capabilityNonce}`)
+      .digest("base64url");
+    const rotatedAttempt = { ...attempt, capabilityVerifier: createHash("sha256").update(previousBearer).digest("hex") };
+
+    it("verifies a capability minted under the previous key when configured", async () => {
+      const findByCapabilityVerifier = vi.fn().mockResolvedValue(rotatedAttempt);
+      const service = createStandalonePaymentStatusService(
+        { findByCapabilityVerifier },
+        { now: () => new Date("2026-07-26T12:00:00Z"), capabilityKey: () => key, previousCapabilityKey: () => previousKey },
+      );
+
+      await expect(service.read(previousBearer)).resolves.toEqual({ state: "PENDING", pixCopyPaste: "000201" });
+    });
+
+    it("fails closed on a previous-key capability when no previous key is configured", async () => {
+      const findByCapabilityVerifier = vi.fn().mockResolvedValue(rotatedAttempt);
+      const service = createStandalonePaymentStatusService(
+        { findByCapabilityVerifier },
+        { now: () => new Date("2026-07-26T12:00:00Z"), capabilityKey: () => key },
+      );
+
+      await expect(service.read(previousBearer)).resolves.toBeNull();
+    });
+
+    it("prefers the current key over the previous key when both are configured", async () => {
+      const findByCapabilityVerifier = vi.fn().mockResolvedValue(attempt);
+      const service = createStandalonePaymentStatusService(
+        { findByCapabilityVerifier },
+        { now: () => new Date("2026-07-26T12:00:00Z"), capabilityKey: () => key, previousCapabilityKey: () => previousKey },
+      );
+
+      await expect(service.read(bearer)).resolves.toEqual({ state: "PENDING", pixCopyPaste: "000201" });
+    });
+  });
 });

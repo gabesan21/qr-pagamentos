@@ -4,20 +4,6 @@ import ts from "typescript";
 
 const entrypoints = ["src/app/(merchant)", "src/app/admin", "src/app-shell", "src/app/language-preference"];
 const rawControls = new Set(["button", "input", "select", "textarea"]);
-const allowedClasses = new Set([
-  "h-11 w-full",
-  "app-shell", "app-shell__content", "app-shell__desktop-navigation", "app-shell__empty-marker",
-  "app-shell__identity", "app-shell__mobile-header", "app-shell__mobile-navigation",
-  "app-shell__mobile-panel", "app-shell__mobile-trigger", "app-shell__navigation-index",
-  "app-shell__mobile-sign-out",
-  "app-shell__mobile-trigger-label",
-  "app-shell__navigation-link", "app-shell__navigation-list", "app-shell__principal",
-  "app-shell__sidebar", "app-shell__sign-out", "app-shell__skip-link", "app-shell__username",
-  "workspace-heading", "workspace-heading__eyebrow",
-  // 15.4.1 gate repair: the account-panel BEM chrome is sanctioned shell chrome
-  // (DESIGN.md responsive shells), not an ad hoc local variant.
-  "app-shell__account-panel", "app-shell__account-panel-item", "app-shell__account-panel-signout",
-]);
 // 15.4.1 gate repair: mirrors the path+pattern accent-style authorization already
 // granted by scripts/check-design-tokens.mjs's `allowedAccentStyles` — narrowed to
 // the one path this inventory scans (src/app/admin/accounts/[id]/page.tsx); never
@@ -25,6 +11,42 @@ const allowedClasses = new Set([
 const allowedAccentStyles = [
   { path: "src/app/admin/accounts/[id]/page.tsx", pattern: /^style=\{\{ "--storefront-accent": editor\.storefrontAccentColor \?\? "transparent" \} as CSSProperties\}$/ },
 ];
+
+async function loadShellSelectors(root) {
+  try {
+    const source = await readFile(path.join(root, "src/app-shell/app-shell.css"), "utf8");
+    const selectors = new Set();
+    for (const match of source.matchAll(/\.([A-Za-z][\w-]*)/g)) selectors.add(match[1]);
+    return selectors;
+  } catch {
+    return new Set();
+  }
+}
+
+// 13.3.2 gate precision: shell BEM chrome is sanctioned only for files under
+// src/app-shell/** and only when src/app-shell/app-shell.css defines a matching
+// selector — rule-backed, not a prefix or literal allowance, so a shell class
+// whose rule is deleted still fails (src/app-shell/AGENTS.md, DESIGN.md "BEM
+// retirement (14.7.1)").
+function isSanctionedShellClass(token, file, shellSelectors) {
+  return file.startsWith("src/app-shell/") && shellSelectors.has(token);
+}
+
+// 13.3.2 gate precision: a `--` occurrence is the sanctioned token channel only
+// when it appears inside a var(--…) reference — mirrors the authorization
+// scripts/check-design-tokens.mjs already grants (:7, :32-38) and the
+// max-w-[var(--layout-max)] exception preserved by the 15.4.1 closed map. A
+// `--modifier` outside a var(…) reference stays a hard failure.
+function isSanctionedTokenReference(token) {
+  const withoutVarRefs = token.replace(/var\(--[\w-]+\)/g, "");
+  return !/--[a-z]/i.test(withoutVarRefs);
+}
+
+function isSanctionedToken(token, file, shellSelectors) {
+  if (/__[a-z]/i.test(token) && !isSanctionedShellClass(token, file, shellSelectors)) return false;
+  if (/--[a-z]/i.test(token) && !isSanctionedTokenReference(token)) return false;
+  return true;
+}
 
 async function collect(root, candidate) {
   const absolute = path.join(root, candidate);
@@ -38,6 +60,7 @@ async function collect(root, candidate) {
 export async function checkAdminUiInventory(candidateRoot) {
   const root = path.resolve(candidateRoot);
   const files = (await Promise.all(entrypoints.map((entrypoint) => collect(root, entrypoint)))).flat().sort();
+  const shellSelectors = await loadShellSelectors(root);
   const failures = [];
   const counters = { raw_controls: 0, adapter_imports: 0, inline_styles: 0, local_variants: 0 };
 
@@ -80,8 +103,11 @@ export async function checkAdminUiInventory(candidateRoot) {
         }
         if (attribute.name.getText(source) === "className") {
           const value = attribute.initializer && ts.isStringLiteral(attribute.initializer) ? attribute.initializer.text : null;
-          if (value && /__[a-z]+|--[a-z]+/.test(value) && !allowedClasses.has(value)) {
-            fail("local_variants", file, attribute, source, `className=${value}`);
+          if (value) {
+            const tokens = value.split(/\s+/).filter(Boolean);
+            if (tokens.some((token) => !isSanctionedToken(token, file, shellSelectors))) {
+              fail("local_variants", file, attribute, source, `className=${value}`);
+            }
           }
         }
       }

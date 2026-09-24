@@ -96,4 +96,17 @@ export const storefrontPtBR = {
   storefrontLogoRemoved: "Logotipo removido.",
   storefrontLogoInvalidType: "Use um arquivo JPEG, PNG ou WebP.",
   storefrontLogoTooLarge: "O logotipo excede o limite de 5 MiB.",
+  // 13.4.1 F02: sondagem de alcance por código na seção de moeda.
+  currencyProbeAction: "Testar par",
+  currencyProbeStatusNever: "Ainda não verificado.",
+  currencyProbeStatusChecked: "Última verificação em {when}.",
+  currencyProbeOutcomeOk: "Alcançável.",
+  currencyProbeOutcomeRefused: "Ainda não confirmado como alcançável.",
+  currencyProbeOutcomeUnavailable: "A última verificação foi inconclusiva; tente novamente.",
+  currencyProbeObserved: "Observado em um pedido real: {method} / {currency}.",
+  currencyProbeNoticeOk: "O par respondeu e agora está alcançável.",
+  currencyProbeNoticeRefused: "Não foi possível confirmar que o par está alcançável. Revise o par ou tente novamente em breve.",
+  currencyProbeNoticeThrottled: "Uma verificação para este par já foi feita recentemente. Aguarde um minuto e tente novamente.",
+  currencyProbeNoticeInvalid: "Esta moeda não tem um par ativo registrado para testar.",
+  currencyProbeNoticeFailed: "Não foi possível concluir a verificação. Tente novamente.",
 } as const;

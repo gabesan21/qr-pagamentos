@@ -10,11 +10,17 @@ Deliver a production-ready dashboard where users create products and their own P
 
 The application owns the catalog, payment-link lifecycle, public checkout, and order views. Nautt Finance is used only to open and query orders and receive webhooks; its hosted payment-link feature is explicitly forbidden.
 
-## Current state (2026-07-31)
+## Current state (2026-09-23)
 
 The repository holds a working Next.js application in `src/` plus `prisma/`, `container/`, and `install/`. Epochs 1 to 11 are delivered and integrated: self-hosted runtime, identity and access control, the bilingual `pt-BR`/`en` admin and merchant panels, the Nautt provider integration (orders, polling, webhook intake and recovery), the administrator catalog and dynamic supported-exchange-currency registry, merchant products/categories/media, Commerce V2 payment links and generalized orders, the public storefront with cart and standalone payments, the branded public checkout with its terminal states, the administrator operations surface (analytics dashboard, global order and payment-link directories, user directory and profile editor, soft-delete lifecycle, settings hub), and identity security and release (password recovery, 2FA, role isolation, visual quality, production upgrade/recovery readiness). PR #9 (`develop` → `main`, "Epochs 10–11") was merged on 2026-07-31.
 
-Two beta/deferred conditions are live and tracked outside this brief: the Nautt webhook callback currently accepts unsigned bodies (M-5.1 beta decision, must be reversed before production), and CSP is deferred by decision. See [[../AGENTS.md|project AGENTS]] and `pop/open_questions/`.
+Epochs 12 to 15 are also delivered and integrated. Epoch 12 replaced the complete application frontend with the supplied professional template while preserving the existing stack and business contracts; Epoch 14 converged every surface onto that template's interaction model, vocabulary, and states, proven by rendered comparison; Epoch 15 removed the V1 payment-link/order/checkout-attempt line integrally (rebasing the migration baseline to 16 directories through `20260721060000_storefront_settings`, task 15.1.2), fixed PIX data durability, and gave the checkout explicit no-retry terminal states. **The deployment is V2-only:** Commerce V2 payment links and orders (`payment_link_v2`, `order_v2`, `checkout_attempt_v2`, `standalone_checkout_attempt`) are the sole checkout surface; no V1 table or route remains.
+
+Provider reconciliation and checkout polling follow [[pop/specs/checkout-and-order-lifecycle|Checkout and order lifecycle]] and [[pop/specs/nautt-finance-integration|Nautt Finance integration]]: dispatch opens one reservation transaction, a `markCreating` CAS, one quote, one onramp `POST` attached to the V2 order identity, and `markPending` moves the order to `PENDING`; every post-dispatch ambiguity is durably `INDETERMINATE`, never retried, with no transaction spanning provider I/O. Settlement is webhook-driven: an authoritative owner-bound `GET /orders/{uuid}` reconciliation matches owner, provider UUID, and reconciliation version before any state write, and the same transition policy is reused by webhook-authoritative reads and injected polling/recovery.
+
+Webhook HMAC verification, owner binding, and the `401` unauthenticated-rejection surface were restored by Epoch 13 phase 13.1 (concluded 2026-09-23), reversing the 2026-07-25 BETA(M-5.1) exception; no beta caveat remains in the webhook intake contract. Epoch 13 (pre-production hardening) concluded 2026-09-24 with all four phases (13.1–13.4) closed; its hand-off is [[notes/references/2026-09-24-epoch-13-report|the epoch 13 report]].
+
+The three accepted production caveats — none of them "deferred" — are recorded once in [[pop/notes/decisions/2026-09-23-epoch-13-decisions|the 2026-09-23 decisions]]; see also [[../AGENTS.md|project AGENTS]].
 
 ## Folder structure
 

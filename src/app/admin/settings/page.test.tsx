@@ -4,18 +4,20 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { en } from "@/i18n/dictionaries/en";
 import { ptBR } from "@/i18n/dictionaries/pt-BR";
 
-const { requireContext, list, listCurrencyPairs, listPaymentMethods, listMappings, getDefaultTheme, useFormStatus } = vi.hoisted(() => ({
+const { requireContext, list, listCurrencyPairs, listPaymentMethods, listMappings, listLatestEvidenceByCode, getDefaultTheme, useFormStatus } = vi.hoisted(() => ({
   requireContext: vi.fn(),
   list: vi.fn(),
   listCurrencyPairs: vi.fn(),
   listPaymentMethods: vi.fn(),
   listMappings: vi.fn(),
+  listLatestEvidenceByCode: vi.fn(),
   getDefaultTheme: vi.fn(),
   useFormStatus: vi.fn(),
 }));
 
 vi.mock("../shell-context", () => ({ requireAdminShellContext: requireContext }));
 vi.mock("@/auth/payment-settings", () => ({ getPaymentSettingsService: () => ({ list }) }));
+vi.mock("@/auth/currency-pair-verification", () => ({ listLatestEvidenceByCode }));
 vi.mock("@/auth/nautt-catalog", () => ({ getNauttCatalogService: () => ({ listCurrencyPairs, listPaymentMethods }) }));
 vi.mock("@/auth/supported-exchange-currency", () => ({ getSupportedExchangeCurrencyService: () => ({ listMappings }) }));
 vi.mock("@/auth/system-settings", () => ({ getSystemSettingsService: () => ({ getDefaultTheme }) }));
@@ -36,6 +38,7 @@ beforeEach(() => {
   listCurrencyPairs.mockResolvedValue([]);
   listPaymentMethods.mockResolvedValue([]);
   listMappings.mockResolvedValue([{ code: "BRL", label: "BRL/USDT" }]);
+  listLatestEvidenceByCode.mockResolvedValue([]);
   getDefaultTheme.mockResolvedValue("vault-blue");
 });
 
@@ -94,6 +97,28 @@ describe("administrator settings hub", () => {
     expect(exchangeFailed).toContain(en.adminExchangeCurrencyFailed);
     const settingsSaved = renderToStaticMarkup(await AdminSettingsPage({ searchParams: query({ success: "settings" }) }));
     expect(settingsSaved).toContain(en.adminPaymentSettingsSaved);
+  });
+
+  it("renders the read-only probe evidence next to a mapping, with no action (13.4.1)", async () => {
+    requireContext.mockResolvedValue({ dictionary: en, locale: "en", principal });
+    listLatestEvidenceByCode.mockResolvedValue([
+      { code: "BRL", checkedAt: "2026-01-01T00:00:00.000Z", outcome: "ok", observedPaymentMethod: "pix", observedCurrencySymbol: "BRL" },
+    ]);
+
+    const html = renderToStaticMarkup(await AdminSettingsPage({ searchParams: query() }));
+
+    expect(html).toContain(en.adminColEvidence);
+    expect(html).toContain(en.adminEvidenceOutcomeOk);
+    expect(html).toContain(en.adminEvidenceObserved.replace("{method}", "pix").replace("{currency}", "BRL"));
+  });
+
+  it("shows the not-checked-yet evidence state and never mistakes it for a mapping-less row", async () => {
+    requireContext.mockResolvedValue({ dictionary: en, locale: "en", principal });
+    listLatestEvidenceByCode.mockResolvedValue([]);
+
+    const html = renderToStaticMarkup(await AdminSettingsPage({ searchParams: query() }));
+
+    expect(html).toContain(en.adminEvidenceNever);
   });
 
   it("renders the explicit empty states for the registry and catalog sections", async () => {

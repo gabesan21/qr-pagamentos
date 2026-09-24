@@ -1,6 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { describe, expect, it, vi } from "vitest";
 
+vi.mock("server-only", () => ({}));
+
 import { createPaymentLinkV2Store } from "./payment-link-v2";
 
 const ownerId = randomUUID();
@@ -20,6 +22,21 @@ function fakeDatabase() {
     paymentLinkV2Line: {
       createMany: vi.fn(async (): Promise<unknown> => ({})),
       deleteMany: vi.fn(async (): Promise<unknown> => ({ count: 0 })),
+    },
+    checkoutAttemptV2: {
+      updateMany: vi.fn(async (): Promise<unknown> => ({ count: 0 })),
+    },
+    orderV2: {
+      updateMany: vi.fn(async (): Promise<unknown> => ({ count: 0 })),
+    },
+    // 13.4.1 F02: `isSelectable` reads both inside the same transaction —
+    // default to a passing, unobserved probe so pre-existing scenarios stay
+    // selectable without asserting anything about payment settings.
+    currencyPairVerification: {
+      findUnique: vi.fn(async (): Promise<unknown> => ({ quoteOutcome: "ok", observedPaymentMethod: null, observedCurrencySymbol: null })),
+    },
+    globalPaymentSettings: {
+      findUnique: vi.fn(async (): Promise<unknown> => ({ currencies: [], paymentMethods: [] })),
     },
   };
   const database = {
@@ -136,5 +153,51 @@ describe("payment-link-v2 prisma store", () => {
     expect(database.checkoutAttemptV2.count).toHaveBeenCalledWith({ where: { paymentLinkV2Id: linkId } });
     database.checkoutAttemptV2.count.mockResolvedValueOnce(1);
     await expect(store.hasCheckoutAttempt(linkId)).resolves.toBe(true);
+  });
+
+  it("sweeps RESERVED attempts and their CREATED orders to FAILED/REJECTED in the same transaction as a winning deactivation CAS", async () => {
+    const { database, transaction } = fakeDatabase();
+    const store = createPaymentLinkV2Store(database as never);
+
+    await store.setActive(ownerId, linkId, 0, false, now);
+
+    expect(database.$transaction).toHaveBeenCalledTimes(1);
+    expect(transaction.paymentLinkV2.updateMany).toHaveBeenCalledWith({
+      where: { id: linkId, ownerId, version: 0 },
+      data: { active: false, version: { increment: 1 }, updatedAt: now },
+    });
+    expect(transaction.checkoutAttemptV2.updateMany).toHaveBeenCalledWith({
+      where: { paymentLinkV2Id: linkId, state: "RESERVED" },
+      data: { state: "FAILED", capabilityRevokedAt: now },
+    });
+    expect(transaction.orderV2.updateMany).toHaveBeenCalledWith({
+      where: { paymentLinkV2Id: linkId, state: "CREATED", checkoutAttempt: { is: { state: "FAILED" } } },
+      data: { state: "REJECTED" },
+    });
+  });
+
+  it("never sweeps attempts/orders when the deactivation CAS loses", async () => {
+    const { database, transaction } = fakeDatabase();
+    transaction.paymentLinkV2.updateMany.mockResolvedValueOnce({ count: 0 });
+    const store = createPaymentLinkV2Store(database as never);
+
+    await expect(store.setActive(ownerId, linkId, 0, false, now)).resolves.toBeNull();
+
+    expect(transaction.checkoutAttemptV2.updateMany).not.toHaveBeenCalled();
+    expect(transaction.orderV2.updateMany).not.toHaveBeenCalled();
+  });
+
+  it("never sweeps attempts/orders on reactivation (active: true)", async () => {
+    const { database, transaction } = fakeDatabase();
+    const store = createPaymentLinkV2Store(database as never);
+
+    await store.setActive(ownerId, linkId, 1, true, now);
+
+    expect(transaction.paymentLinkV2.updateMany).toHaveBeenCalledWith({
+      where: { id: linkId, ownerId, version: 1 },
+      data: { active: true, version: { increment: 1 }, updatedAt: now },
+    });
+    expect(transaction.checkoutAttemptV2.updateMany).not.toHaveBeenCalled();
+    expect(transaction.orderV2.updateMany).not.toHaveBeenCalled();
   });
 });
