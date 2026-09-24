@@ -1,5 +1,5 @@
 import { getDatabaseClient } from "../db/client";
-import { decrypt, encrypt, loadEncryptionKey } from "../lib/totp-crypto";
+import { decrypt, encrypt, loadEncryptionKey, loadPreviousEncryptionKey } from "../lib/totp-crypto";
 import { createTotpService, type TotpCredential, type TotpRecoveryCode, type TotpStore } from "./totp";
 
 function mapCredential(row: {
@@ -100,8 +100,9 @@ export function createPrismaTotpStore(db: ReturnType<typeof getDatabaseClient>):
 export function getTotpService() {
   const db = getDatabaseClient();
   const key = loadEncryptionKey();
+  const previousKey = loadPreviousEncryptionKey();
   return createTotpService(createPrismaTotpStore(db), {
     encrypt: (plaintext: string) => encrypt(plaintext, key),
-    decrypt: (ciphertext: string) => decrypt(ciphertext, key),
+    decrypt: (ciphertext: string) => decrypt(ciphertext, key, previousKey),
   });
 }

@@ -84,6 +84,49 @@ creates a protected initial password file once. Use
 administrator: recovery targets its immutable UUID, reactivates its ADMIN role,
 and rotates its credential without a username/email lookup.
 
+## Encryption key rotation
+
+Rotate `NAUTT_ENCRYPTION_KEY` or `TOTP_ENCRYPTION_KEY` only through this
+explicit, operator-invoked procedure. No install or update path rotates,
+regenerates, or overwrites either key, and the procedure never prints or
+records key material and never touches webhook registration or
+`NAUTT_API_BASE_URL`.
+
+1. Take a verified backup (`install/backup.sh`) before touching either key.
+   A backup is bound to the key set active when it was created: restoring it
+   later still needs the key it was encrypted under, so retain the outgoing
+   key for as long as any such backup lives.
+2. Generate the replacement key and stage it as the new current secret; stage
+   the outgoing key as the matching `NAUTT_ENCRYPTION_KEY_PREVIOUS` or
+   `TOTP_ENCRYPTION_KEY_PREVIOUS` secret (`.env.compose.example` /
+   `install/.env.example` document both variables and their file-backed
+   secret names).
+3. Restart the app so both the new current key and the previous key are
+   mounted. While both are configured, decryption and MAC verification try
+   the current key first, then the previous key, so a half-finished rotation
+   never loses access to a stored Nautt API key, webhook secret, or TOTP
+   secret, and an in-flight checkout capability or directory cursor minted
+   under the old key still verifies.
+4. Stop the app, then run the one-shot:
+   `docker compose --profile rotate run --rm rotate-encryption-keys`. It
+   rewraps the three stored ciphertext columns (Nautt API key, Nautt webhook
+   secret, TOTP secret) under the current key and prints only per-table
+   counts, one line per table:
+   `PASS rewrap table=<table> scanned=<n> rewrapped=<n> skipped=<n>
+   unreadable=<n>`. The `rotate` profile is never activated by a plain `up`,
+   install, or update.
+5. Re-run the one-shot until every table reports `rewrapped=0` (nothing left
+   to convert). A nonzero `unreadable` count is an abort condition: stop and
+   investigate before continuing rather than re-running blindly.
+6. Keep the previous secret configured for at least 24 hours after the last
+   rewrap run, so every checkout capability and directory cursor issued
+   before rotation outlives its TTL under the previous key. Only after that
+   window, remove the `*_ENCRYPTION_KEY_PREVIOUS` secret and restart once
+   more to close the read window.
+
+TOTP recovery codes are stored as SHA-256 digests, not ciphertext; they are
+untouched by this procedure.
+
 ## Deployment and startup
 
 Prerequisites are Docker Engine and the Docker Compose v2 plugin, with the

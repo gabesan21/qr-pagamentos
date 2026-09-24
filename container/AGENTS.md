@@ -13,6 +13,7 @@
 - Media helpers never receive a Docker socket, provider/edge network, production secret, host port, arbitrary volume, or identifier/digest output channel.
 - Preserve no-follow regular-descriptor reads, exact UID/GID/private modes, bounded EOF, digest verification, exclusive creation, hard-link no-clobber, file/directory sync, and durable private-probe cleanup.
 - Keep one-shot failures visible and non-retrying. Preserve direct child spawning and signal forwarding.
+- `rotate-encryption-keys.mjs` is the explicit operator-invoked encryption-key rewrap one-shot, profile-gated in `compose.yaml` and never started by a plain `up`. It prints only per-table counts (`PASS rewrap table=... scanned=... rewrapped=... skipped=... unreadable=...`), never key material, ciphertext, or a row identifier, and never retries — an unreadable row is a hard failure.
 - Never put a credential, connection URL, media identity, volume mountpoint, or filesystem path in completion logs.
 
 ## Verification

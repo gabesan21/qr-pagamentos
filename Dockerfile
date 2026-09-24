@@ -27,6 +27,8 @@ COPY --chown=1000:1000 package.json pnpm-lock.yaml pnpm-workspace.yaml prisma.co
 COPY --chown=1000:1000 prisma ./prisma
 COPY --chown=1000:1000 container ./container
 COPY --chown=1000:1000 src/auth ./src/auth
+COPY --chown=1000:1000 src/lib ./src/lib
+COPY --chown=1000:1000 src/security ./src/security
 USER 1000:1000
 ENTRYPOINT ["node"]
 

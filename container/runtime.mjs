@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
 import pg from "pg";
-import { databaseUrl, readSecret, safeFailure } from "./lib.mjs";
+import { assertEncryptionKeyShape, databaseUrl, readOptionalSecret, readSecret, safeFailure } from "./lib.mjs";
 import { MEDIA_STORAGE_ROOT, preflightMediaStorage } from "./media-preflight.mjs";
 
 const { Client } = pg;
@@ -66,6 +66,21 @@ async function main() {
   const totpEncryptionKey = await readSecret("/run/secrets/totp_encryption_key");
   const env = { ...process.env, DATABASE_URL: applicationUrl, NAUTT_ENCRYPTION_KEY: nauttEncryptionKey, TOTP_ENCRYPTION_KEY: totpEncryptionKey, NAUTT_WEBHOOK_CALLBACK_URL: callbackUrl.toString() };
   delete env.MIGRATION_DATABASE_URL;
+  // Rotation window: the optional previous key is injected only when its
+  // secret file exists and is non-empty, validated with the same 32-byte
+  // base64url shape as the current keys. Absent reproduces today's behavior
+  // exactly (env var stays unset); present but malformed fails loudly here,
+  // before the application child ever spawns.
+  const nauttPreviousEncryptionKey = await readOptionalSecret("/run/secrets/nautt_encryption_key_previous");
+  if (nauttPreviousEncryptionKey !== undefined) {
+    assertEncryptionKeyShape(nauttPreviousEncryptionKey, "NAUTT_ENCRYPTION_KEY_PREVIOUS");
+    env.NAUTT_ENCRYPTION_KEY_PREVIOUS = nauttPreviousEncryptionKey;
+  }
+  const totpPreviousEncryptionKey = await readOptionalSecret("/run/secrets/totp_encryption_key_previous");
+  if (totpPreviousEncryptionKey !== undefined) {
+    assertEncryptionKeyShape(totpPreviousEncryptionKey, "TOTP_ENCRYPTION_KEY_PREVIOUS");
+    env.TOTP_ENCRYPTION_KEY_PREVIOUS = totpPreviousEncryptionKey;
+  }
   const child = spawn(process.execPath, ["server.js"], { env, stdio: "inherit", shell: false });
   child.once("error", (error) => safeFailure("application", error));
   for (const signal of ["SIGTERM", "SIGINT"]) process.once(signal, () => child.kill(signal));

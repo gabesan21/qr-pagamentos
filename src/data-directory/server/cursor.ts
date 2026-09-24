@@ -7,7 +7,7 @@ import {
   timingSafeEqual,
 } from "node:crypto";
 
-import { loadEncryptionKey } from "@/lib/nautt-crypto";
+import { loadEncryptionKey, loadPreviousEncryptionKey } from "@/lib/nautt-crypto";
 
 import { DIRECTORY_PAGE_SIZES, type DirectoryPageSize } from "./query-contract";
 
@@ -111,6 +111,7 @@ function isExactEnvelope(value: unknown): value is DirectoryCursorEnvelope {
 
 export function createDirectoryCursorCodec(
   keyLoader: () => Buffer = loadEncryptionKey,
+  previousKeyLoader: () => Buffer | undefined = loadPreviousEncryptionKey,
 ) {
   return {
     encode(
@@ -154,9 +155,20 @@ export function createDirectoryCursorCodec(
         || payload.length + tag.length > MAX_CURSOR_DECODED_BYTES
       ) return { status: "invalid" };
 
+      // Rederive with the current key, then the previous one when configured
+      // (rotation window); the first match wins.
       const key = deriveKey(keyLoader(), context.scopePurpose, context.principalId);
       const expectedTag = createHmac("sha256", key).update(payload).digest();
-      if (!timingSafeEqual(tag, expectedTag)) return { status: "invalid" };
+      let tagMatches = timingSafeEqual(tag, expectedTag);
+      if (!tagMatches) {
+        const previousRootKey = previousKeyLoader();
+        if (previousRootKey) {
+          const previousKey = deriveKey(previousRootKey, context.scopePurpose, context.principalId);
+          const previousExpectedTag = createHmac("sha256", previousKey).update(payload).digest();
+          tagMatches = timingSafeEqual(tag, previousExpectedTag);
+        }
+      }
+      if (!tagMatches) return { status: "invalid" };
 
       let parsed: unknown;
       try {

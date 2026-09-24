@@ -1,6 +1,6 @@
 import "server-only";
 
-import { decrypt, loadEncryptionKey } from "../../lib/nautt-crypto";
+import { decrypt, loadEncryptionKey, loadPreviousEncryptionKey } from "../../lib/nautt-crypto";
 
 import type { WebhookSecretCandidate } from "./webhook-signature";
 
@@ -11,7 +11,8 @@ export type EncryptedWebhookSecretCandidate = {
 
 type CandidateLoaderDependencies = {
   readonly loadKey?: () => Buffer;
-  readonly decryptSecret?: (encrypted: string, key: Buffer) => string;
+  readonly loadPreviousKey?: () => Buffer | undefined;
+  readonly decryptSecret?: (encrypted: string, key: Buffer, previousKey?: Buffer) => string;
 };
 
 export function createWebhookSecretCandidateLoader(
@@ -19,14 +20,16 @@ export function createWebhookSecretCandidateLoader(
   dependencies: CandidateLoaderDependencies = {},
 ) {
   const loadKey = dependencies.loadKey ?? loadEncryptionKey;
+  const loadPreviousKey = dependencies.loadPreviousKey ?? loadPreviousEncryptionKey;
   const decryptSecret = dependencies.decryptSecret ?? decrypt;
   return async (): Promise<readonly WebhookSecretCandidate[]> => {
     const rows = await loadEncryptedCandidates();
     const key = loadKey();
+    const previousKey = loadPreviousKey();
     const candidates: WebhookSecretCandidate[] = [];
     try {
       for (const row of rows) {
-        let plaintext = decryptSecret(row.encryptedWebhookSecret, key);
+        let plaintext = decryptSecret(row.encryptedWebhookSecret, key, previousKey);
         try {
           candidates.push({ ownerId: row.ownerId, secret: Buffer.from(plaintext, "utf8") });
         } finally {
@@ -39,6 +42,7 @@ export function createWebhookSecretCandidateLoader(
       throw error;
     } finally {
       key.fill(0);
+      previousKey?.fill(0);
     }
   };
 }
