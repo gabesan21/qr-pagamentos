@@ -107,6 +107,7 @@ services:
       POSTGRES_PORT: ${POSTGRES_PORT:-5433}
       NAUTT_WEBHOOK_CALLBACK_URL: ${NAUTT_WEBHOOK_CALLBACK_URL:?set NAUTT_WEBHOOK_CALLBACK_URL}
       NAUTT_API_BASE_URL: ${NAUTT_API_BASE_URL:-https://api.nauttfinance.com/api/v2}
+      ALLOW_LOOPBACK_OPERATOR_ORIGINS: ${ALLOW_LOOPBACK_OPERATOR_ORIGINS:-}
       SMTP_HOST_FILE: /run/secrets/smtp_host
       SMTP_PORT_FILE: /run/secrets/smtp_port
       SMTP_USER_FILE: /run/secrets/smtp_user

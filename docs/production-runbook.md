@@ -55,6 +55,16 @@ encryption key is a separate protected secret: store an independently protected
 copy outside the host. A database copy without this key cannot recover
 encrypted Nautt credentials.
 
+A production build (`NODE_ENV=production`) refuses to start when
+`PUBLIC_ORIGIN` or `NAUTT_WEBHOOK_CALLBACK_URL` is a loopback HTTP origin
+(`localhost`, `127.0.0.1`, `[::1]`) unless `ALLOW_LOOPBACK_OPERATOR_ORIGINS` is
+set to exactly `1`; every other value counts as absent, and every non-loopback
+HTTPS origin is unaffected. The installer derives and forwards this allowance
+automatically whenever the operator's own chosen origin is loopback and prints
+a warning when it does; never set it for a real deployment. `container/runtime.mjs`
+enforces the same rule at container startup for both origins, alongside its
+existing database and media preflights.
+
 Self-hosted password-reset email delivery requires seven additional file-backed
 secrets mounted under `/run/secrets/` in the `app` container: `smtp_host`,
 `smtp_port`, `smtp_user`, `smtp_password`, `smtp_from`, `smtp_tls_mode`, and

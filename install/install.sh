@@ -52,7 +52,7 @@ load_install_env() {
     key=${line%%=*}
     value=$(strip_quotes "${line#*=}")
     case "$key" in
-      APP_PORT|POSTGRES_ADMIN_PASSWORD|MIGRATOR_PASSWORD|RUNTIME_PASSWORD|INITIAL_ADMIN_USERNAME|INITIAL_ADMIN_EMAIL|NAUTT_ENCRYPTION_KEY|TOTP_ENCRYPTION_KEY|NAUTT_WEBHOOK_CALLBACK_URL|NAUTT_API_BASE_URL|SMTP_HOST|SMTP_PORT|SMTP_USER|SMTP_PASSWORD|SMTP_FROM|SMTP_TLS_MODE|PUBLIC_ORIGIN)
+      APP_PORT|POSTGRES_ADMIN_PASSWORD|MIGRATOR_PASSWORD|RUNTIME_PASSWORD|INITIAL_ADMIN_USERNAME|INITIAL_ADMIN_EMAIL|NAUTT_ENCRYPTION_KEY|TOTP_ENCRYPTION_KEY|NAUTT_WEBHOOK_CALLBACK_URL|NAUTT_API_BASE_URL|SMTP_HOST|SMTP_PORT|SMTP_USER|SMTP_PASSWORD|SMTP_FROM|SMTP_TLS_MODE|PUBLIC_ORIGIN|ALLOW_LOOPBACK_OPERATOR_ORIGINS)
         printf -v "$key" '%s' "$value" ;;
       *) die "unsupported variable in $ENV_FILE: $key" ;;
     esac
@@ -252,6 +252,7 @@ compose() {
     MIGRATOR_PASSWORD_FILE=$MIGRATOR_PASSWORD_FILE RUNTIME_PASSWORD_FILE=$RUNTIME_PASSWORD_FILE \
     NAUTT_WEBHOOK_CALLBACK_URL=$NAUTT_WEBHOOK_CALLBACK_URL \
     NAUTT_API_BASE_URL=${NAUTT_API_BASE_URL:-} \
+    ALLOW_LOOPBACK_OPERATOR_ORIGINS=${ALLOW_LOOPBACK_OPERATOR_ORIGINS:-} \
     RELEASE_REVISION=$RELEASE_REVISION APP_IMAGE=$APP_IMAGE DB_OPS_IMAGE=$DB_OPS_IMAGE \
     STAGED_SECRETS_DIR=$STAGED_SECRETS_DIR INITIAL_ADMIN_RECOVERY_PASSWORD_FILE=${INITIAL_ADMIN_RECOVERY_PASSWORD_FILE:-} \
     "${DOCKER[@]}" compose -f "$ROOT_DIR/compose.yaml" -p "$PROJECT" "$@"
@@ -265,6 +266,15 @@ validate_operator_origin() {
 const loopback = new Set(["localhost", "127.0.0.1", "[::1]"]);
 const scheme = u.protocol === "https:" || (u.protocol === "http:" && loopback.has(u.hostname));
 process.exit(scheme && !u.username && !u.password && !u.hash ? 0 : 1)' "$1" >/dev/null 2>&1
+}
+
+# True when a caller-validated operator origin (validate_operator_origin above)
+# is loopback plain HTTP — the sole case the app container's
+# ALLOW_LOOPBACK_OPERATOR_ORIGINS allowance covers.
+origin_is_loopback_http() {
+  run_node_helper -e 'const u = new URL(process.argv[1]);
+const loopback = new Set(["localhost", "127.0.0.1", "[::1]"]);
+process.exit(u.protocol === "http:" && loopback.has(u.hostname) ? 0 : 1)' "$1" >/dev/null 2>&1
 }
 
 resolve_release_identity() {
@@ -343,6 +353,11 @@ if [[ -n ${NAUTT_API_BASE_URL:-} ]]; then
 fi
 if ! validate_operator_origin "$PUBLIC_ORIGIN"; then
   die 'PUBLIC_ORIGIN must be an absolute HTTPS URL (or HTTP on a loopback host) without credentials or a fragment'
+fi
+ALLOW_LOOPBACK_OPERATOR_ORIGINS=
+if origin_is_loopback_http "$NAUTT_WEBHOOK_CALLBACK_URL" || origin_is_loopback_http "$PUBLIC_ORIGIN"; then
+  ALLOW_LOOPBACK_OPERATOR_ORIGINS=1
+  printf 'WARN: a loopback HTTP operator origin was chosen; forwarding ALLOW_LOOPBACK_OPERATOR_ORIGINS=1 to the app container for local testing only — never use a loopback origin in a real deployment.\n' >&2
 fi
 [[ $POSTGRES_ADMIN_PASSWORD != "$MIGRATOR_PASSWORD" && $POSTGRES_ADMIN_PASSWORD != "$RUNTIME_PASSWORD" && $MIGRATOR_PASSWORD != "$RUNTIME_PASSWORD" ]] || die 'passwords must be distinct'
 retained=false

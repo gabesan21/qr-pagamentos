@@ -5,6 +5,36 @@ import { MEDIA_STORAGE_ROOT, preflightMediaStorage } from "./media-preflight.mjs
 
 const { Client } = pg;
 
+const LOOPBACK_HOSTNAMES = new Set(["localhost", "127.0.0.1", "[::1]", "::1"]);
+
+function loopbackAllowanceGranted() {
+  return (process.env.ALLOW_LOOPBACK_OPERATOR_ORIGINS ?? "").trim() === "1";
+}
+
+/**
+ * Restates the single production decision in src/net/local-origin.ts because
+ * this startup wrapper cannot import a TypeScript module; keep both in sync.
+ * Never interpolates the configured origin value into a thrown message.
+ */
+function assertProductionOperatorOrigin(url, variableName) {
+  if (url.username || url.password || url.hash) {
+    throw new Error(`invalid ${variableName} configuration`);
+  }
+  if (url.protocol === "https:") return;
+  if (url.protocol !== "http:" || !LOOPBACK_HOSTNAMES.has(url.hostname)) {
+    throw new Error(`invalid ${variableName} configuration`);
+  }
+  if (!loopbackAllowanceGranted()) {
+    throw new Error(`${variableName} is a loopback HTTP origin; set ALLOW_LOOPBACK_OPERATOR_ORIGINS=1 to allow it`);
+  }
+}
+
+async function readPublicOriginRaw() {
+  const filePath = process.env.PUBLIC_ORIGIN_FILE;
+  if (filePath) return readSecret(filePath);
+  return process.env.PUBLIC_ORIGIN;
+}
+
 async function main() {
   if (process.env.MEDIA_STORAGE_ROOT !== MEDIA_STORAGE_ROOT) {
     throw Object.assign(new Error("invalid media root"), { code: "MEDIAROOT" });
@@ -12,9 +42,14 @@ async function main() {
   await preflightMediaStorage();
   console.log("PASS runtime-media-preflight");
   const callbackUrl = new URL(process.env.NAUTT_WEBHOOK_CALLBACK_URL ?? "invalid:");
-  if (callbackUrl.protocol !== "https:" || callbackUrl.username || callbackUrl.password || callbackUrl.hash) {
-    throw new Error("invalid Nautt webhook callback configuration");
+  assertProductionOperatorOrigin(callbackUrl, "NAUTT_WEBHOOK_CALLBACK_URL");
+  let publicOriginUrl;
+  try {
+    publicOriginUrl = new URL((await readPublicOriginRaw()) ?? "invalid:");
+  } catch {
+    throw new Error("invalid PUBLIC_ORIGIN configuration");
   }
+  assertProductionOperatorOrigin(publicOriginUrl, "PUBLIC_ORIGIN");
   const password = await readSecret("/run/secrets/runtime_password");
   const preflightUrl = databaseUrl({ username: "qr_runtime", password });
   const applicationUrl = databaseUrl({ username: "qr_runtime", password, schema: true });
