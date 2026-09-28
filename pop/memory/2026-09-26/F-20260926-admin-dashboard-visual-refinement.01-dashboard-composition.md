@@ -13,3 +13,6 @@ Order-source segments now use count coordinates in an accessible SVG. Three equa
 
 - [[src/app/admin/dashboard.tsx|dashboard composition]]
 - [[src/app/admin/page.test.tsx|dashboard tests]]
+
+
+2026-09-28 integration: source commit `cebc70f6` contains this delivery and supersedes earlier pending-Git notes. Integrated into `develop`; temporary worktrees and branches retired with private recovery copies. Main unchanged; no remote push.

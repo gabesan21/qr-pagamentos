@@ -24,3 +24,6 @@ authorization: direct-fix triage under WORKFLOW rule 13
 
 - **Source:** [[../WORKFLOW|workflow]] — *follow for the direct-fix record requirements*.
 - **Evidence:** [[../specs/application-frontend-system|application frontend system]] — *follow for the changed auth composition contract*.
+
+
+2026-09-28 integration: source commit `cebc70f6` contains this delivery and supersedes earlier pending-Git notes. Integrated into `develop`; temporary worktrees and branches retired with private recovery copies. Main unchanged; no remote push.
