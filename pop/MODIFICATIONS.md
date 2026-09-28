@@ -32,3 +32,5 @@ Project: [[PROJECT|QR Pagamentos]] · Roadmap: [[ROADMAP|Roadmap]]
 
 | H-13 | [[H-13.1-merchant-settings-heading-spacing]] | Align merchant Settings heading with administrator spacing. | completed; integrated into develop |
 | M-14 | [[M-14.1-standalone-storefront]] | Compact value-free storefront without empty cart or duplicate copy. | completed; integrated into develop |
+
+| M-15 | [[M-15.1-currency-settings-save-probe-repair]] | Repair current pricing contract and isolated settings probe forms; verify PIX default persistence. | completed; local Docker verified |

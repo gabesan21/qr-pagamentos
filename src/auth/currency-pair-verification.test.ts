@@ -215,6 +215,26 @@ describe("probeCurrencyPair", () => {
     }));
   });
 
+  it("maps only the overlength current provider refusal to the bounded local evidence tag", async () => {
+    const db = fakeDb();
+    db.catalogCurrencyPair.findUnique.mockResolvedValue({ id: pairId, currencyUuid: "c", exchangeCurrencyUuid: "e" });
+    db.currencyPairVerification.findUnique.mockResolvedValue(null);
+    getDatabaseClientMock.mockReturnValue(db as never);
+    getSupportedExchangeCurrencyServiceMock.mockReturnValue({
+      requireActivePair: vi.fn().mockResolvedValue({ currencyUuid: "c", exchangeCurrencyUuid: "e" }),
+    } as never);
+    getOwnerPricingOrdersServiceMock.mockReturnValue({
+      quote: vi.fn().mockRejectedValue(new NauttPricingRefusedError("validation.no_valid_exchange_currency_for_operation")),
+    } as never);
+
+    await expect(probeCurrencyPair(owner, "BRL", undefined, () => new Date("2026-01-01T00:00:00.000Z"))).resolves.toEqual({
+      outcome: "no_valid_exchange_currency_for_operation",
+    });
+    expect(db.currencyPairVerification.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      create: expect.objectContaining({ quoteOutcome: "no_valid_exchange_currency_for_operation" }),
+    }));
+  });
+
   it("records the opaque unavailable outcome and never writes a code (missing credential, transport failure, generic adapter error)", async () => {
     const db = fakeDb();
     db.catalogCurrencyPair.findUnique.mockResolvedValue({ id: pairId, currencyUuid: "c", exchangeCurrencyUuid: "e" });

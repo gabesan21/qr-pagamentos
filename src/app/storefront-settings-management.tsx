@@ -86,9 +86,13 @@ const CURRENCY_PROBE_NOTICE_KEYS = {
   failed: "currencyProbeNoticeFailed",
 } as const satisfies Record<string, keyof Dictionary>;
 
+export function formatProbeEvidenceTimestamp(checkedAt: string, locale: SupportedLocale): string {
+  return new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short", timeZone: "UTC" }).format(new Date(checkedAt));
+}
+
 function probeStatusLine(evidence: StorefrontCurrencyEvidence | undefined, dictionary: Dictionary, locale: SupportedLocale): string {
   if (!evidence?.checkedAt) return dictionary.currencyProbeStatusNever;
-  const when = new Date(evidence.checkedAt).toLocaleString(locale);
+  const when = formatProbeEvidenceTimestamp(evidence.checkedAt, locale);
   const checked = dictionary.currencyProbeStatusChecked.replace("{when}", when);
   const outcomeLabel = evidence.outcome === "ok"
     ? dictionary.currencyProbeOutcomeOk
@@ -452,11 +456,9 @@ export function StorefrontSettingsManagement({
                         <Field key={evidence.pairId ?? choice.code}>
                           <FieldLabel>{evidence.label ?? choice.label} ({choice.code})</FieldLabel>
                           <div className="flex flex-wrap items-center gap-3">
-                            <form action="/currency-pair-probe" method="post">
-                              <input name="code" readOnly type="hidden" value={choice.code} />
-                              {evidence.pairId ? <input name="pairId" readOnly type="hidden" value={evidence.pairId} /> : null}
-                              <Button type="submit" variant="outline">{dictionary.currencyProbeAction}</Button>
-                            </form>
+                            <input form={`currency-pair-probe-${evidence.pairId ?? choice.code}`} name="code" readOnly type="hidden" value={choice.code} />
+                            {evidence.pairId ? <input form={`currency-pair-probe-${evidence.pairId ?? choice.code}`} name="pairId" readOnly type="hidden" value={evidence.pairId} /> : null}
+                            <Button form={`currency-pair-probe-${evidence.pairId ?? choice.code}`} type="submit" variant="outline">{dictionary.currencyProbeAction}</Button>
                             <span className="text-sm text-text-2">{probeStatusLine(evidence, dictionary, locale)}</span>
                           </div>
                           {evidence?.observedPaymentMethod && evidence.observedCurrencySymbol ? (
@@ -495,6 +497,11 @@ export function StorefrontSettingsManagement({
       />
       </form>
       <form action="/storefront/logo" encType="multipart/form-data" id={uploadFormId} method="post" />
+      {currencyEvidence.map((evidence) => {
+        const choice = currencyChoices.find((row) => row.code === evidence.code);
+        if (!choice) return null;
+        return <form action="/currency-pair-probe" id={`currency-pair-probe-${evidence.pairId ?? choice.code}`} key={evidence.pairId ?? choice.code} method="post" />;
+      })}
     </>
   );
 }

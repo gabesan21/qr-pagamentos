@@ -24,19 +24,18 @@ const orderUuid = "990e8400-e29b-41d4-a716-446655440004";
 function quoteSuccess(overrides: Record<string, unknown> = {}) {
   return new Response(
     JSON.stringify({
+      success: true,
       message: "Buy conversion calculated successfully",
       code: "system.buy_conversion_calculated",
       data: {
-        amount: "500.00",
-        final_amount: "97.50",
-        client_amount: "95.00",
-        profit: "1.46",
-        exchange_fee: "1.00",
-        min_withdrawal: "50.00",
-        withdrawal_delay_minutes: 30,
-        base_price: "5.00",
-        price: "5.205",
+        amount: 500.00,
+        amount_usd: 97.50,
+        extra_cost: 1.46,
+        min_deposit: 50.00,
+        price: 5.205,
         quote_uuid: quoteUuid,
+        exchange_currency_uuid: exchangeCurrencyUuid,
+        deposit_delay_minutes: 30,
         ...overrides,
       },
     }),
@@ -45,7 +44,7 @@ function quoteSuccess(overrides: Record<string, unknown> = {}) {
 }
 
 describe("Nautt pricing adapter", () => {
-  it("sends the exact fiat quote request and returns strict redacted fields with a five-minute injected-clock expiry", async () => {
+  it("sends an exact unquoted fiat numeric token and returns the minimal redacted DTO with a ten-minute injected-clock expiry", async () => {
     const fetch = vi.fn(async () => quoteSuccess());
     const timeoutSignal = new AbortController().signal;
     const createTimeoutSignal = vi.fn(() => timeoutSignal);
@@ -63,33 +62,27 @@ describe("Nautt pricing adapter", () => {
     expect(fetch).toHaveBeenCalledWith("https://api.nauttfinance.com/api/v2/pricing/panel/buy", {
       method: "POST",
       headers: { "Content-Type": "application/json", "X-API-Key": apiKey },
-      body: JSON.stringify({
-        currency_uuid: currencyUuid,
-        exchange_currency_uuid: exchangeCurrencyUuid,
-        amount: "500.00",
-      }),
+      body: `{"currency_uuid":"${currencyUuid}","exchange_currency_uuid":"${exchangeCurrencyUuid}","amount":500.00}`,
       signal: timeoutSignal,
     });
     expect(createTimeoutSignal).toHaveBeenCalledWith(10_000);
     expect(now).toHaveBeenCalledTimes(1);
     expect(result).toEqual({
       quoteUuid,
-      amount: "500.00",
-      finalAmount: "97.50",
-      clientAmount: "95.00",
-      profit: "1.46",
-      exchangeFee: "1.00",
-      minWithdrawal: "50.00",
-      withdrawalDelayMinutes: 30,
-      basePrice: "5.00",
+      amount: "500",
+      amountUsd: "97.5",
+      extraCost: "1.46",
+      minDeposit: "50",
       price: "5.205",
-      expiresAt: new Date("2026-07-17T20:05:00.000Z"),
+      exchangeCurrencyUuid,
+      depositDelayMinutes: 30,
+      expiresAt: new Date("2026-07-17T20:10:00.000Z"),
     });
     expect(JSON.stringify(result)).not.toContain(apiKey);
   });
 
-  it("sends amount_usd and never amount for a usdt quote while preserving the string byte-for-byte", async () => {
-    const fetch = vi.fn(async () => quoteSuccess({ amount: "20.00" }));
+  it("sends an exact unquoted reverse numeric token and never amount", async () => {
+    const fetch = vi.fn(async () => quoteSuccess({ amount: undefined, amount_usd: 20.00 }));
     const adapter = createPricingOrdersAdapter({ fetch });
 
     const result = await adapter.createQuote({
@@ -101,14 +94,22 @@ describe("Nautt pricing adapter", () => {
 
     expect(fetch).toHaveBeenCalledTimes(1);
     const [, init] = fetch.mock.calls[0] as unknown as [string, RequestInit];
-    expect(init.body).toBe(
-      JSON.stringify({
-        currency_uuid: currencyUuid,
-        exchange_currency_uuid: exchangeCurrencyUuid,
-        amount_usd: "20.00",
-      }),
-    );
-    expect(result.amount).toBe("20.00");
+    expect(init.body).toBe(`{"currency_uuid":"${currencyUuid}","exchange_currency_uuid":"${exchangeCurrencyUuid}","amount_usd":20.00}`);
+    expect(result.amount).toBeUndefined();
+    expect(result.amountUsd).toBe("20");
+  });
+
+  it.each([
+    ["01.00", "1.00"],
+    ["00.01", "0.01"],
+  ] as const)("normalizes the accepted leading-zero input %s only at numeric-token serialization", async (inputValue, wireValue) => {
+    const fetch = vi.fn(async () => quoteSuccess());
+    const adapter = createPricingOrdersAdapter({ fetch });
+
+    await adapter.createQuote({ apiKey, currencyUuid, exchangeCurrencyUuid, amount: { kind: "fiat", value: inputValue } });
+
+    const [, init] = fetch.mock.calls[0] as unknown as [string, RequestInit];
+    expect(init.body).toBe(`{"currency_uuid":"${currencyUuid}","exchange_currency_uuid":"${exchangeCurrencyUuid}","amount":${wireValue}}`);
   });
 
   it.each([
@@ -138,12 +139,12 @@ describe("Nautt pricing adapter", () => {
   it.each([
     ["missing quote uuid", { quote_uuid: undefined }],
     ["malformed quote uuid", { quote_uuid: "not-a-uuid" }],
-    ["numeric monetary", { final_amount: 97.5 }],
-    ["exponent monetary", { price: "5.2e0" }],
-    ["missing monetary", { client_amount: undefined }],
-    ["non-integer delay", { withdrawal_delay_minutes: 30.5 }],
-    ["negative delay", { withdrawal_delay_minutes: -1 }],
-    ["string delay", { withdrawal_delay_minutes: "30" }],
+    ["string money cannot impersonate a numeric token", { amount_usd: "97.5" }],
+    ["missing documented money", { extra_cost: undefined }],
+    ["mismatched exchange-currency echo", { exchange_currency_uuid: currencyUuid }],
+    ["non-integer delay", { deposit_delay_minutes: 30.5 }],
+    ["negative delay", { deposit_delay_minutes: -1 }],
+    ["string delay", { deposit_delay_minutes: "30" }],
   ])("rejects a malformed success: %s", async (_label, overrides) => {
     const fetch = vi.fn(async () => quoteSuccess(overrides));
     const adapter = createPricingOrdersAdapter({ fetch });
@@ -158,6 +159,32 @@ describe("Nautt pricing adapter", () => {
     expect(fetch).toHaveBeenCalledTimes(1);
   });
 
+  it("preserves bounded response precision and exponents without converting money through Number", async () => {
+    const response = new Response(
+      `{"data":{"amount":500.0000000000000000000000001,"amount_usd":1.25e+2,"extra_cost":0e0,"min_deposit":1e-128,"price":9.99e+127,"quote_uuid":"${quoteUuid}","exchange_currency_uuid":"${exchangeCurrencyUuid}","deposit_delay_minutes":30}}`,
+      { status: 200 },
+    );
+    const adapter = createPricingOrdersAdapter({ fetch: vi.fn(async () => response) });
+
+    await expect(adapter.createQuote({ apiKey, currencyUuid, exchangeCurrencyUuid, amount: { kind: "fiat", value: "500.00" } })).resolves.toMatchObject({
+      amount: "500.0000000000000000000000001",
+      amountUsd: "1.25e+2",
+      extraCost: "0e0",
+      minDeposit: "1e-128",
+      price: "9.99e+127",
+    });
+  });
+
+  it.each([
+    "1e129",
+    "1e-129",
+    "1".repeat(129),
+  ])("rejects an out-of-bound money token: %s", async (amountUsd) => {
+    const response = new Response(`{"data":{"amount_usd":${amountUsd},"extra_cost":0,"min_deposit":1,"price":1,"quote_uuid":"${quoteUuid}","exchange_currency_uuid":"${exchangeCurrencyUuid}","deposit_delay_minutes":0}}`, { status: 200 });
+    const adapter = createPricingOrdersAdapter({ fetch: vi.fn(async () => response) });
+    await expect(adapter.createQuote({ apiKey, currencyUuid, exchangeCurrencyUuid, amount: { kind: "fiat", value: "500.00" } })).rejects.toBeInstanceOf(NauttPricingAdapterError);
+  });
+
   it("rejects a success envelope without a data object", async () => {
     const fetch = vi.fn(async () => new Response(JSON.stringify({ message: "ok", code: "x" }), { status: 200 }));
     const adapter = createPricingOrdersAdapter({ fetch });
@@ -165,6 +192,23 @@ describe("Nautt pricing adapter", () => {
     await expect(
       adapter.createQuote({ apiKey, currencyUuid, exchangeCurrencyUuid, amount: { kind: "fiat", value: "500.00" } }),
     ).rejects.toBeInstanceOf(NauttPricingAdapterError);
+  });
+
+  it.each([false, "true", 1])("rejects a present non-true success envelope value: %s", async (success) => {
+    const response = new Response(JSON.stringify({
+      success,
+      data: {
+        amount_usd: 97.50,
+        extra_cost: 1.46,
+        min_deposit: 50.00,
+        price: 5.205,
+        quote_uuid: quoteUuid,
+        exchange_currency_uuid: exchangeCurrencyUuid,
+        deposit_delay_minutes: 30,
+      },
+    }), { status: 200 });
+    const adapter = createPricingOrdersAdapter({ fetch: vi.fn(async () => response) });
+    await expect(adapter.createQuote({ apiKey, currencyUuid, exchangeCurrencyUuid, amount: { kind: "fiat", value: "500.00" } })).rejects.toBeInstanceOf(NauttPricingAdapterError);
   });
 
   it.each([400, 401, 403, 404, 422, 429, 500, 599])("redacts non-200 response %s", async (status) => {
@@ -182,9 +226,10 @@ describe("Nautt pricing adapter", () => {
   });
 
   it.each([
-    [400, "validation.exchange_currency_invalid"],
+    [400, "validation.invalid_parameters"],
     [404, "validation.currency_not_found"],
     [404, "validation.exchange_currency_not_found"],
+    [422, "validation.no_valid_exchange_currency_for_operation"],
     [422, "validation.failed"],
   ] as const)("raises a typed refusal for the documented %s code %s", async (status, code) => {
     const fetch = vi.fn(async () => new Response(JSON.stringify({ message: "refused", code }), { status }));
@@ -200,18 +245,19 @@ describe("Nautt pricing adapter", () => {
     expect(JSON.stringify(error)).not.toContain(apiKey);
   });
 
-  it("covers exactly the four documented quote-refusal codes and no more", () => {
+  it("covers exactly the five current quote-refusal literals", () => {
     expect([...NAUTT_PRICING_REFUSAL_CODES].sort()).toEqual(
       [
-        "validation.exchange_currency_invalid",
+        "validation.invalid_parameters",
         "validation.currency_not_found",
         "validation.exchange_currency_not_found",
+        "validation.no_valid_exchange_currency_for_operation",
         "validation.failed",
       ].sort(),
     );
   });
 
-  it.each([undefined, "validation.invalid_parameters", 42])(
+  it.each([undefined, "validation.exchange_currency_invalid", "validation.fail", 42])(
     "stays the plain adapter error for an undocumented or missing code: %s",
     async (code) => {
       const fetch = vi.fn(async () => new Response(JSON.stringify({ message: "refused", code }), { status: 400 }));

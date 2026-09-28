@@ -37,7 +37,15 @@ export class CurrencyPairSelectionRefusedError extends Error {
   }
 }
 
-export type CurrencyPairProbeOutcome = "ok" | NauttPricingRefusalCode | "unavailable";
+const PROVIDER_REFUSAL_TO_EVIDENCE_TAG = {
+  "validation.invalid_parameters": "validation.invalid_parameters",
+  "validation.currency_not_found": "validation.currency_not_found",
+  "validation.exchange_currency_not_found": "validation.exchange_currency_not_found",
+  "validation.no_valid_exchange_currency_for_operation": "no_valid_exchange_currency_for_operation",
+  "validation.failed": "validation.failed",
+} as const satisfies Record<NauttPricingRefusalCode, string>;
+
+export type CurrencyPairProbeOutcome = "ok" | (typeof PROVIDER_REFUSAL_TO_EVIDENCE_TAG)[NauttPricingRefusalCode] | "unavailable";
 
 export type CurrencyPairProbeResult = Readonly<{ outcome: CurrencyPairProbeOutcome }>;
 
@@ -163,11 +171,14 @@ export async function probeCurrencyPair(
     });
     outcome = "ok";
   } catch (error) {
-    // Only the four documented pricing refusal codes are ever recorded; every
-    // other failure (missing credential, transport failure, indeterminate
+    // Only current documented pricing refusals are recorded. The one provider
+    // code that exceeds the persisted VARCHAR(40) bound has an explicit local
+    // tag; every other failure (missing credential, transport failure, generic
     // adapter error) is the opaque unavailable outcome and leaves the
     // previously recorded verdict, if any, untouched.
-    outcome = error instanceof NauttPricingRefusedError ? error.code : "unavailable";
+    outcome = error instanceof NauttPricingRefusedError
+      ? PROVIDER_REFUSAL_TO_EVIDENCE_TAG[error.code]
+      : "unavailable";
   }
 
   await db.currencyPairVerification.upsert({

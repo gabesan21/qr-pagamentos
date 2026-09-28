@@ -30,19 +30,18 @@ const T0 = new Date("2026-07-17T20:00:00.000Z");
 function quoteSuccess(uuid: string = quoteUuid) {
   return new Response(
     JSON.stringify({
+      success: true,
       message: "Buy conversion calculated successfully",
       code: "system.buy_conversion_calculated",
       data: {
-        amount: "500.00",
-        final_amount: "97.50",
-        client_amount: "95.00",
-        profit: "1.46",
-        exchange_fee: "1.00",
-        min_withdrawal: "50.00",
-        withdrawal_delay_minutes: 30,
-        base_price: "5.00",
-        price: "5.205",
+        amount: 500.00,
+        amount_usd: 97.50,
+        extra_cost: 1.46,
+        min_deposit: 50.00,
+        price: 5.205,
         quote_uuid: uuid,
+        exchange_currency_uuid: exchangeCurrencyUuid,
+        deposit_delay_minutes: 30,
       },
     }),
     { status: 200, headers: { "content-type": "application/json" } },
@@ -121,7 +120,7 @@ describe("owner quote issuance", () => {
     expect(url).toBe("https://api.nauttfinance.com/api/v2/pricing/panel/buy");
     expect((init.headers as Record<string, string>)["X-API-Key"]).toBe(keyA);
     expect(quote.quoteUuid).toBe(quoteUuid);
-    expect(quote.expiresAt).toEqual(new Date("2026-07-17T20:05:00.000Z"));
+    expect(quote.expiresAt).toEqual(new Date("2026-07-17T20:10:00.000Z"));
     expect(JSON.stringify(quote)).not.toContain(keyA);
   });
 
@@ -280,11 +279,11 @@ describe("owner order creation with quote ownership claims", () => {
     expect(fetch).toHaveBeenCalledTimes(2);
   });
 
-  it("rejects an expired quote at claim time with zero decryptions and zero fetch calls", async () => {
-    const { fetch, credentials, service } = harness({ now: () => new Date("2026-07-17T20:06:00.000Z") });
+  it("rejects an expired quote at the ten-minute local TTL with zero decryptions and zero fetch calls", async () => {
+    const { fetch, credentials, service } = harness({ now: () => new Date("2026-07-17T20:11:00.000Z") });
     fetch.mockResolvedValueOnce(quoteSuccess());
     const quote = await service.quote(ownerA, fiatQuoteInput);
-    expect(quote.expiresAt).toEqual(new Date("2026-07-17T20:05:00.000Z"));
+    expect(quote.expiresAt).toEqual(new Date("2026-07-17T20:10:00.000Z"));
 
     await expect(service.createOrder(ownerA, { quoteUuid }, {})).rejects.toBeInstanceOf(OwnerPricingOrdersError);
     expect(credentials.calls).toEqual([ownerA]);

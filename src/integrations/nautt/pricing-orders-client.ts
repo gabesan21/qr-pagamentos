@@ -5,7 +5,9 @@ import { loadNauttApiBaseUrl } from "./config";
 import { isExactDecimal, isExactPositiveDecimal, isUuid } from "./decimal";
 
 const DEFAULT_TIMEOUT_MS = 10_000;
-const QUOTE_TTL_MS = 5 * 60 * 1000;
+const QUOTE_TTL_MS = 10 * 60 * 1000;
+const MAX_MONEY_TOKEN_LENGTH = 128;
+const MAX_MONEY_EXPONENT_MAGNITUDE = BigInt(128);
 const MAX_DEPOSIT_FIELDS = 32;
 const MAX_DEPOSIT_FIELD_KEY_LENGTH = 128;
 const MAX_DEPOSIT_FIELD_VALUE_LENGTH = 1024;
@@ -40,9 +42,10 @@ export class NauttPricingAdapterError extends Error {
 // body, or a transport failure stays the plain `NauttPricingAdapterError`
 // above, so every existing call site behaves byte for byte as today.
 export const NAUTT_PRICING_REFUSAL_CODES = [
-  "validation.exchange_currency_invalid",
+  "validation.invalid_parameters",
   "validation.currency_not_found",
   "validation.exchange_currency_not_found",
+  "validation.no_valid_exchange_currency_for_operation",
   "validation.failed",
 ] as const;
 
@@ -113,15 +116,13 @@ export type NauttQuoteAmount = { readonly kind: "fiat" | "usdt"; readonly value:
 
 export type NauttQuote = {
   readonly quoteUuid: string;
-  readonly amount: string;
-  readonly finalAmount: string;
-  readonly clientAmount: string;
-  readonly profit: string;
-  readonly exchangeFee: string;
-  readonly minWithdrawal: string;
-  readonly withdrawalDelayMinutes: number;
-  readonly basePrice: string;
+  readonly amount?: string;
+  readonly amountUsd: string;
+  readonly extraCost: string;
+  readonly minDeposit: string;
   readonly price: string;
+  readonly exchangeCurrencyUuid: string;
+  readonly depositDelayMinutes: number;
   readonly expiresAt: Date;
 };
 
@@ -167,6 +168,65 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
 }
 
 class InvalidOrderPayloadError extends Error {}
+
+const numericJsonToken = Symbol("nautt pricing numeric JSON token");
+
+type NumericJsonToken = Readonly<{
+  readonly [numericJsonToken]: true;
+  readonly source: string;
+}>;
+
+type JsonParseContext = Readonly<{ source: string }>;
+type JsonWithRawNumber = typeof JSON & Readonly<{ rawJSON?: (text: string) => unknown }>;
+
+function isNumericJsonToken(value: unknown): value is NumericJsonToken {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    !Array.isArray(value) &&
+    (value as { readonly [numericJsonToken]?: unknown })[numericJsonToken] === true &&
+    typeof (value as { readonly source?: unknown }).source === "string"
+  );
+}
+
+function parseProviderJson(text: string): unknown {
+  return JSON.parse(text, (_key, value, context?: JsonParseContext) => {
+    if (typeof value !== "number") return value;
+    if (!context || typeof context.source !== "string") return value;
+    return { [numericJsonToken]: true, source: context.source } satisfies NumericJsonToken;
+  });
+}
+
+function isBoundedMoneyToken(value: unknown): value is NumericJsonToken {
+  if (!isNumericJsonToken(value) || value.source.length > MAX_MONEY_TOKEN_LENGTH) return false;
+  const match = /^(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE]([+-]?\d+))?$/.exec(value.source);
+  if (!match) return false;
+  try {
+    return match[1] === undefined || (BigInt(match[1]) <= MAX_MONEY_EXPONENT_MAGNITUDE && BigInt(match[1]) >= -MAX_MONEY_EXPONENT_MAGNITUDE);
+  } catch {
+    return false;
+  }
+}
+
+function moneyLexeme(value: unknown): string | undefined {
+  return isBoundedMoneyToken(value) ? value.source : undefined;
+}
+
+function nonNegativeSafeInteger(value: unknown): number | undefined {
+  if (!isNumericJsonToken(value) || !/^(?:0|[1-9]\d*)$/.test(value.source)) return undefined;
+  const parsed = Number(value.source);
+  return Number.isSafeInteger(parsed) ? parsed : undefined;
+}
+
+// The existing exact-decimal input contract deliberately accepts leading
+// integer zeroes. JSON.rawJSON correctly rejects those non-JSON number
+// lexemes, so normalize only this serialization boundary without converting
+// or otherwise changing the submitted money value.
+function normalizeExactDecimalForJsonNumber(value: string): string {
+  const [integer, fraction] = value.split(".");
+  const normalizedInteger = integer.replace(/^0+(?=\d)/, "");
+  return fraction === undefined ? normalizedInteger : `${normalizedInteger}.${fraction}`;
+}
 
 function nonEmptyString(value: unknown): string | undefined {
   return typeof value === "string" && value.trim() ? value : undefined;
@@ -276,7 +336,7 @@ function parseOrderView(payload: unknown): NauttOrderView {
 function parseQuoteRefusalCode(payload: unknown): NauttPricingRefusalCode | undefined {
   if (!isPlainObject(payload) || typeof payload.code !== "string") return undefined;
   return (NAUTT_PRICING_REFUSAL_CODES as readonly string[]).includes(payload.code)
-    ? (payload.code as NauttPricingRefusalCode)
+    ? payload.code as NauttPricingRefusalCode
     : undefined;
 }
 
@@ -287,36 +347,38 @@ function parseRefusalCode(payload: unknown): NauttOrderRefusalCode | undefined {
     : undefined;
 }
 
-function parseQuoteSuccess(payload: unknown): Omit<NauttQuote, "expiresAt"> {
+function parseQuoteSuccess(payload: unknown, requestedExchangeCurrencyUuid: string): Omit<NauttQuote, "expiresAt"> {
   if (!isPlainObject(payload) || !isPlainObject(payload.data)) throw new NauttPricingAdapterError();
   const data = payload.data;
+  const amount = data.amount === undefined ? undefined : moneyLexeme(data.amount);
+  const amountUsd = moneyLexeme(data.amount_usd);
+  const extraCost = moneyLexeme(data.extra_cost);
+  const minDeposit = moneyLexeme(data.min_deposit);
+  const price = moneyLexeme(data.price);
+  const depositDelayMinutes = nonNegativeSafeInteger(data.deposit_delay_minutes);
   if (
+    (payload.success !== undefined && payload.success !== true) ||
     !isUuid(data.quote_uuid) ||
-    !isExactDecimal(data.amount) ||
-    !isExactDecimal(data.final_amount) ||
-    !isExactDecimal(data.client_amount) ||
-    !isExactDecimal(data.profit) ||
-    !isExactDecimal(data.exchange_fee) ||
-    !isExactDecimal(data.min_withdrawal) ||
-    !isExactDecimal(data.base_price) ||
-    !isExactDecimal(data.price) ||
-    typeof data.withdrawal_delay_minutes !== "number" ||
-    !Number.isSafeInteger(data.withdrawal_delay_minutes) ||
-    data.withdrawal_delay_minutes < 0
+    !isUuid(data.exchange_currency_uuid) ||
+    data.exchange_currency_uuid !== requestedExchangeCurrencyUuid ||
+    (data.amount !== undefined && amount === undefined) ||
+    amountUsd === undefined ||
+    extraCost === undefined ||
+    minDeposit === undefined ||
+    price === undefined ||
+    depositDelayMinutes === undefined
   ) {
     throw new NauttPricingAdapterError();
   }
   return {
     quoteUuid: data.quote_uuid,
-    amount: data.amount,
-    finalAmount: data.final_amount,
-    clientAmount: data.client_amount,
-    profit: data.profit,
-    exchangeFee: data.exchange_fee,
-    minWithdrawal: data.min_withdrawal,
-    withdrawalDelayMinutes: data.withdrawal_delay_minutes,
-    basePrice: data.base_price,
-    price: data.price,
+    ...(amount === undefined ? {} : { amount }),
+    amountUsd,
+    extraCost,
+    minDeposit,
+    price,
+    exchangeCurrencyUuid: data.exchange_currency_uuid,
+    depositDelayMinutes,
   };
 }
 
@@ -348,10 +410,12 @@ export function createPricingOrdersAdapter(dependencies: AdapterDependencies = {
       const amountField = input.amount.kind === "fiat" ? "amount" : "amount_usd";
       let body: string;
       try {
+        const rawJSON = (JSON as JsonWithRawNumber).rawJSON;
+        if (!rawJSON) throw new TypeError("JSON.rawJSON is unavailable");
         body = serialize({
           currency_uuid: input.currencyUuid,
           exchange_currency_uuid: input.exchangeCurrencyUuid,
-          [amountField]: input.amount.value,
+          [amountField]: rawJSON(normalizeExactDecimalForJsonNumber(input.amount.value)),
         });
       } catch {
         throw new NauttPricingAdapterError();
@@ -373,7 +437,7 @@ export function createPricingOrdersAdapter(dependencies: AdapterDependencies = {
       if (response.status !== 200) {
         let refusalCode: NauttPricingRefusalCode | undefined;
         try {
-          refusalCode = parseQuoteRefusalCode(await response.json());
+          refusalCode = parseQuoteRefusalCode(parseProviderJson(await response.text()));
         } catch {
           refusalCode = undefined;
         }
@@ -389,7 +453,7 @@ export function createPricingOrdersAdapter(dependencies: AdapterDependencies = {
       }
 
       try {
-        const quote = parseQuoteSuccess(await response.json());
+        const quote = parseQuoteSuccess(parseProviderJson(await response.text()), input.exchangeCurrencyUuid);
         const acceptedAt = now();
         return { ...quote, expiresAt: new Date(acceptedAt.getTime() + QUOTE_TTL_MS) };
       } catch (error) {
