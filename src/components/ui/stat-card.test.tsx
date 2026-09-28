@@ -22,6 +22,8 @@ describe("StatCard", () => {
     expect(markup).toContain(">8210<");
     expect(markup).toContain("font-mono");
     expect(markup).toContain("tabular-nums");
+    expect(markup).toContain("var(--type-display)");
+    expect(markup).not.toContain("--type-stat");
   });
 
   it("renders an aria-hidden sparkline path from the given data", () => {

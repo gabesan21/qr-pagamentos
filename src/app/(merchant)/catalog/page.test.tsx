@@ -84,6 +84,9 @@ describe("merchant catalog directory page", () => {
     expect(markup).toContain(">Edit</a>");
     expect(markup).toContain(">View</a>");
     expect(markup).toContain('action="/catalog"');
+    expect(markup).toContain('name="filter.state"');
+    expect(markup).toContain('name="filter.category"');
+    expect(markup).toContain(">Search</");
   });
 
   it("renders the empty state with the create call to action", async () => {
@@ -94,6 +97,8 @@ describe("merchant catalog directory page", () => {
     const markup = renderToStaticMarkup(await CatalogPage());
     expect(markup).toContain("Nenhum produto ainda");
     expect(markup).toContain("/catalog/products/new");
+    expect(markup).not.toContain('name="filter.category"');
+    expect(markup).not.toContain("<summary");
   });
 
   it("resets to the reset redirect without echoing input", async () => {
@@ -131,6 +136,7 @@ describe("merchant catalog directory page", () => {
     expect(markup).toContain("More products match the current filters.");
     expect(markup).toContain("Blend 0");
     expect(markup).not.toContain("Blend 29");
+    expect(markup).toMatch(/<option[^>]*value="active"[^>]*selected/);
 
     listProducts.mockResolvedValue([product]);
     const none = renderToStaticMarkup(await CatalogPage({ searchParams: Promise.resolve({ q: "no-such-product" }) }));

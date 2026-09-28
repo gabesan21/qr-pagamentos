@@ -53,12 +53,19 @@ describe("account preferences section", () => {
 
     const localeSave = screen.getByRole("button", { name: dictionary.adminUserProfileLocaleSave }) as HTMLButtonElement;
     expect(localeSave.disabled).toBe(true);
-    fireEvent.click(screen.getByRole("radio", { name: "Português (Brasil)" }));
+    fireEvent.click(screen.getByRole("button", { name: "Português (Brasil)" }));
     expect(localeSave.disabled).toBe(false);
 
     const policySave = screen.getByRole("button", { name: dictionary.adminUserProfileCheckoutSave }) as HTMLButtonElement;
     expect(policySave.disabled).toBe(true);
     fireEvent.click(screen.getByRole("radio", { name: dictionary.checkoutPolicyEmail }));
     expect(policySave.disabled).toBe(false);
+  });
+
+  it("keeps the nullable locale clear action in the unchanged staged form", () => {
+    render(<PreferencesSection detail={detail} dictionary={dictionary} />);
+    fireEvent.click(screen.getByRole("button", { name: "No explicit preference" }));
+    const form = document.querySelector(`form[action="/admin/users/${detail.id}/locale"]`);
+    expect((form?.querySelector('input[name="locale"]') as HTMLInputElement).value).toBe("");
   });
 });

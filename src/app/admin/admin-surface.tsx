@@ -20,10 +20,10 @@ export function AdminAccountsSurface({
   notice,
 }: Readonly<{ children: ReactNode; dictionary: Dictionary; notice: Notice }>) {
   return (
-    <>
+    <div className="flex flex-col gap-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <WorkspaceHeading
-          description={dictionary.adminIntroduction}
+          description={dictionary.adminUsersDirectoryDescription}
           eyebrow={dictionary.shellAdminEyebrow}
           title={dictionary.adminUsersHeading}
         />
@@ -31,7 +31,7 @@ export function AdminAccountsSurface({
       </div>
       {notice ? <AccountsNotice dictionary={dictionary} notice={notice} /> : null}
       {children}
-    </>
+    </div>
   );
 }
 

@@ -21,6 +21,9 @@ export type DataDirectoryCopy = Readonly<{
   // Optional so existing per-page copy builders that predate the ghost
   // "Clear filters" action keep compiling; falls back to `resetFilters`.
   clearFilters?: string;
+  additionalFilters?: string;
+  additionalFiltersActive?: string;
+  creationPeriod?: string;
   previousPage: string;
   nextPage: string;
   paginationLabel: string;
@@ -71,6 +74,13 @@ export type DataDirectoryTextFilter = Readonly<{
   calendarDay?: boolean;
 }>;
 
+export type DataDirectoryCompactToolbar = Readonly<{
+  visibleFilterNames: readonly string[];
+  // Consumers that have exactly three non-date additional controls can keep
+  // them on one desktop row while the shared mobile stack remains unchanged.
+  additionalFiltersDesktopColumns?: 3;
+}>;
+
 type DataDirectoryProps<Row> = Readonly<{
   idPrefix: string;
   state: DataDirectoryState;
@@ -100,6 +110,9 @@ type DataDirectoryProps<Row> = Readonly<{
   // gallery): renders the same composition with no live URL commit. Defaults
   // to the live URL-state controller.
   interactive?: boolean;
+  // Opt-in administrative layout. Consumers select the registered filters
+  // that stay visible; every other registered control remains in the GET form.
+  compactToolbar?: DataDirectoryCompactToolbar;
 }>;
 
 // The directory surface is split into a server wrapper and a client shell:
@@ -118,6 +131,7 @@ export function DataDirectory<Row>(props: DataDirectoryProps<Row>) {
     <DataDirectoryClient
       actionsLabel={props.actionsLabel}
       canonicalFilterQuery={props.canonicalFilterQuery}
+      compactToolbar={props.compactToolbar}
       caption={props.caption}
       columns={props.columns.map(({ id, label, numeric }) => ({ id, label, numeric }))}
       copy={props.copy}

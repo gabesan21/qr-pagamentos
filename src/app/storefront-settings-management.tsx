@@ -34,6 +34,8 @@ export type StorefrontCurrencyChoice = Readonly<{ code: string; label: string }>
 // `null` fields mean "not checked yet", never a claim about reachability.
 export type StorefrontCurrencyEvidence = Readonly<{
   code: string;
+  pairId?: string;
+  label?: string;
   checkedAt: string | null;
   outcome: string | null;
   observedPaymentMethod: string | null;
@@ -443,14 +445,16 @@ export function StorefrontSettingsManagement({
               <Card>
                 <CardContent>
                   <FieldGroup>
-                    {currencyChoices.map((choice) => {
-                      const evidence = currencyEvidence.find((row) => row.code === choice.code);
+                    {currencyEvidence.map((evidence) => {
+                      const choice = currencyChoices.find((row) => row.code === evidence.code);
+                      if (!choice) return null;
                       return (
-                        <Field key={choice.code}>
-                          <FieldLabel>{choice.label} ({choice.code})</FieldLabel>
+                        <Field key={evidence.pairId ?? choice.code}>
+                          <FieldLabel>{evidence.label ?? choice.label} ({choice.code})</FieldLabel>
                           <div className="flex flex-wrap items-center gap-3">
                             <form action="/currency-pair-probe" method="post">
                               <input name="code" readOnly type="hidden" value={choice.code} />
+                              {evidence.pairId ? <input name="pairId" readOnly type="hidden" value={evidence.pairId} /> : null}
                               <Button type="submit" variant="outline">{dictionary.currencyProbeAction}</Button>
                             </form>
                             <span className="text-sm text-text-2">{probeStatusLine(evidence, dictionary, locale)}</span>

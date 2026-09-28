@@ -29,7 +29,7 @@ describe("pagination link focus", () => {
 
     for (const markup of [previousMarkup, nextMarkup]) {
       expect(markup).toContain('data-slot="pagination-link"');
-      expect(markup).toContain("min-h-11");
+      expect(markup).toContain("min-h-(--control-default-height)");
       expect(markup).toContain("min-w-11");
       expect(markup).toContain("focus-visible:ring-3");
       expect(markup).toContain(
@@ -56,14 +56,16 @@ describe("pagination link focus", () => {
       "@theme { --spacing: 0.25rem; } @tailwind utilities;",
     );
     const css = compiler.build([
-      "min-h-11",
+      "min-h-(--control-default-height)",
       "min-w-11",
       focusOutline,
       focusOffset,
     ]);
-    expect(css).toContain("min-height: calc(var(--spacing) * 11);");
+    expect(css).toContain("min-height: var(--control-default-height);");
     expect(css).toContain("min-width: calc(var(--spacing) * 11);");
-    expect(0.25 * 16 * 11).toBe(44);
+    expect(globals).toContain("--control-default-height: 44px;");
+    expect(globals).toContain("@media (min-width: 640px) and (pointer: fine)");
+    expect(globals).toContain("--control-default-height: 36px;");
     expect(css).toContain(
       "outline: var(--focus-width) solid var(--color-focus-ring);",
     );

@@ -30,24 +30,24 @@ describe("catalog currency pairs create route", () => {
     }
   });
 
-  it("creates a currency pair with valid UUIDs and redirects opaquely", async () => {
+  it("retires legacy currency-pair writes after preserving auth/origin handling", async () => {
     requireAdminFromCookie.mockResolvedValue(actor);
     protectedMutationResponse.mockReturnValue(null);
     const currencyUuid = randomUUID();
     const exchangeCurrencyUuid = randomUUID();
     const response = await POST(request(new URLSearchParams({ label: "BRL/USDT", currencyUuid, exchangeCurrencyUuid })));
     expect(response.status).toBe(303);
-    expect(response.headers.get("location")).toBe("/admin/settings?success=catalog-created");
+    expect(response.headers.get("location")).toBe("/admin/settings?error=catalog-create-failed");
   });
 
-  it("normalizes uppercase UUIDs to lowercase before persistence", async () => {
+  it("rejects uppercase legacy payloads without writing a pair", async () => {
     requireAdminFromCookie.mockResolvedValue(actor);
     protectedMutationResponse.mockReturnValue(null);
     const currencyUuid = randomUUID().toUpperCase();
     const exchangeCurrencyUuid = randomUUID().toUpperCase();
     const response = await POST(request(new URLSearchParams({ label: "BRL/USDT", currencyUuid, exchangeCurrencyUuid })));
     expect(response.status).toBe(303);
-    expect(response.headers.get("location")).toBe("/admin/settings?success=catalog-created");
+    expect(response.headers.get("location")).toBe("/admin/settings?error=catalog-create-failed");
   });
 
   it("redirects validation failures without value disclosure", async () => {

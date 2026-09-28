@@ -8,14 +8,14 @@ const {
   getCheckoutPolicy,
   getStorefrontSettings,
   listActiveChoices,
-  listOwnerEvidenceByCode,
+  listOwnerProbeMethods,
   readNauttStatus,
   requireContext,
 } = vi.hoisted(() => ({
   getCheckoutPolicy: vi.fn(),
   getStorefrontSettings: vi.fn(),
   listActiveChoices: vi.fn(),
-  listOwnerEvidenceByCode: vi.fn(),
+  listOwnerProbeMethods: vi.fn(),
   readNauttStatus: vi.fn(),
   requireContext: vi.fn(),
 }));
@@ -35,7 +35,7 @@ vi.mock("@/auth/storefront-settings", () => ({
 vi.mock("@/auth/supported-exchange-currency", () => ({
   getSupportedExchangeCurrencyService: () => ({ listActiveChoices }),
 }));
-vi.mock("@/auth/currency-pair-verification", () => ({ listOwnerEvidenceByCode }));
+vi.mock("@/auth/currency-pair-verification", () => ({ listOwnerProbeMethods }));
 vi.mock("@/integrations/nautt/owner-onboarding", async (original) => ({
   ...(await original()),
   getOwnerOnboardingService: () => ({ readStatus: readNauttStatus }),
@@ -73,7 +73,7 @@ function prepare(locale: "en" | "pt-BR", status: OwnerNauttStatus) {
   readNauttStatus.mockResolvedValue(status);
   getCheckoutPolicy.mockResolvedValue({ checkoutDataPolicy: "NONE" });
   listActiveChoices.mockResolvedValue([]);
-  listOwnerEvidenceByCode.mockResolvedValue([]);
+  listOwnerProbeMethods.mockResolvedValue([]);
   getStorefrontSettings.mockResolvedValue({
     storefrontAccentColor: null,
     storefrontDisplayNameEn: null,

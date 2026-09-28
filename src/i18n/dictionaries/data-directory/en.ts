@@ -1,7 +1,7 @@
 export const dataDirectoryEn = {
   dataDirectoryHeading: "Directory foundation",
   dataDirectoryDescription: "A bounded, role-neutral specimen for reviewing redacted operational facts.",
-  dataDirectorySearchLabel: "Search directory",
+  dataDirectorySearchLabel: "Search",
   dataDirectorySearchPlaceholder: "Reference or label",
   dataDirectoryStatusLabel: "Status",
   dataDirectoryAllStatuses: "All statuses",
@@ -9,6 +9,9 @@ export const dataDirectoryEn = {
   dataDirectoryApplyFilters: "Apply filters",
   dataDirectoryResetFilters: "Reset",
   dataDirectoryClearFilters: "Clear filters",
+  dataDirectoryAdditionalFilters: "Additional filters",
+  dataDirectoryAdditionalFiltersActive: "{count} active additional filters",
+  dataDirectoryCreationPeriod: "Creation period",
   dataDirectoryPreviousPage: "Previous page",
   dataDirectoryNextPage: "Next page",
   dataDirectoryPaginationLabel: "Directory pages",

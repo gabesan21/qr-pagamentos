@@ -39,7 +39,7 @@ export function DestructiveActionForm({
   return (
     <>
       <form action={action} className="contents" method="post" ref={formRef}>
-        <Button data-ds-hit-target onClick={() => setOpen(true)} type="button" variant="destructive">
+        <Button data-ds-hit-target onClick={() => setOpen(true)} size="row" type="button" variant="quiet-destructive">
           {triggerLabel}
         </Button>
       </form>

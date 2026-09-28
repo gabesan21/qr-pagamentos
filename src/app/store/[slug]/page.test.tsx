@@ -141,11 +141,16 @@ describe("public storefront page", () => {
     expect(textContent(markup)).toContain("More products");
   });
 
-  it("treats the standalone item alone as a non-empty store and the plain empty state otherwise", async () => {
+  it("renders a standalone-only card without catalog or cart controls, and preserves the plain empty state otherwise", async () => {
     get.mockReturnValue(undefined);
     read.mockResolvedValueOnce({ ...storefront, catalog: [] });
     const standaloneOnly = renderToStaticMarkup(await PublicStorefrontPage({ params: Promise.resolve({ slug: "ana-store" }) }));
-    expect(textContent(standaloneOnly)).toContain("Valor livre");
+    expect(textContent(standaloneOnly)).toContain("Quanto você deseja pagar?");
+    expect(textContent(standaloneOnly)).toContain("Valor (BRL)");
+    expect(textContent(standaloneOnly)).toContain("Continuar para o pagamento");
+    expect(textContent(standaloneOnly)).not.toContain("Produtos");
+    expect(textContent(standaloneOnly)).not.toContain("Carrinho");
+    expect(textContent(standaloneOnly)).not.toContain("Adicionar ao carrinho");
     expect(textContent(standaloneOnly)).not.toContain("Nenhum produto está disponível agora.");
 
     read.mockResolvedValueOnce({ ...storefront, catalog: [], standalonePayments: false });
@@ -153,6 +158,17 @@ describe("public storefront page", () => {
     expect(textContent(empty)).toContain("Nenhum produto está disponível agora.");
     expect(textContent(empty)).not.toContain("Carrinho");
     expect(empty).toContain('data-state="empty"');
+  });
+
+  it("keeps the standalone-only continuation unavailable when no effective currency exists", async () => {
+    get.mockReturnValue(undefined);
+    read.mockResolvedValueOnce({ ...storefront, catalog: [], standalonePaymentCurrencyCode: null });
+
+    const markup = renderToStaticMarkup(await PublicStorefrontPage({ params: Promise.resolve({ slug: "ana-store" }) }));
+
+    expect(textContent(markup)).toContain("Os pagamentos estarão disponíveis quando esta loja configurar uma moeda.");
+    expect(markup).toContain("disabled");
+    expect(markup).not.toContain("BRL");
   });
 
   it("uses one opaque unavailable state for unknown, disabled, and malformed storefronts", async () => {

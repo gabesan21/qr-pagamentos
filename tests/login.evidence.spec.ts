@@ -167,13 +167,14 @@ test("creates current, responsive login evidence", async ({ page }) => {
         // the login credentials form in DOM order; select the credentials
         // form by its own id, never the first `<form>` on the page.
         const form = element<HTMLFormElement>("#login-form");
-        // `document.querySelector` returns DOM order, and the AuthCard's own
-        // decorative leading-panel brand mark (hidden below the auth
-        // breakpoint) now precedes the visible form-column one; select the
-        // visible header mark scoped to the card header, never the first
-        // `[data-brand-identity]` match on the page.
-        const brand = element<HTMLElement>('[data-slot="card-header"] [data-brand-identity]');
-        const brandMark = element<SVGSVGElement>('[data-slot="card-header"] [data-brand-mark]');
+        // The form-column lockup is visible below the auth breakpoint; the
+        // decorative leading panel owns desktop identity. Measure each
+        // explicitly so responsive evidence proves the intended handoff.
+        const formBrand = element<HTMLElement>('[data-slot="card-header"] [data-brand-identity]');
+        const formBrandMark = element<SVGSVGElement>('[data-slot="card-header"] [data-brand-mark]');
+        const panel = element<HTMLElement>(".auth-card__panel");
+        const panelBrand = element<HTMLElement>('.auth-card__panel [data-brand-identity]');
+        const panelBrandMark = element<SVGSVGElement>('.auth-card__panel [data-brand-mark]');
         const card = element<HTMLElement>('[data-slot="card"]');
         return {
           bodyFont: getComputedStyle(document.body).fontFamily,
@@ -183,12 +184,21 @@ test("creates current, responsive login evidence", async ({ page }) => {
           username: username ? { autocomplete: username.autocomplete, required: username.required, labels: username.labels?.length ?? 0, height: username.getBoundingClientRect().height } : null,
           password: password ? { autocomplete: password.autocomplete, required: password.required, type: password.type, labels: password.labels?.length ?? 0, height: password.getBoundingClientRect().height } : null,
           submit: submit ? { height: submit.getBoundingClientRect().height, disabled: (submit as HTMLButtonElement).disabled } : null,
-          brand: brand && brandMark && card ? {
-            name: brand.textContent?.trim(),
-            decorativeMark: brandMark.getAttribute("aria-hidden"),
-            markSize: Math.min(brandMark.getBoundingClientRect().width, brandMark.getBoundingClientRect().height),
-            width: brand.getBoundingClientRect().width,
-            contrast: contrast(getComputedStyle(brand).color, getComputedStyle(card).backgroundColor),
+          formBrand: formBrand && formBrandMark && card ? {
+            name: formBrand.textContent?.trim(),
+            decorativeMark: formBrandMark.getAttribute("aria-hidden"),
+            markSize: Math.min(formBrandMark.getBoundingClientRect().width, formBrandMark.getBoundingClientRect().height),
+            width: formBrand.getBoundingClientRect().width,
+            visible: formBrand.getBoundingClientRect().height > 0,
+            contrast: contrast(getComputedStyle(formBrand).color, getComputedStyle(card).backgroundColor),
+          } : null,
+          panelBrand: panelBrand && panelBrandMark && panel ? {
+            name: panelBrand.textContent?.trim(),
+            decorativeMark: panelBrandMark.getAttribute("aria-hidden"),
+            markSize: Math.min(panelBrandMark.getBoundingClientRect().width, panelBrandMark.getBoundingClientRect().height),
+            width: panelBrand.getBoundingClientRect().width,
+            visible: panelBrand.getBoundingClientRect().height > 0,
+            contrast: contrast(getComputedStyle(panelBrand).color, getComputedStyle(panel).backgroundColor),
           } : null,
         };
       });
@@ -205,10 +215,13 @@ test("creates current, responsive login evidence", async ({ page }) => {
       expect(measured.password?.height).toBeGreaterThanOrEqual(44);
       expect(measured.submit?.height).toBeGreaterThanOrEqual(44);
       expect(measured.submit?.disabled).toBe(false);
-      expect(measured.brand).toMatchObject({ name: "QR Pagamentos", decorativeMark: "true" });
-      expect(measured.brand?.markSize).toBeGreaterThanOrEqual(32);
-      expect(measured.brand?.width).toBeGreaterThanOrEqual(120);
-      expect(measured.brand?.contrast).toBeGreaterThanOrEqual(4.5);
+      const visibleBrand = width < 900 ? measured.formBrand : measured.panelBrand;
+      const hiddenBrand = width < 900 ? measured.panelBrand : measured.formBrand;
+      expect(visibleBrand).toMatchObject({ name: "QR Pagamentos", decorativeMark: "true", visible: true });
+      expect(visibleBrand?.markSize).toBeGreaterThanOrEqual(32);
+      expect(visibleBrand?.width).toBeGreaterThanOrEqual(120);
+      expect(visibleBrand?.contrast).toBeGreaterThanOrEqual(4.5);
+      expect(hiddenBrand?.visible).toBe(false);
       expect(severeAxe).toEqual([]);
 
       await page.goto("/login?error=invalid-credentials", { waitUntil: "domcontentloaded" });

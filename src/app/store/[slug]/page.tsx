@@ -11,7 +11,7 @@ import { getPublicStorefrontService } from "@/storefront/public-storefront";
 
 import { CheckoutShell } from "@/app/pay/[identifier]/checkout-shell";
 
-import { StorefrontExperience } from "./storefront-experience";
+import { StandaloneStorefrontExperience, StorefrontExperience, type StorefrontExperienceCopy } from "./storefront-experience";
 
 export const dynamic = "force-dynamic";
 
@@ -44,6 +44,33 @@ export default async function PublicStorefrontPage({ params }: Readonly<{ params
   }
 
   const isEmpty = storefront.catalog.length === 0 && !storefront.standalonePayments;
+  const isStandaloneOnly = storefront.catalog.length === 0 && storefront.standalonePayments;
+  const copy: StorefrontExperienceCopy = {
+    cartCheckout: dictionary.storefrontCartCheckout,
+    cartCheckoutFailed: dictionary.storefrontCartCheckoutFailed,
+    cartEmpty: dictionary.storefrontCartEmpty,
+    cartHeading: dictionary.storefrontCartHeading,
+    cartRemove: dictionary.storefrontCartRemove,
+    cartTotalLabel: dictionary.storefrontCartTotalLabel,
+    cartUpdated: dictionary.storefrontCartUpdated,
+    customAmountAdd: dictionary.storefrontCustomAmountAdd,
+    customAmountDescription: dictionary.storefrontCustomAmountDescription,
+    customAmountInvalid: dictionary.storefrontCustomAmountInvalid,
+    customAmountLabel: dictionary.storefrontCustomAmountLabel,
+    customAmountPay: dictionary.storefrontCustomAmountPay,
+    customAmountTitle: dictionary.storefrontCustomAmountTitle,
+    customAmountUpdate: dictionary.storefrontCustomAmountUpdate,
+    decreaseQuantity: dictionary.storefrontDecreaseQuantity,
+    groupUncategorized: dictionary.storefrontGroupUncategorized,
+    increaseQuantity: dictionary.storefrontIncreaseQuantity,
+    priceLabel: dictionary.storefrontPriceLabel,
+    productsHeading: dictionary.storefrontProductsHeading,
+    quantityLabel: dictionary.storefrontQuantityLabel,
+    standaloneAmountInvalid: dictionary.storefrontStandaloneAmountInvalid,
+    standaloneContinue: dictionary.storefrontStandaloneContinue,
+    standaloneCurrencyUnavailable: dictionary.storefrontStandaloneCurrencyUnavailable,
+    standaloneHeading: dictionary.storefrontStandaloneHeading,
+  };
 
   return (
     <CheckoutShell branding={storefront} dictionary={dictionary} locale={locale}>
@@ -59,31 +86,16 @@ export default async function PublicStorefrontPage({ params }: Readonly<{ params
           kind="empty"
           title={dictionary.storefrontEmptyHeading}
         />
+      ) : isStandaloneOnly ? (
+        <StandaloneStorefrontExperience
+          copy={copy}
+          currencyCode={storefront.standalonePaymentCurrencyCode}
+          slug={slug}
+        />
       ) : (
         <StorefrontExperience
           catalog={storefront.catalog}
-          copy={{
-            cartCheckout: dictionary.storefrontCartCheckout,
-            cartCheckoutFailed: dictionary.storefrontCartCheckoutFailed,
-            cartEmpty: dictionary.storefrontCartEmpty,
-            cartHeading: dictionary.storefrontCartHeading,
-            cartRemove: dictionary.storefrontCartRemove,
-            cartTotalLabel: dictionary.storefrontCartTotalLabel,
-            cartUpdated: dictionary.storefrontCartUpdated,
-            customAmountAdd: dictionary.storefrontCustomAmountAdd,
-            customAmountDescription: dictionary.storefrontCustomAmountDescription,
-            customAmountInvalid: dictionary.storefrontCustomAmountInvalid,
-            customAmountLabel: dictionary.storefrontCustomAmountLabel,
-            customAmountPay: dictionary.storefrontCustomAmountPay,
-            customAmountTitle: dictionary.storefrontCustomAmountTitle,
-            customAmountUpdate: dictionary.storefrontCustomAmountUpdate,
-            decreaseQuantity: dictionary.storefrontDecreaseQuantity,
-            groupUncategorized: dictionary.storefrontGroupUncategorized,
-            increaseQuantity: dictionary.storefrontIncreaseQuantity,
-            priceLabel: dictionary.storefrontPriceLabel,
-            productsHeading: dictionary.storefrontProductsHeading,
-            quantityLabel: dictionary.storefrontQuantityLabel,
-          }}
+          copy={copy}
           layout={storefront.layout}
           slug={slug}
           standalonePaymentCurrencyCode={storefront.standalonePaymentCurrencyCode}

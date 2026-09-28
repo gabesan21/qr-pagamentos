@@ -1,8 +1,11 @@
 export const adminUsersDirectoryPtBR = {
   adminUsersDirectoryHeading: "Diretório de usuários",
-  adminUsersDirectoryDescription: "Todas as contas, somente leitura, com estado, loja e atividade derivados.",
+  adminUsersDirectoryDescription: "Revise a identidade, o acesso e a atividade recente das contas.",
   adminUsersDirectoryEmpty: "Nenhuma conta ainda",
-  adminUsersDirectoryEmptyDescription: "As contas aparecem aqui quando forem criadas.",
+  adminUsersDirectoryEmptyDescription: "As contas aparecerão aqui quando forem criadas.",
+  adminUsersDirectoryColumnIdentity: "Identidade",
+  adminUsersDirectoryColumnAccess: "Acesso",
+  adminUsersDirectoryColumnActivity: "Atividade",
   adminUsersDirectoryColumnUsername: "Nome de usuário",
   adminUsersDirectoryColumnEmail: "E-mail",
   adminUsersDirectoryColumnRole: "Função",

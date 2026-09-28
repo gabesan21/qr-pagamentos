@@ -149,6 +149,35 @@ describe("DataDirectory", () => {
     expect(html).toContain('value="2026-07-01"');
   });
 
+  it("opts into collapsed registered controls without changing the native GET foundation", () => {
+    const html = renderToStaticMarkup(
+      <DataDirectory
+        {...common}
+        compactToolbar={{ visibleFilterNames: ["state"] }}
+        copy={{ ...copy, additionalFilters: "More filters", creationPeriod: "Created between" }}
+        filters={[
+          { name: "state", label: "State", allLabel: "All states", options: [{ value: "ACTIVE", label: "Active" }] },
+          { name: "role", label: "Role", allLabel: "All roles", options: [{ value: "USER", label: "User" }] },
+        ]}
+        state="ready"
+        textFilters={[{ name: "from", label: "From", calendarDay: true }, { name: "to", label: "To", calendarDay: true }]}
+      />,
+    );
+    expect(html).toContain("<details");
+    expect(html).toContain("More filters");
+    expect(html).toContain("Created between");
+    expect(html).toContain('name="filter.state"');
+    expect(html).toContain('name="filter.role"');
+    expect(html).toContain('name="filter.from"');
+    expect(html).toContain('name="filter.to"');
+    expect(html).toContain('method="get"');
+  });
+
+  it("leaves the disclosure out for non-opt-in consumers", () => {
+    const html = renderToStaticMarkup(<DataDirectory {...common} state="ready" />);
+    expect(html).not.toContain("<details");
+  });
+
   it("keeps the default 25/50/100 page-size options without the optional props", () => {
     const html = renderToStaticMarkup(<DataDirectory {...common} state="ready" />);
     expect(html).toContain('value="25"');

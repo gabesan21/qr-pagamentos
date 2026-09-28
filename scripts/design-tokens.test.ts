@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
-import { findDesignTokenViolations } from "./check-design-tokens.mjs";
+import { findControlClassViolations, findDesignTokenViolations } from "./check-design-tokens.mjs";
 import { buildGeneratedThemeTokens, COMPATIBILITY_ALIASES, loadTokenDocuments, projectGeneratedThemeTokens } from "./generate-design-tokens.mjs";
 import { compositeSrgb, contrastRatio, deriveAccessibleProjection, hexFromSrgb, highestContrastForeground, resolveDesignTokens, resolveToken } from "./design-token-graph.mjs";
 
@@ -177,6 +177,14 @@ describe("DTCG 2025.10 application token graph", () => {
     }
   });
 
+  it.each(themeNames)("keeps %s quiet destructive text readable on every neutral control surface", (theme: ThemeName) => {
+    const tokens = resolved(theme);
+    const quietDanger = tokenAt(tokens, "color.feedback.danger.soft-foreground").$value.hex;
+    for (const surface of ["page", "raised", "secondary"]) {
+      expect(contrastRatio(quietDanger, tokenAt(tokens, `color.surface.${surface}`).$value.hex), `${theme} ${surface}`).toBeGreaterThanOrEqual(4.5);
+    }
+  });
+
   it.each(themeNames)("pins every %s soft-foreground primitive (success/warning/danger/info/accent) to its derived AA projection", (theme: ThemeName) => {
     const audit = documents["themes.tokens.json"].color.primitive.audit.template[theme];
     const accessibility = documents["themes.tokens.json"].color.primitive.accessibility[theme];
@@ -232,6 +240,12 @@ describe("DTCG 2025.10 application token graph", () => {
     expect(Object.values(full.motion.semantic.duration).map(durationValue)).toEqual([150, 160, 180, 200, 220, 250, 300, 400, 50, 1250, 1400, 1500, 2000]);
     expect(Object.values(reduced.motion.semantic.duration).every((token) => durationValue(token) === 0.01)).toBe(true);
     expect(tokenAt(reduced, "motion.semantic.iteration").$value).toBe(1);
+    expect(tokenAt(full, "component.control.default-height").$value).toEqual({ value: 44, unit: "px" });
+    expect(tokenAt(full, "component.control.default-height-desktop").$value).toEqual({ value: 36, unit: "px" });
+    expect(tokenAt(full, "component.control.row-height").$value).toEqual({ value: 44, unit: "px" });
+    expect(tokenAt(full, "component.control.row-height-desktop").$value).toEqual({ value: 32, unit: "px" });
+    expect(tokenAt(full, "component.control.field-text-size").$value).toEqual({ value: 16, unit: "px" });
+    expect(tokenAt(full, "component.control.field-text-size-desktop").$value).toEqual({ value: 14, unit: "px" });
   });
 
   it("fails closed for missing documents, aliases, cycles, names, types, units, gamut and fallback drift", () => {
@@ -264,6 +278,11 @@ describe("DTCG 2025.10 application token graph", () => {
     }
     expect(generated).toContain("--color-text-tertiary: #636e68;");
     expect(generated).toContain("--motion-duration: 0.01ms;");
+    expect(generated).toContain("--control-default-height: 44px;");
+    expect(generated).toContain("--control-row-height: 44px;");
+    expect(generated).toContain("@media (min-width: 640px) and (pointer: fine)");
+    expect(generated).toContain("--control-default-height: 36px;");
+    expect(generated).toContain("--control-row-height: 32px;");
     expect(generated).toContain("animation-iteration-count: var(--motion-iteration) !important;");
     for (const [name, target] of Object.entries(COMPATIBILITY_ALIASES))
       expect(generated).toContain(`--${name}: var(--${target});`);
@@ -349,5 +368,32 @@ describe("DTCG 2025.10 application token graph", () => {
     expect(findDesignTokenViolations(fixture)).toEqual([
       "src/components/ui/fixture.tsx: raw visual value #112233", "src/components/ui/fixture.tsx: inline visual style style=",
     ]);
+    expect(findControlClassViolations("src/data-directory/ui/example.tsx", '<Button className="h-8 text-sm rounded-md px-3" />')).toEqual([
+      "src/data-directory/ui/example.tsx: ad hoc Button utility h-8",
+      "src/data-directory/ui/example.tsx: ad hoc Button utility text-sm",
+      "src/data-directory/ui/example.tsx: ad hoc Button utility rounded-md",
+      "src/data-directory/ui/example.tsx: ad hoc Button utility px-3",
+    ]);
+    expect(findControlClassViolations("src/app/example.tsx", '<Input className="h-(--control-default-height) text-(length:--control-field-text-size)" />')).toEqual([]);
+    expect(findControlClassViolations("src/app/example.tsx", '<input type="hidden" className="h-8" />')).toEqual([]);
+    expect(findControlClassViolations("src/app/example.tsx", `
+      import { Button as ActionButton } from "@/components/ui/button";
+      <ActionButton className={cn("h-8 px-2 text-sm", active && "sm:h-10")} />;
+    `)).toEqual([
+      "src/app/example.tsx: ad hoc Button utility h-8",
+      "src/app/example.tsx: ad hoc Button utility px-2",
+      "src/app/example.tsx: ad hoc Button utility text-sm",
+      "src/app/example.tsx: ad hoc Button utility h-10",
+    ]);
+    expect(findControlClassViolations("src/app/example.tsx", [
+      'import { Input as TextControl } from "@/components/ui/input";',
+      '<TextControl className={`h-8 ${active ? "px-2" : "text-sm"} sm:h-10`} />;',
+    ].join("\n"))).toEqual([
+      "src/app/example.tsx: ad hoc Input utility h-8",
+      "src/app/example.tsx: ad hoc Input utility px-2",
+      "src/app/example.tsx: ad hoc Input utility text-sm",
+      "src/app/example.tsx: ad hoc Input utility h-10",
+    ]);
+    expect(findControlClassViolations("src/app/example.tsx", '<Button className="sm:h-(--control-default-height) px-(--control-padding-inline) text-(length:--control-button-text-size)" />')).toEqual([]);
   });
 });

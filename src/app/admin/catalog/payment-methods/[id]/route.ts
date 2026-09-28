@@ -15,17 +15,19 @@ export async function POST(request: Request, { params }: Readonly<{ params: Prom
       const intent = String(form.get("intent") ?? "");
       const service = getNauttCatalogService();
       if (intent === "toggle-active") {
-        await service.setPaymentMethodActive(actor, id, true);
+        await service.setCurrencyPairActive(actor, id, true);
       } else if (intent === "toggle-inactive") {
-        await service.setPaymentMethodActive(actor, id, false);
+        await service.setCurrencyPairActive(actor, id, false);
+      } else if (intent === "set-default") {
+        await service.setDefaultCurrencyMethod(actor, form.get("currencyCode"), id);
       } else {
-        await service.updatePaymentMethod(actor, id, form.get("label"));
+        await service.updateCurrencyPair(actor, id, form.get("label"));
       }
-      return relativeRedirect("/admin/settings?success=catalog-changed");
+      return relativeRedirect("/admin/settings?success=method-changed");
     } catch (error) {
       const protectedResponse = protectedMutationResponse(error);
       if (protectedResponse) return protectedResponse;
-      return relativeRedirect("/admin/settings?error=catalog-change-failed");
+      return relativeRedirect("/admin/settings?error=method-failed");
     }
   });
 }

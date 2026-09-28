@@ -109,14 +109,15 @@ export function TotpChallengeForm({ dictionary, failed }: Readonly<TotpChallenge
           {pending ? dictionary.mfaSubmitting : dictionary.mfaSubmit}
         </Button>
       </div>
-      <button
-        className="cursor-pointer border-0 bg-transparent text-center text-sm text-text-2 hover:text-accent disabled:cursor-not-allowed disabled:opacity-[var(--disabled-opacity)]"
+      <Button
+        className="self-center text-text-2 hover:text-accent"
         disabled={pending}
         onClick={toggleMode}
         type="button"
+        variant="ghost"
       >
         {useRecovery ? dictionary.mfaTotpLink : dictionary.mfaRecoveryLink}
-      </button>
+      </Button>
     </form>
   );
 }

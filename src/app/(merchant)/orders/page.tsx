@@ -156,6 +156,10 @@ function OrderV2Directory({
       caption={dictionary.orderV2DirectoryHeading}
       columns={columns}
       copy={copy}
+      compactToolbar={{
+        visibleFilterNames: ["state"],
+        additionalFiltersDesktopColumns: 3,
+      }}
       emptyAction={{ href: "/links/new", label: dictionary.paymentLinkCreateTitle }}
       filters={[
         {
@@ -259,8 +263,13 @@ export default async function MerchantOrdersPage({
   if (serviceRedirect !== null) redirect(serviceRedirect);
 
   return (
-    <>
-      <WorkspaceHeading description={dictionary.orderV2DirectoryDescription} eyebrow={dictionary.shellMerchantEyebrow} title={dictionary.ordersHeading} />
+    <div className="space-y-6">
+      <WorkspaceHeading
+        className="!border-b-0 !pb-0"
+        description={dictionary.orderV2DirectoryDescription}
+        eyebrow={dictionary.shellMerchantEyebrow}
+        title={dictionary.ordersHeading}
+      />
       {invalidFiltersNotice ? <DirectoryInvalidFiltersNotice dictionary={dictionary} /> : null}
       {query.notice ? <OrderV2Notice dictionary={dictionary} notice={query.notice} /> : null}
       <OrderV2PageSizePreference
@@ -271,6 +280,6 @@ export default async function MerchantOrdersPage({
         storageKey="qr-orders-v2-page-size"
       />
       <OrderV2Directory dictionary={dictionary} locale={locale} page={page} query={query} />
-    </>
+    </div>
   );
 }

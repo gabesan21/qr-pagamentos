@@ -49,8 +49,7 @@ export function ExchangeCurrenciesSection({
   mappings,
   notice,
 }: Readonly<{ dictionary: Dictionary; mappings: ExchangeCurrencyMapping[]; notice: SectionNotice }>) {
-  const [mode, setMode] = useState<"closed" | "register" | "replace">("closed");
-  const [editing, setEditing] = useState<ExchangeCurrencyMapping | null>(null);
+  const [mode, setMode] = useState<"closed" | "register">("closed");
   const [formError, setFormError] = useState<string | null>(null);
   const codeId = useId();
   const labelId = useId();
@@ -80,25 +79,11 @@ export function ExchangeCurrenciesSection({
   }
 
   function openRegister() {
-    setEditing(null);
     setFormError(null);
     setMode("register");
   }
 
-  function openReplace(mapping: ExchangeCurrencyMapping) {
-    setEditing(mapping);
-    setFormError(null);
-    setMode("replace");
-  }
-
-  function openReplaceOrReactivate() {
-    setEditing(null);
-    setFormError(null);
-    setMode("replace");
-  }
-
   function closeForm() {
-    setEditing(null);
     setFormError(null);
     setMode("closed");
   }
@@ -121,7 +106,6 @@ export function ExchangeCurrenciesSection({
           <TableHeader>
             <TableRow>
               <TableHead>{dictionary.adminColCode}</TableHead>
-              <TableHead>{dictionary.adminCatalogLabelLabel}</TableHead>
               <TableHead>{dictionary.adminColStatus}</TableHead>
               <TableHead>{dictionary.adminColEvidence}</TableHead>
               <TableHead className="text-right">{dictionary.adminColActions}</TableHead>
@@ -131,9 +115,6 @@ export function ExchangeCurrenciesSection({
             {mappings.map((mapping) => (
               <TableRow key={mapping.code}>
                 <TableCell className="font-mono font-medium">{mapping.code}</TableCell>
-                <TableCell>
-                  <span className="text-sm text-text-2">{mapping.label}</span>
-                </TableCell>
                 <TableCell>
                   <EntityStateBadge
                     labels={{ active: dictionary.adminStatusActive, archived: dictionary.adminStatusInactive, inactive: dictionary.adminStatusInactive }}
@@ -145,9 +126,6 @@ export function ExchangeCurrenciesSection({
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
-                    <Button type="button" variant="outline" onClick={() => openReplace(mapping)}>
-                      {dictionary.adminExchangeCurrencyReplace}
-                    </Button>
                     <form action="/admin/exchange-currencies" method="post" className="inline">
                       <input name="code" type="hidden" value={mapping.code} />
                       <input name="intent" type="hidden" value="deactivate" />
@@ -185,14 +163,13 @@ export function ExchangeCurrenciesSection({
                 id={codeId}
                 maxLength={3}
                 name="code"
-                readOnly={mode === "replace" && editing !== null}
                 required
-                defaultValue={editing?.code ?? ""}
+                defaultValue=""
               />
             </Field>
             <Field>
-              <FieldLabel htmlFor={labelId}>{dictionary.adminCatalogLabelLabel}</FieldLabel>
-              <Input id={labelId} name="label" required defaultValue={editing?.label ?? ""} />
+              <FieldLabel htmlFor={labelId}>{dictionary.adminDefaultMethodName}</FieldLabel>
+              <Input id={labelId} name="label" required />
             </Field>
             <Field>
               <FieldLabel htmlFor={currencyUuidId}>{dictionary.adminCatalogCurrencyUuidLabel}</FieldLabel>
@@ -200,7 +177,7 @@ export function ExchangeCurrenciesSection({
               <FieldDescription>{dictionary.adminCatalogUuidHelp}</FieldDescription>
             </Field>
             <Field>
-              <FieldLabel htmlFor={exchangeUuidId}>{dictionary.adminCatalogExchangeCurrencyUuidLabel}</FieldLabel>
+              <FieldLabel htmlFor={exchangeUuidId}>{dictionary.adminDefaultMethodUuid}</FieldLabel>
               <Input id={exchangeUuidId} name="exchangeCurrencyUuid" required />
             </Field>
           </FieldGroup>
@@ -211,11 +188,7 @@ export function ExchangeCurrenciesSection({
             <input name="intent" type="hidden" value={mode} />
             <AdminSubmit
               label={
-                mode === "replace"
-                  ? editing
-                    ? dictionary.adminExchangeCurrencyReplace
-                    : dictionary.adminExchangeCurrencyReplaceOrReactivate
-                  : dictionary.adminAdd
+                dictionary.adminAdd
               }
             />
           </div>
@@ -224,9 +197,6 @@ export function ExchangeCurrenciesSection({
         <div className="flex flex-wrap gap-2">
           <Button type="button" variant="secondary" onClick={openRegister}>
             {dictionary.adminAdd}
-          </Button>
-          <Button type="button" variant="outline" onClick={openReplaceOrReactivate}>
-            {dictionary.adminExchangeCurrencyReplaceOrReactivate}
           </Button>
         </div>
       )}

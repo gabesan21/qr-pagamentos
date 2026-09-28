@@ -57,6 +57,52 @@ afterEach(() => {
 });
 
 describe("DataDirectoryClient URL-state controller", () => {
+  it("keeps collapsed controls in the GET form without navigating when the disclosure opens", () => {
+    const { container } = render(
+      <DataDirectory
+        {...common}
+        compactToolbar={{ visibleFilterNames: ["state"] }}
+        copy={{ ...copy, additionalFilters: "More filters", creationPeriod: "Created between" }}
+        filters={[
+          { name: "state", label: "State", allLabel: "All states", options: [{ value: "ACTIVE", label: "Active" }] },
+          { name: "role", label: "Role", allLabel: "All roles", options: [{ value: "USER", label: "User" }] },
+        ]}
+        state="ready"
+        textFilters={[{ name: "from", label: "From", calendarDay: true }, { name: "to", label: "To", calendarDay: true }]}
+      />,
+    );
+
+    const form = container.querySelector('form[method="get"]') as HTMLFormElement;
+    const summary = container.querySelector("summary");
+    expect(summary).not.toBeNull();
+    const submitted = new FormData(form);
+    expect(submitted.has("filter.from")).toBe(true);
+    expect(submitted.has("filter.to")).toBe(true);
+
+    fireEvent.click(summary as HTMLElement);
+    expect(replace).not.toHaveBeenCalled();
+    expect(screen.getByText("State")).not.toBeNull();
+    expect(screen.getByText("Role")).not.toBeNull();
+  });
+
+  it("commits a changed collapsed control and resets the cursor", () => {
+    render(
+      <DataDirectory
+        {...common}
+        compactToolbar={{ visibleFilterNames: ["state"] }}
+        filters={[
+          { name: "state", label: "State", allLabel: "All states", options: [{ value: "ACTIVE", label: "Active" }] },
+          { name: "role", label: "Role", allLabel: "All roles", options: [{ value: "USER", label: "User" }] },
+        ]}
+        nextUrl="/design-system?cursor=next-token"
+        state="ready"
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText("Role"), { target: { value: "USER" } });
+    expect(replace).toHaveBeenCalledWith("/design-system?filter.role=USER&pageSize=25", { scroll: false });
+  });
+
   it("commits the search field only after the debounce delay elapses", () => {
     render(<DataDirectory {...common} state="ready" />);
     const search = screen.getByLabelText("Search") as HTMLInputElement;
@@ -124,6 +170,32 @@ describe("DataDirectoryClient URL-state controller", () => {
     );
     expect(screen.getByText("Search: coffee")).not.toBeNull();
     expect(screen.getByText("filter.link: abc123")).not.toBeNull();
+  });
+
+  it("renders compact filter copy and clear-all beside removable chips", () => {
+    render(
+      <DataDirectory
+        {...common}
+        canonicalFilterQuery="filter.status=ACTIVE&filter.role=USER"
+        compactToolbar={{ visibleFilterNames: ["status"] }}
+        copy={{
+          ...copy,
+          additionalFilters: "More filters",
+          additionalFiltersActive: "{count} active additional filters",
+          clearFilters: "Clear all",
+          creationPeriod: "Created between",
+        }}
+        filters={[
+          { name: "status", label: "Status", allLabel: "All", selected: "ACTIVE", options: [{ value: "ACTIVE", label: "Active" }] },
+          { name: "role", label: "Role", allLabel: "All", selected: "USER", options: [{ value: "USER", label: "User" }] },
+        ]}
+        state="ready"
+      />,
+    );
+    expect(screen.getByText("More filters")).not.toBeNull();
+    expect(screen.getByLabelText("1 active additional filters")).not.toBeNull();
+    expect(screen.getByText("Clear all")).not.toBeNull();
+    expect(screen.getByText("Status: Active")).not.toBeNull();
   });
 });
 

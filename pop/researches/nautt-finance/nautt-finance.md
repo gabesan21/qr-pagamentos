@@ -30,6 +30,7 @@
 | `POST /orders/onramp` | Opens the fiat-to-USDT order and returns payment data, including PIX payload fields when applicable. | Epoch 2 provider adapter; consumed by Epoch 4 checkout. |
 | `GET /orders/{uuid}` | Reads an owned order for polling, reconciliation, and user/admin order views. | Epoch 2 polling/reconciliation; consumed by Epoch 4 order views. |
 | `POST /client-webhooks` | Registers the central HTTPS callback after a user saves a valid API key and returns a one-time webhook secret. | Epoch 2 credential onboarding and webhook intake. |
+| `GET /client-webhooks/{uuid}` | Validates a candidate replacement key against the existing active webhook's exact UUID, callback URL, event set, and active state. | Owner ACTIVE credential replacement only; no reset, registration, or reconciliation. |
 | `GET /users/wallets/main/balances` | Reads the API key owner's main-wallet primary-token balance for the credential settings screen. | Epoch 2 API-key onboarding and account status. |
 
 ## Pricing and administrative identifiers
@@ -59,11 +60,12 @@
 
 - `POST /client-webhooks` requires an HTTPS `url`; optional `event_types` subscribes to selected events, while omitted/empty subscribes to all (`raw/webhook-registering.md:29-39`).
 - The `201` response returns webhook UUID, URL, event types, active status, and a secret that is shown only once (`raw/webhook-registering.md:59-80`). Observed live against production on 2026-07-20: the real envelope is `{"message", "data", "code"}` with **no `success` field**, a fractional-seconds `created_at` (for example `2026-07-20T19:09:15.962135Z`), and a localized/placeholder `message` such as "Missing translation: order.webhook_created" — diverging from the documented `success: true` envelope at `raw/webhook-registering.md:65`. The adapter therefore accepts `success` absent or strictly `true` and ignores `code`/`message`.
+- The supplied OpenAPI records `GET /client-webhooks/{uuid}` (`new-chat/work/nautt-openapi.yaml:4542+`) with a `200` webhook view. M-13.1 uses it only to validate a candidate replacement key: the exact stored UUID, canonical callback URL, complete required event set, and `is_active: true` must all match before the local API-key CAS. It returns no usable replacement secret and does not authorize registration, reset, deletion, recreation, or reconciliation.
 - Delivery posts contain a stable top-level delivery `id`, event, creation timestamp, order UUID/status, and attempt evidence; the handler must re-fetch `GET /orders/{uuid}` for the authoritative order object (`raw/webhook.md`).
 - Delivery verification uses the encrypted one-time webhook secret: calculate `hex(HMAC-SHA256(secret, rawBody))`, compare it in constant time with `X-Nautt-Signature: sha256=<hex>`, and parse only after verification. `X-Nautt-Delivery` is the durable unique deduplication key and `X-Nautt-Event` identifies the event. This dispatcher contract was supplied from Nautt's `webhook_dispatcher` source on 2026-07-17.
 - A receiver must return `2xx` within 15 seconds; Nautt retries failed deliveries five times at 10, 20, 40, 80, and 160 seconds. Delivery-history reads cover an order's deliveries and a specific delivery, including permanently failed attempts (`raw/webhook.md`).
 - `order.failed` is an event type, not an order status. The documented order statuses remain `new`, `processing`, `paid`, `finished`, `rejected`, `canceled`, `refunded`, and `expired`; `paid`, `processing`, and `finished` are payment-confirmed for table/polling presentation.
-- Webhook list/delete/recreate contracts remain absent, so key rotation and lost-secret recovery cannot yet be fully designed.
+- Webhook list/delete/recreate contracts remain absent. The documented single-webhook GET validates an existing identity only; it does not provide provider-side cleanup, reset, or lost-secret recovery.
 
 ## Contradictions and inconsistencies
 

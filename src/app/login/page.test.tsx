@@ -38,7 +38,7 @@ describe("login page contract", () => {
     expect(markup).toContain('class="auth-card__form"');
   });
 
-  it("renders the show/hide toggle, forgot-password link, and inline required copy", async () => {
+  it("renders the show/hide toggle, recovery link, and inline required copy", async () => {
     const dictionary = getDictionary("pt-BR");
     const markup = renderToStaticMarkup(await LoginPage({ searchParams: Promise.resolve({}) }));
 
@@ -46,7 +46,7 @@ describe("login page contract", () => {
     expect(markup).toContain(`aria-label="${dictionary.showPassword}"`);
     expect(markup).toContain('href="/reset-password"');
     expect(markup).toContain(dictionary.forgotPassword);
-    expect(markup).toContain(dictionary.forgotPasswordNote);
+    expect(markup).not.toContain(dictionary.forgotPasswordNote);
   });
 
   it("composes the page exclusively from the approved shared inventory", async () => {
@@ -152,15 +152,15 @@ describe("login page contract", () => {
     expect(markup).toContain('action="/login/totp-challenge"');
   });
 
-  it("renders the labelled PT/EN language switcher posting to /language-preference, ≥44px, with no principal read added", async () => {
+  it("renders the labelled PT/EN language switcher posting to /language-preference through the responsive control role, with no principal read added", async () => {
     const markup = renderToStaticMarkup(await LoginPage({ searchParams: Promise.resolve({}) }));
 
     expect(markup).toContain('action="/language-preference"');
     expect(markup).toContain('name="locale"');
     expect(markup).toMatch(/aria-label="[^"]+"/);
-    expect(markup).toContain(">PT<");
-    expect(markup).toContain(">EN<");
-    expect(markup).toContain("h-11");
+    expect(markup).toContain('aria-label="Português (Brasil)"');
+    expect(markup).toContain('aria-label="English"');
+    expect(markup).toContain("h-(--control-default-height)");
     expect(readCookie).not.toHaveBeenCalledWith("qr_session");
   });
 });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, LoaderCircleIcon } from "lucide-react";
 import Link from "next/link";
@@ -40,6 +40,8 @@ function Notice({ code, dictionary }: Readonly<{ code?: string; dictionary: Dict
   const copy =
     code === "configured"
       ? dictionary.nauttConfigured
+      : code === "replaced"
+        ? dictionary.nauttReplaced
       : code === "invalid"
         ? dictionary.nauttInvalid
         : code === "changed"
@@ -52,7 +54,7 @@ function Notice({ code, dictionary }: Readonly<{ code?: string; dictionary: Dict
                 ? dictionary.nauttUnavailable
                 : null;
   if (!copy) return null;
-  const success = code === "configured" || code === "reset";
+  const success = code === "configured" || code === "replaced" || code === "reset";
   const entry: NoticeToastEntry = { param: "nautt", value: code!, kind: success ? "success" : "error", message: copy };
   return (
     <>
@@ -67,17 +69,37 @@ function Notice({ code, dictionary }: Readonly<{ code?: string; dictionary: Dict
   );
 }
 
-function CredentialForm({ dictionary, idPrefix, secondary = false }: Readonly<{ dictionary: Dictionary; idPrefix: string; secondary?: boolean }>) {
+function CredentialForm({
+  action = "/nautt-credentials",
+  dictionary,
+  idPrefix,
+  onCancel,
+  pendingLabel,
+  secondary = false,
+  submitLabel,
+  focusApiKey = false,
+}: Readonly<{
+  action?: string;
+  dictionary: Dictionary;
+  idPrefix: string;
+  onCancel?: () => void;
+  pendingLabel?: string;
+  secondary?: boolean;
+  submitLabel?: string;
+  focusApiKey?: boolean;
+}>) {
   const formId = `${idPrefix}-credential-form`;
   const [showKey, setShowKey] = useState(false);
   return (
-    <form action="/nautt-credentials" id={formId} method="post">
+    <form action={action} id={formId} method="post">
       <FieldGroup>
         <Field>
           <FieldLabel htmlFor={`${idPrefix}-api-key`}>{dictionary.nauttApiKeyLabel}</FieldLabel>
           <div className="relative">
             <Input
               autoComplete="off"
+              autoFocus={focusApiKey}
+              className="pe-(--control-icon-padding-inline)"
               data-ds-hit-target
               data-nautt-action-control
               id={`${idPrefix}-api-key`}
@@ -85,23 +107,39 @@ function CredentialForm({ dictionary, idPrefix, secondary = false }: Readonly<{ 
               required
               type={showKey ? "text" : "password"}
             />
-            <button
+            <Button
               aria-label={showKey ? dictionary.hidePassword : dictionary.showPassword}
-              className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-text-2 hover:text-text"
+              className="absolute right-2 top-1/2 -translate-y-1/2"
               onClick={() => setShowKey((s) => !s)}
+              size="icon"
               type="button"
+              variant="ghost"
             >
               {showKey ? <EyeOff className="size-4" aria-hidden /> : <Eye className="size-4" aria-hidden />}
-            </button>
+            </Button>
           </div>
           <FieldDescription>{dictionary.nauttApiKeyHelp}</FieldDescription>
         </Field>
-        <NauttCredentialSubmit
-          form={formId}
-          label={dictionary.nauttConnect}
-          pendingLabel={dictionary.nauttConnecting}
-          variant={secondary ? "outline" : "default"}
-        />
+        {onCancel ? (
+          <div className="flex flex-wrap gap-2">
+            <NauttCredentialSubmit
+              form={formId}
+              label={submitLabel ?? dictionary.nauttConnect}
+              pendingLabel={pendingLabel ?? dictionary.nauttConnecting}
+              variant={secondary ? "outline" : "default"}
+            />
+            <Button onClick={onCancel} type="button" variant="outline">
+              {dictionary.cancel}
+            </Button>
+          </div>
+        ) : (
+          <NauttCredentialSubmit
+            form={formId}
+            label={submitLabel ?? dictionary.nauttConnect}
+            pendingLabel={pendingLabel ?? dictionary.nauttConnecting}
+            variant={secondary ? "outline" : "default"}
+          />
+        )}
       </FieldGroup>
     </form>
   );
@@ -176,6 +214,21 @@ export function NauttCredentialSurface({
         new Date(status.credential.updatedAt),
       )
     : null;
+  const [replacing, setReplacing] = useState(false);
+  const replaceTriggerRef = useRef<HTMLButtonElement>(null);
+  const shouldRestoreReplaceTrigger = useRef(false);
+
+  useEffect(() => {
+    if (!replacing && shouldRestoreReplaceTrigger.current) {
+      replaceTriggerRef.current?.focus();
+      shouldRestoreReplaceTrigger.current = false;
+    }
+  }, [replacing]);
+
+  function cancelReplacement() {
+    shouldRestoreReplaceTrigger.current = true;
+    setReplacing(false);
+  }
 
   return (
     <NauttPendingScope>
@@ -252,7 +305,7 @@ export function NauttCredentialSurface({
           </CardHeader>
           <CardContent className="space-y-4">
             {status.balance ? (
-              <dl className="flex flex-col gap-4 tabular-nums">
+              <dl className="grid gap-4 tabular-nums md:grid-cols-3">
                 <div className="flex flex-col gap-1">
                   <dt className="text-xs font-semibold text-text-2">{dictionary.nauttToken}</dt>
                   <dd className="m-0 wrap-anywhere">
@@ -263,9 +316,9 @@ export function NauttCredentialSurface({
                   <dt className="text-xs font-semibold text-text-2">{dictionary.nauttNetwork}</dt>
                   <dd className="m-0 wrap-anywhere">{status.balance.networkName}</dd>
                 </div>
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-1 rounded-(--control-radius) bg-accent-soft p-(--control-padding-inline)">
                   <dt className="text-xs font-semibold text-text-2">{dictionary.nauttBalance}</dt>
-                  <dd className="m-0 wrap-anywhere">
+                  <dd className="m-0 wrap-anywhere text-lg font-semibold text-foreground">
                     {status.balance.balance} {status.balance.tokenSymbol}
                   </dd>
                 </div>
@@ -276,15 +329,25 @@ export function NauttCredentialSurface({
                 <AlertDescription>{dictionary.nauttUnavailable}</AlertDescription>
               </Alert>
             )}
-            {/* Replacement is contract-blocked outside UNREGISTERED (see
-                pop/specs/nautt-finance-integration.md); this is a recorded
-                gap, not a dead control. */}
-            <Alert variant="warning">
-              <AlertDescription>{dictionary.nauttReplaceBlockedActive}</AlertDescription>
-            </Alert>
+            {replacing ? (
+              <CredentialForm
+                action="/nautt-credentials/replace"
+                dictionary={dictionary}
+                focusApiKey
+                idPrefix={`${idPrefix}-replace`}
+                onCancel={cancelReplacement}
+                pendingLabel={dictionary.nauttReplacing}
+                submitLabel={dictionary.nauttReplaceSave}
+              />
+            ) : null}
           </CardContent>
           <CardFooter className="flex flex-wrap gap-2">
             <ValidateAction dictionary={dictionary} />
+            {!replacing ? (
+              <Button data-ds-hit-target onClick={() => setReplacing(true)} ref={replaceTriggerRef} type="button" variant="outline">
+                {dictionary.nauttReplace}
+              </Button>
+            ) : null}
             {status.balanceUnavailable ? (
               <Button asChild data-ds-hit-target variant="outline">
                 <Link href="/settings">{dictionary.nauttRetryBalance}</Link>

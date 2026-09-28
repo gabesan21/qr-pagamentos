@@ -46,16 +46,18 @@ export default async function AdminPage({
       : undefined;
 
   return (
-    <>
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div className="min-w-[min(100%,calc(var(--space-12)*7))] flex-1">
-          <WorkspaceHeading
-            description={dictionary.shellAdminDashboardDescription}
-            eyebrow={dictionary.shellAdminEyebrow}
-            title={dictionary.shellAdminDashboardTitle}
-          />
+    <div className="grid gap-8">
+      <div className="grid gap-4">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div className="min-w-[min(100%,calc(var(--space-12)*7))] flex-1">
+            <WorkspaceHeading
+              description={dictionary.shellAdminDashboardDescription}
+              eyebrow={dictionary.shellAdminEyebrow}
+              title={dictionary.shellAdminDashboardTitle}
+            />
+          </div>
+          <AdminDashboardPeriodControl current={view.period.id} dictionary={dictionary} />
         </div>
-        <AdminDashboardPeriodControl current={view.period.id} dictionary={dictionary} />
       </div>
       {noticeEntry ? <NoticeToast notices={[noticeEntry]} /> : null}
       {succeeded || failed ? (
@@ -67,6 +69,6 @@ export default async function AdminPage({
         </noscript>
       ) : null}
       <AdminDashboard dictionary={dictionary} locale={locale} view={view} />
-    </>
+    </div>
   );
 }

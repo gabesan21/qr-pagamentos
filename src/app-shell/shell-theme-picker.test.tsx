@@ -22,22 +22,22 @@ const themeOptions: readonly ShellThemeOption[] = STOREFRONT_THEME_IDS.map((id) 
 }));
 
 describe("ShellThemePicker", () => {
-  it("renders one menuitemradio per theme with a non-color check marker", () => {
+  it("renders one pressed-state button per theme with a non-color check marker", () => {
     render(<ShellThemePicker themeOptions={themeOptions} />);
 
-    const options = screen.getAllByRole("menuitemradio");
+    const options = screen.getAllByRole("button");
     expect(options).toHaveLength(6);
-    for (const option of options) expect(option.getAttribute("aria-checked")).toBe("false");
+    for (const option of options) expect(option.getAttribute("aria-pressed")).toBe("false");
   });
 
   it("marks the active theme, sets the DOM attribute and persists the qr_theme cookie on selection", async () => {
     const user = userEvent.setup();
     render(<ShellThemePicker themeOptions={themeOptions} />);
 
-    const target = screen.getByRole("menuitemradio", { name: THEME_PREFERENCE_LABEL_KEYS["vault-blue"] });
+    const target = screen.getByRole("button", { name: THEME_PREFERENCE_LABEL_KEYS["vault-blue"] });
     await user.click(target);
 
-    expect(target.getAttribute("aria-checked")).toBe("true");
+    expect(target.getAttribute("aria-pressed")).toBe("true");
     expect(target.querySelector("svg")).not.toBeNull();
     expect(document.documentElement.dataset.theme).toBe("vault-blue");
     expect(document.cookie).toContain("qr_theme=vault-blue");
@@ -47,7 +47,7 @@ describe("ShellThemePicker", () => {
     document.documentElement.setAttribute("data-theme", "midnight-clearing");
     render(<ShellThemePicker themeOptions={themeOptions} />);
 
-    expect(screen.getByRole("menuitemradio", { name: THEME_PREFERENCE_LABEL_KEYS["midnight-clearing"] }).getAttribute("aria-checked")).toBe("true");
+    expect(screen.getByRole("button", { name: THEME_PREFERENCE_LABEL_KEYS["midnight-clearing"] }).getAttribute("aria-pressed")).toBe("true");
   });
 
   it("renders nothing for an empty themeOptions list", () => {

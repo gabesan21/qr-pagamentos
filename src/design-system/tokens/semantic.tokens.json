@@ -193,9 +193,33 @@
         "$type": "dimension",
         "$value": "{size.primitive.control-compact}"
       },
+      "control-default": {
+        "$type": "dimension",
+        "$value": "{size.primitive.control-default}"
+      },
+      "row-action": {
+        "$type": "dimension",
+        "$value": "{size.primitive.row-action}"
+      },
+      "textarea-min": {
+        "$type": "dimension",
+        "$value": "{size.primitive.textarea-min}"
+      },
       "auth-action": {
         "$type": "dimension",
         "$value": "{size.primitive.auth-action}"
+      },
+      "directory-filter-column-min": {
+        "$type": "dimension",
+        "$value": "{size.primitive.directory-filter-column-min}"
+      },
+      "directory-toolbar-filter-min": {
+        "$type": "dimension",
+        "$value": "{size.primitive.directory-toolbar-filter-min}"
+      },
+      "directory-filter-chip-max": {
+        "$type": "dimension",
+        "$value": "{size.primitive.directory-filter-chip-max}"
       },
       "table-row": {
         "$type": "dimension",
@@ -278,6 +302,16 @@
   },
   "type": {
     "semantic": {
+      "control-field": {
+        "desktop": {
+          "$type": "dimension",
+          "$value": "{type.primitive.size.body}"
+        },
+        "mobile": {
+          "$type": "dimension",
+          "$value": "{type.primitive.size.control-mobile}"
+        }
+      },
       "body": {
         "$type": "typography",
         "$value": {

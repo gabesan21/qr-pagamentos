@@ -97,6 +97,7 @@ describe("merchant links directory page", () => {
     expect(markup).toContain("Dates");
     expect(markup).toContain("View orders");
     expect(markup).toContain('action="/links"');
+    expect(markup).toContain(">Search</");
   });
 
   it("renders localized pt-BR copy", async () => {
@@ -154,18 +155,36 @@ describe("merchant links directory page", () => {
     expect(markup).toContain("cursor=previous-token");
   });
 
-  // 14.5.2 owed regression: the currency-pair column and filter, and the
-  // `from`/`to` calendar-day filters, are additive on the V2 directory.
-  it("renders the currency badge column and only registers the pair filter when the owner has active pairs", async () => {
+  it("keeps link type, composition, pair, and dates available through compact filters only when the owner has pairs", async () => {
     ready("en", [row({ currencyPairLabel: "BRL/USDT" })]);
     listOwnerActiveCurrencyPairs.mockResolvedValueOnce([]);
     const withoutPairs = renderToStaticMarkup(await MerchantLinksPage());
     expect(withoutPairs).toContain("BRL/USDT");
     expect(withoutPairs).not.toContain('name="filter.pair"');
+    expect(withoutPairs).toContain('name="filter.type"');
+    expect(withoutPairs).toContain('name="filter.kind"');
+    expect(withoutPairs).toContain('name="filter.from"');
+    expect(withoutPairs).toContain('name="filter.to"');
 
     listOwnerActiveCurrencyPairs.mockResolvedValueOnce([{ id: "440e8400-e29b-41d4-a716-446655440020", label: "BRL/USDT" }]);
-    const withPairs = renderToStaticMarkup(await MerchantLinksPage());
+    const withPairs = renderToStaticMarkup(await MerchantLinksPage({
+      searchParams: Promise.resolve({
+        "filter.state": "active",
+        "filter.type": "REUSABLE",
+        "filter.kind": "FIXED_AMOUNT",
+        "filter.from": "2026-07-01",
+        "filter.to": "2026-07-31",
+        "filter.pair": "440e8400-e29b-41d4-a716-446655440020",
+      }),
+    }));
     expect(withPairs).toContain('name="filter.pair"');
+    expect(withPairs).toContain('name="filter.state"');
+    expect(withPairs).toMatch(/<option[^>]*value="active"[^>]*selected/);
+    expect(withPairs).toContain('data-active-filter="filter.type"');
+    expect(withPairs).toContain('data-active-filter="filter.kind"');
+    expect(withPairs).toContain('data-active-filter="filter.pair"');
+    expect(withPairs).toContain('data-active-filter="filter.from"');
+    expect(withPairs).toContain('data-active-filter="filter.to"');
   });
 
   it("renders the create affordance and each closed outcome notice in both locales", async () => {
@@ -182,6 +201,7 @@ describe("merchant links directory page", () => {
     ] as const) {
       const markup = renderToStaticMarkup(await MerchantLinksPage({ searchParams: Promise.resolve({ "payment-links-v2": notice }) }));
       expect(markup).toContain(copy);
+      expect(markup).toContain(">Buscar</");
     }
   });
 

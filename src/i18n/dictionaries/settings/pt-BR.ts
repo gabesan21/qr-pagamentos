@@ -7,7 +7,7 @@ export const settingsPtBR = {
   settingsNavPayments: "Pagamentos",
   settingsNavCurrency: "Moeda",
   settingsNavLanguage: "Idioma",
-  settingsPageDescription: "Gerencie sua conexão com a Nautt, a vitrine, a política de checkout e as preferências de idioma.",
+  settingsPageDescription: "Gerencie sua conexão com o provedor, a vitrine, a política de checkout e as preferências de idioma.",
   settingsLanguageDescription: "Escolha o idioma usado em todo o espaço de trabalho do lojista.",
   nauttStatusActive: "Ativo",
   nauttStatusUnregistered: "Configuração pendente",

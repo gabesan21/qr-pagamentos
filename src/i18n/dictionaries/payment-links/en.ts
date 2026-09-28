@@ -1,7 +1,7 @@
 export const paymentLinksEn = {
   adminPaymentLinkChooseProduct: "Choose an active product",
-  adminPaymentLinkCurrencyPair: "Currency pair",
-  adminPaymentLinkChooseCurrencyPair: "Choose an active currency pair",
+  adminPaymentLinkCurrencyPair: "Payment method",
+  adminPaymentLinkChooseCurrencyPair: "Choose an active payment method",
   adminPaymentLinkType: "Link type",
   adminPaymentLinkReusable: "Reusable",
   adminPaymentLinkSingleUse: "Single use",

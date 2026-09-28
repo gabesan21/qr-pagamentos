@@ -52,11 +52,11 @@ describe("login form interaction", () => {
     expect(screen.getAllByText(dictionary.fieldRequired)).toHaveLength(1);
   });
 
-  it("renders the forgot-password link noting an administrator-issued link is required", () => {
+  it("renders the forgot-password link without supplementary recovery copy", () => {
     render(<LoginForm dictionary={dictionary} invalidCredentials={false} passwordChanged={false} />);
 
     const link = screen.getByRole("link", { name: dictionary.forgotPassword });
     expect(link.getAttribute("href")).toBe("/reset-password");
-    expect(screen.getByText(dictionary.forgotPasswordNote)).not.toBeNull();
+    expect(screen.queryByText(dictionary.forgotPasswordNote)).toBeNull();
   });
 });

@@ -19,7 +19,7 @@ describe("admin loading state", () => {
     expect(markup).toContain(en.adminDashboardOrdersHeading);
     expect(markup).not.toContain(ptBR.adminDashboardOrdersHeading);
     expect(markup).toContain(`aria-label="${en.adminDashboardUsersRegistered}"`);
-    // 3 / 5-4-3 / 4 / 2 skeleton rows matching the final dashboard grid.
+    // 3 / 4 / 5-4-3 / 2 skeleton rows matching the final dashboard grid.
     expect(markup).toContain("lg:col-span-5");
     expect(markup).toContain("lg:col-span-4");
     expect(markup).toContain("lg:col-span-3");

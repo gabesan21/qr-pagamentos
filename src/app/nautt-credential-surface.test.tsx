@@ -1,5 +1,8 @@
+// @vitest-environment jsdom
+
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 // `ValidateAction` reads the app router directly (14.5.3).
@@ -7,14 +10,18 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace: vi.fn(), push: vi.fn(), refresh: vi.fn() }),
 }));
 
-import { getDictionary } from "@/i18n/dictionaries";
+import { en } from "@/i18n/dictionaries/en";
+import { ptBR } from "@/i18n/dictionaries/pt-BR";
 import type { OwnerNauttStatus } from "@/integrations/nautt/owner-onboarding";
 import { NauttCredentialSurface } from "./nautt-credential-surface";
 
+afterEach(cleanup);
+
 const emptyCredential = { hasCredential: false, credentialRevision: null, webhookRegistrationState: null, updatedAt: null };
+const dictionaries = { en, "pt-BR": ptBR } as const;
 
 function markup(locale: "en" | "pt-BR", status: OwnerNauttStatus, notice?: string) {
-  return renderToStaticMarkup(<NauttCredentialSurface dictionary={getDictionary(locale)} locale={locale} notice={notice} status={status} />);
+  return renderToStaticMarkup(<NauttCredentialSurface dictionary={dictionaries[locale]} locale={locale} notice={notice} status={status} />);
 }
 
 describe("Nautt credential surface", () => {
@@ -37,6 +44,43 @@ describe("Nautt credential surface", () => {
     expect(unavailable).toContain('href="/settings"');
   });
 
+  it("keeps an ACTIVE API key empty, opens its replacement form, and restores focus on cancel", () => {
+    const dictionary = en;
+    const credential = {
+      ...emptyCredential,
+      hasCredential: true,
+      credentialRevision: "revision",
+      webhookRegistrationState: "ACTIVE" as const,
+      updatedAt: new Date(),
+    };
+    render(
+      <NauttCredentialSurface
+        dictionary={dictionary}
+        locale="en"
+        status={{
+          credential,
+          balance: { tokenSymbol: "USDT", tokenName: "Tether USD", networkName: "Polygon", balance: "17.271189" },
+          balanceUnavailable: false,
+        }}
+      />,
+    );
+
+    const replace = screen.getByRole("button", { name: dictionary.nauttReplace });
+    fireEvent.click(replace);
+
+    const input = screen.getByLabelText(dictionary.nauttApiKeyLabel) as HTMLInputElement;
+    expect(input.value).toBe("");
+    expect(input.type).toBe("password");
+    expect(document.activeElement).toBe(input);
+    expect(input.closest("form")?.getAttribute("action")).toBe("/nautt-credentials/replace");
+    expect(screen.getByRole("button", { name: dictionary.nauttReplaceSave })).not.toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: dictionary.cancel }));
+
+    expect(screen.queryByLabelText(dictionary.nauttApiKeyLabel)).toBeNull();
+    expect(document.activeElement).toBe(screen.getByRole("button", { name: dictionary.nauttReplace }));
+  });
+
   it.each(["UNREGISTERED", "REGISTERING", "INDETERMINATE"] as const)("renders the safe %s registration fork", (state) => {
     const html = markup("en", { credential: { ...emptyCredential, hasCredential: true, credentialRevision: "revision", webhookRegistrationState: state, updatedAt: new Date() }, balance: null, balanceUnavailable: true });
     if (state === "UNREGISTERED") {
@@ -48,7 +92,7 @@ describe("Nautt credential surface", () => {
   });
 
   it.each(["en", "pt-BR"] as const)("shows the local-only reset affordance with disclosure only in stuck states in %s", (locale) => {
-    const dictionary = getDictionary(locale);
+    const dictionary = dictionaries[locale];
     for (const state of ["REGISTERING", "INDETERMINATE"] as const) {
       const html = markup(locale, { credential: { ...emptyCredential, hasCredential: true, credentialRevision: "revision", webhookRegistrationState: state, updatedAt: new Date() }, balance: null, balanceUnavailable: true }, "recovery");
       expect(html).toContain('action="/nautt-credentials/reset"');
@@ -67,7 +111,7 @@ describe("Nautt credential surface", () => {
   });
 
   it.each(["en", "pt-BR"] as const)("renders the post-reset success notice in %s", (locale) => {
-    const dictionary = getDictionary(locale);
+    const dictionary = dictionaries[locale];
     const credential = { ...emptyCredential, hasCredential: true, credentialRevision: "revision", webhookRegistrationState: "UNREGISTERED" as const, updatedAt: new Date() };
     const html = markup(locale, { credential, balance: null, balanceUnavailable: true }, "reset");
     expect(html).toContain('role="status"');

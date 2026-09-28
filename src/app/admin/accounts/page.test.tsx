@@ -87,6 +87,9 @@ describe("administrator accounts directory page", () => {
     // Row facts: usernames, email redaction fallback, role/state/store facts.
     expect(markup).toContain("merchant.one");
     expect(markup).toContain("merchant.one@example.com");
+    expect(markup).toContain("Identity");
+    expect(markup).toContain("Access");
+    expect(markup).toContain("Activity");
     expect(markup).toContain("gone.owner");
     expect(markup).toContain("Not provided");
     expect(markup).toContain(">User<");
@@ -94,6 +97,8 @@ describe("administrator accounts directory page", () => {
     expect(markup).toContain("Active store");
     expect(markup).toContain("No store");
     expect(markup).toContain("Never");
+    expect(markup).toContain("Additional filters");
+    expect(markup).toContain("Creation period");
     // The deleted row keeps its place with the localized non-color badge and
     // carries no edit/delete actions.
     expect(markup).toContain(">Deleted</");

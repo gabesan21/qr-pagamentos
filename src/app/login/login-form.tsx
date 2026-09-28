@@ -5,8 +5,9 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 
 import { BrandIdentity } from "@/brand/brand-identity";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 import { LoginSubmit } from "./login-submit";
@@ -67,8 +68,8 @@ export function LoginForm({ dictionary, invalidCredentials, passwordChanged }: L
     <form action="/login/submit" className="grid gap-5" id="login-form" method="post" noValidate onSubmit={handleSubmit}>
       <CardHeader>
         <BrandIdentity className="auth-brand" variant="product-lockup" />
-        <CardTitle>{dictionary.loginHeading}</CardTitle>
-        <CardDescription>{dictionary.loginIntroduction}</CardDescription>
+        <CardTitle className="text-2xl font-semibold leading-tight">{dictionary.loginHeading}</CardTitle>
+        <CardDescription className="text-text-2">{dictionary.loginIntroduction}</CardDescription>
       </CardHeader>
       <CardContent>
         {invalidCredentials && (
@@ -101,7 +102,7 @@ export function LoginForm({ dictionary, invalidCredentials, passwordChanged }: L
               <Input
                 aria-invalid={fieldErrors.password || undefined}
                 autoComplete="current-password"
-                className="pe-10"
+                className="pe-(--control-icon-padding-inline)"
                 id="password"
                 name="password"
                 onChange={() => setFieldErrors((previous) => (previous.password ? { ...previous, password: false } : previous))}
@@ -109,28 +110,29 @@ export function LoginForm({ dictionary, invalidCredentials, passwordChanged }: L
                 required
                 type={showPassword ? "text" : "password"}
               />
-              <button
+              <Button
                 aria-label={showPassword ? dictionary.hidePassword : dictionary.showPassword}
-                className="absolute end-1 top-1/2 flex size-[var(--target-min-size)] -translate-y-1/2 cursor-pointer items-center justify-center border-0 bg-transparent text-text-2 hover:text-text"
+                className="absolute end-1 top-1/2 -translate-y-1/2"
                 onClick={() => setShowPassword((value) => !value)}
+                size="icon"
                 type="button"
+                variant="ghost"
               >
                 {showPassword ? <EyeOffIcon aria-hidden="true" /> : <EyeIcon aria-hidden="true" />}
-              </button>
+              </Button>
             </div>
             {fieldErrors.password && <FieldError>{dictionary.fieldRequired}</FieldError>}
           </Field>
         </FieldGroup>
       </CardContent>
-      <CardFooter className="flex-col items-stretch gap-4">
+      <div className="flex flex-col items-stretch gap-4 px-(--card-spacing)">
         <LoginSubmit label={dictionary.signIn} pendingLabel={dictionary.signingIn} />
         <p className="m-0 text-center">
-          <a className="text-sm text-text-2 hover:text-accent" href="/reset-password">
+          <a className="text-sm font-medium text-text-2 hover:text-text hover:underline" href="/reset-password">
             {dictionary.forgotPassword}
           </a>
-          <span className="mt-1 block text-xs text-text-3">{dictionary.forgotPasswordNote}</span>
         </p>
-      </CardFooter>
+      </div>
     </form>
   );
 }

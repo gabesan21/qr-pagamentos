@@ -62,10 +62,9 @@ export function ShellThemePicker({
         return (
           <button
             key={option.id}
-            aria-checked={checked}
+            aria-pressed={checked}
             className="app-shell__theme-option"
             onClick={() => selectTheme(option.id)}
-            role="menuitemradio"
             type="button"
           >
             <img

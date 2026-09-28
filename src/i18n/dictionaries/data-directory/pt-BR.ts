@@ -1,7 +1,7 @@
 export const dataDirectoryPtBR = {
   dataDirectoryHeading: "Base de diretórios",
   dataDirectoryDescription: "Um espécime limitado e neutro por papel para revisar fatos operacionais redigidos.",
-  dataDirectorySearchLabel: "Buscar no diretório",
+  dataDirectorySearchLabel: "Buscar",
   dataDirectorySearchPlaceholder: "Referência ou rótulo",
   dataDirectoryStatusLabel: "Status",
   dataDirectoryAllStatuses: "Todos os status",
@@ -9,6 +9,9 @@ export const dataDirectoryPtBR = {
   dataDirectoryApplyFilters: "Aplicar filtros",
   dataDirectoryResetFilters: "Redefinir",
   dataDirectoryClearFilters: "Limpar filtros",
+  dataDirectoryAdditionalFilters: "Mais filtros",
+  dataDirectoryAdditionalFiltersActive: "{count} filtros adicionais ativos",
+  dataDirectoryCreationPeriod: "Período de criação",
   dataDirectoryPreviousPage: "Página anterior",
   dataDirectoryNextPage: "Próxima página",
   dataDirectoryPaginationLabel: "Páginas do diretório",

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import type { getDictionary } from "@/i18n/dictionaries";
 
@@ -17,9 +18,9 @@ export function CheckoutPrivacyNotice({ dictionary }: Readonly<{ dictionary: Dic
     <>
       <p className="text-center text-xs text-text-2">
         {dictionary.checkoutPrivacyLine}{" "}
-        <button className="inline-flex min-h-11 min-w-11 items-center justify-center underline underline-offset-2 hover:text-text" onClick={() => setOpen(true)} type="button">
+        <Button onClick={() => setOpen(true)} size="inline" type="button" variant="link">
           {dictionary.checkoutPrivacyLinkLabel}
-        </button>
+        </Button>
       </p>
       <Modal closeLabel={dictionary.close} onOpenChange={setOpen} open={open} size="md" title={dictionary.checkoutPrivacyModalTitle}>
         {dictionary.checkoutPrivacyModalBody.split("\n\n").map((paragraph) => (

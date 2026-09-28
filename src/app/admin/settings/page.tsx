@@ -4,7 +4,7 @@ import { getPaymentSettingsService } from "@/auth/payment-settings";
 import { getSupportedExchangeCurrencyService } from "@/auth/supported-exchange-currency";
 import { getSystemSettingsService } from "@/auth/system-settings";
 
-import { AdminSettingsSurface, type CurrencyPair, type ExchangeCurrencyMapping, type PaymentMethod } from "./settings-surface";
+import { AdminSettingsSurface, type CurrencyPair, type ExchangeCurrencyMapping } from "./settings-surface";
 import type { SectionNotice } from "./settings-section-notice";
 import { requireAdminShellContext } from "../shell-context";
 
@@ -12,10 +12,9 @@ export default async function AdminSettingsPage({
   searchParams,
 }: Readonly<{ searchParams: Promise<{ error?: string; language?: string; success?: string }> }>) {
   const { dictionary, locale, principal } = await requireAdminShellContext();
-  const [settings, currencyPairs, paymentMethods, mappings, evidenceByCode, defaultThemeId, query] = await Promise.all([
+  const [settings, currencyPairs, mappings, evidenceByCode, defaultThemeId, query] = await Promise.all([
     getPaymentSettingsService().list(principal),
     getNauttCatalogService().listCurrencyPairs(principal),
-    getNauttCatalogService().listPaymentMethods(principal),
     getSupportedExchangeCurrencyService().listMappings(principal),
     listLatestEvidenceByCode(principal),
     getSystemSettingsService().getDefaultTheme(principal),
@@ -55,7 +54,11 @@ export default async function AdminSettingsPage({
       ? { tone: "error", text: dictionary.adminExchangeCurrencyFailed }
       : null;
 
-  const paymentSettingsNotice: SectionNotice = query.success === "settings"
+  const paymentSettingsNotice: SectionNotice = query.success === "method-created" || query.success === "method-changed"
+    ? { tone: "success", text: dictionary.adminMethodSaved }
+    : query.error === "method-failed"
+      ? { tone: "error", text: dictionary.adminMethodFailed }
+    : query.success === "settings"
     ? { tone: "success", text: dictionary.adminPaymentSettingsSaved }
     : query.error === "settings-failed"
       ? { tone: "error", text: dictionary.adminSettingsFailed }
@@ -80,6 +83,8 @@ export default async function AdminSettingsPage({
         label: pair.label,
         currencyUuid: pair.currencyUuid,
         exchangeCurrencyUuid: pair.exchangeCurrencyUuid,
+        currencyCode: pair.currencyCode,
+        isDefault: pair.isDefault,
         active: pair.active,
         createdAt: pair.createdAt.toISOString(),
       }))}
@@ -90,13 +95,6 @@ export default async function AdminSettingsPage({
       locale={locale}
       mappings={mappingsWithEvidence}
       notice={notice}
-      paymentMethods={paymentMethods.map<PaymentMethod>((method) => ({
-        id: method.id,
-        label: method.label,
-        paymentMethodUuid: method.paymentMethodUuid,
-        active: method.active,
-        createdAt: method.createdAt.toISOString(),
-      }))}
       paymentSettingsNotice={paymentSettingsNotice}
       settings={settings}
       themeNotice={themeNotice}

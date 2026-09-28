@@ -84,6 +84,15 @@ function UsernameCell({ dictionary, row }: Readonly<{ dictionary: Dictionary; ro
   );
 }
 
+function IdentityCell({ dictionary, row }: Readonly<{ dictionary: Dictionary; row: AdminUserSummary }>) {
+  return (
+    <div className="flex flex-col gap-1">
+      <UsernameCell dictionary={dictionary} row={row} />
+      <span className="text-sm text-muted-foreground">{row.email ?? dictionary.adminNotProvided}</span>
+    </div>
+  );
+}
+
 function RoleBadge({ dictionary, row }: Readonly<{ dictionary: Dictionary; row: AdminUserSummary }>) {
   return (
     <StatusBadge
@@ -112,6 +121,22 @@ function StoreBadge({ dictionary, row }: Readonly<{ dictionary: Dictionary; row:
   );
 }
 
+function AccessFacts({ dictionary, row }: Readonly<{ dictionary: Dictionary; row: AdminUserSummary }>) {
+  return <span className="flex flex-wrap gap-2"><RoleBadge dictionary={dictionary} row={row} /><StateBadge dictionary={dictionary} row={row} /><StoreBadge dictionary={dictionary} row={row} /></span>;
+}
+
+function ActivityFacts({ dictionary, locale, row }: Readonly<{ dictionary: Dictionary; locale: SupportedLocale; row: AdminUserSummary }>) {
+  const lastActivity = row.lastActivityAt
+    ? `${formatAccountInstant(row.lastActivityAt, locale)} (${formatRelativeAccountActivity(row.lastActivityAt, locale, dictionary.adminUsersDirectoryLastActivityToday)})`
+    : dictionary.adminUsersDirectoryLastActivityNever;
+  return (
+    <dl className="grid gap-1 text-sm">
+      <div className="flex flex-wrap gap-x-2"><dt className="text-text-2">{dictionary.adminUsersDirectoryColumnCreated}</dt><dd className="font-mono">{formatAccountInstant(row.createdAt, locale)}</dd></div>
+      <div className="flex flex-wrap gap-x-2"><dt className="text-text-2">{dictionary.adminUsersDirectoryColumnLastActivity}</dt><dd className="font-mono">{lastActivity}</dd></div>
+    </dl>
+  );
+}
+
 // Row actions: edit navigates to the read-only detail (10.3.3's editor
 // contract) and delete posts the delivered byte-frozen soft-delete route;
 // final-active-administrator protection stays server-side only.
@@ -119,7 +144,7 @@ function RowActions({ dictionary, row }: Readonly<{ dictionary: Dictionary; row:
   if (row.state === "deleted") return null;
   return (
     <span className="flex items-center gap-2">
-      <Button asChild data-ds-hit-target variant="outline">
+      <Button asChild data-ds-hit-target size="row" variant="outline">
         <Link href={`/admin/accounts/${row.id}`}>{dictionary.adminUsersDirectoryEdit}</Link>
       </Button>
       <DestructiveActionForm
@@ -156,27 +181,9 @@ function AdminUserDirectory({
     description: dictionary.adminUsersDirectoryEmptyDescription,
   });
   const columns: readonly DataDirectoryColumn<AdminUserSummary>[] = [
-    { id: "username", label: dictionary.adminUsersDirectoryColumnUsername, value: (row) => <UsernameCell dictionary={dictionary} row={row} /> },
-    { id: "email", label: dictionary.adminUsersDirectoryColumnEmail, value: (row) => <span className="text-sm text-muted-foreground">{row.email ?? dictionary.adminNotProvided}</span> },
-    { id: "role", label: dictionary.adminUsersDirectoryColumnRole, value: (row) => <RoleBadge dictionary={dictionary} row={row} /> },
-    { id: "state", label: dictionary.adminUsersDirectoryColumnState, value: (row) => <StateBadge dictionary={dictionary} row={row} /> },
-    { id: "store", label: dictionary.adminUsersDirectoryColumnStore, value: (row) => <StoreBadge dictionary={dictionary} row={row} /> },
-    { id: "created", label: dictionary.adminUsersDirectoryColumnCreated, numeric: true, value: (row) => <span className="font-mono">{formatAccountInstant(row.createdAt, locale)}</span> },
-    {
-      id: "lastActivity",
-      label: dictionary.adminUsersDirectoryColumnLastActivity,
-      numeric: true,
-      value: (row) => row.lastActivityAt ? (
-        <span className="font-mono">
-          {formatAccountInstant(row.lastActivityAt, locale)}{" "}
-          <span className="text-muted-foreground">
-            ({formatRelativeAccountActivity(row.lastActivityAt, locale, dictionary.adminUsersDirectoryLastActivityToday)})
-          </span>
-        </span>
-      ) : (
-        <span className="font-mono">{dictionary.adminUsersDirectoryLastActivityNever}</span>
-      ),
-    },
+    { id: "identity", label: dictionary.adminUsersDirectoryColumnIdentity, value: (row) => <IdentityCell dictionary={dictionary} row={row} /> },
+    { id: "access", label: dictionary.adminUsersDirectoryColumnAccess, value: (row) => <AccessFacts dictionary={dictionary} row={row} /> },
+    { id: "activity", label: dictionary.adminUsersDirectoryColumnActivity, value: (row) => <ActivityFacts dictionary={dictionary} locale={locale} row={row} /> },
   ];
 
   const rows = page?.rows ?? [];
@@ -191,6 +198,7 @@ function AdminUserDirectory({
     <DataDirectory
       actionsLabel={dictionary.adminUsersDirectoryColumnActions}
       canonicalFilterQuery={query.query.canonicalFilterQuery}
+      compactToolbar={{ visibleFilterNames: ["state"] }}
       caption={dictionary.adminUsersDirectoryHeading}
       columns={columns}
       copy={copy}

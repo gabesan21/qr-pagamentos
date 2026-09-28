@@ -184,6 +184,11 @@ export function createDatabaseSupportedExchangeCurrencyStore(
     async register(values) {
       try {
         return await db.$transaction(async (transaction) => {
+          const exchangeConflict = await transaction.catalogCurrencyPair.findFirst({
+            where: { exchangeCurrencyUuid: values.exchangeCurrencyUuid, NOT: { currencyUuid: values.currencyUuid } },
+            select: { id: true },
+          });
+          if (exchangeConflict) return "pair-exists";
           const existingPair = await transaction.catalogCurrencyPair.findUnique({
             where: pairWhere(values),
             select: { id: true },
@@ -210,18 +215,36 @@ export function createDatabaseSupportedExchangeCurrencyStore(
     },
     async replace(values) {
       const movePointer = async (transaction: Prisma.TransactionClient) => {
-        let outcome: ReplaceMappingOutcome = "repointed";
-        let pair = await transaction.catalogCurrencyPair.findUnique({
-          where: pairWhere(values),
+        const current = await transaction.supportedExchangeCurrency.findUnique({
+          where: { code: values.code },
+          select: { pair: { select: { currencyUuid: true } } },
+        });
+        if (current && values.currencyUuid !== current.pair.currencyUuid) {
+          throw new ExchangeCurrencyValidationError("Currency identity cannot change");
+        }
+        // A code's currency identity is immutable. Replacement changes only
+        // the active method pointer within that currency.
+        const currencyUuid = current?.pair.currencyUuid ?? values.currencyUuid;
+        const exchangeConflict = await transaction.catalogCurrencyPair.findFirst({
+          where: { exchangeCurrencyUuid: values.exchangeCurrencyUuid, NOT: { currencyUuid } },
           select: { id: true },
         });
+        if (exchangeConflict) throw new ExchangeCurrencyDuplicatePairError("Exchange currency is already bound to another currency");
+        let outcome: ReplaceMappingOutcome = "repointed";
+        let pair: { id: string; active: boolean } | null = await transaction.catalogCurrencyPair.findUnique({
+          where: { currencyUuid_exchangeCurrencyUuid: { currencyUuid, exchangeCurrencyUuid: values.exchangeCurrencyUuid } },
+          select: { id: true, active: true },
+        });
+        if (pair && !pair.active) throw new ExchangeCurrencyDuplicatePairError("Inactive methods cannot become a default");
         if (!pair) {
-          pair = await transaction.catalogCurrencyPair.create({
-            data: { label: values.label, currencyUuid: values.currencyUuid, exchangeCurrencyUuid: values.exchangeCurrencyUuid },
+          const created = await transaction.catalogCurrencyPair.create({
+            data: { label: values.label, currencyUuid, exchangeCurrencyUuid: values.exchangeCurrencyUuid },
             select: { id: true },
           });
+          pair = { id: created.id, active: true };
           outcome = "inserted";
         }
+        if (!pair) throw new ExchangeCurrencyDuplicatePairError("No active payment method is available");
         await transaction.supportedExchangeCurrency.upsert({
           where: { code: values.code },
           create: { code: values.code, pairId: pair.id },

@@ -14,6 +14,7 @@ import { getSupportedExchangeCurrencyService, NoActiveExchangeCurrencyMappingErr
 // non-zero test quote rather than a truncation artifact.
 const PROBE_AMOUNT: NauttQuoteAmount = { kind: "fiat", value: "1.00" };
 const PROBE_THROTTLE_MS = 60_000;
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export class CurrencyPairProbeThrottledError extends Error {
   constructor() {
@@ -42,6 +43,8 @@ export type CurrencyPairProbeResult = Readonly<{ outcome: CurrencyPairProbeOutco
 
 export type CurrencyPairCodeEvidence = Readonly<{
   code: string;
+  pairId?: string;
+  label?: string;
   checkedAt: string | null;
   outcome: string | null;
   observedPaymentMethod: string | null;
@@ -119,10 +122,14 @@ export async function requireSelectableForCurrencyPair(
 export async function probeCurrencyPair(
   actor: Principal,
   code: unknown,
+  pairId: unknown = undefined,
   now: () => Date = () => new Date(),
 ): Promise<CurrencyPairProbeResult> {
   requireUserPrincipal(actor);
   if (typeof code !== "string" || code.length === 0) throw new CurrencyPairProbeCodeInvalidError();
+  if (pairId !== undefined && pairId !== null && (typeof pairId !== "string" || !UUID_PATTERN.test(pairId))) {
+    throw new CurrencyPairProbeCodeInvalidError();
+  }
 
   let resolved: Readonly<{ currencyUuid: string; exchangeCurrencyUuid: string }>;
   try {
@@ -133,10 +140,9 @@ export async function probeCurrencyPair(
   }
 
   const db = getDatabaseClient();
-  const pair = await db.catalogCurrencyPair.findUnique({
-    where: { currencyUuid_exchangeCurrencyUuid: { currencyUuid: resolved.currencyUuid, exchangeCurrencyUuid: resolved.exchangeCurrencyUuid } },
-    select: { id: true },
-  });
+  const pair = typeof pairId === "string"
+    ? await db.catalogCurrencyPair.findFirst({ where: { id: pairId, active: true, currencyUuid: resolved.currencyUuid }, select: { id: true, currencyUuid: true, exchangeCurrencyUuid: true } })
+    : await db.catalogCurrencyPair.findUnique({ where: { currencyUuid_exchangeCurrencyUuid: { currencyUuid: resolved.currencyUuid, exchangeCurrencyUuid: resolved.exchangeCurrencyUuid } }, select: { id: true, currencyUuid: true, exchangeCurrencyUuid: true } });
   if (!pair) throw new CurrencyPairProbeCodeInvalidError();
 
   const existing = await db.currencyPairVerification.findUnique({
@@ -151,8 +157,8 @@ export async function probeCurrencyPair(
   let outcome: CurrencyPairProbeOutcome;
   try {
     await getOwnerPricingOrdersService().quote(actor.id, {
-      currencyUuid: resolved.currencyUuid,
-      exchangeCurrencyUuid: resolved.exchangeCurrencyUuid,
+      currencyUuid: pair.currencyUuid,
+      exchangeCurrencyUuid: pair.exchangeCurrencyUuid,
       amount: PROBE_AMOUNT,
     });
     outcome = "ok";
@@ -181,6 +187,24 @@ export async function probeCurrencyPair(
   });
 
   return { outcome };
+}
+
+// Active methods are intentionally read from the real pair rows, grouped by
+// the active currency pointer. This makes a nondefault method probeable while
+// never trusting a browser-provided provider ID or currency UUID.
+export async function listOwnerProbeMethods(actor: Principal, db: ReturnType<typeof getDatabaseClient> = getDatabaseClient()): Promise<CurrencyPairCodeEvidence[]> {
+  requireUserPrincipal(actor);
+  const rows = await db.supportedExchangeCurrency.findMany({
+    select: { code: true, pair: { select: { currencyUuid: true } } },
+  });
+  if (rows.length === 0) return [];
+  const pairs = await db.catalogCurrencyPair.findMany({ where: { active: true, currencyUuid: { in: rows.map((row) => row.pair.currencyUuid) } }, select: { id: true, label: true, currencyUuid: true } });
+  const evidence = await db.currencyPairVerification.findMany({ where: { ownerId: actor.id, pairId: { in: pairs.map((pair) => pair.id) } }, select: { pairId: true, quoteCheckedAt: true, quoteOutcome: true, observedPaymentMethod: true, observedCurrencySymbol: true } });
+  const byPair = new Map(evidence.map((row) => [row.pairId, row]));
+  return pairs.flatMap((pair) => rows.filter((row) => row.pair.currencyUuid === pair.currencyUuid).map((row) => {
+    const own = byPair.get(pair.id);
+    return { code: row.code, pairId: pair.id, label: pair.label, checkedAt: own?.quoteCheckedAt?.toISOString() ?? null, outcome: own?.quoteOutcome ?? null, observedPaymentMethod: own?.observedPaymentMethod ?? null, observedCurrencySymbol: own?.observedCurrencySymbol ?? null };
+  }));
 }
 
 // Administrator read-only visibility (never a selection input, never an

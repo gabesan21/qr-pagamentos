@@ -92,11 +92,41 @@ describe("merchant orders directory page", () => {
     expect(markup).not.toContain("990e8400-e29b-41d4-a716-446655440099");
   });
 
+  it("keeps payment state visible while preserving order source, money, link, and date filters in the compact GET form", async () => {
+    ready("en");
+    const markup = renderToStaticMarkup(await MerchantOrdersPage({
+      searchParams: Promise.resolve({
+        q: "donation",
+        "filter.source": "LINK",
+        "filter.state": "CONFIRMED",
+        "filter.money": "USD",
+        "filter.from": "2026-07-01",
+        "filter.to": "2026-07-31",
+        "filter.link": "abcdefghijklmnopqrstuvwx",
+      }),
+    }));
+
+    expect(markup).toContain('name="filter.state"');
+    expect(markup).toMatch(/<option[^>]*value="CONFIRMED"[^>]*selected/);
+    expect(markup).toContain('name="filter.source"');
+    expect(markup).toContain('name="filter.money"');
+    expect(markup).toContain('name="filter.link"');
+    expect(markup).toContain('name="filter.from"');
+    expect(markup).toContain('name="filter.to"');
+    expect(markup).toContain('data-active-filter="filter.source"');
+    expect(markup).toContain('data-active-filter="filter.money"');
+    expect(markup).toContain('data-active-filter="filter.link"');
+    expect(markup).toContain('data-active-filter="filter.from"');
+    expect(markup).toContain('data-active-filter="filter.to"');
+    expect(markup).toContain(">Search</");
+  });
+
   it("renders localized pt-BR copy", async () => {
     ready("pt-BR");
     const markup = renderToStaticMarkup(await MerchantOrdersPage());
     expect(markup).toContain(">Pagamento confirmado</");
     expect(markup).toContain(">Link de pagamento</");
+    expect(markup).toContain(">Buscar</");
   });
 
   it("renders the empty and filtered-empty states", async () => {

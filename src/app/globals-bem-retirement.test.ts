@@ -159,12 +159,13 @@ describe("single CSS system (14.7.1 BEM retirement, pinned by 14.7.2)", () => {
     expect(offenders).toEqual([]);
   });
 
-  it("keeps the four (min-width: 900px) auth split-card selectors declared INSIDE the media block, and auth-card.tsx still emits their elements", () => {
+  it("keeps the desktop auth split-card selectors and hides the duplicate form lockup at the breakpoint", () => {
     const css = readFileSync(join(srcRoot, "app/globals.css"), "utf8");
     const block = findMediaBlock(css, "@media (min-width: 900px)");
-    for (const selector of [".auth-card {", ".auth-card__panel {", ".auth-card__form {", ".auth-card__language {"]) {
+    for (const selector of [".auth-card {", ".auth-card__panel {", ".auth-card__form {", ".auth-card__form .auth-brand {"]) {
       expect(block.includes(selector), `expected ${selector} inside the 900px media block`).toBe(true);
     }
+    expect(css).toContain(".auth-card__language { display: flex; justify-content: flex-end; }");
 
     const authCardSource = readFileSync(join(srcRoot, "app/auth-card.tsx"), "utf8");
     const emittedTokens = new Set(extractClassNameTokens(authCardSource));

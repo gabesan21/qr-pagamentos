@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { clearFormDraft, hasFailureNotice, readFormDraft, saveFormDraft } from "@/app/form-draft";
 import type { OwnerProductCategory } from "@/auth/product-category";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { ConfirmDialog, Modal } from "@/components/ui/modal";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import type { getDictionary } from "@/i18n/dictionaries";
@@ -78,15 +79,13 @@ export function CategoryRowActions({
         <input name="id" type="hidden" value={category.id} />
         <input name="version" type="hidden" value={category.version} />
         <div className="grid gap-3 sm:grid-cols-2">
-          <input
-            className="h-11 w-full rounded-md border border-input bg-bg px-3 text-base text-text outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring"
+          <Input
             name="namePtBr"
             onChange={(event) => setNamePtBr(event.target.value)}
             required
             value={namePtBr}
           />
-          <input
-            className="h-11 w-full rounded-md border border-input bg-bg px-3 text-base text-text outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring"
+          <Input
             name="nameEn"
             onChange={(event) => setNameEn(event.target.value)}
             required

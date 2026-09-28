@@ -115,7 +115,7 @@ export function PasswordFields({ dictionary }: PasswordFieldsProps) {
             aria-controls="profile-current-password"
             aria-expanded={showCurrent}
             aria-label={showCurrent ? dictionary.profilePasswordHide : dictionary.profilePasswordShow}
-            className="absolute right-1 top-1/2 h-9 w-9 -translate-y-1/2 rounded-md"
+            className="absolute right-1 top-1/2 -translate-y-1/2"
             onClick={() => setShowCurrent((value) => !value)}
             size="icon"
             type="button"

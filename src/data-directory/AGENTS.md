@@ -57,6 +57,25 @@
 - The toolbar's page-size options and labelled text/calendar-day filter fields
   are optional registered props (defaults 25/50/100, enum-only filters);
   never hardcode a concrete directory's sizes or filters into the composition.
+- Compact administrative toolbar layout is opt-in and consumer-configured: the
+  consumer names its visible registered filters, while every remaining
+  registered field stays enabled within the same native `details` GET form.
+  The summary shows the localized count of active collapsed filters but never
+  changes URL state merely by opening or closing the disclosure.
+- A compact consumer with exactly three non-date additional controls may opt
+  into `additionalFiltersDesktopColumns: 3`; only that disclosure uses one
+  desktop row, while the shared mobile stack and calendar-day period row stay
+  unchanged. Do not use it to create route-local filter UI or alter a field's
+  GET name, value, or registration.
+- Directory filters, disclosure, row actions, and their loading skeletons use
+  the shared generated `--control-*` roles. Do not restore local `h-*`,
+  `min-h-*`, field type, radius, or padding utilities to compensate for a
+  density; select an owned Button/NativeSelect variant instead.
+- The compact toolbar's `min-[360px]` breakpoint is the sole directory-local
+  raw structural value: CSS custom properties are invalid in media-query
+  conditions, so `scripts/check-design-tokens.mjs` allows exactly that class in
+  `ui/data-directory-client.tsx`. Widths within the layout remain generated
+  `--directory-*` tokens.
 - **Byte-frozen, cursorless source exception (14.5.2):** a consumer whose only
   data source is a byte-frozen list with no cursor (merchant `/links`'
   legacy V1 era) may render its full owner-scoped list through this

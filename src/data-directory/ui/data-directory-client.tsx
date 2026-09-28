@@ -15,7 +15,7 @@ import {
 import { useRouter } from "next/navigation";
 
 import type { DirectoryPageSize } from "@/data-directory/server/query-contract";
-import { AlertCircleIcon, InboxIcon, RotateCcwIcon, SearchIcon, SearchXIcon, XIcon } from "lucide-react";
+import { AlertCircleIcon, ChevronDownIcon, InboxIcon, RotateCcwIcon, SearchIcon, SearchXIcon, XIcon } from "lucide-react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -39,6 +39,7 @@ import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, Tabl
 import type {
   DataDirectoryColumnMeta,
   DataDirectoryCopy,
+  DataDirectoryCompactToolbar,
   DataDirectoryEnumFilter,
   DataDirectoryState,
   DataDirectoryTextFilter,
@@ -47,6 +48,8 @@ import type {
 const LOADING_ROW_KEYS = ["first", "second", "third"] as const;
 
 const SEARCH_DEBOUNCE_MS = 350;
+
+const ADDITIONAL_FILTER_GRID_CLASS = "mt-4 grid gap-4 border-t border-border pt-4 md:col-span-3 md:mt-0 md:border md:border-border md:bg-surface md:p-4 md:pt-4";
 
 const INTERACTIVE_DESCENDANT_SELECTOR = "a, button, input, select, textarea, label, [role]";
 
@@ -180,9 +183,10 @@ function DebouncedSearch({
       {value !== "" ? (
         <Button
           aria-label={label}
-          className="absolute right-1 top-1/2 size-8 -translate-y-1/2 rounded-full p-0"
+          className="absolute right-1 top-1/2 -translate-y-1/2"
           onClick={handleClear}
           type="button"
+          size="icon-row"
           variant="ghost"
         >
           <XIcon aria-hidden className="size-4" />
@@ -228,10 +232,10 @@ function ActiveFilterChips({
             variant="secondary"
           >
             <a
-              className="inline-flex min-h-11 items-center"
+              className="inline-flex min-h-(--control-default-height) items-center"
               href={filterRemoveUrl(formAction, canonicalFilterQuery, key, value, pageSize)}
             >
-              <span className="max-w-[16rem] truncate">{label}: {resolvedValue}</span>
+              <span className="max-w-(--directory-filter-chip-max-width) truncate">{label}: {resolvedValue}</span>
               <XIcon aria-hidden className="size-3" />
             </a>
           </Badge>
@@ -269,10 +273,12 @@ type DataDirectoryClientProps = Readonly<{
   emptyAction?: Readonly<{ href: string; label: string }>;
   actionsLabel?: string;
   interactive?: boolean;
+  compactToolbar?: DataDirectoryCompactToolbar;
 }>;
 
 function DirectoryToolbar({
   canonicalFilterQuery,
+  compactToolbar,
   copy,
   filters = [],
   formAction,
@@ -289,6 +295,7 @@ function DirectoryToolbar({
   idPrefix,
 }: Readonly<{
   canonicalFilterQuery?: string;
+  compactToolbar?: DataDirectoryCompactToolbar;
   copy: DataDirectoryCopy;
   filters?: readonly DataDirectoryEnumFilter[];
   formAction: string;
@@ -304,6 +311,51 @@ function DirectoryToolbar({
   textFilters?: readonly DataDirectoryTextFilter[];
   idPrefix: string;
 }>) {
+  const isCompact = compactToolbar !== undefined;
+  const visibleFilterNames = new Set(compactToolbar?.visibleFilterNames);
+  const visibleFilters = isCompact ? filters.filter((filter) => visibleFilterNames.has(filter.name)) : filters;
+  const additionalFilters = isCompact ? filters.filter((filter) => !visibleFilterNames.has(filter.name)) : [];
+  const dateFilters = textFilters.filter((filter) => filter.calendarDay);
+  const otherTextFilters = textFilters.filter((filter) => !filter.calendarDay);
+  const additionalFilterGridClassName = compactToolbar?.additionalFiltersDesktopColumns === 3
+    ? `${ADDITIONAL_FILTER_GRID_CLASS} md:grid-cols-3`
+    : ADDITIONAL_FILTER_GRID_CLASS;
+  const dateFilterGridClassName = compactToolbar?.additionalFiltersDesktopColumns === 3
+    ? "grid gap-4 md:col-span-full md:grid-cols-2"
+    : "grid gap-4 md:col-span-2 md:grid-cols-2";
+  const additionalFilterActiveCount = Array.from(new URLSearchParams(canonicalFilterQuery).keys())
+    .filter((key) => key.startsWith("filter.") && !visibleFilterNames.has(key.slice("filter.".length))).length;
+
+  const renderEnumFilter = (filter: DataDirectoryEnumFilter) => (
+    <Field key={filter.name}>
+      <FieldLabel htmlFor={`${idPrefix}-filter-${filter.name}`}>{filter.label}</FieldLabel>
+      <NativeSelect
+        data-ds-hit-target
+        defaultValue={filter.selected ?? ""}
+        id={`${idPrefix}-filter-${filter.name}`}
+        name={`filter.${filter.name}`}
+      >
+        <NativeSelectOption value="">{filter.allLabel}</NativeSelectOption>
+        {filter.options.map((option) => (
+          <NativeSelectOption key={option.value} value={option.value}>{option.label}</NativeSelectOption>
+        ))}
+      </NativeSelect>
+    </Field>
+  );
+  const renderTextFilter = (filter: DataDirectoryTextFilter) => (
+    <Field key={filter.name}>
+      <FieldLabel htmlFor={`${idPrefix}-filter-${filter.name}`}>{filter.label}</FieldLabel>
+      <Input
+        data-ds-hit-target
+        defaultValue={filter.selected}
+        id={`${idPrefix}-filter-${filter.name}`}
+        name={`filter.${filter.name}`}
+        placeholder={filter.placeholder}
+        type={filter.calendarDay ? "date" : "text"}
+      />
+    </Field>
+  );
+
   return (
     <form
       action={formAction}
@@ -313,8 +365,8 @@ function DirectoryToolbar({
       onChange={interactive ? onFieldChange : undefined}
       ref={formRef}
     >
-      <FieldGroup className="grid gap-5 md:grid-cols-3">
-        <Field>
+      <FieldGroup className={isCompact ? "grid gap-4 min-[360px]:grid-cols-2 md:grid-cols-[minmax(0,1fr)_minmax(var(--directory-toolbar-filter-min-width),0.45fr)_auto]" : "grid gap-5 md:grid-cols-3"}>
+        <Field className={isCompact ? "min-[360px]:col-span-2 md:col-span-1" : undefined}>
           <FieldLabel htmlFor={`${idPrefix}-search`}>{copy.searchLabel}</FieldLabel>
           <DebouncedSearch
             defaultValue={search}
@@ -324,51 +376,64 @@ function DirectoryToolbar({
             placeholder={copy.searchPlaceholder}
           />
         </Field>
-        {filters.map((filter) => (
-          <Field key={filter.name}>
-            <FieldLabel htmlFor={`${idPrefix}-filter-${filter.name}`}>{filter.label}</FieldLabel>
-            <NativeSelect
-              data-ds-hit-target
-              defaultValue={filter.selected ?? ""}
-              id={`${idPrefix}-filter-${filter.name}`}
-              name={`filter.${filter.name}`}
-            >
-              <NativeSelectOption value="">{filter.allLabel}</NativeSelectOption>
-              {filter.options.map((option) => (
-                <NativeSelectOption key={option.value} value={option.value}>{option.label}</NativeSelectOption>
-              ))}
-            </NativeSelect>
-          </Field>
-        ))}
-        {textFilters.map((filter) => (
-          <Field key={filter.name}>
-            <FieldLabel htmlFor={`${idPrefix}-filter-${filter.name}`}>{filter.label}</FieldLabel>
-            <Input
-              data-ds-hit-target
-              defaultValue={filter.selected}
-              id={`${idPrefix}-filter-${filter.name}`}
-              name={`filter.${filter.name}`}
-              placeholder={filter.placeholder}
-              type={filter.calendarDay ? "date" : "text"}
-            />
-          </Field>
-        ))}
+        {visibleFilters.map(renderEnumFilter)}
+        {!isCompact ? textFilters.map(renderTextFilter) : null}
+        {isCompact && (additionalFilters.length > 0 || textFilters.length > 0) ? (
+          <details className="group min-[360px]:contents min-[360px]:[&::details-content]:col-span-full">
+            <summary className="flex min-h-(--control-default-height) cursor-pointer list-none items-center justify-between gap-3 rounded-(--control-radius) bg-surface-2 px-(--control-padding-inline) text-(length:--control-field-text-size) font-medium text-text marker:content-none focus-visible:ring-3 focus-visible:ring-ring min-[360px]:self-end md:min-w-44">
+              <span className="flex items-center gap-2">
+                {copy.additionalFilters ?? copy.applyFilters}
+                <Badge aria-label={(copy.additionalFiltersActive ?? "{count}").replace("{count}", String(additionalFilterActiveCount))} variant="secondary">{additionalFilterActiveCount}</Badge>
+              </span>
+              <ChevronDownIcon aria-hidden className="size-4 transition-transform group-open:rotate-180" />
+            </summary>
+            <FieldGroup className={additionalFilterGridClassName}>
+              {additionalFilters.map(renderEnumFilter)}
+              {otherTextFilters.map(renderTextFilter)}
+              {dateFilters.length > 0 ? (
+                <fieldset className={dateFilterGridClassName}>
+                  <legend className="mb-1 text-sm font-medium text-text">{copy.creationPeriod ?? copy.additionalFilters ?? copy.applyFilters}</legend>
+                  {dateFilters.map(renderTextFilter)}
+                </fieldset>
+              ) : null}
+            </FieldGroup>
+          </details>
+        ) : null}
       </FieldGroup>
-      <ActiveFilterChips
-        canonicalFilterQuery={canonicalFilterQuery}
-        filters={filters}
-        formAction={formAction}
-        pageSize={pageSize}
-        searchLabel={copy.searchLabel}
-        textFilters={textFilters}
-      />
-      <div className="flex flex-wrap items-center gap-3">
-        {hasChips ? (
+      {hasChips && isCompact ? (
+        <div className="flex flex-wrap items-center gap-3">
+          <ActiveFilterChips
+            canonicalFilterQuery={canonicalFilterQuery}
+            filters={filters}
+            formAction={formAction}
+            pageSize={pageSize}
+            searchLabel={copy.searchLabel}
+            textFilters={textFilters}
+          />
           <Button asChild data-ds-hit-target variant="ghost">
             <a href={resetUrl}>{copy.clearFilters ?? copy.resetFilters}</a>
           </Button>
-        ) : null}
-      </div>
+        </div>
+      ) : null}
+      {!isCompact ? (
+        <>
+          <ActiveFilterChips
+            canonicalFilterQuery={canonicalFilterQuery}
+            filters={filters}
+            formAction={formAction}
+            pageSize={pageSize}
+            searchLabel={copy.searchLabel}
+            textFilters={textFilters}
+          />
+          <div className="flex flex-wrap items-center gap-3">
+            {hasChips ? (
+              <Button asChild data-ds-hit-target variant="ghost">
+                <a href={resetUrl}>{copy.clearFilters ?? copy.resetFilters}</a>
+              </Button>
+            ) : null}
+          </div>
+        </>
+      ) : null}
       {interactive ? (
         <noscript>
           <div className="flex flex-wrap gap-3">
@@ -399,11 +464,13 @@ function StateCard({
   action,
   description,
   state,
+  compactToolbar = false,
   title,
 }: Readonly<{
   action?: Readonly<{ href: string; label: string }>;
   description: string;
   state: Exclude<DataDirectoryState, "ready" | "loading">;
+  compactToolbar?: boolean;
   title: string;
 }>) {
   const destructive = state === "invalid-query" || state === "error";
@@ -423,7 +490,7 @@ function StateCard({
   const EmptyIcon = state === "filtered-empty" ? SearchXIcon : InboxIcon;
 
   return (
-    <Empty data-directory-state={state}>
+    <Empty className={compactToolbar ? "border border-dashed border-border py-8" : undefined} data-directory-state={state}>
       <EmptyHeader>
         <EmptyMedia variant="icon"><EmptyIcon aria-hidden /></EmptyMedia>
         <EmptyTitle>{title}</EmptyTitle>
@@ -470,7 +537,7 @@ function DirectoryLoading({
                 {columns.map((column) => (
                   <TableCell key={column.id}><Skeleton className="h-4 w-full max-w-32" /></TableCell>
                 ))}
-                {actionsLabel ? <TableCell><Skeleton className="h-11 w-24" /></TableCell> : null}
+                {actionsLabel ? <TableCell><Skeleton className="h-(--control-row-height) w-24" /></TableCell> : null}
               </TableRow>
             ))}
           </TableBody>
@@ -481,7 +548,7 @@ function DirectoryLoading({
           <Card key={rowKey}>
             <CardContent className="flex flex-col gap-3">
               {columns.map((column) => <Skeleton className="h-4 w-full" key={column.id} />)}
-              {actionsLabel ? <Skeleton className="h-11 w-24" /> : null}
+              {actionsLabel ? <Skeleton className="h-(--control-row-height) w-24" /> : null}
             </CardContent>
           </Card>
         ))}
@@ -617,6 +684,7 @@ export function DataDirectoryClient(props: DataDirectoryClientProps) {
     <section aria-busy={effectiveState === "loading" ? true : undefined} className="flex min-w-0 flex-col gap-6" data-data-directory>
       <DirectoryToolbar
         canonicalFilterQuery={props.canonicalFilterQuery}
+        compactToolbar={props.compactToolbar}
         copy={props.copy}
         filters={props.filters}
         formAction={props.formAction}
@@ -642,16 +710,16 @@ export function DataDirectoryClient(props: DataDirectoryClientProps) {
         />
       ) : null}
       {effectiveState === "empty" ? (
-        <StateCard action={stateAction} description={props.copy.emptyDescription} state="empty" title={props.copy.empty} />
+        <StateCard action={stateAction} compactToolbar={Boolean(props.compactToolbar)} description={props.copy.emptyDescription} state="empty" title={props.copy.empty} />
       ) : null}
       {effectiveState === "filtered-empty" ? (
-        <StateCard action={stateAction} description={props.copy.filteredEmptyDescription} state="filtered-empty" title={props.copy.filteredEmpty} />
+        <StateCard action={stateAction} compactToolbar={Boolean(props.compactToolbar)} description={props.copy.filteredEmptyDescription} state="filtered-empty" title={props.copy.filteredEmpty} />
       ) : null}
       {effectiveState === "invalid-query" ? (
-        <StateCard action={stateAction} description={props.copy.invalidDescription} state="invalid-query" title={props.copy.invalid} />
+        <StateCard action={stateAction} compactToolbar={Boolean(props.compactToolbar)} description={props.copy.invalidDescription} state="invalid-query" title={props.copy.invalid} />
       ) : null}
       {effectiveState === "error" ? (
-        <StateCard action={stateAction} description={props.copy.errorDescription} state="error" title={props.copy.error} />
+        <StateCard action={stateAction} compactToolbar={Boolean(props.compactToolbar)} description={props.copy.errorDescription} state="error" title={props.copy.error} />
       ) : null}
       {effectiveState === "ready" ? (
         <>

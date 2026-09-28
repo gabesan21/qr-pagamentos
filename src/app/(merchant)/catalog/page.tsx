@@ -163,6 +163,7 @@ function ProductDirectory({
         caption={dictionary.shellProducts}
         columns={columns}
         canonicalFilterQuery={query.canonicalFilterQuery}
+        compactToolbar={{ visibleFilterNames: ["state"] }}
         copy={dataDirectoryCopy(dictionary, { title: dictionary.catalogProductsEmpty, description: dictionary.catalogProductsEmptyDescription })}
         emptyAction={{ href: "/catalog/products/new", label: dictionary.adminProductCreate }}
         filters={[
@@ -260,6 +261,7 @@ export default async function MerchantCatalogPage({
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <WorkspaceHeading
+          className="!border-b-0 !pb-0"
           description={dictionary.catalogProductsDescription}
           eyebrow={dictionary.shellMerchantEyebrow}
           title={dictionary.shellProducts}

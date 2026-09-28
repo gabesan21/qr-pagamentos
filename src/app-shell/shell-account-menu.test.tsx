@@ -3,9 +3,10 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("next/navigation", () => ({ usePathname: () => "/" }));
+const { usePathname } = vi.hoisted(() => ({ usePathname: vi.fn(() => "/a") }));
+vi.mock("next/navigation", () => ({ usePathname }));
 
-import { TopBarShellControls } from "./shell-navigation";
+import { ShellAccountMenu } from "./shell-navigation";
 import type { ShellLabels } from "./shell-types";
 
 afterEach(cleanup);
@@ -28,14 +29,11 @@ const labels: ShellLabels = {
 
 function renderShell(accountLink?: Readonly<{ href: string; label: string }>) {
   return render(
-    <TopBarShellControls
-      accountLink={accountLink}
-      identity={<span>Identity</span>}
+    <ShellAccountMenu
+      profileLink={accountLink}
       labels={labels}
-      locale="en"
-      mobileNavigation={{ items: [], label: "Navigation" }}
-      titleFallback="Dashboard"
       roleLabel="Merchant"
+      themeOptions={[]}
       username="merchant.one"
     />,
   );
@@ -49,24 +47,35 @@ describe("account menu Sign out", () => {
     renderShell({ href: "/profile", label: "Profile" });
     fireEvent.click(screen.getByRole("button", { name: /account menu/i }));
 
-    const signOutItem = screen.getByRole("menuitem", { name: /sign out/i });
+    const signOutItem = screen.getByRole("button", { name: /sign out/i });
     expect(signOutItem.tagName).toBe("BUTTON");
     const form = signOutItem.closest("form");
     expect(form).not.toBeNull();
     expect(form?.getAttribute("action")).toBe("/logout");
     expect(form?.getAttribute("method")).toBe("post");
-    // The form sits between role="menu" and role="menuitem": it must not
-    // register as a foreign node in the accessibility tree.
-    expect(form?.getAttribute("role")).toBe("none");
-
-    expect(screen.getByRole("menuitem", { name: /profile/i })).not.toBeNull();
+    expect(screen.getByRole("link", { name: /profile/i })).not.toBeNull();
   });
 
   it("still renders Sign out with no Profile link, for roles without a profile route", () => {
     renderShell(undefined);
     fireEvent.click(screen.getByRole("button", { name: /account menu/i }));
 
-    expect(screen.getByRole("menuitem", { name: /sign out/i })).not.toBeNull();
-    expect(screen.queryByRole("menuitem", { name: /profile/i })).toBeNull();
+    expect(screen.getByRole("button", { name: /sign out/i })).not.toBeNull();
+    expect(screen.queryByRole("link", { name: /profile/i })).toBeNull();
+  });
+
+  it("does not reopen a prior pathname's menu after navigation away and back", () => {
+    usePathname.mockReturnValue("/a");
+    const view = renderShell();
+    fireEvent.click(screen.getByRole("button", { name: /account menu/i }));
+    expect(screen.getByRole("dialog", { name: /account menu/i })).not.toBeNull();
+
+    usePathname.mockReturnValue("/b");
+    view.rerender(<ShellAccountMenu labels={labels} roleLabel="Merchant" themeOptions={[]} username="merchant.one" />);
+    expect(screen.queryByRole("dialog", { name: /account menu/i })).toBeNull();
+
+    usePathname.mockReturnValue("/a");
+    view.rerender(<ShellAccountMenu labels={labels} roleLabel="Merchant" themeOptions={[]} username="merchant.one" />);
+    expect(screen.queryByRole("dialog", { name: /account menu/i })).toBeNull();
   });
 });

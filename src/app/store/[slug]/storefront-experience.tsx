@@ -46,6 +46,10 @@ export type StorefrontExperienceCopy = Readonly<{
   priceLabel: string;
   productsHeading: string;
   quantityLabel: string;
+  standaloneAmountInvalid: string;
+  standaloneCurrencyUnavailable: string;
+  standaloneHeading: string;
+  standaloneContinue: string;
 }>;
 
 type QuantityCommit = (reference: string, quantity: number) => void;
@@ -70,6 +74,10 @@ function writeStorage(key: string, value: string) {
 
 function formatAmount(amount: string, currencyCode: string | null): string {
   return currencyCode ? `${amount} ${currencyCode}` : amount;
+}
+
+export function standalonePaymentPrefillHref(slug: string, amount: string): string | null {
+  return isStorefrontCartAmount(amount) ? `/store/${slug}/pay?amount=${encodeURIComponent(amount)}` : null;
 }
 
 // Cart checkout submission (9.1.3): the browser sends only product identity
@@ -200,6 +208,67 @@ function CustomAmountField({
         <FieldError id="storefront-custom-amount-error">{copy.customAmountInvalid}</FieldError>
       ) : null}
     </Field>
+  );
+}
+
+// An empty catalog has a deliberately separate storefront surface. It does not
+// hydrate or mutate the browser cart: a custom amount is only a canonical
+// prefill for the existing standalone payment page.
+export function StandaloneStorefrontExperience({
+  copy,
+  currencyCode,
+  slug,
+}: Readonly<{
+  copy: StorefrontExperienceCopy;
+  currencyCode: string | null;
+  slug: string;
+}>) {
+  const [amount, setAmount] = useState("");
+  const amountIsValid = isStorefrontCartAmount(amount);
+  const amountHasError = amount.length > 0 && !amountIsValid;
+  const unavailable = currencyCode === null;
+  const payHref = standalonePaymentPrefillHref(slug, amount);
+
+  return (
+    <Card className="mx-auto w-full max-w-md">
+      <CardHeader>
+        <CardTitle>{copy.standaloneHeading}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {unavailable ? (
+          <Alert>
+            <AlertDescription>{copy.standaloneCurrencyUnavailable}</AlertDescription>
+          </Alert>
+        ) : (
+          <Field data-invalid={amountHasError || undefined}>
+            <FieldLabel htmlFor="storefront-standalone-amount">
+              {copy.customAmountLabel} ({currencyCode})
+            </FieldLabel>
+            <Input
+              aria-describedby={amountHasError ? "storefront-standalone-amount-error" : undefined}
+              aria-invalid={amountHasError || undefined}
+              autoComplete="off"
+              id="storefront-standalone-amount"
+              inputMode="decimal"
+              onChange={(event) => setAmount(event.target.value)}
+              value={amount}
+            />
+            {amountHasError ? (
+              <FieldError id="storefront-standalone-amount-error">{copy.standaloneAmountInvalid}</FieldError>
+            ) : null}
+          </Field>
+        )}
+      </CardContent>
+      <CardFooter>
+        {unavailable || !payHref ? (
+          <Button disabled type="button">{copy.standaloneContinue}</Button>
+        ) : (
+          <Button asChild>
+            <a href={payHref}>{copy.standaloneContinue}</a>
+          </Button>
+        )}
+      </CardFooter>
+    </Card>
   );
 }
 

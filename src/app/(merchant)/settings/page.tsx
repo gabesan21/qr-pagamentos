@@ -1,6 +1,6 @@
 import { WorkspaceHeading } from "@/app-shell/workspace-heading";
 import { getCheckoutPolicyService } from "@/auth/checkout-policy";
-import { listOwnerEvidenceByCode } from "@/auth/currency-pair-verification";
+import { listOwnerProbeMethods } from "@/auth/currency-pair-verification";
 import { getStorefrontSettingsService } from "@/auth/storefront-settings";
 import { getSupportedExchangeCurrencyService } from "@/auth/supported-exchange-currency";
 import { getOwnerOnboardingService } from "@/integrations/nautt/owner-onboarding";
@@ -28,7 +28,7 @@ export default async function MerchantSettingsPage({
     getCheckoutPolicyService().getForOwner(principal),
     getStorefrontSettingsService().getForOwner(principal),
     getSupportedExchangeCurrencyService().listActiveChoices(principal),
-    listOwnerEvidenceByCode(principal),
+    listOwnerProbeMethods(principal),
     searchParams,
   ]);
   // The staged logo identifier is the public-safe media handle; anything else
@@ -39,8 +39,9 @@ export default async function MerchantSettingsPage({
       : null;
 
   return (
-    <>
+    <div className="space-y-6">
       <WorkspaceHeading
+        className="!border-b-0 !pb-0"
         description={dictionary.settingsPageDescription}
         eyebrow={dictionary.shellMerchantEyebrow}
         title={dictionary.shellSettings}
@@ -57,6 +58,6 @@ export default async function MerchantSettingsPage({
         storefrontSettings={storefrontSettings}
         stagedLogoMediaIdentifier={stagedLogo}
       />
-    </>
+    </div>
   );
 }

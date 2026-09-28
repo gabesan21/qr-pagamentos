@@ -108,13 +108,15 @@ function CopyField({
   if (variant === "compact") {
     return (
       <span className={cn("inline-flex max-w-full flex-col items-start gap-1", className)}>
-        <button
+        <Button
           type="button"
           disabled={state === "pending"}
           aria-describedby={statusId}
           aria-label={statusLabel}
           onClick={() => void handleCopy()}
-          className="group inline-flex min-h-11 max-w-full items-center gap-2 rounded-md border border-border bg-surface-2 px-2.5 py-1 text-left transition-colors hover:border-accent focus-visible:border-ring focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+          className="max-w-full justify-start text-left"
+          size="row"
+          variant="secondary"
         >
           <span className={cn("min-w-0 font-money text-xs text-text-2", truncate && "truncate")}>
             {value}
@@ -123,10 +125,10 @@ function CopyField({
             state={state}
             className={cn(
               "size-3.5 shrink-0",
-              state === "failed" ? "text-destructive" : "text-text-3 group-hover:text-accent",
+              state === "failed" ? "text-destructive" : "text-text-3 group-hover/button:text-accent",
             )}
           />
-        </button>
+        </Button>
         {statusAnnouncement}
       </span>
     )

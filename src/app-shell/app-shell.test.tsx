@@ -136,7 +136,16 @@ describe("role shell contract", () => {
     expect(css).not.toContain("48rem)");
   });
 
-  it("renders the rail footer as monogram, username, role pill, and the Nautt Finance caption, with no sign-out in the rail", () => {
+  it("uses the 640px grid boundary for the compact mobile header", () => {
+    const css = readFileSync(`${root}/src/app-shell/app-shell.css`, "utf8");
+    const compactHeader = css.slice(css.indexOf("@media (max-width: 39.9375rem)"));
+    expect(compactHeader).toContain(".app-shell__mobile-trigger-label");
+    expect(compactHeader).toContain(".app-shell__language-form");
+    expect(compactHeader).toContain("display: none;");
+    expect(css).not.toContain("@media (max-width: 23.4375rem)");
+  });
+
+  it("renders the complete account menu in the rail footer without provider branding", () => {
     usePathname.mockReturnValue("/");
     render(
       <AppShell
@@ -155,14 +164,8 @@ describe("role shell contract", () => {
 
     const rail = document.querySelector(".app-shell__rail");
     expect(rail).not.toBeNull();
-    expect(rail?.querySelector(".app-shell__username")?.textContent).toBe("merchant.one");
-    expect(rail?.querySelector(".app-shell__rail-role-pill")?.textContent).toBe("Merchant");
-    expect(rail?.querySelector(".app-shell__rail-caption")?.textContent).toBe("by Nautt Finance");
-    expect(rail?.querySelector("form[action='/logout']")).toBeNull();
-    expect(rail?.querySelector("button")).toBeNull();
-
-    const monogram = rail?.querySelector(".app-shell__rail-principal > span");
-    expect(monogram?.className).toContain("rounded-full");
-    expect(monogram?.textContent).toBe("M");
+    expect(rail?.querySelector("button[aria-haspopup='dialog']")?.textContent).toContain("merchant.one");
+    expect(rail?.querySelector(".app-shell__rail-caption")).toBeNull();
+    expect(rail?.querySelector("button[aria-haspopup='dialog']")).not.toBeNull();
   });
 });

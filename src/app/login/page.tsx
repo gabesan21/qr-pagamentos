@@ -32,8 +32,8 @@ export default async function LoginPage({ searchParams }: Readonly<{ searchParam
           <>
             <CardHeader>
               <BrandIdentity className="auth-brand" variant="product-lockup" />
-              <CardTitle>{dictionary.mfaHeading}</CardTitle>
-              <CardDescription>{dictionary.mfaIntroduction}</CardDescription>
+              <CardTitle className="text-2xl font-semibold leading-tight">{dictionary.mfaHeading}</CardTitle>
+              <CardDescription className="text-text-2">{dictionary.mfaIntroduction}</CardDescription>
             </CardHeader>
             <CardContent>
               <TotpChallengeForm dictionary={dictionary} failed={mfaFailed} />

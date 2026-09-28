@@ -27,6 +27,7 @@ export const serverRequestRoutes = {
   nauttCredentials: "/nautt-credentials",
   nauttCredentialsRegister: "/nautt-credentials/register",
   nauttCredentialsReset: "/nautt-credentials/reset",
+  nauttCredentialsReplace: "/nautt-credentials/replace",
   adminCurrencyPairs: "/admin/catalog/currency-pairs",
   adminCurrencyPair: "/admin/catalog/currency-pairs/[id]",
   adminPaymentMethods: "/admin/catalog/payment-methods",

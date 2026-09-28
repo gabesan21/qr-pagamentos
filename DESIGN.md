@@ -22,6 +22,10 @@ so existing route contracts remain authoritative outside that boundary.
 
 ## Tone
 
+## Payment settings
+
+`/admin/settings` has two payment configuration sections: Currencies and Payment methods. The method table uses the shared compact table, status badges, buttons, fields, and theme tokens. A provider exchange UUID is technical secondary text; the payment-method label and ISO currency code are primary. A default method is visibly marked and its deactivation control is disabled with an explanation.
+
 The single direction is **professional settlement console**: calm neutral work
 surfaces, compact financial facts, crisp bordered cards, restrained elevation,
 direct status feedback, and accent reserved for action, selection, focus, and
@@ -201,8 +205,12 @@ never satisfy visual evidence. Static identity assets contain no live font.
 - Application width cap is `1280px`; default public checkout cap is `560px`;
   authentication form cap is `420px`.
 - Authenticated rail is `248px`, top bar and rail header are `56px`, directory
-  rows are `52px`, compact controls are `40px`, and primary auth actions are
-  `48px`. The accessible target minimum still wins: `44×44px`.
+  rows are `52px`, and primary auth actions are `48px`. Shared controls resolve
+  through generated component roles: mobile/coarse controls are at least `44px`
+  with `16px` field text; fine-pointer controls from `640px` are `36px` by
+  default and `32px` for explicit row actions, with `14px` field text. The
+  accessible target minimum still wins outside that documented compact desktop
+  density.
 - Common card padding is `20px`; inter-card gap is `16px`. Related items remain
   at most `16px` apart; distinct sections are at least `32px` apart.
 - Labels sit above controls. Prose is at most `65ch`. A section has at most one
@@ -210,6 +218,11 @@ never satisfy visual evidence. Static identity assets contain no live font.
 - Page grids may move from one column to two at `640px`, then to the exact
   template composition at `1024px`. No page has horizontal document overflow at
   `320px`; dense directories use a deliberate narrow facts composition.
+- Below the same `640px` grid boundary, shell chrome hides the verbose drawer
+  label and top-bar locale form before they can crowd the account control;
+  language and theme remain reachable through account/settings. The
+  `39.9375rem` compact-shell media literal is a documented token-boundary
+  exception because CSS custom properties cannot be used as media conditions.
 - Full motion follows the parity interaction record. Reduced motion collapses
   non-essential animation and transition durations to `0.01ms` with one
   iteration while preserving final state, focus, and feedback.
@@ -226,6 +239,12 @@ Money stays an exact canonical decimal string and uses server-resolved currency
 labels. Never use JavaScript floating-point money math. Provider-confirmed and
 locally finalized facts remain separate. Opaque errors never echo an identifier,
 submitted query, identity, authorization cause, provider body, or secret.
+
+Dashboard integer counts use the active locale's `Intl.NumberFormat`. Exact
+money keeps its canonical string: English uses comma grouping and a decimal
+point; pt-BR uses dot grouping and a decimal comma except USD and USDT retain
+their US separators. This is a display rule only and never converts currency,
+changes precision, or combines amounts.
 
 ## Identity and asset boundary
 
@@ -280,18 +299,17 @@ storage]]; template assets do not bypass that lifecycle.
 - Below Tailwind `lg` (`1024px`), one disclosure opens a `248px` modal drawer;
   at or above `lg`, one persistent rail occupies that width. Only one navigation
   copy is present in the accessibility tree.
-- The sticky `56px` top bar contains page identity, locale, and the role-safe
-  account menu. Main content is centered to `1280px` with `16px` padding below
+- The sticky `56px` top bar contains page identity and accessible flag-only
+  locale controls. Main content is centered to `1280px` with `16px` padding below
   `lg` and `24px` from `lg`.
 - The top-bar title is resolved from an inert route→label registry each role
   layout supplies (`titleRoutes`, matched with the shared `isActiveRoute`
   rule); the merchant registry also matches `/profile`, and an unmatched
   route falls back to the role's dashboard label. Static per-role eyebrow
   strings no longer name the page.
-- The persistent rail footer shows a `Monogram`, username, role pill, and the
-  `by Nautt Finance` caption; sign-out is owned solely by the account menu and
-  is never duplicated in the rail (the mobile drawer footer keeps its own
-  sign-out).
+- The persistent rail and mobile drawer footer own the complete account menu:
+  identity, merchant-only profile, instant theme picker, and native sign out.
+  The top bar never duplicates account controls or renders provider branding.
 - The merchant top bar links `View storefront` only when the owner's
   storefront settings resolve `storefrontEnabled` with a non-null slug,
   targeting `/store/<slug>` — never the template's `/pay/<slug>` shortcut —
@@ -375,6 +393,31 @@ page-number, arbitrary sorting, or client-list behavior. The executable map is
 and all 49 unreachable generated sources remain exclusions. Official supporting
 sources are recorded with one insufficiency finding each.
 
+M-8.1 uses that owner for the three administrative directories' compact mode:
+search and a consumer-configured visible filter remain in one desktop toolbar
+row, while other registered controls stay enabled within the same native GET
+form under a semantic
+`details`/`summary` disclosure. Creation dates remain native controls so the
+browser localizes their presentation without changing canonical ISO URL values.
+Compact empty and loading states preserve the professional settlement-console
+rhythm with existing semantic borders, surfaces, and skeleton utilities.
+
+M-12.1 applies the same opt-in composition to the merchant Orders, Payment
+links, and Catalog directories: payment state remains the only visible filter;
+their existing route-specific filters remain in the unchanged GET form behind
+the disclosure, and Catalog exposes that disclosure only when real categories
+exist. The routes locally remove the workspace-heading divider while retaining
+the standard page rhythm and their existing actions; each route loading state
+uses `DirectoryRouteSkeleton` rather than a page-local approximation.
+
+M-9.1 centralizes shared Button, Input, NativeSelect, Textarea, Field, and
+Label geometry/type under generated `--control-*` variables. Components and
+directory consumers do not branch by theme ID or override control size locally.
+`Button` preserves `sm` compatibility and exposes `row`, `icon-row`, `inline`,
+and `lg` sizes; row deletion uses the
+quiet `quiet-destructive` variant (`text-danger-on-soft` over neutral rest and
+hover surfaces), while the ConfirmDialog keeps strong destructive emphasis.
+
 Task `14.2.4` brings `owners` to template parity without adding to that
 20-entry set: `status-badge.tsx` renders a soft-tint pill with a `bg-current`
 dot (or `Archive` icon when archived, struck-through label when archived or
@@ -441,6 +484,16 @@ projection carries no series). Both admin directories keep the single
 inventory: an admin-local table for the byte-frozen V1 ledger reusing the
 owned `Table` primitives, and an admin-local associated-orders card on the
 link detail composing `Card`/`StatusBadge`/`MoneyText`.
+
+The `/admin` dashboard keeps platform totals separate from selected-period
+performance: each group has one localized explanation instead of repeating it
+in every stat card. Its numeric `StatCard` facts use the existing display type
+role, dashboard ranking empties use the compact `EmptyState` composition, and
+the header/filter composition leaves a section gap below the ruled workspace
+heading. Order-source segments use count-based SVG coordinates, so their
+combined width is exact without inline styles or per-segment percentage
+rounding. These are read-only presentation changes; currency pairs and the two
+sales definitions remain separate.
 
 Task `14.5.1` converges the merchant dashboard, `/orders`, and the V2 order
 detail routes to the template's operations model, also without adding to
@@ -523,9 +576,11 @@ because `scripts/check-design-tokens.mjs` sanctions that literal only inside
 violation and CSS forbids `var()` inside a media query, so the breakpoint
 cannot move; **`.brand-identity*`/`[data-brand-identity]`** is
 component-owned identity geometry (`src/brand/AGENTS.md`), plus the
-`.auth-brand` descendant override it accepts — shrinking `BrandIdentity`'s
-`product-lockup` mark/name without a new size prop is an open gap, not a
-forced refactor (see
+`.auth-brand` descendant override it accepts — it keeps the compact form
+lockup on narrow auth layouts and hides that duplicate from the desktop form
+column, where the leading panel owns the identity. Shrinking `BrandIdentity`'s
+`product-lockup` mark/name without a new size prop is an open gap, not a forced
+refactor (see
 [[pop/researches/template-fidelity-convergence/convergence-outcome|convergence-outcome]]);
 **`.sr-only`** is the one global accessibility utility with no Tailwind
 equivalent that matches it byte-for-byte. No other BEM selector remains.

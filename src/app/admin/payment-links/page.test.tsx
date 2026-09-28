@@ -117,6 +117,9 @@ describe("administrator payment-links directory page", () => {
     expect(markup).toContain(">No expiry</");
     expect(markup).toContain('href="/admin/payment-links/v2/440e8400-e29b-41d4-a716-446655440010"');
     expect(markup).toContain('action="/admin/payment-links"');
+    expect(markup).toContain("Additional filters");
+    expect(markup).toContain("Creation period");
+    expect(markup).toContain("Review payment links across all merchants");
     // Read-only: no share affordance, no owner mutation link, no POST form.
     expect(markup).not.toContain("/pay/abcdefghijklmnopqrstuvwx\"");
     expect(markup).not.toContain("/links/v2/");

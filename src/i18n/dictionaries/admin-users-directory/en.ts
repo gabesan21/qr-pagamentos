@@ -1,8 +1,11 @@
 export const adminUsersDirectoryEn = {
   adminUsersDirectoryHeading: "User directory",
-  adminUsersDirectoryDescription: "Every account, read-only, with derived status, store, and activity facts.",
+  adminUsersDirectoryDescription: "Review account identity, access, and recent activity.",
   adminUsersDirectoryEmpty: "No accounts yet",
-  adminUsersDirectoryEmptyDescription: "Accounts appear here once they are created.",
+  adminUsersDirectoryEmptyDescription: "Accounts will appear here when they are created.",
+  adminUsersDirectoryColumnIdentity: "Identity",
+  adminUsersDirectoryColumnAccess: "Access",
+  adminUsersDirectoryColumnActivity: "Activity",
   adminUsersDirectoryColumnUsername: "Username",
   adminUsersDirectoryColumnEmail: "Email",
   adminUsersDirectoryColumnRole: "Role",

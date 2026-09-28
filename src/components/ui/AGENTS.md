@@ -7,6 +7,14 @@
 - Consume semantic Tailwind names projected from
   `../../design-system/tokens/themes.tokens.json` into `../../app/globals.css`; never add
   raw color, spacing, radius, shadow, type, manual dark-mode, or z-index values.
+- Shared Button, Input, NativeSelect, and Textarea geometry/type consumes the
+  generated `--control-*` contract only. Its mobile/coarse defaults preserve a
+  44px target and 16px field type; the generator applies the 36px desktop
+  default and 32px row-action density for fine pointers from 640px upward.
+  Use Button's compatibility-preserving `sm`, `row`/`icon-row`, `inline`, or
+  `lg` variants rather than local overrides;
+  `quiet-destructive` is danger-on-neutral for row triggers, while confirmation
+  actions retain the strong `destructive` variant.
 - Never branch component classes or geometry by theme identifier; the six
   themes replace semantic color values only and unknown identifiers fall back
   to `pix-paper`.

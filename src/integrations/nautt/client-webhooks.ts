@@ -32,6 +32,29 @@ export type RegisteredNauttWebhook = {
   registeredAt: Date;
 };
 
+function parseActiveWebhook(payload: unknown, expectedId: string, callbackUrl: string): void {
+  if (
+    typeof payload !== "object"
+    || payload === null
+    || !("data" in payload)
+    || ("success" in payload && payload.success !== true)
+  ) {
+    throw new NauttWebhookAdapterError("Nautt webhook validation failed");
+  }
+  const data = payload.data;
+  if (typeof data !== "object" || data === null) throw new NauttWebhookAdapterError("Nautt webhook validation failed");
+  const record = data as Record<string, unknown>;
+  if (
+    record.uuid !== expectedId
+    || !UUID_PATTERN.test(expectedId)
+    || record.url !== callbackUrl
+    || record.is_active !== true
+    || !hasExactEvents(record.event_types)
+  ) {
+    throw new NauttWebhookAdapterError("Nautt webhook validation failed");
+  }
+}
+
 type AdapterDependencies = {
   fetch?: typeof globalThis.fetch;
   createTimeoutSignal?: (timeoutMs: number) => AbortSignal;
@@ -108,6 +131,24 @@ export function createClientWebhooksAdapter(dependencies: AdapterDependencies = 
         return parseSuccess(await response.json(), callbackUrl);
       } catch {
         throw new NauttWebhookAdapterError("Nautt webhook registration failed");
+      }
+    },
+    async verifyActive(input: { apiKey: string; providerWebhookId: string; callbackUrl: string }): Promise<void> {
+      const apiKey = input.apiKey.trim();
+      const callbackUrl = validateNauttWebhookCallbackUrl(input.callbackUrl);
+      if (!apiKey || !UUID_PATTERN.test(input.providerWebhookId)) {
+        throw new NauttWebhookAdapterError("Nautt webhook validation failed");
+      }
+      try {
+        const response = await fetch(`${loadNauttApiBaseUrl()}/client-webhooks/${input.providerWebhookId}`, {
+          method: "GET",
+          headers: { "X-API-Key": apiKey },
+          signal: createTimeoutSignal(DEFAULT_TIMEOUT_MS),
+        });
+        if (response.status !== 200) throw new NauttWebhookAdapterError("Nautt webhook validation failed");
+        parseActiveWebhook(await response.json(), input.providerWebhookId, callbackUrl);
+      } catch {
+        throw new NauttWebhookAdapterError("Nautt webhook validation failed");
       }
     },
   };

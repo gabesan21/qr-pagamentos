@@ -1,12 +1,8 @@
 import type { SupportedLocale } from "@/i18n/locales";
+import { LocaleFlagChoices } from "@/app/language-preference/language-switcher";
 
 import type { Dictionary } from "./settings-surface";
 import { SettingsSectionNotice, type SectionNotice } from "./settings-section-notice";
-
-const LOCALES: readonly { id: SupportedLocale; label: string }[] = [
-  { id: "pt-BR", label: "PT-BR" },
-  { id: "en", label: "EN" },
-];
 
 // Every button is a real `type="submit"`: clicking one always posts
 // `/language-preference` immediately, with no separate Save step — the same
@@ -26,25 +22,7 @@ export function LanguageSection({
           Alert fallback, so it passes no toast entries of its own to avoid
           stacking a duplicate toast on every language change. */}
       <SettingsSectionNotice dictionary={dictionary} notice={notice} toastEntries={[]} />
-      <div className="inline-flex gap-1 rounded-md bg-surface-2 p-1">
-        {LOCALES.map((item) => {
-          const active = locale === item.id;
-          return (
-            <button
-              key={item.id}
-              aria-pressed={active}
-              className={`relative flex min-h-11 items-center justify-center rounded px-4 text-xs font-semibold uppercase transition-colors ${active ? "text-text" : "text-text-2 hover:text-text"}`}
-              disabled={active}
-              name="locale"
-              type="submit"
-              value={item.id}
-            >
-              {active ? <span className="absolute inset-0 rounded bg-bg shadow-sm" /> : null}
-              <span className="relative">{item.label}</span>
-            </button>
-          );
-        })}
-      </div>
+      <LocaleFlagChoices label={dictionary.languageHeading} submit value={locale} />
     </form>
   );
 }

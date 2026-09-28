@@ -28,6 +28,108 @@
         }
       }
     },
+    "control": {
+      "default-height": {
+        "$type": "dimension",
+        "$value": "{size.semantic.target-min}"
+      },
+      "default-height-desktop": {
+        "$type": "dimension",
+        "$value": "{size.semantic.control-default}"
+      },
+      "row-height": {
+        "$type": "dimension",
+        "$value": "{size.semantic.target-min}"
+      },
+      "row-height-desktop": {
+        "$type": "dimension",
+        "$value": "{size.semantic.row-action}"
+      },
+      "large-height": {
+        "$type": "dimension",
+        "$value": "{size.semantic.auth-action}"
+      },
+      "textarea-min-height": {
+        "$type": "dimension",
+        "$value": "{size.semantic.textarea-min}"
+      },
+      "radius": {
+        "$type": "dimension",
+        "$value": "{radius.semantic.md}"
+      },
+      "padding-inline": {
+        "$type": "dimension",
+        "$value": "{space.semantic.3}"
+      },
+      "inline-padding": {
+        "$type": "dimension",
+        "$value": {
+          "value": 0,
+          "unit": "px"
+        }
+      },
+      "padding-block": {
+        "$type": "dimension",
+        "$value": "{space.semantic.2}"
+      },
+      "icon-padding-inline": {
+        "$type": "dimension",
+        "$value": "{space.semantic.10}"
+      },
+      "field-text-size": {
+        "$type": "dimension",
+        "$value": "{type.semantic.control-field.mobile}"
+      },
+      "field-text-size-desktop": {
+        "$type": "dimension",
+        "$value": "{type.semantic.control-field.desktop}"
+      },
+      "button-text-size": {
+        "$type": "dimension",
+        "$value": "{type.semantic.control-field.desktop}"
+      },
+      "selection-tile-padding": {
+        "$type": "dimension",
+        "$value": {
+          "value": 6,
+          "unit": "px"
+        }
+      },
+      "selection-tile-radius": {
+        "$type": "dimension",
+        "$value": "{radius.semantic.lg}"
+      },
+      "selection-tile-text-size": {
+        "$type": "dimension",
+        "$value": "{type.primitive.size.caption}"
+      },
+      "segmented-padding-inline": {
+        "$type": "dimension",
+        "$value": "{space.semantic.4}"
+      },
+      "segmented-radius": {
+        "$type": "dimension",
+        "$value": "{radius.semantic.sm}"
+      },
+      "segmented-text-size": {
+        "$type": "dimension",
+        "$value": "{type.primitive.size.caption}"
+      }
+    },
+    "directory": {
+      "filter-column-min-width": {
+        "$type": "dimension",
+        "$value": "{size.semantic.directory-filter-column-min}"
+      },
+      "toolbar-filter-min-width": {
+        "$type": "dimension",
+        "$value": "{size.semantic.directory-toolbar-filter-min}"
+      },
+      "filter-chip-max-width": {
+        "$type": "dimension",
+        "$value": "{size.semantic.directory-filter-chip-max}"
+      }
+    },
     "card": {
       "background": {
         "$type": "color",

@@ -7,7 +7,7 @@ export const settingsEn = {
   settingsNavPayments: "Payments",
   settingsNavCurrency: "Currency",
   settingsNavLanguage: "Language",
-  settingsPageDescription: "Manage your Nautt connection, storefront, checkout policy, and language preferences.",
+  settingsPageDescription: "Manage your provider connection, storefront, checkout policy, and language preferences.",
   settingsLanguageDescription: "Choose the language used across your merchant workspace.",
   nauttStatusActive: "Active",
   nauttStatusUnregistered: "Pending setup",

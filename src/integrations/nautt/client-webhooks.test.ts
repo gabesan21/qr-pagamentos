@@ -33,6 +33,58 @@ function success(overrides: Record<string, unknown> = {}) {
 }
 
 describe("Nautt client webhooks adapter", () => {
+  it("validates an active stored webhook with one strict candidate-key GET", async () => {
+    const fetch = vi.fn(async () => new Response(JSON.stringify({
+      data: {
+        uuid: providerWebhookId,
+        url: callbackUrl,
+        event_types: [...NAUTT_WEBHOOK_EVENT_TYPES],
+        is_active: true,
+      },
+    }), { status: 200 }));
+    const timeoutSignal = new AbortController().signal;
+    const adapter = createClientWebhooksAdapter({ fetch, createTimeoutSignal: vi.fn(() => timeoutSignal) });
+
+    await expect(adapter.verifyActive({ apiKey, providerWebhookId, callbackUrl })).resolves.toBeUndefined();
+    expect(fetch).toHaveBeenCalledWith(`https://api.nauttfinance.com/api/v2/client-webhooks/${providerWebhookId}`, {
+      method: "GET",
+      headers: { "X-API-Key": apiKey },
+      signal: timeoutSignal,
+    });
+  });
+
+  it.each([
+    ["inactive", { is_active: false }],
+    ["wrong callback", { url: "https://other.example.com/webhook" }],
+    ["wrong events", { event_types: ["order.paid"] }],
+  ])("rejects an unusable candidate-key webhook GET: %s", async (_label, overrides) => {
+    const fetch = vi.fn(async () => new Response(JSON.stringify({ data: {
+      uuid: providerWebhookId,
+      url: callbackUrl,
+      event_types: [...NAUTT_WEBHOOK_EVENT_TYPES],
+      is_active: true,
+      ...overrides,
+    } }), { status: 200 }));
+    const error = await createClientWebhooksAdapter({ fetch }).verifyActive({ apiKey, providerWebhookId, callbackUrl }).catch((caught: unknown) => caught);
+    expect(error).toBeInstanceOf(NauttWebhookAdapterError);
+    expect(String(error)).not.toContain(apiKey);
+  });
+
+  it("rejects a candidate-key webhook GET with an explicit false success flag", async () => {
+    const fetch = vi.fn(async () => new Response(JSON.stringify({
+      success: false,
+      data: {
+        uuid: providerWebhookId,
+        url: callbackUrl,
+        event_types: [...NAUTT_WEBHOOK_EVENT_TYPES],
+        is_active: true,
+      },
+    }), { status: 200 }));
+
+    await expect(createClientWebhooksAdapter({ fetch }).verifyActive({ apiKey, providerWebhookId, callbackUrl }))
+      .rejects.toBeInstanceOf(NauttWebhookAdapterError);
+  });
+
   it("dispatches one exact production request and returns the internal complete tuple", async () => {
     const fetch = vi.fn(async () => success());
     const timeoutSignal = new AbortController().signal;

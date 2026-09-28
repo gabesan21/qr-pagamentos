@@ -34,6 +34,7 @@ type EmptyStateProps = Readonly<{
   className?: string;
   illustration?: EmptyStateIllustration;
   kind?: EmptyStateKind;
+  size?: "compact" | "default";
   title: string;
 }>;
 
@@ -43,17 +44,19 @@ export function EmptyState({
   className,
   illustration = "unavailable",
   kind = "empty",
+  size = "default",
   title,
 }: EmptyStateProps) {
+  const isCompact = size === "compact";
   return (
     <Empty
-      className={cn("py-12", className)}
+      className={cn(isCompact ? "py-6" : "py-12", className)}
       data-state={kind}
       role={kind === "error" ? "alert" : "status"}
     >
       <EmptyHeader>
         <EmptyMedia>
-          <Image alt="" aria-hidden height={192} src={illustrationSources[illustration]} width={192} />
+          <Image alt="" aria-hidden height={isCompact ? 120 : 192} src={illustrationSources[illustration]} width={isCompact ? 120 : 192} />
         </EmptyMedia>
         <EmptyTitle>{title}</EmptyTitle>
         {body ? <EmptyDescription>{body}</EmptyDescription> : null}

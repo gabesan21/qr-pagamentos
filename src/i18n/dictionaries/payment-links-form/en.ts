@@ -1,7 +1,7 @@
 // New/changed copy for the 14.5.2 (F02) create/edit composition form:
 // radio-card captions, the product picker, the sticky preview, inline
 // validation, and the honest edit locks. Every other form label (product,
-// currency pair, expiry, description…) is unchanged and stays in the
+// payment method, expiry, description…) is unchanged and stays in the
 // `payment-links` and `payment-links-directory` domains.
 export const paymentLinksFormEn = {
   paymentLinksFormCompositionProductLinesCaption: "One or more active products, each with its own quantity.",
@@ -24,7 +24,7 @@ export const paymentLinksFormEn = {
   paymentLinksFormPreviewEmpty: "Fill in the composition to see a summary here.",
   paymentLinksFormPreviewType: "Type",
   paymentLinksFormPreviewComposition: "Composition",
-  paymentLinksFormPreviewCurrency: "Currency pair",
+  paymentLinksFormPreviewCurrency: "Payment method",
   paymentLinksFormPreviewExpiry: "Expiration",
   paymentLinksFormPreviewNoExpiry: "No expiration",
   paymentLinksFormPreviewLines: "Product lines",
@@ -32,7 +32,7 @@ export const paymentLinksFormEn = {
   paymentLinksFormValidationHeading: "Review the highlighted fields",
   paymentLinksFormValidationBody: "The server enforces every rule; fixing these first avoids a failed submission.",
   paymentLinksFormAmountInvalid: "Enter a positive exact amount, e.g. 19.90.",
-  paymentLinksFormStructuralLockNote: "Composition, type, and currency pair are set at creation and never change.",
+  paymentLinksFormStructuralLockNote: "Composition, type, and payment method are set at creation and never change.",
   paymentLinksFormConflictTitle: "This link changed elsewhere",
   paymentLinksFormConflictBody: "Someone else saved a change while you were editing. Reload to see the latest version, or retry to resubmit your edits.",
   paymentLinksFormConflictReload: "Reload",

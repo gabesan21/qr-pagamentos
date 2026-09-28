@@ -4,11 +4,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { en } from "@/i18n/dictionaries/en";
 import { ptBR } from "@/i18n/dictionaries/pt-BR";
 
-const { requireContext, list, listCurrencyPairs, listPaymentMethods, listMappings, listLatestEvidenceByCode, getDefaultTheme, useFormStatus } = vi.hoisted(() => ({
+const { requireContext, list, listCurrencyPairs, listMappings, listLatestEvidenceByCode, getDefaultTheme, useFormStatus } = vi.hoisted(() => ({
   requireContext: vi.fn(),
   list: vi.fn(),
   listCurrencyPairs: vi.fn(),
-  listPaymentMethods: vi.fn(),
   listMappings: vi.fn(),
   listLatestEvidenceByCode: vi.fn(),
   getDefaultTheme: vi.fn(),
@@ -18,7 +17,7 @@ const { requireContext, list, listCurrencyPairs, listPaymentMethods, listMapping
 vi.mock("../shell-context", () => ({ requireAdminShellContext: requireContext }));
 vi.mock("@/auth/payment-settings", () => ({ getPaymentSettingsService: () => ({ list }) }));
 vi.mock("@/auth/currency-pair-verification", () => ({ listLatestEvidenceByCode }));
-vi.mock("@/auth/nautt-catalog", () => ({ getNauttCatalogService: () => ({ listCurrencyPairs, listPaymentMethods }) }));
+vi.mock("@/auth/nautt-catalog", () => ({ getNauttCatalogService: () => ({ listCurrencyPairs }) }));
 vi.mock("@/auth/supported-exchange-currency", () => ({ getSupportedExchangeCurrencyService: () => ({ listMappings }) }));
 vi.mock("@/auth/system-settings", () => ({ getSystemSettingsService: () => ({ getDefaultTheme }) }));
 vi.mock("react-dom", async (importOriginal) => ({
@@ -36,28 +35,25 @@ beforeEach(() => {
   useFormStatus.mockReturnValue({ pending: false });
   list.mockResolvedValue({ currencies: ["BRL"], paymentMethods: ["PIX"] });
   listCurrencyPairs.mockResolvedValue([]);
-  listPaymentMethods.mockResolvedValue([]);
   listMappings.mockResolvedValue([{ code: "BRL", label: "BRL/USDT" }]);
   listLatestEvidenceByCode.mockResolvedValue([]);
   getDefaultTheme.mockResolvedValue("vault-blue");
 });
 
 describe("administrator settings hub", () => {
-  it("re-authorizes and renders all six anchored sections bilingually with the effective default theme", async () => {
+  it("re-authorizes and renders the two payment sections plus appearance and language bilingually", async () => {
     for (const [locale, dictionary] of [["en", en], ["pt-BR", ptBR]] as const) {
       requireContext.mockResolvedValue({ dictionary, locale, principal });
 
       const html = renderToStaticMarkup(await AdminSettingsPage({ searchParams: query() }));
 
       expect(requireContext).toHaveBeenCalled();
-      for (const anchor of ["sec-currencies", "sec-pairs", "sec-methods", "sec-globalPayments", "sec-appearance", "sec-language"]) {
+      for (const anchor of ["sec-currencies", "sec-methods", "sec-appearance", "sec-language"]) {
         expect(html).toContain(`id="${anchor}"`);
         expect(html).toContain(`href="#${anchor}"`);
       }
       expect(html).toContain(dictionary.adminSecCurrencies);
-      expect(html).toContain(dictionary.adminSecPairs);
       expect(html).toContain(dictionary.adminSecMethods);
-      expect(html).toContain(dictionary.adminSecGlobalPayments);
       expect(html).toContain(dictionary.adminAppearanceHeading);
       expect(html).toContain(dictionary.languageHeading);
       expect(html).toContain('action="/admin/exchange-currencies"');
@@ -65,7 +61,7 @@ describe("administrator settings hub", () => {
       expect(html).toContain('action="/admin/settings/default-theme"');
       expect(html).toContain('action="/language-preference"');
       expect(html).toContain('value="vault-blue"');
-      expect(html).toContain("BRL/USDT");
+      expect(html).toContain('value="BRL"');
 
       // §4 payment settings: the closed catalog posts hidden inputs named
       // after the route's expected fields (payment-settings/route.ts reads
@@ -129,5 +125,23 @@ describe("administrator settings hub", () => {
 
     expect(html).toContain(en.adminEmptyCurrencies);
     expect(html).toContain(en.adminEmptyRecords);
+  });
+
+  it("renders real method-row rename, default, and guarded deactivation controls", async () => {
+    requireContext.mockResolvedValue({ dictionary: en, locale: "en", principal });
+    listCurrencyPairs.mockResolvedValue([
+      { id: "pair-default", label: "PIX", currencyUuid: "currency", exchangeCurrencyUuid: "exchange-default", currencyCode: "BRL", isDefault: true, active: true, createdAt: new Date() },
+      { id: "pair-alternate", label: "Card", currencyUuid: "currency", exchangeCurrencyUuid: "exchange-alternate", currencyCode: "BRL", isDefault: false, active: true, createdAt: new Date() },
+    ]);
+
+    const html = renderToStaticMarkup(await AdminSettingsPage({ searchParams: query() }));
+
+    expect(html).toContain('action="/admin/catalog/payment-methods/pair-default"');
+    expect(html).toContain('action="/admin/catalog/payment-methods/pair-alternate"');
+    expect(html).toContain(en.adminRename);
+    expect(html).toContain(en.adminSetDefaultMethod);
+    expect(html).toMatch(/<input(?=[^>]*name="intent")(?=[^>]*type="hidden")(?=[^>]*value="set-default")[^>]*>/);
+    expect(html).toContain(en.adminDefaultMethodHelp);
+    expect(html).toContain('disabled=""');
   });
 });

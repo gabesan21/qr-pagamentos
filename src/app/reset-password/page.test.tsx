@@ -162,14 +162,14 @@ describe("reset password page contract", () => {
     }
   });
 
-  it("renders the labelled PT/EN language switcher posting to /language-preference, ≥44px, on both the form and the missing-token state", async () => {
+  it("renders the labelled PT/EN language switcher posting to /language-preference through the responsive control role on both states", async () => {
     const validMarkup = renderToStaticMarkup(await ResetPasswordPage({ searchParams: Promise.resolve({ token: "valid-token" }) }));
     expect(validMarkup).toContain('action="/language-preference"');
     expect(validMarkup).toContain('name="locale"');
     expect(validMarkup).toMatch(/aria-label="[^"]+"/);
-    expect(validMarkup).toContain(">PT<");
-    expect(validMarkup).toContain(">EN<");
-    expect(validMarkup).toContain("h-11");
+    expect(validMarkup).toContain('aria-label="Português (Brasil)"');
+    expect(validMarkup).toContain('aria-label="English"');
+    expect(validMarkup).toContain("h-(--control-default-height)");
 
     const missingTokenMarkup = renderToStaticMarkup(await ResetPasswordPage({ searchParams: Promise.resolve({}) }));
     expect(missingTokenMarkup).toContain('action="/language-preference"');

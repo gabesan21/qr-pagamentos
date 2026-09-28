@@ -85,6 +85,20 @@ const COMMON_PROJECTION = {
   "radius-tight": "radius.semantic.sm", "radius-control": "radius.semantic.md", "radius-panel": "radius.semantic.lg", "radius-pill": "radius.semantic.pill",
   "focus-width": "focus.semantic.width", "focus-offset": "focus.semantic.offset",
   "target-min-size": "size.semantic.target-min", "control-min-height": "size.semantic.target-min", "control-compact-height": "size.semantic.control-compact",
+  "control-default-height": "component.control.default-height", "control-row-height": "component.control.row-height",
+  "control-large-height": "component.control.large-height", "control-textarea-min-height": "component.control.textarea-min-height",
+  "control-radius": "component.control.radius", "control-padding-inline": "component.control.padding-inline", "control-inline-padding": "component.control.inline-padding", "control-padding-block": "component.control.padding-block",
+  "control-icon-padding-inline": "component.control.icon-padding-inline",
+  "control-field-text-size": "component.control.field-text-size", "control-button-text-size": "component.control.button-text-size",
+  "control-selection-tile-padding": "component.control.selection-tile-padding",
+  "control-selection-tile-radius": "component.control.selection-tile-radius",
+  "control-selection-tile-text-size": "component.control.selection-tile-text-size",
+  "control-segmented-padding-inline": "component.control.segmented-padding-inline",
+  "control-segmented-radius": "component.control.segmented-radius",
+  "control-segmented-text-size": "component.control.segmented-text-size",
+  "directory-filter-column-min-width": "component.directory.filter-column-min-width",
+  "directory-toolbar-filter-min-width": "component.directory.toolbar-filter-min-width",
+  "directory-filter-chip-max-width": "component.directory.filter-chip-max-width",
   "auth-action-height": "size.semantic.auth-action", "table-row-height": "size.semantic.table-row", "top-bar-height": "size.semantic.top-bar",
   "rail-width": "size.semantic.rail", "auth-panel-width": "size.semantic.auth-panel",
   "breakpoint-grid": "breakpoint.semantic.grid", "breakpoint-auth": "breakpoint.semantic.auth", "breakpoint-lg": "breakpoint.semantic.lg",
@@ -95,6 +109,12 @@ const COMMON_PROJECTION = {
   "line-height-body": "type.primitive.line.body", "line-height-tight": "type.primitive.line.page-heading", "tracking-display": "type.primitive.tracking.display",
   "font-weight-medium": "font.primitive.weight.500", "font-weight-strong": "font.primitive.weight.600",
   "shadow-modal": "shadow.elevation.modal", "disabled-opacity": "opacity.semantic.disabled", "layer-chrome": "layer.semantic.chrome", "layer-bypass": "layer.semantic.bypass",
+};
+
+const DESKTOP_CONTROL_PROJECTION = {
+  "control-default-height": "component.control.default-height-desktop",
+  "control-row-height": "component.control.row-height-desktop",
+  "control-field-text-size": "component.control.field-text-size-desktop",
 };
 
 const THEME_PROJECTION = {
@@ -169,6 +189,7 @@ export function buildGeneratedThemeTokens(documents, resolver) {
 
   return [
     themeBlock(":root", mode(defaultResolution), defaultResolution.tokens, true),
+    `@media (min-width: 640px) and (pointer: fine) {\n  :root {\n${declarations(defaultResolution.tokens, DESKTOP_CONTROL_PROJECTION).map((line) => `  ${line}`).join("\n")}\n  }\n}`,
     themeBlock(":root.dark", mode(darkResolution), darkResolution.tokens),
     `@media (prefers-color-scheme: dark) {\n${themeBlock("  :root:not([data-theme]):not(.light)", mode(darkResolution), darkResolution.tokens).split("\n").map((line, index) => index === 0 ? line : `  ${line}`).join("\n")}\n}`,
     ...themes.flatMap((theme) => [

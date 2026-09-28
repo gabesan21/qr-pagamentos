@@ -7,6 +7,7 @@ function fakeDatabase() {
   const transaction = {
     catalogCurrencyPair: {
       findUnique: vi.fn(async (): Promise<unknown> => null),
+      findFirst: vi.fn(async (): Promise<unknown> => null),
       create: vi.fn(async (): Promise<unknown> => ({ id: randomUUID() })),
     },
     supportedExchangeCurrency: {
@@ -39,7 +40,7 @@ const values = () => ({
 describe("database supported exchange currency store", () => {
   it("serializes registration and returns the typed pair-exists outcome without inserting", async () => {
     const { database, transaction } = fakeDatabase();
-    transaction.catalogCurrencyPair.findUnique.mockResolvedValueOnce({ id: "retained" });
+    transaction.catalogCurrencyPair.findUnique.mockResolvedValueOnce({ id: "retained", active: true });
     const store = createDatabaseSupportedExchangeCurrencyStore(database as never);
 
     await expect(store.register(values())).resolves.toBe("pair-exists");
@@ -85,7 +86,7 @@ describe("database supported exchange currency store", () => {
 
   it("re-points the pointer to the retained pair row on replace", async () => {
     const { database, transaction } = fakeDatabase();
-    transaction.catalogCurrencyPair.findUnique.mockResolvedValueOnce({ id: "retained" });
+    transaction.catalogCurrencyPair.findUnique.mockResolvedValueOnce({ id: "retained", active: true });
     const store = createDatabaseSupportedExchangeCurrencyStore(database as never);
     const input = values();
 
@@ -113,13 +114,33 @@ describe("database supported exchange currency store", () => {
     });
   });
 
+  it("rejects a replacement that attempts to rebind an active code to another currency", async () => {
+    const { database, transaction } = fakeDatabase();
+    const input = values();
+    transaction.supportedExchangeCurrency.findUnique.mockResolvedValueOnce({ pair: { currencyUuid: randomUUID() } });
+    const store = createDatabaseSupportedExchangeCurrencyStore(database as never);
+
+    await expect(store.replace(input)).rejects.toThrow("Currency identity cannot change");
+    expect(transaction.supportedExchangeCurrency.upsert).not.toHaveBeenCalled();
+  });
+
+  it("refuses an inactive retained method as a new default", async () => {
+    const { database, transaction } = fakeDatabase();
+    const input = values();
+    transaction.catalogCurrencyPair.findUnique.mockResolvedValueOnce({ id: "retained", active: false });
+    const store = createDatabaseSupportedExchangeCurrencyStore(database as never);
+
+    await expect(store.replace(input)).rejects.toThrow("Inactive methods cannot become a default");
+    expect(transaction.supportedExchangeCurrency.upsert).not.toHaveBeenCalled();
+  });
+
   it("retries a replace once against the retained row after a serialization conflict", async () => {
     const { database, transaction } = fakeDatabase();
     vi.mocked(database.$transaction)
       .mockRejectedValueOnce({ code: "40001" })
       .mockImplementationOnce(async (operation: (transaction: unknown) => unknown, options: unknown) => {
         expect(options).toEqual({ isolationLevel: "Serializable" });
-        transaction.catalogCurrencyPair.findUnique.mockResolvedValueOnce({ id: "winner" });
+        transaction.catalogCurrencyPair.findUnique.mockResolvedValueOnce({ id: "winner", active: true });
         return operation(transaction);
       });
     const store = createDatabaseSupportedExchangeCurrencyStore(database as never);

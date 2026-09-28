@@ -166,6 +166,9 @@ describe("administrator orders directory page", () => {
     expect(markup).toContain("cursor=next-token");
     expect(markup).toContain("cursor=previous-token");
     expect(markup).toContain("pageSize=20");
+    expect(markup).toContain("Additional filters");
+    expect(markup).toContain("Creation period");
+    expect(markup).toContain("Review orders across all merchants");
   });
 
   it("requests the registered default size of 50 on the bare URL", async () => {

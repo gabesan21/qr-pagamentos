@@ -22,8 +22,8 @@ export async function POST(request: Request) {
   if (crossOrigin) return crossOrigin;
   try {
     const actor = await getAuthorizationService().requireUser((await cookies()).get("qr_session")?.value);
-    const code = (await request.formData()).get("code");
-    const result = await probeCurrencyPair(actor, code);
+    const form = await request.formData();
+    const result = await probeCurrencyPair(actor, form.get("code"), form.get("pairId"));
     return relativeRedirect(`/settings?currency-probe=${result.outcome === "ok" ? "ok" : "refused"}#settings-currency`);
   } catch (error) {
     if (error instanceof UnauthenticatedError) return new Response(null, { status: 401 });

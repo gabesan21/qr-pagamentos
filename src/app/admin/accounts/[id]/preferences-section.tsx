@@ -4,13 +4,13 @@ import { useState } from "react";
 import { CheckCircle2Icon } from "lucide-react";
 
 import { AdminSubmit } from "@/app/admin/admin-submit";
-import { SegmentedControl } from "@/app/admin/admin-controls";
 // Type-only: this client boundary must never pull `@/auth/checkout-policy`'s
 // runtime module (it imports the database client) into the browser bundle —
 // `CHECKOUT_POLICY_LABELS` below is the client-safe closed enumeration.
 import type { CheckoutDataPolicy } from "@/auth/checkout-policy";
 import type { AdminUserDetail } from "@/auth/admin-user-directory";
 import { Field } from "@/components/ui/field";
+import { LocaleFlagChoices } from "@/app/language-preference/language-switcher";
 import type { getDictionary } from "@/i18n/dictionaries";
 import { cn } from "@/lib/utils";
 
@@ -31,16 +31,12 @@ function LocaleField({ detail, dictionary }: Readonly<{ detail: AdminUserDetail;
   return (
     <form action={`/admin/users/${detail.id}/locale`} method="post">
       <Field>
-        <SegmentedControl
-          ariaLabel={dictionary.adminUserProfileLocaleLabel}
+        <LocaleFlagChoices
+          label={dictionary.adminUserProfileLocaleLabel}
           name="locale"
           onChange={setLocale}
-          options={[
-            { value: "", label: dictionary.adminUserProfileLocaleClear },
-            { value: "pt-BR", label: "Português (Brasil)" },
-            { value: "en", label: "English" },
-          ]}
-          value={locale}
+          allowClear
+          value={locale as "" | "pt-BR" | "en"}
         />
       </Field>
       <div className="mt-4 flex justify-end">

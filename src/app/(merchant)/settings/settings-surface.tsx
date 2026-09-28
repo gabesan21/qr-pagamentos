@@ -11,11 +11,10 @@ import type { OwnerNauttStatus } from "@/integrations/nautt/owner-onboarding";
 
 import { CheckoutPolicyManagement } from "@/app/checkout-policy-management";
 import { LanguagePreferenceSubmit } from "@/app/language-preference/language-preference-form";
+import { LocaleFlagChoices } from "@/app/language-preference/language-switcher";
 import { NauttCredentialSurface } from "@/app/nautt-credential-surface";
 import { StorefrontSettingsManagement, type StorefrontCurrencyChoice, type StorefrontCurrencyEvidence } from "@/app/storefront-settings-management";
 import { Card, CardContent } from "@/components/ui/card";
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 
 type Dictionary = ReturnType<typeof getDictionary>;
 
@@ -65,6 +64,7 @@ export function SettingsSurface({
   stagedLogoMediaIdentifier: string | null;
 }>) {
   const [activeId, setActiveId] = useState<SectionId>(SECTIONS[0].id);
+  const [selectedLocale, setSelectedLocale] = useState<SupportedLocale>(locale);
 
   useEffect(() => {
     const elements = SECTIONS.map(({ id }) => document.getElementById(`settings-${id}`)).filter(
@@ -162,16 +162,10 @@ export function SettingsSurface({
             <Card>
               <CardContent>
                 <form action="/language-preference" method="post">
-                  <FieldGroup>
-                    <Field>
-                      <FieldLabel htmlFor="merchant-locale">{dictionary.languageLabel}</FieldLabel>
-                      <NativeSelect defaultValue={locale} id="merchant-locale" name="locale">
-                        <NativeSelectOption value="pt-BR">Português (Brasil)</NativeSelectOption>
-                        <NativeSelectOption value="en">English</NativeSelectOption>
-                      </NativeSelect>
-                    </Field>
+                  <div className="grid gap-4">
+                    <LocaleFlagChoices label={dictionary.languageLabel} onChange={setSelectedLocale} value={selectedLocale} />
                     <LanguagePreferenceSubmit label={dictionary.languageSave} />
-                  </FieldGroup>
+                  </div>
                 </form>
               </CardContent>
             </Card>

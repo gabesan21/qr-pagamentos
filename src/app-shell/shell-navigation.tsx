@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { type ReactNode, useId, useState } from "react";
+import { type ReactNode, useEffect, useId, useRef, useState } from "react";
 import { ChevronDownIcon, ExternalLinkIcon, LogOutIcon, MenuIcon, UserIcon, XIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Monogram } from "@/components/ui/monogram";
+import { LanguageSwitcher } from "@/app/language-preference/language-switcher";
 
 import { ShellThemePicker } from "./shell-theme-picker";
 import type { ShellLabels, ShellNavigationItem, ShellThemeOption, ShellTitleRoute } from "./shell-types";
@@ -49,56 +50,61 @@ function NavigationLinks({
   );
 }
 
-function LanguageSwitcherForm({
-  labels,
-  locale,
-}: Readonly<{
-  labels: Pick<ShellLabels, "language" | "locale">;
-  locale: string;
-}>) {
-  return (
-    <form action="/language-preference" className="app-shell__language-form" method="post">
-      <label className="app-shell__language-label" htmlFor="shell-locale">
-        {labels.language}
-      </label>
-      <select
-        className="app-shell__language-select"
-        defaultValue={locale}
-        id="shell-locale"
-        name="locale"
-        onChange={(event) => event.currentTarget.form?.requestSubmit()}
-      >
-        <option value="pt-BR">Português (Brasil)</option>
-        <option value="en">English</option>
-      </select>
-    </form>
-  );
-}
-
-function AccountMenu({
-  labels,
-  profileLink,
-  roleLabel,
-  themeOptions,
-  username,
+export function ShellAccountMenu({
+  ...props
 }: Readonly<{
   labels: Pick<ShellLabels, "accountMenu" | "profile" | "signOut" | "themeMenu">;
   profileLink?: Readonly<{ href: string; label: string }>;
   roleLabel: string;
   themeOptions: readonly ShellThemeOption[];
   username: string;
+  onDismiss?: () => void;
+}>) {
+  const pathname = usePathname();
+  return <ShellAccountMenuAtPath key={pathname} {...props} />;
+}
+
+function ShellAccountMenuAtPath({
+  labels,
+  profileLink,
+  roleLabel,
+  themeOptions,
+  username,
+  onDismiss,
+}: Readonly<{
+  labels: Pick<ShellLabels, "accountMenu" | "profile" | "signOut" | "themeMenu">;
+  profileLink?: Readonly<{ href: string; label: string }>;
+  roleLabel: string;
+  themeOptions: readonly ShellThemeOption[];
+  username: string;
+  onDismiss?: () => void;
 }>) {
   const menuId = useId();
   const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const close = () => { setOpen(false); triggerRef.current?.focus(); };
+    const outside = (event: PointerEvent) => { if (!rootRef.current?.contains(event.target as Node)) close(); };
+    const escape = (event: KeyboardEvent) => { if (event.key === "Escape") close(); };
+    document.addEventListener("pointerdown", outside);
+    document.addEventListener("keydown", escape);
+    return () => { document.removeEventListener("pointerdown", outside); document.removeEventListener("keydown", escape); };
+  }, [open]);
+  useEffect(() => { if (open) panelRef.current?.querySelector<HTMLElement>("a, button")?.focus(); }, [open]);
 
   return (
-    <div className="app-shell__account-menu">
+    <div className="app-shell__account-menu" ref={rootRef}>
       <Button
         aria-controls={menuId}
         aria-expanded={open}
-        aria-haspopup="menu"
+        aria-haspopup="dialog"
         className="app-shell__account-trigger"
         onClick={() => setOpen((value) => !value)}
+        ref={triggerRef}
         type="button"
         variant="ghost"
       >
@@ -110,16 +116,16 @@ function AccountMenu({
         <ChevronDownIcon aria-hidden="true" className="app-shell__account-chevron" />
       </Button>
       {open ? (
-        <div className="app-shell__account-panel" id={menuId} role="menu">
+        <div aria-label={labels.accountMenu} className="app-shell__account-panel" id={menuId} ref={panelRef} role="dialog">
           {profileLink ? (
-            <Link className="app-shell__account-panel-item" href={profileLink.href} role="menuitem">
+            <Link className="app-shell__account-panel-item" href={profileLink.href} onClick={() => { setOpen(false); onDismiss?.(); }}>
               <UserIcon aria-hidden="true" />
               <span>{profileLink.label}</span>
             </Link>
           ) : null}
           <ShellThemePicker groupLabel={labels.themeMenu} themeOptions={themeOptions} />
-          <form action="/logout" className="app-shell__account-panel-signout" method="post" role="none">
-            <Button className="app-shell__account-panel-item" role="menuitem" type="submit" variant="outline">
+          <form action="/logout" className="app-shell__account-panel-signout" method="post">
+            <Button className="app-shell__account-panel-item" type="submit" variant="outline">
               <LogOutIcon aria-hidden="true" />
               <span>{labels.signOut}</span>
             </Button>
@@ -135,9 +141,11 @@ type NavigationProps = Readonly<{
   closeLabel: string;
   items: readonly ShellNavigationItem[];
   label: string;
+  labels: ShellLabels;
+  locale: "pt-BR" | "en";
   openLabel: string;
   roleLabel: string;
-  signOutLabel: string;
+  themeOptions: readonly ShellThemeOption[];
   username: string;
 }>;
 
@@ -159,14 +167,29 @@ export function MobileShellNavigation({
   closeLabel,
   items,
   label,
+  labels,
+  locale,
   openLabel,
   roleLabel,
-  signOutLabel,
+  themeOptions,
   username,
 }: NavigationProps) {
   const pathname = usePathname();
   const mobileNavigationId = useId();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+
+  function closeDrawer({ restoreFocus = true } = {}) {
+    setMobileOpen(false);
+    if (restoreFocus) triggerRef.current?.focus();
+  }
+
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const escape = (event: KeyboardEvent) => { if (event.key === "Escape") closeDrawer(); };
+    document.addEventListener("keydown", escape);
+    return () => document.removeEventListener("keydown", escape);
+  }, [mobileOpen]);
 
   return (
     <div className="app-shell__mobile-navigation">
@@ -176,6 +199,7 @@ export function MobileShellNavigation({
         aria-label={openLabel}
         className="app-shell__mobile-trigger"
         onClick={() => setMobileOpen((open) => !open)}
+        ref={triggerRef}
         type="button"
         variant="ghost"
       >
@@ -183,7 +207,7 @@ export function MobileShellNavigation({
         <span className="app-shell__mobile-trigger-label">{openLabel}</span>
       </Button>
       {mobileOpen ? (
-        <div className="app-shell__mobile-overlay" onClick={() => setMobileOpen(false)} />
+        <div className="app-shell__mobile-overlay" onClick={() => closeDrawer()} />
       ) : null}
       {mobileOpen ? (
         <nav aria-label={label} className="app-shell__mobile-panel" id={mobileNavigationId}>
@@ -193,7 +217,7 @@ export function MobileShellNavigation({
               aria-expanded={mobileOpen}
               aria-label={closeLabel}
               className="app-shell__mobile-close"
-              onClick={() => setMobileOpen(false)}
+              onClick={() => closeDrawer()}
               type="button"
               variant="ghost"
             >
@@ -201,30 +225,12 @@ export function MobileShellNavigation({
               <span>{closeLabel}</span>
             </Button>
           </div>
-          <NavigationLinks items={items} onNavigate={() => setMobileOpen(false)} pathname={pathname} />
+          <div className="app-shell__mobile-navigation-scroll">
+            <NavigationLinks items={items} onNavigate={() => closeDrawer({ restoreFocus: false })} pathname={pathname} />
+          </div>
           <div className="app-shell__mobile-panel-footer">
-            <div className="app-shell__mobile-principal">
-              <Monogram name={username} size="default" />
-              <div className="app-shell__mobile-principal-text">
-                <span className="app-shell__username">{username}</span>
-                <span>{roleLabel}</span>
-              </div>
-            </div>
-            {accountLink ? (
-              <Link
-                className="app-shell__profile-link"
-                href={accountLink.href}
-                onClick={() => setMobileOpen(false)}
-              >
-                <UserIcon aria-hidden="true" />
-                <span>{accountLink.label}</span>
-              </Link>
-            ) : null}
-            <form action="/logout" method="post">
-              <Button className="app-shell__mobile-sign-out" type="submit" variant="outline">
-                {signOutLabel}
-              </Button>
-            </form>
+            <div className="app-shell__mobile-language"><LanguageSwitcher label={labels.language} locale={locale} /></div>
+            <ShellAccountMenu labels={labels} onDismiss={() => closeDrawer({ restoreFocus: false })} profileLink={accountLink} roleLabel={roleLabel} themeOptions={themeOptions} username={username} />
           </div>
         </nav>
       ) : null}
@@ -269,33 +275,25 @@ export function TopBarShellControls({
           closeLabel={labels.closeNavigation}
           items={mobileNavigation.items}
           label={mobileNavigation.label}
+          labels={labels}
+          locale={locale as "pt-BR" | "en"}
           openLabel={labels.openNavigation}
           roleLabel={roleLabel}
-          signOutLabel={labels.signOut}
+          themeOptions={themeOptions}
           username={username}
         />
         <span className="app-shell__page-title">{pageTitle}</span>
       </div>
       <div className="app-shell__top-bar-end">
-        <LanguageSwitcherForm labels={labels} locale={locale} />
+        <div className="app-shell__language-form">
+          <LanguageSwitcher label={labels.language} locale={locale as "pt-BR" | "en"} />
+        </div>
         {storefrontLink ? (
           <Link className="app-shell__storefront-link" href={storefrontLink.href} target="_blank">
             <ExternalLinkIcon aria-hidden="true" />
             <span>{storefrontLink.label}</span>
           </Link>
         ) : null}
-        <AccountMenu
-          labels={{
-            accountMenu: labels.accountMenu,
-            profile: labels.profile,
-            signOut: labels.signOut,
-            themeMenu: labels.themeMenu,
-          }}
-          profileLink={accountLink}
-          roleLabel={roleLabel}
-          themeOptions={themeOptions}
-          username={username}
-        />
       </div>
     </header>
   );

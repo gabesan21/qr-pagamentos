@@ -147,6 +147,7 @@ function PaymentLinkDirectory({
       canonicalFilterQuery={query.query.canonicalFilterQuery}
       caption={dictionary.paymentLinkDirectoryHeading}
       columns={columns}
+      compactToolbar={{ visibleFilterNames: ["state"] }}
       copy={copy}
       filters={[
         {
@@ -264,7 +265,12 @@ export default async function MerchantLinksPage({
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <WorkspaceHeading description={dictionary.paymentLinkDirectoryDescription} eyebrow={dictionary.shellMerchantEyebrow} title={dictionary.shellLinks} />
+        <WorkspaceHeading
+          className="!border-b-0 !pb-0"
+          description={dictionary.paymentLinkDirectoryDescription}
+          eyebrow={dictionary.shellMerchantEyebrow}
+          title={dictionary.shellLinks}
+        />
         <Button asChild data-ds-hit-target>
           <Link href="/links/new"><PlusIcon aria-hidden /> {dictionary.paymentLinkCreateTitle}</Link>
         </Button>

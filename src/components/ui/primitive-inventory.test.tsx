@@ -106,9 +106,12 @@ describe("shared primitive inventory", () => {
   });
 
   it("preserves the existing button API while enforcing target and focus contracts", () => {
-    expect(buttonVariants({ variant: "default", size: "default" })).toContain("min-h-11");
-    expect(buttonVariants({ variant: "outline", size: "icon" })).toContain("size-11");
+    expect(buttonVariants({ variant: "default", size: "default" })).toContain("min-h-(--control-default-height)");
+    expect(buttonVariants({ variant: "outline", size: "icon" })).toContain("size-(--control-default-height)");
     expect(buttonVariants({ variant: "link", size: "sm" })).toContain("focus-visible:ring-3");
+    expect(buttonVariants({ size: "sm" })).toContain("min-h-(--control-default-height)");
+    expect(buttonVariants({ size: "icon-row" })).toContain("size-(--control-row-height)");
+    expect(buttonVariants({ variant: "quiet-destructive" })).toContain("text-danger-on-soft");
 
     const markup = renderToStaticMarkup(<Button disabled>Continue</Button>);
     expect(markup).toContain('data-slot="button"');

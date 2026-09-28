@@ -1,8 +1,6 @@
 import type { ReactNode } from "react";
 
-import { Monogram } from "@/components/ui/monogram";
-
-import { DesktopShellNavigation, TopBarShellControls } from "./shell-navigation";
+import { DesktopShellNavigation, ShellAccountMenu, TopBarShellControls } from "./shell-navigation";
 import type { ShellLabels, ShellNavigationItem, ShellThemeOption, ShellTitleRoute } from "./shell-types";
 
 export function AppShell({
@@ -43,14 +41,7 @@ export function AppShell({
         <div className="app-shell__rail-header app-shell__brand-identity">{identity}</div>
         <DesktopShellNavigation items={navigation} label={labels.navigation} />
         <div className="app-shell__rail-footer">
-          <div className="app-shell__rail-principal">
-            <Monogram name={username} size="default" />
-            <div className="app-shell__rail-principal-text">
-              <span className="app-shell__username">{username}</span>
-              <span className="app-shell__rail-role-pill">{roleLabel}</span>
-            </div>
-          </div>
-          <span className="app-shell__rail-caption">{labels.railCaption}</span>
+          <ShellAccountMenu labels={labels} profileLink={profileLink} roleLabel={roleLabel} themeOptions={themeOptions ?? []} username={username} />
         </div>
       </aside>
       <TopBarShellControls

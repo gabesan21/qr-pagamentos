@@ -38,7 +38,7 @@ export function StatCard({ caption, className, label, sparkline, trend, value }:
     <Card className={className}>
       <CardHeader>
         <CardDescription>{label}</CardDescription>
-        <CardTitle className="font-mono text-[length:var(--type-stat)] leading-7 font-semibold tabular-nums">{value}</CardTitle>
+        <CardTitle className="font-mono text-[length:var(--type-display)] leading-7 font-semibold tabular-nums">{value}</CardTitle>
       </CardHeader>
       {trend || caption || hasSparkline ? (
         <CardContent className="flex flex-wrap items-center gap-2">

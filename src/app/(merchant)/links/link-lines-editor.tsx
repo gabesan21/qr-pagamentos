@@ -4,6 +4,7 @@ import { useId, useRef, useState } from "react";
 import { MinusIcon, PlusIcon, SearchIcon, XIcon } from "lucide-react";
 
 import { showToast } from "@/components/ui/toast";
+import { Button } from "@/components/ui/button";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { MoneyText } from "@/components/ui/money-text";
@@ -192,25 +193,27 @@ export function LinkLinesEditor({
                 {!line.available ? <p className="text-xs text-destructive">{copy.unavailable}</p> : null}
               </div>
               <div className="flex items-center gap-1" role="group" aria-label={copy.quantity}>
-                <button
+                <Button
                   aria-label={copy.quantityDecrease}
-                  className="flex min-h-11 min-w-11 items-center justify-center rounded-md border text-text-2 hover:bg-surface-2 disabled:pointer-events-none disabled:opacity-50"
                   disabled={disabled || !line.available || line.quantity <= MIN_QUANTITY}
                   onClick={() => adjustQuantity(line.key, -1)}
+                  size="icon"
                   type="button"
+                  variant="outline"
                 >
                   <MinusIcon aria-hidden className="size-3.5" />
-                </button>
+                </Button>
                 <span className="w-10 text-center font-mono text-sm tabular-nums text-text">{line.quantity}</span>
-                <button
+                <Button
                   aria-label={copy.quantityIncrease}
-                  className="flex min-h-11 min-w-11 items-center justify-center rounded-md border text-text-2 hover:bg-surface-2 disabled:pointer-events-none disabled:opacity-50"
                   disabled={disabled || !line.available || line.quantity >= MAX_QUANTITY}
                   onClick={() => adjustQuantity(line.key, 1)}
+                  size="icon"
                   type="button"
+                  variant="outline"
                 >
                   <PlusIcon aria-hidden className="size-3.5" />
-                </button>
+                </Button>
               </div>
               <div className="w-24 text-right">
                 <p className="text-xs text-text-2">{copy.unitPrice}</p>
@@ -220,15 +223,16 @@ export function LinkLinesEditor({
                 <p className="text-xs text-text-2">{copy.lineTotal}</p>
                 <MoneyText value={formatCatalogPrice(linkMoneyMultiply(lineUnitPrice(line, products), line.quantity), null, locale)} />
               </div>
-              <button
+              <Button
                 aria-label={copy.remove}
-                className="flex min-h-11 min-w-11 items-center justify-center rounded-md text-text-2 hover:text-destructive disabled:pointer-events-none disabled:opacity-50"
                 disabled={disabled}
                 onClick={() => removeLine(line.key)}
+                size="icon"
                 type="button"
+                variant="quiet-destructive"
               >
                 <XIcon aria-hidden className="size-4" />
-              </button>
+              </Button>
             </li>
           ))}
         </ul>
@@ -239,9 +243,9 @@ export function LinkLinesEditor({
           <Field>
             <FieldLabel htmlFor={`${formId}-${reactId}-search`}>{copy.searchLabel}</FieldLabel>
             <div className="relative">
-              <SearchIcon aria-hidden className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-text-2" />
+              <SearchIcon aria-hidden className="pointer-events-none absolute left-(--control-padding-inline) top-1/2 size-4 -translate-y-1/2 text-text-2" />
               <Input
-                className="pl-9"
+                className="ps-(--control-icon-padding-inline)"
                 id={`${formId}-${reactId}-search`}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder={copy.searchPlaceholder}
@@ -254,15 +258,16 @@ export function LinkLinesEditor({
             <ul className="mt-2 flex max-h-48 flex-col gap-1 overflow-y-auto">
               {searchResults.map((product) => (
                 <li key={product.id}>
-                  <button
-                    className="flex w-full items-center justify-between gap-3 rounded-md px-2 py-2 text-left hover:bg-surface-2"
+                  <Button
+                    className="w-full justify-between text-left"
                     onClick={() => addProduct(product)}
                     type="button"
+                    variant="ghost"
                   >
                     <span className="min-w-0 flex-1 truncate text-sm text-text">{locale === "pt-BR" ? product.titlePtBr : product.titleEn}</span>
                     <MoneyText value={formatCatalogPrice(product.price, null, locale)} />
                     <PlusIcon aria-hidden className="size-4 text-primary" />
-                  </button>
+                  </Button>
                 </li>
               ))}
             </ul>

@@ -25,4 +25,14 @@ describe("EmptyState", () => {
     expect(renderToStaticMarkup(<EmptyState kind="error" title="Could not load" />)).toContain('role="alert"');
     expect(renderToStaticMarkup(<EmptyState title="No results" />)).toContain('role="status"');
   });
+
+  it("offers a dashboard-scoped compact composition without changing the default", () => {
+    const compact = renderToStaticMarkup(<EmptyState illustration="users" size="compact" title="No ranked accounts" />);
+    const standard = renderToStaticMarkup(<EmptyState illustration="users" title="No ranked accounts" />);
+
+    expect(compact).toContain("py-6");
+    expect(compact).toContain('height="120"');
+    expect(standard).toContain("py-12");
+    expect(standard).toContain('height="192"');
+  });
 });

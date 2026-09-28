@@ -20,7 +20,9 @@ function ports() {
   return {
     credentials: {
       snapshotRevision: vi.fn(async () => "revision-a" as string | null),
+      snapshotActive: vi.fn(async () => ({ credentialRevision: "revision-a", providerWebhookId: "123e4567-e89b-42d3-a456-426614174000" })),
       saveValidated: vi.fn(async () => "revision-b"),
+      replaceActiveValidated: vi.fn(async () => undefined),
       getRedacted: vi.fn(async () => ({ hasCredential: true, credentialRevision: "revision-b", webhookRegistrationState: "ACTIVE" as const, updatedAt: new Date() })),
       getDecryptedApiKey: vi.fn(async () => "validated-key"),
     },
@@ -37,11 +39,81 @@ describe("owner onboarding", () => {
     await expect(service.onboard(admin, actor.id, "key", "https://payments.example/webhooks")).rejects.toBeInstanceOf(ForbiddenError);
     await expect(service.completeRegistration(admin, "https://payments.example/webhooks")).rejects.toBeInstanceOf(ForbiddenError);
     await expect(service.resetRegistration(admin)).rejects.toBeInstanceOf(ForbiddenError);
+    await expect(service.replaceActiveKey(admin, "candidate-key", "https://payments.example/webhooks")).rejects.toBeInstanceOf(ForbiddenError);
     await expect(service.readStatus(admin)).rejects.toBeInstanceOf(ForbiddenError);
     expect(Object.values(dependency.credentials).every((operation) => operation.mock.calls.length === 0)).toBe(true);
     expect(dependency.wallet.read).not.toHaveBeenCalled();
     expect(dependency.registration.register).not.toHaveBeenCalled();
     expect(dependency.registration.reset).not.toHaveBeenCalled();
+  });
+
+  it("validates an ACTIVE candidate key before its owner-bound replacement CAS", async () => {
+    const dependency = ports();
+    const order: string[] = [];
+    const verifier = {
+      verifyActive: vi.fn(async () => { order.push("webhook"); }),
+    };
+    dependency.credentials.snapshotActive.mockImplementation(async () => {
+      order.push("snapshot");
+      return { credentialRevision: "revision-a", providerWebhookId: "123e4567-e89b-42d3-a456-426614174000" };
+    });
+    dependency.wallet.read.mockImplementation(async () => {
+      order.push("wallet");
+      return balance;
+    });
+    dependency.credentials.replaceActiveValidated.mockImplementation(async () => { order.push("replace"); });
+
+    await createOwnerOnboardingService(dependency.credentials, dependency.wallet, dependency.registration, verifier)
+      .replaceActiveKey(actor, "candidate-key", "https://payments.example/webhooks");
+
+    expect(order).toEqual(["snapshot", "wallet", "webhook", "replace"]);
+    expect(verifier.verifyActive).toHaveBeenCalledWith({
+      apiKey: "candidate-key",
+      providerWebhookId: "123e4567-e89b-42d3-a456-426614174000",
+      callbackUrl: "https://payments.example/webhooks",
+    });
+    expect(dependency.credentials.replaceActiveValidated).toHaveBeenCalledWith(
+      actor,
+      actor.id,
+      "candidate-key",
+      "revision-a",
+      "123e4567-e89b-42d3-a456-426614174000",
+    );
+  });
+
+  it("does not replace an ACTIVE key when wallet validation fails", async () => {
+    const dependency = ports();
+    const verifier = { verifyActive: vi.fn(async () => undefined) };
+    dependency.wallet.read.mockRejectedValue(new Error("wallet failed"));
+    const service = createOwnerOnboardingService(dependency.credentials, dependency.wallet, dependency.registration, verifier);
+
+    await expect(service.replaceActiveKey(actor, "candidate-key", "https://payments.example/webhooks"))
+      .rejects.toBeInstanceOf(OwnerOnboardingInvalidKeyError);
+
+    expect(dependency.credentials.replaceActiveValidated).not.toHaveBeenCalled();
+  });
+
+  it("does not replace an ACTIVE key when webhook GET validation fails", async () => {
+    const dependency = ports();
+    const verifier = { verifyActive: vi.fn(async () => undefined) };
+    verifier.verifyActive.mockRejectedValue(new Error("webhook failed"));
+    const service = createOwnerOnboardingService(dependency.credentials, dependency.wallet, dependency.registration, verifier);
+
+    await expect(service.replaceActiveKey(actor, "candidate-key", "https://payments.example/webhooks"))
+      .rejects.toBeInstanceOf(OwnerOnboardingInvalidKeyError);
+
+    expect(dependency.credentials.replaceActiveValidated).not.toHaveBeenCalled();
+  });
+
+  it("maps an ACTIVE revision race to the opaque changed outcome", async () => {
+    const dependency = ports();
+    dependency.credentials.replaceActiveValidated.mockRejectedValue(new NauttCredentialReplacementBlockedError());
+    const verifier = { verifyActive: vi.fn(async () => undefined) };
+    const service = createOwnerOnboardingService(dependency.credentials, dependency.wallet, dependency.registration, verifier);
+
+    await expect(service.replaceActiveKey(actor, "candidate-key", "https://payments.example/webhooks"))
+      .rejects.toBeInstanceOf(OwnerOnboardingChangedError);
+    expect(verifier.verifyActive).toHaveBeenCalledTimes(1);
   });
 
   it("denies cross-owner onboarding before credential or provider work", async () => {
@@ -101,6 +173,7 @@ describe("owner onboarding", () => {
     const winnerTrace = { ciphertextReads: 0, decrypts: 0, dispatches: 0 };
     const credentials = {
       snapshotRevision: vi.fn(async () => current.revision),
+      snapshotActive: vi.fn(async () => ({ credentialRevision: current.revision, providerWebhookId: "123e4567-e89b-42d3-a456-426614174000" })),
       saveValidated: vi.fn(async (_actor, _ownerId, apiKey: string, expectedRevision: string | null) => {
         if (expectedRevision !== current.revision) throw new NauttCredentialReplacementBlockedError();
         const freshRevision = apiKey === "key-a" ? "revision-a" : "revision-b";
@@ -108,6 +181,7 @@ describe("owner onboarding", () => {
         if (apiKey === "key-a") { signalACommitted(); await resumeA; }
         return freshRevision;
       }),
+      replaceActiveValidated: vi.fn(async () => undefined),
       getRedacted: vi.fn(async () => ({ hasCredential: true, credentialRevision: current.revision, webhookRegistrationState: "ACTIVE" as const, updatedAt: current.updatedAt })),
       getDecryptedApiKey: vi.fn(async () => current.apiKey),
     };

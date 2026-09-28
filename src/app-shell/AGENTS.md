@@ -17,13 +17,10 @@
   for the administrator shell.
 - Keep administrator and merchant navigation inventories separate and fixed at
   five entries; never infer one role's fallback routes from the other.
-- The username block opens an account menu that always offers Sign out (native
-  POST to `/logout`) and, for merchants only, the secondary `/profile` link; never
-  count either as primary navigation and never render the menu empty.
-- The persistent rail footer is presentation only: a `Monogram`, username,
-  role pill, and the `by Nautt Finance` caption. Sign out is owned solely by
-  the account menu and must never be duplicated in the rail footer (the
-  mobile drawer panel keeps its own separate sign-out control).
+- The rail footer and mobile drawer own the complete account menu: username,
+  role, instant theme picker, native `POST /logout`, and merchant-only
+  secondary `/profile` link. Never count those actions as primary navigation
+  or render duplicate account controls in the header.
 - Dashboard roots match exactly. Other active states match exact routes or a
   slash-delimited descendant, never a string prefix.
 - Two shell client boundaries exist, each narrow and isolated:
@@ -40,6 +37,11 @@
 - Preserve the skip link above every fixed chrome layer, `aria-current="page"`,
   a visible non-color active marker, 44px controls, unobscured focus, reduced
   motion, and 320px fit.
+- The compact mobile header starts below the existing 640px grid breakpoint
+  (`max-width: 39.9375rem`): it hides the verbose drawer label and top-bar
+  locale flags. The same flags remain reachable in the open drawer; this one literal
+  media query is explicitly recognized by `scripts/check-design-tokens.mjs`
+  because CSS custom properties cannot be media conditions.
 
 - This subtree owns `app-shell.css`, the only remaining route-neutral BEM
   stylesheet in the application; no other subtree may add a new one — every

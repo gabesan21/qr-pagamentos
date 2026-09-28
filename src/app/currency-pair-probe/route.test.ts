@@ -55,7 +55,7 @@ describe("currency-pair probe route", () => {
     const form = new FormData();
     form.set("code", "BRL");
     const response = await POST(new Request("http://local/currency-pair-probe", { method: "POST", headers: sameOrigin, body: form }));
-    expect(probeCurrencyPair).toHaveBeenCalledWith(principal, "BRL");
+    expect(probeCurrencyPair).toHaveBeenCalledWith(principal, "BRL", null);
     expect(response.status).toBe(303);
     expect(response.headers.get("location")).toBe("/settings?currency-probe=ok#settings-currency");
   });

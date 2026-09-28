@@ -48,6 +48,12 @@ function store(): NauttCredentialStore & { records: Map<string, NauttCredentialR
       });
       return true;
     },
+    async replaceActiveIfRevision({ userId, encryptedApiKey, expectedRevision, expectedProviderWebhookId, freshRevision }) {
+      const existing = records.get(userId);
+      if (!existing || existing.credentialRevision !== expectedRevision || existing.webhookRegistrationState !== "ACTIVE" || existing.providerWebhookId !== expectedProviderWebhookId) return false;
+      records.set(userId, { ...existing, encryptedApiKey, credentialRevision: freshRevision, updatedAt: new Date() });
+      return true;
+    },
     async find(userId) {
       return records.get(userId) ?? null;
     },
@@ -143,6 +149,43 @@ describe("nautt credential service", () => {
       expect(repository.records.get(owner.id)).toEqual(before);
     },
   );
+
+  it("replaces only the active API-key ciphertext behind owner, revision, and webhook-id CAS", async () => {
+    const repository = store();
+    await repository.saveValidatedIfRevision({ userId: owner.id, encryptedApiKey: "enc:original", expectedRevision: null, freshRevision: "revision-original" });
+    const record = repository.records.get(owner.id)!;
+    const providerWebhookId = "123e4567-e89b-42d3-a456-426614174000";
+    const webhookRegisteredAt = new Date("2026-07-17T20:00:00Z");
+    Object.assign(record, {
+      webhookRegistrationState: "ACTIVE",
+      providerWebhookId,
+      encryptedWebhookSecret: "enc:webhook-secret",
+      webhookRegisteredAt,
+    });
+    const service = createNauttCredentialService(repository, crypto, () => "revision-fresh");
+
+    await service.replaceActiveValidated(owner, owner.id, "replacement-key", "revision-original", providerWebhookId);
+
+    expect(repository.records.get(owner.id)).toMatchObject({
+      encryptedApiKey: `enc:replacement-key:${testKey.toString("base64url")}`,
+      credentialRevision: "revision-fresh",
+      webhookRegistrationState: "ACTIVE",
+      providerWebhookId,
+      encryptedWebhookSecret: "enc:webhook-secret",
+      webhookRegisteredAt,
+    });
+  });
+
+  it("refuses a cross-owner or stale active replacement without encrypting or writing", async () => {
+    const repository = store();
+    const service = createNauttCredentialService(repository, crypto);
+    crypto.encrypt.mockClear();
+
+    await expect(service.replaceActiveValidated(other, owner.id, "replacement-key", "revision", "123e4567-e89b-42d3-a456-426614174000")).rejects.toBeInstanceOf(ForbiddenError);
+    await expect(service.replaceActiveValidated(owner, owner.id, "replacement-key", "revision", "123e4567-e89b-42d3-a456-426614174000")).rejects.toBeInstanceOf(NauttCredentialReplacementBlockedError);
+    expect(crypto.encrypt).toHaveBeenCalledTimes(1);
+    expect(repository.records.size).toBe(0);
+  });
 
   it("preserves the complete row when replacement loses an atomic claim race", async () => {
     const repository = store();

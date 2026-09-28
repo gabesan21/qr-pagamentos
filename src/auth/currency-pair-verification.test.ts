@@ -41,7 +41,7 @@ function fakeDb(overrides: Record<string, unknown> = {}) {
       upsert: vi.fn(),
     },
     globalPaymentSettings: { findUnique: vi.fn().mockResolvedValue(enabledSettings) },
-    catalogCurrencyPair: { findUnique: vi.fn() },
+    catalogCurrencyPair: { findFirst: vi.fn(), findUnique: vi.fn() },
     supportedExchangeCurrency: { findMany: vi.fn() },
     ...overrides,
   };
@@ -89,7 +89,7 @@ describe("requireSelectableForCurrencyPair", () => {
 
   it("resolves the pair id then delegates to the shared gate", async () => {
     const db = fakeDb();
-    db.catalogCurrencyPair.findUnique.mockResolvedValue({ id: pairId });
+    db.catalogCurrencyPair.findUnique.mockResolvedValue({ id: pairId, currencyUuid: "c", exchangeCurrencyUuid: "e" });
     db.currencyPairVerification.findUnique.mockResolvedValue({ quoteOutcome: "ok", observedPaymentMethod: null, observedCurrencySymbol: null });
     await expect(requireSelectableForCurrencyPair(owner.id, "c", "e", db as never)).resolves.toBeUndefined();
   });
@@ -112,9 +112,57 @@ describe("probeCurrencyPair", () => {
     await expect(probeCurrencyPair(owner, "ZZZ")).rejects.toBeInstanceOf(CurrencyPairProbeCodeInvalidError);
   });
 
+  it("rejects malformed, inactive, and cross-currency selected methods without provider calls", async () => {
+    const db = fakeDb();
+    getDatabaseClientMock.mockReturnValue(db as never);
+    getSupportedExchangeCurrencyServiceMock.mockReturnValue({ requireActivePair: vi.fn().mockResolvedValue({ currencyUuid: "c", exchangeCurrencyUuid: "e" }) } as never);
+    const quote = vi.fn();
+    getOwnerPricingOrdersServiceMock.mockReturnValue({ quote } as never);
+
+    await expect(probeCurrencyPair(owner, "BRL", "not-a-uuid")).rejects.toBeInstanceOf(CurrencyPairProbeCodeInvalidError);
+    db.catalogCurrencyPair.findFirst.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
+    await expect(probeCurrencyPair(owner, "BRL", "11111111-1111-4111-8111-111111111111")).rejects.toBeInstanceOf(CurrencyPairProbeCodeInvalidError);
+    await expect(probeCurrencyPair(owner, "BRL", "22222222-2222-4222-8222-222222222222")).rejects.toBeInstanceOf(CurrencyPairProbeCodeInvalidError);
+    expect(db.catalogCurrencyPair.findFirst).toHaveBeenNthCalledWith(1, {
+      where: { id: "11111111-1111-4111-8111-111111111111", active: true, currencyUuid: "c" },
+      select: { id: true, currencyUuid: true, exchangeCurrencyUuid: true },
+    });
+    expect(db.catalogCurrencyPair.findFirst).toHaveBeenNthCalledWith(2, {
+      where: { id: "22222222-2222-4222-8222-222222222222", active: true, currencyUuid: "c" },
+      select: { id: true, currencyUuid: true, exchangeCurrencyUuid: true },
+    });
+    expect(quote).not.toHaveBeenCalled();
+  });
+
+  it("probes a nondefault selected method and throttles that exact owner-method key", async () => {
+    const db = fakeDb();
+    db.catalogCurrencyPair.findFirst.mockResolvedValue({ id: pairId, currencyUuid: "c", exchangeCurrencyUuid: "alternate" });
+    db.currencyPairVerification.findUnique.mockResolvedValue({ quoteCheckedAt: new Date("2026-01-01T00:00:30.000Z") });
+    getDatabaseClientMock.mockReturnValue(db as never);
+    getSupportedExchangeCurrencyServiceMock.mockReturnValue({ requireActivePair: vi.fn().mockResolvedValue({ currencyUuid: "c", exchangeCurrencyUuid: "e" }) } as never);
+    const quote = vi.fn();
+    getOwnerPricingOrdersServiceMock.mockReturnValue({ quote } as never);
+
+    await expect(probeCurrencyPair(owner, "BRL", "11111111-1111-4111-8111-111111111111", () => new Date("2026-01-01T00:01:00.000Z"))).rejects.toBeInstanceOf(CurrencyPairProbeThrottledError);
+    expect(quote).not.toHaveBeenCalled();
+  });
+
+  it("uses the selected nondefault method UUIDs for a successful quote", async () => {
+    const db = fakeDb();
+    db.catalogCurrencyPair.findFirst.mockResolvedValue({ id: pairId, currencyUuid: "c", exchangeCurrencyUuid: "alternate" });
+    db.currencyPairVerification.findUnique.mockResolvedValue(null);
+    getDatabaseClientMock.mockReturnValue(db as never);
+    getSupportedExchangeCurrencyServiceMock.mockReturnValue({ requireActivePair: vi.fn().mockResolvedValue({ currencyUuid: "c", exchangeCurrencyUuid: "default" }) } as never);
+    const quote = vi.fn().mockResolvedValue({});
+    getOwnerPricingOrdersServiceMock.mockReturnValue({ quote } as never);
+
+    await expect(probeCurrencyPair(owner, "BRL", "11111111-1111-4111-8111-111111111111")).resolves.toEqual({ outcome: "ok" });
+    expect(quote).toHaveBeenCalledWith(owner.id, { currencyUuid: "c", exchangeCurrencyUuid: "alternate", amount: { kind: "fiat", value: "1.00" } });
+  });
+
   it("throttles a second probe for the same (owner, pair) within 60s without calling the provider", async () => {
     const db = fakeDb();
-    db.catalogCurrencyPair.findUnique.mockResolvedValue({ id: pairId });
+    db.catalogCurrencyPair.findUnique.mockResolvedValue({ id: pairId, currencyUuid: "c", exchangeCurrencyUuid: "e" });
     db.currencyPairVerification.findUnique.mockResolvedValue({ quoteCheckedAt: new Date("2026-01-01T00:00:30.000Z") });
     getDatabaseClientMock.mockReturnValue(db as never);
     getSupportedExchangeCurrencyServiceMock.mockReturnValue({
@@ -124,14 +172,14 @@ describe("probeCurrencyPair", () => {
     getOwnerPricingOrdersServiceMock.mockReturnValue({ quote } as never);
 
     await expect(
-      probeCurrencyPair(owner, "BRL", () => new Date("2026-01-01T00:01:00.000Z")),
+      probeCurrencyPair(owner, "BRL", undefined, () => new Date("2026-01-01T00:01:00.000Z")),
     ).rejects.toBeInstanceOf(CurrencyPairProbeThrottledError);
     expect(quote).not.toHaveBeenCalled();
   });
 
   it("records ok on a passing quote", async () => {
     const db = fakeDb();
-    db.catalogCurrencyPair.findUnique.mockResolvedValue({ id: pairId });
+    db.catalogCurrencyPair.findUnique.mockResolvedValue({ id: pairId, currencyUuid: "c", exchangeCurrencyUuid: "e" });
     db.currencyPairVerification.findUnique.mockResolvedValue(null);
     getDatabaseClientMock.mockReturnValue(db as never);
     getSupportedExchangeCurrencyServiceMock.mockReturnValue({
@@ -140,7 +188,7 @@ describe("probeCurrencyPair", () => {
     const quote = vi.fn().mockResolvedValue({});
     getOwnerPricingOrdersServiceMock.mockReturnValue({ quote } as never);
 
-    const result = await probeCurrencyPair(owner, "BRL", () => new Date("2026-01-01T00:00:00.000Z"));
+    const result = await probeCurrencyPair(owner, "BRL", undefined, () => new Date("2026-01-01T00:00:00.000Z"));
     expect(result).toEqual({ outcome: "ok" });
     expect(quote).toHaveBeenCalledWith(owner.id, { currencyUuid: "c", exchangeCurrencyUuid: "e", amount: { kind: "fiat", value: "1.00" } });
     expect(db.currencyPairVerification.upsert).toHaveBeenCalledWith(expect.objectContaining({
@@ -151,7 +199,7 @@ describe("probeCurrencyPair", () => {
 
   it("records exactly the documented refusal code", async () => {
     const db = fakeDb();
-    db.catalogCurrencyPair.findUnique.mockResolvedValue({ id: pairId });
+    db.catalogCurrencyPair.findUnique.mockResolvedValue({ id: pairId, currencyUuid: "c", exchangeCurrencyUuid: "e" });
     db.currencyPairVerification.findUnique.mockResolvedValue(null);
     getDatabaseClientMock.mockReturnValue(db as never);
     getSupportedExchangeCurrencyServiceMock.mockReturnValue({
@@ -160,7 +208,7 @@ describe("probeCurrencyPair", () => {
     const quote = vi.fn().mockRejectedValue(new NauttPricingRefusedError("validation.failed"));
     getOwnerPricingOrdersServiceMock.mockReturnValue({ quote } as never);
 
-    const result = await probeCurrencyPair(owner, "BRL", () => new Date("2026-01-01T00:00:00.000Z"));
+    const result = await probeCurrencyPair(owner, "BRL", undefined, () => new Date("2026-01-01T00:00:00.000Z"));
     expect(result).toEqual({ outcome: "validation.failed" });
     expect(db.currencyPairVerification.upsert).toHaveBeenCalledWith(expect.objectContaining({
       create: expect.objectContaining({ quoteOutcome: "validation.failed" }),
@@ -169,7 +217,7 @@ describe("probeCurrencyPair", () => {
 
   it("records the opaque unavailable outcome and never writes a code (missing credential, transport failure, generic adapter error)", async () => {
     const db = fakeDb();
-    db.catalogCurrencyPair.findUnique.mockResolvedValue({ id: pairId });
+    db.catalogCurrencyPair.findUnique.mockResolvedValue({ id: pairId, currencyUuid: "c", exchangeCurrencyUuid: "e" });
     db.currencyPairVerification.findUnique.mockResolvedValue(null);
     getDatabaseClientMock.mockReturnValue(db as never);
     getSupportedExchangeCurrencyServiceMock.mockReturnValue({
@@ -178,7 +226,7 @@ describe("probeCurrencyPair", () => {
     const quote = vi.fn().mockRejectedValue(new Error("transport failure"));
     getOwnerPricingOrdersServiceMock.mockReturnValue({ quote } as never);
 
-    const result = await probeCurrencyPair(owner, "BRL", () => new Date("2026-01-01T00:00:00.000Z"));
+    const result = await probeCurrencyPair(owner, "BRL", undefined, () => new Date("2026-01-01T00:00:00.000Z"));
     expect(result).toEqual({ outcome: "unavailable" });
     const [call] = db.currencyPairVerification.upsert.mock.calls;
     expect(call[0].create.quoteOutcome).toBeNull();

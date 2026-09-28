@@ -3,7 +3,6 @@
 import { useState } from "react";
 
 import { AdminSubmit } from "@/app/admin/admin-submit";
-import { Badge } from "@/components/ui/badge";
 import { ConfirmDialog } from "@/components/ui/modal";
 import { Switch } from "@/components/ui/switch";
 
@@ -58,11 +57,14 @@ export function PaymentSettingsSection({
           { param: "error", value: "settings-failed", kind: "error", message: dictionary.adminSettingsFailed },
         ]}
       />
+      <div className="mb-3 space-y-1">
+        <h3 className="m-0 text-base font-semibold">{dictionary.adminPaymentPolicyHeading}</h3>
+        <p className="m-0 text-sm text-text-2">{dictionary.adminPaymentPolicyHelp}</p>
+      </div>
       <ul className="divide-y">
         {PAYMENT_ROWS.map((row) => (
           <li key={row.value} className="flex items-center gap-3 py-3">
             <span className="font-medium">{dictionary[row.labelKey]}</span>
-            <Badge variant="outline">{dictionary.adminPrimaryCaption}</Badge>
             <span className="ml-auto flex items-center gap-2">
               <Switch
                 aria-label={dictionary[row.labelKey]}

@@ -11,15 +11,18 @@ export async function POST(request: Request) {
     try {
       const actor = await requireAdminFromCookie();
       const form = await request.formData();
-      await getNauttCatalogService().createPaymentMethod(actor, {
+      // CatalogPaymentMethod is retained only for historical data. New methods
+      // are real CatalogCurrencyPair rows bound to a configured currency.
+      await getNauttCatalogService().createCurrencyMethod(actor, {
         label: form.get("label"),
-        paymentMethodUuid: form.get("paymentMethodUuid"),
+        currencyCode: form.get("currencyCode"),
+        exchangeCurrencyUuid: form.get("exchangeCurrencyUuid"),
       });
-      return relativeRedirect("/admin/settings?success=catalog-created");
+      return relativeRedirect("/admin/settings?success=method-created");
     } catch (error) {
       const protectedResponse = protectedMutationResponse(error);
       if (protectedResponse) return protectedResponse;
-      return relativeRedirect("/admin/settings?error=catalog-create-failed");
+      return relativeRedirect("/admin/settings?error=method-failed");
     }
   });
 }

@@ -1,7 +1,7 @@
 export const paymentLinksPtBR = {
   adminPaymentLinkChooseProduct: "Escolha um produto ativo",
-  adminPaymentLinkCurrencyPair: "Par de moedas",
-  adminPaymentLinkChooseCurrencyPair: "Escolha um par de moedas ativo",
+  adminPaymentLinkCurrencyPair: "Método de pagamento",
+  adminPaymentLinkChooseCurrencyPair: "Escolha um método de pagamento ativo",
   adminPaymentLinkType: "Tipo de link",
   adminPaymentLinkReusable: "Reutilizável",
   adminPaymentLinkSingleUse: "Uso único",

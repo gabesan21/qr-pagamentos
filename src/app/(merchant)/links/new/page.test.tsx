@@ -82,7 +82,7 @@ describe("merchant V2 payment-link create page", () => {
     ready("en");
     listPairs.mockResolvedValue([]);
     const markup = renderToStaticMarkup(await NewPaymentLinkPage());
-    expect(markup).toContain("No active currency pair is available");
+    expect(markup).toContain("No active payment method is available");
     expect(markup).toContain("disabled");
   });
 

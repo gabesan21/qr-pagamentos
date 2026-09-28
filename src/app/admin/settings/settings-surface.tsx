@@ -8,17 +8,15 @@ import type { getDictionary } from "@/i18n/dictionaries";
 import type { SupportedLocale } from "@/i18n/locales";
 
 import { AppearanceSection } from "./appearance-section";
-import { CatalogRecordsSection } from "./catalog-records-section";
 import { ExchangeCurrenciesSection } from "./exchange-currencies-section";
 import { LanguageSection } from "./language-section";
-import { PaymentSettingsSection } from "./payment-settings-section";
+import { PaymentMethodsSection } from "./payment-methods-section";
 import { SettingsNav } from "./settings-nav";
 import type { SectionNotice } from "./settings-section-notice";
 
 export type Dictionary = ReturnType<typeof getDictionary>;
 export type Settings = Readonly<{ currencies: string[]; paymentMethods: string[] }>;
-export type CurrencyPair = Readonly<{ id: string; label: string; currencyUuid: string; exchangeCurrencyUuid: string; active: boolean; createdAt: string }>;
-export type PaymentMethod = Readonly<{ id: string; label: string; paymentMethodUuid: string; active: boolean; createdAt: string }>;
+export type CurrencyPair = Readonly<{ id: string; label: string; currencyUuid: string; exchangeCurrencyUuid: string; currencyCode?: string; isDefault?: boolean; active: boolean; createdAt: string }>;
 // 13.4.1 F02: read-only probe evidence next to each mapping — never an
 // action, never an admin-triggered provider call.
 export type ExchangeCurrencyEvidence = Readonly<{
@@ -32,9 +30,7 @@ export type Notice = Readonly<{ tone: "success" | "error"; text: string }> | nul
 
 const SECTION_IDS = [
   "currencies",
-  "pairs",
   "methods",
-  "globalPayments",
   "appearance",
   "language",
 ] as const;
@@ -50,7 +46,6 @@ export function AdminSettingsSurface({
   locale,
   mappings,
   notice,
-  paymentMethods,
   paymentSettingsNotice,
   settings,
   themeNotice,
@@ -63,23 +58,21 @@ export function AdminSettingsSurface({
   locale: SupportedLocale;
   mappings: ExchangeCurrencyMapping[];
   notice: Notice;
-  paymentMethods: PaymentMethod[];
   paymentSettingsNotice: SectionNotice;
   settings: Settings;
   themeNotice: SectionNotice;
 }>) {
   const sectionLabels: Record<SectionId, string> = {
     currencies: dictionary.adminSecCurrencies,
-    pairs: dictionary.adminSecPairs,
     methods: dictionary.adminSecMethods,
-    globalPayments: dictionary.adminSecGlobalPayments,
     appearance: dictionary.adminAppearanceHeading,
     language: dictionary.languageHeading,
   };
 
   return (
-    <>
+    <div className="space-y-6">
       <WorkspaceHeading
+        className="!border-b-0 !pb-0"
         description={dictionary.adminSettingsDescription}
         eyebrow={dictionary.shellAdminEyebrow}
         title={dictionary.adminSettingsTitle}
@@ -94,42 +87,8 @@ export function AdminSettingsSurface({
           <SectionCard id="sec-currencies" title={dictionary.adminSecCurrencies} description={dictionary.adminSecCurrenciesDesc}>
             <ExchangeCurrenciesSection dictionary={dictionary} mappings={mappings} notice={exchangeCurrencyNotice} />
           </SectionCard>
-          <SectionCard id="sec-pairs" title={dictionary.adminSecPairs} description={dictionary.adminSecPairsDesc}>
-            <CatalogRecordsSection
-              dictionary={dictionary}
-              formAction="/admin/catalog/currency-pairs"
-              items={currencyPairs.map((pair) => ({
-                id: pair.id,
-                label: pair.label,
-                active: pair.active,
-                createdAt: pair.createdAt,
-                detailLabel: dictionary.adminCatalogCurrencyUuidLabel,
-                detailValue: pair.currencyUuid,
-                secondaryLabel: dictionary.adminCatalogExchangeCurrencyUuidLabel,
-                secondaryValue: pair.exchangeCurrencyUuid,
-              }))}
-              kind="pair"
-              locale={locale}
-            />
-          </SectionCard>
           <SectionCard id="sec-methods" title={dictionary.adminSecMethods} description={dictionary.adminSecMethodsDesc}>
-            <CatalogRecordsSection
-              dictionary={dictionary}
-              formAction="/admin/catalog/payment-methods"
-              items={paymentMethods.map((method) => ({
-                id: method.id,
-                label: method.label,
-                active: method.active,
-                createdAt: method.createdAt,
-                detailLabel: dictionary.adminCatalogPaymentMethodUuidLabel,
-                detailValue: method.paymentMethodUuid,
-              }))}
-              kind="method"
-              locale={locale}
-            />
-          </SectionCard>
-          <SectionCard id="sec-globalPayments" title={dictionary.adminSecGlobalPayments} description={dictionary.adminSecGlobalPaymentsDesc}>
-            <PaymentSettingsSection dictionary={dictionary} notice={paymentSettingsNotice} settings={settings} />
+            <PaymentMethodsSection dictionary={dictionary} mappings={mappings} methods={currencyPairs} notice={paymentSettingsNotice} settings={settings} />
           </SectionCard>
           <SectionCard id="sec-appearance" title={dictionary.adminAppearanceHeading} description={dictionary.adminAppearanceDescription}>
             <AppearanceSection defaultThemeId={defaultThemeId} dictionary={dictionary} notice={themeNotice} themeIds={STOREFRONT_THEME_IDS} />
@@ -139,7 +98,7 @@ export function AdminSettingsSurface({
           </SectionCard>
         </div>
       </div>
-    </>
+    </div>
   );
 }
 

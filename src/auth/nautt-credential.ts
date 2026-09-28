@@ -25,6 +25,13 @@ export interface NauttCredentialStore {
     expectedRevision: string | null;
     freshRevision: string;
   }): Promise<boolean>;
+  replaceActiveIfRevision(input: {
+    userId: string;
+    encryptedApiKey: string;
+    expectedRevision: string;
+    expectedProviderWebhookId: string;
+    freshRevision: string;
+  }): Promise<boolean>;
   find(userId: string): Promise<NauttCredentialRecord | null>;
   exists(userId: string): Promise<boolean>;
 }
@@ -103,6 +110,35 @@ export function createNauttCredentialService(
 
     saveValidated,
 
+    async snapshotActive(actor: Principal, targetUserId: string) {
+      requireOwner(actor, targetUserId);
+      const record = await store.find(targetUserId);
+      if (!record || record.webhookRegistrationState !== "ACTIVE" || record.providerWebhookId === null) {
+        throw new NauttCredentialReplacementBlockedError("Credential is not active");
+      }
+      return { credentialRevision: record.credentialRevision, providerWebhookId: record.providerWebhookId };
+    },
+
+    async replaceActiveValidated(
+      actor: Principal,
+      targetUserId: string,
+      apiKey: string,
+      expectedRevision: string,
+      expectedProviderWebhookId: string,
+    ) {
+      requireOwner(actor, targetUserId);
+      const trimmed = apiKey.trim();
+      if (!trimmed) throw new NauttCredentialValidationError("API key is required");
+      const saved = await store.replaceActiveIfRevision({
+        userId: targetUserId,
+        encryptedApiKey: crypto.encrypt(trimmed, crypto.loadKey()),
+        expectedRevision,
+        expectedProviderWebhookId,
+        freshRevision: createRevision(),
+      });
+      if (!saved) throw new NauttCredentialReplacementBlockedError("Credential setup changed");
+    },
+
     async snapshotRevision(actor: Principal, targetUserId: string): Promise<string | null> {
       requireOwner(actor, targetUserId);
       return (await store.find(targetUserId))?.credentialRevision ?? null;
@@ -144,6 +180,18 @@ function prismaStore(): NauttCredentialStore {
       }
       const updated = await db.nauttCredential.updateMany({
         where: { userId, credentialRevision: expectedRevision, webhookRegistrationState: "UNREGISTERED" },
+        data: { encryptedApiKey, credentialRevision: freshRevision },
+      });
+      return updated.count === 1;
+    },
+    async replaceActiveIfRevision({ userId, encryptedApiKey, expectedRevision, expectedProviderWebhookId, freshRevision }) {
+      const updated = await db.nauttCredential.updateMany({
+        where: {
+          userId,
+          credentialRevision: expectedRevision,
+          webhookRegistrationState: "ACTIVE",
+          providerWebhookId: expectedProviderWebhookId,
+        },
         data: { encryptedApiKey, credentialRevision: freshRevision },
       });
       return updated.count === 1;

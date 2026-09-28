@@ -7,6 +7,7 @@ import { BrandIdentity } from "@/brand/brand-identity";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 import { ResetPasswordSubmit } from "./reset-password-submit";
@@ -83,7 +84,7 @@ export function ResetPasswordForm({ dictionary, hasError, token }: ResetPassword
               <Input
                 aria-describedby={`${requirementId} ${meterId}`}
                 autoComplete="new-password"
-                className="pe-10"
+                className="pe-(--control-icon-padding-inline)"
                 id="newPassword"
                 maxLength={128}
                 minLength={12}
@@ -97,14 +98,16 @@ export function ResetPasswordForm({ dictionary, hasError, token }: ResetPassword
                 type={showPassword ? "text" : "password"}
                 value={newPassword}
               />
-              <button
+              <Button
                 aria-label={showPassword ? dictionary.hidePassword : dictionary.showPassword}
-                className="absolute end-1 top-1/2 flex size-[var(--target-min-size)] -translate-y-1/2 cursor-pointer items-center justify-center border-0 bg-transparent text-text-2 hover:text-text"
+                className="absolute end-1 top-1/2 -translate-y-1/2"
                 onClick={() => setShowPassword((value) => !value)}
+                size="icon"
                 type="button"
+                variant="ghost"
               >
                 {showPassword ? <EyeOffIcon aria-hidden="true" /> : <EyeIcon aria-hidden="true" />}
-              </button>
+              </Button>
             </div>
             <FieldDescription id={requirementId}>{dictionary.resetPasswordRequirement}</FieldDescription>
             <div aria-hidden="true" className="flex items-center gap-3">

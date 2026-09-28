@@ -98,10 +98,16 @@ describe("storefront settings management", () => {
   });
 
   it("renders one probe control per active code and the never-checked status by default (13.4.1)", () => {
-    const markup = render();
+    const markup = render({ currencyEvidence: [
+      { code: "BRL", pairId: "pair-brl", label: "PIX", checkedAt: null, outcome: null, observedPaymentMethod: null, observedCurrencySymbol: null },
+      { code: "USD", pairId: "pair-usd", label: "Card", checkedAt: null, outcome: null, observedPaymentMethod: null, observedCurrencySymbol: null },
+    ] });
     expect(markup.match(/action="\/currency-pair-probe"/g) ?? []).toHaveLength(2);
     expect(markup).toContain('value="BRL"');
     expect(markup).toContain('value="USD"');
+    expect(markup).toContain('name="pairId"');
+    expect(markup).toContain('value="pair-brl"');
+    expect(markup).toContain('value="pair-usd"');
     expect(markup).toContain(getDictionary("en").currencyProbeAction);
     expect(markup.match(new RegExp(getDictionary("en").currencyProbeStatusNever, "g")) ?? []).toHaveLength(2);
   });
@@ -127,7 +133,10 @@ describe("storefront settings management", () => {
   });
 
   it("renders the standalone toggle with its mirrored hidden field", () => {
-    const markup = render();
+    const markup = render({ currencyEvidence: [
+      { code: "BRL", pairId: "pair-brl", label: "PIX", checkedAt: null, outcome: null, observedPaymentMethod: null, observedCurrencySymbol: null },
+      { code: "USD", pairId: "pair-usd", label: "Card", checkedAt: null, outcome: null, observedPaymentMethod: null, observedCurrencySymbol: null },
+    ] });
     expect(markup).toContain(getDictionary("en").storefrontStandalonePaymentsLabel);
     expect(markup).toContain('name="storefrontStandalonePaymentsEnabled"');
     expect(markup).toContain('name="storefrontStandalonePaymentsEnabled" value="true"');
@@ -169,7 +178,10 @@ describe("storefront settings management", () => {
   // (invalid HTML — nested forms silently break submission). The sibling
   // form renders as a document-level sibling, after the settings form closes.
   it("binds the noscript logo fallback to a sibling form, never nested inside the settings form", () => {
-    const markup = render();
+    const markup = render({ currencyEvidence: [
+      { code: "BRL", pairId: "pair-brl", label: "PIX", checkedAt: null, outcome: null, observedPaymentMethod: null, observedCurrencySymbol: null },
+      { code: "USD", pairId: "pair-usd", label: "Card", checkedAt: null, outcome: null, observedPaymentMethod: null, observedCurrencySymbol: null },
+    ] });
     // 13.4.1 F02 added one probe <form> per active currency choice (2 in this fixture),
     // alongside the settings form and the noscript logo-fallback form: 4 total.
     expect(markup.match(/<form\b/g)).toHaveLength(4);

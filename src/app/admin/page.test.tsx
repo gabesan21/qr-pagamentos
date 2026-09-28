@@ -22,6 +22,8 @@ import AdminPage from "./page";
 
 const principal = { id: "admin-1", username: "operator", role: "ADMIN", status: "ACTIVE" } as const;
 const brl = { code: "BRL", label: "Brazilian real" } as const;
+const usd = { code: "USD", label: "United States dollar" } as const;
+const usdt = { code: "USDT", label: "Tether" } as const;
 
 function readyView(overrides: Partial<AdminAnalyticsView> = {}): AdminAnalyticsView {
   return {
@@ -68,6 +70,7 @@ describe("administrator dashboard", () => {
     expect(requireContext).toHaveBeenCalledOnce();
     expect(getGlobal).toHaveBeenCalledWith(principal, undefined);
     expect(html).toContain(ptBR.shellAdminDashboardTitle);
+    expect(html).toContain(ptBR.shellAdminDashboardDescription);
     expect(html).toContain(ptBR.adminDashboardUsersRegistered);
     expect(html).toContain(ptBR.adminDashboardUsersActiveNow);
     expect(html).toContain(ptBR.adminDashboardUsersDeleted);
@@ -89,12 +92,15 @@ describe("administrator dashboard", () => {
     expect(html).toContain("Café expresso");
   });
 
-  it("marks users and links/products counts as period-independent", async () => {
+  it("groups platform totals under one period-independent explanation", async () => {
     arrange("pt-BR", readyView());
 
     const html = await render();
 
-    expect(html.match(new RegExp(ptBR.adminDashboardPeriodIndependentCaption, "g"))).toHaveLength(6);
+    expect(html.match(new RegExp(ptBR.adminDashboardPeriodIndependentCaption, "g"))).toHaveLength(1);
+    expect(html).toContain(ptBR.adminDashboardPlatformTotalsHeading);
+    expect(html).toContain(ptBR.adminDashboardPeriodMetricsHeading);
+    expect(html).toContain(ptBR.adminDashboardPeriodMetricsDescription);
   });
 
   it("labels the null order state explicitly and groups by source", async () => {
@@ -114,10 +120,32 @@ describe("administrator dashboard", () => {
     const html = await render();
 
     expect(html).toMatch(/aria-label="[^"]*: 6"[^>]*role="img"/);
-    expect(html).toContain("bg-primary");
-    expect(html).toContain("bg-muted-foreground");
+    expect(html).toContain("text-primary");
+    expect(html).toContain("text-muted-foreground");
     expect(html).toContain(ptBR.adminDashboardSourceLink);
     expect(html).toContain(ptBR.adminDashboardSourceAdHoc);
+  });
+
+  it("uses exact source segments without rounding their combined width over the whole", async () => {
+    arrange("pt-BR", readyView({
+      orders: {
+        createdInPeriod: 3,
+        bySource: [
+          { source: "LINK", count: 1 },
+          { source: "STANDALONE", count: 1 },
+          { source: "AD_HOC", count: 1 },
+        ],
+        byState: [],
+      },
+    }));
+
+    const html = await render();
+
+    expect(html).toContain('viewBox="0 0 3 1"');
+    expect(html.match(/<rect /g)).toHaveLength(3);
+    expect(html).toMatch(/<rect[^>]*width="1"[^>]*x="0"/);
+    expect(html).toMatch(/<rect[^>]*width="1"[^>]*x="1"/);
+    expect(html).toMatch(/<rect[^>]*width="1"[^>]*x="2"/);
   });
 
   it("renders the deleted-owner badge on leaderboard rows without changing aggregates", async () => {
@@ -201,11 +229,47 @@ describe("administrator dashboard", () => {
     const html = await render();
 
     expect(html).toContain(en.adminDashboardConfirmedSales);
+    expect(html).toContain(en.shellAdminDashboardDescription);
     expect(html).toContain(en.adminDashboardLocallyFinalizedSales);
     expect(html).toContain("34.90 BRL");
     expect(html).toContain("Espresso shot");
     expect(html).toContain("66.66%");
     expect(html).toContain(en.adminDashboardDeletedOwnerBadge);
+  });
+
+  it("localizes large counts and preserves exact currency-specific monetary separators", async () => {
+    const largeView = readyView({
+      users: { registeredTotal: 1234, activeNow: 1200, deletedTotal: 1000 },
+      orders: {
+        createdInPeriod: 1234,
+        bySource: [{ source: "LINK", count: 1000 }, { source: "AD_HOC", count: 234 }],
+        byState: [{ state: "CONFIRMED", count: 1234 }],
+      },
+      confirmedSales: [
+        { currency: brl, amount: "1234.50", orderCount: 1234 },
+        { currency: usd, amount: "1234.50", orderCount: 1234 },
+      ],
+      locallyFinalizedSales: [{ currency: usdt, amount: "1234.50", orderCount: 1234 }],
+      funnel: { attempts: 1234, converted: 1234, abandoned: 1000, inProgress: 1200, conversionRate: "0.6666", abandonmentRate: "0.3333" },
+      paymentLinks: { total: 1234, activeCount: 1200 },
+      products: { activeCount: 1234, archivedCount: 1000 },
+      topOwners: [{ owner: { username: "lojista", deleted: false }, confirmedOrders: 1234, confirmedVolume: [{ currency: usd, amount: "1234.50" }] }],
+      topProducts: [{ titlePtBr: "Café expresso", titleEn: "Espresso shot", confirmedQuantity: 1234, revenue: [{ currency: usdt, amount: "1234.50" }] }],
+    });
+
+    arrange("pt-BR", largeView);
+    const portuguese = await render();
+    expect(portuguese).toContain(">1.234<");
+    expect(portuguese).toContain("1.234,50 BRL");
+    expect(portuguese).toContain("1,234.50 USD");
+    expect(portuguese).toContain("1,234.50 USDT");
+
+    arrange("en", largeView);
+    const english = await render();
+    expect(english).toContain(">1,234<");
+    expect(english).toContain("1,234.50 BRL");
+    expect(english).toContain("1,234.50 USD");
+    expect(english).toContain("1,234.50 USDT");
   });
 
   it("keeps the existing notice handling untouched", async () => {
@@ -231,7 +295,7 @@ describe("administrator dashboard", () => {
 
     const html = await render();
 
-    expect(html).not.toContain("admin-dashboard");
+    expect(html).not.toContain("admin-dashboard__");
     expect(html).toContain("lg:col-span-5");
     expect(html).toContain("lg:col-span-4");
     expect(html).toContain("lg:col-span-3");

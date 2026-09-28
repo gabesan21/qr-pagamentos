@@ -12,10 +12,13 @@ import {
   getOwnerWebhookRegistrationService,
   OwnerWebhookRegistrationRecoveryRequiredError,
 } from "./owner-webhook-registration";
+import { getClientWebhooksAdapter } from "./client-webhooks";
 
 type CredentialService = {
   snapshotRevision(actor: Principal, targetUserId: string): Promise<string | null>;
   saveValidated(actor: Principal, targetUserId: string, apiKey: string, expectedRevision: string | null): Promise<string>;
+  snapshotActive(actor: Principal, targetUserId: string): Promise<{ credentialRevision: string; providerWebhookId: string }>;
+  replaceActiveValidated(actor: Principal, targetUserId: string, apiKey: string, expectedRevision: string, expectedProviderWebhookId: string): Promise<void>;
   getRedacted(actor: Principal, targetUserId: string): Promise<NauttCredentialRedacted>;
   getDecryptedApiKey(targetUserId: string): Promise<string>;
 };
@@ -24,6 +27,9 @@ type WalletAdapter = { read(apiKey: string): Promise<MainWalletBalance> };
 type RegistrationService = {
   register(userId: string, callbackUrl: string, expectedRevision: string): Promise<unknown>;
   reset(userId: string): Promise<boolean>;
+};
+type WebhookVerifier = {
+  verifyActive(input: { apiKey: string; providerWebhookId: string; callbackUrl: string }): Promise<void>;
 };
 
 export class OwnerOnboardingInvalidKeyError extends Error {}
@@ -40,6 +46,7 @@ export function createOwnerOnboardingService(
   credentials: CredentialService,
   wallet: WalletAdapter,
   registration: RegistrationService,
+  webhookVerifier: WebhookVerifier = getClientWebhooksAdapter(),
 ) {
   return {
     async onboard(actor: Principal, targetUserId: string, apiKey: string, callbackUrl: string): Promise<void> {
@@ -90,6 +97,34 @@ export function createOwnerOnboardingService(
       requireUserPrincipal(actor);
       const resetApplied = await registration.reset(actor.id);
       if (!resetApplied) throw new OwnerOnboardingChangedError("Credential setup changed");
+    },
+
+    async replaceActiveKey(actor: Principal, apiKey: string, callbackUrl: string): Promise<void> {
+      requireUserPrincipal(actor);
+      let candidateKey = apiKey;
+      try {
+        const snapshot = await credentials.snapshotActive(actor, actor.id);
+        await wallet.read(candidateKey);
+        await webhookVerifier.verifyActive({
+          apiKey: candidateKey,
+          providerWebhookId: snapshot.providerWebhookId,
+          callbackUrl,
+        });
+        await credentials.replaceActiveValidated(
+          actor,
+          actor.id,
+          candidateKey,
+          snapshot.credentialRevision,
+          snapshot.providerWebhookId,
+        );
+      } catch (error) {
+        if (error instanceof NauttCredentialReplacementBlockedError) {
+          throw new OwnerOnboardingChangedError("Credential setup changed");
+        }
+        throw new OwnerOnboardingInvalidKeyError("Nautt API key could not be validated");
+      } finally {
+        candidateKey = "";
+      }
     },
 
     async readStatus(actor: Principal): Promise<OwnerNauttStatus> {

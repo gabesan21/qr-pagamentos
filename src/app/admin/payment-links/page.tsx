@@ -62,7 +62,7 @@ function OwnerCell({ dictionary, owner }: Readonly<{ dictionary: Dictionary; own
   return (
     <div className="flex items-center gap-3">
       <Monogram name={owner.username} />
-      <Button asChild className="px-0" data-ds-hit-target variant="ghost">
+      <Button asChild data-ds-hit-target size="inline" variant="ghost">
         <Link href="/admin/accounts">{owner.username}</Link>
       </Button>
       {owner.deletedAt !== null ? <Badge variant="outline">{dictionary.adminPaymentLinkV2DirectoryOwnerDeleted}</Badge> : null}
@@ -155,6 +155,7 @@ function AdminPaymentLinkV2Directory({
     <DataDirectory
       actionsLabel={dictionary.paymentLinkDirectoryColumnActions}
       canonicalFilterQuery={query.query.canonicalFilterQuery}
+      compactToolbar={{ visibleFilterNames: ["state"] }}
       caption={dictionary.adminPaymentLinkV2DirectoryHeading}
       columns={columns}
       copy={copy}
@@ -276,10 +277,10 @@ export default async function AdminPaymentLinksPage({
   if (serviceRedirect !== null) redirect(serviceRedirect);
 
   return (
-    <>
+    <div className="flex flex-col gap-8">
       <WorkspaceHeading description={dictionary.adminPaymentLinkV2DirectoryDescription} eyebrow={dictionary.shellAdminEyebrow} title={dictionary.shellAdminLinksTitle} />
       {invalidFiltersNotice ? <DirectoryInvalidFiltersNotice dictionary={dictionary} /> : null}
       <AdminPaymentLinkV2Directory dictionary={dictionary} locale={locale} page={page} query={query} />
-    </>
+    </div>
   );
 }

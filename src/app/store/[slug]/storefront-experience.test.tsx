@@ -3,7 +3,13 @@ import { describe, expect, it, vi } from "vitest";
 
 import { storefrontPtBR } from "@/i18n/dictionaries/storefront/pt-BR";
 
-import { StorefrontExperienceView, submitStorefrontCartCheckout, type StorefrontExperienceCopy } from "./storefront-experience";
+import {
+  StandaloneStorefrontExperience,
+  StorefrontExperienceView,
+  standalonePaymentPrefillHref,
+  submitStorefrontCartCheckout,
+  type StorefrontExperienceCopy,
+} from "./storefront-experience";
 
 function textContent(markup: string): string {
   return markup.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
@@ -33,6 +39,10 @@ const copy: StorefrontExperienceCopy = {
   priceLabel: storefrontPtBR.storefrontPriceLabel,
   productsHeading: storefrontPtBR.storefrontProductsHeading,
   quantityLabel: storefrontPtBR.storefrontQuantityLabel,
+  standaloneAmountInvalid: storefrontPtBR.storefrontStandaloneAmountInvalid,
+  standaloneContinue: storefrontPtBR.storefrontStandaloneContinue,
+  standaloneCurrencyUnavailable: storefrontPtBR.storefrontStandaloneCurrencyUnavailable,
+  standaloneHeading: storefrontPtBR.storefrontStandaloneHeading,
 };
 
 const catalog = [
@@ -188,6 +198,38 @@ describe("storefront experience view", () => {
     const failed = renderView({ items, checkoutFailed: true });
     expect(textContent(failed)).toContain("Não foi possível iniciar o pagamento deste carrinho. Tente novamente.");
     expect(textContent(failed).match(/Não foi possível iniciar o pagamento/g)).toHaveLength(1);
+  });
+});
+
+describe("standalone storefront experience", () => {
+  it("uses only canonical positive-decimal values for the standalone payment prefill", () => {
+    expect(standalonePaymentPrefillHref("minha-loja", "12.500001")).toBe("/store/minha-loja/pay?amount=12.500001");
+    expect(standalonePaymentPrefillHref("minha-loja", "12,5")).toBeNull();
+    expect(standalonePaymentPrefillHref("minha-loja", "0")).toBeNull();
+  });
+
+  it("shows the effective currency only in the amount label", () => {
+    const markup = renderToStaticMarkup(
+      <StandaloneStorefrontExperience copy={copy} currencyCode="BRL" slug="minha-loja" />,
+    );
+
+    expect(textContent(markup)).toContain("Valor (BRL)");
+    expect(textContent(markup).match(/BRL/g)).toHaveLength(1);
+    expect(textContent(markup)).not.toContain("configurar uma moeda");
+  });
+
+  it("renders the compact unavailable state without a cart or a fallback currency", () => {
+    const markup = renderToStaticMarkup(
+      <StandaloneStorefrontExperience copy={copy} currencyCode={null} slug="minha-loja" />,
+    );
+
+    expect(textContent(markup)).toContain("Quanto você deseja pagar?");
+    expect(textContent(markup)).toContain("Os pagamentos estarão disponíveis quando esta loja configurar uma moeda.");
+    expect(textContent(markup).match(/configurar uma moeda/g)).toHaveLength(1);
+    expect(markup).toContain("disabled");
+    expect(markup).not.toContain("BRL");
+    expect(textContent(markup)).not.toContain("Carrinho");
+    expect(textContent(markup)).not.toContain("Adicionar ao carrinho");
   });
 });
 

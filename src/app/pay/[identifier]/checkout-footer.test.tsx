@@ -12,12 +12,12 @@ describe("checkout footer", () => {
     expect(markup).toContain(dictionary.checkoutPoweredBy);
     expect(markup).toContain('action="/language-preference"');
     expect(markup).toContain('name="locale"');
-    expect(markup).toContain('value="en" selected=""');
+    expect(markup).toContain('aria-label="English"');
     expect(markup).toContain(dictionary.checkoutPrivacyLine);
   });
 
   it("selects the persisted locale option, not always the first one", () => {
     const markup = renderToStaticMarkup(<CheckoutFooter dictionary={dictionary} locale="pt-BR" />);
-    expect(markup).toContain('value="pt-BR" selected=""');
+    expect(markup).toContain('aria-label="Português (Brasil)"');
   });
 });

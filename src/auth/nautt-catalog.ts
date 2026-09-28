@@ -9,6 +9,8 @@ export type CatalogCurrencyPair = {
   active: boolean;
   createdAt: Date;
   updatedAt: Date;
+  currencyCode?: string;
+  isDefault?: boolean;
 };
 
 export type CatalogPaymentMethod = {
@@ -30,6 +32,8 @@ export type CatalogInput = {
 };
 
 export class NauttCatalogValidationError extends Error {}
+export class NauttCatalogExchangeCurrencyConflictError extends Error {}
+export class NauttCatalogDefaultMethodError extends Error {}
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -58,6 +62,8 @@ export type NauttCatalogStore = {
   updatePaymentMethod(id: string, label: string): Promise<CatalogPaymentMethod>;
   setCurrencyPairActive(id: string, active: boolean): Promise<CatalogCurrencyPair>;
   setPaymentMethodActive(id: string, active: boolean): Promise<CatalogPaymentMethod>;
+  createCurrencyMethod(input: { label: string; currencyCode: string; exchangeCurrencyUuid: string }): Promise<CatalogCurrencyPair>;
+  setDefaultCurrencyMethod(currencyCode: string, pairId: string): Promise<void>;
 };
 
 export function createNauttCatalogService(store: NauttCatalogStore) {
@@ -101,20 +107,45 @@ export function createNauttCatalogService(store: NauttCatalogStore) {
       requireAdmin(actor);
       return store.setPaymentMethodActive(validateUuid(id, "Identifier"), active === true || active === "true");
     },
+    async createCurrencyMethod(actor: Principal, input: { label: unknown; currencyCode: unknown; exchangeCurrencyUuid: unknown }) {
+      requireAdmin(actor);
+      if (typeof input.currencyCode !== "string" || !/^[A-Z]{3}$/.test(input.currencyCode)) throw new NauttCatalogValidationError("Currency code is invalid");
+      return store.createCurrencyMethod({
+        label: validateLabel(input.label),
+        currencyCode: input.currencyCode,
+        exchangeCurrencyUuid: validateUuid(input.exchangeCurrencyUuid, "Exchange currency UUID"),
+      });
+    },
+    async setDefaultCurrencyMethod(actor: Principal, currencyCode: unknown, pairId: unknown) {
+      requireAdmin(actor);
+      if (typeof currencyCode !== "string" || !/^[A-Z]{3}$/.test(currencyCode)) throw new NauttCatalogValidationError("Currency code is invalid");
+      await store.setDefaultCurrencyMethod(currencyCode, validateUuid(pairId, "Identifier"));
+    },
   };
 }
 
-function prismaStore(): NauttCatalogStore {
-  const db = getDatabaseClient();
+export function createDatabaseNauttCatalogStore(db: ReturnType<typeof getDatabaseClient>): NauttCatalogStore {
   return {
     async listCurrencyPairs() {
-      return db.catalogCurrencyPair.findMany({ orderBy: { label: "asc" } });
+      const [pairs, pointers] = await Promise.all([
+        db.catalogCurrencyPair.findMany({ orderBy: { label: "asc" } }),
+        db.supportedExchangeCurrency.findMany({ select: { code: true, pairId: true, pair: { select: { currencyUuid: true } } } }),
+      ]);
+      const codeByCurrencyUuid = new Map(pointers.map((pointer) => [pointer.pair.currencyUuid, pointer.code]));
+      const defaultPairIds = new Set(pointers.map((pointer) => pointer.pairId));
+      return pairs.map((pair) => ({ ...pair, currencyCode: codeByCurrencyUuid.get(pair.currencyUuid), isDefault: defaultPairIds.has(pair.id) }));
     },
     async listPaymentMethods() {
       return db.catalogPaymentMethod.findMany({ orderBy: { label: "asc" } });
     },
     async createCurrencyPair(input) {
-      return db.catalogCurrencyPair.create({ data: input });
+      return db.$transaction(async (transaction) => {
+        const conflict = await transaction.catalogCurrencyPair.findFirst({
+          where: { exchangeCurrencyUuid: input.exchangeCurrencyUuid, NOT: { currencyUuid: input.currencyUuid } }, select: { id: true },
+        });
+        if (conflict) throw new NauttCatalogExchangeCurrencyConflictError("Exchange currency belongs to another currency");
+        return transaction.catalogCurrencyPair.create({ data: input });
+      }, { isolationLevel: "Serializable" });
     },
     async createPaymentMethod(input) {
       return db.catalogPaymentMethod.create({ data: input });
@@ -126,14 +157,49 @@ function prismaStore(): NauttCatalogStore {
       return db.catalogPaymentMethod.update({ where: { id }, data: { label } });
     },
     async setCurrencyPairActive(id, active) {
-      return db.catalogCurrencyPair.update({ where: { id }, data: { active } });
+      return db.$transaction(async (transaction) => {
+        if (!active) {
+          const pointer = await transaction.supportedExchangeCurrency.findFirst({ where: { pairId: id }, select: { code: true } });
+          if (pointer) throw new NauttCatalogDefaultMethodError("Deactivate the currency or choose another default method first");
+        }
+        return transaction.catalogCurrencyPair.update({ where: { id }, data: { active } });
+      }, { isolationLevel: "Serializable" });
     },
     async setPaymentMethodActive(id, active) {
       return db.catalogPaymentMethod.update({ where: { id }, data: { active } });
+    },
+    async createCurrencyMethod(input) {
+      return db.$transaction(async (transaction) => {
+        const pointer = await transaction.supportedExchangeCurrency.findUnique({
+          where: { code: input.currencyCode },
+          select: { pair: { select: { currencyUuid: true } } },
+        });
+        if (!pointer) throw new NauttCatalogValidationError("Currency is not registered");
+        const conflict = await transaction.catalogCurrencyPair.findFirst({
+          where: { exchangeCurrencyUuid: input.exchangeCurrencyUuid, NOT: { currencyUuid: pointer.pair.currencyUuid } },
+          select: { id: true },
+        });
+        if (conflict) throw new NauttCatalogExchangeCurrencyConflictError("Exchange currency belongs to another currency");
+        return transaction.catalogCurrencyPair.create({ data: {
+          label: input.label,
+          currencyUuid: pointer.pair.currencyUuid,
+          exchangeCurrencyUuid: input.exchangeCurrencyUuid,
+        } });
+      }, { isolationLevel: "Serializable" });
+    },
+    async setDefaultCurrencyMethod(currencyCode, pairId) {
+      await db.$transaction(async (transaction) => {
+        const [pointer, pair] = await Promise.all([
+          transaction.supportedExchangeCurrency.findUnique({ where: { code: currencyCode }, select: { pair: { select: { currencyUuid: true } } } }),
+          transaction.catalogCurrencyPair.findUnique({ where: { id: pairId }, select: { active: true, currencyUuid: true } }),
+        ]);
+        if (!pointer || !pair || !pair.active || pair.currencyUuid !== pointer.pair.currencyUuid) throw new NauttCatalogDefaultMethodError("Method is not active for this currency");
+        await transaction.supportedExchangeCurrency.update({ where: { code: currencyCode }, data: { pairId } });
+      }, { isolationLevel: "Serializable" });
     },
   };
 }
 
 export function getNauttCatalogService() {
-  return createNauttCatalogService(prismaStore());
+  return createNauttCatalogService(createDatabaseNauttCatalogStore(getDatabaseClient()));
 }
