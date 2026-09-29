@@ -126,6 +126,19 @@ export type OrderV2DirectoryUsdPair = Readonly<{
   exchangeCurrencyUuid: string;
 }>;
 
+// H-17.1: the render needs each row's display currency code, which the summary
+// DTO deliberately omits. The registry has no pair-to-code read, so the
+// service resolves only the distinct pairs present on the returned page
+// through the pair's active supported-exchange-currency pointer, read-only.
+export type OrderV2DirectoryPairCode = Readonly<{
+  pair: OrderV2DirectoryUsdPair;
+  code: string | null;
+}>;
+
+export function orderV2PairKey(pair: OrderV2DirectoryUsdPair) {
+  return `${pair.currencyUuid}:${pair.exchangeCurrencyUuid}`;
+}
+
 export type OrderV2DirectoryRead = Readonly<{
   where: Prisma.OrderV2WhereInput;
   ascending: boolean;
@@ -134,6 +147,7 @@ export type OrderV2DirectoryRead = Readonly<{
 
 export type OrderV2DirectoryStore = Readonly<{
   findActiveUsdPair(): Promise<OrderV2DirectoryUsdPair | null>;
+  findPairCodes(pairs: readonly OrderV2DirectoryUsdPair[]): Promise<readonly OrderV2DirectoryPairCode[]>;
   readWindow(input: OrderV2DirectoryRead): Promise<OrderV2Summary[]>;
 }>;
 
@@ -222,12 +236,41 @@ export type OrderV2DirectoryResult =
   | Readonly<{
       status: "ready";
       rows: readonly OrderV2Summary[];
+      // Distinct display codes for the pairs on this page, keyed by
+      // `orderV2PairKey`; pairs with no active code are absent.
+      pairCodes: ReadonlyMap<string, string>;
       pageSize: DirectoryPageSize;
       nextCursor?: string;
       previousCursor?: string;
     }>
   | Readonly<{ status: "redirect"; location: string }>
   | Readonly<{ status: "invalid-query" }>;
+
+// Only the distinct pairs on the returned page reach the registry read; an
+// empty page therefore performs no registry I/O at all.
+function distinctPagePairs(rows: readonly OrderV2Summary[]): readonly OrderV2DirectoryUsdPair[] {
+  const seen = new Set<string>();
+  const pairs: OrderV2DirectoryUsdPair[] = [];
+  for (const row of rows) {
+    const pair = { currencyUuid: row.currencyUuid, exchangeCurrencyUuid: row.exchangeCurrencyUuid };
+    const key = orderV2PairKey(pair);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    pairs.push(pair);
+  }
+  return pairs;
+}
+
+async function resolvePairCodes(store: OrderV2DirectoryStore, rows: readonly OrderV2Summary[]) {
+  const pairs = distinctPagePairs(rows);
+  if (pairs.length === 0) return new Map<string, string>();
+  const codes = await store.findPairCodes(pairs);
+  const map = new Map<string, string>();
+  for (const entry of codes) {
+    if (entry.code !== null) map.set(orderV2PairKey(entry.pair), entry.code);
+  }
+  return map;
+}
 
 export function createOrderV2DirectoryService(dependencies: Readonly<{
   store: OrderV2DirectoryStore;
@@ -276,6 +319,7 @@ export function createOrderV2DirectoryService(dependencies: Readonly<{
       return {
         status: "ready",
         rows: page.rows,
+        pairCodes: await resolvePairCodes(dependencies.store, page.rows),
         pageSize: canonical.query.pageSize,
         ...(page.nextCursor ? { nextCursor: page.nextCursor } : {}),
         ...(page.previousCursor ? { previousCursor: page.previousCursor } : {}),
@@ -292,6 +336,25 @@ function createPrismaOrderV2DirectoryStore(prisma: PrismaClient): OrderV2Directo
         select: { pair: { select: { currencyUuid: true, exchangeCurrencyUuid: true } } },
       });
       return pointer?.pair ?? null;
+    },
+    // Bounded by the distinct page pairs the service already deduplicated;
+    // the only non-`readWindow` registry read this directory performs.
+    async findPairCodes(pairs) {
+      if (pairs.length === 0) return [];
+      const rows = await prisma.catalogCurrencyPair.findMany({
+        where: {
+          OR: pairs.map((pair) => ({ currencyUuid: pair.currencyUuid, exchangeCurrencyUuid: pair.exchangeCurrencyUuid })),
+        },
+        select: {
+          currencyUuid: true,
+          exchangeCurrencyUuid: true,
+          supportedExchangeCurrency: { select: { code: true } },
+        },
+      });
+      return rows.map((row) => ({
+        pair: { currencyUuid: row.currencyUuid, exchangeCurrencyUuid: row.exchangeCurrencyUuid },
+        code: row.supportedExchangeCurrency?.code ?? null,
+      }));
     },
     async readWindow({ where, ascending, take }) {
       const direction = ascending ? "asc" : "desc";

@@ -47,10 +47,16 @@ function row(overrides: Partial<OrderV2Summary> = {}): OrderV2Summary {
   };
 }
 
-function ready(locale: "pt-BR" | "en" = "en", rows: OrderV2Summary[] = [row()]) {
+const defaultPairKey = `${row().currencyUuid}:${row().exchangeCurrencyUuid}`;
+
+function ready(
+  locale: "pt-BR" | "en" = "en",
+  rows: OrderV2Summary[] = [row()],
+  pairCodes: ReadonlyMap<string, string> = new Map([[defaultPairKey, "BRL"]]),
+) {
   requireOwnerFromCookie.mockResolvedValue(principal);
   resolveLocale.mockResolvedValue(locale);
-  queryDirectory.mockResolvedValue({ status: "ready", rows, pageSize: 20 });
+  queryDirectory.mockResolvedValue({ status: "ready", rows, pageSize: 20, pairCodes });
 }
 
 beforeEach(() => { vi.clearAllMocks(); });
@@ -64,7 +70,7 @@ describe("merchant orders directory page", () => {
     expect(queryDirectory).not.toHaveBeenCalled();
   });
 
-  it("renders the ready directory with payer facts and badges", async () => {
+  it("renders the ready directory with payer facts, compact badges, currency-aware amounts and the compact UTC instant", async () => {
     ready("en", [
       row(),
       row({ id: "440e8400-e29b-41d4-a716-446655440011", source: "AD_HOC", paymentLinkV2Identifier: null, state: null, currentLocalOutcome: { outcome: "LOCAL_FINALIZED", note: null, createdAt: new Date("2026-07-02T12:00:00.000Z") }, payer: { name: null, email: null, cpf: null, address: null } }),
@@ -76,20 +82,51 @@ describe("merchant orders directory page", () => {
     expect(markup).toContain("Ana");
     expect(markup).toContain("ana@example.com");
     expect(markup).toContain("Not collected");
+    // Compact provider-state text stays visible while the full contextual
+    // label remains the announced name.
+    expect(markup).toContain(">Confirmed</");
     expect(markup).toContain(">Payment confirmed</");
-    expect(markup).toContain(">Payment rejected</");
+    expect(markup).toContain(">Rejected</");
     expect(markup).toContain(">No payment</");
-    expect(markup).toContain(">Locally finalized</");
-    expect(markup).toContain(">Locally cancelled</");
-    expect(markup).toContain(">No local outcome</");
+    expect(markup).toContain(">Waiting</");
+    // The local outcome is intentionally absent from this list.
+    expect(markup).not.toContain("Locally finalized");
+    expect(markup).not.toContain("Locally cancelled");
+    expect(markup).not.toContain("Local outcome");
+    // Compact origin badges keep the full source label announced.
+    expect(markup).toContain(">Link</");
+    expect(markup).toContain(">Payment link</");
     expect(markup).toContain(">Ad hoc</");
+    expect(markup).toContain(">Standalone</");
     expect(markup).toContain(">Standalone payment</");
     expect(markup).toContain("Carlos");
     expect(markup).toContain("abcdefghijklmnopqrstuvwx");
     expect(markup).toContain(">No link</");
+    // The exact BRL amount renders through the real formatter with the
+    // server-resolved currency code.
+    expect(markup).toContain("R$ 34.90");
+    expect(markup).toContain(">Status</");
+    // Two-line compact UTC instant: date above, hour/minute below.
+    expect(markup).toContain("<time");
+    expect(markup).toMatch(/<time[^>]*datetime="2026-07-01T12:00:00\.000Z"/i);
+    expect(markup).toContain("inline-flex flex-col leading-tight");
+    expect(markup).toContain("07/01/26");
+    expect(markup).toContain("12:00");
     expect(markup).toContain('href="/orders/v2/440e8400-e29b-41d4-a716-446655440010"');
     expect(markup).toContain('action="/orders"');
     expect(markup).not.toContain("990e8400-e29b-41d4-a716-446655440099");
+    expect(markup).not.toContain("aa0e8400-e29b-41d4-a716-4466554400aa");
+  });
+
+  it("labels a resolved USD pair with American separators and renders an unresolved pair as a bare exact amount", async () => {
+    ready("pt-BR", [row({ amount: "1234.5" })], new Map([[defaultPairKey, "USD"]]));
+    const usdMarkup = renderToStaticMarkup(await MerchantOrdersPage());
+    expect(usdMarkup).toContain("1,234.50 USD");
+
+    ready("pt-BR", [row({ amount: "34.9" })], new Map());
+    const bareMarkup = renderToStaticMarkup(await MerchantOrdersPage());
+    expect(bareMarkup).toContain("34,9");
+    expect(bareMarkup).not.toContain("R$ 34");
   });
 
   it("keeps payment state visible while preserving order source, money, link, and date filters in the compact GET form", async () => {
@@ -124,8 +161,10 @@ describe("merchant orders directory page", () => {
   it("renders localized pt-BR copy", async () => {
     ready("pt-BR");
     const markup = renderToStaticMarkup(await MerchantOrdersPage());
+    expect(markup).toContain(">Confirmado</");
     expect(markup).toContain(">Pagamento confirmado</");
     expect(markup).toContain(">Link de pagamento</");
+    expect(markup).toContain("R$ 34,90");
     expect(markup).toContain(">Buscar</");
   });
 
@@ -169,7 +208,7 @@ describe("merchant orders directory page", () => {
   it("passes the canonical target into the delivered directory service and renders pagination URLs", async () => {
     requireOwnerFromCookie.mockResolvedValue(principal);
     resolveLocale.mockResolvedValue("en");
-    queryDirectory.mockResolvedValue({ status: "ready", rows: [row()], pageSize: 50, nextCursor: "next-token", previousCursor: "previous-token" });
+    queryDirectory.mockResolvedValue({ status: "ready", rows: [row()], pairCodes: new Map([[defaultPairKey, "BRL"]]), pageSize: 50, nextCursor: "next-token", previousCursor: "previous-token" });
 
     const markup = renderToStaticMarkup(await MerchantOrdersPage({
       searchParams: Promise.resolve({ q: "donation", "filter.source": "LINK", pageSize: "50" }),

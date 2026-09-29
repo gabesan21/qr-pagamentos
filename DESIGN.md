@@ -251,7 +251,13 @@ Dashboard integer counts use the active locale's `Intl.NumberFormat`. Exact
 money keeps its canonical string: English uses comma grouping and a decimal
 point; pt-BR uses dot grouping and a decimal comma except USD and USDT retain
 their US separators. This is a display rule only and never converts currency,
-changes precision, or combines amounts.
+changes precision, or combines amounts. The merchant `/orders` list resolves
+each row's display code from a bounded read-only lookup over the distinct
+pairs on the page: BRL renders `R$` with at least two decimals, USD/USDT keep
+the American separators in both locales, any other resolved code is suffixed,
+and an unresolved pair renders the bare localized exact amount and is never
+labeled BRL; its creation column renders a compact two-digit UTC date with the
+time on a second line.
 
 ## Identity and asset boundary
 

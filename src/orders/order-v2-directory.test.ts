@@ -5,6 +5,8 @@ vi.mock("server-only", () => ({}));
 import { createDirectoryCursorCodec } from "../data-directory/server/cursor";
 import {
   createOrderV2DirectoryService,
+  orderV2PairKey,
+  type OrderV2DirectoryPairCode,
   type OrderV2DirectoryRead,
   type OrderV2DirectoryStore,
 } from "./order-v2-directory";
@@ -42,9 +44,17 @@ function summary(index: number): OrderV2Summary {
   };
 }
 
-function storeWith(rows: readonly OrderV2Summary[], usd: OrderV2DirectoryStore["findActiveUsdPair"] = async () => usdPair) {
+function storeWith(
+  rows: readonly OrderV2Summary[],
+  usd: OrderV2DirectoryStore["findActiveUsdPair"] = async () => usdPair,
+  pairCodes: OrderV2DirectoryStore["findPairCodes"] = async () => [],
+) {
   const readWindow = vi.fn(async (_input: OrderV2DirectoryRead) => [...rows]);
-  const store: OrderV2DirectoryStore = { findActiveUsdPair: vi.fn(usd), readWindow };
+  const store: OrderV2DirectoryStore = {
+    findActiveUsdPair: vi.fn(usd),
+    findPairCodes: vi.fn(pairCodes),
+    readWindow,
+  };
   return { store, readWindow };
 }
 
@@ -69,6 +79,7 @@ describe("owner order V2 directory", () => {
     });
     expect(readWindow).not.toHaveBeenCalled();
     expect(store.findActiveUsdPair).not.toHaveBeenCalled();
+    expect(store.findPairCodes).not.toHaveBeenCalled();
   });
 
   it("resolves invalid input, sizes outside the registered set, and bad dates to zero-I/O invalid", async () => {
@@ -237,5 +248,44 @@ describe("owner order V2 directory", () => {
       status: "invalid-query",
     });
     expect(readWindow).not.toHaveBeenCalled();
+  });
+
+  it("resolves only the distinct page pairs through the bounded registry code lookup", async () => {
+    const otherPair = { currencyUuid: "bb0e8400-e29b-41d4-a716-4466554400bb", exchangeCurrencyUuid: "cc0e8400-e29b-41d4-a716-4466554400cc" };
+    const thirdPair = { currencyUuid: "dd0e8400-e29b-41d4-a716-4466554400dd", exchangeCurrencyUuid: "ee0e8400-e29b-41d4-a716-4466554400ee" };
+    const rows = [summary(1), summary(2), summary(3)];
+    rows[1] = { ...rows[1], currencyUuid: otherPair.currencyUuid, exchangeCurrencyUuid: otherPair.exchangeCurrencyUuid };
+
+    const codes: readonly OrderV2DirectoryPairCode[] = [
+      { pair: usdPair, code: "USD" },
+      { pair: otherPair, code: "BRL" },
+      { pair: thirdPair, code: null },
+    ];
+    const findPairCodes = vi.fn<OrderV2DirectoryStore["findPairCodes"]>(async () => codes);
+    const { store } = storeWith(rows, async () => usdPair, findPairCodes);
+    const service = serviceWith(store);
+
+    const result = await service.query(owner, "/orders");
+    expect(result.status).toBe("ready");
+    if (result.status !== "ready") throw new Error("expected a ready page");
+
+    expect(findPairCodes).toHaveBeenCalledTimes(1);
+    expect(findPairCodes.mock.calls[0][0]).toEqual([usdPair, otherPair]);
+    expect(result.pairCodes.get(orderV2PairKey(usdPair))).toBe("USD");
+    expect(result.pairCodes.get(orderV2PairKey(otherPair))).toBe("BRL");
+    expect(result.pairCodes.size).toBe(2);
+  });
+
+  it("performs no registry code lookup for an empty page", async () => {
+    const findPairCodes = vi.fn(async () => []);
+    const { store, readWindow } = storeWith([], async () => null, findPairCodes);
+    const service = serviceWith(store);
+
+    const result = await service.query(owner, "/orders");
+    expect(result.status).toBe("ready");
+    if (result.status !== "ready") throw new Error("expected a ready empty page");
+    expect(result.pairCodes.size).toBe(0);
+    expect(readWindow).toHaveBeenCalledTimes(1);
+    expect(findPairCodes).not.toHaveBeenCalled();
   });
 });
