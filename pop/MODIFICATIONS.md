@@ -39,4 +39,6 @@ Project: [[PROJECT|QR Pagamentos]] · Roadmap: [[ROADMAP|Roadmap]]
 
 | H-16 | [[H-16.1-brl-live-input-mask]] | Show exact BRL money mask during typing, with caret, deletion and paste handling. | completed; browser and Docker verified |
 
-| M-17 | [[M-17.1-order-detail-polish]] | Permanent first local outcome and read-only terminal outcome on the merchant order detail, with exact currency-aware amounts and compact badges. · size: M | 005_closing; verification approved; Docker/browser pending |
+| H-17 | [[H-17.1-orders-table-polish]] | Concise merchant orders list: compact origin/provider badges, no local outcome column, exact currency-aware amounts, compact UTC date. | completed; browser and Docker verified; integrated into develop |
+
+| M-17 | [[M-17.1-order-detail-polish]] | Permanent first local outcome and read-only terminal outcome on the merchant order detail, with exact currency-aware amounts and compact badges. · size: M | 005_closing; verification approved; integrated into develop; Docker/browser pending |
