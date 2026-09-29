@@ -27,6 +27,7 @@ export const storefrontEn = {
   storefrontCustomAmountPay: "Pay now",
   storefrontStandaloneHeading: "How much would you like to pay?",
   storefrontStandaloneContinue: "Continue to payment",
+  storefrontEditAmount: "Edit amount",
   storefrontStandaloneAmountInvalid: "Enter a valid amount greater than zero, with up to six decimal places.",
   storefrontStandaloneCurrencyUnavailable: "Payments are unavailable until this store configures a currency.",
   storefrontPayHeading: "Payment details",

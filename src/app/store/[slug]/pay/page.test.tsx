@@ -37,7 +37,7 @@ describe("standalone payment page", () => {
     vi.clearAllMocks();
   });
 
-  it("scopes the owner theme and accent, renders the policy-exact form, and prefills a valid amount", async () => {
+  it("scopes the owner theme and accent, and renders a valid legacy amount as a read-only explicit continuation", async () => {
     get.mockReturnValue(undefined);
 
     const markup = await renderPage(storefront, "12.5");
@@ -50,9 +50,9 @@ describe("standalone payment page", () => {
     // initials, not the merchant-fallback mark (14.6.2 F02, C1).
     expect(markup).not.toContain('data-brand-identity="merchant-fallback"');
     expect(markup).toContain(">LD<");
-    expect(markup).toContain("Informe o valor e seus dados para pagar esta loja.");
-    expect(markup).toContain("Valor (BRL)");
-    expect(markup).toContain('value="12.5"');
+    expect(markup).toContain("Dados do pagamento");
+    expect(markup).toContain("R$ 12,50");
+    expect(markup).not.toContain('id="standalone-amount"');
     // NAME_EMAIL_CPF renders exactly name, email, and CPF.
     expect(markup).toContain('id="standalone-name"');
     expect(markup).toContain('id="standalone-email"');
@@ -112,7 +112,7 @@ describe("standalone payment page", () => {
     const markup = await renderPage(storefront);
 
     expect(read).toHaveBeenCalledWith("ana-store", "en");
-    expect(markup).toContain("Enter the amount and your details to pay this store.");
+    expect(markup).not.toContain("Enter the amount and your details to pay this store.");
     expect(markup).toContain("Back to the store");
   });
 });

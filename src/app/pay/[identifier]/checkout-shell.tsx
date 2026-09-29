@@ -40,7 +40,7 @@ function CheckoutMerchantHeader({ branding, dictionary }: Readonly<{ branding: P
 // the column and the footer. This is the only file declaring
 // `--storefront-accent` — `scripts/check-design-tokens.mjs` allows exactly
 // this one path.
-export function CheckoutShell({ branding, busy, children, dictionary, locale }: Readonly<{ branding?: PublicCheckoutV2Branding; busy?: boolean; children: ReactNode; dictionary: Dictionary; locale: SupportedLocale }>) {
+export function CheckoutShell({ branding, busy, children, dictionary, hidePrivacyStatement = false, locale }: Readonly<{ branding?: PublicCheckoutV2Branding; busy?: boolean; children: ReactNode; dictionary: Dictionary; hidePrivacyStatement?: boolean; locale: SupportedLocale }>) {
   return (
     <main
       aria-busy={busy}
@@ -53,7 +53,7 @@ export function CheckoutShell({ branding, busy, children, dictionary, locale }: 
         {children}
       </div>
       <div className="mt-8 w-full max-w-checkout">
-        <CheckoutFooter dictionary={dictionary} locale={locale} />
+        <CheckoutFooter dictionary={dictionary} hidePrivacyStatement={hidePrivacyStatement} locale={locale} />
       </div>
     </main>
   );

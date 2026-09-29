@@ -66,14 +66,10 @@ export default async function PublicStorefrontPage({ params }: Readonly<{ params
     priceLabel: dictionary.storefrontPriceLabel,
     productsHeading: dictionary.storefrontProductsHeading,
     quantityLabel: dictionary.storefrontQuantityLabel,
-    standaloneAmountInvalid: dictionary.storefrontStandaloneAmountInvalid,
-    standaloneContinue: dictionary.storefrontStandaloneContinue,
-    standaloneCurrencyUnavailable: dictionary.storefrontStandaloneCurrencyUnavailable,
-    standaloneHeading: dictionary.storefrontStandaloneHeading,
   };
 
   return (
-    <CheckoutShell branding={storefront} dictionary={dictionary} locale={locale}>
+    <CheckoutShell branding={storefront} dictionary={dictionary} hidePrivacyStatement={isStandaloneOnly && storefront.checkoutDataPolicy === "NONE"} locale={locale}>
       {isEmpty ? (
         <EmptyState
           action={
@@ -88,8 +84,9 @@ export default async function PublicStorefrontPage({ params }: Readonly<{ params
         />
       ) : isStandaloneOnly ? (
         <StandaloneStorefrontExperience
-          copy={copy}
           currencyCode={storefront.standalonePaymentCurrencyCode}
+          dictionary={dictionary}
+          policy={storefront.checkoutDataPolicy}
           slug={slug}
         />
       ) : (

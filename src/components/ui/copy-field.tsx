@@ -107,14 +107,14 @@ function CopyField({
 
   if (variant === "compact") {
     return (
-      <span className={cn("inline-flex max-w-full flex-col items-start gap-1", className)}>
+      <span className={cn("flex w-full min-w-0 max-w-full flex-col items-start gap-1", className)}>
         <Button
           type="button"
           disabled={state === "pending"}
           aria-describedby={statusId}
           aria-label={statusLabel}
           onClick={() => void handleCopy()}
-          className="max-w-full justify-start text-left"
+          className="w-full min-w-0 max-w-full justify-start text-left"
           size="row"
           variant="secondary"
         >

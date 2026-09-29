@@ -85,6 +85,14 @@ describe("checkout payment view", () => {
     expect(markup).toMatch(/role="img"/);
   });
 
+  it("contains a long PIX payload without changing the QR or copy payload", () => {
+    const payload = "000201".repeat(80);
+    const markup = render("PENDING", { pixCopyPaste: payload });
+
+    expect(markup).toContain("w-full min-w-0");
+    expect(markup).toContain(payload);
+  });
+
   it("wraps the state badge in exactly one polite live region on the live payment view, never enclosing a role=alert node (C1)", () => {
     // Scoped to the badge's own wrapper (`<div aria-live="polite">`), not a
     // document-wide count: `CopyField`'s unrelated sr-only copy-status

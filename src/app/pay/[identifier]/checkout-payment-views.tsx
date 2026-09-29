@@ -215,7 +215,7 @@ export function CheckoutPaymentView(props: CheckoutPaymentViewProps): ReactNode 
 
   // PENDING with a payload: QR plus copy-paste.
   return (
-    <div className="flex flex-col items-center gap-4 rounded-card border border-border bg-surface p-6">
+    <div className="flex w-full min-w-0 flex-col items-center gap-4 rounded-card border border-border bg-surface p-6">
       <div aria-live="polite">
         <ProviderStateBadge labels={labels} state={toProviderState(state)} />
       </div>

@@ -18,6 +18,7 @@ import { isStorefrontCartAmount } from "@/storefront/cart";
 type Dictionary = ReturnType<typeof getDictionary>;
 export type StandaloneFieldName = "name" | "email" | "cpf" | "street" | "number" | "district" | "city" | "stateUf" | "postalCode";
 export type StandaloneFormValues = Record<StandaloneFieldName | "complement", string>;
+export type StandalonePaymentFlow = "legacy" | "storefront";
 
 // The closed client state set (9.2.2): the union of 9.2.1's accept states
 // (RESERVED, CREATING, PENDING, INDETERMINATE) and the V1 status vocabulary
@@ -34,6 +35,56 @@ const PAYMENT_STATES = new Set<StandalonePaymentState>(["RESERVED", "CREATING", 
 const TERMINAL_STATES = new Set<StandalonePaymentState>(["CONFIRMED", "REJECTED", "CANCELLED", "EXPIRED", "REFUNDED"]);
 const INITIAL_VALUES: StandaloneFormValues = { name: "", email: "", cpf: "", street: "", number: "", district: "", city: "", stateUf: "", postalCode: "", complement: "" };
 const BRAZILIAN_UFS = ["AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"] as const;
+
+function splitCanonicalAmount(amount: string): readonly [string, string | undefined] {
+  const [whole, fraction] = amount.split(".");
+  return [whole, fraction];
+}
+
+type BrazilianAmountParts = Readonly<{ whole: string; fraction?: string }>;
+
+function brazilianAmountParts(value: string): BrazilianAmountParts | null {
+  const unprefixed = value.trim().replace(/^R\$\s?/, "");
+  const [whole, ...fractions] = unprefixed.split(",");
+  if (fractions.length > 1 || !whole) return null;
+  const fraction = fractions[0];
+  const ungrouped = /^\d+$/.test(whole);
+  const grouped = /^\d{1,3}(?:\.\d{3})+$/.test(whole);
+  if ((!ungrouped && !grouped) || (fraction !== undefined && (!/^\d{1,6}$/.test(fraction)))) return null;
+  return { whole: whole.replaceAll(".", ""), ...(fraction === undefined ? {} : { fraction }) };
+}
+
+function brazilianDisplayFraction(fraction: string | undefined): string {
+  return (fraction ?? "").padEnd(2, "0");
+}
+
+/** Formats the canonical amount string without numeric coercion or rounding. */
+export function formatStandaloneBrl(amount: string): string {
+  if (!isStorefrontCartAmount(amount)) return amount;
+  const [whole, fraction] = splitCanonicalAmount(amount);
+  const grouped = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  return `R$ ${grouped},${brazilianDisplayFraction(fraction)}`;
+}
+
+// The BRL field is a presentation adapter only. It retains incomplete input
+// while the buyer types, and sends the same canonical ASCII decimal that the
+// server already validates.
+export function canonicalStandaloneBrlInput(value: string): string {
+  const parts = brazilianAmountParts(value);
+  // Never return an arbitrary invalid draft here: callers validate this value
+  // against the canonical grammar, so malformed grouping must stay invalid.
+  if (!parts) return "";
+  const normalizedWhole = parts.whole.replace(/^0+(?=\d)/, "");
+  const normalizedFraction = parts.fraction?.replace(/0+$/, "");
+  return normalizedFraction ? `${normalizedWhole || "0"}.${normalizedFraction}` : normalizedWhole || "0";
+}
+
+function formatStandaloneBrlDraft(value: string): string {
+  const parts = brazilianAmountParts(value);
+  if (!parts) return value;
+  const grouped = parts.whole.replace(/^0+(?=\d)/, "").replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  return `R$ ${grouped},${brazilianDisplayFraction(parts.fraction)}`;
+}
 
 function requiredFields(policy: CheckoutDataPolicy): readonly StandaloneFieldName[] {
   if (policy === "NONE") return [];
@@ -101,12 +152,17 @@ export function StandalonePaymentUnavailable({ dictionary, slug }: Readonly<{ di
 // `CheckoutPaymentView` (C3, C4): no page-local tone map or outcome markup.
 export function StandalonePaymentView({
   amount,
+  amountDraft,
+  frozenAmountDisplay,
+  amountFrozen,
   amountInvalid,
   checkoutError,
   currencyCode,
   dictionary,
   invalid,
   onAmountChange,
+  onAmountBlur,
+  onEditAmount,
   onFieldChange,
   onStartOver,
   onSubmit,
@@ -115,17 +171,23 @@ export function StandalonePaymentView({
   slug,
   statusReadFailed,
   submittedAmount,
+  submittedAmountDisplay,
   submitting,
   unavailable,
   values,
 }: Readonly<{
   amount: string;
+  amountDraft: string;
+  frozenAmountDisplay: string | null;
+  amountFrozen: boolean;
   amountInvalid: boolean;
   checkoutError: boolean;
   currencyCode: string | null;
   dictionary: Dictionary;
   invalid: ReadonlySet<StandaloneFieldName>;
   onAmountChange: (value: string) => void;
+  onAmountBlur: () => void;
+  onEditAmount?: () => void;
   onFieldChange: (field: keyof StandaloneFormValues, value: string) => void;
   onStartOver: () => void;
   onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
@@ -134,6 +196,7 @@ export function StandalonePaymentView({
   slug: string;
   statusReadFailed: boolean;
   submittedAmount: string | null;
+  submittedAmountDisplay: string | null;
   submitting: boolean;
   unavailable: boolean;
   values: StandaloneFormValues;
@@ -145,7 +208,7 @@ export function StandalonePaymentView({
       <Card className="w-full">
         <CardContent className="grid gap-6">
           <CheckoutPaymentView
-            currencyLabel={currencyCode ?? undefined}
+            currencyLabel={currencyCode === "BRL" ? undefined : currencyCode ?? undefined}
             dictionary={dictionary}
             merchantName={dictionary.storefrontFallbackName}
             onStartOver={onStartOver}
@@ -153,11 +216,11 @@ export function StandalonePaymentView({
             pixQrCodeUrl={payment.pixQrCodeUrl}
             state={payment.state}
             statusReadFailed={statusReadFailed}
-            total={submittedAmount ?? amount}
+            total={submittedAmountDisplay ?? (currencyCode === "BRL" ? formatStandaloneBrl(submittedAmount ?? amount) : submittedAmount ?? amount)}
           />
         </CardContent>
         <CardFooter className="flex flex-wrap items-center justify-between gap-3">
-          <p className="text-xs text-muted-foreground">{dictionary.checkoutPrivacyNotice}</p>
+          {policy === "NONE" ? null : <p className="text-xs text-muted-foreground">{dictionary.checkoutPrivacyNotice}</p>}
           <Button asChild variant="outline">
             <a href={`/store/${slug}`}>{dictionary.storefrontPayReturn}</a>
           </Button>
@@ -180,7 +243,7 @@ export function StandalonePaymentView({
           />
         </CardContent>
         <CardFooter className="flex flex-wrap items-center justify-between gap-3">
-          <p className="text-xs text-muted-foreground">{dictionary.checkoutPrivacyNotice}</p>
+          {policy === "NONE" ? null : <p className="text-xs text-muted-foreground">{dictionary.checkoutPrivacyNotice}</p>}
           <Button asChild variant="outline">
             <a href={`/store/${slug}`}>{dictionary.storefrontPayReturn}</a>
           </Button>
@@ -201,16 +264,26 @@ export function StandalonePaymentView({
     <Card className="w-full">
       <CardHeader>
         <CardTitle>{dictionary.storefrontPayHeading}</CardTitle>
-        <CardDescription>{dictionary.storefrontPayIntroduction}</CardDescription>
+        {policy === "NONE" ? null : <CardDescription>{dictionary.storefrontPayIntroduction}</CardDescription>}
       </CardHeader>
       <CardContent>
         <form className="grid gap-6" onSubmit={onSubmit}>
           <FieldGroup>
-            <Field data-invalid={amountInvalid || undefined}>
-              <FieldLabel htmlFor="standalone-amount">{dictionary.storefrontCustomAmountLabel}{currencyCode ? ` (${currencyCode})` : ""}</FieldLabel>
-              <Input aria-invalid={amountInvalid || undefined} autoComplete="off" id="standalone-amount" inputMode="decimal" name="amount" onChange={(event) => onAmountChange(event.target.value)} required type="text" value={amount} />
-              {amountInvalid ? <FieldError>{dictionary.storefrontCustomAmountInvalid}</FieldError> : null}
-            </Field>
+            {amountFrozen ? (
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
+                <div>
+                  <p className="m-0 text-xs font-medium text-text-2">{dictionary.checkoutAmountDueLabel}</p>
+                  <output className="font-money text-lg font-semibold">{frozenAmountDisplay ?? (currencyCode === "BRL" ? formatStandaloneBrl(amount) : amount)}{currencyCode && currencyCode !== "BRL" ? ` ${currencyCode}` : ""}</output>
+                </div>
+                {onEditAmount ? <Button onClick={onEditAmount} type="button" variant="outline">{dictionary.storefrontEditAmount}</Button> : null}
+              </div>
+            ) : (
+              <Field data-invalid={amountInvalid || undefined}>
+                <FieldLabel htmlFor="standalone-amount">{dictionary.storefrontCustomAmountLabel}{currencyCode && currencyCode !== "BRL" ? ` (${currencyCode})` : ""}</FieldLabel>
+                <Input aria-invalid={amountInvalid || undefined} autoComplete="off" id="standalone-amount" inputMode="decimal" name="amount" onBlur={onAmountBlur} onChange={(event) => onAmountChange(event.target.value)} required type="text" value={amountDraft} />
+                {amountInvalid ? <FieldError>{dictionary.storefrontCustomAmountInvalid}</FieldError> : null}
+              </Field>
+            )}
             {requiredFields(policy).includes("name") ? field("name", dictionary.checkoutNameLabel, "text", "name") : null}
             {requiredFields(policy).includes("email") ? field("email", dictionary.checkoutEmailLabel, "email", "email") : null}
             {requiredFields(policy).includes("cpf") ? field("cpf", dictionary.checkoutCpfLabel, "text", "off") : null}
@@ -249,7 +322,7 @@ export function StandalonePaymentView({
         </form>
       </CardContent>
       <CardFooter className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-xs text-muted-foreground">{dictionary.checkoutPrivacyNotice}</p>
+        {policy === "NONE" ? null : <p className="text-xs text-muted-foreground">{dictionary.checkoutPrivacyNotice}</p>}
         <Button asChild variant="outline">
           <a href={`/store/${slug}`}>{dictionary.storefrontPayReturn}</a>
         </Button>
@@ -258,9 +331,56 @@ export function StandalonePaymentView({
   );
 }
 
+function StandaloneAmountEntryView({
+  amountDraft,
+  amountInvalid,
+  currencyCode,
+  dictionary,
+  onAmountChange,
+  onAmountBlur,
+  onContinue,
+  returnHref,
+}: Readonly<{
+  amountDraft: string;
+  amountInvalid: boolean;
+  currencyCode: string | null;
+  dictionary: Dictionary;
+  onAmountChange: (value: string) => void;
+  onAmountBlur: () => void;
+  onContinue: () => void;
+  returnHref?: string;
+}>) {
+  const unavailable = currencyCode === null;
+  return (
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle>{dictionary.storefrontStandaloneHeading}</CardTitle>
+        {unavailable ? <CardDescription>{dictionary.storefrontStandaloneCurrencyUnavailable}</CardDescription> : null}
+      </CardHeader>
+      <CardContent>
+        <form className="grid gap-6" onSubmit={(event) => { event.preventDefault(); onContinue(); }}>
+          <Field data-invalid={amountInvalid || undefined}>
+            <FieldLabel htmlFor="standalone-amount">{dictionary.storefrontCustomAmountLabel}{currencyCode && currencyCode !== "BRL" ? ` (${currencyCode})` : ""}</FieldLabel>
+            <Input aria-invalid={amountInvalid || undefined} autoComplete="off" disabled={unavailable} id="standalone-amount" inputMode="decimal" name="amount" onBlur={onAmountBlur} onChange={(event) => onAmountChange(event.target.value)} required type="text" value={amountDraft} />
+            {amountInvalid ? <FieldError>{dictionary.storefrontCustomAmountInvalid}</FieldError> : null}
+          </Field>
+          <Button disabled={unavailable} type="submit">{dictionary.storefrontStandaloneContinue}</Button>
+        </form>
+      </CardContent>
+      {returnHref ? (
+        <CardFooter>
+          <Button asChild variant="outline">
+            <a href={returnHref}>{dictionary.storefrontPayReturn}</a>
+          </Button>
+        </CardFooter>
+      ) : null}
+    </Card>
+  );
+}
+
 // The single client boundary of the standalone payment page (9.2.2): it owns
-// the amount draft, the policy-exact customer form, the idempotency-key retry
-// semantics, the capability polling (V1's controller, unchanged), and every
+// the amount draft, the policy-exact customer form, one synchronously frozen
+// idempotency attempt, the capability polling (V1's controller, unchanged), and every
 // failure view. The browser never supplies owner, currency, total, or status:
 // the submit body is exactly { idempotencyKey, amount, customer } and 9.2.1
 // re-derives everything else from locked persisted state.
@@ -275,21 +395,29 @@ export function StandalonePaymentView({
 export function StandalonePaymentExperience({
   currencyCode,
   dictionary,
+  flow = "legacy",
   policy,
   prefillAmount,
   slug,
 }: Readonly<{
   currencyCode: string | null;
   dictionary: Dictionary;
+  flow?: StandalonePaymentFlow;
   policy: CheckoutDataPolicy;
   prefillAmount: string | null;
   slug: string;
 }>) {
-  const [amount, setAmount] = useState(prefillAmount && isStorefrontCartAmount(prefillAmount) ? prefillAmount : "");
+  const validPrefill = prefillAmount && isStorefrontCartAmount(prefillAmount) ? prefillAmount : null;
+  const [amount, setAmount] = useState(validPrefill ?? "");
+  const [amountDraft, setAmountDraft] = useState(validPrefill && currencyCode === "BRL" ? formatStandaloneBrl(validPrefill) : validPrefill ?? "");
+  const [phase, setPhase] = useState<"amount" | "collection">(flow === "legacy" && validPrefill ? "collection" : "amount");
+  const [frozenAmount, setFrozenAmount] = useState<string | null>(validPrefill);
+  const [frozenAmountDisplay, setFrozenAmountDisplay] = useState<string | null>(validPrefill ? (currencyCode === "BRL" ? formatStandaloneBrl(validPrefill) : validPrefill) : null);
   const [amountInvalid, setAmountInvalid] = useState(false);
   const [values, setValues] = useState<StandaloneFormValues>(INITIAL_VALUES);
   const [invalid, setInvalid] = useState<Set<StandaloneFieldName>>(new Set());
   const [attempt, setAttempt] = useState<CheckoutAttempt | null>(null);
+  const [submittedAmountDisplay, setSubmittedAmountDisplay] = useState<string | null>(null);
   const [payment, setPayment] = useState<StandalonePayment | null>(null);
   const [capability, setCapability] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -297,6 +425,7 @@ export function StandalonePaymentExperience({
   const [checkoutError, setCheckoutError] = useState(false);
   const [statusReadFailed, setStatusReadFailed] = useState(false);
   const terminalRef = useRef(false);
+  const attemptRef = useRef<CheckoutAttempt | null>(null);
 
   useEffect(() => {
     if (!capability || terminalRef.current) return;
@@ -331,29 +460,36 @@ export function StandalonePaymentExperience({
   const startOver = () => {
     terminalRef.current = false;
     setAmount("");
+    setAmountDraft("");
+    setPhase("amount");
+    setFrozenAmount(null);
+    setFrozenAmountDisplay(null);
     setAmountInvalid(false);
     setValues(INITIAL_VALUES);
     setInvalid(new Set());
     setAttempt(null);
+    setSubmittedAmountDisplay(null);
     setPayment(null);
     setCapability(null);
     setSubmitting(false);
     setUnavailable(false);
     setCheckoutError(false);
     setStatusReadFailed(false);
+    attemptRef.current = null;
   };
 
-  const submit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const amountValid = isStorefrontCartAmount(amount);
+  const submit = async () => {
+    const amountToSubmit = frozenAmount ?? amount;
+    const amountValid = isStorefrontCartAmount(amountToSubmit);
     const formSnapshot = snapshot(policy, values);
     setAmountInvalid(!amountValid);
     setInvalid(formSnapshot.invalid);
-    if (!amountValid || formSnapshot.invalid.size) return;
-    // Every submit mints a fresh idempotency key (no reused attempt): a
-    // failed submit renders the named submit-failure state and the only way
-    // back is `startOver`, which re-keys the next attempt anyway.
-    const currentAttempt = { idempotencyKey: createRetryKey(), amount, customer: formSnapshot.customer };
+    if (!amountValid || formSnapshot.invalid.size || attemptRef.current) return;
+    // Freeze the payload and key before the request starts. A duplicate event
+    // sees this same mounted attempt and cannot create a replacement key.
+    const currentAttempt = { idempotencyKey: createRetryKey(), amount: amountToSubmit, customer: formSnapshot.customer };
+    attemptRef.current = currentAttempt;
+    setSubmittedAmountDisplay(currencyCode === "BRL" ? formatStandaloneBrlDraft(amountDraft) : amountToSubmit);
     setAttempt(currentAttempt); setSubmitting(true); setCheckoutError(false); setUnavailable(false);
     try {
       const response = await fetch(`/api/store/${slug}/checkout`, { method: "POST", cache: "no-store", credentials: "omit", headers: { "content-type": "application/json" }, body: JSON.stringify(currentAttempt) });
@@ -369,26 +505,77 @@ export function StandalonePaymentExperience({
     } catch { setCheckoutError(true); } finally { setSubmitting(false); }
   };
 
+  const continueFromAmount = () => {
+    if (!isStorefrontCartAmount(amount)) {
+      setAmountInvalid(true);
+      return;
+    }
+    setAmountInvalid(false);
+    if (policy === "NONE") {
+      setFrozenAmount(amount);
+      setFrozenAmountDisplay(currencyCode === "BRL" ? formatStandaloneBrlDraft(amountDraft) : amount);
+      setPhase("collection");
+      void submit();
+      return;
+    }
+    setFrozenAmount(amount);
+    setFrozenAmountDisplay(currencyCode === "BRL" ? formatStandaloneBrlDraft(amountDraft) : amount);
+    setPhase("collection");
+  };
+
+  if (phase === "amount") {
+    return (
+      <StandaloneAmountEntryView
+        amountDraft={amountDraft}
+        amountInvalid={amountInvalid}
+        currencyCode={currencyCode}
+        dictionary={dictionary}
+        onAmountChange={(value) => {
+          setAmountDraft(value);
+          setAmount(currencyCode === "BRL" ? canonicalStandaloneBrlInput(value) : value);
+          setAmountInvalid(false);
+        }}
+        onAmountBlur={() => {
+          if (currencyCode === "BRL" && isStorefrontCartAmount(amount)) setAmountDraft(formatStandaloneBrlDraft(amountDraft));
+        }}
+        onContinue={continueFromAmount}
+        returnHref={flow === "legacy" ? `/store/${slug}` : undefined}
+      />
+    );
+  }
+
   return (
     <StandalonePaymentView
       amount={amount}
+      amountDraft={amountDraft}
+      frozenAmountDisplay={frozenAmountDisplay}
+      amountFrozen={phase === "collection"}
       amountInvalid={amountInvalid}
       checkoutError={checkoutError}
       currencyCode={currencyCode}
       dictionary={dictionary}
       invalid={invalid}
-      onAmountChange={(value) => { setAmount(value); setAmountInvalid(false); }}
+      onAmountChange={(value) => {
+        setAmountDraft(value);
+        setAmount(currencyCode === "BRL" ? canonicalStandaloneBrlInput(value) : value);
+        setAmountInvalid(false);
+      }}
+      onAmountBlur={() => {
+        if (currencyCode === "BRL" && isStorefrontCartAmount(amount)) setAmountDraft(formatStandaloneBrlDraft(amountDraft));
+      }}
+      onEditAmount={flow === "storefront" && !attempt && !submitting ? () => { setPhase("amount"); setFrozenAmount(null); setFrozenAmountDisplay(null); } : undefined}
       onFieldChange={(field, value) => {
         setValues((current) => ({ ...current, [field]: value }));
         setInvalid((current) => { const next = new Set(current); next.delete(field as StandaloneFieldName); return next; });
       }}
       onStartOver={startOver}
-      onSubmit={(event) => { void submit(event); }}
+      onSubmit={(event) => { event.preventDefault(); void submit(); }}
       payment={payment}
       policy={policy}
       slug={slug}
       statusReadFailed={statusReadFailed}
       submittedAmount={attempt?.amount ?? null}
+      submittedAmountDisplay={submittedAmountDisplay}
       submitting={submitting}
       unavailable={unavailable}
       values={values}

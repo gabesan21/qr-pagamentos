@@ -1,7 +1,10 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
+vi.mock("server-only", () => ({}));
+
 import { storefrontPtBR } from "@/i18n/dictionaries/storefront/pt-BR";
+import { getDictionary } from "@/i18n/dictionaries";
 
 import {
   StandaloneStorefrontExperience,
@@ -17,6 +20,7 @@ function textContent(markup: string): string {
 
 const coffeeReference = "11111111-1111-4111-8111-111111111111";
 const teaReference = "22222222-2222-4222-8222-222222222222";
+const dictionary = getDictionary("pt-BR");
 
 const copy: StorefrontExperienceCopy = {
   cartCheckout: storefrontPtBR.storefrontCartCheckout,
@@ -39,10 +43,6 @@ const copy: StorefrontExperienceCopy = {
   priceLabel: storefrontPtBR.storefrontPriceLabel,
   productsHeading: storefrontPtBR.storefrontProductsHeading,
   quantityLabel: storefrontPtBR.storefrontQuantityLabel,
-  standaloneAmountInvalid: storefrontPtBR.storefrontStandaloneAmountInvalid,
-  standaloneContinue: storefrontPtBR.storefrontStandaloneContinue,
-  standaloneCurrencyUnavailable: storefrontPtBR.storefrontStandaloneCurrencyUnavailable,
-  standaloneHeading: storefrontPtBR.storefrontStandaloneHeading,
 };
 
 const catalog = [
@@ -208,19 +208,19 @@ describe("standalone storefront experience", () => {
     expect(standalonePaymentPrefillHref("minha-loja", "0")).toBeNull();
   });
 
-  it("shows the effective currency only in the amount label", () => {
+  it("mounts the standalone payment flow with no cart or pay-page redirect", () => {
     const markup = renderToStaticMarkup(
-      <StandaloneStorefrontExperience copy={copy} currencyCode="BRL" slug="minha-loja" />,
+      <StandaloneStorefrontExperience currencyCode="BRL" dictionary={dictionary} policy="NONE" slug="minha-loja" />,
     );
 
-    expect(textContent(markup)).toContain("Valor (BRL)");
-    expect(textContent(markup).match(/BRL/g)).toHaveLength(1);
-    expect(textContent(markup)).not.toContain("configurar uma moeda");
+    expect(markup).toContain('id="standalone-amount"');
+    expect(markup).not.toContain("/store/minha-loja/pay?");
+    expect(textContent(markup)).not.toContain("Carrinho");
   });
 
   it("renders the compact unavailable state without a cart or a fallback currency", () => {
     const markup = renderToStaticMarkup(
-      <StandaloneStorefrontExperience copy={copy} currencyCode={null} slug="minha-loja" />,
+      <StandaloneStorefrontExperience currencyCode={null} dictionary={dictionary} policy="NONE" slug="minha-loja" />,
     );
 
     expect(textContent(markup)).toContain("Quanto você deseja pagar?");

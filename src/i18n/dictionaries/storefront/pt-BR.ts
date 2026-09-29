@@ -27,6 +27,7 @@ export const storefrontPtBR = {
   storefrontCustomAmountPay: "Pagar agora",
   storefrontStandaloneHeading: "Quanto você deseja pagar?",
   storefrontStandaloneContinue: "Continuar para o pagamento",
+  storefrontEditAmount: "Editar valor",
   storefrontStandaloneAmountInvalid: "Informe um valor válido maior que zero, com até seis casas decimais.",
   storefrontStandaloneCurrencyUnavailable: "Os pagamentos estarão disponíveis quando esta loja configurar uma moeda.",
   storefrontPayHeading: "Dados do pagamento",

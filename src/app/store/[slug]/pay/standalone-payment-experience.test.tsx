@@ -1,5 +1,6 @@
+import { createRequire } from "node:module";
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it, vi } from "vitest";
+import { afterAll, afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 
@@ -13,10 +14,36 @@ import type { CheckoutDataPolicy } from "@/orders/order-v2-policies";
 import {
   StandalonePaymentExperience,
   StandalonePaymentView,
+  canonicalStandaloneBrlInput,
+  formatStandaloneBrl,
   standalonePaymentFromResponse,
   type StandaloneFormValues,
   type StandalonePaymentState,
 } from "./standalone-payment-experience";
+
+type JSDOMWindow = Readonly<{ document: Document; navigator: Navigator }>;
+type JSDOMConstructor = new (markup: string, options: Readonly<{ url: string }>) => Readonly<{ window: JSDOMWindow }>;
+const localRequire = createRequire(import.meta.url);
+const { JSDOM } = localRequire("jsdom") as Readonly<{ JSDOM: JSDOMConstructor }>;
+const interactionDom = new JSDOM("<!doctype html><html><body></body></html>", { url: "http://localhost" });
+const originalDocument = Object.getOwnPropertyDescriptor(globalThis, "document");
+const originalNavigator = Object.getOwnPropertyDescriptor(globalThis, "navigator");
+const originalWindow = Object.getOwnPropertyDescriptor(globalThis, "window");
+Object.defineProperty(globalThis, "document", { configurable: true, writable: true, value: interactionDom.window.document });
+Object.defineProperty(globalThis, "navigator", { configurable: true, writable: true, value: interactionDom.window.navigator });
+Object.defineProperty(globalThis, "window", { configurable: true, writable: true, value: interactionDom.window });
+const { cleanup, fireEvent, render, waitFor } = localRequire("@testing-library/react") as typeof import("@testing-library/react");
+
+function restoreGlobalDescriptor(name: "document" | "navigator" | "window", descriptor: PropertyDescriptor | undefined) {
+  if (descriptor) Object.defineProperty(globalThis, name, descriptor);
+  else Reflect.deleteProperty(globalThis, name);
+}
+
+afterAll(() => {
+  restoreGlobalDescriptor("document", originalDocument);
+  restoreGlobalDescriptor("navigator", originalNavigator);
+  restoreGlobalDescriptor("window", originalWindow);
+});
 
 const dictionary = getDictionary("en");
 const values: StandaloneFormValues = { name: "", email: "", cpf: "", street: "", number: "", district: "", city: "", stateUf: "", postalCode: "", complement: "" };
@@ -25,12 +52,16 @@ function renderView(overrides: Partial<Parameters<typeof StandalonePaymentView>[
   return renderToStaticMarkup(
     <StandalonePaymentView
       amount=""
+      amountDraft=""
+      amountFrozen={false}
+      frozenAmountDisplay={null}
       amountInvalid={false}
       checkoutError={false}
       currencyCode="BRL"
       dictionary={dictionary}
       invalid={new Set()}
       onAmountChange={vi.fn()}
+      onAmountBlur={vi.fn()}
       onFieldChange={vi.fn()}
       onStartOver={vi.fn()}
       onSubmit={vi.fn()}
@@ -39,6 +70,7 @@ function renderView(overrides: Partial<Parameters<typeof StandalonePaymentView>[
       slug="ana-store"
       statusReadFailed={false}
       submittedAmount={null}
+      submittedAmountDisplay={null}
       submitting={false}
       unavailable={false}
       values={values}
@@ -61,7 +93,7 @@ describe("standalone payment view", () => {
       expect(markup.includes(`standalone-${field}`), `${policy}.${field}`).toBe(fields.includes(field));
     }
     expect(markup).toContain('id="standalone-amount"');
-    expect(markup).toContain("Amount (BRL)");
+    expect(markup).toContain("Amount");
   });
 
   it("renders no status notice when the policy needs no customer fields", () => {
@@ -69,6 +101,15 @@ describe("standalone payment view", () => {
 
     expect(markup).not.toContain('role="status"');
     expect(markup).toContain('id="standalone-amount"');
+  });
+
+  it("hides collection copy and the local privacy statement for NONE while retaining the frozen amount form", () => {
+    const markup = renderView({ amount: "12.5", amountFrozen: true, frozenAmountDisplay: "R$ 12,50", policy: "NONE" });
+
+    expect(markup).toContain("R$ 12,50");
+    expect(markup).not.toContain(dictionary.storefrontPayIntroduction);
+    expect(markup).not.toContain(dictionary.checkoutPrivacyNotice);
+    expect(markup).toContain(dictionary.checkoutSubmit);
   });
 
   it("renders no status notice when the policy needs customer fields", () => {
@@ -120,7 +161,7 @@ describe("standalone payment view", () => {
     const markup = renderView({ payment: { state }, submittedAmount: "12.5" });
 
     expect(textContent(markup)).toContain(label);
-    expect(textContent(markup)).toContain("12.5 BRL");
+    expect(textContent(markup)).toContain("R$ 12,50");
     expect(markup).not.toContain("bg-danger-soft");
     expect(markup).toContain('href="/store/ana-store"');
   });
@@ -205,9 +246,26 @@ describe("standalonePaymentFromResponse", () => {
 });
 
 describe("standalone payment experience", () => {
+  afterEach(() => {
+    cleanup();
+    vi.unstubAllGlobals();
+  });
+
+  it("formats BRL through exact string transformation and keeps non-BRL values unchanged", () => {
+    expect(formatStandaloneBrl("1234567.123456")).toBe("R$ 1.234.567,123456");
+    expect(formatStandaloneBrl("10")).toBe("R$ 10,00");
+    expect(formatStandaloneBrl("12.5")).toBe("R$ 12,50");
+    expect(canonicalStandaloneBrlInput("R$ 1.234.567,123456")).toBe("1234567.123456");
+    expect(canonicalStandaloneBrlInput("R$ 12,5")).toBe("12.5");
+    for (const malformed of ["10.50", "1.2.3", "R$ 12,1234567", "1.23,45"]) {
+      expect(canonicalStandaloneBrlInput(malformed)).toBe("");
+    }
+  });
+
   it("prefills only a grammatically valid amount", () => {
     const valid = renderToStaticMarkup(<StandalonePaymentExperience currencyCode="BRL" dictionary={dictionary} policy="NONE" prefillAmount="12.5" slug="ana-store" />);
-    expect(valid).toContain('value="12.5"');
+    expect(valid).toContain("R$ 12,50");
+    expect(valid).not.toContain('id="standalone-amount"');
 
     const invalid = renderToStaticMarkup(<StandalonePaymentExperience currencyCode="BRL" dictionary={dictionary} policy="NONE" prefillAmount="0" slug="ana-store" />);
     expect(invalid).not.toContain('value="0"');
@@ -215,5 +273,144 @@ describe("standalone payment experience", () => {
 
     const absent = renderToStaticMarkup(<StandalonePaymentExperience currencyCode="BRL" dictionary={dictionary} policy="NONE" prefillAmount={null} slug="ana-store" />);
     expect(absent).toContain('id="standalone-amount"');
+  });
+
+  it("keeps a valid legacy amount read-only and idle until the buyer submits", () => {
+    const fetchImplementation = vi.fn();
+    vi.stubGlobal("fetch", fetchImplementation);
+
+    const view = render(<StandalonePaymentExperience currencyCode="BRL" dictionary={dictionary} policy="NONE" prefillAmount="1234.500001" slug="ana-store" />);
+
+    expect(fetchImplementation).not.toHaveBeenCalled();
+    expect(view.queryByLabelText(dictionary.storefrontCustomAmountLabel)).toBeNull();
+    expect(view.getByText("R$ 1.234,500001")).toBeTruthy();
+    expect(view.getByRole("button", { name: dictionary.checkoutSubmit })).toBeTruthy();
+  });
+
+  it("collects policy fields only after freezing the mounted storefront amount and supports editing back", () => {
+    const view = render(<StandalonePaymentExperience currencyCode="BRL" dictionary={dictionary} flow="storefront" policy="NAME_EMAIL" prefillAmount={null} slug="ana-store" />);
+
+    fireEvent.change(view.getByLabelText(dictionary.storefrontCustomAmountLabel), { target: { value: "R$ 1.234,500001" } });
+    fireEvent.click(view.getByRole("button", { name: dictionary.storefrontStandaloneContinue }));
+
+    expect(view.queryByLabelText(dictionary.storefrontCustomAmountLabel)).toBeNull();
+    expect(view.getByText("R$ 1.234,500001")).toBeTruthy();
+    expect(view.getByLabelText(dictionary.checkoutNameLabel)).toBeTruthy();
+    expect(view.getByLabelText(dictionary.checkoutEmailLabel)).toBeTruthy();
+    fireEvent.click(view.getByRole("button", { name: dictionary.storefrontEditAmount }));
+    expect(view.getByLabelText(dictionary.storefrontCustomAmountLabel)).toBeTruthy();
+  });
+
+  it("keeps a BRL draft stable while typing and formats only after it loses focus", () => {
+    const view = render(<StandalonePaymentExperience currencyCode="BRL" dictionary={dictionary} flow="storefront" policy="NONE" prefillAmount={null} slug="ana-store" />);
+
+    const amount = view.getByLabelText(dictionary.storefrontCustomAmountLabel) as HTMLInputElement;
+    fireEvent.change(amount, { target: { value: "10" } });
+    expect(amount.value).toBe("10");
+    fireEvent.change(amount, { target: { value: "10,50" } });
+    expect(amount.value).toBe("10,50");
+    fireEvent.blur(amount);
+    expect(amount.value).toBe("R$ 10,50");
+  });
+
+  it("formats a whole BRL draft with two decimal places on blur", () => {
+    const view = render(<StandalonePaymentExperience currencyCode="BRL" dictionary={dictionary} flow="storefront" policy="NONE" prefillAmount={null} slug="ana-store" />);
+    const amount = view.getByLabelText(dictionary.storefrontCustomAmountLabel) as HTMLInputElement;
+
+    fireEvent.change(amount, { target: { value: "10" } });
+    fireEvent.blur(amount);
+
+    expect(amount.value).toBe("R$ 10,00");
+  });
+
+  it.each(["10.50", "1.2.3", "R$ 12,1234567"])("keeps malformed BRL %s visibly invalid instead of submitting a canonical amount", (draft) => {
+    const view = render(<StandalonePaymentExperience currencyCode="BRL" dictionary={dictionary} flow="storefront" policy="NONE" prefillAmount={null} slug="ana-store" />);
+    const amount = view.getByLabelText(dictionary.storefrontCustomAmountLabel) as HTMLInputElement;
+
+    fireEvent.change(amount, { target: { value: draft } });
+    fireEvent.click(view.getByRole("button", { name: dictionary.storefrontStandaloneContinue }));
+
+    expect(amount.value).toBe(draft);
+    expect(amount.getAttribute("aria-invalid")).toBe("true");
+  });
+
+  it("freezes one NONE attempt synchronously for rapid duplicate submits and renders its named failure", async () => {
+    let resolveRequest: (response: Response) => void = () => undefined;
+    const fetchImplementation = vi.fn(() => new Promise<Response>((resolve) => { resolveRequest = resolve; }));
+    vi.stubGlobal("fetch", fetchImplementation);
+
+    const view = render(<StandalonePaymentExperience currencyCode="BRL" dictionary={dictionary} flow="storefront" policy="NONE" prefillAmount={null} slug="ana-store" />);
+    fireEvent.change(view.getByLabelText(dictionary.storefrontCustomAmountLabel), { target: { value: "R$ 12,500001" } });
+    const submit = view.getByRole("button", { name: dictionary.storefrontStandaloneContinue });
+    fireEvent.click(submit);
+    fireEvent.click(submit);
+
+    expect(fetchImplementation).toHaveBeenCalledTimes(1);
+    expect(view.queryByRole("button", { name: dictionary.storefrontEditAmount })).toBeNull();
+    const [, request] = fetchImplementation.mock.calls[0] as unknown as [string, RequestInit];
+    expect(JSON.parse(String(request.body))).toMatchObject({ amount: "12.500001", customer: { name: null, email: null, cpf: null, address: null } });
+    resolveRequest(new Response(null, { status: 500 }));
+    expect(await view.findByText(dictionary.checkoutSubmitFailureTitle)).toBeTruthy();
+    expect(view.queryByLabelText(dictionary.storefrontCustomAmountLabel)).toBeNull();
+  });
+
+  it("allows NAME_EMAIL amount editing before submit, then removes it during a delayed request and reaches the PIX payment view", async () => {
+    let resolveCheckout: (response: Response) => void = () => undefined;
+    const fetchImplementation = vi.fn((url: string) => {
+      if (url.endsWith("/status")) {
+        return Promise.resolve(new Response(JSON.stringify({ payment: { state: "PENDING", pixCopyPaste: "name-email-pix" } }), { status: 200 }));
+      }
+      return new Promise<Response>((resolve) => { resolveCheckout = resolve; });
+    });
+    vi.stubGlobal("fetch", fetchImplementation);
+
+    const view = render(<StandalonePaymentExperience currencyCode="BRL" dictionary={dictionary} flow="storefront" policy="NAME_EMAIL" prefillAmount={null} slug="ana-store" />);
+    fireEvent.change(view.getByLabelText(dictionary.storefrontCustomAmountLabel), { target: { value: "R$ 12,50" } });
+    fireEvent.click(view.getByRole("button", { name: dictionary.storefrontStandaloneContinue }));
+
+    expect(view.getByRole("button", { name: dictionary.storefrontEditAmount })).toBeTruthy();
+    fireEvent.change(view.getByLabelText(dictionary.checkoutNameLabel), { target: { value: "Ana" } });
+    fireEvent.change(view.getByLabelText(dictionary.checkoutEmailLabel), { target: { value: "ana@example.test" } });
+    fireEvent.click(view.getByRole("button", { name: dictionary.checkoutSubmit }));
+    expect(view.queryByRole("button", { name: dictionary.storefrontEditAmount })).toBeNull();
+
+    resolveCheckout(new Response(JSON.stringify({ payment: { state: "PENDING", pixCopyPaste: "name-email-pix" }, statusCapability: "capability" }), { status: 201 }));
+    expect(await view.findByRole("button", { name: dictionary.checkoutCopyPix })).toBeTruthy();
+    await waitFor(() => expect(fetchImplementation).toHaveBeenCalledTimes(2));
+    expect(fetchImplementation.mock.calls.map(([url]) => url)).toEqual([
+      "/api/store/ana-store/checkout",
+      "/api/store/ana-store/checkout/status",
+    ]);
+    view.unmount();
+  });
+
+  it("renders NONE's delayed successful response as awaiting PIX without returning to amount entry or collection copy", async () => {
+    let resolveCheckout: (response: Response) => void = () => undefined;
+    const fetchImplementation = vi.fn((url: string) => {
+      if (url.endsWith("/status")) {
+        return Promise.resolve(new Response(JSON.stringify({ payment: { state: "PENDING", pixCopyPaste: "none-pix" } }), { status: 200 }));
+      }
+      return new Promise<Response>((resolve) => { resolveCheckout = resolve; });
+    });
+    vi.stubGlobal("fetch", fetchImplementation);
+
+    const view = render(<StandalonePaymentExperience currencyCode="BRL" dictionary={dictionary} flow="storefront" policy="NONE" prefillAmount={null} slug="ana-store" />);
+    fireEvent.change(view.getByLabelText(dictionary.storefrontCustomAmountLabel), { target: { value: "R$ 12,50" } });
+    fireEvent.click(view.getByRole("button", { name: dictionary.storefrontStandaloneContinue }));
+    expect(view.queryByLabelText(dictionary.storefrontCustomAmountLabel)).toBeNull();
+    expect(view.queryByText(dictionary.storefrontPayIntroduction)).toBeNull();
+    expect(view.queryByText(dictionary.checkoutPrivacyNotice)).toBeNull();
+
+    resolveCheckout(new Response(JSON.stringify({ payment: { state: "PENDING", pixCopyPaste: "none-pix" }, statusCapability: "capability" }), { status: 201 }));
+    expect(await view.findByRole("button", { name: dictionary.checkoutCopyPix })).toBeTruthy();
+    await waitFor(() => expect(fetchImplementation).toHaveBeenCalledTimes(2));
+    expect(view.queryByLabelText(dictionary.storefrontCustomAmountLabel)).toBeNull();
+    expect(view.queryByText(dictionary.storefrontPayIntroduction)).toBeNull();
+    expect(view.queryByText(dictionary.checkoutPrivacyNotice)).toBeNull();
+    expect(fetchImplementation.mock.calls.map(([url]) => url)).toEqual([
+      "/api/store/ana-store/checkout",
+      "/api/store/ana-store/checkout/status",
+    ]);
+    view.unmount();
   });
 });

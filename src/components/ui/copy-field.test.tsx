@@ -74,4 +74,15 @@ describe("CopyField", () => {
     })
     expect(writeText).toHaveBeenCalledTimes(2)
   })
+
+  it("keeps a long compact PIX payload in a full-width shrinkable control without changing the copied value", () => {
+    const payload = "000201".repeat(80)
+    const { container } = render(<CopyField value={payload} labels={labels} variant="compact" />)
+
+    expect(container.firstElementChild?.className).toContain("w-full")
+    expect(container.firstElementChild?.className).toContain("min-w-0")
+    const button = screen.getByRole("button", { name: labels.copy })
+    expect(button.className).toContain("w-full")
+    expect(button.textContent).toContain(payload)
+  })
 })

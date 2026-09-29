@@ -236,7 +236,11 @@ introduce `/{locale}` routes, literal-only translations in a component, or a
 translation that changes capability or disclosure.
 
 Money stays an exact canonical decimal string and uses server-resolved currency
-labels. Never use JavaScript floating-point money math. Provider-confirmed and
+labels. The standalone BRL field is the sole exception in presentation: it
+accepts and displays `R$` with dot grouping and comma decimals, always showing
+at least two and retaining up to six fractional places through a pure string conversion to the canonical request
+value. It never parses through `Number` or an `Intl` round trip; non-BRL
+standalone input keeps the established behavior. Provider-confirmed and
 locally finalized facts remain separate. Opaque errors never echo an identifier,
 submitted query, identity, authorization cause, provider body, or secret.
 
@@ -366,6 +370,13 @@ storage]]; template assets do not bypass that lifecycle.
   to utilities in `14.7.1`, and the rule is gone — see "BEM retirement"
   below). Cart persistence, exact-money totals, layouts, the cart-checkout/
   standalone submit bodies, and the sessionless trust boundary are unchanged.
+  **M-16.1:** the empty-catalog standalone flow accepts the amount once in its
+  mounted storefront boundary. `NONE` has one deliberate submit action; data
+  policies requiring collection show a frozen amount summary and only their
+  required fields, with an explicit return to amount edit. Reload is an idle
+  state, never an automatic request. The compact `CopyField` and its payment
+  composition must be `w-full min-w-0`: only visible PIX text truncates, while
+  the copy action keeps the complete payload and QR remains inside the card.
 - The two extrapolations never copy the template's incorrect shortcut from a
   storefront slug to `/pay/[identifier]`; current routes and commands win.
 

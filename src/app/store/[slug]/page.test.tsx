@@ -57,6 +57,7 @@ const storefront = {
   ],
   standalonePayments: true,
   standalonePaymentCurrencyCode: "BRL",
+  checkoutDataPolicy: "NONE",
 } as const;
 
 describe("public storefront page", () => {
@@ -146,8 +147,9 @@ describe("public storefront page", () => {
     read.mockResolvedValueOnce({ ...storefront, catalog: [] });
     const standaloneOnly = renderToStaticMarkup(await PublicStorefrontPage({ params: Promise.resolve({ slug: "ana-store" }) }));
     expect(textContent(standaloneOnly)).toContain("Quanto você deseja pagar?");
-    expect(textContent(standaloneOnly)).toContain("Valor (BRL)");
+    expect(textContent(standaloneOnly)).toContain("Valor");
     expect(textContent(standaloneOnly)).toContain("Continuar para o pagamento");
+    expect(standaloneOnly).not.toContain("/pay?amount=");
     expect(textContent(standaloneOnly)).not.toContain("Produtos");
     expect(textContent(standaloneOnly)).not.toContain("Carrinho");
     expect(textContent(standaloneOnly)).not.toContain("Adicionar ao carrinho");

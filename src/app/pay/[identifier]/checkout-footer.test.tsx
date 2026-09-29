@@ -20,4 +20,11 @@ describe("checkout footer", () => {
     const markup = renderToStaticMarkup(<CheckoutFooter dictionary={dictionary} locale="pt-BR" />);
     expect(markup).toContain('aria-label="Português (Brasil)"');
   });
+
+  it("can hide only the shared privacy statement while retaining its modal action", () => {
+    const markup = renderToStaticMarkup(<CheckoutFooter dictionary={dictionary} hidePrivacyStatement locale="en" />);
+
+    expect(markup).not.toContain(dictionary.checkoutPrivacyLine);
+    expect(markup).toContain(dictionary.checkoutPrivacyLinkLabel);
+  });
 });

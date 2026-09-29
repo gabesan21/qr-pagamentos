@@ -44,7 +44,7 @@ export default async function StandalonePaymentPage({ params, searchParams }: Re
   const prefillAmount = typeof query === "string" ? query : null;
 
   return (
-    <CheckoutShell branding={storefront} dictionary={dictionary} locale={locale}>
+    <CheckoutShell branding={storefront} dictionary={dictionary} hidePrivacyStatement={storefront.checkoutDataPolicy === "NONE"} locale={locale}>
       <StandalonePaymentExperience
         currencyCode={storefront.standalonePaymentCurrencyCode}
         dictionary={dictionary}

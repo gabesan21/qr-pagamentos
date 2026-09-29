@@ -12,12 +12,12 @@ type Dictionary = ReturnType<typeof getDictionary>;
 // buyer form (mounted under the submit): a short line plus a trigger that
 // opens the expanded notice in `Modal`, both sourced from dictionary keys —
 // no static sentence and no duplicated markup between call sites.
-export function CheckoutPrivacyNotice({ dictionary }: Readonly<{ dictionary: Dictionary }>) {
+export function CheckoutPrivacyNotice({ dictionary, hideStatement = false }: Readonly<{ dictionary: Dictionary; hideStatement?: boolean }>) {
   const [open, setOpen] = useState(false);
   return (
     <>
       <p className="text-center text-xs text-text-2">
-        {dictionary.checkoutPrivacyLine}{" "}
+        {hideStatement ? null : <>{dictionary.checkoutPrivacyLine}{" "}</>}
         <Button onClick={() => setOpen(true)} size="inline" type="button" variant="link">
           {dictionary.checkoutPrivacyLinkLabel}
         </Button>
