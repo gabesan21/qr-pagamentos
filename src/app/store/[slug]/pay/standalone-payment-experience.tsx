@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { createPollingController } from "@/app/pay/[identifier]/public-checkout-form";
 import { CheckoutNamedState, CheckoutPaymentView } from "@/app/pay/[identifier]/checkout-payment-views";
@@ -84,6 +84,181 @@ function formatStandaloneBrlDraft(value: string): string {
   if (!parts) return value;
   const grouped = parts.whole.replace(/^0+(?=\d)/, "").replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   return `R$ ${grouped},${brazilianDisplayFraction(parts.fraction)}`;
+}
+
+type BrlCashDigits = Readonly<{ digits: string; precision: number }>;
+
+function brlCashDigits(value: string): BrlCashDigits | null {
+  const parts = brazilianAmountParts(value);
+  if (!parts) return null;
+  const precision = Math.max(2, parts.fraction?.length ?? 0);
+  const whole = parts.whole.replace(/^0+(?=\d)/, "") || "0";
+  return { digits: `${whole}${(parts.fraction ?? "").padEnd(precision, "0")}`, precision };
+}
+
+function brlCashValue(digits: string, precision: number): Readonly<{ display: string; canonical: string }> {
+  if (digits === "") return { display: "", canonical: "" };
+  const padded = digits.padStart(precision + 1, "0");
+  const whole = padded.slice(0, -precision).replace(/^0+(?=\d)/, "") || "0";
+  const fraction = padded.slice(-precision);
+  const canonical = `${whole}.${fraction.replace(/0+$/, "")}`.replace(/\.$/, "");
+  return { display: canonical === "0" ? "R$ 0,00" : formatStandaloneBrl(canonical), canonical };
+}
+
+function digitBoundary(value: string, caret: number): number {
+  return [...value.slice(0, caret)].filter((character) => /\d/.test(character)).length;
+}
+
+function caretAtDigitBoundary(value: string, boundary: number): number {
+  if (boundary <= 0) return value.search(/\d/);
+  let seen = 0;
+  for (let index = 0; index < value.length; index += 1) {
+    if (/\d/.test(value[index])) seen += 1;
+    if (seen === boundary) return index + 1;
+  }
+  return value.length;
+}
+
+// This is deliberately a digit-to-cents mask: regular keys edit the exact
+// unscaled digit string, while a localized paste is parsed as an explicit
+// decimal. That makes `1000` mean R$ 10,00 without ever coercing or rounding
+// a pasted value that carries more than two fractional digits.
+function StandaloneBrlAmountInput({
+  amountInvalid,
+  disabled,
+  onAmountChange,
+  onBlur,
+  value,
+}: Readonly<{
+  amountInvalid: boolean;
+  disabled: boolean;
+  onAmountChange: (value: string) => void;
+  onBlur: () => void;
+  value: string;
+}>) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const pendingCaret = useRef<number | null>(null);
+
+  useLayoutEffect(() => {
+    if (pendingCaret.current === null || !inputRef.current) return;
+    const nextCaret = Math.max(0, pendingCaret.current);
+    inputRef.current.setSelectionRange(nextCaret, nextCaret);
+    pendingCaret.current = null;
+  }, [value]);
+
+  const updateCashDigits = (digits: string, precision: number, nextDigitBoundary: number) => {
+    const next = brlCashValue(digits, precision);
+    const remainingDigits = digits.length - nextDigitBoundary;
+    const displayedDigits = digitBoundary(next.display, next.display.length);
+    pendingCaret.current = caretAtDigitBoundary(next.display, Math.max(0, displayedDigits - remainingDigits));
+    onAmountChange(next.display);
+  };
+
+  const insertDigit = (input: HTMLInputElement, digit: string, targetValue = value) => {
+    const cash = brlCashDigits(value);
+    const digits = cash?.digits ?? "";
+    const precision = cash?.precision ?? 2;
+    const selectionStart = input.selectionStart ?? targetValue.length;
+    const selectionEnd = input.selectionEnd ?? targetValue.length;
+    const start = digitBoundary(targetValue, selectionStart);
+    const end = digitBoundary(targetValue, selectionEnd);
+    updateCashDigits(`${digits.slice(0, start)}${digit}${digits.slice(end)}`, precision, start + 1);
+  };
+
+  const replaceWithPaste = (text: string) => {
+    const canonical = canonicalStandaloneBrlInput(text);
+    if (!canonical) {
+      onAmountChange(text);
+      return;
+    }
+    const display = canonical === "0" ? "R$ 0,00" : formatStandaloneBrl(canonical);
+    pendingCaret.current = display.length;
+    onAmountChange(display);
+  };
+
+  return (
+    <Input
+      aria-invalid={amountInvalid || undefined}
+      autoComplete="off"
+      disabled={disabled}
+      id="standalone-amount"
+      inputMode="decimal"
+      name="amount"
+      onBlur={onBlur}
+      onBeforeInput={(event) => {
+        const native = event.nativeEvent as InputEvent;
+        if (!native.data || !/^\d$/.test(native.data)) return;
+        event.preventDefault();
+        insertDigit(event.currentTarget, native.data);
+      }}
+      onChange={(event) => {
+        const native = event.nativeEvent as InputEvent;
+        if (native.inputType === "insertText" || native.inputType === "deleteContentBackward" || native.inputType === "deleteContentForward") {
+          const target = event.currentTarget;
+          const cash = brlCashDigits(value);
+          const precision = cash?.precision ?? 2;
+          const digits = [...target.value].filter((character) => /\d/.test(character)).join("");
+          const caret = digitBoundary(target.value, target.selectionStart ?? target.value.length);
+          updateCashDigits(digits, precision, caret);
+          return;
+        }
+        replaceWithPaste(event.target.value);
+      }}
+      onKeyDown={(event) => {
+        if (event.ctrlKey || event.metaKey || event.altKey) return;
+        const input = event.currentTarget;
+        const cash = brlCashDigits(value);
+        const digits = cash?.digits ?? "";
+        const precision = cash?.precision ?? 2;
+        const start = digitBoundary(value, input.selectionStart ?? value.length);
+        const end = digitBoundary(value, input.selectionEnd ?? value.length);
+
+        if (/^\d$/.test(event.key)) {
+          event.preventDefault();
+          insertDigit(input, event.key);
+        } else if (event.key === "Backspace") {
+          event.preventDefault();
+          const removeStart = start === end ? Math.max(0, start - 1) : start;
+          updateCashDigits(`${digits.slice(0, removeStart)}${digits.slice(end)}`, precision, removeStart);
+        } else if (event.key === "Delete") {
+          event.preventDefault();
+          const removeEnd = start === end ? start + 1 : end;
+          updateCashDigits(`${digits.slice(0, start)}${digits.slice(removeEnd)}`, precision, start);
+        } else if (event.key === "," || event.key === ".") {
+          event.preventDefault();
+        }
+      }}
+      onPaste={(event) => {
+        event.preventDefault();
+        replaceWithPaste(event.clipboardData.getData("text"));
+      }}
+      ref={inputRef}
+      required
+      type="text"
+      value={value}
+    />
+  );
+}
+
+function StandaloneAmountInput({
+  amountDraft,
+  amountInvalid,
+  currencyCode,
+  disabled,
+  onAmountChange,
+  onBlur,
+}: Readonly<{
+  amountDraft: string;
+  amountInvalid: boolean;
+  currencyCode: string | null;
+  disabled: boolean;
+  onAmountChange: (value: string) => void;
+  onBlur: () => void;
+}>) {
+  if (currencyCode === "BRL") {
+    return <StandaloneBrlAmountInput amountInvalid={amountInvalid} disabled={disabled} onAmountChange={onAmountChange} onBlur={onBlur} value={amountDraft} />;
+  }
+  return <Input aria-invalid={amountInvalid || undefined} autoComplete="off" disabled={disabled} id="standalone-amount" inputMode="decimal" name="amount" onBlur={onBlur} onChange={(event) => onAmountChange(event.target.value)} required type="text" value={amountDraft} />;
 }
 
 function requiredFields(policy: CheckoutDataPolicy): readonly StandaloneFieldName[] {
@@ -280,7 +455,7 @@ export function StandalonePaymentView({
             ) : (
               <Field data-invalid={amountInvalid || undefined}>
                 <FieldLabel htmlFor="standalone-amount">{dictionary.storefrontCustomAmountLabel}{currencyCode && currencyCode !== "BRL" ? ` (${currencyCode})` : ""}</FieldLabel>
-                <Input aria-invalid={amountInvalid || undefined} autoComplete="off" id="standalone-amount" inputMode="decimal" name="amount" onBlur={onAmountBlur} onChange={(event) => onAmountChange(event.target.value)} required type="text" value={amountDraft} />
+                <StandaloneAmountInput amountDraft={amountDraft} amountInvalid={amountInvalid} currencyCode={currencyCode} disabled={amountFrozen} onAmountChange={onAmountChange} onBlur={onAmountBlur} />
                 {amountInvalid ? <FieldError>{dictionary.storefrontCustomAmountInvalid}</FieldError> : null}
               </Field>
             )}
@@ -361,7 +536,7 @@ function StandaloneAmountEntryView({
         <form className="grid gap-6" onSubmit={(event) => { event.preventDefault(); onContinue(); }}>
           <Field data-invalid={amountInvalid || undefined}>
             <FieldLabel htmlFor="standalone-amount">{dictionary.storefrontCustomAmountLabel}{currencyCode && currencyCode !== "BRL" ? ` (${currencyCode})` : ""}</FieldLabel>
-            <Input aria-invalid={amountInvalid || undefined} autoComplete="off" disabled={unavailable} id="standalone-amount" inputMode="decimal" name="amount" onBlur={onAmountBlur} onChange={(event) => onAmountChange(event.target.value)} required type="text" value={amountDraft} />
+            <StandaloneAmountInput amountDraft={amountDraft} amountInvalid={amountInvalid} currencyCode={currencyCode} disabled={unavailable} onAmountChange={onAmountChange} onBlur={onAmountBlur} />
             {amountInvalid ? <FieldError>{dictionary.storefrontCustomAmountInvalid}</FieldError> : null}
           </Field>
           <Button disabled={unavailable} type="submit">{dictionary.storefrontStandaloneContinue}</Button>

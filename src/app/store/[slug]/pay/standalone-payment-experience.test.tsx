@@ -301,26 +301,92 @@ describe("standalone payment experience", () => {
     expect(view.getByLabelText(dictionary.storefrontCustomAmountLabel)).toBeTruthy();
   });
 
-  it("keeps a BRL draft stable while typing and formats only after it loses focus", () => {
+  it("applies the BRL cents mask while typing and keeps the logical caret at the inserted digit", () => {
     const view = render(<StandalonePaymentExperience currencyCode="BRL" dictionary={dictionary} flow="storefront" policy="NONE" prefillAmount={null} slug="ana-store" />);
 
     const amount = view.getByLabelText(dictionary.storefrontCustomAmountLabel) as HTMLInputElement;
-    fireEvent.change(amount, { target: { value: "10" } });
-    expect(amount.value).toBe("10");
-    fireEvent.change(amount, { target: { value: "10,50" } });
-    expect(amount.value).toBe("10,50");
-    fireEvent.blur(amount);
-    expect(amount.value).toBe("R$ 10,50");
-  });
-
-  it("formats a whole BRL draft with two decimal places on blur", () => {
-    const view = render(<StandalonePaymentExperience currencyCode="BRL" dictionary={dictionary} flow="storefront" policy="NONE" prefillAmount={null} slug="ana-store" />);
-    const amount = view.getByLabelText(dictionary.storefrontCustomAmountLabel) as HTMLInputElement;
-
-    fireEvent.change(amount, { target: { value: "10" } });
-    fireEvent.blur(amount);
+    for (const key of "1000") fireEvent.keyDown(amount, { key });
 
     expect(amount.value).toBe("R$ 10,00");
+    expect(canonicalStandaloneBrlInput(amount.value)).toBe("10");
+    expect(amount.selectionStart).toBe(amount.value.length);
+  });
+
+  it("handles replacement, backspace, and delete against masked BRL digits", () => {
+    const view = render(<StandalonePaymentExperience currencyCode="BRL" dictionary={dictionary} flow="storefront" policy="NONE" prefillAmount={null} slug="ana-store" />);
+    const amount = view.getByLabelText(dictionary.storefrontCustomAmountLabel) as HTMLInputElement;
+
+    for (const key of "12") fireEvent.keyDown(amount, { key });
+    expect(amount.value).toBe("R$ 0,12");
+
+    amount.setSelectionRange(0, amount.value.length);
+    fireEvent.keyDown(amount, { key: "5" });
+    expect(amount.value).toBe("R$ 0,05");
+
+    fireEvent.keyDown(amount, { key: "Backspace" });
+    expect(amount.value).toBe("R$ 0,00");
+    amount.setSelectionRange(0, amount.value.length);
+    fireEvent.keyDown(amount, { key: "Backspace" });
+    expect(amount.value).toBe("");
+
+    for (const key of "12") fireEvent.keyDown(amount, { key });
+    amount.setSelectionRange(4, 4);
+    fireEvent.keyDown(amount, { key: "Delete" });
+    expect(amount.value).toBe("R$ 0,02");
+  });
+
+  it("keeps cents semantics for incremental input events that do not send keydown", () => {
+    const view = render(<StandalonePaymentExperience currencyCode="BRL" dictionary={dictionary} flow="storefront" policy="NONE" prefillAmount={null} slug="ana-store" />);
+    const amount = view.getByLabelText(dictionary.storefrontCustomAmountLabel) as HTMLInputElement;
+
+    fireEvent.input(amount, { data: "1", inputType: "insertText", target: { selectionEnd: 1, selectionStart: 1, value: "1" } });
+    fireEvent.input(amount, { data: "0", inputType: "insertText", target: { selectionEnd: 8, selectionStart: 8, value: "R$ 0,010" } });
+    fireEvent.input(amount, { data: "0", inputType: "insertText", target: { selectionEnd: 8, selectionStart: 8, value: "R$ 0,100" } });
+    fireEvent.input(amount, { data: "0", inputType: "insertText", target: { selectionEnd: 8, selectionStart: 8, value: "R$ 1,000" } });
+
+    expect(amount.value).toBe("R$ 10,00");
+  });
+
+  it("keeps mobile delete and selection replacement in the cash-mask edit path", () => {
+    const view = render(<StandalonePaymentExperience currencyCode="BRL" dictionary={dictionary} flow="storefront" policy="NONE" prefillAmount={null} slug="ana-store" />);
+    const amount = view.getByLabelText(dictionary.storefrontCustomAmountLabel) as HTMLInputElement;
+
+    fireEvent.input(amount, { data: "1", inputType: "insertText", target: { selectionEnd: 1, selectionStart: 1, value: "1" } });
+    fireEvent.input(amount, { data: "0", inputType: "insertText", target: { selectionEnd: 8, selectionStart: 8, value: "R$ 0,010" } });
+    fireEvent.input(amount, { data: "0", inputType: "insertText", target: { selectionEnd: 8, selectionStart: 8, value: "R$ 0,100" } });
+    fireEvent.input(amount, { data: "0", inputType: "insertText", target: { selectionEnd: 8, selectionStart: 8, value: "R$ 1,000" } });
+
+    fireEvent.input(amount, { inputType: "deleteContentBackward", target: { selectionEnd: 7, selectionStart: 7, value: "R$ 10,0" } });
+    expect(amount.value).toBe("R$ 1,00");
+
+    fireEvent.input(amount, { inputType: "deleteContentForward", target: { selectionEnd: 6, selectionStart: 6, value: "R$ 1,0" } });
+    expect(amount.value).toBe("R$ 0,10");
+
+    fireEvent.input(amount, { data: "5", inputType: "insertText", target: { selectionEnd: 1, selectionStart: 1, value: "5" } });
+    expect(amount.value).toBe("R$ 0,05");
+  });
+
+  it("parses exact localized BRL pastes without rounding and keeps malformed grouping invalid", () => {
+    const view = render(<StandalonePaymentExperience currencyCode="BRL" dictionary={dictionary} flow="storefront" policy="NONE" prefillAmount={null} slug="ana-store" />);
+    const amount = view.getByLabelText(dictionary.storefrontCustomAmountLabel) as HTMLInputElement;
+
+    fireEvent.paste(amount, { clipboardData: { getData: () => "R$ 1.234,500001" } });
+    expect(amount.value).toBe("R$ 1.234,500001");
+    expect(canonicalStandaloneBrlInput(amount.value)).toBe("1234.500001");
+
+    fireEvent.paste(amount, { clipboardData: { getData: () => "1.23,45" } });
+    fireEvent.click(view.getByRole("button", { name: dictionary.storefrontStandaloneContinue }));
+
+    expect(amount.value).toBe("1.23,45");
+    expect(amount.getAttribute("aria-invalid")).toBe("true");
+  });
+
+  it("leaves non-BRL amount entry unmasked", () => {
+    const view = render(<StandalonePaymentExperience currencyCode="USD" dictionary={dictionary} flow="storefront" policy="NONE" prefillAmount={null} slug="ana-store" />);
+    const amount = view.getByLabelText(`${dictionary.storefrontCustomAmountLabel} (USD)`) as HTMLInputElement;
+
+    fireEvent.change(amount, { target: { value: "1000" } });
+    expect(amount.value).toBe("1000");
   });
 
   it.each(["10.50", "1.2.3", "R$ 12,1234567"])("keeps malformed BRL %s visibly invalid instead of submitting a canonical amount", (draft) => {

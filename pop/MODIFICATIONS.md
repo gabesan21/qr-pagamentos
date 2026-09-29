@@ -36,3 +36,5 @@ Project: [[PROJECT|QR Pagamentos]] · Roadmap: [[ROADMAP|Roadmap]]
 | M-15 | [[M-15.1-currency-settings-save-probe-repair]] | Repair current pricing contract and isolated settings probe forms; verify PIX default persistence. | completed; local Docker verified |
 
 | M-16 | [[M-16.1-standalone-pix-flow]] | Single-entry standalone payment flow, exact BRL display and responsive PIX containment. | completed; verified in local Docker |
+
+| H-16 | [[H-16.1-brl-live-input-mask]] | Show exact BRL money mask during typing, with caret, deletion and paste handling. | completed; browser and Docker verified |

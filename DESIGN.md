@@ -236,10 +236,13 @@ introduce `/{locale}` routes, literal-only translations in a component, or a
 translation that changes capability or disclosure.
 
 Money stays an exact canonical decimal string and uses server-resolved currency
-labels. The standalone BRL field is the sole exception in presentation: it
-accepts and displays `R$` with dot grouping and comma decimals, always showing
-at least two and retaining up to six fractional places through a pure string conversion to the canonical request
-value. It never parses through `Number` or an `Intl` round trip; non-BRL
+labels. The standalone BRL field is the sole exception in presentation: it is
+a live digit-to-cents mask (`1000` displays as `R$ 10,00`) with `R$`, dot
+grouping, and comma decimals. Keyboard/mobile edits preserve the cash-mask
+caret; localized paste is the explicit-decimal path. It always shows at least
+two and retains up to six fractional places through a pure string conversion to
+the canonical request value. It never parses through `Number` or an `Intl`
+round trip, and malformed or ambiguous grouping stays invalid; non-BRL
 standalone input keeps the established behavior. Provider-confirmed and
 locally finalized facts remain separate. Opaque errors never echo an identifier,
 submitted query, identity, authorization cause, provider body, or secret.
