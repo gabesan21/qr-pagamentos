@@ -382,3 +382,12 @@ export async function queryOwnerOrderV2Directory(
   const principal = await requireOwnerFromCookie();
   return getOrderV2DirectoryService().query(principal, requestTarget, path);
 }
+
+// Owner order detail (M-17.1): resolve the display code for an order's
+// snapshotted pair through the same bounded, read-only registry read the
+// directory uses. A pair without an active pointer code resolves to null, so
+// the caller renders the bare localized amount rather than guessing a label.
+export async function findOrderV2PairCode(pair: OrderV2DirectoryUsdPair): Promise<string | null> {
+  const codes = await createPrismaOrderV2DirectoryStore(getDatabaseClient()).findPairCodes([pair]);
+  return codes[0]?.code ?? null;
+}

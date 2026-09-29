@@ -80,6 +80,8 @@ assert(outcomes["append-comment"] === "commented", "Orders evidence does not pro
 assert(outcomes["edit-comment"] === "comment-edited", "Orders evidence does not prove the author comment edit CAS flow.");
 assert(outcomes["set-outcome"] === "outcome-set", "Orders evidence does not prove the guarded local-outcome flow.");
 assert(outcomes["set-outcome-stale-cas"] === "failed", "Orders evidence does not prove the opaque stale lifecycle CAS failure.");
+const terminal = assertions.find((entry) => entry.state === "terminal-outcome-readonly");
+assert(terminal?.editor === false, "Orders evidence does not prove the permanent read-only terminal outcome.");
 const preference = assertions.find((entry) => entry.state === "page-size-preference");
 assert(preference?.applied === 50 && preference.persisted === 10, "Orders evidence does not prove the page-size preference.");
 

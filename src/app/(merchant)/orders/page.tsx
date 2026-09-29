@@ -1,15 +1,14 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import type { ReactNode } from "react";
 
 import { dataDirectoryCopy, DirectoryInvalidFiltersNotice } from "@/app/directory-support";
-import { OrderV2PayerFacts, orderV2SourceLabel } from "@/app/orders/order-v2-views";
+import { CompactProviderStateBadge, CompactSourceBadge } from "@/app/orders/order-badges";
+import { OrderV2PayerFacts } from "@/app/orders/order-v2-views";
 import { orderStateLabel } from "@/app/orders/order-state-views";
 import { WorkspaceHeading } from "@/app-shell/workspace-heading";
 import { Button } from "@/components/ui/button";
 import { CopyField } from "@/components/ui/copy-field";
 import { MoneyText } from "@/components/ui/money-text";
-import { ProviderStateBadge, StatusBadge, type ProviderState, type StatusTone } from "@/components/ui/status-badge";
 import {
   DIRECTORY_INVALID_FILTERS_PARAM,
   DIRECTORY_INVALID_FILTERS_VALUE,
@@ -64,23 +63,6 @@ function pageUrl(query: Readonly<{ canonicalFilterQuery: string; pageSize: numbe
   return parameters ? `${ORDER_V2_DIRECTORY_PATH}?${parameters}` : ORDER_V2_DIRECTORY_PATH;
 }
 
-// The eight registered `state` filter members share the domain badge's
-// closed lowercase union exactly; only the stateless member and casing
-// differ from the stored `PaymentLinkOrderState` vocabulary. Mirrors the
-// administrator directory's local presentation (10.2.1) on the owner scope.
-function providerStateLabels(dictionary: Dictionary): Readonly<Record<ProviderState, string>> {
-  return {
-    created: orderStateLabel(dictionary, "CREATED"),
-    pending: orderStateLabel(dictionary, "PENDING"),
-    confirmed: orderStateLabel(dictionary, "CONFIRMED"),
-    rejected: orderStateLabel(dictionary, "REJECTED"),
-    cancelled: orderStateLabel(dictionary, "CANCELLED"),
-    expired: orderStateLabel(dictionary, "EXPIRED"),
-    indeterminate: orderStateLabel(dictionary, "INDETERMINATE"),
-    refunded: orderStateLabel(dictionary, "REFUNDED"),
-  };
-}
-
 // The registered `state` filter's label, including the explicit stateless
 // option the eight `PaymentLinkOrderState` members do not carry.
 function orderStateFilterLabel(
@@ -90,69 +72,6 @@ function orderStateFilterLabel(
   return value === ORDER_V2_DIRECTORY_STATELESS_FILTER_VALUE
     ? dictionary.orderV2DirectoryStateNone
     : orderStateLabel(dictionary, value);
-}
-
-// Compact provider-state labels for this list only: the visible badge text is
-// shortened while the full contextual state stays the announced name. A null
-// provider state has no member in `ProviderState`; it renders through the
-// neutral `StatusBadge` instead, same as the state filter's stateless option.
-function compactProviderStateLabels(dictionary: Dictionary): Readonly<Record<ProviderState, string>> {
-  return {
-    created: dictionary.orderV2DirectoryStateCreatedShort,
-    pending: dictionary.orderV2DirectoryStatePendingShort,
-    confirmed: dictionary.orderV2DirectoryStateConfirmedShort,
-    rejected: dictionary.orderV2DirectoryStateRejectedShort,
-    cancelled: dictionary.orderV2DirectoryStateCancelledShort,
-    expired: dictionary.orderV2DirectoryStateExpiredShort,
-    indeterminate: dictionary.orderV2DirectoryStateIndeterminateShort,
-    refunded: dictionary.orderV2DirectoryStateRefundedShort,
-  };
-}
-
-// The compact badge keeps the existing shared tones: the visible text is
-// shortened but the full label (from `orderV2SourceLabel`/the provider-state
-// map) is the accessible name, so no domain information is lost.
-function CompactBadge({ accessibleLabel, children }: Readonly<{ accessibleLabel: string; children: ReactNode }>) {
-  return (
-    <span className="inline-flex whitespace-nowrap">
-      <span aria-hidden>{children}</span>
-      <span className="sr-only">{accessibleLabel}</span>
-    </span>
-  );
-}
-
-function ProviderStateCell({ dictionary, row }: Readonly<{ dictionary: Dictionary; row: OrderV2Summary }>) {
-  if (row.state === null) {
-    return <CompactBadge accessibleLabel={dictionary.orderV2DirectoryStateNone}><StatusBadge label={dictionary.orderV2DirectoryStateNoneShort} tone="neutral" /></CompactBadge>;
-  }
-  const state = row.state.toLowerCase() as ProviderState;
-  return (
-    <CompactBadge accessibleLabel={providerStateLabels(dictionary)[state]}>
-      <ProviderStateBadge labels={compactProviderStateLabels(dictionary)} state={state} />
-    </CompactBadge>
-  );
-}
-
-function compactSourceLabel(dictionary: Dictionary, source: OrderV2Summary["source"]) {
-  if (source === "LINK") return dictionary.orderV2DirectorySourceLinkShort;
-  if (source === "STANDALONE") return dictionary.orderV2DirectorySourceStandaloneShort;
-  return dictionary.orderV2DirectorySourceAdHocShort;
-}
-
-// Mirrors `orderV2SourceTone` in the shared order views so the compact badge
-// preserves the domain's existing colors.
-function compactSourceTone(source: OrderV2Summary["source"]): StatusTone {
-  if (source === "LINK") return "success";
-  if (source === "AD_HOC") return "info";
-  return "neutral";
-}
-
-function SourceCell({ dictionary, row }: Readonly<{ dictionary: Dictionary; row: OrderV2Summary }>) {
-  return (
-    <CompactBadge accessibleLabel={orderV2SourceLabel(dictionary, row.source)}>
-      <StatusBadge label={compactSourceLabel(dictionary, row.source)} tone={compactSourceTone(row.source)} />
-    </CompactBadge>
-  );
 }
 
 // Two-line compact instant: the date on top, the UTC hour/minute below. The
@@ -180,7 +99,7 @@ function OrderV2Directory({
   const copy = dataDirectoryCopy(dictionary, { title: dictionary.orderV2DirectoryEmpty, description: dictionary.orderV2DirectoryEmptyDescription });
   const columns: readonly DataDirectoryColumn<OrderV2Summary>[] = [
     { id: "payer", label: dictionary.orderV2DirectoryColumnPayer, value: (row) => <OrderV2PayerFacts dictionary={dictionary} payer={row.payer} /> },
-    { id: "source", label: dictionary.orderV2DirectoryColumnSource, value: (row) => <SourceCell dictionary={dictionary} row={row} /> },
+    { id: "source", label: dictionary.orderV2DirectoryColumnSource, value: (row) => <CompactSourceBadge dictionary={dictionary} source={row.source} /> },
     {
       id: "link",
       label: dictionary.orderV2DirectoryColumnLink,
@@ -188,7 +107,7 @@ function OrderV2Directory({
         ? <CopyField labels={copyLabels(dictionary)} value={row.paymentLinkV2Identifier} variant="compact" />
         : dictionary.orderV2DirectoryLinkNone,
     },
-    { id: "state", label: dictionary.orderV2DirectoryColumnStatus, value: (row) => <ProviderStateCell dictionary={dictionary} row={row} /> },
+    { id: "state", label: dictionary.orderV2DirectoryColumnStatus, value: (row) => <CompactProviderStateBadge dictionary={dictionary} state={row.state} /> },
     {
       id: "amount",
       label: dictionary.orderV2DirectoryColumnAmount,

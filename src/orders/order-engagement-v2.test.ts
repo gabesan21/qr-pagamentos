@@ -3,12 +3,14 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("server-only", () => ({}));
 
 import { ForbiddenError } from "../auth/authorization";
+import type { PrismaClient } from "../generated/prisma/client";
 import {
   OrderCommentV2ValidationError,
   OrderEngagementV2ConflictError,
   OrderLocalOutcomeV2ValidationError,
   createOrderCommentV2Service,
   createOrderLocalOutcomeV2Service,
+  createOrderLocalOutcomeV2Store,
   type OrderCommentV2Store,
   type OrderLocalOutcomeV2Store,
   type StoredOrderCommentV2,
@@ -160,5 +162,56 @@ describe("order-local-outcome-v2 service", () => {
   it("maps a lost lifecycle CAS to the opaque conflict", async () => {
     const service = createOrderLocalOutcomeV2Service(storeWith(async () => null));
     await expect(service.append(actor, orderId, 5, "LOCAL_FINALIZED", null)).rejects.toBeInstanceOf(OrderEngagementV2ConflictError);
+  });
+
+  it.each(["LOCAL_FINALIZED", "LOCAL_CANCELLED"] as const)("maps a terminal re-submit of %s to the opaque conflict", async (outcomeValue) => {
+    // The store's empty-ledger claim rejects any later append, even with a
+    // refreshed version; the service maps that null to the same conflict.
+    const service = createOrderLocalOutcomeV2Service(storeWith(async () => null));
+    await expect(service.append(actor, orderId, 9, outcomeValue, null)).rejects.toBeInstanceOf(OrderEngagementV2ConflictError);
+  });
+});
+
+describe("order-local-outcome-v2 store CAS", () => {
+  function prismaWith(claimed: number) {
+    const updateMany = vi.fn(async () => ({ count: claimed }));
+    const create = vi.fn(async () => ({
+      id: outcome.id,
+      orderId,
+      ownerId,
+      outcome: "LOCAL_FINALIZED" as const,
+      note: null,
+      actorId: ownerId,
+      createdAt: outcome.createdAt,
+    }));
+    const transaction = vi.fn(async (callback: (tx: unknown) => unknown) => callback({ orderV2: { updateMany }, orderLocalOutcomeV2: { create } }));
+    const prisma = { $transaction: transaction } as unknown as PrismaClient;
+    return { create, prisma, updateMany };
+  }
+
+  const values = { id: outcome.id, outcome: "LOCAL_FINALIZED" as const, note: null, actorId: ownerId, createdAt: outcome.createdAt, updatedAt: outcome.createdAt };
+
+  it("claims the append only with an empty ledger and never inserts on a failed claim", async () => {
+    const { create, prisma, updateMany } = prismaWith(0);
+    const store = createOrderLocalOutcomeV2Store(prisma);
+
+    await expect(store.append(ownerId, orderId, 3, values)).resolves.toBeNull();
+    expect(updateMany).toHaveBeenCalledWith({
+      where: { id: orderId, ownerId, lifecycleVersion: 3, localOutcomes: { none: {} } },
+      data: { lifecycleVersion: { increment: 1 }, updatedAt: values.updatedAt },
+    });
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it("inserts the outcome only after the guarded claim succeeds", async () => {
+    const { create, prisma } = prismaWith(1);
+    const store = createOrderLocalOutcomeV2Store(prisma);
+
+    const created = await store.append(ownerId, orderId, 3, values);
+    expect(created).toMatchObject({ id: outcome.id, outcome: "LOCAL_FINALIZED" });
+    expect(create).toHaveBeenCalledWith({
+      data: { id: outcome.id, orderId, ownerId, outcome: "LOCAL_FINALIZED", note: null, actorId: ownerId, createdAt: outcome.createdAt },
+      select: { id: true, orderId: true, ownerId: true, outcome: true, note: true, actorId: true, createdAt: true },
+    });
   });
 });

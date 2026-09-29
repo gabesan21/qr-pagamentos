@@ -5,11 +5,12 @@ import { ForbiddenError, UnauthenticatedError } from "@/auth/authorization";
 import type { PaymentLinkV2ViewRowResult } from "@/auth/payment-link-v2-view";
 import type { OrderV2View } from "@/orders/order-v2-view";
 
-const { requireOwnerFromCookie, resolveLocale, getForOwner, getForOwnerByIdentifier, redirect } = vi.hoisted(() => ({
+const { requireOwnerFromCookie, resolveLocale, getForOwner, getForOwnerByIdentifier, findOrderV2PairCode, redirect } = vi.hoisted(() => ({
   requireOwnerFromCookie: vi.fn(),
   resolveLocale: vi.fn(),
   getForOwner: vi.fn(),
   getForOwnerByIdentifier: vi.fn<() => Promise<PaymentLinkV2ViewRowResult>>(async () => ({ kind: "unavailable" })),
+  findOrderV2PairCode: vi.fn<(pair: { currencyUuid: string; exchangeCurrencyUuid: string }) => Promise<string | null>>(async () => "BRL"),
   redirect: vi.fn((location: string) => { throw new Error(`redirect:${location}`); }),
 }));
 
@@ -22,6 +23,9 @@ vi.mock("@/orders/order-v2-view", async (importActual) => ({
   ...(await importActual<typeof import("@/orders/order-v2-view")>()),
   getOrderV2ViewService: () => ({ getForOwner }),
 }));
+// The detail page resolves the order's display code once through this bounded
+// registry helper (M-17.1); the default resolves to BRL.
+vi.mock("@/orders/order-v2-directory", () => ({ findOrderV2PairCode: (pair: { currencyUuid: string; exchangeCurrencyUuid: string }) => findOrderV2PairCode(pair) }));
 // The detail page's link card resolves the owner-scoped domain badge and
 // drill-down through this additive lookup (F03); the default resolves to
 // "unavailable" so existing suites keep asserting the link-less baseline.
@@ -84,25 +88,66 @@ describe("merchant V2 order detail page", () => {
     expect(getForOwner).not.toHaveBeenCalled();
   });
 
-  it("renders the full facts, policy-exact customer, ordered lines, and no internal identifiers", async () => {
+  it("renders the full facts, policy-exact customer, ordered lines, exact currency amounts and compact badges, with no internal identifiers", async () => {
     ready("en");
     const markup = renderToStaticMarkup(await OrderV2DetailPage({ params: Promise.resolve({ id: orderId }) }));
     expect(getForOwner).toHaveBeenCalledWith(principal, orderId);
+    expect(findOrderV2PairCode).toHaveBeenCalledWith({ currencyUuid: order().currencyUuid, exchangeCurrencyUuid: order().exchangeCurrencyUuid });
     expect(markup).toContain("Monthly donation");
+    // Compact badges keep the full contextual names accessible.
+    expect(markup).toContain(">Waiting</");
     expect(markup).toContain(">Waiting for payment</");
+    expect(markup).toContain(">Link</");
+    expect(markup).toContain(">Payment link</");
+    expect(markup).toContain(">Finalized</");
     expect(markup).toContain(">Locally finalized</");
     expect(markup).toContain("Entrega feita");
     expect(markup).toContain("abcdefghijklmnopqrstuvwx");
     expect(markup).toContain("Ana");
     expect(markup).toContain("ana@example.com");
-    expect(markup).toContain("34.90");
-    expect(markup).toContain("12.50");
+    // Exact BRL amounts through the real formatter, including line totals.
+    expect(markup).toContain("R$ 34.90");
+    expect(markup).toContain("R$ 12.50");
+    expect(markup).toContain("R$ 25.00");
     expect(markup).toContain('href="/orders"');
     expect(markup).not.toContain(productUuid);
     expect(markup).not.toContain("990e8400-e29b-41d4-a716-446655440099");
     // The CPF is null and the NAME_EMAIL policy never required it: the hint
     // reads as policy compliance, never a bare em dash or a missing capture.
     expect(markup).toContain("Not required by this link&#x27;s data policy");
+  });
+
+  it("clamps the detail grids for narrow viewports so long identifiers cannot blow out min-content", async () => {
+    ready("en");
+    const markup = renderToStaticMarkup(await OrderV2DetailPage({ params: Promise.resolve({ id: orderId }) }));
+    // Both the shared detail grid and the merchant comments/outcome grid are
+    // single-column minmax(0,1fr) tracks below lg, and each column is a
+    // shrinkable min-w-0 grid item.
+    expect(markup.match(/grid grid-cols-1 gap-4 lg:grid-cols-12/g)).toHaveLength(2);
+    expect(markup).toContain("min-w-0 space-y-4 lg:col-span-4");
+    expect(markup.match(/min-w-0 space-y-4 lg:col-span-8/g)).toHaveLength(2);
+    // Non-truncating identifiers wrap instead of clipping or widening the track.
+    expect(markup).toContain("break-all");
+  });
+
+  it("renders the terminal local outcome read-only with the immutable caption and no editor", async () => {
+    ready("en");
+    const markup = renderToStaticMarkup(await OrderV2DetailPage({ params: Promise.resolve({ id: orderId }) }));
+    expect(markup).toContain("The local outcome is final for this order");
+    expect(markup).toContain("Entrega feita");
+    // No selector, hidden version, or note mutation input once an outcome exists.
+    expect(markup).not.toContain('name="version" value="3"');
+    expect(markup).not.toContain('value="LOCAL_CANCELLED"');
+    expect(markup).not.toContain("Finalize locally");
+    expect(markup).not.toContain('name="note"');
+  });
+
+  it("renders a bare localized amount when the registry resolves no code", async () => {
+    ready("en");
+    findOrderV2PairCode.mockResolvedValueOnce(null);
+    const markup = renderToStaticMarkup(await OrderV2DetailPage({ params: Promise.resolve({ id: orderId }) }));
+    expect(markup).toContain("34.90");
+    expect(markup).not.toContain("R$ 34.90");
   });
 
   it("renders the comment thread with author edit CAS and the append form grammar", async () => {
@@ -118,8 +163,8 @@ describe("merchant V2 order detail page", () => {
     expect(markup).toContain('name="commentVersion" value="2"');
   });
 
-  it("posts the projection-supplied lifecycle CAS behind destructive confirmations", async () => {
-    ready("en");
+  it("posts the projection-supplied lifecycle CAS behind destructive confirmations for a fresh order", async () => {
+    ready("en", { kind: "found", order: order({ currentLocalOutcome: null }) });
     const markup = renderToStaticMarkup(await OrderV2DetailPage({ params: Promise.resolve({ id: orderId }) }));
     expect(markup).toContain('name="version" value="3"');
     expect(markup).toContain('value="LOCAL_FINALIZED"');
@@ -134,14 +179,19 @@ describe("merchant V2 order detail page", () => {
     expect(markup).toContain('name="note"');
   });
 
-  it("renders localized pt-BR copy", async () => {
+  it("renders localized pt-BR copy with compact badges and a pt-BR chronology", async () => {
     ready("pt-BR");
     const markup = renderToStaticMarkup(await OrderV2DetailPage({ params: Promise.resolve({ id: orderId }) }));
     expect(markup).toContain("Doação mensal");
+    expect(markup).toContain(">Aguardando</");
     expect(markup).toContain(">Aguardando pagamento</");
+    expect(markup).toContain(">Finalizado</");
     expect(markup).toContain(">Finalizado localmente</");
-    expect(markup).toContain("Finalizar localmente");
+    expect(markup).toContain("O resultado local é definitivo");
     expect(markup).toContain("Novo comentário");
+    // The chronology follows the active locale now, not a hardcoded English.
+    expect(markup).toContain("jul");
+    expect(markup).not.toContain("Jul 1, 2026");
   });
 
   it("renders the empty comment thread", async () => {

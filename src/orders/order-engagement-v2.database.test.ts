@@ -41,7 +41,6 @@ const actor = {
 const otherActor = { ...actor, id: otherOwnerId, username: "engagement.database.other" };
 
 const firstAppendAt = new Date("2026-07-25T12:00:00.000Z");
-const secondAppendAt = new Date("2026-07-25T13:00:00.000Z");
 const commentCreatedAt = new Date("2026-07-25T14:00:00.000Z");
 const commentEditedAt = new Date("2026-07-25T15:00:00.000Z");
 
@@ -146,32 +145,28 @@ describe.skipIf(!enabled)("order engagement V2 PostgreSQL contract", () => {
     }
   });
 
-  it("appends local outcomes under lifecycle CAS with latest-is-current and never touches settlement state", async () => {
-    let now = firstAppendAt;
-    const outcomes = createOrderLocalOutcomeV2Service(createOrderLocalOutcomeV2Store(firstDatabase), { now: () => now });
+  it("makes the first local outcome permanent and never touches settlement state", async () => {
+    const outcomes = createOrderLocalOutcomeV2Service(createOrderLocalOutcomeV2Store(firstDatabase), { now: () => firstAppendAt });
 
     const first = await outcomes.append(actor, orderId, 0, "LOCAL_FINALIZED", "checked with the customer");
     expect(first.outcome).toBe("LOCAL_FINALIZED");
 
-    await expect(outcomes.append(actor, orderId, 0, "LOCAL_CANCELLED", null)).rejects.toSatisfy(isOpaqueConflict);
-
-    now = secondAppendAt;
-    const second = await outcomes.append(actor, orderId, 1, "LOCAL_CANCELLED", null);
-    expect(second.outcome).toBe("LOCAL_CANCELLED");
-    expect(second.note).toBeNull();
+    // A terminal re-submit is rejected even with the refreshed lifecycle
+    // version: the first outcome is permanent per order.
+    await expect(outcomes.append(actor, orderId, 1, "LOCAL_CANCELLED", null)).rejects.toSatisfy(isOpaqueConflict);
 
     const history = await admin.query(
       `SELECT outcome FROM app.order_local_outcome_v2 WHERE order_id = $1 ORDER BY created_at, id`,
       [orderId],
     );
-    expect(history.rows.map((row) => row.outcome)).toEqual(["LOCAL_FINALIZED", "LOCAL_CANCELLED"]);
+    expect(history.rows.map((row) => row.outcome)).toEqual(["LOCAL_FINALIZED"]);
 
     const order = await admin.query(
       `SELECT lifecycle_version, updated_at FROM app.order_v2 WHERE id = $1`,
       [orderId],
     );
-    expect(order.rows[0].lifecycle_version).toBe(2);
-    expect(order.rows[0].updated_at).toEqual(secondAppendAt);
+    expect(order.rows[0].lifecycle_version).toBe(1);
+    expect(order.rows[0].updated_at).toEqual(firstAppendAt);
     await expectSettlementFences(admin, orderId, "PENDING");
   });
 
@@ -248,8 +243,8 @@ describe.skipIf(!enabled)("order engagement V2 PostgreSQL contract", () => {
       `SELECT lifecycle_version, updated_at FROM app.order_v2 WHERE id = $1`,
       [orderId],
     );
-    expect(order.rows[0].lifecycle_version).toBe(2);
-    expect(order.rows[0].updated_at).toEqual(secondAppendAt);
+    expect(order.rows[0].lifecycle_version).toBe(1);
+    expect(order.rows[0].updated_at).toEqual(firstAppendAt);
     await expectSettlementFences(admin, orderId, "PENDING");
   });
 });

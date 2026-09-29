@@ -145,7 +145,7 @@ function CopyField({
         onClick={() => void handleCopy()}
         className="max-w-full justify-start"
       >
-        <span className={cn("min-w-0 font-mono text-xs", truncate && "truncate")}>
+        <span className={cn("min-w-0 font-mono text-xs", truncate ? "truncate" : "break-all")}>
           {value}
         </span>
         <CopyStateIcon state={state} />

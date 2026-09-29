@@ -38,3 +38,5 @@ Project: [[PROJECT|QR Pagamentos]] · Roadmap: [[ROADMAP|Roadmap]]
 | M-16 | [[M-16.1-standalone-pix-flow]] | Single-entry standalone payment flow, exact BRL display and responsive PIX containment. | completed; verified in local Docker |
 
 | H-16 | [[H-16.1-brl-live-input-mask]] | Show exact BRL money mask during typing, with caret, deletion and paste handling. | completed; browser and Docker verified |
+
+| M-17 | [[M-17.1-order-detail-polish]] | Permanent first local outcome and read-only terminal outcome on the merchant order detail, with exact currency-aware amounts and compact badges. · size: M | 005_closing; verification approved; Docker/browser pending |

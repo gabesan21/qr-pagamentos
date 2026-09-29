@@ -218,12 +218,16 @@ test("creates the closed merchant orders evidence run", async ({ page }) => {
   await expect(directory).toBeVisible();
   await expect(directory.getByText("Ana Evidence").first()).toBeVisible();
   await expect(directory.getByText("ana@example.com").first()).toBeVisible();
-  for (const label of ["Pagamento confirmado", "Pagamento recusado", "Aguardando pagamento", "Sem pagamento", "Cancelado localmente", "Avulso"]) {
-    await expect(directory.locator('[data-slot="badge"]', { hasText: label }).first()).toBeVisible();
+  // H-17.1/M-17.1: the merchant list shows compact source/status badges and no
+  // local-outcome column; full names stay available to assistive technology.
+  const rows = directory.locator("tbody");
+  for (const label of ["Confirmado", "Recusado", "Aguardando", "Sem pagamento", "Avulso", "Link"]) {
+    await expect(rows.getByText(label, { exact: true }).first()).toBeVisible();
   }
+  await expect(directory.getByText("Resultado local", { exact: true })).toHaveCount(0);
   await expect(directory.getByText("Não coletado").first()).toBeVisible();
   await expect(directory.getByText(seeded.links.main.identifier).first()).toBeVisible();
-  assertions.push({ state: "directory-facts", payer: "Ana Evidence", badges: ["CONFIRMED", "REJECTED", "PENDING", "none", "LOCAL_CANCELLED"], linkIdentifier: seeded.links.main.identifier });
+  assertions.push({ state: "directory-facts", payer: "Ana Evidence", badges: ["Confirmado", "Recusado", "Aguardando", "Sem pagamento", "Avulso"], linkIdentifier: seeded.links.main.identifier });
 
   await page.setViewportSize({ width: 320, height: 1000 });
   await page.goto(`${baseUrl}/orders`);
@@ -295,29 +299,43 @@ test("creates the closed merchant orders evidence run", async ({ page }) => {
   assertions.push({ state: "edit-comment", outcome: "comment-edited" });
   await captureState("state-en-order-comment-edited-notice-1440");
 
-  // Set a local outcome behind its native confirmation.
+  // Set a local outcome through the real select+confirm editor.
   await page.goto(`${baseUrl}/orders/v2/${seeded.orders.main}`);
-  await page.locator("summary", { hasText: "Confirm local finalization" }).click();
-  await page.locator('textarea[name="note"]').first().fill("Entrega confirmada");
+  const outcomeForm = page.locator(`form#outcome-form-${seeded.orders.main}`);
+  await outcomeForm.locator('select[name="outcome"]').selectOption("LOCAL_FINALIZED");
+  await outcomeForm.locator('textarea[name="note"]').fill("Entrega confirmada");
+  await outcomeForm.getByRole("button", { name: "Finalize locally" }).click();
   await Promise.all([
     page.waitForURL("**/orders?orders-v2=outcome-set"),
-    page.getByRole("button", { name: "Finalize locally" }).click(),
+    page.getByRole("alertdialog").locator('[data-slot="alert-dialog-action"]').click(),
   ]);
   await expect(page.getByText("The local outcome was recorded.")).toBeVisible();
   assertions.push({ state: "set-outcome", outcome: "outcome-set" });
   await captureState("state-en-order-outcome-set-notice-1440");
 
-  // A stale lifecycle CAS fails opaquely: the open detail keeps version 2 while
-  // a concurrent append bumps the stored version to 3.
+  // M-17.1: the first outcome is permanent, so the detail renders it read-only
+  // and exposes no selector, note field, or submit control.
   await page.goto(`${baseUrl}/orders/v2/${seeded.orders.main}`);
-  seedDatabase(`UPDATE app.order_v2 SET lifecycle_version = lifecycle_version + 1 WHERE id = '${seeded.orders.main}';\n`);
-  await page.locator("summary", { hasText: "Confirm local cancellation" }).click();
+  await expect(page.getByText("The local outcome is final for this order")).toBeVisible();
+  await expect(page.locator(`form#outcome-form-${seeded.orders.main}`)).toHaveCount(0);
+  await expect(page.locator('select[name="outcome"]')).toHaveCount(0);
+  await expect(page.locator('textarea[name="note"]')).toHaveCount(0);
+  assertions.push({ state: "terminal-outcome-readonly", editor: false });
+
+  // A stale lifecycle CAS still fails opaquely, exercised on a fresh no-outcome
+  // order: the open detail keeps its version while a competing write bumps the
+  // stored version first.
+  await page.goto(`${baseUrl}/orders/v2/${seeded.orders.adhoc}`);
+  const staleForm = page.locator(`form#outcome-form-${seeded.orders.adhoc}`);
+  await staleForm.locator('select[name="outcome"]').selectOption("LOCAL_CANCELLED");
+  seedDatabase(`UPDATE app.order_v2 SET lifecycle_version = lifecycle_version + 1 WHERE id = '${seeded.orders.adhoc}';\n`);
+  await staleForm.getByRole("button", { name: "Cancel locally" }).click();
   await Promise.all([
     page.waitForURL("**/orders?orders-v2=failed"),
-    page.getByRole("button", { name: "Cancel locally" }).click(),
+    page.getByRole("alertdialog").locator('[data-slot="alert-dialog-action"]').click(),
   ]);
   await expect(page.getByText("The order change could not be saved.")).toBeVisible();
-  assertions.push({ state: "set-outcome-stale-cas", outcome: "failed" });
+  assertions.push({ state: "set-outcome-stale-cas", outcome: "failed", order: "adhoc" });
   await captureState("state-en-order-failed-notice-1440");
 
   // The page-size preference: a stored registered size applies to the bare URL
@@ -420,7 +438,7 @@ test("creates the closed merchant orders evidence run", async ({ page }) => {
     `- Run: \`${runId}\``,
     `- Manifest SHA-256: \`${sha256(manifestBytes)}\``,
     "- Grid: six themes × two locales × 375/768/1440 directory captures, plus twelve localized state captures including 320-pixel reflow, the comment-thread detail, the opaque miss, page 2, every closed outcome notice, and the page-size preference.",
-    "- Engagement flows run through the real 8.3.3 UI: comment append, author comment edit under CAS, guarded local-outcome set, and a stale lifecycle CAS that fails opaquely.",
+    "- Engagement flows run through the real 8.3.3 UI: comment append, author comment edit under CAS, guarded local-outcome set, the permanent read-only terminal outcome (no editor), and a stale lifecycle CAS that fails opaquely.",
     "- The page-size preference reapplies a stored registered size on the bare URL exactly once and re-stores the explicit toolbar choice.",
     "- Automated accessibility/runtime/target/overflow/focus findings: none.",
     "- The error directory state is induced only in unit/page tests: stopping the disposable database would break session resolution before the directory read, so no honest runtime capture exists.",

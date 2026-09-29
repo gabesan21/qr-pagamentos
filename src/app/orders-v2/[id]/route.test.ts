@@ -10,10 +10,12 @@ const { requireOwnerFromCookie, ownerProtectedMutationResponse, appendComment, e
   appendOutcome: vi.fn(),
 }));
 vi.mock("@/app/owner-guard", () => ({ requireOwnerFromCookie, ownerProtectedMutationResponse }));
-vi.mock("@/orders/order-engagement-v2", () => ({
+vi.mock("@/orders/order-engagement-v2", async (importActual) => ({
+  ...(await importActual<typeof import("@/orders/order-engagement-v2")>()),
   getOrderCommentV2Service: () => ({ append: appendComment, edit: editComment }),
   getOrderLocalOutcomeV2Service: () => ({ append: appendOutcome }),
 }));
+import { OrderEngagementV2ConflictError } from "@/orders/order-engagement-v2";
 import { POST } from "./route";
 
 const owner = { id: "owner", username: "owner", email: null, role: "USER" as const, status: "ACTIVE" as const, createdAt: new Date() };
@@ -77,5 +79,15 @@ describe("owner order-v2 engagement route", () => {
     appendOutcome.mockRejectedValueOnce(new Error("conflict"));
     const failed = await POST(request(new URLSearchParams({ action: "set-outcome", version: "3", outcome: "LOCAL_FINALIZED" })), { params });
     expect(failed.headers.get("location")).toBe("/orders/v2/440e8400-e29b-41d4-a716-446655440044?orders-v2=failed");
+  });
+
+  it("maps a terminal local-outcome re-submit conflict to the opaque failed redirect", async () => {
+    requireOwnerFromCookie.mockResolvedValue(owner);
+    ownerProtectedMutationResponse.mockReturnValue(null);
+    appendOutcome.mockRejectedValueOnce(new OrderEngagementV2ConflictError("terminal outcome"));
+
+    const response = await POST(request(new URLSearchParams({ action: "set-outcome", version: "9", outcome: "LOCAL_CANCELLED" })), { params });
+    expect(appendOutcome).toHaveBeenCalledWith(owner, "440e8400-e29b-41d4-a716-446655440044", "9", "LOCAL_CANCELLED", null);
+    expect(response.headers.get("location")).toBe("/orders/v2/440e8400-e29b-41d4-a716-446655440044?orders-v2=failed");
   });
 });

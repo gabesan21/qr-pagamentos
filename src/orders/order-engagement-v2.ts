@@ -161,10 +161,13 @@ export function createOrderLocalOutcomeV2Store(prisma: PrismaClient): OrderLocal
   return {
     async append(ownerId, orderId, expectedLifecycleVersion, values) {
       return prisma.$transaction(async (tx) => {
-        // CAS on the order's lifecycle version serializes concurrent appends;
-        // the bump touches only lifecycle_version/updated_at, never `state`.
+        // CAS on the order's lifecycle version serializes concurrent appends,
+        // and the `localOutcomes: { none: {} }` guard makes the first outcome
+        // the order's permanent one: any later append (even with a refreshed
+        // version) fails the claim and is rejected. The bump touches only
+        // lifecycle_version/updated_at, never `state`.
         const claimed = await tx.orderV2.updateMany({
-          where: { id: orderId, ownerId, lifecycleVersion: expectedLifecycleVersion },
+          where: { id: orderId, ownerId, lifecycleVersion: expectedLifecycleVersion, localOutcomes: { none: {} } },
           data: { lifecycleVersion: { increment: 1 }, updatedAt: values.updatedAt },
         });
         if (claimed.count !== 1) return null;

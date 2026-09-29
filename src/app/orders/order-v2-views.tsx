@@ -4,6 +4,7 @@ import { CatalogSubmit } from "@/app/(merchant)/catalog/catalog-submit";
 import { FormDraftGuard } from "@/app/form-draft";
 import { OrderOutcomeEditor } from "@/app/(merchant)/orders/order-outcome-editor";
 import { formatCatalogPrice } from "@/app/(merchant)/catalog/price-format";
+import { formatOrderAmount } from "@/app/(merchant)/orders/order-format";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,10 +22,11 @@ import { Timeline, type TimelineEntry } from "@/components/ui/timeline";
 import type { getDictionary } from "@/i18n/dictionaries";
 import type { SupportedLocale } from "@/i18n/locales";
 import type { OrderV2CommentView, OrderV2Summary, OrderV2View } from "@/orders/order-v2-view";
-import type { OrderV2LocalOutcome, OrderV2Source, OrderV2State } from "@/orders/order-v2";
+import type { OrderV2Source, OrderV2State } from "@/orders/order-v2";
 import type { CheckoutDataPolicy, CustomerSnapshotV1 } from "@/orders/order-v2-policies";
 
-import { orderStateLabel } from "./order-state-views";
+import { CompactOutcomeBadge, CompactProviderStateBadge, CompactSourceBadge } from "./order-badges";
+import { orderV2OutcomeLabel, orderV2OutcomeTone, orderV2SourceLabel, orderV2SourceTone, orderV2StateLabel, orderV2StateTone } from "./order-v2-labels";
 
 type Dictionary = ReturnType<typeof getDictionary>;
 
@@ -42,46 +44,13 @@ export function formatOrderV2Instant(value: Date, locale: SupportedLocale) {
   return new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short", timeZone: "UTC" }).format(value);
 }
 
-export function orderV2StateLabel(dictionary: Dictionary, state: OrderV2State | null) {
-  return state === null ? dictionary.orderV2DirectoryStateNone : orderStateLabel(dictionary, state);
-}
-
-export function orderV2StateTone(state: OrderV2State | null): "danger" | "info" | "neutral" | "success" {
-  if (state === "CONFIRMED") return "success";
-  if (state === "REJECTED") return "danger";
-  if (state === "PENDING") return "info";
-  return "neutral";
-}
-
 export function OrderV2StateBadge({ dictionary, state }: Readonly<{ dictionary: Dictionary; state: OrderV2State | null }>) {
   return <StatusBadge label={orderV2StateLabel(dictionary, state)} tone={orderV2StateTone(state)} />;
-}
-
-export function orderV2OutcomeLabel(dictionary: Dictionary, outcome: OrderV2LocalOutcome) {
-  return outcome === "LOCAL_FINALIZED" ? dictionary.orderV2DirectoryOutcomeFinalized : dictionary.orderV2DirectoryOutcomeCancelled;
-}
-
-export function orderV2OutcomeTone(outcome: OrderV2LocalOutcome): "danger" | "info" | "neutral" | "success" {
-  if (outcome === "LOCAL_FINALIZED") return "success";
-  if (outcome === "LOCAL_CANCELLED") return "danger";
-  return "neutral";
 }
 
 export function OrderV2OutcomeBadge({ dictionary, outcome }: Readonly<{ dictionary: Dictionary; outcome: OrderV2Summary["currentLocalOutcome"] }>) {
   if (outcome === null) return <StatusBadge label={dictionary.orderV2DirectoryOutcomeNone} tone="neutral" />;
   return <StatusBadge label={orderV2OutcomeLabel(dictionary, outcome.outcome)} tone={orderV2OutcomeTone(outcome.outcome)} />;
-}
-
-export function orderV2SourceLabel(dictionary: Dictionary, source: OrderV2Source) {
-  if (source === "LINK") return dictionary.orderV2DirectorySourceLink;
-  if (source === "STANDALONE") return dictionary.orderV2DirectorySourceStandalone;
-  return dictionary.orderV2DirectorySourceAdHoc;
-}
-
-function orderV2SourceTone(source: OrderV2Source): "info" | "neutral" | "success" {
-  if (source === "LINK") return "success";
-  if (source === "AD_HOC") return "info";
-  return "neutral";
 }
 
 export function OrderV2SourceBadge({ dictionary, source }: Readonly<{ dictionary: Dictionary; source: OrderV2Source }>) {
@@ -140,12 +109,12 @@ function DetailBreadcrumb({ backHref, backLabel, current }: Readonly<{ backHref:
   );
 }
 
-function buildTimeline(dictionary: Dictionary, order: OrderV2View) {
+function buildTimeline(dictionary: Dictionary, locale: SupportedLocale, order: OrderV2View) {
   const entries: TimelineEntry[] = [
     {
       id: "created",
       title: dictionary.orderCreated,
-      formattedAt: formatOrderV2Instant(order.createdAt, "en"),
+      formattedAt: formatOrderV2Instant(order.createdAt, locale),
       dateTime: order.createdAt.toISOString(),
       tone: "info",
     },
@@ -154,7 +123,7 @@ function buildTimeline(dictionary: Dictionary, order: OrderV2View) {
     entries.push({
       id: "provider",
       title: `${dictionary.orderV2DetailProviderState}: ${orderV2StateLabel(dictionary, order.state)}`,
-      formattedAt: formatOrderV2Instant(order.updatedAt, "en"),
+      formattedAt: formatOrderV2Instant(order.updatedAt, locale),
       dateTime: order.updatedAt.toISOString(),
       tone: orderV2StateTone(order.state) === "success" ? "success" : orderV2StateTone(order.state) === "danger" ? "danger" : "default",
     });
@@ -163,7 +132,7 @@ function buildTimeline(dictionary: Dictionary, order: OrderV2View) {
     entries.push({
       id: "outcome",
       title: `${dictionary.orderV2DetailLocalOutcome}: ${orderV2OutcomeLabel(dictionary, order.currentLocalOutcome.outcome)}`,
-      formattedAt: formatOrderV2Instant(order.currentLocalOutcome.createdAt, "en"),
+      formattedAt: formatOrderV2Instant(order.currentLocalOutcome.createdAt, locale),
       dateTime: order.currentLocalOutcome.createdAt.toISOString(),
       tone: order.currentLocalOutcome.outcome === "LOCAL_FINALIZED" ? "success" : "info",
       body: order.currentLocalOutcome.note ?? undefined,
@@ -179,6 +148,8 @@ export function orderV2SummaryTitle(order: OrderV2Summary, locale: SupportedLoca
 export function OrderV2DetailCard({
   backHref,
   backLabel,
+  compactBadges,
+  currencyCode,
   dictionary,
   link,
   locale,
@@ -187,6 +158,13 @@ export function OrderV2DetailCard({
 }: Readonly<{
   backHref: string;
   backLabel?: string;
+  // Merchant detail opts into compact source/state badges (M-17.1); admin
+  // callers omit it and keep the full domain badges.
+  compactBadges?: boolean;
+  // Merchant detail passes the order's resolved display code so amounts render
+  // exactly with currency; admin callers omit it and keep the legacy
+  // label-less formatter (no view DTO expansion).
+  currencyCode?: string | null;
   dictionary: Dictionary;
   // Additive: the resolved payment link's href and derived lifecycle,
   // scoped by the caller (owner or administrator identifier lookup). A
@@ -197,7 +175,9 @@ export function OrderV2DetailCard({
   owner?: Readonly<{ username: string; deletedAt: Date | null }>;
 }>) {
   const title = orderV2SummaryTitle(order, locale);
-  const timeline = buildTimeline(dictionary, order);
+  const timeline = buildTimeline(dictionary, locale, order);
+  const formatMoney = (value: string) =>
+    currencyCode === undefined ? formatCatalogPrice(value, null, locale) : formatOrderAmount(value, currencyCode ?? null, locale);
   const lineTotal = (quantity: number, unitPrice: string) => {
     const [integer, fraction = ""] = unitPrice.split(".");
     const value = (BigInt(integer) * BigInt(10 ** 6) + BigInt(fraction.padEnd(6, "0").slice(0, 6))) * BigInt(quantity);
@@ -209,8 +189,8 @@ export function OrderV2DetailCard({
   return (
     <div className="space-y-4">
       {backLabel ? <DetailBreadcrumb backHref={backHref} backLabel={backLabel} current={order.id} /> : null}
-      <div className="grid gap-4 lg:grid-cols-12">
-        <div className="space-y-4 lg:col-span-8">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+        <div className="min-w-0 space-y-4 lg:col-span-8">
           <Card>
             <CardHeader>
               <CardTitle>{dictionary.orderV2DetailSummary}</CardTitle>
@@ -264,7 +244,7 @@ export function OrderV2DetailCard({
               <CardTitle>{dictionary.orderV2DetailAmount}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <MoneyText className="justify-start" size="large" value={formatCatalogPrice(order.amount, null, locale)} />
+              <MoneyText className="justify-start" size="large" value={formatMoney(order.amount)} />
               {order.lines.length > 0 ? (
                 <>
                   <Separator />
@@ -284,15 +264,15 @@ export function OrderV2DetailCard({
                         <TableRow key={line.position}>
                           <TableCell className="font-mono">{line.position}</TableCell>
                           <TableCell className="text-right font-mono tabular-nums">{line.quantity}</TableCell>
-                          <TableCell className="text-right font-mono tabular-nums">{formatCatalogPrice(line.unitPrice, null, locale)}</TableCell>
-                          <TableCell className="text-right font-mono tabular-nums">{formatCatalogPrice(lineTotal(line.quantity, line.unitPrice), null, locale)}</TableCell>
+                          <TableCell className="text-right font-mono tabular-nums">{formatMoney(line.unitPrice)}</TableCell>
+                          <TableCell className="text-right font-mono tabular-nums">{formatMoney(lineTotal(line.quantity, line.unitPrice))}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
                   </Table>
                   <div className="flex items-center justify-between border-t pt-3">
                     <span className="text-sm font-medium">{dictionary.orderV2DetailTotal}</span>
-                    <MoneyText size="large" value={formatCatalogPrice(order.amount, null, locale)} />
+                    <MoneyText size="large" value={formatMoney(order.amount)} />
                   </div>
                 </>
               ) : null}
@@ -327,7 +307,7 @@ export function OrderV2DetailCard({
           </Card>
         </div>
 
-        <div className="space-y-4 lg:col-span-4">
+        <div className="min-w-0 space-y-4 lg:col-span-4">
           <Card>
             <CardHeader>
               <CardTitle>{dictionary.orderV2DetailState}</CardTitle>
@@ -336,7 +316,9 @@ export function OrderV2DetailCard({
               <div>
                 <p className="text-xs font-medium uppercase tracking-wide text-text-2">{dictionary.orderV2DetailProviderState}</p>
                 <div className="mt-1.5 flex items-center gap-2">
-                  <OrderV2StateBadge dictionary={dictionary} state={order.state} />
+                  {compactBadges
+                    ? <CompactProviderStateBadge dictionary={dictionary} state={order.state} />
+                    : <OrderV2StateBadge dictionary={dictionary} state={order.state} />}
                   <time className="font-mono text-xs text-text-2">{formatOrderV2Instant(order.updatedAt, locale)}</time>
                 </div>
               </div>
@@ -348,7 +330,9 @@ export function OrderV2DetailCard({
               <div>
                 <p className="text-xs font-medium uppercase tracking-wide text-text-2">{dictionary.orderV2DetailLocalOutcome}</p>
                 <div className="mt-1.5">
-                  <OrderV2OutcomeBadge dictionary={dictionary} outcome={order.currentLocalOutcome} />
+                  {compactBadges && order.currentLocalOutcome !== null
+                    ? <CompactOutcomeBadge dictionary={dictionary} outcome={order.currentLocalOutcome.outcome} />
+                    : <OrderV2OutcomeBadge dictionary={dictionary} outcome={order.currentLocalOutcome} />}
                 </div>
                 <p className="mt-1 text-xs text-text-2">{dictionary.orderV2DetailRecordedByMerchant}</p>
               </div>
@@ -356,7 +340,9 @@ export function OrderV2DetailCard({
               <div>
                 <p className="text-xs font-medium uppercase tracking-wide text-text-2">{dictionary.orderV2DirectoryColumnSource}</p>
                 <div className="mt-1.5">
-                  <OrderV2SourceBadge dictionary={dictionary} source={order.source} />
+                  {compactBadges
+                    ? <CompactSourceBadge dictionary={dictionary} source={order.source} />
+                    : <OrderV2SourceBadge dictionary={dictionary} source={order.source} />}
                 </div>
               </div>
             </CardContent>
@@ -513,22 +499,35 @@ export function OrderV2CommentsCard({
   );
 }
 
-// The local outcome is append-only history under the lifecycle CAS; it never
-// writes, masks, or shadows the payment state, so both actions stay available
-// through one select + note + confirmation (14.5.1 F03), never gated on a
-// `confirmed` payment state.
+// The local outcome is a one-time, permanent operator record under the
+// lifecycle CAS: it never writes, masks, or shadows the payment state, and it
+// is never gated on a `confirmed` payment state. Once recorded it renders
+// read-only (M-17.1); only a fresh order still exposes the editor.
 export function OrderV2OutcomeCard({
   dictionary,
+  locale,
   order,
 }: Readonly<{
   dictionary: Dictionary;
+  locale: SupportedLocale;
   order: OrderV2View;
 }>) {
   return (
     <Card>
       <CardHeader><CardTitle>{dictionary.orderV2OutcomeHeading}</CardTitle></CardHeader>
       <CardContent>
-        <OrderOutcomeEditor dictionary={dictionary} orderId={order.id} version={order.lifecycleVersion} />
+        {order.currentLocalOutcome === null
+          ? <OrderOutcomeEditor dictionary={dictionary} orderId={order.id} version={order.lifecycleVersion} />
+          : (
+            <div className="flex flex-col gap-3">
+              <CompactOutcomeBadge dictionary={dictionary} outcome={order.currentLocalOutcome.outcome} />
+              {order.currentLocalOutcome.note ? <p className="text-sm">{order.currentLocalOutcome.note}</p> : null}
+              <time className="font-mono text-xs text-text-2" dateTime={order.currentLocalOutcome.createdAt.toISOString()}>
+                {formatOrderV2Instant(order.currentLocalOutcome.createdAt, locale)}
+              </time>
+              <p className="text-sm text-text-2">{dictionary.orderV2OutcomeImmutable}</p>
+            </div>
+          )}
       </CardContent>
     </Card>
   );

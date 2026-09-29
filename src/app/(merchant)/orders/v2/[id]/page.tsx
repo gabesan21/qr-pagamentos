@@ -6,6 +6,7 @@ import {
 } from "@/app/orders/order-v2-views";
 import type { LinkLifecycle } from "@/components/ui/status-badge";
 import { getPaymentLinkV2ViewService } from "@/auth/payment-link-v2-view";
+import { findOrderV2PairCode } from "@/orders/order-v2-directory";
 import { getOrderV2ViewService } from "@/orders/order-v2-view";
 
 import { requireMerchantShellContext } from "../../../shell-context";
@@ -41,20 +42,36 @@ export default async function OrderV2DetailPage({
     }
   }
 
+  // One bounded registry read resolves the found order's snapshotted pair to
+  // its display code (M-17.1); the detail formatters then render exact
+  // currency-aware amounts. A miss falls back to the bare localized amount.
+  const currencyCode = result.kind === "found"
+    ? await findOrderV2PairCode({ currencyUuid: result.order.currencyUuid, exchangeCurrencyUuid: result.order.exchangeCurrencyUuid })
+    : null;
+
   return (
     <>
       {notice ? <OrderV2Notice dictionary={dictionary} notice={notice} /> : null}
       {result.kind === "found"
         ? (
-          <>
-            <OrderV2DetailCard backHref="/orders" backLabel={dictionary.orderV2DetailBack} dictionary={dictionary} link={link} locale={locale} order={result.order} />
-            <div className="grid gap-4 lg:grid-cols-12">
-              <div className="space-y-4 lg:col-span-8">
+          <div className="space-y-4">
+            <OrderV2DetailCard
+              backHref="/orders"
+              backLabel={dictionary.orderV2DetailBack}
+              compactBadges
+              currencyCode={currencyCode}
+              dictionary={dictionary}
+              link={link}
+              locale={locale}
+              order={result.order}
+            />
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+              <div className="min-w-0 space-y-4 lg:col-span-8">
                 <OrderV2CommentsCard composerName={principal.username} dictionary={dictionary} locale={locale} order={result.order} />
-                <OrderV2OutcomeCard dictionary={dictionary} order={result.order} />
+                <OrderV2OutcomeCard dictionary={dictionary} locale={locale} order={result.order} />
               </div>
             </div>
-          </>
+          </div>
         )
         : <OrderV2UnavailableCard backHref="/orders" dictionary={dictionary} />}
     </>
