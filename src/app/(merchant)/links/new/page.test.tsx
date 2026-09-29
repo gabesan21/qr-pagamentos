@@ -30,7 +30,7 @@ const productId = "440e8400-e29b-41d4-a716-446655440030";
 
 const ownerData = {
   activeProducts: [{ id: productId, internalName: "Espresso", titlePtBr: "Café expresso", titleEn: "Espresso shot", price: "12.5" }],
-  activeCurrencyPairs: [{ id: "440e8400-e29b-41d4-a716-446655440020", label: "BRL/USDT" }],
+  activeCurrencyPairs: [{ id: "440e8400-e29b-41d4-a716-446655440020", label: "BRL/USDT", currencyCode: "BRL" }],
 };
 
 function ready(locale: "pt-BR" | "en" = "en") {

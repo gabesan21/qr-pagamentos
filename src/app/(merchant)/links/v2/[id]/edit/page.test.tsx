@@ -3,12 +3,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ForbiddenError, UnauthenticatedError } from "@/auth/authorization";
 
-const { requireOwnerFromCookie, resolveLocale, listProducts, getForOwner, getPrefill, redirect } = vi.hoisted(() => ({
+const { requireOwnerFromCookie, resolveLocale, listProducts, getForOwner, getPrefill, findPairCode, redirect } = vi.hoisted(() => ({
   requireOwnerFromCookie: vi.fn(),
   resolveLocale: vi.fn(),
   listProducts: vi.fn(),
   getForOwner: vi.fn(),
   getPrefill: vi.fn(),
+  findPairCode: vi.fn(),
   redirect: vi.fn((location: string) => { throw new Error(`redirect:${location}`); }),
 }));
 
@@ -17,7 +18,7 @@ vi.mock("server-only", () => ({}));
 vi.mock("@/app/owner-guard", () => ({ requireOwnerFromCookie, ownerProtectedMutationResponse: vi.fn() }));
 vi.mock("@/i18n/locale-preference", () => ({ getLocalePreferenceService: () => ({ resolve: resolveLocale }) }));
 vi.mock("@/auth/storefront-settings", () => ({ getStorefrontSettingsService: () => ({ getForOwner: () => Promise.resolve({ storefrontEnabled: false, storefrontSlug: null }) }) }));
-vi.mock("@/auth/payment-link-v2-catalog", () => ({ listActivePaymentLinkProducts: listProducts }));
+vi.mock("@/auth/payment-link-v2-catalog", () => ({ findPaymentLinkV2CurrencyCode: findPairCode, listActivePaymentLinkProducts: listProducts }));
 vi.mock("@/auth/payment-link-v2-view", () => ({ getPaymentLinkV2ViewService: () => ({ getForOwner }) }));
 vi.mock("@/auth/payment-link-v2-prefill", () => ({ getPaymentLinkV2PrefillService: () => ({ getForOwner: getPrefill }) }));
 
@@ -36,7 +37,7 @@ const fixedFound = {
     compositionKind: "FIXED_AMOUNT" as const,
     descriptionPtBr: "Doação mensal",
     descriptionEn: "Monthly donation",
-    amount: "10.50",
+    amount: "10.5",
     currencyPairLabel: "BRL/USDT",
     linkType: "REUSABLE" as const,
     expiresAt: new Date("2027-08-01T12:30:00.000Z"),
@@ -55,6 +56,7 @@ function ready(locale: "pt-BR" | "en" = "en") {
   listProducts.mockResolvedValue([{ id: productId, internalName: "Espresso", titlePtBr: "Café expresso", titleEn: "Espresso shot", price: "12.5" }]);
   getForOwner.mockResolvedValue(fixedFound);
   getPrefill.mockResolvedValue({ version: 5, lineProductIds: [], hasCheckoutAttempt: false });
+  findPairCode.mockResolvedValue(null);
 }
 
 beforeEach(() => { vi.clearAllMocks(); });
@@ -68,14 +70,18 @@ describe("merchant V2 payment-link edit page", () => {
     expect(getForOwner).not.toHaveBeenCalled();
   });
 
-  it("posts the edit action with the prefilled version CAS and prefilled UTC expiry", async () => {
+  it("posts the edit action with the prefilled version CAS and an unnamed local-clock expiry", async () => {
     ready("en");
     const markup = renderToStaticMarkup(await EditPaymentLinkPage({ params: Promise.resolve({ id: linkId }) }));
     expect(markup).toContain(`action="/payment-links-v2/${linkId}"`);
     expect(markup).toContain('value="edit"');
     expect(markup).toContain('name="version"');
     expect(markup).toContain('value="5"');
-    expect(markup).toContain('value="2027-08-01T12:30"');
+    // The visible control is the browser-local clock, unnamed, and the stored
+    // instant is converted only post-mount (never in the server render), so the
+    // untouched edit posts no `expiresAt` and cannot trip the CAS.
+    expect(markup).toContain('type="datetime-local"');
+    expect(markup).not.toContain('name="expiresAt"');
     // Immutable kind, type, and pair stay read-only facts with no selects.
     expect(markup).toContain("Fixed amount");
     expect(markup).toContain("BRL/USDT");
@@ -83,6 +89,15 @@ describe("merchant V2 payment-link edit page", () => {
     expect(markup).not.toContain('name="currencyPairId"');
     expect(markup).not.toContain('name="linkType"');
     expect(markup).toContain("abcdefghijklmnopqrstuvwx");
+  });
+
+  it("masks the fixed amount from the link's immutable pair code", async () => {
+    ready("en");
+    findPairCode.mockResolvedValue("BRL");
+    const markup = renderToStaticMarkup(await EditPaymentLinkPage({ params: Promise.resolve({ id: linkId }) }));
+    expect(findPairCode).toHaveBeenCalledWith(principal.id, linkId);
+    expect(markup).toContain("R$ 10,50");
+    expect(markup).not.toContain('name="amount"');
   });
 
   it("leaves every financial member and the expiry unnamed until a real change", async () => {
@@ -94,7 +109,7 @@ describe("merchant V2 payment-link edit page", () => {
     expect(markup).not.toContain('name="expiresAt"');
     expect(markup).not.toContain('name="lines"');
     expect(markup).toContain('value="Doação mensal"');
-    expect(markup).toContain('value="10.50"');
+    expect(markup).toContain('value="10.5"');
   });
 
   it("carries the bilingual attempt-lock explanation and the supersede affordance", async () => {
