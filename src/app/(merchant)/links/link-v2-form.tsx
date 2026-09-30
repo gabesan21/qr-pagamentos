@@ -7,13 +7,17 @@ import { clearFormDraft, hasFailureNotice, readFormDraft, saveFormDraft } from "
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
+import { Field, FieldDescription, FieldError, FieldLabel, FieldLegend, FieldSet, FieldTitle } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { MoneyText } from "@/components/ui/money-text";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import type { SupportedLocale } from "@/i18n/locales";
 
 import { formatCatalogPrice } from "../catalog/price-format";
 import { CatalogSubmit } from "../catalog/catalog-submit";
+import { canonicalBrlInput, formatBrlDisplay } from "./link-brl-amount";
+import { BrlAmountInput } from "./link-brl-amount-input";
+import { instantToLocalInput, localInputToUtc } from "./link-expiry";
 import { isLinkMoneyAmount } from "./link-money";
 import {
   initialEditorLines,
@@ -64,7 +68,7 @@ const LINK_DRAFT_FAILURE_NOTICES = ["failed"] as const;
 // description fields stay the plain named `Input`s this form already used —
 // recorded for F04 as a UI-primitive gap, not a silent substitution.
 
-export type LinkV2FormPair = Readonly<{ id: string; label: string }>;
+export type LinkV2FormPair = Readonly<{ id: string; label: string; currencyCode: string | null }>;
 
 export type LinkV2FormCopy = Readonly<{
   add: string;
@@ -159,8 +163,8 @@ function RadioCard({
       htmlFor={id}
     >
       <input checked={checked} className="sr-only" disabled={disabled} id={id} name={name} onChange={onChange} type="radio" value={value} />
-      <p className="text-sm font-medium text-text">{title}</p>
-      <p className="mt-1 text-xs text-text-2">{caption}</p>
+      <FieldTitle>{title}</FieldTitle>
+      <FieldDescription>{caption}</FieldDescription>
     </label>
   );
 }
@@ -252,48 +256,71 @@ function DescriptionFields({
 function AmountField({
   amount,
   copy,
+  currencyCode,
   disabled,
+  display,
   formId,
+  dirty,
   invalid,
   omitUntilDirty,
   onChange,
 }: Readonly<{
   amount: string;
   copy: LinkV2FormCopy;
+  currencyCode: string | null;
   disabled: boolean;
+  display: string;
+  dirty: boolean;
   formId: string;
   invalid: boolean;
   omitUntilDirty: boolean;
   onChange: (value: string) => void;
 }>) {
-  const [dirty, setDirty] = useState(false);
   const fieldName = omitUntilDirty && !dirty ? undefined : "amount";
+  const headingId = `${formId}-amount-heading`;
+  const helpId = `${formId}-amount-help`;
+  const registerChange = (value: string) => {
+    onChange(value);
+  };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{copy.amount}</CardTitle>
+        <CardTitle id={headingId}>{copy.amount}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <Field data-invalid={invalid}>
-          <FieldLabel htmlFor={`${formId}-amount`}>{copy.amount}</FieldLabel>
-          <Input
-            aria-describedby={`${formId}-amount-help`}
-            aria-invalid={invalid}
-            data-invalid={invalid}
-            disabled={disabled}
-            id={`${formId}-amount`}
-            inputMode="decimal"
-            name={fieldName}
-            onChange={(event) => {
-              setDirty(true);
-              onChange(event.target.value);
-            }}
-            required
-            value={amount}
-          />
-          <FieldDescription id={`${formId}-amount-help`}>{copy.amountHelp}</FieldDescription>
-          {invalid ? <p className="text-xs text-destructive">{copy.amountInvalid}</p> : null}
+        <Field data-invalid={invalid || undefined}>
+          {currencyCode === "BRL" ? (
+            <BrlAmountInput
+              ariaDescribedBy={helpId}
+              ariaLabelledBy={headingId}
+              disabled={disabled}
+              id={`${formId}-amount`}
+              invalid={invalid}
+              onChange={registerChange}
+              value={display}
+            />
+          ) : (
+            <Input
+              aria-describedby={helpId}
+              aria-invalid={invalid || undefined}
+              aria-labelledby={headingId}
+              data-invalid={invalid || undefined}
+              disabled={disabled}
+              id={`${formId}-amount`}
+              inputMode="decimal"
+              name={fieldName}
+              onChange={(event) => registerChange(event.target.value)}
+              required
+              value={display}
+            />
+          )}
+          {/* The canonical exact decimal posts through this hidden control; the
+              BRL display above never carries a `name`. Untouched edit fields
+              stay unnamed so absent means unchanged at the service boundary. */}
+          {currencyCode === "BRL" ? <Input name={fieldName} type="hidden" value={amount} /> : null}
+          <FieldDescription id={helpId}>{copy.amountHelp}</FieldDescription>
+          {invalid ? <FieldError>{copy.amountInvalid}</FieldError> : null}
         </Field>
         {disabled ? <LockNote label={copy.financialLockTitle} /> : null}
       </CardContent>
@@ -304,6 +331,7 @@ function AmountField({
 export function LinkV2Form({
   action,
   copy,
+  currencyCode,
   currencyPairLabel,
   editReloadHref,
   financiallyLocked = false,
@@ -324,6 +352,7 @@ export function LinkV2Form({
 }: Readonly<{
   action: string;
   copy: LinkV2FormCopy;
+  currencyCode?: string | null;
   currencyPairLabel?: string;
   editReloadHref?: string;
   financiallyLocked?: boolean;
@@ -349,16 +378,47 @@ export function LinkV2Form({
   const [fixedDescriptionPtBr, setFixedDescriptionPtBr] = useState(initialDescriptionPtBr ?? "");
   const [fixedDescriptionEn, setFixedDescriptionEn] = useState(initialDescriptionEn ?? "");
   const [fixedAmount, setFixedAmount] = useState(initialAmount ?? "");
+  const [amountDirty, setAmountDirty] = useState(false);
+  const [amountDraft, setAmountDraft] = useState(() => {
+    if (!initialAmount) return "";
+    return editing && currencyCode === "BRL" ? formatBrlDisplay(initialAmount) : initialAmount;
+  });
   const [lines, setLines] = useState<LinkLinesEditorLine[]>(() => initialEditorLines(initialLines));
-  const [expiresAtValue, setExpiresAtValue] = useState(initialExpiresAt ?? "");
+  const [expiresAtLocal, setExpiresAtLocal] = useState("");
   const [expiresAtDirty, setExpiresAtDirty] = useState(false);
   const [showConflict, setShowConflict] = useState(false);
   const noPairs = pairs.length === 0;
   const noProducts = products.length === 0;
   const submitDisabled = !editing && (noPairs || (kind === "PRODUCT_LINES" && noProducts));
-  const amountInvalid = kind === "FIXED_AMOUNT" && fixedAmount !== "" && !isLinkMoneyAmount(fixedAmount);
+  // The mask/preview follow the selected pair's real ISO code: the create form
+  // reads it from the pair listing, the edit form from the link's immutable pair.
+  const selectedCurrencyCode = editing ? currencyCode ?? null : pairs.find((pair) => pair.id === currencyPairId)?.currencyCode ?? null;
+  const amountValue = selectedCurrencyCode === "BRL" ? amountDraft : fixedAmount;
+  const amountInvalid = kind === "FIXED_AMOUNT" && amountValue !== "" && !isLinkMoneyAmount(fixedAmount);
   const compositionLocked = financiallyLocked;
   const runningTotal = linkLinesTotal(lines, products);
+
+  const handleAmountChange = (value: string) => {
+    setAmountDirty(true);
+    if (selectedCurrencyCode === "BRL") {
+      setAmountDraft(value);
+      setFixedAmount(canonicalBrlInput(value));
+      return;
+    }
+    setAmountDraft(value);
+    setFixedAmount(value);
+  };
+
+  const selectCurrencyPair = (nextId: string) => {
+    setCurrencyPairId(nextId);
+    const nextCode = pairs.find((pair) => pair.id === nextId)?.currencyCode ?? null;
+    if (nextCode === "BRL" && isLinkMoneyAmount(fixedAmount)) setAmountDraft(formatBrlDisplay(fixedAmount));
+    else if (nextCode !== "BRL") setAmountDraft(fixedAmount);
+  };
+
+  const previewAmount = (amount: string) => (
+    selectedCurrencyCode === "BRL" ? formatBrlDisplay(amount) : formatCatalogPrice(amount, selectedCurrencyCode, locale)
+  );
 
   // Edit posts `/payment-links-v2/<id>`, so the trailing segment scopes the
   // draft per link the same way the order comment/outcome drafts scope by
@@ -366,31 +426,40 @@ export function LinkV2Form({
   const draftKey = editing ? `payment-link-v2-edit:${action.slice(action.lastIndexOf("/") + 1)}` : "payment-link-v2-create";
 
   useEffect(() => {
-    if (!hasFailureNotice(LINKS_NOTICE_KEY, LINK_DRAFT_FAILURE_NOTICES)) {
-      clearFormDraft(draftKey);
-      return;
-    }
     // sessionStorage is a client-only external system unavailable during the
     // server render, so seeding these fields cannot happen before mount.
     /* eslint-disable react-hooks/set-state-in-effect */
-    if (editing) setShowConflict(true);
-    const draft = readFormDraft(draftKey);
-    if (!draft) return;
-    if (!editing && (draft.compositionKind === "PRODUCT_LINES" || draft.compositionKind === "FIXED_AMOUNT")) {
-      setKind(draft.compositionKind);
+    const draft = hasFailureNotice(LINKS_NOTICE_KEY, LINK_DRAFT_FAILURE_NOTICES) ? readFormDraft(draftKey) : null;
+    if (draft) {
+      if (editing) setShowConflict(true);
+      if (!editing && (draft.compositionKind === "PRODUCT_LINES" || draft.compositionKind === "FIXED_AMOUNT")) {
+        setKind(draft.compositionKind);
+      }
+      if (!editing && (draft.linkType === "SINGLE_USE" || draft.linkType === "REUSABLE")) {
+        setLinkType(draft.linkType);
+      }
+      if (!editing && typeof draft.currencyPairId === "string") setCurrencyPairId(draft.currencyPairId);
+      if (typeof draft.descriptionPtBr === "string") setFixedDescriptionPtBr(draft.descriptionPtBr);
+      if (typeof draft.descriptionEn === "string") setFixedDescriptionEn(draft.descriptionEn);
+      if (typeof draft.amount === "string") {
+        const draftCode = editing
+          ? currencyCode ?? null
+          : pairs.find((pair) => pair.id === draft.currencyPairId)?.currencyCode ?? null;
+        setFixedAmount(draft.amount);
+        setAmountDraft(draftCode === "BRL" ? formatBrlDisplay(draft.amount) : draft.amount);
+      }
+      if (draft.amountDirty === "true") setAmountDirty(true);
+      if (typeof draft.expiresAt === "string") setExpiresAtLocal(draft.expiresAt);
+      if (draft.expiresAtDirty === "true") setExpiresAtDirty(true);
     }
-    if (!editing && (draft.linkType === "SINGLE_USE" || draft.linkType === "REUSABLE")) {
-      setLinkType(draft.linkType);
+    // The stored instant is UTC and the browser clock does not exist during
+    // SSR, so the local-clock conversion can only run after mount.
+    if (initialExpiresAt !== undefined && draft?.expiresAtDirty !== "true") {
+      setExpiresAtLocal(instantToLocalInput(initialExpiresAt));
     }
-    if (!editing && typeof draft.currencyPairId === "string") setCurrencyPairId(draft.currencyPairId);
-    if (typeof draft.descriptionPtBr === "string") setFixedDescriptionPtBr(draft.descriptionPtBr);
-    if (typeof draft.descriptionEn === "string") setFixedDescriptionEn(draft.descriptionEn);
-    if (typeof draft.amount === "string") setFixedAmount(draft.amount);
-    if (typeof draft.expiresAt === "string") setExpiresAtValue(draft.expiresAt);
-    if (draft.expiresAtDirty === "true") setExpiresAtDirty(true);
     /* eslint-enable react-hooks/set-state-in-effect */
     clearFormDraft(draftKey);
-  }, [draftKey, editing]);
+  }, [currencyCode, draftKey, editing, initialExpiresAt, pairs]);
 
   const handleSubmit = () => {
     const draft: Record<string, string> = {};
@@ -400,9 +469,16 @@ export function LinkV2Form({
       draft.currencyPairId = currencyPairId;
     }
     draft.amount = fixedAmount;
+    if (amountDirty) draft.amountDirty = "true";
     draft.descriptionEn = fixedDescriptionEn;
     draft.descriptionPtBr = fixedDescriptionPtBr;
-    if (expiresAtDirty) draft.expiresAt = expiresAtValue;
+    if (expiresAtDirty) {
+      draft.expiresAt = expiresAtLocal;
+      // The dirty flag must ride the draft too: on a failed edit the restore
+      // effect seeds both the value and the flag, and without the flag the
+      // post-mount stored-instant conversion would overwrite the draft.
+      draft.expiresAtDirty = "true";
+    }
     saveFormDraft(draftKey, draft);
   };
 
@@ -451,33 +527,33 @@ export function LinkV2Form({
         ) : null}
 
         <Card>
-          <CardHeader>
-            <CardTitle>{copy.composition}</CardTitle>
-          </CardHeader>
           <CardContent className="space-y-4">
             {editing ? (
               <StructuralFact label={copy.composition} value={initialKind === "FIXED_AMOUNT" ? copy.kindFixedAmount : copy.kindProductLines} />
             ) : (
-              <div className="flex flex-col gap-3 sm:flex-row" role="radiogroup" aria-label={copy.composition}>
-                <RadioCard
-                  caption={copy.compositionProductLinesCaption}
-                  checked={kind === "PRODUCT_LINES"}
-                  id={`${formId}-kind-lines`}
-                  name="compositionKind"
-                  onChange={() => setKind("PRODUCT_LINES")}
-                  title={copy.kindProductLines}
-                  value="PRODUCT_LINES"
-                />
-                <RadioCard
-                  caption={copy.compositionFixedAmountCaption}
-                  checked={kind === "FIXED_AMOUNT"}
-                  id={`${formId}-kind-fixed`}
-                  name="compositionKind"
-                  onChange={() => setKind("FIXED_AMOUNT")}
-                  title={copy.kindFixedAmount}
-                  value="FIXED_AMOUNT"
-                />
-              </div>
+              <FieldSet>
+                <FieldLegend>{copy.composition}</FieldLegend>
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <RadioCard
+                    caption={copy.compositionProductLinesCaption}
+                    checked={kind === "PRODUCT_LINES"}
+                    id={`${formId}-kind-lines`}
+                    name="compositionKind"
+                    onChange={() => setKind("PRODUCT_LINES")}
+                    title={copy.kindProductLines}
+                    value="PRODUCT_LINES"
+                  />
+                  <RadioCard
+                    caption={copy.compositionFixedAmountCaption}
+                    checked={kind === "FIXED_AMOUNT"}
+                    id={`${formId}-kind-fixed`}
+                    name="compositionKind"
+                    onChange={() => setKind("FIXED_AMOUNT")}
+                    title={copy.kindFixedAmount}
+                    value="FIXED_AMOUNT"
+                  />
+                </div>
+              </FieldSet>
             )}
             {editing ? <LockNote label={copy.structuralLockNote} /> : null}
           </CardContent>
@@ -485,7 +561,7 @@ export function LinkV2Form({
 
         <Card>
           <CardHeader>
-            <CardTitle>{copy.currencyPair}</CardTitle>
+            <CardTitle id={`${formId}-pair-heading`}>{copy.currencyPair}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {editing ? (
@@ -502,11 +578,11 @@ export function LinkV2Form({
               </Alert>
             ) : (
               <Field>
-                <FieldLabel htmlFor={`${formId}-pair`}>{copy.currencyPair}</FieldLabel>
                 <NativeSelect
+                  aria-labelledby={`${formId}-pair-heading`}
                   id={`${formId}-pair`}
                   name="currencyPairId"
-                  onChange={(event) => setCurrencyPairId(event.target.value)}
+                  onChange={(event) => selectCurrencyPair(event.target.value)}
                   required
                   value={currencyPairId}
                 >
@@ -522,33 +598,33 @@ export function LinkV2Form({
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle>{copy.linkType}</CardTitle>
-          </CardHeader>
           <CardContent className="space-y-4">
             {editing ? (
               <StructuralFact label={copy.linkType} value={initialLinkType === "SINGLE_USE" ? copy.singleUse : copy.reusable} />
             ) : (
-              <div className="flex flex-col gap-3 sm:flex-row" role="radiogroup" aria-label={copy.linkType}>
-                <RadioCard
-                  caption={copy.typeReusableCaption}
-                  checked={linkType === "REUSABLE"}
-                  id={`${formId}-type-reusable`}
-                  name="linkType"
-                  onChange={() => setLinkType("REUSABLE")}
-                  title={copy.reusable}
-                  value="REUSABLE"
-                />
-                <RadioCard
-                  caption={copy.typeSingleUseCaption}
-                  checked={linkType === "SINGLE_USE"}
-                  id={`${formId}-type-single`}
-                  name="linkType"
-                  onChange={() => setLinkType("SINGLE_USE")}
-                  title={copy.singleUse}
-                  value="SINGLE_USE"
-                />
-              </div>
+              <FieldSet>
+                <FieldLegend>{copy.linkType}</FieldLegend>
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <RadioCard
+                    caption={copy.typeReusableCaption}
+                    checked={linkType === "REUSABLE"}
+                    id={`${formId}-type-reusable`}
+                    name="linkType"
+                    onChange={() => setLinkType("REUSABLE")}
+                    title={copy.reusable}
+                    value="REUSABLE"
+                  />
+                  <RadioCard
+                    caption={copy.typeSingleUseCaption}
+                    checked={linkType === "SINGLE_USE"}
+                    id={`${formId}-type-single`}
+                    name="linkType"
+                    onChange={() => setLinkType("SINGLE_USE")}
+                    title={copy.singleUse}
+                    value="SINGLE_USE"
+                  />
+                </div>
+              </FieldSet>
             )}
             {editing ? <LockNote label={copy.structuralLockNote} /> : null}
           </CardContent>
@@ -556,30 +632,29 @@ export function LinkV2Form({
 
         <Card>
           <CardHeader>
-            <CardTitle>{copy.expiry}</CardTitle>
+            <CardTitle id={`${formId}-expiry-heading`}>{copy.expiry}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <Field>
-              <FieldLabel htmlFor={`${formId}-expiry`}>{copy.expiry}</FieldLabel>
               <div className="flex items-center gap-2">
                 <Input
                   aria-describedby={`${formId}-expiry-help`}
+                  aria-labelledby={`${formId}-expiry-heading`}
                   className="w-auto"
                   id={`${formId}-expiry`}
-                  name={editing && !expiresAtDirty ? undefined : "expiresAt"}
                   onChange={(event) => {
                     setExpiresAtDirty(true);
-                    setExpiresAtValue(event.target.value);
+                    setExpiresAtLocal(event.target.value);
                   }}
                   type="datetime-local"
-                  value={expiresAtValue}
+                  value={expiresAtLocal}
                 />
-                {expiresAtValue !== "" ? (
+                {expiresAtLocal !== "" ? (
                   <Button
                     data-ds-hit-target
                     onClick={() => {
                       setExpiresAtDirty(true);
-                      setExpiresAtValue("");
+                      setExpiresAtLocal("");
                     }}
                     size="sm"
                     type="button"
@@ -591,6 +666,11 @@ export function LinkV2Form({
               </div>
               <FieldDescription id={`${formId}-expiry-help`}>{copy.expiryHelp}</FieldDescription>
             </Field>
+            {/* The visible control is the browser-local clock with no `name`;
+                this hidden field posts the unchanged UTC server grammar. It
+                stays absent on an untouched edit (absent = unchanged) and
+                posts an empty value when the merchant clears it. */}
+            {editing && !expiresAtDirty ? null : <Input name="expiresAt" type="hidden" value={localInputToUtc(expiresAtLocal)} />}
           </CardContent>
         </Card>
 
@@ -660,11 +740,14 @@ export function LinkV2Form({
           <AmountField
             amount={fixedAmount}
             copy={copy}
+            currencyCode={selectedCurrencyCode}
             disabled={compositionLocked}
+            dirty={amountDirty}
+            display={amountValue}
             formId={formId}
             invalid={amountInvalid}
             omitUntilDirty={editing}
-            onChange={setFixedAmount}
+            onChange={handleAmountChange}
           />
         )}
 
@@ -693,7 +776,7 @@ export function LinkV2Form({
                 </div>
                 <div className="flex items-center justify-between">
                   <dt className="text-text-2">{copy.previewExpiry}</dt>
-                  <dd className="text-text">{expiresAtValue !== "" ? new Date(expiresAtValue).toLocaleString(locale) : copy.previewNoExpiry}</dd>
+                  <dd className="text-text">{expiresAtLocal !== "" ? new Date(expiresAtLocal).toLocaleString(locale) : copy.previewNoExpiry}</dd>
                 </div>
                 {kind === "PRODUCT_LINES" ? (
                   <div className="flex items-center justify-between">
@@ -702,17 +785,18 @@ export function LinkV2Form({
                   </div>
                 ) : null}
                 {(kind === "PRODUCT_LINES" && lines.length === 0)
-                || (kind === "FIXED_AMOUNT" && fixedAmount === "" && fixedDescriptionPtBr === "" && fixedDescriptionEn === "") ? (
+                || (kind === "FIXED_AMOUNT" && amountValue === "" && fixedDescriptionPtBr === "" && fixedDescriptionEn === "") ? (
                   <p className="border-t pt-3 text-text-2">{copy.previewEmpty}</p>
                 ) : (
                   <div className="border-t pt-3">
                     <dt className="text-text-2">{copy.previewTotal}</dt>
                     <dd className="mt-1">
-                      <span className="font-mono text-lg font-semibold text-text">
-                        {kind === "FIXED_AMOUNT"
-                          ? (isLinkMoneyAmount(fixedAmount) ? formatCatalogPrice(fixedAmount, null, locale) : (fixedAmount || "—"))
-                          : formatCatalogPrice(runningTotal, null, locale)}
-                      </span>
+                      <MoneyText
+                        size="large"
+                        value={kind === "FIXED_AMOUNT"
+                          ? (isLinkMoneyAmount(fixedAmount) ? previewAmount(fixedAmount) : (amountValue || "—"))
+                          : previewAmount(runningTotal)}
+                      />
                     </dd>
                   </div>
                 )}

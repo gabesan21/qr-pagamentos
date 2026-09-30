@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "events": [
+    {
+      "at": "2026-09-29T18:03:07-03:00",
+      "event": "transition",
+      "from": "001_initial_task",
+      "to": "002_planning",
+      "contexts": [
+        "planning session GLM high (pre-card)",
+        "pop-recon read-only x2 (pre-card)"
+      ],
+      "test_seconds": 0,
+      "return_kind": null,
+      "result": "advanced"
+    },
+    {
+      "at": "2026-09-29T18:07:18-03:00",
+      "event": "transition",
+      "from": "002_planning",
+      "to": "003_human_approval",
+      "contexts": [],
+      "test_seconds": 0,
+      "return_kind": null,
+      "result": "advanced"
+    },
+    {
+      "at": "2026-09-29T18:07:18-03:00",
+      "event": "transition",
+      "from": "003_human_approval",
+      "to": "004_processing",
+      "contexts": [],
+      "test_seconds": 0,
+      "return_kind": null,
+      "result": "advanced"
+    },
+    {
+      "at": "2026-09-29T18:19:36-03:00",
+      "event": "transition",
+      "from": "004_processing",
+      "to": "005_closing",
+      "contexts": [
+        "pop-executor (F01)"
+      ],
+      "test_seconds": 0.0,
+      "return_kind": null,
+      "result": "advanced"
+    }
+  ]
+}

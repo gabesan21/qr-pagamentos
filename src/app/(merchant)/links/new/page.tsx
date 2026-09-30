@@ -79,7 +79,7 @@ export default async function NewPaymentLinkPage({
   }
 
   const products = activeProducts.map((product) => ({ id: product.id, price: product.price, titleEn: product.titleEn, titlePtBr: product.titlePtBr }));
-  const pairs = activeCurrencyPairs.map((pair) => ({ id: pair.id, label: pair.label }));
+  const pairs = activeCurrencyPairs.map((pair) => ({ id: pair.id, label: pair.label, currencyCode: pair.currencyCode }));
   const description = from === undefined ? dictionary.paymentLinkCreateDescription : dictionary.paymentLinkCreateFromDescription;
 
   return (
