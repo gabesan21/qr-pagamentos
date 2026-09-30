@@ -260,6 +260,7 @@ function AmountField({
   disabled,
   display,
   formId,
+  dirty,
   invalid,
   omitUntilDirty,
   onChange,
@@ -269,17 +270,16 @@ function AmountField({
   currencyCode: string | null;
   disabled: boolean;
   display: string;
+  dirty: boolean;
   formId: string;
   invalid: boolean;
   omitUntilDirty: boolean;
   onChange: (value: string) => void;
 }>) {
-  const [dirty, setDirty] = useState(false);
   const fieldName = omitUntilDirty && !dirty ? undefined : "amount";
   const headingId = `${formId}-amount-heading`;
   const helpId = `${formId}-amount-help`;
   const registerChange = (value: string) => {
-    setDirty(true);
     onChange(value);
   };
 
@@ -378,6 +378,7 @@ export function LinkV2Form({
   const [fixedDescriptionPtBr, setFixedDescriptionPtBr] = useState(initialDescriptionPtBr ?? "");
   const [fixedDescriptionEn, setFixedDescriptionEn] = useState(initialDescriptionEn ?? "");
   const [fixedAmount, setFixedAmount] = useState(initialAmount ?? "");
+  const [amountDirty, setAmountDirty] = useState(false);
   const [amountDraft, setAmountDraft] = useState(() => {
     if (!initialAmount) return "";
     return editing && currencyCode === "BRL" ? formatBrlDisplay(initialAmount) : initialAmount;
@@ -398,6 +399,7 @@ export function LinkV2Form({
   const runningTotal = linkLinesTotal(lines, products);
 
   const handleAmountChange = (value: string) => {
+    setAmountDirty(true);
     if (selectedCurrencyCode === "BRL") {
       setAmountDraft(value);
       setFixedAmount(canonicalBrlInput(value));
@@ -446,6 +448,7 @@ export function LinkV2Form({
         setFixedAmount(draft.amount);
         setAmountDraft(draftCode === "BRL" ? formatBrlDisplay(draft.amount) : draft.amount);
       }
+      if (draft.amountDirty === "true") setAmountDirty(true);
       if (typeof draft.expiresAt === "string") setExpiresAtLocal(draft.expiresAt);
       if (draft.expiresAtDirty === "true") setExpiresAtDirty(true);
     }
@@ -466,9 +469,16 @@ export function LinkV2Form({
       draft.currencyPairId = currencyPairId;
     }
     draft.amount = fixedAmount;
+    if (amountDirty) draft.amountDirty = "true";
     draft.descriptionEn = fixedDescriptionEn;
     draft.descriptionPtBr = fixedDescriptionPtBr;
-    if (expiresAtDirty) draft.expiresAt = expiresAtLocal;
+    if (expiresAtDirty) {
+      draft.expiresAt = expiresAtLocal;
+      // The dirty flag must ride the draft too: on a failed edit the restore
+      // effect seeds both the value and the flag, and without the flag the
+      // post-mount stored-instant conversion would overwrite the draft.
+      draft.expiresAtDirty = "true";
+    }
     saveFormDraft(draftKey, draft);
   };
 
@@ -732,6 +742,7 @@ export function LinkV2Form({
             copy={copy}
             currencyCode={selectedCurrencyCode}
             disabled={compositionLocked}
+            dirty={amountDirty}
             display={amountValue}
             formId={formId}
             invalid={amountInvalid}

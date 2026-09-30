@@ -31,13 +31,20 @@ export function listActivePaymentLinkProducts(ownerId: string): Promise<PaymentL
 
 export function listActivePaymentLinkCurrencyPairs(): Promise<PaymentLinkCurrencyPair[]> {
   const db = getDatabaseClient();
-  return db.catalogCurrencyPair
-    .findMany({
+  return Promise.all([
+    db.catalogCurrencyPair.findMany({
       where: { active: true },
       orderBy: [{ label: "asc" }, { id: "asc" }],
-      select: { id: true, label: true, supportedExchangeCurrency: { select: { code: true } } },
-    })
-    .then((pairs) => pairs.map((pair) => ({ id: pair.id, label: pair.label, currencyCode: pair.supportedExchangeCurrency?.code ?? null })));
+      select: { id: true, label: true, currencyUuid: true },
+    }),
+    // One pointer row per code, each attached to a single pair; the identity
+    // `currencyUuid -> code` map is authoritative, so every pair sharing that
+    // currency resolves the same code (the pointer's own pair included).
+    db.supportedExchangeCurrency.findMany({ select: { code: true, pair: { select: { currencyUuid: true } } } }),
+  ]).then(([pairs, pointers]) => {
+    const codeByCurrencyUuid = new Map(pointers.map((pointer) => [pointer.pair.currencyUuid, pointer.code]));
+    return pairs.map((pair) => ({ id: pair.id, label: pair.label, currencyCode: codeByCurrencyUuid.get(pair.currencyUuid) ?? null }));
+  });
 }
 
 // Owner-scoped, additive companion to the pair listing used by the edit form:
@@ -50,7 +57,14 @@ export function findPaymentLinkV2CurrencyCode(ownerId: string, linkId: string): 
   return db.paymentLinkV2
     .findFirst({
       where: { id: linkId, ownerId },
-      select: { currencyPair: { select: { supportedExchangeCurrency: { select: { code: true } } } } },
+      select: { currencyPair: { select: { currencyUuid: true } } },
     })
-    .then((link) => link?.currencyPair.supportedExchangeCurrency?.code ?? null);
+    .then(async (link) => {
+      const currencyUuid = link?.currencyPair.currencyUuid;
+      if (currencyUuid === undefined) return null;
+      // Identity resolution through the pointer's own pair, so the code is the
+      // one bound to the currency regardless of which pair owns the pointer.
+      const pointer = await db.supportedExchangeCurrency.findFirst({ where: { pair: { currencyUuid } }, select: { code: true } });
+      return pointer?.code ?? null;
+    });
 }

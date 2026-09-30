@@ -168,3 +168,117 @@ describe("merchant V2 link form — preview per composition kind", () => {
     expect(screen.getByText("R$ 10,00")).toBeTruthy();
   });
 });
+
+describe("merchant V2 link form — failed-edit expiry draft restore", () => {
+  const DRAFT_KEY = "qr-form-draft:payment-link-v2-edit:link-id";
+  const FAILURE_URL = "/links/v2/link-id/edit?payment-links-v2=failed";
+
+  function renderEdit() {
+    return render(
+      <LinkV2Form action="/payment-links-v2/link-id" copy={copy} currencyCode={null} formId="edit" initialExpiresAt="2027-08-01T15:30:00.000Z" locale="en" mode="edit" pairs={[]} products={[]} version={1} />,
+    );
+  }
+
+  afterEach(() => {
+    window.history.pushState({}, "", "/");
+    window.sessionStorage.clear();
+  });
+
+  it("restores an untouched edit by converting the stored instant and leaving the hidden expiry absent", async () => {
+    window.history.pushState({}, "", FAILURE_URL);
+    window.sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ descriptionPtBr: "Drafted description" }));
+
+    renderEdit();
+    await waitFor(() => expect(expiryInput().value).toBe("2027-08-01T12:30"));
+    expect(hiddenExpiry()).toBeNull();
+  });
+
+  it("preserves a drafted dirty expiry and posts its UTC conversion", async () => {
+    window.history.pushState({}, "", FAILURE_URL);
+    window.sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ expiresAt: "2027-08-02T09:00", expiresAtDirty: "true" }));
+
+    renderEdit();
+    await waitFor(() => expect(expiryInput().value).toBe("2027-08-02T09:00"));
+    expect(hiddenExpiry()?.value).toBe("2027-08-02T12:00");
+  });
+
+  it("preserves an explicitly cleared expiry and posts it empty", async () => {
+    window.history.pushState({}, "", FAILURE_URL);
+    window.sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ expiresAt: "", expiresAtDirty: "true" }));
+
+    renderEdit();
+    await waitFor(() => expect(hiddenExpiry()).not.toBeNull());
+    expect(expiryInput().value).toBe("");
+    expect(hiddenExpiry()?.value).toBe("");
+  });
+
+  it("persists the dirty flag on submit so the failure return keeps the drafted expiry", async () => {
+    window.history.pushState({}, "", "/links/v2/link-id/edit");
+    const first = renderEdit();
+    await waitFor(() => expect(expiryInput().value).toBe("2027-08-01T12:30"));
+    fireEvent.change(expiryInput(), { target: { value: "2027-08-02T09:00" } });
+    fireEvent.submit(document.getElementById("edit") as HTMLFormElement);
+
+    const saved = JSON.parse(window.sessionStorage.getItem(DRAFT_KEY) ?? "{}") as Record<string, string>;
+    expect(saved.expiresAt).toBe("2027-08-02T09:00");
+    expect(saved.expiresAtDirty).toBe("true");
+
+    first.unmount();
+    window.history.pushState({}, "", FAILURE_URL);
+    renderEdit();
+    await waitFor(() => expect(expiryInput().value).toBe("2027-08-02T09:00"));
+    expect(hiddenExpiry()?.value).toBe("2027-08-02T12:00");
+  });
+
+  function renderEditFixed(currencyCode: string | null) {
+    return render(
+      <LinkV2Form action="/payment-links-v2/link-id" copy={copy} currencyCode={currencyCode} formId="edit" initialAmount="10.5" initialKind="FIXED_AMOUNT" locale="en" mode="edit" pairs={[]} products={[]} version={1} />,
+    );
+  }
+
+  it("restores a drafted dirty amount and posts it through the hidden field on an edit", async () => {
+    window.history.pushState({}, "", FAILURE_URL);
+    window.sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ amount: "20", amountDirty: "true" }));
+
+    renderEditFixed("BRL");
+    await waitFor(() => expect(hiddenAmount()?.value).toBe("20"));
+    expect(amountTextbox().value).toBe("R$ 20,00");
+  });
+
+  it("restores an untouched drafted amount for display but leaves the hidden field absent", async () => {
+    window.history.pushState({}, "", FAILURE_URL);
+    window.sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ amount: "15" }));
+
+    renderEditFixed("BRL");
+    await waitFor(() => expect(amountTextbox().value).toBe("R$ 15,00"));
+    expect(hiddenAmount()).toBeNull();
+  });
+
+  it("restores a drafted dirty amount on the plain non-BRL path", async () => {
+    window.history.pushState({}, "", FAILURE_URL);
+    window.sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ amount: "12.5", amountDirty: "true" }));
+
+    renderEditFixed(null);
+    await waitFor(() => expect(amountTextbox().value).toBe("12.5"));
+    expect(amountTextbox().getAttribute("name")).toBe("amount");
+  });
+
+  it("persists the amount dirty flag on submit only after a real edit", async () => {
+    window.history.pushState({}, "", "/links/v2/link-id/edit");
+    const first = renderEditFixed(null);
+    await waitFor(() => expect(amountTextbox().value).toBe("10.5"));
+    fireEvent.submit(document.getElementById("edit") as HTMLFormElement);
+
+    const untouched = JSON.parse(window.sessionStorage.getItem(DRAFT_KEY) ?? "{}") as Record<string, string>;
+    expect(untouched.amount).toBe("10.5");
+    expect(untouched.amountDirty).toBeUndefined();
+
+    fireEvent.change(amountTextbox(), { target: { value: "20" } });
+    fireEvent.submit(document.getElementById("edit") as HTMLFormElement);
+
+    const saved = JSON.parse(window.sessionStorage.getItem(DRAFT_KEY) ?? "{}") as Record<string, string>;
+    expect(saved.amount).toBe("20");
+    expect(saved.amountDirty).toBe("true");
+    first.unmount();
+  });
+});
