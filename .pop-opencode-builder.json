@@ -1,15 +1,15 @@
 {
   "files": {
-    ".opencode/agents/pop-execution-orchestrator.md": "082cc2ad8163646a0ea6cd075ed84df391304de41bc604be5f1e8456e7d55002",
-    ".opencode/agents/pop-executor.md": "0666921724116e12620bd75871c03f3e54545f0182aa4789119abd8701316229",
-    ".opencode/agents/pop-judge-dredd.md": "ecd3769d8ea015ba879b82942265d8111ce587efc6161404f0646da7e245c9df",
-    ".opencode/agents/pop-phase-verifier.md": "b7034d705cab4bc338470098673a982b0aad25941e6f2ee3b1431534be9dbd0d",
-    ".opencode/agents/pop-planner.md": "48d7b3b1fb7cbb587fff753a4cb1adee16a718247a29ee6ca0452e126b687cd4",
-    ".opencode/agents/pop-recon.md": "7985d236435a44bff888e8029134d445ac9830f17c189c94f808e1e778789b0e",
+    ".opencode/agents/pop-execution-orchestrator.md": "dd9f7342eda33900abedba53fdc2984556618d5b651b7bf73e101e580309ea19",
+    ".opencode/agents/pop-executor.md": "fc359566a99ba9f467ee83a3907a5325ec6d393737946287dea1fb70039e03f4",
+    ".opencode/agents/pop-judge-dredd.md": "fc0771499ba9edc0fb03c1a8b917784a218da3009c1319fef19a6fa1c5abe960",
+    ".opencode/agents/pop-phase-verifier.md": "29784f8a95e0bb4731edc721b23a9a2cc1515853273f5c415dad5278cefc1314",
+    ".opencode/agents/pop-planner.md": "3e3278928c8ae94fba8a6b9e43bf63c2054dac500d9493b0a0d9dd0948cc929a",
+    ".opencode/agents/pop-recon.md": "346b178003c375acddf5f22e4d5d1707c54ac0a666d6ae471a7748ec606c9fb7",
     "opencode.json": "117fb9121e87200a7255b1997cf513c049b862c9aa459f484743968a31ef5d89"
   },
   "generator": "create-agent-opencode",
-  "profile": "8295e1617fed32dc28d4897ea138fd79c03d52145f94cff219f36b99930d1dc5",
+  "profile": "33973dd0482b0ad080dd8c948c4f6d1829e0eb58918674945c76454a02630d79",
   "sources": {
     "pop-execution-orchestrator.md": "2a6cc9d56abd4bba6acdcf4d73d3d3cc69ed5837b17fcfb5bcfb5f71edcf458c",
     "pop-executor.md": "36f94a7c3ff97430e91214a23df05c1d3b3e3a12e35379f7aaf11fe564f76052",

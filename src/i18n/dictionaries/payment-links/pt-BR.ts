@@ -6,6 +6,6 @@ export const paymentLinksPtBR = {
   adminPaymentLinkReusable: "Reutilizável",
   adminPaymentLinkSingleUse: "Uso único",
   adminPaymentLinkExpiry: "Expiração (opcional)",
-  adminPaymentLinkExpiryHelp: "Use uma data e hora UTC futura ou deixe em branco.",
+  adminPaymentLinkExpiryHelp: "Escolha uma data e hora futuras no seu fuso horário.",
   adminPaymentLinkNoExpiry: "Sem expiração",
 } as const;

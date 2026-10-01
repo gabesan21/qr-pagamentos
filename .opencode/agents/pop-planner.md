@@ -1,7 +1,7 @@
 ---
 description: "Planejador isolado da execução. Converte o pedido e os contratos vigentes em brief de execução verificável, sem implementar a solução que propõe."
 mode: "subagent"
-model: "kimi-for-coding/k3-256k"
+model: "openrouter/z-ai/glm-5.3"
 variant: "high"
 permission: {"*": "deny", "edit": "allow", "external_directory": "deny", "glob": "allow", "grep": "allow", "list": "allow", "read": "allow", "skill": {"*": "deny", "clean-code-change": "allow", "sync-specs": "allow"}, "task": {"*": "deny", "pop-recon": "allow"}, "webfetch": "deny", "websearch": "deny"}
 ---

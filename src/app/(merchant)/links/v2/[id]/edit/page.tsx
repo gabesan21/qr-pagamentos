@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { WorkspaceHeading } from "@/app-shell/workspace-heading";
-import { listActivePaymentLinkProducts } from "@/auth/payment-link-v2-catalog";
+import { findPaymentLinkV2CurrencyCode, listActivePaymentLinkProducts } from "@/auth/payment-link-v2-catalog";
 import { getPaymentLinkV2PrefillService } from "@/auth/payment-link-v2-prefill";
 import { getPaymentLinkV2ViewService } from "@/auth/payment-link-v2-view";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -15,10 +15,6 @@ import { LinkV2Form } from "../../../link-v2-form";
 import type { LinkLineValue } from "../../../link-lines-editor";
 import { PaymentLinkV2UnavailableCard } from "../../../link-v2-views";
 import { PaymentLinkV2Notice } from "../../../links-notices";
-
-function expiryInputValue(expiresAt: Date | null) {
-  return expiresAt === null ? "" : expiresAt.toISOString().slice(0, 16);
-}
 
 // The financial lock and the new-version banner render only when the owner
 // prefill's additive `hasCheckoutAttempt` flag is true (14.5.2 F02) — kind,
@@ -50,6 +46,9 @@ export default async function EditPaymentLinkPage({
   }
 
   const { link } = view;
+  // The pair is immutable; its real ISO code drives the BRL mask/preview on the
+  // read-only edit form and is resolved identity-exact from the owned link.
+  const currencyCode = await findPaymentLinkV2CurrencyCode(principal.id, link.id);
   const initialLines: readonly LinkLineValue[] = link.lines.flatMap((line, index) => {
     const productId = prefill.lineProductIds[index];
     return productId === undefined ? [] : [{
@@ -101,11 +100,12 @@ export default async function EditPaymentLinkPage({
       <LinkV2Form
         action={`/payment-links-v2/${link.id}`}
         copy={linkV2FormCopy(dictionary, dictionary.paymentLinkEditSubmit)}
+        currencyCode={currencyCode}
         currencyPairLabel={link.currencyPairLabel}
         editReloadHref={editHref}
         financiallyLocked={prefill.hasCheckoutAttempt}
         formId="payment-link-v2-edit"
-        initialExpiresAt={expiryInputValue(link.expiresAt)}
+        {...(link.expiresAt !== null ? { initialExpiresAt: link.expiresAt.toISOString() } : {})}
         initialKind={link.compositionKind}
         initialLinkType={link.linkType}
         {...(link.compositionKind === "PRODUCT_LINES" ? { initialLines } : {

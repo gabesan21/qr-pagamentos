@@ -1,8 +1,8 @@
 ---
 description: "Especialista de reconhecimento factual. Responde uma pergunta delimitada sobre a base e separa evidência encontrada, inferência e ausência."
 mode: "subagent"
-model: "openrouter/qwen/qwen3.5-flash-02-23"
-variant: "standard"
+model: "openrouter/~deepseek/deepseek-flash-latest"
+variant: "low"
 permission: {"*": "deny", "edit": "allow", "external_directory": "deny", "glob": "allow", "grep": "allow", "list": "allow", "read": "allow", "skill": {"*": "deny", "recon-project": "allow"}, "task": {"*": "deny"}, "webfetch": "deny", "websearch": "deny"}
 ---
 
