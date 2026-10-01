@@ -1,7 +1,7 @@
 ---
 description: "Executor especializado da task final de verificação de uma phase. Concentra a suíte, executa a checklist acumulada e corrige somente defeitos dentro do alcance da phase."
 mode: "subagent"
-model: "openrouter/deepseek/deepseek-v4-pro"
+model: "openrouter/z-ai/glm-5.3"
 variant: "high"
 permission: {"*": "deny", "bash": "allow", "edit": "allow", "external_directory": "deny", "glob": "allow", "grep": "allow", "list": "allow", "lsp": "allow", "read": "allow", "skill": {"*": "deny", "clean-code-review": "allow", "sync-specs": "allow"}, "task": {"*": "deny"}, "webfetch": "deny", "websearch": "deny"}
 ---

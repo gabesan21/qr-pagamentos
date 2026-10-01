@@ -1,7 +1,7 @@
 ---
 description: "Coordenador delegado da execução complexa em 004. Organiza DAG, ordem e ondas de especialistas, sem implementar a solução nem integrar os resultados finais."
 mode: "subagent"
-model: "openrouter/deepseek/deepseek-v4-pro"
+model: "openrouter/z-ai/glm-5.3"
 variant: "high"
 permission: {"*": "deny", "edit": "allow", "external_directory": "deny", "glob": "allow", "grep": "allow", "list": "allow", "read": "allow", "skill": {"*": "deny", "create-agent-generic": "allow"}, "task": {"*": "deny", "pop-executor": "allow"}, "webfetch": "deny", "websearch": "deny"}
 ---

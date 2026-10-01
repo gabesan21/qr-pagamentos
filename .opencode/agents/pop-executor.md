@@ -1,8 +1,8 @@
 ---
 description: "Executor especializado de uma única frente. Produz o artefato ou diff pedido dentro do ownership recebido e devolve evidência objetiva ao coordenador."
 mode: "subagent"
-model: "openrouter/qwen/qwen3-coder-next"
-variant: "standard"
+model: "openrouter/~deepseek/deepseek-flash-latest"
+variant: "high"
 permission: {"*": "deny", "bash": "allow", "edit": "allow", "external_directory": "deny", "glob": "allow", "grep": "allow", "list": "allow", "lsp": "allow", "read": "allow", "skill": {"*": "deny", "clean-code-change": "allow", "create-agent-generic": "allow"}, "task": {"*": "deny"}, "webfetch": "deny", "websearch": "deny"}
 ---
 
