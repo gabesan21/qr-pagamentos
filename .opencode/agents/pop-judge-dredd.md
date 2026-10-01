@@ -1,7 +1,7 @@
 ---
 description: "Juiz único e independente dos gates yolo. Compara pedido original e contratos com diff/evidência, decide a rota e nunca executa o conserto que prescreve."
 mode: "subagent"
-model: "kimi-for-coding/k3-256k"
+model: "openrouter/z-ai/glm-5.3"
 variant: "high"
 permission: {"*": "deny", "bash": "allow", "edit": "allow", "external_directory": "deny", "glob": "allow", "grep": "allow", "list": "allow", "read": "allow", "skill": {"*": "deny", "judge-dredd": "allow"}, "task": {"*": "deny"}, "webfetch": "deny", "websearch": "deny"}
 ---
