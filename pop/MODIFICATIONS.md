@@ -44,3 +44,5 @@ Project: [[PROJECT|QR Pagamentos]] · Roadmap: [[ROADMAP|Roadmap]]
 | M-17 | [[M-17.1-order-detail-polish]] | Permanent first local outcome and read-only terminal outcome on the merchant order detail, with exact currency-aware amounts and compact badges. · size: M | 005_closing; verification approved; integrated into develop; Docker/browser pending |
 
 | M-18 | [[M-18.1-payment-link-create-ux]] | BRL live mask and ISO currency projection on the merchant payment-link create/edit form, browser-local expiry converted to UTC on submit, and copy/layout harmonization with the design system. · size: M | 005_closing; integrated into develop; browser spot-check pending (user) |
+
+| M-19 | [[M-19.1-default-currency-without-probe]] | Automatically assign default currency on user creation and remove the merchant test-pair gate. · size: M | 001_initial_task |
