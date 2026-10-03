@@ -4,7 +4,6 @@ import { getDatabaseClient } from "../db/client";
 import { isSupportedLocale, type SupportedLocale } from "../i18n/locales";
 import { ForbiddenError, type Principal } from "./authorization";
 import { CHECKOUT_DATA_POLICIES, type CheckoutDataPolicy } from "./checkout-policy";
-import { CurrencyPairSelectionRefusedError, requireSelectableForCurrencyPair } from "./currency-pair-verification";
 import { normalizeOptionalEmail, normalizeUsername } from "./identity";
 import { acquireUserSessionLock } from "./session";
 import {
@@ -62,10 +61,6 @@ export type AdminUserProfileStore = LockedAdminUserProfileStore & Readonly<{
 // module only orchestrates the gating primitive and the redacted choice read.
 export type AdminUserProfileDeps = Readonly<{
   requireActiveCurrencyPair(code: string): Promise<Readonly<{ currencyUuid: string; exchangeCurrencyUuid: string }>>;
-  // 13.4.1 F02: the gate always reads the *target* owner's evidence, never
-  // the acting administrator's — an admin has no Nautt credential and
-  // triggers no probe on this path.
-  requireSelectablePair(ownerId: string, currencyUuid: string, exchangeCurrencyUuid: string): Promise<void>;
   listActiveCurrencyChoices(): Promise<readonly ExchangeCurrencyChoice[]>;
 }>;
 
@@ -204,10 +199,9 @@ export function createAdminUserProfileService(store: AdminUserProfileStore, deps
         // as-is even after its mapping is later deactivated (merchant rule).
         if (patch.storefrontDefaultCurrencyCode) {
           try {
-            const pair = await deps.requireActiveCurrencyPair(patch.storefrontDefaultCurrencyCode);
-            await deps.requireSelectablePair(id, pair.currencyUuid, pair.exchangeCurrencyUuid);
+            await deps.requireActiveCurrencyPair(patch.storefrontDefaultCurrencyCode);
           } catch (error) {
-            if (error instanceof NoActiveExchangeCurrencyMappingError || error instanceof CurrencyPairSelectionRefusedError) {
+            if (error instanceof NoActiveExchangeCurrencyMappingError) {
               throw new AdminUserProfileValidationError("Storefront default currency is invalid");
             }
             throw error;
@@ -296,8 +290,6 @@ export function getAdminUserProfileService() {
   const registryStore = createDatabaseSupportedExchangeCurrencyStore(db);
   return createAdminUserProfileService(prismaStore(), {
     requireActiveCurrencyPair: (code) => registry.requireActivePair(code),
-    requireSelectablePair: (ownerId, currencyUuid, exchangeCurrencyUuid) =>
-      requireSelectableForCurrencyPair(ownerId, currencyUuid, exchangeCurrencyUuid),
     listActiveCurrencyChoices: () => registryStore.listActive(),
   });
 }

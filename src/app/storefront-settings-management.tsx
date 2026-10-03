@@ -30,8 +30,6 @@ type Dictionary = ReturnType<typeof getDictionary>;
 
 export type StorefrontCurrencyChoice = Readonly<{ code: string; label: string }>;
 
-// 13.4.1 F02: this owner's own probe evidence for one registered code —
-// `null` fields mean "not checked yet", never a claim about reachability.
 export type StorefrontCurrencyEvidence = Readonly<{
   code: string;
   pairId?: string;
@@ -44,8 +42,6 @@ export type StorefrontCurrencyEvidence = Readonly<{
 
 type StorefrontSettingsManagementProps = Readonly<{
   currencyChoices: readonly StorefrontCurrencyChoice[];
-  currencyEvidence: readonly StorefrontCurrencyEvidence[];
-  currencyProbeNotice?: string;
   dictionary: Dictionary;
   locale: SupportedLocale;
   logoNotice?: string;
@@ -78,34 +74,12 @@ async function stageStorefrontLogo(file: File): Promise<StagedImage> {
   return { identifier, previewUrl: `/media/${identifier}` };
 }
 
-const CURRENCY_PROBE_NOTICE_KEYS = {
-  ok: "currencyProbeNoticeOk",
-  refused: "currencyProbeNoticeRefused",
-  throttled: "currencyProbeNoticeThrottled",
-  invalid: "currencyProbeNoticeInvalid",
-  failed: "currencyProbeNoticeFailed",
-} as const satisfies Record<string, keyof Dictionary>;
-
 export function formatProbeEvidenceTimestamp(checkedAt: string, locale: SupportedLocale): string {
   return new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short", timeZone: "UTC" }).format(new Date(checkedAt));
 }
 
-function probeStatusLine(evidence: StorefrontCurrencyEvidence | undefined, dictionary: Dictionary, locale: SupportedLocale): string {
-  if (!evidence?.checkedAt) return dictionary.currencyProbeStatusNever;
-  const when = formatProbeEvidenceTimestamp(evidence.checkedAt, locale);
-  const checked = dictionary.currencyProbeStatusChecked.replace("{when}", when);
-  const outcomeLabel = evidence.outcome === "ok"
-    ? dictionary.currencyProbeOutcomeOk
-    : evidence.outcome === null
-      ? dictionary.currencyProbeOutcomeUnavailable
-      : dictionary.currencyProbeOutcomeRefused;
-  return `${checked} ${outcomeLabel}`;
-}
-
 export function StorefrontSettingsManagement({
   currencyChoices,
-  currencyEvidence,
-  currencyProbeNotice,
   dictionary,
   locale,
   logoNotice,
@@ -439,42 +413,6 @@ export function StorefrontSettingsManagement({
               </CardContent>
             </Card>
 
-            {currencyProbeNotice && currencyProbeNotice in CURRENCY_PROBE_NOTICE_KEYS ? (
-              <Alert role={currencyProbeNotice === "ok" ? "status" : "alert"} variant={currencyProbeNotice === "ok" ? "success" : "destructive"}>
-                <AlertTitle>{currencyProbeNotice === "ok" ? dictionary.adminSuccessHeading : dictionary.adminErrorHeading}</AlertTitle>
-                <AlertDescription>{dictionary[CURRENCY_PROBE_NOTICE_KEYS[currencyProbeNotice as keyof typeof CURRENCY_PROBE_NOTICE_KEYS]]}</AlertDescription>
-              </Alert>
-            ) : null}
-            {currencyChoices.length > 0 ? (
-              <Card>
-                <CardContent>
-                  <FieldGroup>
-                    {currencyEvidence.map((evidence) => {
-                      const choice = currencyChoices.find((row) => row.code === evidence.code);
-                      if (!choice) return null;
-                      return (
-                        <Field key={evidence.pairId ?? choice.code}>
-                          <FieldLabel>{evidence.label ?? choice.label} ({choice.code})</FieldLabel>
-                          <div className="flex flex-wrap items-center gap-3">
-                            <input form={`currency-pair-probe-${evidence.pairId ?? choice.code}`} name="code" readOnly type="hidden" value={choice.code} />
-                            {evidence.pairId ? <input form={`currency-pair-probe-${evidence.pairId ?? choice.code}`} name="pairId" readOnly type="hidden" value={evidence.pairId} /> : null}
-                            <Button form={`currency-pair-probe-${evidence.pairId ?? choice.code}`} type="submit" variant="outline">{dictionary.currencyProbeAction}</Button>
-                            <span className="text-sm text-text-2">{probeStatusLine(evidence, dictionary, locale)}</span>
-                          </div>
-                          {evidence?.observedPaymentMethod && evidence.observedCurrencySymbol ? (
-                            <FieldDescription>
-                              {dictionary.currencyProbeObserved
-                                .replace("{method}", evidence.observedPaymentMethod)
-                                .replace("{currency}", evidence.observedCurrencySymbol)}
-                            </FieldDescription>
-                          ) : null}
-                        </Field>
-                      );
-                    })}
-                  </FieldGroup>
-                </CardContent>
-              </Card>
-            ) : null}
           </section>
 
           <input name="storefrontLogoMediaIdentifier" readOnly type="hidden" value={logo ?? ""} />
@@ -497,11 +435,6 @@ export function StorefrontSettingsManagement({
       />
       </form>
       <form action="/storefront/logo" encType="multipart/form-data" id={uploadFormId} method="post" />
-      {currencyEvidence.map((evidence) => {
-        const choice = currencyChoices.find((row) => row.code === evidence.code);
-        if (!choice) return null;
-        return <form action="/currency-pair-probe" id={`currency-pair-probe-${evidence.pairId ?? choice.code}`} key={evidence.pairId ?? choice.code} method="post" />;
-      })}
     </>
   );
 }

@@ -1,6 +1,5 @@
 import { WorkspaceHeading } from "@/app-shell/workspace-heading";
 import { getCheckoutPolicyService } from "@/auth/checkout-policy";
-import { listOwnerProbeMethods } from "@/auth/currency-pair-verification";
 import { getStorefrontSettingsService } from "@/auth/storefront-settings";
 import { getSupportedExchangeCurrencyService } from "@/auth/supported-exchange-currency";
 import { getOwnerOnboardingService } from "@/integrations/nautt/owner-onboarding";
@@ -23,12 +22,11 @@ export default async function MerchantSettingsPage({
   searchParams,
 }: Readonly<{ searchParams: Promise<SettingsNotices> }>) {
   const { dictionary, locale, principal } = await requireMerchantShellContext();
-  const [nauttStatus, checkoutPolicy, storefrontSettings, currencyChoices, currencyEvidence, notices] = await Promise.all([
+  const [nauttStatus, checkoutPolicy, storefrontSettings, currencyChoices, notices] = await Promise.all([
     getOwnerOnboardingService().readStatus(principal),
     getCheckoutPolicyService().getForOwner(principal),
     getStorefrontSettingsService().getForOwner(principal),
     getSupportedExchangeCurrencyService().listActiveChoices(principal),
-    listOwnerProbeMethods(principal),
     searchParams,
   ]);
   // The staged logo identifier is the public-safe media handle; anything else
@@ -49,8 +47,6 @@ export default async function MerchantSettingsPage({
       <SettingsSurface
         checkoutPolicy={checkoutPolicy.checkoutDataPolicy}
         currencyChoices={currencyChoices}
-        currencyEvidence={currencyEvidence}
-        currencyProbeNotice={notices["currency-probe"]}
         dictionary={dictionary}
         locale={locale}
         nauttStatus={nauttStatus}

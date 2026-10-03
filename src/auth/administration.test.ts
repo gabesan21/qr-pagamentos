@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { acquireAuthorizationLock, AdministrationTargetNotFoundError, createAdministrationService, FinalAdministratorError, type AdministrationStore } from "./administration";
 
 const createdAt = new Date("2026-07-16T00:00:00Z");
-type TestUser = { id: string; username: string; email: string | null; role: "ADMIN" | "USER"; status: "ACTIVE" | "DISABLED"; deletedAt: Date | null; createdAt: Date; storefrontThemeId?: string | null };
+type TestUser = { id: string; username: string; email: string | null; role: "ADMIN" | "USER"; status: "ACTIVE" | "DISABLED"; deletedAt: Date | null; createdAt: Date; storefrontThemeId?: string | null; storefrontDefaultCurrencyCode?: string | null };
 const admin: TestUser = { id: "admin", username: "admin", email: null, role: "ADMIN", status: "ACTIVE", deletedAt: null, createdAt };
 const merchant: TestUser = { ...admin, id: "target", username: "target", role: "USER" };
 
@@ -40,8 +40,9 @@ function storeWith(users: TestUser[] = [admin]): AdministrationStore & {
     },
     async revokeSessions(id: string) { for (let index = sessions.length - 1; index >= 0; index -= 1) if (sessions[index] === id) sessions.splice(index, 1); },
     async resolveDefaultThemeId() { return "vault-blue"; },
-    async createUser(input: { username: string; email: string | null; role: "ADMIN" | "USER"; storefrontThemeId: string | null }) {
-      const user: TestUser = { id: `user-${data.size}`, username: input.username, email: input.email, role: input.role, status: "ACTIVE", deletedAt: null, createdAt, storefrontThemeId: input.storefrontThemeId };
+    async resolveDefaultCurrencyCode() { return "BRL"; },
+    async createUser(input: { username: string; email: string | null; role: "ADMIN" | "USER"; storefrontThemeId: string | null; storefrontDefaultCurrencyCode: string | null }) {
+      const user: TestUser = { id: `user-${data.size}`, username: input.username, email: input.email, role: input.role, status: "ACTIVE", deletedAt: null, createdAt, storefrontThemeId: input.storefrontThemeId, storefrontDefaultCurrencyCode: input.storefrontDefaultCurrencyCode };
       data.set(user.id, user);
       return user;
     },
@@ -149,6 +150,26 @@ describe("identity administration", () => {
 
     expect(store.userByUsername("merchant.one")?.storefrontThemeId).toBe("vault-blue");
     expect(store.userByUsername("admin.two")?.storefrontThemeId).toBeNull();
+  });
+
+  it("stamps the effective default currency only on new merchant users at creation time", async () => {
+    const store = storeWith();
+    const service = createAdministrationService(store);
+
+    await service.createUser(admin, { username: "merchant.one", password: "correct horse battery staple", role: "USER" });
+    await service.createUser(admin, { username: "admin.two", password: "correct horse battery staple", role: "ADMIN" });
+
+    expect(store.userByUsername("merchant.one")?.storefrontDefaultCurrencyCode).toBe("BRL");
+    expect(store.userByUsername("admin.two")?.storefrontDefaultCurrencyCode).toBeNull();
+  });
+
+  it("handles empty active currencies gracefully with null default currency", async () => {
+    const store = storeWith();
+    store.resolveDefaultCurrencyCode = async () => null;
+    const service = createAdministrationService(store);
+
+    await service.createUser(admin, { username: "merchant.empty", password: "correct horse battery staple", role: "USER" });
+    expect(store.userByUsername("merchant.empty")?.storefrontDefaultCurrencyCode).toBeNull();
   });
 });
 

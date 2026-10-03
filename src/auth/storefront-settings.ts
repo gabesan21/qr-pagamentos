@@ -3,7 +3,6 @@ import { isStorefrontThemeId } from "../design-system/themes";
 import { getMediaService } from "../media/media-service";
 import { MEDIA_IDENTIFIER_PATTERN } from "../media/types";
 import { ForbiddenError, requireUserPrincipal, type Principal } from "./authorization";
-import { requireSelectableForCurrencyPair } from "./currency-pair-verification";
 import { getSupportedExchangeCurrencyService } from "./supported-exchange-currency";
 
 export type StorefrontSettingsData = Readonly<{
@@ -36,10 +35,6 @@ export type StorefrontSettingsStore = Readonly<{
 // owned by their own services; this module only orchestrates them.
 export type StorefrontSettingsDeps = Readonly<{
   requireActiveCurrencyPair(code: string): Promise<Readonly<{ currencyUuid: string; exchangeCurrencyUuid: string }>>;
-  // 13.4.1 F02: owner-scoped selectability gate, wired next to the
-  // registry's active-mapping check — a registered but unproven (or
-  // disproven) pair never becomes a stored default.
-  requireSelectablePair(ownerId: string, currencyUuid: string, exchangeCurrencyUuid: string): Promise<void>;
   activateOwnedLogo(actor: Principal, identifier: string): Promise<unknown>;
   orphanOwnedLogo(actor: Principal, identifier: string): Promise<unknown>;
 }>;
@@ -195,8 +190,7 @@ export function createStorefrontSettingsService(store: StorefrontSettingsStore, 
       // New assignments gate on the registry; a stored code keeps reading
       // as-is even after its mapping is later deactivated.
       if (patch.storefrontDefaultCurrencyCode) {
-        const pair = await deps.requireActiveCurrencyPair(patch.storefrontDefaultCurrencyCode);
-        await deps.requireSelectablePair(actor.id, pair.currencyUuid, pair.exchangeCurrencyUuid);
+        await deps.requireActiveCurrencyPair(patch.storefrontDefaultCurrencyCode);
       }
       const previousLogo = current.storefrontLogoMediaIdentifier;
       const nextLogo = merged.storefrontLogoMediaIdentifier;
@@ -274,8 +268,6 @@ export function getStorefrontSettingsService() {
   const registry = getSupportedExchangeCurrencyService();
   return createStorefrontSettingsService(prismaStore(), {
     requireActiveCurrencyPair: (code) => registry.requireActivePair(code),
-    requireSelectablePair: (ownerId, currencyUuid, exchangeCurrencyUuid) =>
-      requireSelectableForCurrencyPair(ownerId, currencyUuid, exchangeCurrencyUuid),
     activateOwnedLogo: (actor, identifier) => media.activateOwned(actor, identifier, "STOREFRONT_LOGO"),
     orphanOwnedLogo: (actor, identifier) => media.orphanOwned(actor, identifier, "STOREFRONT_LOGO"),
   });

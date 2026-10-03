@@ -1,19 +1,11 @@
-import { createRequire } from "node:module";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 
 import { getDictionary } from "@/i18n/dictionaries";
-import { formatProbeEvidenceTimestamp, StorefrontSettingsManagement } from "./storefront-settings-management";
+import { StorefrontSettingsManagement } from "./storefront-settings-management";
 
-type JSDOMWindow = Readonly<{
-  document: Document;
-  FormData: new (form?: HTMLFormElement) => Readonly<{ entries(): IterableIterator<[string, FormDataEntryValue]> }>;
-}>;
-type JSDOMConstructor = new (markup: string) => Readonly<{ window: JSDOMWindow }>;
-
-const { JSDOM } = createRequire(import.meta.url)("jsdom") as Readonly<{ JSDOM: JSDOMConstructor }>;
 
 const settings = {
   storefrontSlug: "my-store",
@@ -37,7 +29,6 @@ function render(overrides: Readonly<Partial<Parameters<typeof StorefrontSettings
   return renderToStaticMarkup(
     <StorefrontSettingsManagement
       currencyChoices={choices}
-      currencyEvidence={[]}
       dictionary={getDictionary("en")}
       locale="en"
       settings={settings}
@@ -106,59 +97,16 @@ describe("storefront settings management", () => {
     expect(markup).toContain(dictionary.storefrontCurrencyNone);
   });
 
-  it("renders one probe control per active code and the never-checked status by default (13.4.1)", () => {
-    const markup = render({ currencyEvidence: [
-      { code: "BRL", pairId: "pair-brl", label: "PIX", checkedAt: null, outcome: null, observedPaymentMethod: null, observedCurrencySymbol: null },
-      { code: "USD", pairId: "pair-usd", label: "Card", checkedAt: null, outcome: null, observedPaymentMethod: null, observedCurrencySymbol: null },
+  it("renders no probe controls or probe status lines in the currency section", () => {
+    const markup = render({ currencyChoices: [
+      { code: "BRL", label: "PIX" },
+      { code: "USD", label: "Card" },
     ] });
-    expect(markup.match(/action="\/currency-pair-probe"/g) ?? []).toHaveLength(2);
-    expect(markup).toContain('value="BRL"');
-    expect(markup).toContain('value="USD"');
-    expect(markup).toContain('name="pairId"');
-    expect(markup).toContain('value="pair-brl"');
-    expect(markup).toContain('value="pair-usd"');
-    expect(markup).toContain(getDictionary("en").currencyProbeAction);
-    expect(markup.match(new RegExp(getDictionary("en").currencyProbeStatusNever, "g")) ?? []).toHaveLength(2);
+    expect(markup).not.toContain('action="/currency-pair-probe"');
+    expect(markup).not.toContain(getDictionary("en").currencyProbeAction);
   });
-
-  it("renders the checked outcome and the observed method/currency line when evidence is present (13.4.1)", () => {
-    const dictionary = getDictionary("en");
-    const markup = render({
-      currencyEvidence: [
-        { code: "BRL", checkedAt: "2026-01-01T00:00:00.000Z", outcome: "ok", observedPaymentMethod: "pix", observedCurrencySymbol: "BRL" },
-      ],
-    });
-    expect(markup).toContain(dictionary.currencyProbeOutcomeOk);
-    expect(markup).toContain(
-      dictionary.currencyProbeObserved.replace("{method}", "pix").replace("{currency}", "BRL"),
-    );
-  });
-
-  it("formats evidence timestamps through the locale's deterministic UTC zone and keeps legacy stored outcomes generic-readable", () => {
-    const timestamp = "2026-01-01T00:00:00.000Z";
-    expect(formatProbeEvidenceTimestamp(timestamp, "en")).toBe(
-      new Intl.DateTimeFormat("en", { dateStyle: "medium", timeStyle: "short", timeZone: "UTC" }).format(new Date(timestamp)),
-    );
-    const markup = render({
-      currencyEvidence: [
-        { code: "BRL", checkedAt: timestamp, outcome: "validation.exchange_currency_invalid", observedPaymentMethod: null, observedCurrencySymbol: null },
-      ],
-    });
-    expect(markup).toContain(getDictionary("en").currencyProbeOutcomeRefused);
-  });
-
-  it("renders the top-level probe notice for a recognized outcome and never for an unrecognized one (13.4.1)", () => {
-    const dictionary = getDictionary("en");
-    expect(render({ currencyProbeNotice: "ok" })).toContain(dictionary.currencyProbeNoticeOk);
-    expect(render({ currencyProbeNotice: "throttled" })).toContain(dictionary.currencyProbeNoticeThrottled);
-    expect(render({ currencyProbeNotice: "unrelated-param" })).not.toContain(dictionary.currencyProbeNoticeOk);
-  });
-
   it("renders the standalone toggle with its mirrored hidden field", () => {
-    const markup = render({ currencyEvidence: [
-      { code: "BRL", pairId: "pair-brl", label: "PIX", checkedAt: null, outcome: null, observedPaymentMethod: null, observedCurrencySymbol: null },
-      { code: "USD", pairId: "pair-usd", label: "Card", checkedAt: null, outcome: null, observedPaymentMethod: null, observedCurrencySymbol: null },
-    ] });
+    const markup = render();
     expect(markup).toContain(getDictionary("en").storefrontStandalonePaymentsLabel);
     expect(markup).toContain('name="storefrontStandalonePaymentsEnabled"');
     expect(markup).toContain('name="storefrontStandalonePaymentsEnabled" value="true"');
@@ -197,12 +145,9 @@ describe("storefront settings management", () => {
   // The logo fallback and every pair probe bind their controls to empty
   // document-level sibling forms. This prevents invalid nested forms while
   // retaining the one unchanged storefront Save form and layout.
-  it("binds the logo fallback and pair probes to sibling forms with isolated actual FormData", () => {
-    const markup = render({ currencyEvidence: [
-      { code: "BRL", pairId: "pair-brl", label: "PIX", checkedAt: null, outcome: null, observedPaymentMethod: null, observedCurrencySymbol: null },
-      { code: "USD", pairId: "pair-usd", label: "Card", checkedAt: null, outcome: null, observedPaymentMethod: null, observedCurrencySymbol: null },
-    ] });
-    expect(markup.match(/<form\b/g)).toHaveLength(4);
+  it("binds the logo fallback to a sibling form with isolated actual FormData", () => {
+    const markup = render();
+    expect(markup.match(/<form\b/g)).toHaveLength(2);
     expect(markup).toContain('form="storefront-logo-upload"');
     expect(markup).toContain('id="storefront-logo-upload"');
     const settingsFormEnd = markup.indexOf("</form>");
@@ -211,20 +156,6 @@ describe("storefront settings management", () => {
     expect(settingsFormStart).toBeGreaterThanOrEqual(0);
     expect(settingsFormEnd).toBeGreaterThan(settingsFormStart);
     expect(uploadFormStart).toBeGreaterThan(settingsFormEnd);
-
-    const window = new JSDOM(markup).window;
-    const document = window.document;
-    try {
-      const brlProbe = document.getElementById("currency-pair-probe-pair-brl") as HTMLFormElement;
-      const usdProbe = document.getElementById("currency-pair-probe-pair-usd") as HTMLFormElement;
-      expect(brlProbe.parentElement).not.toBe(document.getElementById("storefront-settings"));
-      expect(document.querySelector('input[name="code"][value="BRL"]')?.getAttribute("form")).toBe(brlProbe.id);
-      expect(document.querySelector('input[name="code"][value="USD"]')?.getAttribute("form")).toBe(usdProbe.id);
-      expect(Object.fromEntries(new window.FormData(brlProbe).entries())).toEqual({ code: "BRL", pairId: "pair-brl" });
-      expect(Object.fromEntries(new window.FormData(usdProbe).entries())).toEqual({ code: "USD", pairId: "pair-usd" });
-    } finally {
-      document.body.replaceChildren();
-    }
   });
 
   it("renders the disabled defaults as an empty, unchecked form", () => {
