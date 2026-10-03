@@ -13,14 +13,13 @@ import { CheckoutPolicyManagement } from "@/app/checkout-policy-management";
 import { LanguagePreferenceSubmit } from "@/app/language-preference/language-preference-form";
 import { LocaleFlagChoices } from "@/app/language-preference/language-switcher";
 import { NauttCredentialSurface } from "@/app/nautt-credential-surface";
-import { StorefrontSettingsManagement, type StorefrontCurrencyChoice, type StorefrontCurrencyEvidence } from "@/app/storefront-settings-management";
+import { StorefrontSettingsManagement, type StorefrontCurrencyChoice } from "@/app/storefront-settings-management";
 import { Card, CardContent } from "@/components/ui/card";
 
 type Dictionary = ReturnType<typeof getDictionary>;
 
 type SettingsNotices = Readonly<{
   "checkout-policy"?: string;
-  "currency-probe"?: string;
   language?: string;
   logo?: string;
   nautt?: string;
@@ -43,8 +42,6 @@ type SectionId = (typeof SECTIONS)[number]["id"];
 export function SettingsSurface({
   checkoutPolicy,
   currencyChoices,
-  currencyEvidence,
-  currencyProbeNotice,
   dictionary,
   locale,
   nauttStatus,
@@ -54,8 +51,6 @@ export function SettingsSurface({
 }: Readonly<{
   checkoutPolicy: CheckoutDataPolicy;
   currencyChoices: readonly StorefrontCurrencyChoice[];
-  currencyEvidence: readonly StorefrontCurrencyEvidence[];
-  currencyProbeNotice?: string;
   dictionary: Dictionary;
   locale: SupportedLocale;
   nauttStatus: OwnerNauttStatus;
@@ -128,8 +123,6 @@ export function SettingsSurface({
 
           <StorefrontSettingsManagement
             currencyChoices={currencyChoices}
-            currencyEvidence={currencyEvidence}
-            currencyProbeNotice={currencyProbeNotice}
             dictionary={dictionary}
             locale={locale}
             logoNotice={notices["storefront-logo"]}

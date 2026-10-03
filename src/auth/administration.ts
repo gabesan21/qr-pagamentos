@@ -21,7 +21,15 @@ type MutationStore = {
   recordDeletion(deletion: { id: string; userId: string; actorId: string; createdAt: Date }): Promise<void>;
   revokeSessions(userId: string): Promise<void>;
   resolveDefaultThemeId(): Promise<string>;
-  createUser(input: { username: string; email: string | null; role: UserRole; passwordHash: string; storefrontThemeId: string | null }): Promise<UserRecord>;
+  resolveDefaultCurrencyCode(): Promise<string | null>;
+  createUser(input: {
+    username: string;
+    email: string | null;
+    role: UserRole;
+    passwordHash: string;
+    storefrontThemeId: string | null;
+    storefrontDefaultCurrencyCode: string | null;
+  }): Promise<UserRecord>;
 };
 
 export interface AdministrationStore extends MutationStore {
@@ -81,8 +89,17 @@ export function createAdministrationService(store: AdministrationStore) {
         // Creation-time stamping: only new merchant users receive the current
         // effective default theme; administrators keep NULL and existing rows
         // are never rewritten.
-        const storefrontThemeId = input.role === "USER" ? await store.resolveDefaultThemeId() : null;
-        return toAdminUserDto(await store.createUser({ username, email, role: input.role as UserRole, passwordHash, storefrontThemeId }));
+        const isMerchant = input.role === "USER";
+        const storefrontThemeId = isMerchant ? await store.resolveDefaultThemeId() : null;
+        const storefrontDefaultCurrencyCode = isMerchant ? await store.resolveDefaultCurrencyCode() : null;
+        return toAdminUserDto(await store.createUser({
+          username,
+          email,
+          role: input.role as UserRole,
+          passwordHash,
+          storefrontThemeId,
+          storefrontDefaultCurrencyCode,
+        }));
       } catch (error) {
         if (error instanceof AdministrationValidationError) throw error;
         throw new AdministrationValidationError("Invalid account details");
@@ -159,9 +176,29 @@ function prismaStore(): AdministrationStore {
       const row = await client.systemSettings.findUnique({ where: { id: SYSTEM_SETTINGS_SINGLETON_ID }, select: { defaultThemeId: true } });
       return effectiveDefaultThemeId(row?.defaultThemeId ?? null);
     },
+    async resolveDefaultCurrencyCode() {
+      const brl = await client.supportedExchangeCurrency.findUnique({
+        where: { code: "BRL" },
+        select: { code: true },
+      });
+      if (brl) return brl.code;
+      const firstActive = await client.supportedExchangeCurrency.findFirst({
+        orderBy: { code: "asc" },
+        select: { code: true },
+      });
+      return firstActive?.code ?? null;
+    },
     async createUser(input) {
       return (await client.user.create({
-        data: { username: input.username, email: input.email, role: input.role, status: "ACTIVE", storefrontThemeId: input.storefrontThemeId, credential: { create: { passwordHash: input.passwordHash } } },
+        data: {
+          username: input.username,
+          email: input.email,
+          role: input.role,
+          status: "ACTIVE",
+          storefrontThemeId: input.storefrontThemeId,
+          storefrontDefaultCurrencyCode: input.storefrontDefaultCurrencyCode,
+          credential: { create: { passwordHash: input.passwordHash } },
+        },
         select: userSelect,
       })) as UserRecord;
     },

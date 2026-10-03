@@ -12,7 +12,6 @@ import {
   type AdminUserProfileTarget,
   type LockedAdminUserProfileStore,
 } from "./admin-user-profile";
-import { CurrencyPairSelectionRefusedError } from "./currency-pair-verification";
 import { NoActiveExchangeCurrencyMappingError } from "./supported-exchange-currency";
 
 const admin: Principal = { id: "440e8400-e29b-41d4-a716-446655440001", username: "admin", email: null, role: "ADMIN", status: "ACTIVE", createdAt: new Date() };
@@ -54,7 +53,6 @@ function createHarness() {
   const deps = {
     requireActiveCurrencyPair: vi.fn<() => Promise<{ currencyUuid: string; exchangeCurrencyUuid: string }>>()
       .mockResolvedValue({ currencyUuid: "currency-uuid", exchangeCurrencyUuid: "exchange-currency-uuid" }),
-    requireSelectablePair: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
     listActiveCurrencyChoices: vi.fn().mockResolvedValue([{ code: "BRL", label: "Brazilian real" }]),
   };
   const service = createAdminUserProfileService(store, deps);
@@ -218,16 +216,7 @@ describe("administrator profile storefront", () => {
     locked.updateStorefront.mockResolvedValue("changed");
     await service.updateStorefront(admin, targetId, { storefrontDefaultCurrencyCode: "USD" });
     expect(deps.requireActiveCurrencyPair).toHaveBeenCalledWith("USD");
-    expect(deps.requireSelectablePair).toHaveBeenCalledWith(targetId, "currency-uuid", "exchange-currency-uuid");
     expect(locked.updateStorefront).toHaveBeenCalledWith(targetId, storefront({ storefrontDefaultCurrencyCode: "USD" }));
-  });
-
-  it("maps an unselectable target-owner pair to the validation failure (13.4.1)", async () => {
-    const { deps, locked, service } = createHarness();
-    locked.findTarget.mockResolvedValue(target({ storefront: storefront({ storefrontDefaultCurrencyCode: null }) }));
-    deps.requireSelectablePair.mockRejectedValue(new CurrencyPairSelectionRefusedError());
-    await expect(service.updateStorefront(admin, targetId, { storefrontDefaultCurrencyCode: "USD" })).rejects.toBeInstanceOf(AdminUserProfileValidationError);
-    expect(locked.updateStorefront).not.toHaveBeenCalled();
   });
 
   it("maps a missing currency mapping to the validation failure", async () => {

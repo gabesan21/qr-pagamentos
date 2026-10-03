@@ -83,6 +83,7 @@ function sharedHarness(initialPasswordHash: string) {
     async deactivatePaymentLinksV2() {},
     async recordDeletion() {},
     async resolveDefaultThemeId() { return "vault-blue"; },
+    async resolveDefaultCurrencyCode() { return "BRL"; },
     async createUser() { return merchant; },
   };
   const administrationStore: AdministrationStore = {
