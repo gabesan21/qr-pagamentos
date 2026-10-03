@@ -574,6 +574,15 @@ stay, serving `/store/**` and the settings shell respectively); the two
 skeleton `loading.tsx` files that used the retired classes move to plain
 `grid`/`grid-cols-[…]` utilities with no visual change.
 
+The merchant `/settings` Identity section groups Portuguese and English display
+names in the first two-column row from `sm`, with public slug and the
+confirmation-gated activation switch in the second; narrow layouts stack all
+four in that order. Identity errors stay beside their labeled inputs, focus
+returns to the first invalid input, and the section retains one native Save.
+The name limit uses NFC Unicode code points rather than HTML UTF-16
+`maxLength`; malformed slugs remain editable for correction instead of being
+truncated or silently rewritten.
+
 ## BEM retirement (14.7.1)
 
 The parallel BEM CSS system is retired: `14.7.1` deletes every route-scoped

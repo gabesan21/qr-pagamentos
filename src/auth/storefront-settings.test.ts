@@ -130,6 +130,28 @@ describe("storefront-settings service", () => {
     expect(testStore.values.get(owner.id)).toEqual(defaults);
   });
 
+  it("requires both localized names for an enabled store before any side effects", async () => {
+    const testStore = store();
+    const testDeps = deps();
+    const service = createStorefrontSettingsService(testStore, testDeps);
+    for (const missing of [
+      { storefrontDisplayNamePtBr: "  " },
+      { storefrontDisplayNameEn: null },
+    ]) {
+      await expect(service.update(owner, validInput({
+        ...missing,
+        storefrontDefaultCurrencyCode: "USD",
+      }))).rejects.toBeInstanceOf(StorefrontSettingsValidationError);
+    }
+    expect(testStore.values.get(owner.id)).toEqual(defaults);
+    expect(testDeps.requireActiveCurrencyPair).not.toHaveBeenCalled();
+    await service.update(owner, validInput());
+    await expect(service.update(owner, { storefrontDisplayNameEn: "" })).rejects.toBeInstanceOf(StorefrontSettingsValidationError);
+    expect(testStore.values.get(owner.id)?.storefrontDisplayNameEn).toBe("My Store");
+    await expect(service.update(owner, { storefrontEnabled: false, storefrontDisplayNameEn: "" }))
+      .resolves.toMatchObject({ storefrontEnabled: false, storefrontDisplayNameEn: null });
+  });
+
   it("rejects malformed accent colors and multiline or overlong display names without mutation", async () => {
     const testStore = store();
     const service = createStorefrontSettingsService(testStore, deps());
