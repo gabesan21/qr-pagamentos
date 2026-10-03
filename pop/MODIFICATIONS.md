@@ -47,4 +47,4 @@ Project: [[PROJECT|QR Pagamentos]] · Roadmap: [[ROADMAP|Roadmap]]
 
 | M-19 | `M-19.1-default-currency-without-probe` | Automatically assign default currency on user creation and remove the merchant test-pair gate. · size: M | completed; integrated into develop |
 
-| M-20 | [[M-20.1-product-registration-fixes]] | Repair product registration locale fallback, field lengths, BRL inputs, and inline category creation. · size: M | 001_initial_task |
+| M-20 | [[M-20.1-product-registration-fixes]] | Repair product registration locale fallback, field lengths, BRL inputs, and inline category creation. · size: M | 005_closing; PR #44 to develop awaiting human merge |
