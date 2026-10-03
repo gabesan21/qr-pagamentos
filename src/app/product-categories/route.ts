@@ -14,6 +14,10 @@ function values(form: FormData) {
   };
 }
 
+
+function opaqueInlineFailure(outcome: "conflict" | "failed"): Response {
+  return Response.json({ outcome }, { status: 409, headers: { "Cache-Control": "no-store" } });
+}
 export async function POST(request: Request) {
   return withServerRequestLog(
     request.headers.get("x-request-id"),
@@ -21,13 +25,22 @@ export async function POST(request: Request) {
     async () => {
       const crossOrigin = rejectCrossOrigin(request);
       if (crossOrigin) return crossOrigin;
+      let wantsInlineCreate = false;
       try {
         const actor = await requireOwnerFromCookie();
         const form = await request.formData();
         const service = getProductCategoryService();
         const action = form.get("action");
+        wantsInlineCreate = action === "create" && request.headers.get("accept")?.split(",").some(
+          (part) => part.trim().split(";")[0] === "application/json",
+        ) === true;
         if (action === "create") {
-          await service.create(actor, values(form));
+          const category = await service.create(actor, values(form));
+          if (wantsInlineCreate) {
+            return Response.json({ id: category.id, namePtBr: category.namePtBr, nameEn: category.nameEn }, {
+              headers: { "Cache-Control": "no-store" },
+            });
+          }
         } else if (action === "edit") {
           await service.update(actor, form.get("id"), form.get("version"), values(form));
         } else if (action === "deactivate") {
@@ -39,6 +52,9 @@ export async function POST(request: Request) {
       } catch (error) {
         const protectedResponse = ownerProtectedMutationResponse(error);
         if (protectedResponse) return protectedResponse;
+        if (wantsInlineCreate) {
+          return opaqueInlineFailure(error instanceof ProductCategoryConflictError ? "conflict" : "failed");
+        }
         return relativeRedirect(
           error instanceof ProductCategoryConflictError
             ? "/catalog/categories?categories=conflict"

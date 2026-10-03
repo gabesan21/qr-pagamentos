@@ -7,7 +7,7 @@ status: active
 implementation: partial
 origin: "roadmap/12-frontend-template-remodel"
 created: 2026-08-02
-updated: 2026-09-07
+updated: 2026-10-03
 supersedes: [administrative-design-system]
 superseded_by:
 ---
@@ -72,6 +72,7 @@ This spec defines the application-wide presentation, composition, interaction-fe
 - `/admin` groups platform totals and selected-period performance under separate localized headings, with one explanation per group. Dashboard ranking empties use the `EmptyState` compact composition; order-source charts use exact count-coordinate SVG segments without inline styles. `StatCard` numerical facts use the defined display type role.
 - Dashboard integer counts use the active locale. Exact dashboard money remains string-formatted: pt-BR uses its normal separators except USD and USDT retain US grouping and decimal separators; the display layer never converts, rounds, or aggregates currency amounts.
 - Merchant exact-money entry follows the same contract: a fixed-amount field whose selected pair's ISO code is `BRL` renders the live `R$` cash mask (dot grouping, comma decimals, cents-on-digit entry, stable caret, exact up to six fractional digits) and posts its canonical decimal through a separate hidden field while the visible mask carries no field name — the hidden field stays absent on an untouched edit so absent means unchanged, never a checkout-attempt trip. Non-BRL pairs keep the plain canonical-decimal input, and the live preview formats `BRL` with the `R$` prefix in pt-BR while other codes render without an assumed symbol or format.
+- Product registration uses the same exact BRL mask with `R$ 0,00` as its placeholder; an unnamed visible control supplies a named hidden canonical decimal. Product and category form controls enforce their service's Unicode code-point limits without changing persisted bilingual requirements, and the product form keeps its entered values while an inline category is created and selected.
 - The merchant link expiry control is a `datetime-local` in the browser's local clock with no field name; a hidden field posts the unchanged UTC `YYYY-MM-DDTHH:mm` server grammar, the stored instant converts to the local clock only after mount so SSR never causes a hydration mismatch, an untouched edit stays absent, and clearing posts the empty value.
 - Page grids may move from one column to two at 640px and to the exact template multi-column composition at 1024px. Every surface must fit at 320px without horizontal page overflow; wide directories provide a deliberate narrow composition rather than shrinking unreadably.
 - The route-scoped BEM CSS system is retired (`14.7.1`): below its token block, `globals.css` holds only base rules and four sanctioned exceptions kept for a stated reason each — `src/app-shell/app-shell.css` (shell chrome), the `900px` auth split-card block (the one literal `check-design-tokens.mjs` sanctions outside a Tailwind variant), `.brand-identity*`/`.auth-brand` (component-owned identity geometry), and `.sr-only`; every other route composes projected Tailwind utilities. See [[DESIGN|DESIGN.md]] for the full rationale and open gaps.

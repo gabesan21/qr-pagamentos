@@ -16,7 +16,6 @@ import {
 } from "@/data-directory/server/notice";
 import { DataDirectory, type DataDirectoryColumn, type DataDirectoryState } from "@/data-directory/ui/data-directory";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
 import type { getDictionary } from "@/i18n/dictionaries";
 
 import { requireMerchantShellContext } from "../../shell-context";
@@ -24,6 +23,7 @@ import { CategoryNotice } from "../catalog-notices";
 import { Breadcrumb, SectionCard } from "../catalog-fields";
 import { resolveCatalogDirectoryQuery, type CatalogSearchParams } from "../directory-query";
 
+import { CategoryNameInput } from "./category-name-input";
 import { CategoryRowActions } from "./category-row-actions";
 
 type Dictionary = ReturnType<typeof getDictionary>;
@@ -47,11 +47,11 @@ function CreateCategoryCard({ dictionary }: Readonly<{ dictionary: Dictionary }>
         <FieldGroup className="grid items-end gap-3 sm:grid-cols-[1fr_1fr_auto]">
           <Field>
             <FieldLabel htmlFor="category-create-name-pt-br">{dictionary.catalogCategoryNamePtBr}</FieldLabel>
-            <Input id="category-create-name-pt-br" name="namePtBr" required />
+            <CategoryNameInput id="category-create-name-pt-br" name="namePtBr" />
           </Field>
           <Field>
             <FieldLabel htmlFor="category-create-name-en">{dictionary.catalogCategoryNameEn}</FieldLabel>
-            <Input id="category-create-name-en" name="nameEn" required />
+            <CategoryNameInput id="category-create-name-en" name="nameEn" />
           </Field>
           <Button type="submit">
             <Plus aria-hidden className="size-4" />

@@ -33,6 +33,7 @@ type LocalizedFieldGroupProps = {
   onValueChange: (locale: SupportedLocale, value: string) => void
   multiline?: boolean
   required?: boolean
+  maxCodePoints?: number
   disabled?: boolean
 }
 
@@ -43,6 +44,7 @@ function LocalizedFieldGroup({
   onValueChange,
   multiline = false,
   required = false,
+  maxCodePoints,
   disabled = false,
 }: LocalizedFieldGroupProps) {
   const [activeLocale, setActiveLocale] = React.useState<SupportedLocale>("pt-BR")
@@ -80,13 +82,17 @@ function LocalizedFieldGroup({
                   {required ? <span aria-hidden="true">*</span> : null}
                 </FieldLabel>
                 <Control
+                  maxLength={maxCodePoints === undefined ? undefined : maxCodePoints * 2}
                   id={fieldId}
                   value={field.value}
                   required={required}
                   disabled={disabled}
                   aria-invalid={Boolean(field.error)}
                   aria-describedby={describedBy}
-                  onChange={(event) => onValueChange(locale, event.currentTarget.value)}
+                  onChange={(event) => {
+                    const value = event.currentTarget.value
+                    if (maxCodePoints === undefined || [...value.trim()].length <= maxCodePoints) onValueChange(locale, value)
+                  }}
                 />
                 {field.description ? (
                   <FieldDescription id={descriptionId}>{field.description}</FieldDescription>
