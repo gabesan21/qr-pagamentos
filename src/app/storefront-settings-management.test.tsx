@@ -29,7 +29,6 @@ function render(overrides: Readonly<Partial<Parameters<typeof StorefrontSettings
   return renderToStaticMarkup(
     <StorefrontSettingsManagement
       currencyChoices={choices}
-      currencyEvidence={[]}
       dictionary={getDictionary("en")}
       locale="en"
       settings={settings}
@@ -107,10 +106,7 @@ describe("storefront settings management", () => {
     expect(markup).not.toContain(getDictionary("en").currencyProbeAction);
   });
   it("renders the standalone toggle with its mirrored hidden field", () => {
-    const markup = render({ currencyEvidence: [
-      { code: "BRL", pairId: "pair-brl", label: "PIX", checkedAt: null, outcome: null, observedPaymentMethod: null, observedCurrencySymbol: null },
-      { code: "USD", pairId: "pair-usd", label: "Card", checkedAt: null, outcome: null, observedPaymentMethod: null, observedCurrencySymbol: null },
-    ] });
+    const markup = render();
     expect(markup).toContain(getDictionary("en").storefrontStandalonePaymentsLabel);
     expect(markup).toContain('name="storefrontStandalonePaymentsEnabled"');
     expect(markup).toContain('name="storefrontStandalonePaymentsEnabled" value="true"');
