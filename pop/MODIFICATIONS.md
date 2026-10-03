@@ -46,3 +46,5 @@ Project: [[PROJECT|QR Pagamentos]] · Roadmap: [[ROADMAP|Roadmap]]
 | M-18 | [[M-18.1-payment-link-create-ux]] | BRL live mask and ISO currency projection on the merchant payment-link create/edit form, browser-local expiry converted to UTC on submit, and copy/layout harmonization with the design system. · size: M | 005_closing; integrated into develop; browser spot-check pending (user) |
 
 | M-19 | `M-19.1-default-currency-without-probe` | Automatically assign default currency on user creation and remove the merchant test-pair gate. · size: M | completed; integrated into develop |
+
+| M-21 | [[M-21.1-public-storefront-polish]] | Format the named monetary input and placeholder as `R$ 0,00`; circularly crop the store logo at every storefront/payment/cart stage; format every payment/cart financial amount in BRL. · size: M | 004_processing; human-approved plan |

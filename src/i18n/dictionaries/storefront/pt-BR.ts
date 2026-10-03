@@ -21,6 +21,7 @@ export const storefrontPtBR = {
   storefrontCustomAmountTitle: "Valor livre",
   storefrontCustomAmountDescription: "Escolha o valor que você quer pagar a esta loja.",
   storefrontCustomAmountLabel: "Valor",
+  storefrontCustomAmountPlaceholder: "R$ 0,00",
   storefrontCustomAmountAdd: "Adicionar ao carrinho",
   storefrontCustomAmountUpdate: "Atualizar o carrinho",
   storefrontCustomAmountInvalid: "Informe um valor válido maior que zero, com até seis casas decimais.",
