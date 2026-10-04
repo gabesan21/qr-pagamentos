@@ -47,6 +47,6 @@ Project: [[PROJECT|QR Pagamentos]] · Roadmap: [[ROADMAP|Roadmap]]
 
 | M-19 | `M-19.1-default-currency-without-probe` | Automatically assign default currency on user creation and remove the merchant test-pair gate. · size: M | completed; integrated into develop |
 
-| M-20 | [[M-20.1-product-registration-fixes]] | Repair product registration locale fallback, field lengths, BRL inputs, and inline category creation. · size: M | 005_closing; PR #44 to develop awaiting human merge |
-| M-21 | [[M-21.1-public-storefront-polish]] | Format the named monetary input and placeholder as `R$ 0,00`; circularly crop the store logo at every storefront/payment/cart stage; format every payment/cart financial amount in BRL. · size: M | 004_processing; human-approved plan |
-| M-22 | [[M-22.1-store-settings-validation]] | Validate and compact the Store settings identity group, activation, slug, and page form character limits. · size: M | 001_initial_task |
+| M-20 | `M-20.1-product-registration-fixes` | Repair product registration locale fallback, field lengths, BRL inputs, and inline category creation. · size: M | completed; PR #44 merged directly into main by user authorization; browser criterion 5 pending |
+| M-21 | `M-21.1-public-storefront-polish` | Format the named monetary input and placeholder as `R$ 0,00`; circularly crop the store logo at every storefront/payment/cart stage; format every payment/cart financial amount in BRL. · size: M | completed; PR #43 merged directly into main by user authorization; browser C02 pending |
+| M-22 | `M-22.1-store-settings-validation` | Validate and compact the Store settings identity group, activation, slug, and page form character limits. · size: M | completed; PR #42 merged directly into main by user authorization; browser C06 pending |
