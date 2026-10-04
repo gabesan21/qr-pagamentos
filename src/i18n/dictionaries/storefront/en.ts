@@ -21,6 +21,7 @@ export const storefrontEn = {
   storefrontCustomAmountTitle: "Custom amount",
   storefrontCustomAmountDescription: "Choose the amount you want to pay this store.",
   storefrontCustomAmountLabel: "Amount",
+  storefrontCustomAmountPlaceholder: "R$ 0,00",
   storefrontCustomAmountAdd: "Add to cart",
   storefrontCustomAmountUpdate: "Update the cart",
   storefrontCustomAmountInvalid: "Enter a valid amount greater than zero, with up to six decimal places.",

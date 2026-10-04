@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { Spinner } from "@/components/ui/spinner";
 import type { getDictionary } from "@/i18n/dictionaries";
+import { formatPublicMoney } from "@/lib/public-money-display";
 import type { CheckoutDataPolicy, CustomerSnapshotV1 } from "@/orders/order-v2-policies";
 import { isStorefrontCartAmount } from "@/storefront/cart";
 
@@ -58,12 +59,9 @@ function brazilianDisplayFraction(fraction: string | undefined): string {
   return (fraction ?? "").padEnd(2, "0");
 }
 
-/** Formats the canonical amount string without numeric coercion or rounding. */
+/** Formats the canonical BRL amount without numeric coercion or rounding. */
 export function formatStandaloneBrl(amount: string): string {
-  if (!isStorefrontCartAmount(amount)) return amount;
-  const [whole, fraction] = splitCanonicalAmount(amount);
-  const grouped = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-  return `R$ ${grouped},${brazilianDisplayFraction(fraction)}`;
+  return isStorefrontCartAmount(amount) ? formatPublicMoney(amount, "BRL", "pt-BR") : amount;
 }
 
 // The BRL field is a presentation adapter only. It retains incomplete input
@@ -102,7 +100,7 @@ function brlCashValue(digits: string, precision: number): Readonly<{ display: st
   const whole = padded.slice(0, -precision).replace(/^0+(?=\d)/, "") || "0";
   const fraction = padded.slice(-precision);
   const canonical = `${whole}.${fraction.replace(/0+$/, "")}`.replace(/\.$/, "");
-  return { display: canonical === "0" ? "R$ 0,00" : formatStandaloneBrl(canonical), canonical };
+  return { display: formatPublicMoney(canonical, "BRL", "pt-BR"), canonical };
 }
 
 function digitBoundary(value: string, caret: number): number {
@@ -123,17 +121,25 @@ function caretAtDigitBoundary(value: string, boundary: number): number {
 // unscaled digit string, while a localized paste is parsed as an explicit
 // decimal. That makes `1000` mean R$ 10,00 without ever coercing or rounding
 // a pasted value that carries more than two fractional digits.
-function StandaloneBrlAmountInput({
+export function StandaloneBrlAmountInput({
   amountInvalid,
+  errorId,
   disabled,
+  id = "standalone-amount",
+  name = "amount",
   onAmountChange,
   onBlur,
+  placeholder,
   value,
 }: Readonly<{
   amountInvalid: boolean;
   disabled: boolean;
+  errorId?: string;
+  id?: string;
+  name?: string;
   onAmountChange: (value: string) => void;
-  onBlur: () => void;
+  onBlur?: () => void;
+  placeholder: string;
   value: string;
 }>) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -171,20 +177,22 @@ function StandaloneBrlAmountInput({
       onAmountChange(text);
       return;
     }
-    const display = canonical === "0" ? "R$ 0,00" : formatStandaloneBrl(canonical);
+    const display = formatPublicMoney(canonical, "BRL", "pt-BR");
     pendingCaret.current = display.length;
     onAmountChange(display);
   };
 
   return (
     <Input
+      aria-describedby={amountInvalid ? errorId : undefined}
       aria-invalid={amountInvalid || undefined}
       autoComplete="off"
       disabled={disabled}
-      id="standalone-amount"
+      id={id}
       inputMode="decimal"
-      name="amount"
+      name={name}
       onBlur={onBlur}
+      placeholder={placeholder}
       onBeforeInput={(event) => {
         const native = event.nativeEvent as InputEvent;
         if (!native.data || !/^\d$/.test(native.data)) return;
@@ -247,6 +255,7 @@ function StandaloneAmountInput({
   disabled,
   onAmountChange,
   onBlur,
+  placeholder,
 }: Readonly<{
   amountDraft: string;
   amountInvalid: boolean;
@@ -254,9 +263,10 @@ function StandaloneAmountInput({
   disabled: boolean;
   onAmountChange: (value: string) => void;
   onBlur: () => void;
+  placeholder: string;
 }>) {
   if (currencyCode === "BRL") {
-    return <StandaloneBrlAmountInput amountInvalid={amountInvalid} disabled={disabled} onAmountChange={onAmountChange} onBlur={onBlur} value={amountDraft} />;
+    return <StandaloneBrlAmountInput amountInvalid={amountInvalid} disabled={disabled} onAmountChange={onAmountChange} onBlur={onBlur} placeholder={placeholder} value={amountDraft} />;
   }
   return <Input aria-invalid={amountInvalid || undefined} autoComplete="off" disabled={disabled} id="standalone-amount" inputMode="decimal" name="amount" onBlur={onBlur} onChange={(event) => onAmountChange(event.target.value)} required type="text" value={amountDraft} />;
 }
@@ -455,7 +465,7 @@ export function StandalonePaymentView({
             ) : (
               <Field data-invalid={amountInvalid || undefined}>
                 <FieldLabel htmlFor="standalone-amount">{dictionary.storefrontCustomAmountLabel}{currencyCode && currencyCode !== "BRL" ? ` (${currencyCode})` : ""}</FieldLabel>
-                <StandaloneAmountInput amountDraft={amountDraft} amountInvalid={amountInvalid} currencyCode={currencyCode} disabled={amountFrozen} onAmountChange={onAmountChange} onBlur={onAmountBlur} />
+                <StandaloneAmountInput amountDraft={amountDraft} amountInvalid={amountInvalid} currencyCode={currencyCode} disabled={amountFrozen} onAmountChange={onAmountChange} onBlur={onAmountBlur} placeholder={dictionary.storefrontCustomAmountPlaceholder} />
                 {amountInvalid ? <FieldError>{dictionary.storefrontCustomAmountInvalid}</FieldError> : null}
               </Field>
             )}
@@ -536,7 +546,7 @@ function StandaloneAmountEntryView({
         <form className="grid gap-6" onSubmit={(event) => { event.preventDefault(); onContinue(); }}>
           <Field data-invalid={amountInvalid || undefined}>
             <FieldLabel htmlFor="standalone-amount">{dictionary.storefrontCustomAmountLabel}{currencyCode && currencyCode !== "BRL" ? ` (${currencyCode})` : ""}</FieldLabel>
-            <StandaloneAmountInput amountDraft={amountDraft} amountInvalid={amountInvalid} currencyCode={currencyCode} disabled={unavailable} onAmountChange={onAmountChange} onBlur={onAmountBlur} />
+            <StandaloneAmountInput amountDraft={amountDraft} amountInvalid={amountInvalid} currencyCode={currencyCode} disabled={unavailable} onAmountChange={onAmountChange} onBlur={onAmountBlur} placeholder={dictionary.storefrontCustomAmountPlaceholder} />
             {amountInvalid ? <FieldError>{dictionary.storefrontCustomAmountInvalid}</FieldError> : null}
           </Field>
           <Button disabled={unavailable} type="submit">{dictionary.storefrontStandaloneContinue}</Button>

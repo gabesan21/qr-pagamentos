@@ -57,6 +57,7 @@ export default async function PublicStorefrontPage({ params }: Readonly<{ params
     customAmountDescription: dictionary.storefrontCustomAmountDescription,
     customAmountInvalid: dictionary.storefrontCustomAmountInvalid,
     customAmountLabel: dictionary.storefrontCustomAmountLabel,
+    customAmountPlaceholder: dictionary.storefrontCustomAmountPlaceholder,
     customAmountPay: dictionary.storefrontCustomAmountPay,
     customAmountTitle: dictionary.storefrontCustomAmountTitle,
     customAmountUpdate: dictionary.storefrontCustomAmountUpdate,
@@ -93,6 +94,7 @@ export default async function PublicStorefrontPage({ params }: Readonly<{ params
         <StorefrontExperience
           catalog={storefront.catalog}
           copy={copy}
+          locale={locale}
           layout={storefront.layout}
           slug={slug}
           standalonePaymentCurrencyCode={storefront.standalonePaymentCurrencyCode}

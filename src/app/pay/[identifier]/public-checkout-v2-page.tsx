@@ -9,6 +9,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import type { PublicCheckoutV2Branding, PublicCheckoutV2Composition, PublicCheckoutV2PaidPresentation, PublicCheckoutV2Presentation } from "@/checkout/public-checkout-v2-presentation";
 import type { getDictionary } from "@/i18n/dictionaries";
 import type { SupportedLocale } from "@/i18n/locales";
+import { formatPublicMoney } from "@/lib/public-money-display";
 
 import { CheckoutShell } from "./checkout-shell";
 import { PublicCheckoutV2Form } from "./public-checkout-v2-form";
@@ -22,21 +23,21 @@ function merchantIdentityMark(branding: PublicCheckoutV2Branding, dictionary: Di
   if (branding.logoMediaIdentifier) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
-      <img alt={dictionary.checkoutMerchantLogoAlt} className="size-7 object-contain" src={`/media/${branding.logoMediaIdentifier}`} />
+      <img alt={dictionary.checkoutMerchantLogoAlt} className="size-7 rounded-full object-cover" src={`/media/${branding.logoMediaIdentifier}`} />
     );
   }
   if (branding.displayName) return <Monogram name={branding.displayName} size="sm" />;
   return <span aria-label={dictionary.checkoutMerchantFallbackAlt} role="img"><BrandIdentity variant="merchant-fallback" /></span>;
 }
 
-function CheckoutV2CompositionFacts({ composition }: Readonly<{ composition: PublicCheckoutV2Composition }>) {
+function CheckoutV2CompositionFacts({ composition, currencyCode, locale }: Readonly<{ composition: PublicCheckoutV2Composition; currencyCode: string | null; locale: SupportedLocale }>) {
   return composition.kind === "PRODUCT_LINES" ? (
     <ul className="grid list-none gap-4 p-0 m-0">
       {composition.lines.map((line, index) => (
         <li className="grid gap-1" key={`${index}-${line.product.title}`}>
           <p className="m-0 font-semibold break-words">{line.product.title}</p>
           <p className="m-0 max-w-[var(--layout-max)] whitespace-pre-wrap text-text-2">{line.product.description}</p>
-          <p className="m-0 tabular-nums">{line.quantity} × {line.product.price}</p>
+          <p className="m-0 tabular-nums">{line.quantity} × {formatPublicMoney(line.product.price, currencyCode, locale)}</p>
         </li>
       ))}
     </ul>
@@ -45,14 +46,14 @@ function CheckoutV2CompositionFacts({ composition }: Readonly<{ composition: Pub
   );
 }
 
-function CheckoutV2Total({ composition, currencyCode, dictionary }: Readonly<{ composition: PublicCheckoutV2Composition; currencyCode: string | null; dictionary: Dictionary }>) {
+function CheckoutV2Total({ composition, currencyCode, dictionary, locale }: Readonly<{ composition: PublicCheckoutV2Composition; currencyCode: string | null; dictionary: Dictionary; locale: SupportedLocale }>) {
   const total = composition.kind === "PRODUCT_LINES" ? composition.total : composition.amount;
   return (
     <p className="m-0 flex items-baseline justify-between gap-2 tabular-nums">
       <span className="text-sm font-semibold text-text-2">{dictionary.checkoutTotalLabel}</span>
       <span className="inline-flex items-baseline gap-1.5">
-        <MoneyText size="large" value={total} />
-        {currencyCode ? <MoneyText pairLabel={currencyCode} value="" /> : <span className="text-sm text-text-2">{dictionary.checkoutUnlabeledCurrency}</span>}
+        <MoneyText size="large" value={formatPublicMoney(total, currencyCode, locale)} />
+        {!currencyCode ? <span className="text-sm text-text-2">{dictionary.checkoutUnlabeledCurrency}</span> : null}
       </span>
     </p>
   );
@@ -73,18 +74,17 @@ export function PublicCheckoutV2Page({ dictionary, identifier, locale, presentat
             <CardTitle>{dictionary.checkoutSummaryHeading}</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4">
-            <CheckoutV2CompositionFacts composition={presentation.composition} />
+            <CheckoutV2CompositionFacts composition={presentation.composition} currencyCode={presentation.currencyCode} locale={locale} />
             <Separator />
-            <CheckoutV2Total composition={presentation.composition} currencyCode={presentation.currencyCode} dictionary={dictionary} />
+            <CheckoutV2Total composition={presentation.composition} currencyCode={presentation.currencyCode} dictionary={dictionary} locale={locale} />
           </CardContent>
         </Card>
         <PublicCheckoutV2Form
-          currencyLabel={presentation.currencyCode ?? undefined}
           dictionary={dictionary}
           identifier={identifier}
           merchantIdentity={merchantIdentityMark(presentation.branding, dictionary)}
           policy={presentation.checkoutPolicy}
-          total={presentation.composition.kind === "PRODUCT_LINES" ? presentation.composition.total : presentation.composition.amount}
+          total={formatPublicMoney(presentation.composition.kind === "PRODUCT_LINES" ? presentation.composition.total : presentation.composition.amount, presentation.currencyCode, locale)}
         />
       </div>
     </CheckoutShell>
@@ -106,9 +106,9 @@ export function PublicCheckoutV2PaidPage({ dictionary, locale, presentation }: R
             <p className="text-sm text-text-2">{dictionary.checkoutPaidDescription}</p>
           </div>
           <Separator />
-          <CheckoutV2CompositionFacts composition={presentation.composition} />
+          <CheckoutV2CompositionFacts composition={presentation.composition} currencyCode={presentation.currencyCode} locale={locale} />
           <Separator />
-          <CheckoutV2Total composition={presentation.composition} currencyCode={presentation.currencyCode} dictionary={dictionary} />
+          <CheckoutV2Total composition={presentation.composition} currencyCode={presentation.currencyCode} dictionary={dictionary} locale={locale} />
         </CardContent>
       </Card>
     </CheckoutShell>

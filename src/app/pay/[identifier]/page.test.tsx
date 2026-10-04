@@ -57,9 +57,9 @@ describe("public checkout page", () => {
     expect(markup).toContain("/media/logo-media-identifier-00000000000000000");
     expect(markup).toContain("Ana&#x27;s Coffee");
     expect(markup).toContain("Espresso shot");
-    expect(markup).toContain("2 × 12.5");
-    expect(markup).toContain("34.9");
-    expect(markup).toContain("BRL");
+    expect(markup).toContain("2 × R$ 12,50");
+    expect(markup).toContain("R$ 34,90");
+    expect(markup).toContain("rounded-full object-cover");
     expect(markup).toContain('for="checkout-name"');
     expect(markup).toContain('for="checkout-email"');
     expect(markup).not.toContain('for="checkout-cpf"');
@@ -83,7 +83,7 @@ describe("public checkout page", () => {
     expect(markup).toContain('data-theme-preview="pix-paper"');
     expect(markup).toContain('data-brand-identity="merchant-fallback"');
     expect(markup).toContain("Monthly donation");
-    expect(markup).toContain("10.50");
+    expect(markup).toContain("10,50");
     expect(markup).toContain("moeda sem rótulo");
     // NONE renders no customer heading, notice, or field group (15.3.2 C6).
     expect(markup).not.toContain('role="status"');
@@ -129,9 +129,9 @@ describe("public checkout page", () => {
     expect(markup).toContain("Este link de pagamento já foi pago");
     expect(markup).toContain("Este link de uso único já foi utilizado e não aceita um novo pagamento.");
     expect(markup).toContain("Café expresso");
-    expect(markup).toContain("2 × 12.5");
-    expect(markup).toContain("34.9");
-    expect(markup).toContain("BRL");
+    expect(markup).toContain("2 × R$ 12,50");
+    expect(markup).toContain("R$ 34,90");
+    expect(markup).toContain("rounded-full object-cover");
     // No mutation affordance, no status oracle, no lifecycle disclosure.
     expect(markup).not.toContain('data-slot="field-group"');
     expect(markup).not.toContain("Este link de pagamento está indisponível");

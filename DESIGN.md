@@ -386,6 +386,16 @@ storage]]; template assets do not bypass that lifecycle.
   state, never an automatic request. The compact `CopyField` and its payment
   composition must be `w-full min-w-0`: only visible PIX text truncates, while
   the copy action keeps the complete payload and QR remains inside the card.
+- Public storefront/cart and payment-link/standalone checkout display BRL
+  amounts as exact `R$`-prefixed dot-grouped, comma-decimal strings with at
+  least two fractional digits (including English UI), preserving up to six
+  fractional digits without rounding. The catalog custom-amount field and
+  standalone amount field use the same live digit-to-cents BRL mask and
+  `R$ 0,00` placeholder; only canonical exact decimals enter cart storage,
+  standalone prefill URLs, or payment submissions. Other resolved codes retain
+  their own labels and exact values; unknown codes never imply BRL. Uploaded
+  merchant logos in the shared header and checkout QR centre crop circularly;
+  product images and official fallback identity retain their own treatments.
 - The two extrapolations never copy the template's incorrect shortcut from a
   storefront slug to `/pay/[identifier]`; current routes and commands win.
 

@@ -15,11 +15,11 @@ function CheckoutMerchantHeader({ branding, dictionary }: Readonly<{ branding: P
   return (
     <header className="flex flex-col items-center gap-2 text-center">
       {branding.logoMediaIdentifier ? (
-        <div className="rounded-full bg-accent p-1.5">
+        <div className="overflow-hidden rounded-full bg-accent p-1.5">
           {/* The owner-activated public media object renders directly; the
               official merchant fallback stays the only placeholder identity. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img alt={dictionary.checkoutMerchantLogoAlt} className="size-12 object-contain" src={`/media/${branding.logoMediaIdentifier}`} />
+          <img alt={dictionary.checkoutMerchantLogoAlt} className="size-12 rounded-full object-cover" src={`/media/${branding.logoMediaIdentifier}`} />
         </div>
       ) : branding.displayName ? (
         <Monogram name={branding.displayName} size="xl" />

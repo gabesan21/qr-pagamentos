@@ -87,9 +87,10 @@ describe("public storefront page", () => {
     expect(textContent(markup)).toContain("Cafés");
     expect(textContent(markup)).toContain("Mais produtos");
     expect(textContent(markup)).toContain("Café especial.");
-    expect(textContent(markup)).toContain("12.5 BRL");
+    expect(textContent(markup)).toContain("R$ 12,50");
     expect(textContent(markup)).toContain("Valor livre");
     expect(textContent(markup)).toContain("Valor (BRL)");
+    expect(markup).toContain('placeholder="R$ 0,00"');
     expect(textContent(markup)).toContain("Adicionar ao carrinho");
     expect(textContent(markup)).toContain("Carrinho");
     expect(textContent(markup)).toContain("Seu carrinho está vazio.");

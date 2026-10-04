@@ -25,9 +25,11 @@ import {
 } from "@/storefront/cart";
 import type { PublicStorefrontCatalogGroup } from "@/storefront/public-storefront";
 import type { getDictionary } from "@/i18n/dictionaries";
+import type { SupportedLocale } from "@/i18n/locales";
+import { formatPublicMoney } from "@/lib/public-money-display";
 import type { CheckoutDataPolicy } from "@/orders/order-v2-policies";
 
-import { StandalonePaymentExperience } from "./pay/standalone-payment-experience";
+import { canonicalStandaloneBrlInput, formatStandaloneBrl, StandaloneBrlAmountInput, StandalonePaymentExperience } from "./pay/standalone-payment-experience";
 
 export type StorefrontExperienceCopy = Readonly<{
   cartCheckout: string;
@@ -41,6 +43,7 @@ export type StorefrontExperienceCopy = Readonly<{
   customAmountDescription: string;
   customAmountInvalid: string;
   customAmountLabel: string;
+  customAmountPlaceholder: string;
   customAmountPay: string;
   customAmountTitle: string;
   customAmountUpdate: string;
@@ -72,8 +75,8 @@ function writeStorage(key: string, value: string) {
   }
 }
 
-function formatAmount(amount: string, currencyCode: string | null): string {
-  return currencyCode ? `${amount} ${currencyCode}` : amount;
+function canonicalCustomAmount(draft: string, currencyCode: string | null): string {
+  return currencyCode === "BRL" ? canonicalStandaloneBrlInput(draft) : draft;
 }
 
 export function standalonePaymentPrefillHref(slug: string, amount: string): string | null {
@@ -195,15 +198,28 @@ function CustomAmountField({
         {currencyCode ? ` (${currencyCode})` : ""}
       </FieldLabel>
       {layout !== "table" ? <FieldDescription>{copy.customAmountDescription}</FieldDescription> : null}
-      <Input
-        aria-describedby={amountInvalid ? "storefront-custom-amount-error" : undefined}
-        aria-invalid={amountInvalid || undefined}
-        autoComplete="off"
-        id="storefront-custom-amount"
-        inputMode="decimal"
-        onChange={(event) => onChange(event.target.value)}
-        value={amountDraft}
-      />
+      {currencyCode === "BRL" ? (
+        <StandaloneBrlAmountInput
+          amountInvalid={amountInvalid}
+          disabled={false}
+          errorId="storefront-custom-amount-error"
+          id="storefront-custom-amount"
+          name=""
+          onAmountChange={onChange}
+          placeholder={copy.customAmountPlaceholder}
+          value={amountDraft}
+        />
+      ) : (
+        <Input
+          aria-describedby={amountInvalid ? "storefront-custom-amount-error" : undefined}
+          aria-invalid={amountInvalid || undefined}
+          autoComplete="off"
+          id="storefront-custom-amount"
+          inputMode="decimal"
+          onChange={(event) => onChange(event.target.value)}
+          value={amountDraft}
+        />
+      )}
       {amountInvalid ? (
         <FieldError id="storefront-custom-amount-error">{copy.customAmountInvalid}</FieldError>
       ) : null}
@@ -249,6 +265,7 @@ export function StorefrontExperienceView({
   checkoutPending,
   copy,
   items,
+  locale = "pt-BR",
   layout,
   onAmountDraftChange,
   onAmountSubmit,
@@ -266,6 +283,7 @@ export function StorefrontExperienceView({
   checkoutFailed: boolean;
   checkoutPending: boolean;
   copy: StorefrontExperienceCopy;
+  locale?: SupportedLocale;
   items: readonly StorefrontCartItem[];
   layout: string;
   onAmountDraftChange: (value: string) => void;
@@ -372,10 +390,7 @@ export function StorefrontExperienceView({
                         <p className="m-0 max-w-[var(--layout-max)] whitespace-pre-wrap">{product.description}</p>
                       </TableCell>
                       <TableCell>
-                        <MoneyText
-                          pairLabel={product.currencyCode ?? undefined}
-                          value={product.price}
-                        />
+                        <MoneyText value={formatPublicMoney(product.price, product.currencyCode, locale)} />
                       </TableCell>
                       <TableCell>
                         <QuantityStepper
@@ -407,7 +422,7 @@ export function StorefrontExperienceView({
                     <CardContent>
                       <p className="m-0 tabular-nums">
                         <span className="text-xs font-semibold text-muted-foreground">{copy.priceLabel}</span>{" "}
-                        <MoneyText pairLabel={product.currencyCode ?? undefined} value={product.price} />
+                        <MoneyText value={formatPublicMoney(product.price, product.currencyCode, locale)} />
                       </p>
                     </CardContent>
                     <CardFooter>
@@ -450,13 +465,12 @@ export function StorefrontExperienceView({
                       <div className="grid min-w-[min(100%,var(--space-12))] flex-1 gap-1">
                         <p className="m-0 font-semibold break-words">{product.title}</p>
                         <p className="m-0 text-xs tabular-nums text-muted-foreground">
-                          {item.quantity} × {formatAmount(product.price, product.currencyCode)}
+                          {item.quantity} × {formatPublicMoney(product.price, product.currencyCode, locale)}
                         </p>
                       </div>
                       <MoneyText
                         className="font-semibold"
-                        pairLabel={product.currencyCode ?? undefined}
-                        value={totals.lines.get(item) ?? ""}
+                        value={formatPublicMoney(totals.lines.get(item) ?? "", product.currencyCode, locale)}
                       />
                       <Button
                         aria-label={`${copy.cartRemove}: ${product.title}`}
@@ -477,8 +491,7 @@ export function StorefrontExperienceView({
                     </div>
                     <MoneyText
                       className="font-semibold"
-                      pairLabel={standalonePaymentCurrencyCode ?? undefined}
-                      value={totals.lines.get(item) ?? ""}
+                      value={formatPublicMoney(totals.lines.get(item) ?? "", standalonePaymentCurrencyCode, locale)}
                     />
                     <Button
                       aria-label={`${copy.cartRemove}: ${copy.customAmountTitle}`}
@@ -501,7 +514,7 @@ export function StorefrontExperienceView({
                     {group.currencyCode ? ` (${group.currencyCode})` : ""}
                   </span>
                   <strong>
-                    <MoneyText pairLabel={group.currencyCode ?? undefined} value={group.total} />
+                    <MoneyText value={formatPublicMoney(group.total, group.currencyCode, locale)} />
                   </strong>
                 </li>
               ))}
@@ -531,6 +544,7 @@ export function StorefrontExperienceView({
 export function StorefrontExperience({
   catalog,
   copy,
+  locale,
   layout,
   slug,
   standalonePaymentCurrencyCode,
@@ -538,6 +552,7 @@ export function StorefrontExperience({
 }: Readonly<{
   catalog: readonly PublicStorefrontCatalogGroup[];
   copy: StorefrontExperienceCopy;
+  locale: SupportedLocale;
   layout: string;
   slug: string;
   standalonePaymentCurrencyCode: string | null;
@@ -553,7 +568,8 @@ export function StorefrontExperience({
   const storageKey = storefrontCartStorageKey(slug);
   // The pay link carries the draft amount as prefill only, and only while it
   // matches the canonical amount grammar; the pay page and 9.2.1 revalidate it.
-  const payHref = `/store/${slug}/pay${isStorefrontCartAmount(amountDraft) ? `?amount=${encodeURIComponent(amountDraft)}` : ""}`;
+  const canonicalAmount = canonicalCustomAmount(amountDraft, standalonePaymentCurrencyCode);
+  const payHref = `/store/${slug}/pay${isStorefrontCartAmount(canonicalAmount) ? `?amount=${encodeURIComponent(canonicalAmount)}` : ""}`;
 
   useEffect(() => {
     const hydration = hydrateStorefrontCart(readStorage(storageKey), catalogProducts, standalonePayments);
@@ -565,9 +581,9 @@ export function StorefrontExperience({
       setItems(hydration.items);
       setRecovered(hydration.recovered);
       const storedAmount = hydration.items.find((item) => item.kind === "custom-amount");
-      if (storedAmount) setAmountDraft(storedAmount.amount);
+      if (storedAmount) setAmountDraft(standalonePaymentCurrencyCode === "BRL" ? formatStandaloneBrl(storedAmount.amount) : storedAmount.amount);
     });
-  }, [storageKey, catalogProducts, standalonePayments]);
+  }, [storageKey, catalogProducts, standalonePayments, standalonePaymentCurrencyCode]);
 
   const persist = (next: readonly StorefrontCartItem[]) => {
     setItems(next);
@@ -591,18 +607,19 @@ export function StorefrontExperience({
       checkoutPending={checkoutPending}
       copy={copy}
       items={items}
+      locale={locale}
       layout={layout}
       onAmountDraftChange={(value) => {
         setAmountDraft(value);
         setAmountInvalid(false);
       }}
       onAmountSubmit={() => {
-        if (!isStorefrontCartAmount(amountDraft)) {
+        if (!isStorefrontCartAmount(canonicalAmount)) {
           setAmountInvalid(true);
           return;
         }
         setAmountInvalid(false);
-        persist(setStorefrontCartCustomAmount(items, amountDraft));
+        persist(setStorefrontCartCustomAmount(items, canonicalAmount));
       }}
       onCheckout={() => {
         if (checkoutPending) return;

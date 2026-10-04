@@ -34,6 +34,7 @@ const copy: StorefrontExperienceCopy = {
   customAmountDescription: storefrontPtBR.storefrontCustomAmountDescription,
   customAmountInvalid: storefrontPtBR.storefrontCustomAmountInvalid,
   customAmountLabel: storefrontPtBR.storefrontCustomAmountLabel,
+  customAmountPlaceholder: storefrontPtBR.storefrontCustomAmountPlaceholder,
   customAmountPay: storefrontPtBR.storefrontCustomAmountPay,
   customAmountTitle: storefrontPtBR.storefrontCustomAmountTitle,
   customAmountUpdate: storefrontPtBR.storefrontCustomAmountUpdate,
@@ -108,6 +109,7 @@ describe("storefront experience view", () => {
     expect(markup).toContain('data-layout="boxed"');
     expect(textContent(markup).indexOf("Valor livre")).toBeLessThan(textContent(markup).indexOf("Cafés"));
     expect(markup).toContain(`src="/media/${"p".repeat(43)}"`);
+    expect(markup).toContain('placeholder="R$ 0,00"');
     expect(markup).toContain('value="0"');
     expect(markup).toContain('aria-label="Diminuir a quantidade"');
     expect(markup).toContain('aria-label="Aumentar a quantidade"');
@@ -142,7 +144,7 @@ describe("storefront experience view", () => {
 
   it("renders the populated cart with exact line totals grouped per currency, never summed across", () => {
     const markup = renderView({
-      amountDraft: "5",
+      amountDraft: "R$ 5,00",
       items: [
         { kind: "custom-amount", amount: "5" },
         { kind: "product", reference: coffeeReference, quantity: 2 },
@@ -151,18 +153,36 @@ describe("storefront experience view", () => {
     });
 
     expect(textContent(markup)).toContain("Atualizar o carrinho");
-    expect(markup).toContain('value="5"');
+    expect(markup).toContain('value="R$ 5,00"');
     expect(markup).toContain('value="2"');
-    expect(textContent(markup)).toContain("2 × 12.5 BRL");
+    expect(textContent(markup)).toContain("2 × R$ 12,50");
     expect(textContent(markup)).toContain("3 × 9");
-    expect(textContent(markup)).toContain("25 BRL");
+    expect(textContent(markup)).toContain("R$ 25,00");
     expect(textContent(markup)).toContain("Total (BRL)");
-    expect(textContent(markup)).toContain("30 BRL");
+    expect(textContent(markup)).toContain("R$ 30,00");
     expect(textContent(markup)).toContain("27");
     expect(textContent(markup)).not.toContain("57");
     expect(markup).toContain('aria-label="Remover: Café"');
     expect(markup).toContain('aria-label="Remover: Valor livre"');
     expect(textContent(markup)).not.toContain("Seu carrinho está vazio.");
+  });
+
+  it("formats exact cart totals without relabeling a distinct currency as BRL", () => {
+    const markup = renderView({
+      locale: "en",
+      catalog: [{
+        ...catalog[0],
+        products: [{ ...catalog[0].products[0], price: "1234.5", currencyCode: "USD" }],
+      }],
+      items: [
+        { kind: "product", reference: coffeeReference, quantity: 2 },
+        { kind: "custom-amount", amount: "1234567890.000001" },
+      ],
+    });
+
+    expect(textContent(markup)).toContain("2 × 1,234.50 USD");
+    expect(textContent(markup)).toContain("2,469.00 USD");
+    expect(textContent(markup)).toContain("R$ 1.234.567.890,000001");
   });
 
   it("announces the recovered-cart notice exactly once and flags an invalid custom amount", () => {
