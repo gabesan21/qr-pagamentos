@@ -66,6 +66,7 @@ describe("merchant catalog categories page", () => {
     const markup = renderToStaticMarkup(await CategoriesPage());
     expect(markup).toContain("Drinks");
     expect(markup).toContain('action="/product-categories"');
+    expect(markup.match(/maxLength="320"/gi)?.length).toBeGreaterThanOrEqual(6);
     expect(markup).toContain('value="edit"');
     expect(markup).toContain('value="deactivate"');
     expect(markup).toContain('name="replacementId"');

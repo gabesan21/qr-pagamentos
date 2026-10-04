@@ -80,14 +80,20 @@ export function CategoryRowActions({
         <input name="version" type="hidden" value={category.version} />
         <div className="grid gap-3 sm:grid-cols-2">
           <Input
+            maxLength={320}
             name="namePtBr"
-            onChange={(event) => setNamePtBr(event.target.value)}
+            onChange={(event) => {
+              if ([...event.target.value.trim()].length <= 160) setNamePtBr(event.target.value);
+            }}
             required
             value={namePtBr}
           />
           <Input
+            maxLength={320}
             name="nameEn"
-            onChange={(event) => setNameEn(event.target.value)}
+            onChange={(event) => {
+              if ([...event.target.value.trim()].length <= 160) setNameEn(event.target.value);
+            }}
             required
             value={nameEn}
           />

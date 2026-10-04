@@ -107,6 +107,44 @@ describe("owner product category route", () => {
     expect(deactivateResponse.headers.get("location")).toBe("/catalog/categories?categories=deactivate");
   });
 
+  it("returns only the new owner category for negotiated create and preserves native redirects", async () => {
+    const category = { id: "550e8400-e29b-41d4-a716-446655440000", namePtBr: "Cursos", nameEn: "Courses", active: true, version: 0 };
+    create.mockResolvedValueOnce(category);
+    const response = await POST(request(
+      { action: "create", namePtBr: "Cursos", nameEn: "Courses", ownerId: "forged" },
+      { origin: "http://local", host: "local", accept: "application/json" },
+    ));
+    expect(response.status).toBe(200);
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(await response.json()).toEqual({ id: category.id, namePtBr: "Cursos", nameEn: "Courses" });
+    expect(create).toHaveBeenCalledWith(owner, { namePtBr: "Cursos", nameEn: "Courses" });
+
+    const nativeResponse = await POST(request({ action: "create", namePtBr: "Cursos", nameEn: "Courses" }));
+    expect(nativeResponse.status).toBe(303);
+    expect(nativeResponse.headers.get("location")).toBe("/catalog/categories?categories=create");
+  });
+
+  it("keeps negotiated failures opaque, including protected errors and non-create requests", async () => {
+    create.mockRejectedValueOnce(new ProductCategoryConflictError());
+    const headers = { origin: "http://local", host: "local", accept: "application/json" };
+    const conflict = await POST(request({ action: "create", namePtBr: "A", nameEn: "B" }, headers));
+    expect(conflict.status).toBe(409);
+    expect(await conflict.json()).toEqual({ outcome: "conflict" });
+    create.mockRejectedValueOnce(new Error("private store message"));
+    const failed = await POST(request({ action: "create", namePtBr: "A", nameEn: "B" }, headers));
+    expect(failed.status).toBe(409);
+    expect(await failed.json()).toEqual({ outcome: "failed" });
+    requireOwnerFromCookie.mockRejectedValueOnce(new Error("protected"));
+    ownerProtectedMutationResponse.mockReturnValueOnce(new Response(null, { status: 401 }));
+    const protectedResponse = await POST(request({ action: "create" }, headers));
+    expect(protectedResponse.status).toBe(401);
+    expect(await protectedResponse.text()).toBe("");
+    update.mockRejectedValueOnce(new ProductCategoryConflictError());
+    const edit = await POST(request({ action: "edit" }, headers));
+    expect(edit.status).toBe(303);
+    expect(edit.headers.get("location")).toBe("/catalog/categories?categories=conflict");
+  });
+
   it("maps all unavailable category mutations to one opaque conflict redirect", async () => {
     update.mockRejectedValueOnce(new ProductCategoryConflictError());
     const response = await POST(request({

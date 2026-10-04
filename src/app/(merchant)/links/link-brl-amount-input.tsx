@@ -19,6 +19,8 @@ export function BrlAmountInput({
   id,
   invalid,
   onBlur,
+  placeholder,
+  required = true,
   onChange,
   value,
 }: Readonly<{
@@ -26,6 +28,8 @@ export function BrlAmountInput({
   ariaLabelledBy?: string;
   disabled: boolean;
   id: string;
+  placeholder?: string;
+  required?: boolean;
   invalid: boolean;
   onBlur?: () => void;
   onChange: (value: string) => void;
@@ -129,8 +133,9 @@ export function BrlAmountInput({
         event.preventDefault();
         replaceWithPaste(event.clipboardData.getData("text"));
       }}
+      placeholder={placeholder}
       ref={inputRef}
-      required
+      required={required}
       type="text"
       value={value}
     />
