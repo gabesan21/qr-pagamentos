@@ -59,8 +59,12 @@ function validateDisplayName(value: unknown, field: string): string | null {
   if (typeof value !== "string") throw new StorefrontSettingsValidationError(`${field} is invalid`);
   const name = value.normalize("NFC").trim();
   if (name === "") return null;
-  if (/[\r\n]/.test(name) || [...name].length > DISPLAY_NAME_MAXIMUM_LENGTH) {
-    throw new StorefrontSettingsValidationError(`${field} is invalid`);
+  if (/[\r\n]/.test(name)) throw new StorefrontSettingsValidationError(`${field} is invalid`);
+  let count = 0;
+  for (const _ of name) {
+    if (++count > DISPLAY_NAME_MAXIMUM_LENGTH) {
+      throw new StorefrontSettingsValidationError(`${field} is invalid`);
+    }
   }
   return name;
 }
@@ -184,8 +188,12 @@ export function createStorefrontSettingsService(store: StorefrontSettingsStore, 
       const current = requireSettings(await store.get(actor.id));
       const patch = validatePatch(input);
       const merged: StorefrontSettingsData = { ...current, ...patch };
-      if (merged.storefrontEnabled && merged.storefrontSlug === null) {
-        throw new StorefrontSettingsValidationError("Enabling a storefront requires a valid slug");
+      if (merged.storefrontEnabled && (
+        merged.storefrontSlug === null
+        || merged.storefrontDisplayNamePtBr === null
+        || merged.storefrontDisplayNameEn === null
+      )) {
+        throw new StorefrontSettingsValidationError("An enabled storefront requires a valid slug and both display names");
       }
       // New assignments gate on the registry; a stored code keeps reading
       // as-is even after its mapping is later deactivated.

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { flushSync } from "react-dom";
 import { CheckCircle2Icon } from "lucide-react";
 
@@ -51,8 +51,20 @@ type StorefrontSettingsManagementProps = Readonly<{
 }>;
 
 const ACCENT_COLOR_PATTERN = /^#[0-9A-Fa-f]{6}$/;
+const SLUG_PATTERN = /^[a-z0-9](-?[a-z0-9])*$/;
+const SLUG_MAXIMUM_LENGTH = 63;
+const DISPLAY_NAME_MAXIMUM_LENGTH = 160;
+const SINGLE_LINE_PATTERN = /[\r\n]/;
 const DEFAULT_STOREFRONT_LAYOUT = "boxed";
 const ACCEPTED_LOGO_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
+function invalidDisplayName(value: string): boolean {
+  if (SINGLE_LINE_PATTERN.test(value)) return true;
+  let count = 0;
+  for (const _ of value) {
+    if (++count > DISPLAY_NAME_MAXIMUM_LENGTH) return true;
+  }
+  return false;
+}
 
 // Stages the logo through the unchanged POST /storefront/logo multipart
 // endpoint and reads the opaque identifier from the followed 303 target
@@ -90,6 +102,9 @@ export function StorefrontSettingsManagement({
   const formId = "storefront-settings";
   const uploadFormId = "storefront-logo-upload";
   const fieldsetRef = useRef<HTMLFieldSetElement>(null);
+  const slugRef = useRef<HTMLInputElement>(null);
+  const ptNameRef = useRef<HTMLInputElement>(null);
+  const enNameRef = useRef<HTMLInputElement>(null);
 
   const prefill: StorefrontExtendedPrefill = {
     themeId: settings.storefrontThemeId ?? DEFAULT_STOREFRONT_THEME_ID,
@@ -109,7 +124,7 @@ export function StorefrontSettingsManagement({
   const [standalonePayments, setStandalonePayments] = useState(settings.storefrontStandalonePaymentsEnabled);
   const [storefrontEnabled, setStorefrontEnabled] = useState(settings.storefrontEnabled);
   const [pendingEnabled, setPendingEnabled] = useState(settings.storefrontEnabled);
-  const [enableGuardMessage, setEnableGuardMessage] = useState<string | null>(null);
+  const [attemptedEnable, setAttemptedEnable] = useState(false);
   const [toggleOpen, setToggleOpen] = useState(false);
   const [currencyCode, setCurrencyCode] = useState(prefill.defaultCurrencyCode);
 
@@ -118,33 +133,16 @@ export function StorefrontSettingsManagement({
     const form = fieldset?.closest("form");
     if (!(form instanceof HTMLFormElement)) return;
 
-    const observeSubmit = () => {
-      if (pending) return;
-      flushSync(() => { setPending(true); });
-    };
     const observePayload = (event: FormDataEvent) => {
       omitUnchangedExtendedFields(event.formData, prefill);
       if (fieldset) fieldset.disabled = true;
     };
-    const observeInput = (event: Event) => {
-      const target = event.target;
-      if (!(target instanceof HTMLInputElement || target instanceof HTMLSelectElement)) return;
-      if (target.name === "storefrontSlug") setSlug(target.value);
-      else if (target.name === "storefrontDisplayNamePtBr") setDisplayNamePtBr(target.value);
-      else if (target.name === "storefrontDisplayNameEn") setDisplayNameEn(target.value);
-    };
-    form.addEventListener("submit", observeSubmit);
     form.addEventListener("formdata", observePayload);
-    form.addEventListener("input", observeInput);
-    form.addEventListener("change", observeInput);
     return () => {
-      form.removeEventListener("submit", observeSubmit);
       form.removeEventListener("formdata", observePayload);
-      form.removeEventListener("input", observeInput);
-      form.removeEventListener("change", observeInput);
     };
-    // The prefill snapshot and pending flag are submission-time facts; the
-    // listeners intentionally bind the values from first render.
+    // The prefill snapshot is a submission-time fact; this listener
+    // intentionally binds the values from first render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -156,7 +154,19 @@ export function StorefrontSettingsManagement({
     "vault-blue": dictionary.storefrontThemeVaultBlue,
     "terminal-amber": dictionary.storefrontThemeTerminalAmber,
   };
-  const localizedName = (locale === "pt-BR" ? displayNamePtBr : displayNameEn).trim();
+  const normalizedPtName = displayNamePtBr.normalize("NFC").trim();
+  const normalizedEnName = displayNameEn.normalize("NFC").trim();
+  const identityRequired = storefrontEnabled || attemptedEnable;
+  const slugError = slug !== "" && (slug.length > SLUG_MAXIMUM_LENGTH || !SLUG_PATTERN.test(slug))
+    ? dictionary.storefrontSlugInvalid
+    : identityRequired && slug === "" ? dictionary.storefrontSlugRequired : null;
+  const ptNameError = invalidDisplayName(normalizedPtName)
+    ? dictionary.storefrontDisplayNamePtBrInvalid
+    : identityRequired && normalizedPtName === "" ? dictionary.storefrontDisplayNamePtBrRequired : null;
+  const enNameError = invalidDisplayName(normalizedEnName)
+    ? dictionary.storefrontDisplayNameEnInvalid
+    : identityRequired && normalizedEnName === "" ? dictionary.storefrontDisplayNameEnRequired : null;
+  const localizedName = locale === "pt-BR" ? normalizedPtName : normalizedEnName;
   const previewName = localizedName === "" ? dictionary.storefrontFallbackName : localizedName;
   const previewAccent = ACCENT_COLOR_PATTERN.test(accent) ? accent : null;
   const currencyDisabled = currencyChoices.length === 0;
@@ -176,25 +186,36 @@ export function StorefrontSettingsManagement({
     tooLarge: dictionary.storefrontLogoTooLarge,
   };
 
+  function focusInvalidIdentity(requireNames: boolean): boolean {
+    const invalidSlug = slug === "" ? requireNames : slug.length > SLUG_MAXIMUM_LENGTH || !SLUG_PATTERN.test(slug);
+    const invalidPtName = invalidDisplayName(normalizedPtName) || (requireNames && normalizedPtName === "");
+    const invalidEnName = invalidDisplayName(normalizedEnName) || (requireNames && normalizedEnName === "");
+    const firstInvalid = invalidPtName ? ptNameRef : invalidEnName ? enNameRef : invalidSlug ? slugRef : null;
+    firstInvalid?.current?.focus();
+    return firstInvalid !== null;
+  }
+
   function requestStorefrontEnabledChange(next: boolean) {
-    if (next) {
-      const missing: string[] = [];
-      if (slug.trim() === "") missing.push(dictionary.storefrontSlugLabel);
-      if (displayNamePtBr.trim() === "") missing.push(dictionary.storefrontDisplayNamePtBrLabel);
-      if (displayNameEn.trim() === "") missing.push(dictionary.storefrontDisplayNameEnLabel);
-      if (missing.length > 0) {
-        setEnableGuardMessage(dictionary.storefrontEnableGuardMissing.replace("{items}", missing.join(", ")));
-        return;
-      }
+    if (next && focusInvalidIdentity(true)) {
+      setAttemptedEnable(true);
+      return;
     }
-    setEnableGuardMessage(null);
+    setAttemptedEnable(false);
     setPendingEnabled(next);
     setToggleOpen(true);
   }
 
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    if (focusInvalidIdentity(storefrontEnabled)) {
+      event.preventDefault();
+      return;
+    }
+    flushSync(() => { setPending(true); });
+  }
+
   return (
     <>
-      <form action="/storefront" id={formId} method="post">
+      <form action="/storefront" id={formId} method="post" onSubmit={handleSubmit}>
       <fieldset aria-busy={pending || undefined} className="contents" ref={fieldsetRef}>
         <div className="space-y-8">
           <section aria-labelledby="settings-identity-heading" className="grid gap-4 scroll-mt-[calc(var(--top-bar-height)+var(--space-6))]" id="settings-identity">
@@ -209,32 +230,32 @@ export function StorefrontSettingsManagement({
             <Card>
               <CardContent>
                 <FieldGroup>
-                  <Field>
-                    <FieldLabel htmlFor="storefront-slug">{dictionary.storefrontSlugLabel}</FieldLabel>
-                    <Input aria-describedby="storefront-slug-help" defaultValue={settings.storefrontSlug ?? ""} id="storefront-slug" maxLength={63} name="storefrontSlug" />
-                    <FieldDescription id="storefront-slug-help">{dictionary.storefrontSlugHelp}</FieldDescription>
-                  </Field>
-                  <Field>
-                    <FieldLabel htmlFor="storefront-display-name-pt-br">{dictionary.storefrontDisplayNamePtBrLabel}</FieldLabel>
-                    <Input defaultValue={displayNamePtBr} id="storefront-display-name-pt-br" maxLength={160} name="storefrontDisplayNamePtBr" />
-                  </Field>
-                  <Field>
-                    <FieldLabel htmlFor="storefront-display-name-en">{dictionary.storefrontDisplayNameEnLabel}</FieldLabel>
-                    <Input defaultValue={displayNameEn} id="storefront-display-name-en" maxLength={160} name="storefrontDisplayNameEn" />
-                  </Field>
-                  {enableGuardMessage ? (
-                    <Alert role="alert" variant="destructive">
-                      <AlertDescription>{enableGuardMessage}</AlertDescription>
-                    </Alert>
-                  ) : null}
-                  <Field orientation="horizontal">
-                    <Switch
-                      checked={storefrontEnabled}
-                      id="storefront-enabled"
-                      onCheckedChange={requestStorefrontEnabledChange}
-                    />
-                    <FieldLabel htmlFor="storefront-enabled">{dictionary.storefrontEnabledLabel}</FieldLabel>
-                  </Field>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <Field data-invalid={ptNameError ? true : undefined}>
+                      <FieldLabel htmlFor="storefront-display-name-pt-br">{dictionary.storefrontDisplayNamePtBrLabel}</FieldLabel>
+                      <Input aria-describedby={ptNameError ? "storefront-display-name-pt-br-error" : undefined} aria-invalid={ptNameError ? true : undefined} defaultValue={displayNamePtBr} id="storefront-display-name-pt-br" name="storefrontDisplayNamePtBr" onChange={(event) => setDisplayNamePtBr(event.target.value)} ref={ptNameRef} />
+                      {ptNameError ? <FieldDescription className="text-destructive" id="storefront-display-name-pt-br-error" role="alert">{ptNameError}</FieldDescription> : null}
+                    </Field>
+                    <Field data-invalid={enNameError ? true : undefined}>
+                      <FieldLabel htmlFor="storefront-display-name-en">{dictionary.storefrontDisplayNameEnLabel}</FieldLabel>
+                      <Input aria-describedby={enNameError ? "storefront-display-name-en-error" : undefined} aria-invalid={enNameError ? true : undefined} defaultValue={displayNameEn} id="storefront-display-name-en" name="storefrontDisplayNameEn" onChange={(event) => setDisplayNameEn(event.target.value)} ref={enNameRef} />
+                      {enNameError ? <FieldDescription className="text-destructive" id="storefront-display-name-en-error" role="alert">{enNameError}</FieldDescription> : null}
+                    </Field>
+                    <Field data-invalid={slugError ? true : undefined}>
+                      <FieldLabel htmlFor="storefront-slug">{dictionary.storefrontSlugLabel}</FieldLabel>
+                      <Input aria-describedby={slugError ? "storefront-slug-help storefront-slug-error" : "storefront-slug-help"} aria-invalid={slugError ? true : undefined} defaultValue={settings.storefrontSlug ?? ""} id="storefront-slug" name="storefrontSlug" onChange={(event) => setSlug(event.target.value)} ref={slugRef} />
+                      <FieldDescription id="storefront-slug-help">{dictionary.storefrontSlugHelp}</FieldDescription>
+                      {slugError ? <FieldDescription className="text-destructive" id="storefront-slug-error" role="alert">{slugError}</FieldDescription> : null}
+                    </Field>
+                    <Field orientation="horizontal">
+                      <Switch
+                        checked={storefrontEnabled}
+                        id="storefront-enabled"
+                        onCheckedChange={requestStorefrontEnabledChange}
+                      />
+                      <FieldLabel htmlFor="storefront-enabled">{dictionary.storefrontEnabledLabel}</FieldLabel>
+                    </Field>
+                  </div>
                   {storefrontEnabled ? <input name="storefrontEnabled" readOnly type="hidden" value="true" /> : null}
                 </FieldGroup>
               </CardContent>
