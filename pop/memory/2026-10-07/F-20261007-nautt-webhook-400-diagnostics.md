@@ -3,7 +3,7 @@ task: F-20261007-nautt-webhook-400-diagnostics
 project: qr-pagamentos
 started: 2026-10-07
 finished: 2026-10-07
-commit: 48ab03f3
+commit: 0e7df147
 authorization: triagem de fix direto (regra 13); plano aprovado local://nautt-webhook-400-plan.md
 ---
 
