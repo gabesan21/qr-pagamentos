@@ -1,11 +1,11 @@
 import Link from "next/link";
 
 import { formatCatalogPrice } from "@/app/(merchant)/catalog/price-format";
-import { orderStateLabel } from "@/app/orders/order-state-views";
+import { CompactOutcomeBadge, CompactProviderStateBadge } from "@/app/orders/order-badges";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MoneyText } from "@/components/ui/money-text";
-import { LocalOutcomeBadge, ProviderStateBadge, StatusBadge, type LocalOutcome, type ProviderState } from "@/components/ui/status-badge";
+import { LocalOutcomeBadge, type LocalOutcome } from "@/components/ui/status-badge";
 import type { getDictionary } from "@/i18n/dictionaries";
 import type { SupportedLocale } from "@/i18n/locales";
 import {
@@ -25,29 +25,8 @@ function isNextControlFlowError(error: unknown): boolean {
   return typeof digest === "string" && (digest.startsWith("NEXT_REDIRECT") || digest === "NEXT_NOT_FOUND");
 }
 
-// Mirrors the admin orders directory's own provider-state label map
-// (src/app/admin/orders/page.tsx): same eight `PaymentLinkOrderState`
-// members, same localized labels, kept local because the directory page
-// does not export it.
-function providerStateLabels(dictionary: Dictionary): Readonly<Record<ProviderState, string>> {
-  return {
-    created: orderStateLabel(dictionary, "CREATED"),
-    pending: orderStateLabel(dictionary, "PENDING"),
-    confirmed: orderStateLabel(dictionary, "CONFIRMED"),
-    rejected: orderStateLabel(dictionary, "REJECTED"),
-    cancelled: orderStateLabel(dictionary, "CANCELLED"),
-    expired: orderStateLabel(dictionary, "EXPIRED"),
-    indeterminate: orderStateLabel(dictionary, "INDETERMINATE"),
-    refunded: orderStateLabel(dictionary, "REFUNDED"),
-  };
-}
-
-// A null provider state has no member in `ProviderState`; render it through
-// the neutral `StatusBadge` instead, mirroring the directory page's own
-// `ProviderStateCell`.
 function ProviderStateCell({ dictionary, order }: Readonly<{ dictionary: Dictionary; order: AdminOrderV2Summary }>) {
-  if (order.state === null) return <StatusBadge label={dictionary.orderV2DirectoryStateNone} tone="neutral" />;
-  return <ProviderStateBadge labels={providerStateLabels(dictionary)} state={order.state.toLowerCase() as ProviderState} />;
+  return <CompactProviderStateBadge dictionary={dictionary} state={order.state} />;
 }
 
 const localOutcomeLabels = (dictionary: Dictionary) =>
@@ -57,15 +36,11 @@ const localOutcomeLabels = (dictionary: Dictionary) =>
     none: dictionary.orderV2DirectoryOutcomeNone,
   }) satisfies Readonly<Record<LocalOutcome, string>>;
 
-// `LOCAL_CANCELLED` has no member in `LocalOutcome`; render it through the
-// domain-matching danger `StatusBadge` instead, mirroring the directory
-// page's own `LocalOutcomeCell`.
 function LocalOutcomeCell({ dictionary, order }: Readonly<{ dictionary: Dictionary; order: AdminOrderV2Summary }>) {
   if (order.currentLocalOutcome === null) {
     return <LocalOutcomeBadge labels={localOutcomeLabels(dictionary)} outcome="none" />;
   }
-  if (order.currentLocalOutcome.outcome === "LOCAL_CANCELLED") return <StatusBadge label={dictionary.orderV2DirectoryOutcomeCancelled} tone="danger" />;
-  return <LocalOutcomeBadge labels={localOutcomeLabels(dictionary)} outcome="finalized" />;
+  return <CompactOutcomeBadge dictionary={dictionary} outcome={order.currentLocalOutcome.outcome} />;
 }
 
 // Admin-local card, bound to a single payment link's identifier: it issues one

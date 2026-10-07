@@ -58,7 +58,6 @@ export default async function OrderV2DetailPage({
             <OrderV2DetailCard
               backHref="/orders"
               backLabel={dictionary.orderV2DetailBack}
-              compactBadges
               currencyCode={currencyCode}
               dictionary={dictionary}
               link={link}

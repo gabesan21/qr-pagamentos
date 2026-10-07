@@ -3,14 +3,13 @@ import Link from "next/link";
 
 import { ArrowRight } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
+import { CompactOutcomeBadge, CompactProviderStateBadge, CompactSourceBadge } from "@/app/orders/order-badges";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { MoneyText } from "@/components/ui/money-text";
 import { SimpleTabs } from "@/components/ui/simple-tabs";
 import { StatCard } from "@/components/ui/stat-card";
-import { ProviderStateBadge, StatusBadge, type ProviderState } from "@/components/ui/status-badge";
 import type { getDictionary } from "@/i18n/dictionaries";
 import type { SupportedLocale } from "@/i18n/locales";
 import type {
@@ -154,28 +153,6 @@ function KeyStatsGrid({
   );
 }
 
-// `OrderV2State` members are the upper-case mirror of `ProviderState`
-// (`order-v2-policies.ts`'s `PAYMENT_LINK_ORDER_STATES`); every member has a
-// matching lower-case `ProviderState`, so the cast is total, never partial.
-// Local copy, mirroring `src/app/admin/dashboard.tsx`'s comment: the merchant
-// surface never imports admin modules.
-function toProviderState(state: OrderV2State): ProviderState {
-  return state.toLowerCase() as ProviderState;
-}
-
-function providerStateBadgeLabels(dictionary: Dictionary): Readonly<Record<ProviderState, string>> {
-  return {
-    cancelled: dictionary.checkoutStateCancelled,
-    confirmed: dictionary.checkoutStateConfirmed,
-    created: dictionary.checkoutStateCreated,
-    expired: dictionary.checkoutStateExpired,
-    indeterminate: dictionary.checkoutStateIndeterminate,
-    pending: dictionary.checkoutStatePending,
-    refunded: dictionary.checkoutStateRefunded,
-    rejected: dictionary.checkoutStateRejected,
-  };
-}
-
 function ByBreakdownCard({
   dictionary,
   view,
@@ -212,18 +189,14 @@ function ByBreakdownCard({
                 content: (
                   <div className="space-y-2.5 pt-3">
                     {stateRows.map((row) => (
-                      <div className="flex items-center gap-3" key={row.state ?? "none"}>
-                        <div className="w-36 shrink-0">
-                          {row.state === null ? (
-                            <StatusBadge label={dictionary.merchantDashboardStateNone} tone="neutral" />
-                          ) : (
-                            <ProviderStateBadge labels={providerStateBadgeLabels(dictionary)} state={toProviderState(row.state)} />
-                          )}
+                      <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1.5" key={row.state ?? "none"}>
+                        <div className="col-span-2 sm:col-span-1 sm:w-32">
+                          <CompactProviderStateBadge dictionary={dictionary} state={row.state} />
                         </div>
-                        <div className="h-2 flex-1 overflow-hidden rounded-full bg-surface-2">
+                        <div className="col-span-3 row-start-2 h-2 overflow-hidden rounded-full bg-surface-2 sm:col-span-1 sm:row-start-auto">
                           <div className={`h-full bg-primary transition-all ${progressWidthClass((row.count / stateMax) * 100)}`} />
                         </div>
-                        <span className="w-8 text-right text-xs tabular-nums text-text-2">{row.count}</span>
+                        <span className="col-start-3 row-start-1 text-right text-xs tabular-nums text-text-2">{row.count}</span>
                       </div>
                     ))}
                   </div>
@@ -235,12 +208,14 @@ function ByBreakdownCard({
                 content: (
                   <div className="space-y-2.5 pt-3">
                     {originRows.map((row) => (
-                      <div className="flex items-center gap-3" key={row.source}>
-                        <span className="w-36 shrink-0 truncate text-sm font-medium">{sourceLabel(dictionary, row.source)}</span>
-                        <div className="h-2 flex-1 overflow-hidden rounded-full bg-surface-2">
+                      <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1.5" key={row.source}>
+                        <div className="col-span-2 sm:col-span-1 sm:w-32">
+                          <CompactSourceBadge dictionary={dictionary} source={row.source} />
+                        </div>
+                        <div className="col-span-3 row-start-2 h-2 overflow-hidden rounded-full bg-surface-2 sm:col-span-1 sm:row-start-auto">
                           <div className={`h-full bg-primary transition-all ${progressWidthClass((row.count / originMax) * 100)}`} />
                         </div>
-                        <span className="w-8 text-right text-xs tabular-nums text-text-2">{row.count}</span>
+                        <span className="col-start-3 row-start-1 text-right text-xs tabular-nums text-text-2">{row.count}</span>
                       </div>
                     ))}
                   </div>
@@ -415,13 +390,10 @@ function RecentOrderBadges({ dictionary, order }: Readonly<{ dictionary: Diction
   return (
     <>
       {order.state !== null ? (
-        <ProviderStateBadge labels={providerStateBadgeLabels(dictionary)} state={toProviderState(order.state)} />
+        <CompactProviderStateBadge dictionary={dictionary} state={order.state} />
       ) : null}
       {order.currentLocalOutcome !== null ? (
-        <StatusBadge
-          label={order.currentLocalOutcome.outcome === "LOCAL_FINALIZED" ? dictionary.merchantDashboardOutcomeFinalized : dictionary.merchantDashboardOutcomeCancelled}
-          tone={order.currentLocalOutcome.outcome === "LOCAL_FINALIZED" ? "success" : "danger"}
-        />
+        <CompactOutcomeBadge dictionary={dictionary} outcome={order.currentLocalOutcome.outcome} />
       ) : null}
     </>
   );
@@ -459,7 +431,7 @@ function RecentActivityCard({
                       {order.payerName ?? dictionary.merchantDashboardPayerUnknown} · {instant(order.createdAt)}
                     </span>
                   </span>
-                  <Badge variant="outline">{sourceLabel(dictionary, order.source)}</Badge>
+                  <CompactSourceBadge dictionary={dictionary} source={order.source} />
                   <RecentOrderBadges dictionary={dictionary} order={order} />
                   <MoneyText value={formatAmount(dictionary, order, locale)} />
                 </>

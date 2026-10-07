@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { CompactOutcomeBadge, CompactProviderStateBadge, CompactSourceBadge } from "@/app/orders/order-badges";
 import {
   formatOrderV2Instant,
   OrderV2PayerFacts,
-  OrderV2SourceBadge,
 } from "@/app/orders/order-v2-views";
 import { orderStateLabel } from "@/app/orders/order-state-views";
 import { WorkspaceHeading } from "@/app-shell/workspace-heading";
@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { CopyField } from "@/components/ui/copy-field";
 import { MoneyText } from "@/components/ui/money-text";
 import { Monogram } from "@/components/ui/monogram";
-import { LocalOutcomeBadge, ProviderStateBadge, StatusBadge, type LocalOutcome, type ProviderState } from "@/components/ui/status-badge";
+import { LocalOutcomeBadge, type LocalOutcome } from "@/components/ui/status-badge";
 import {
   DIRECTORY_INVALID_FILTERS_PARAM,
   DIRECTORY_INVALID_FILTERS_VALUE,
@@ -81,22 +81,6 @@ function OwnerCell({ dictionary, owner }: Readonly<{ dictionary: Dictionary; own
   );
 }
 
-// The eight registered `state` filter members share the domain badge's
-// closed lowercase union exactly; only the stateless member and casing
-// differ from the stored `PaymentLinkOrderState` vocabulary.
-function providerStateLabels(dictionary: Dictionary): Readonly<Record<ProviderState, string>> {
-  return {
-    created: orderStateLabel(dictionary, "CREATED"),
-    pending: orderStateLabel(dictionary, "PENDING"),
-    confirmed: orderStateLabel(dictionary, "CONFIRMED"),
-    rejected: orderStateLabel(dictionary, "REJECTED"),
-    cancelled: orderStateLabel(dictionary, "CANCELLED"),
-    expired: orderStateLabel(dictionary, "EXPIRED"),
-    indeterminate: orderStateLabel(dictionary, "INDETERMINATE"),
-    refunded: orderStateLabel(dictionary, "REFUNDED"),
-  };
-}
-
 // The registered `state` filter's label, including the explicit stateless
 // option the eight `PaymentLinkOrderState` members do not carry.
 function orderStateFilterLabel(
@@ -108,23 +92,15 @@ function orderStateFilterLabel(
     : orderStateLabel(dictionary, value);
 }
 
-// A null provider state has no member in `ProviderState`; it renders through
-// the neutral `StatusBadge` instead, same as the state filter's stateless
-// option.
 function ProviderStateCell({ dictionary, row }: Readonly<{ dictionary: Dictionary; row: AdminOrderV2Summary }>) {
-  if (row.state === null) return <StatusBadge label={dictionary.orderV2DirectoryStateNone} tone="neutral" />;
-  return <ProviderStateBadge labels={providerStateLabels(dictionary)} state={row.state.toLowerCase() as ProviderState} />;
+  return <CompactProviderStateBadge dictionary={dictionary} state={row.state} />;
 }
 
-// `LOCAL_CANCELLED` has no member in `LocalOutcome`; it renders through the
-// domain-matching danger `StatusBadge` instead, mirroring the tone
-// `orderV2OutcomeTone` already assigns it.
 function LocalOutcomeCell({ dictionary, row }: Readonly<{ dictionary: Dictionary; row: AdminOrderV2Summary }>) {
   if (row.currentLocalOutcome === null) {
     return <LocalOutcomeBadge labels={{ finalized: dictionary.orderV2DirectoryOutcomeFinalized, "in-progress": dictionary.orderV2DirectoryOutcomeNone, none: dictionary.orderV2DirectoryOutcomeNone } satisfies Readonly<Record<LocalOutcome, string>>} outcome="none" />;
   }
-  if (row.currentLocalOutcome.outcome === "LOCAL_CANCELLED") return <StatusBadge label={dictionary.orderV2DirectoryOutcomeCancelled} tone="danger" />;
-  return <LocalOutcomeBadge labels={{ finalized: dictionary.orderV2DirectoryOutcomeFinalized, "in-progress": dictionary.orderV2DirectoryOutcomeNone, none: dictionary.orderV2DirectoryOutcomeNone } satisfies Readonly<Record<LocalOutcome, string>>} outcome="finalized" />;
+  return <CompactOutcomeBadge dictionary={dictionary} outcome={row.currentLocalOutcome.outcome} />;
 }
 
 function AdminOrderV2Directory({
@@ -145,7 +121,7 @@ function AdminOrderV2Directory({
   const columns: readonly DataDirectoryColumn<AdminOrderV2Summary>[] = [
     { id: "owner", label: dictionary.adminOrderV2DirectoryColumnOwner, value: (row) => <OwnerCell dictionary={dictionary} owner={row.owner} /> },
     { id: "payer", label: dictionary.orderV2DirectoryColumnPayer, value: (row) => <OrderV2PayerFacts dictionary={dictionary} payer={row.payer} /> },
-    { id: "source", label: dictionary.orderV2DirectoryColumnSource, value: (row) => <OrderV2SourceBadge dictionary={dictionary} source={row.source} /> },
+    { id: "source", label: dictionary.orderV2DirectoryColumnSource, value: (row) => <CompactSourceBadge dictionary={dictionary} source={row.source} /> },
     {
       id: "link",
       label: dictionary.orderV2DirectoryColumnLink,

@@ -22,11 +22,10 @@ import { Timeline, type TimelineEntry } from "@/components/ui/timeline";
 import type { getDictionary } from "@/i18n/dictionaries";
 import type { SupportedLocale } from "@/i18n/locales";
 import type { OrderV2CommentView, OrderV2Summary, OrderV2View } from "@/orders/order-v2-view";
-import type { OrderV2Source, OrderV2State } from "@/orders/order-v2";
 import type { CheckoutDataPolicy, CustomerSnapshotV1 } from "@/orders/order-v2-policies";
 
 import { CompactOutcomeBadge, CompactProviderStateBadge, CompactSourceBadge } from "./order-badges";
-import { orderV2OutcomeLabel, orderV2OutcomeTone, orderV2SourceLabel, orderV2SourceTone, orderV2StateLabel, orderV2StateTone } from "./order-v2-labels";
+import { orderV2OutcomeLabel, orderV2StateLabel, orderV2StateTone } from "./order-v2-labels";
 
 type Dictionary = ReturnType<typeof getDictionary>;
 
@@ -42,19 +41,6 @@ const ORDER_V2_FAILURE_NOTICES = ["failed"] as const;
 
 export function formatOrderV2Instant(value: Date, locale: SupportedLocale) {
   return new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short", timeZone: "UTC" }).format(value);
-}
-
-export function OrderV2StateBadge({ dictionary, state }: Readonly<{ dictionary: Dictionary; state: OrderV2State | null }>) {
-  return <StatusBadge label={orderV2StateLabel(dictionary, state)} tone={orderV2StateTone(state)} />;
-}
-
-export function OrderV2OutcomeBadge({ dictionary, outcome }: Readonly<{ dictionary: Dictionary; outcome: OrderV2Summary["currentLocalOutcome"] }>) {
-  if (outcome === null) return <StatusBadge label={dictionary.orderV2DirectoryOutcomeNone} tone="neutral" />;
-  return <StatusBadge label={orderV2OutcomeLabel(dictionary, outcome.outcome)} tone={orderV2OutcomeTone(outcome.outcome)} />;
-}
-
-export function OrderV2SourceBadge({ dictionary, source }: Readonly<{ dictionary: Dictionary; source: OrderV2Source }>) {
-  return <StatusBadge label={orderV2SourceLabel(dictionary, source)} tone={orderV2SourceTone(source)} />;
 }
 
 function orderV2PolicyLabel(dictionary: Dictionary, policy: CheckoutDataPolicy) {
@@ -148,7 +134,6 @@ export function orderV2SummaryTitle(order: OrderV2Summary, locale: SupportedLoca
 export function OrderV2DetailCard({
   backHref,
   backLabel,
-  compactBadges,
   currencyCode,
   dictionary,
   link,
@@ -158,9 +143,6 @@ export function OrderV2DetailCard({
 }: Readonly<{
   backHref: string;
   backLabel?: string;
-  // Merchant detail opts into compact source/state badges (M-17.1); admin
-  // callers omit it and keep the full domain badges.
-  compactBadges?: boolean;
   // Merchant detail passes the order's resolved display code so amounts render
   // exactly with currency; admin callers omit it and keep the legacy
   // label-less formatter (no view DTO expansion).
@@ -316,9 +298,7 @@ export function OrderV2DetailCard({
               <div>
                 <p className="text-xs font-medium uppercase tracking-wide text-text-2">{dictionary.orderV2DetailProviderState}</p>
                 <div className="mt-1.5 flex items-center gap-2">
-                  {compactBadges
-                    ? <CompactProviderStateBadge dictionary={dictionary} state={order.state} />
-                    : <OrderV2StateBadge dictionary={dictionary} state={order.state} />}
+                  <CompactProviderStateBadge dictionary={dictionary} state={order.state} />
                   <time className="font-mono text-xs text-text-2">{formatOrderV2Instant(order.updatedAt, locale)}</time>
                 </div>
               </div>
@@ -330,9 +310,9 @@ export function OrderV2DetailCard({
               <div>
                 <p className="text-xs font-medium uppercase tracking-wide text-text-2">{dictionary.orderV2DetailLocalOutcome}</p>
                 <div className="mt-1.5">
-                  {compactBadges && order.currentLocalOutcome !== null
+                  {order.currentLocalOutcome !== null
                     ? <CompactOutcomeBadge dictionary={dictionary} outcome={order.currentLocalOutcome.outcome} />
-                    : <OrderV2OutcomeBadge dictionary={dictionary} outcome={order.currentLocalOutcome} />}
+                    : <StatusBadge label={dictionary.orderV2DirectoryOutcomeNone} tone="neutral" />}
                 </div>
                 <p className="mt-1 text-xs text-text-2">{dictionary.orderV2DetailRecordedByMerchant}</p>
               </div>
@@ -340,9 +320,7 @@ export function OrderV2DetailCard({
               <div>
                 <p className="text-xs font-medium uppercase tracking-wide text-text-2">{dictionary.orderV2DirectoryColumnSource}</p>
                 <div className="mt-1.5">
-                  {compactBadges
-                    ? <CompactSourceBadge dictionary={dictionary} source={order.source} />
-                    : <OrderV2SourceBadge dictionary={dictionary} source={order.source} />}
+                  <CompactSourceBadge dictionary={dictionary} source={order.source} />
                 </div>
               </div>
             </CardContent>

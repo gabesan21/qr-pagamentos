@@ -1,4 +1,3 @@
-import { StatusBadge, type StatusTone } from "@/components/ui/status-badge";
 import type { getDictionary } from "@/i18n/dictionaries";
 import type { PaymentLinkOrderState } from "@/orders/order-v2-policies";
 
@@ -13,15 +12,4 @@ export function orderStateLabel(dictionary: Dictionary, state: PaymentLinkOrderS
   if (state === "EXPIRED") return dictionary.checkoutStateExpired;
   if (state === "REFUNDED") return dictionary.checkoutStateRefunded;
   return dictionary.checkoutStateIndeterminate;
-}
-
-function orderStateTone(state: PaymentLinkOrderState): StatusTone {
-  if (state === "CONFIRMED") return "success";
-  if (state === "REJECTED" || state === "CANCELLED" || state === "EXPIRED") return "danger";
-  if (state === "PENDING" || state === "INDETERMINATE") return "info";
-  return "neutral";
-}
-
-export function OrderStateBadge({ dictionary, state }: Readonly<{ dictionary: Dictionary; state: PaymentLinkOrderState }>) {
-  return <StatusBadge label={orderStateLabel(dictionary, state)} tone={orderStateTone(state)} />;
 }

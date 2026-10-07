@@ -259,6 +259,16 @@ and an unresolved pair renders the bare localized exact amount and is never
 labeled BRL; its creation column renders a compact two-digit UTC date with the
 time on a second line.
 
+Operator order badges share `src/app/orders/order-badges.tsx` across the merchant
+dashboard, administrator directories, linked-order lists, and detail cards.
+Payment state, source, and non-null local outcome use the existing short
+`pt-BR`/`en` table labels, while the complete contextual label remains available
+to assistive technology. Provider payment state and merchant-recorded outcome
+remain separate facts; absent outcomes and unavailable states keep their
+existing meaning. Merchant breakdown bars occupy a separate full-width
+row below 640px so badges and counts cannot consume the bar's space. Checkout
+explanations, full filter labels, and timeline prose remain unchanged.
+
 ## Identity and asset boundary
 
 The supplied logo, texture, illustrations, fallbacks, and theme swatches are
