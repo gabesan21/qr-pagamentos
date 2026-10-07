@@ -6,7 +6,6 @@ vi.mock("server-only", () => ({}));
 const { logWebhookRejection } = vi.hoisted(() => ({ logWebhookRejection: vi.fn() }));
 vi.mock("../../observability/webhook-rejection-log", () => ({ logWebhookRejection }));
 
-import { parseRejectedWebhookIdentity, parseWebhookEnvelope } from "./webhook-envelope";
 import { createInMemoryWebhookDeliveryStore, type WebhookDeliveryStore } from "./webhook-delivery-store";
 import {
   createWebhookIntake,
@@ -31,6 +30,7 @@ const productionSignature = `sha256=${createHmac("sha256", secret).update(produc
 
 function harness(options: {
   reconcile?: WebhookOrderReconciler["reconcileWebhookOrder"];
+  repair?: WebhookOrderReconciler["repairWebhookSettlement"];
   ownerId?: string | null;
   deliveryStore?: WebhookDeliveryStore;
   now?: () => Date;
@@ -49,18 +49,15 @@ function harness(options: {
     await providerFetch();
     return { kind: "processed" as const, localOrderId: "550e8400-e29b-41d4-a716-446655440013" };
   });
+  const repair = options.repair ?? vi.fn(async () => ({ kind: "processed" as const, localOrderId: "550e8400-e29b-41d4-a716-446655440013" }));
   const resolveOrderOwner = vi.fn(options.resolveOrderOwner ?? (async () => options.ownerId === undefined ? ownerId : options.ownerId));
-  const parseEnvelope = vi.fn(parseWebhookEnvelope);
-  const parseRejectedIdentity = vi.fn(parseRejectedWebhookIdentity);
   const intake = createWebhookIntake({
     deliveryStore,
     resolveOrderOwner,
-    orderReconciler: { reconcileWebhookOrder: reconcile },
+    orderReconciler: { reconcileWebhookOrder: reconcile, repairWebhookSettlement: repair },
     now: options.now,
-    parseEnvelope,
-    parseRejectedIdentity,
   });
-  return { intake, reconcile, resolveOrderOwner, parseEnvelope, parseRejectedIdentity, deliveryStore, apiKeyDecrypt, providerFetch };
+  return { intake, reconcile, repair, resolveOrderOwner, deliveryStore, apiKeyDecrypt, providerFetch };
 }
 
 describe("webhook intake persisted UUID routing during signature bypass", () => {
@@ -70,8 +67,7 @@ describe("webhook intake persisted UUID routing during signature bypass", () => 
     "routes known orders despite missing or wrong signature: %s",
     async (signature) => {
       const effects = harness();
-      await expect(effects.intake({ rawBody: body, signature, delivery, event: "order.paid" })).resolves.toEqual({ status: 204 });
-      expect(effects.parseEnvelope).toHaveBeenCalledOnce();
+      await expect(effects.intake({ rawBody: body, signature })).resolves.toEqual({ status: 204 });
       expect(effects.resolveOrderOwner).toHaveBeenCalledWith(order);
       expect(effects.reconcile).toHaveBeenCalledWith(ownerId, order);
       expect(logWebhookRejection).not.toHaveBeenCalled();
@@ -81,15 +77,14 @@ describe("webhook intake persisted UUID routing during signature bypass", () => 
   it("routes to the persisted owner, not the owner whose secret signed the notification", async () => {
     const persistedOwner = "550e8400-e29b-41d4-a716-446655440099";
     const effects = harness({ ownerId: persistedOwner });
-    await expect(effects.intake({ rawBody: body, signature: validSignature, delivery, event: "order.paid" })).resolves.toEqual({ status: 204 });
-    expect(effects.deliveryStore.claim).toHaveBeenCalledWith(expect.objectContaining({ ownerId: persistedOwner, providerOrderUuid: order }));
+    await expect(effects.intake({ rawBody: body, signature: validSignature })).resolves.toEqual({ status: 204 });
     expect(effects.reconcile).toHaveBeenCalledWith(persistedOwner, order);
     expect(effects.reconcile).not.toHaveBeenCalledWith(ownerId, order);
   });
 
   it("acknowledges an unknown UUID without claim, credential decryption, or provider network", async () => {
     const effects = harness({ ownerId: null });
-    await expect(effects.intake({ rawBody: body, signature: null, delivery, event: "order.paid" })).resolves.toEqual({ status: 204 });
+    await expect(effects.intake({ rawBody: body, signature: null })).resolves.toEqual({ status: 204 });
     expect(effects.resolveOrderOwner).toHaveBeenCalledWith(order);
     expect(effects.deliveryStore.claim).not.toHaveBeenCalled();
     expect(effects.deliveryStore.bindOrder).not.toHaveBeenCalled();
@@ -101,7 +96,7 @@ describe("webhook intake persisted UUID routing during signature bypass", () => 
 
   it("rejects malformed JSON before resolving ownership", async () => {
     const effects = harness();
-    await expect(effects.intake({ rawBody: Buffer.from("{"), signature: null, delivery: null, event: null })).resolves.toEqual({ status: 400 });
+    await expect(effects.intake({ rawBody: Buffer.from("{"), signature: null })).resolves.toEqual({ status: 400 });
     expect(effects.resolveOrderOwner).not.toHaveBeenCalled();
     expect(effects.deliveryStore.claim).not.toHaveBeenCalled();
     expect(effects.reconcile).not.toHaveBeenCalled();
@@ -109,52 +104,75 @@ describe("webhook intake persisted UUID routing during signature bypass", () => 
 
   it("returns retryable failure when persisted ownership cannot be resolved", async () => {
     const effects = harness({ resolveOrderOwner: async () => { throw new Error("database unavailable"); } });
-    await expect(effects.intake({ rawBody: body, signature: null, delivery, event: "order.paid" })).resolves.toEqual({ status: 503 });
+    await expect(effects.intake({ rawBody: body, signature: null })).resolves.toEqual({ status: 503 });
     expect(effects.deliveryStore.claim).not.toHaveBeenCalled();
     expect(effects.reconcile).not.toHaveBeenCalled();
   });
 
-  it("rejects malformed evidence for unknown UUIDs without creating durable claims", async () => {
+  it("routes notification with malformed optional delivery evidence directly to reconciliation without claim or rejection", async () => {
     const rawBody = Buffer.from(JSON.stringify({
-      id: delivery, event: "order.paid", created_at: "2026-07-17T20:00:00Z",
-      data: { uuid: order, webhook_deliveries: [{ uuid: delivery, order_uuid: order, event_type: "order.paid", attempt_number: 0 }] },
+      id: "not-a-uuid", event: "order.unknown", created_at: "invalid-date",
+      data: { uuid: order, webhook_deliveries: null },
     }));
-    const effects = harness({ ownerId: null });
-    await expect(effects.intake({ rawBody, signature: null, delivery: null, event: null })).resolves.toEqual({ status: 400 });
+    const effects = harness();
+    await expect(effects.intake({ rawBody, signature: null })).resolves.toEqual({ status: 204 });
     expect(effects.resolveOrderOwner).toHaveBeenCalledWith(order);
     expect(effects.deliveryStore.claim).not.toHaveBeenCalled();
     expect(effects.deliveryStore.finalize).not.toHaveBeenCalled();
-    expect(effects.reconcile).not.toHaveBeenCalled();
+    expect(effects.reconcile).toHaveBeenCalledWith(ownerId, order);
+    expect(logWebhookRejection).not.toHaveBeenCalled();
   });
 
-  it("ignores changed non-identity payload bytes on a processed delivery without another provider GET", async () => {
+  it("acknowledges unknown UUID without claim or reconciliation even when optional metadata is invalid", async () => {
+    const rawBody = Buffer.from(JSON.stringify({
+      id: "not-a-uuid", event: "order.unknown", created_at: "invalid-date",
+      data: { uuid: order },
+    }));
+    const effects = harness({ ownerId: null });
+    await expect(effects.intake({ rawBody, signature: null })).resolves.toEqual({ status: 204 });
+    expect(effects.resolveOrderOwner).toHaveBeenCalledWith(order);
+    expect(effects.deliveryStore.claim).not.toHaveBeenCalled();
+    expect(effects.reconcile).not.toHaveBeenCalled();
+    expect(logWebhookRejection).not.toHaveBeenCalled();
+  });
+
+  it("ignores changed non-identity payload bytes on a processed delivery and calls repairWebhookSettlement with zero provider GET", async () => {
     const effects = harness();
-    await expect(effects.intake({ rawBody: body, signature: null, delivery, event: "order.paid" })).resolves.toEqual({ status: 204 });
+    await expect(effects.intake({ rawBody: body, signature: null })).resolves.toEqual({ status: 204 });
     const altered = Buffer.from(body.toString().replace('"paid"', '"finished"'));
-    await expect(effects.intake({ rawBody: altered, signature: "sha256=bad", delivery, event: "order.paid" })).resolves.toEqual({ status: 204 });
+    await expect(effects.intake({ rawBody: altered, signature: "sha256=bad" })).resolves.toEqual({ status: 204 });
     expect(effects.reconcile).toHaveBeenCalledOnce();
+    expect(effects.repair).toHaveBeenCalledOnce();
     expect(effects.deliveryStore.finalize).toHaveBeenCalledOnce();
   });
 
-  it("rejects reuse of a delivery by another persisted owner without cross-owner reconciliation", async () => {
-    const resolveOrderOwner = vi.fn().mockResolvedValueOnce(ownerId).mockResolvedValueOnce("550e8400-e29b-41d4-a716-446655440099");
-    const effects = harness({ resolveOrderOwner });
-    await expect(effects.intake({ rawBody: body, signature: null, delivery, event: "order.paid" })).resolves.toEqual({ status: 204 });
-    await expect(effects.intake({ rawBody: body, signature: null, delivery, event: "order.paid" })).resolves.toEqual({ status: 400 });
-    expect(effects.reconcile).toHaveBeenCalledExactlyOnceWith(ownerId, order);
+  it("handles delivery conflict by reconciling the target owner directly without overwriting occupied delivery evidence", async () => {
+    const deliveryStore = createInMemoryWebhookDeliveryStore();
+    // Occupy delivery with another owner/order
+    await deliveryStore.claim({
+      deliveryUuid: delivery,
+      ownerId: "550e8400-e29b-41d4-a716-446655440099",
+      providerOrderUuid: "550e8400-e29b-41d4-a716-446655440098",
+      eventType: "order.paid",
+      providerCreatedAt: new Date("2026-07-17T20:00:00Z"),
+      providerAttemptNumber: null,
+      payloadDigest: "d".repeat(64),
+      now: new Date("2026-07-17T20:00:00Z"),
+      leaseExpiresAt: new Date("2026-07-17T20:00:15Z"),
+    });
+
+    const effects = harness({ deliveryStore });
+    await expect(effects.intake({ rawBody: body, signature: null })).resolves.toEqual({ status: 204 });
+    expect(effects.reconcile).toHaveBeenCalledWith(ownerId, order);
+    expect(logWebhookRejection).not.toHaveBeenCalled();
   });
 });
 
 describe("webhook intake decisions, deadline, capacity, and cost", () => {
 describe("body-canonical production completion", () => {
-  it.each([
-    ["both absent", null, null],
-    ["delivery absent", null, "order.completed"],
-    ["event absent", productionDelivery, null],
-    ["both matching", productionDelivery, "order.completed"],
-  ])("accepts %s headers and durably deduplicates exact signed bytes", async (_name, deliveryHeader, eventHeader) => {
+  it("accepts valid notification and deduplicates duplicate delivery with local repair", async () => {
     const effects = harness();
-    const request = { rawBody: productionBody, signature: productionSignature, delivery: deliveryHeader, event: eventHeader };
+    const request = { rawBody: productionBody, signature: productionSignature };
     await expect(effects.intake(request)).resolves.toEqual({ status: 204 });
     await expect(effects.intake(request)).resolves.toEqual({ status: 204 });
     expect(effects.deliveryStore.claim).toHaveBeenCalledWith(expect.objectContaining({
@@ -163,84 +181,54 @@ describe("body-canonical production completion", () => {
     }));
     expect(effects.deliveryStore.finalize).toHaveBeenCalledOnce();
     expect(effects.reconcile).toHaveBeenCalledOnce();
-    expect(effects.reconcile).toHaveBeenCalledWith(ownerId, productionOrder);
+    expect(effects.repair).toHaveBeenCalledOnce();
   });
 
   it.each([
-    ["empty delivery", "", null],
-    ["invalid delivery", "not-a-uuid", null],
-    ["conflicting delivery", order, null],
-    ["empty event", null, ""],
-    ["invalid event", null, "order.unknown"],
-    ["conflicting event", null, "order.paid"],
-  ])("rejects present %s metadata", async (_name, deliveryHeader, eventHeader) => {
+    ["non-json body", Buffer.from("not-json"), "invalid_json"],
+    ["missing data", Buffer.from(JSON.stringify({ id: productionDelivery })), "schema_invalid"],
+    ["missing order uuid", Buffer.from(JSON.stringify({ data: { status: "finished" } })), "schema_invalid"],
+    ["invalid order uuid", Buffer.from(JSON.stringify({ data: { uuid: "not-a-uuid" } })), "schema_invalid"],
+  ])("rejects unrouteable %s with 400 and diagnostic log", async (_name, rawBody, expectedReason) => {
     const effects = harness();
-    await expect(effects.intake({ rawBody: productionBody, signature: productionSignature, delivery: deliveryHeader, event: eventHeader })).resolves.toEqual({ status: 400 });
+    await expect(effects.intake({ rawBody, signature: null })).resolves.toEqual({ status: 400 });
+    expect(logWebhookRejection).toHaveBeenCalledWith(expectedReason, null, null);
     expect(effects.reconcile).not.toHaveBeenCalled();
   });
 
-  it.each([
-    ["invalid id", { id: "bad" }],
-    ["invalid event", { event: "order.unknown" }],
-    ["invalid order UUID", { data: { uuid: "bad", status: "finished" } }],
-    ["invalid date", { created_at: "not-a-date" }],
-    ["invalid attempt evidence", { data: { uuid: productionOrder, status: "finished", webhook_deliveries: [{ uuid: productionDelivery, order_uuid: productionOrder, event_type: "order.completed", attempt_number: 0 }] } }],
-  ])("rejects authenticated %s in the body without provider GET", async (_name, override) => {
-    const rawBody = Buffer.from(JSON.stringify({ created_at: "2026-10-07T18:45:07.219896736+00:00", data: { uuid: productionOrder, status: "finished" }, event: "order.completed", id: productionDelivery, ...override }));
-    const signature = `sha256=${createHmac("sha256", secret).update(rawBody).digest("hex")}`;
-    const effects = harness();
-    await expect(effects.intake({ rawBody, signature, delivery: null, event: null })).resolves.toEqual({ status: 400 });
-    expect(effects.reconcile).not.toHaveBeenCalled();
-  });
+  it("reclaims historical REJECTED delivery row and completes reconciliation", async () => {
+    const deliveryStore = createInMemoryWebhookDeliveryStore();
+    const claim = await deliveryStore.claim({
+      deliveryUuid: productionDelivery,
+      ownerId,
+      providerOrderUuid: productionOrder,
+      eventType: "order.completed",
+      providerCreatedAt: new Date("2026-10-07T18:45:07.219Z"),
+      providerAttemptNumber: null,
+      payloadDigest: "e".repeat(64),
+      now: new Date("2026-10-07T18:45:00Z"),
+      leaseExpiresAt: new Date("2026-10-07T18:45:10Z"),
+    });
+    if (claim.kind !== "claimed") throw new Error("setup claim failed");
+    await deliveryStore.finalize({
+      deliveryUuid: productionDelivery,
+      attemptNumber: claim.attemptNumber,
+      decision: "REJECTED",
+      now: new Date("2026-10-07T18:45:01Z"),
+    });
 
-  it.each([
-    [null, null],
-    [productionDelivery, null],
-    [null, "order.completed"],
-  ])("durably rejects invalid attempt evidence with canonical absent-header identity", async (deliveryHeader, eventHeader) => {
-    const rawBody = Buffer.from(JSON.stringify({
-      id: productionDelivery, event: "order.completed", created_at: "2026-10-07T18:45:07.219896736+00:00",
-      data: { uuid: productionOrder, webhook_deliveries: [{ uuid: productionDelivery, order_uuid: productionOrder, event_type: "order.completed", attempt_number: 0 }] },
-    }));
-    const signature = `sha256=${createHmac("sha256", secret).update(rawBody).digest("hex")}`;
-    const effects = harness();
-    const request = { rawBody, signature, delivery: deliveryHeader, event: eventHeader };
-    await expect(effects.intake(request)).resolves.toEqual({ status: 400 });
-    await expect(effects.intake(request)).resolves.toEqual({ status: 400 });
-    expect(effects.deliveryStore.claim).toHaveBeenCalledWith(expect.objectContaining({
-      deliveryUuid: productionDelivery, eventType: "order.completed", providerOrderUuid: productionOrder,
-    }));
-    expect(effects.deliveryStore.finalize).toHaveBeenCalledOnce();
-    expect(effects.deliveryStore.finalize).toHaveBeenCalledWith(expect.objectContaining({ decision: "REJECTED" }));
-    expect(effects.reconcile).not.toHaveBeenCalled();
-  });
-
-  it("ignores a stale signature for altered bytes and still reconciles authoritative provider state", async () => {
-    const effects = harness();
-    const altered = Buffer.from(productionBody.toString().replace('"finished"', '"processing"'));
-    await expect(effects.intake({ rawBody: altered, signature: productionSignature, delivery: null, event: null })).resolves.toEqual({ status: 204 });
-    expect(effects.resolveOrderOwner).toHaveBeenCalledWith(productionOrder);
+    const effects = harness({ deliveryStore });
+    await expect(effects.intake({ rawBody: productionBody, signature: null })).resolves.toEqual({ status: 204 });
     expect(effects.reconcile).toHaveBeenCalledWith(ownerId, productionOrder);
   });
 });
 
-  it("durably rejects an authenticated contradictory envelope without a provider read", async () => {
-    const contradictory = Buffer.from(JSON.stringify({ id: "550e8400-e29b-41d4-a716-446655440099", event: "order.paid", created_at: "2026-07-17T20:00:00Z", data: { uuid: order } }));
-    const contradictorySignature = `sha256=${createHmac("sha256", secret).update(contradictory).digest("hex")}`;
-    const effects = harness();
-    const { intake, reconcile } = effects;
-    await expect(intake({ rawBody: contradictory, signature: contradictorySignature, delivery, event: "order.paid" })).resolves.toEqual({ status: 400 });
-    await expect(intake({ rawBody: contradictory, signature: contradictorySignature, delivery, event: "order.paid" })).resolves.toEqual({ status: 400 });
-    expect(reconcile).not.toHaveBeenCalled();
-    expect(effects.deliveryStore.finalize).toHaveBeenCalledTimes(1);
-    expect(effects.deliveryStore.finalize).toHaveBeenCalledWith(expect.objectContaining({ decision: "REJECTED" }));
-  });
-
-  it("processes once, then acknowledges a durable duplicate with zero GET", async () => {
-    const { intake, reconcile } = harness();
-    await expect(intake({ rawBody: body, signature: validSignature, delivery, event: "order.paid" })).resolves.toEqual({ status: 204 });
-    await expect(intake({ rawBody: body, signature: validSignature, delivery, event: "order.paid" })).resolves.toEqual({ status: 204 });
+  it("processes once, then acknowledges a durable duplicate with zero GET and runs repair", async () => {
+    const { intake, reconcile, repair } = harness();
+    await expect(intake({ rawBody: body, signature: validSignature })).resolves.toEqual({ status: 204 });
+    await expect(intake({ rawBody: body, signature: validSignature })).resolves.toEqual({ status: 204 });
     expect(reconcile).toHaveBeenCalledTimes(1);
+    expect(repair).toHaveBeenCalledTimes(1);
   });
 
   it("returns 503 for a live lease without reconciliation, API-key decryption, or provider fetch", async () => {
@@ -259,7 +247,7 @@ describe("body-canonical production completion", () => {
     });
     const effects = harness({ deliveryStore, now: () => now });
 
-    await expect(effects.intake({ rawBody: body, signature: validSignature, delivery, event: "order.paid" })).resolves.toEqual({ status: 503 });
+    await expect(effects.intake({ rawBody: body, signature: validSignature })).resolves.toEqual({ status: 503 });
 
     expect(effects.deliveryStore.claim).toHaveBeenCalledOnce();
     expect(effects.deliveryStore.bindOrder).not.toHaveBeenCalled();
@@ -284,15 +272,15 @@ describe("body-canonical production completion", () => {
       reconcile: providerGet,
     });
 
-    const first = effects.intake({ rawBody: body, signature: validSignature, delivery, event: "order.paid" });
+    const first = effects.intake({ rawBody: body, signature: validSignature });
     await vi.waitFor(() => expect(providerGet).toHaveBeenCalledOnce());
 
     currentTime = new Date(startedAt.getTime() + WEBHOOK_ACCEPTED_PROCESSING_BUDGET_MS - 1);
-    await expect(effects.intake({ rawBody: body, signature: validSignature, delivery, event: "order.paid" })).resolves.toEqual({ status: 503 });
+    await expect(effects.intake({ rawBody: body, signature: validSignature })).resolves.toEqual({ status: 503 });
     expect(providerGet).toHaveBeenCalledOnce();
 
     currentTime = new Date(startedAt.getTime() + WEBHOOK_PROCESSING_LEASE_MS + 1);
-    await expect(effects.intake({ rawBody: body, signature: validSignature, delivery, event: "order.paid" })).resolves.toEqual({ status: 204 });
+    await expect(effects.intake({ rawBody: body, signature: validSignature })).resolves.toEqual({ status: 204 });
     expect(providerGet).toHaveBeenCalledTimes(2);
 
     releaseHeld({ kind: "ignored" });
@@ -302,7 +290,7 @@ describe("body-canonical production completion", () => {
   it("durably ignores an unknown/final owner-bound order with zero provider GET", async () => {
     const reconcile = vi.fn().mockResolvedValue({ kind: "ignored" });
     const { intake } = harness({ reconcile });
-    await expect(intake({ rawBody: body, signature: validSignature, delivery, event: "order.paid" })).resolves.toEqual({ status: 204 });
+    await expect(intake({ rawBody: body, signature: validSignature })).resolves.toEqual({ status: 204 });
     expect(reconcile).toHaveBeenCalledOnce();
   });
 
@@ -341,7 +329,7 @@ describe("body-canonical production completion", () => {
     const notificationSignature = `sha256=${createHmac("sha256", secret).update(notification).digest("hex")}`;
     const effects = harness({ reconcile: service.reconcileWebhookOrder.bind(service) });
 
-    await expect(effects.intake({ rawBody: notification, signature: notificationSignature, delivery: providerStatus === "finished" ? null : delivery, event: providerStatus === "finished" ? null : "order.completed" })).resolves.toEqual({ status: 204 });
+    await expect(effects.intake({ rawBody: notification, signature: notificationSignature })).resolves.toEqual({ status: 204 });
 
     expect(apiKeyDecrypt).toHaveBeenCalledOnce();
     expect(getOrder).toHaveBeenCalledWith({ apiKey: "owner-api-key", orderUuid: initial.orderUuid });
@@ -353,8 +341,8 @@ describe("body-canonical production completion", () => {
   it("marks a provider failure retryable and performs at most one reconciliation per attempt", async () => {
     const reconcile = vi.fn().mockRejectedValueOnce(new Error("provider unavailable")).mockResolvedValueOnce({ kind: "ignored" });
     const { intake } = harness({ reconcile });
-    await expect(intake({ rawBody: body, signature: validSignature, delivery, event: "order.paid" })).resolves.toEqual({ status: 503 });
-    await expect(intake({ rawBody: body, signature: validSignature, delivery, event: "order.paid" })).resolves.toEqual({ status: 204 });
+    await expect(intake({ rawBody: body, signature: validSignature })).resolves.toEqual({ status: 503 });
+    await expect(intake({ rawBody: body, signature: validSignature })).resolves.toEqual({ status: 204 });
     expect(reconcile).toHaveBeenCalledTimes(2);
   });
 
@@ -396,7 +384,7 @@ describe("body-canonical production completion", () => {
       now: () => new Date(epoch + elapsedMs),
     });
 
-    await expect(effects.intake({ rawBody: body, signature: validSignature, delivery, event: "order.paid" })).resolves.toEqual({ status: 204 });
+    await expect(effects.intake({ rawBody: body, signature: validSignature })).resolves.toEqual({ status: 204 });
 
     expect(resolveOrderOwner).toHaveBeenCalledOnce();
     expect(providerGet).toHaveBeenCalledOnce();

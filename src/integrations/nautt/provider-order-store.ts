@@ -45,7 +45,7 @@ export interface ProviderOrderStore extends QuoteOwnershipStore {
   completeCreation(attempt: ClaimedOrderAttempt, order: NauttOrderView): Promise<StoredProviderOrder>;
   findPollable(ownerId: string, localOrderId: string): Promise<StoredProviderOrder | null>;
   findRecoverable(ownerId: string, localOrderId: string): Promise<StoredProviderOrder | null>;
-  findWebhookActionable(ownerId: string, providerOrderUuid: string): Promise<StoredProviderOrder | null>;
+  findWebhookOrder(ownerId: string, providerOrderUuid: string): Promise<StoredProviderOrder | null>;
   reconcile(observed: StoredProviderOrder, order: NauttOrderView): Promise<StoredProviderOrder>;
 }
 
@@ -215,15 +215,11 @@ export function createPrismaProviderOrderStore(prisma: PrismaClient): ProviderOr
       return row ? asStored(row) : null;
     },
 
-    async findWebhookActionable(ownerId, providerOrderUuid): Promise<StoredProviderOrder | null> {
+    async findWebhookOrder(ownerId, providerOrderUuid): Promise<StoredProviderOrder | null> {
       const row = await prisma.providerOrder.findFirst({
         where: {
           ownerId,
           providerOrderUuid,
-          OR: [
-            { creationState: "CREATED", status: { in: [...ACTIVE_ORDER_STATUSES] } },
-            { creationState: "INDETERMINATE", status: null },
-          ],
         },
       });
       return row ? asStored(row) : null;
@@ -349,12 +345,10 @@ export function createInMemoryProviderOrderStore(): ProviderOrderStore {
       const order = orders.get(localOrderId);
       return Promise.resolve(order?.ownerId === ownerId && order.creationState === "INDETERMINATE" && order.providerOrderUuid ? order : null);
     },
-    findWebhookActionable(ownerId, providerOrderUuid) {
+    findWebhookOrder(ownerId, providerOrderUuid) {
       const order = [...orders.values()].find((candidate) =>
         candidate.ownerId === ownerId &&
-        candidate.providerOrderUuid === providerOrderUuid &&
-        ((candidate.creationState === "CREATED" && ACTIVE_ORDER_STATUSES.includes(candidate.status as never)) ||
-          (candidate.creationState === "INDETERMINATE" && candidate.status === null)),
+        candidate.providerOrderUuid === providerOrderUuid,
       );
       return Promise.resolve(order ?? null);
     },

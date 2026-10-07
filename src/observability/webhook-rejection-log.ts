@@ -18,9 +18,7 @@ export type WebhookRejectionReason =
   | "missing"
   | "malformed"
   | "unmatched"
-  | WebhookEnvelopeRejectionReason
-  | "claim_identity_conflict";
-
+  | WebhookEnvelopeRejectionReason;
 const UNKNOWN_MARKER = "unknown";
 
 type WebhookRejectionRecord = Readonly<{

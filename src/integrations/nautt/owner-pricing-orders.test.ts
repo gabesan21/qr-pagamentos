@@ -448,7 +448,7 @@ describe("Commerce V2 attach and settlement wiring", () => {
 
     fetch.mockResolvedValueOnce(orderCreated());
     await service.createOrder(ownerA, { quoteUuid }, {}, orderV2Id);
-    const persisted = await store.findWebhookActionable(ownerA, orderUuid);
+    const persisted = await store.findWebhookOrder(ownerA, orderUuid);
     expect(persisted?.orderV2Id).toBe(orderV2Id);
   });
 
@@ -478,7 +478,7 @@ describe("Commerce V2 attach and settlement wiring", () => {
     }));
   });
 
-  it("never invokes the settlement hook for an unknown or final webhook order", async () => {
+  it("never invokes provider GET for an unknown order", async () => {
     const fetch = vi.fn();
     const credentials = fakeCredentialPort({ [ownerA]: keyA });
     const store = createInMemoryProviderOrderStore();
@@ -490,8 +490,49 @@ describe("Commerce V2 attach and settlement wiring", () => {
     expect(settlementHook).not.toHaveBeenCalled();
     expect(fetch).not.toHaveBeenCalled();
   });
-});
 
+  it("settles attached final-provider order with zero provider GET calls on both reconcile and repair", async () => {
+    const fetch = vi.fn();
+    const credentials = fakeCredentialPort({ [ownerA]: keyA });
+    const store = createInMemoryProviderOrderStore();
+    const adapter = createPricingOrdersAdapter({ fetch, now: () => T0 });
+    const settlementHook = vi.fn().mockResolvedValue(undefined);
+    const service = createOwnerPricingOrdersService(credentials, adapter, store, () => T0, settlementHook);
+
+    fetch.mockResolvedValueOnce(quoteSuccess());
+    const quote = await service.quote(ownerA, fiatQuoteInput);
+    fetch.mockResolvedValueOnce(orderCreated());
+    await service.createOrder(ownerA, { quoteUuid: quote.quoteUuid }, {}, orderV2Id);
+
+    // Transition stored order to final "finished" status
+    const created = await store.findWebhookOrder(ownerA, orderUuid);
+    if (!created) throw new Error("expected stored order");
+    await store.reconcile(created, {
+      orderUuid,
+      status: "finished",
+      fiatAmount: "1000.0000",
+      cryptoAmount: "196.0784",
+      nauttQuote: "5.1000",
+      expiresAt: new Date("2025-01-15T18:30:00+00:00"),
+      paymentMethod: "pix",
+    });
+    // reconcileWebhookOrder on final row should settle with zero fetch
+    await expect(service.reconcileWebhookOrder(ownerA, orderUuid)).resolves.toEqual({
+      kind: "processed",
+      localOrderId: created.id,
+    });
+    expect(fetch).toHaveBeenCalledTimes(2); // quote + create only
+    expect(settlementHook).toHaveBeenCalledTimes(1);
+
+    // repairWebhookSettlement should also settle with zero fetch
+    await expect(service.repairWebhookSettlement(ownerA, orderUuid)).resolves.toEqual({
+      kind: "processed",
+      localOrderId: created.id,
+    });
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(settlementHook).toHaveBeenCalledTimes(2);
+  });
+});
 describe("order V2 settlement hook", () => {
   const orderV2Id = "bb0e8400-e29b-41d4-a716-446655440018";
   const localOrderId = "cc0e8400-e29b-41d4-a716-446655440019";

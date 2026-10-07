@@ -23,8 +23,6 @@ export async function POST(request: Request): Promise<Response> {
       const result = await handleNauttWebhook({
         rawBody: bounded.body,
         signature: request.headers.get("x-nautt-signature"),
-        delivery: request.headers.get("x-nautt-delivery"),
-        event: request.headers.get("x-nautt-event"),
       });
       return empty(result.status);
     } catch {

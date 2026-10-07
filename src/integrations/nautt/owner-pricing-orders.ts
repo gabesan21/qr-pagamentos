@@ -18,7 +18,14 @@ import {
   type NauttQuoteAmount,
   NauttOrderValidationError,
 } from "./pricing-orders-client";
-import { createPrismaProviderOrderStore, storedOrderView, type ProviderOrderStore, type StoredProviderOrder } from "./provider-order-store";
+import {
+  ACTIVE_ORDER_STATUSES,
+  FINAL_ORDER_STATUSES,
+  createPrismaProviderOrderStore,
+  storedOrderView,
+  type ProviderOrderStore,
+  type StoredProviderOrder,
+} from "./provider-order-store";
 
 export class OwnerPricingOrdersError extends Error {
   constructor() {
@@ -193,14 +200,47 @@ export function createOwnerPricingOrdersService(
       if (!isUuid(ownerId) || !isUuid(providerOrderUuid)) throw new OwnerPricingOrdersError();
       let observed;
       try {
-        observed = await orderStore.findWebhookActionable(ownerId, providerOrderUuid);
+        observed = await orderStore.findWebhookOrder(ownerId, providerOrderUuid);
       } catch {
         throw new OwnerPricingOrdersError();
       }
       if (!observed) return { kind: "ignored" };
-      const persisted = await reconcileObserved(observed, credentialPort, adapter, orderStore);
-      if (settlementHook) await settlementHook(persisted);
-      return { kind: "processed", localOrderId: observed.id };
+
+      const isActiveCreated = observed.creationState === "CREATED" && ACTIVE_ORDER_STATUSES.includes(observed.status as never);
+      const isKnownRecovery = observed.creationState === "INDETERMINATE" && observed.status === null && observed.providerOrderUuid !== null;
+      if (isActiveCreated || isKnownRecovery) {
+        const persisted = await reconcileObserved(observed, credentialPort, adapter, orderStore);
+        if (settlementHook) await settlementHook(persisted);
+        return { kind: "processed", localOrderId: observed.id };
+      }
+
+      const isFinalCreated = observed.creationState === "CREATED" && FINAL_ORDER_STATUSES.includes(observed.status as never);
+      if (isFinalCreated) {
+        const settled = await settlePersistedOrder(observed, settlementHook);
+        return settled ? { kind: "processed", localOrderId: observed.id } : { kind: "ignored" };
+      }
+
+      throw new OwnerPricingOrdersError();
+    },
+
+    async repairWebhookSettlement(ownerId: string, providerOrderUuid: string): Promise<{ kind: "ignored" } | { kind: "processed"; localOrderId: string }> {
+      if (!isUuid(ownerId) || !isUuid(providerOrderUuid)) throw new OwnerPricingOrdersError();
+      let observed;
+      try {
+        observed = await orderStore.findWebhookOrder(ownerId, providerOrderUuid);
+      } catch {
+        throw new OwnerPricingOrdersError();
+      }
+      if (!observed) return { kind: "ignored" };
+
+      const isEligible = observed.creationState === "CREATED" &&
+        typeof observed.status === "string" &&
+        [...ACTIVE_ORDER_STATUSES, ...FINAL_ORDER_STATUSES].includes(observed.status as never) &&
+        Boolean(observed.orderV2Id);
+
+      if (!isEligible) return { kind: "ignored" };
+      const settled = await settlePersistedOrder(observed, settlementHook);
+      return settled ? { kind: "processed", localOrderId: observed.id } : { kind: "ignored" };
     },
   };
 }
@@ -251,7 +291,16 @@ async function reconcileObserved(
     apiKey = "";
   }
 }
-
+async function settlePersistedOrder(
+  observed: StoredProviderOrder,
+  settlementHook: OrderV2SettlementHook | undefined,
+): Promise<boolean> {
+  if (!settlementHook || !observed.orderV2Id || !observed.providerOrderUuid || !observed.status) {
+    return false;
+  }
+  await settlementHook(observed);
+  return true;
+}
 // The standalone/LINK V2 settle invocation: exact persisted identities and
 // versions from the authoritative reconciliation read, with the local
 // lifecycle fence read fresh immediately before the versioned CAS. A stale

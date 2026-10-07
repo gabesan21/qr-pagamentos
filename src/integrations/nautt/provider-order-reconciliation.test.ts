@@ -61,7 +61,7 @@ function harness(observed: StoredProviderOrder | null, reconciled = view()) {
     discardRefused: vi.fn(),
     findPollable: vi.fn().mockResolvedValue(observed),
     findRecoverable: vi.fn().mockResolvedValue(observed),
-    findWebhookActionable: vi.fn().mockResolvedValue(observed),
+    findWebhookOrder: vi.fn().mockResolvedValue(observed),
     reconcile: vi.fn().mockResolvedValue(row({
       creationState: "CREATED",
       status: reconciled.status,
@@ -104,7 +104,7 @@ describe("provider order transition lattice", () => {
       localOrderId,
     });
 
-    expect(store.findWebhookActionable).toHaveBeenCalledWith(ownerId, providerOrderUuid);
+    expect(store.findWebhookOrder).toHaveBeenCalledWith(ownerId, providerOrderUuid);
     expect(credentials.getDecryptedApiKey).toHaveBeenCalledOnce();
     expect(getOrder).toHaveBeenCalledOnce();
     expect(store.reconcile).toHaveBeenCalledOnce();

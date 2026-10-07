@@ -3,10 +3,8 @@ import "server-only";
 import { createHash } from "node:crypto";
 
 import {
-  parseRejectedWebhookIdentity,
-  parseWebhookEnvelope,
+  parseWebhookNotification,
   type WebhookEnvelopeRejectionReason,
-  type RejectedWebhookIdentity,
 } from "./webhook-envelope";
 import type { WebhookDeliveryStore } from "./webhook-delivery-store";
 import { logWebhookRejection } from "../../observability/webhook-rejection-log";
@@ -21,6 +19,9 @@ export type WebhookOrderReconciler = {
   reconcileWebhookOrder(ownerId: string, providerOrderUuid: string): Promise<
     { readonly kind: "ignored" } | { readonly kind: "processed"; readonly localOrderId: string }
   >;
+  repairWebhookSettlement(ownerId: string, providerOrderUuid: string): Promise<
+    { readonly kind: "ignored" } | { readonly kind: "processed"; readonly localOrderId: string }
+  >;
 };
 
 export type WebhookIntakeDependencies = {
@@ -28,67 +29,25 @@ export type WebhookIntakeDependencies = {
   readonly deliveryStore: WebhookDeliveryStore;
   readonly orderReconciler: WebhookOrderReconciler;
   readonly now?: () => Date;
-  readonly parseEnvelope?: typeof parseWebhookEnvelope;
-  readonly parseRejectedIdentity?: (rawBody: Buffer, delivery: string | null, event: string | null) => RejectedWebhookIdentity | null;
 };
-
 export function createWebhookIntake(dependencies: WebhookIntakeDependencies) {
   const now = dependencies.now ?? (() => new Date());
-  const parseEnvelope = dependencies.parseEnvelope ?? parseWebhookEnvelope;
-  const parseRejectedIdentity = dependencies.parseRejectedIdentity ?? parseRejectedWebhookIdentity;
   return async function intake(input: {
     readonly rawBody: Buffer;
     readonly signature: string | null;
-    readonly delivery: string | null;
-    readonly event: string | null;
   }): Promise<WebhookIntakeResult> {
-    const payloadDigest = createHash("sha256").update(input.rawBody).digest("hex");
     let rejectionReason: WebhookEnvelopeRejectionReason = "schema_invalid";
-    const envelope = parseEnvelope(input.rawBody, input.delivery, input.event, (reason) => {
+    const notification = parseWebhookNotification(input.rawBody, (reason) => {
       rejectionReason = reason;
     });
-    if (!envelope) {
-      const rejected = parseRejectedIdentity(input.rawBody, input.delivery, input.event);
-      if (rejected) {
-        let ownerId: string | null;
-        try {
-          ownerId = await dependencies.resolveOrderOwner(rejected.providerOrderUuid);
-        } catch {
-          return { status: 503 };
-        }
-        if (ownerId) {
-          const rejectedAt = now();
-          try {
-            const rejectedClaim = await dependencies.deliveryStore.claim({
-              deliveryUuid: rejected.deliveryUuid,
-              providerOrderUuid: rejected.providerOrderUuid,
-              eventType: rejected.eventType,
-              providerCreatedAt: rejected.createdAt,
-              providerAttemptNumber: null,
-              ownerId,
-              payloadDigest,
-              now: rejectedAt,
-              leaseExpiresAt: new Date(rejectedAt.getTime() + WEBHOOK_PROCESSING_LEASE_MS),
-            });
-            if (rejectedClaim.kind === "claimed") {
-              await dependencies.deliveryStore.finalize({
-                deliveryUuid: rejected.deliveryUuid,
-                attemptNumber: rejectedClaim.attemptNumber,
-                decision: "REJECTED",
-                now: now(),
-              });
-            }
-          } catch {
-            return { status: 503 };
-          }
-        }
-      }
-      logWebhookRejection(rejectionReason, rejected?.deliveryUuid ?? input.delivery, rejected?.eventType ?? input.event);
+    if (!notification) {
+      logWebhookRejection(rejectionReason, null, null);
       return { status: 400 };
     }
+
     let ownerId: string | null;
     try {
-      ownerId = await dependencies.resolveOrderOwner(envelope.providerOrderUuid);
+      ownerId = await dependencies.resolveOrderOwner(notification.providerOrderUuid);
     } catch {
       return { status: 503 };
     }
@@ -97,21 +56,27 @@ export function createWebhookIntake(dependencies: WebhookIntakeDependencies) {
 
     // USER-AUTHORIZED TEMPORARY PRODUCTION TEST: signature enforcement is disabled.
     // Restore only after UUID ownership resolution; never discover owners by HMAC matching.
-    // const secret = await dependencies.loadOwnerWebhookSecret(ownerId);
-    // if (!secret || !verifyWebhookSignature(input.rawBody, input.signature, secret)) {
-    //   logWebhookRejection("unmatched", envelope.deliveryUuid, envelope.eventType);
-    //   return { status: 401 };
-    // }
+    const envelope = notification.envelope;
+    if (!envelope) {
+      try {
+        await dependencies.orderReconciler.reconcileWebhookOrder(ownerId, notification.providerOrderUuid);
+        return { status: 204 };
+      } catch {
+        return { status: 503 };
+      }
+    }
+
+    const payloadDigest = createHash("sha256").update(input.rawBody).digest("hex");
     const acceptedAt = now();
     let claim;
     try {
       claim = await dependencies.deliveryStore.claim({
         deliveryUuid: envelope.deliveryUuid,
         ownerId,
-        providerOrderUuid: envelope.providerOrderUuid,
+        providerOrderUuid: notification.providerOrderUuid,
         eventType: envelope.eventType,
         providerCreatedAt: envelope.createdAt,
-        providerAttemptNumber: envelope.providerAttemptNumber,
+        providerAttemptNumber: null,
         payloadDigest,
         now: acceptedAt,
         leaseExpiresAt: new Date(acceptedAt.getTime() + WEBHOOK_PROCESSING_LEASE_MS),
@@ -119,15 +84,28 @@ export function createWebhookIntake(dependencies: WebhookIntakeDependencies) {
     } catch {
       return { status: 503 };
     }
-    if (claim.kind === "conflict") {
-      logWebhookRejection("claim_identity_conflict", envelope.deliveryUuid, envelope.eventType);
-      return { status: 400 };
-    }
-    if (claim.kind === "terminal") return { status: 204 };
+
     if (claim.kind === "busy") return { status: 503 };
+    if (claim.kind === "conflict") {
+      try {
+        await dependencies.orderReconciler.reconcileWebhookOrder(ownerId, notification.providerOrderUuid);
+        return { status: 204 };
+      } catch {
+        return { status: 503 };
+      }
+    }
+
+    if (claim.kind === "terminal") {
+      try {
+        await dependencies.orderReconciler.repairWebhookSettlement(ownerId, notification.providerOrderUuid);
+        return { status: 204 };
+      } catch {
+        return { status: 503 };
+      }
+    }
 
     try {
-      const reconciled = await dependencies.orderReconciler.reconcileWebhookOrder(ownerId, envelope.providerOrderUuid);
+      const reconciled = await dependencies.orderReconciler.reconcileWebhookOrder(ownerId, notification.providerOrderUuid);
       if (reconciled.kind === "processed") {
         await dependencies.deliveryStore.bindOrder(envelope.deliveryUuid, ownerId, reconciled.localOrderId);
       }

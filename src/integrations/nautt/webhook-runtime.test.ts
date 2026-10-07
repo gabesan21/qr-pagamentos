@@ -28,7 +28,7 @@ const rawBody = Buffer.from(JSON.stringify({
 describe("webhook runtime persisted UUID routing", () => {
   it("resolves unknown UUIDs with one owner-only database lookup and no secret, claim, or provider access", async () => {
     fixtures.findUnique.mockResolvedValue(null);
-    await expect(handleNauttWebhook({ rawBody, signature: null, delivery: null, event: null })).resolves.toEqual({ status: 204 });
+    await expect(handleNauttWebhook({ rawBody, signature: null })).resolves.toEqual({ status: 204 });
     expect(fixtures.findUnique).toHaveBeenCalledExactlyOnceWith({ where: { providerOrderUuid: orderUuid }, select: { ownerId: true } });
     expect(fixtures.secretRead).not.toHaveBeenCalled();
     expect(fixtures.claim).not.toHaveBeenCalled();
