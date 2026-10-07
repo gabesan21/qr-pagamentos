@@ -9,7 +9,6 @@ import {
   type RejectedWebhookIdentity,
 } from "./webhook-envelope";
 import type { WebhookDeliveryStore } from "./webhook-delivery-store";
-import { parseWebhookSignature, verifyWebhookOwner, type WebhookSecretCandidate } from "./webhook-signature";
 import { logWebhookRejection } from "../../observability/webhook-rejection-log";
 
 export const WEBHOOK_ACCEPTED_PROCESSING_BUDGET_MS = 14_500;
@@ -25,48 +24,24 @@ export type WebhookOrderReconciler = {
 };
 
 export type WebhookIntakeDependencies = {
-  readonly loadCandidates: () => Promise<readonly WebhookSecretCandidate[]>;
+  readonly resolveOrderOwner: (providerOrderUuid: string) => Promise<string | null>;
   readonly deliveryStore: WebhookDeliveryStore;
   readonly orderReconciler: WebhookOrderReconciler;
   readonly now?: () => Date;
   readonly parseEnvelope?: typeof parseWebhookEnvelope;
   readonly parseRejectedIdentity?: (rawBody: Buffer, delivery: string | null, event: string | null) => RejectedWebhookIdentity | null;
-  readonly verifyOwner?: typeof verifyWebhookOwner;
 };
 
 export function createWebhookIntake(dependencies: WebhookIntakeDependencies) {
   const now = dependencies.now ?? (() => new Date());
   const parseEnvelope = dependencies.parseEnvelope ?? parseWebhookEnvelope;
   const parseRejectedIdentity = dependencies.parseRejectedIdentity ?? parseRejectedWebhookIdentity;
-  const verifyOwner = dependencies.verifyOwner ?? verifyWebhookOwner;
   return async function intake(input: {
     readonly rawBody: Buffer;
     readonly signature: string | null;
     readonly delivery: string | null;
     readonly event: string | null;
   }): Promise<WebhookIntakeResult> {
-    // A null or syntactically invalid signature is rejected before any candidate secret is loaded or
-    // decrypted — unauthenticated input never spends decryption work.
-    if (!parseWebhookSignature(input.signature)) {
-      logWebhookRejection(input.signature === null ? "missing" : "malformed", input.delivery, input.event);
-      return { status: 401 };
-    }
-
-    let candidates: readonly WebhookSecretCandidate[];
-    try {
-      candidates = await dependencies.loadCandidates();
-    } catch {
-      // Unavailability, not authentication: no rejection record.
-      return { status: 503 };
-    }
-    const ownerId = verifyOwner(input.rawBody, input.signature, candidates);
-    candidates = [];
-    if (!ownerId) {
-      // Zero and multiple matches are deliberately indistinguishable — both log as "unmatched".
-      logWebhookRejection("unmatched", input.delivery, input.event);
-      return { status: 401 };
-    }
-
     const payloadDigest = createHash("sha256").update(input.rawBody).digest("hex");
     let rejectionReason: WebhookEnvelopeRejectionReason = "schema_invalid";
     const envelope = parseEnvelope(input.rawBody, input.delivery, input.event, (reason) => {
@@ -75,34 +50,58 @@ export function createWebhookIntake(dependencies: WebhookIntakeDependencies) {
     if (!envelope) {
       const rejected = parseRejectedIdentity(input.rawBody, input.delivery, input.event);
       if (rejected) {
-        const rejectedAt = now();
+        let ownerId: string | null;
         try {
-          const rejectedClaim = await dependencies.deliveryStore.claim({
-            deliveryUuid: rejected.deliveryUuid,
-            providerOrderUuid: rejected.providerOrderUuid,
-            eventType: rejected.eventType,
-            providerCreatedAt: rejected.createdAt,
-            providerAttemptNumber: null,
-            ownerId,
-            payloadDigest,
-            now: rejectedAt,
-            leaseExpiresAt: new Date(rejectedAt.getTime() + WEBHOOK_PROCESSING_LEASE_MS),
-          });
-          if (rejectedClaim.kind === "claimed") {
-            await dependencies.deliveryStore.finalize({
-              deliveryUuid: rejected.deliveryUuid,
-              attemptNumber: rejectedClaim.attemptNumber,
-              decision: "REJECTED",
-              now: now(),
-            });
-          }
+          ownerId = await dependencies.resolveOrderOwner(rejected.providerOrderUuid);
         } catch {
           return { status: 503 };
+        }
+        if (ownerId) {
+          const rejectedAt = now();
+          try {
+            const rejectedClaim = await dependencies.deliveryStore.claim({
+              deliveryUuid: rejected.deliveryUuid,
+              providerOrderUuid: rejected.providerOrderUuid,
+              eventType: rejected.eventType,
+              providerCreatedAt: rejected.createdAt,
+              providerAttemptNumber: null,
+              ownerId,
+              payloadDigest,
+              now: rejectedAt,
+              leaseExpiresAt: new Date(rejectedAt.getTime() + WEBHOOK_PROCESSING_LEASE_MS),
+            });
+            if (rejectedClaim.kind === "claimed") {
+              await dependencies.deliveryStore.finalize({
+                deliveryUuid: rejected.deliveryUuid,
+                attemptNumber: rejectedClaim.attemptNumber,
+                decision: "REJECTED",
+                now: now(),
+              });
+            }
+          } catch {
+            return { status: 503 };
+          }
         }
       }
       logWebhookRejection(rejectionReason, rejected?.deliveryUuid ?? input.delivery, rejected?.eventType ?? input.event);
       return { status: 400 };
     }
+    let ownerId: string | null;
+    try {
+      ownerId = await dependencies.resolveOrderOwner(envelope.providerOrderUuid);
+    } catch {
+      return { status: 503 };
+    }
+    // Unknown provider orders cannot select a merchant or trigger provider requests.
+    if (!ownerId) return { status: 204 };
+
+    // USER-AUTHORIZED TEMPORARY PRODUCTION TEST: signature enforcement is disabled.
+    // Restore only after UUID ownership resolution; never discover owners by HMAC matching.
+    // const secret = await dependencies.loadOwnerWebhookSecret(ownerId);
+    // if (!secret || !verifyWebhookSignature(input.rawBody, input.signature, secret)) {
+    //   logWebhookRejection("unmatched", envelope.deliveryUuid, envelope.eventType);
+    //   return { status: 401 };
+    // }
     const acceptedAt = now();
     let claim;
     try {

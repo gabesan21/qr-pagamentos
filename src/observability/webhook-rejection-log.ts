@@ -34,7 +34,7 @@ type WebhookRejectionRecord = Readonly<{
 }>;
 
 /**
- * Logs one redacted authentication or authenticated-input rejection.
+ * Logs one redacted authentication or envelope/claim rejection.
  * `delivery` and `eventType` are validated here, never trusted verbatim.
  */
 export function logWebhookRejection(

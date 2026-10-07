@@ -37,7 +37,15 @@ describe("POST /api/nautt/webhooks", () => {
     expect(handleNauttWebhook.mock.calls[0][0].rawBody).toEqual(Buffer.concat(chunks));
   });
 
-  it.each([400, 401, 503] as const)("returns an empty no-store %i intake outcome", async (status) => {
+  it.each([undefined, "sha256=bad", `sha256=${"0".repeat(64)}`])("forwards missing or wrong signatures without rejecting at the route: %s", async (signature) => {
+    const headers: Record<string, string> = signature === undefined ? {} : { "x-nautt-signature": signature };
+    const { request } = requestFromChunks([Buffer.from("{}")], headers);
+    const response = await POST(request);
+    expect(response.status).toBe(204);
+    expect(handleNauttWebhook).toHaveBeenCalledWith(expect.objectContaining({ signature: signature ?? null }));
+  });
+
+  it.each([400, 503] as const)("returns an empty no-store %i intake outcome", async (status) => {
     handleNauttWebhook.mockResolvedValueOnce({ status });
     const { request } = requestFromChunks([Buffer.from("{}")]);
 

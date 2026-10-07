@@ -126,6 +126,18 @@ async function recordObservation(tx: Prisma.TransactionClient, stored: StoredPro
   });
 }
 
+export function createPrismaProviderOrderOwnerResolver(prisma: PrismaClient) {
+  return async (providerOrderUuid: string): Promise<string | null> => {
+    // The global provider_order_provider_order_uuid_key constraint makes the
+    // persisted UUID authoritative for ownership, including terminal orders.
+    const order = await prisma.providerOrder.findUnique({
+      where: { providerOrderUuid },
+      select: { ownerId: true },
+    });
+    return order?.ownerId ?? null;
+  };
+}
+
 export function createPrismaProviderOrderStore(prisma: PrismaClient): ProviderOrderStore {
   return {
     async register(registration: QuoteOwnershipRegistration): Promise<boolean> {

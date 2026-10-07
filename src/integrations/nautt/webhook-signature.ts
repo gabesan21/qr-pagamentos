@@ -2,8 +2,6 @@ import "server-only";
 
 import { createHmac, timingSafeEqual } from "node:crypto";
 
-export type WebhookSecretCandidate = { readonly ownerId: string; readonly secret: Buffer };
-
 export type SignatureVerificationDependencies = {
   readonly compare?: (actual: Buffer, expected: Buffer) => boolean;
 };
@@ -16,26 +14,18 @@ export function parseWebhookSignature(value: string | null): Buffer | null {
   return match ? Buffer.from(match[1], "hex") : null;
 }
 
-export function verifyWebhookOwner(
+export function verifyWebhookSignature(
   rawBody: Buffer,
   signatureValue: string | null,
-  candidates: readonly WebhookSecretCandidate[],
+  secret: Buffer,
   dependencies: SignatureVerificationDependencies = {},
-): string | null {
-  const expected = parseWebhookSignature(signatureValue);
-  if (!expected || expected.length !== 32) {
-    for (const candidate of candidates) candidate.secret.fill(0);
-    return null;
+): boolean {
+  try {
+    const expected = parseWebhookSignature(signatureValue);
+    if (!expected || expected.length !== 32) return false;
+    const actual = createHmac("sha256", secret).update(rawBody).digest();
+    return (dependencies.compare ?? timingSafeEqual)(actual, expected);
+  } finally {
+    secret.fill(0);
   }
-  const compare = dependencies.compare ?? timingSafeEqual;
-  const matches: string[] = [];
-  for (const candidate of candidates) {
-    try {
-      const actual = createHmac("sha256", candidate.secret).update(rawBody).digest();
-      if (actual.length === expected.length && compare(actual, expected)) matches.push(candidate.ownerId);
-    } finally {
-      candidate.secret.fill(0);
-    }
-  }
-  return matches.length === 1 ? matches[0] : null;
 }
