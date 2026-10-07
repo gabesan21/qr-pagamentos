@@ -5,7 +5,7 @@ import { createHash } from "node:crypto";
 import {
   parseRejectedWebhookIdentity,
   parseWebhookEnvelope,
-  type NauttWebhookEnvelope,
+  type WebhookEnvelopeRejectionReason,
   type RejectedWebhookIdentity,
 } from "./webhook-envelope";
 import type { WebhookDeliveryStore } from "./webhook-delivery-store";
@@ -29,7 +29,7 @@ export type WebhookIntakeDependencies = {
   readonly deliveryStore: WebhookDeliveryStore;
   readonly orderReconciler: WebhookOrderReconciler;
   readonly now?: () => Date;
-  readonly parseEnvelope?: (rawBody: Buffer, delivery: string | null, event: string | null) => NauttWebhookEnvelope | null;
+  readonly parseEnvelope?: typeof parseWebhookEnvelope;
   readonly parseRejectedIdentity?: (rawBody: Buffer, delivery: string | null, event: string | null) => RejectedWebhookIdentity | null;
   readonly verifyOwner?: typeof verifyWebhookOwner;
 };
@@ -68,7 +68,10 @@ export function createWebhookIntake(dependencies: WebhookIntakeDependencies) {
     }
 
     const payloadDigest = createHash("sha256").update(input.rawBody).digest("hex");
-    const envelope = parseEnvelope(input.rawBody, input.delivery, input.event);
+    let rejectionReason: WebhookEnvelopeRejectionReason = "schema_invalid";
+    const envelope = parseEnvelope(input.rawBody, input.delivery, input.event, (reason) => {
+      rejectionReason = reason;
+    });
     if (!envelope) {
       const rejected = parseRejectedIdentity(input.rawBody, input.delivery, input.event);
       if (rejected) {
@@ -97,6 +100,7 @@ export function createWebhookIntake(dependencies: WebhookIntakeDependencies) {
           return { status: 503 };
         }
       }
+      logWebhookRejection(rejectionReason, rejected?.deliveryUuid ?? input.delivery, rejected?.eventType ?? input.event);
       return { status: 400 };
     }
     const acceptedAt = now();
@@ -116,7 +120,10 @@ export function createWebhookIntake(dependencies: WebhookIntakeDependencies) {
     } catch {
       return { status: 503 };
     }
-    if (claim.kind === "conflict") return { status: 400 };
+    if (claim.kind === "conflict") {
+      logWebhookRejection("claim_identity_conflict", envelope.deliveryUuid, envelope.eventType);
+      return { status: 400 };
+    }
     if (claim.kind === "terminal") return { status: 204 };
     if (claim.kind === "busy") return { status: 503 };
 

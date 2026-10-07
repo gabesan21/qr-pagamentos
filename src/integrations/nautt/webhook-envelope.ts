@@ -25,6 +25,19 @@ export type NauttWebhookEnvelope = {
 
 export type RejectedWebhookIdentity = Omit<NauttWebhookEnvelope, "providerAttemptNumber">;
 
+export type WebhookEnvelopeRejectionReason =
+  | "invalid_utf8"
+  | "invalid_json"
+  | "schema_invalid"
+  | "delivery_header_invalid"
+  | "delivery_header_mismatch"
+  | "event_header_invalid"
+  | "event_header_mismatch"
+  | "created_at_invalid"
+  | "webhook_deliveries_invalid"
+  | "attempt_number_invalid"
+  | "attempt_identity_mismatch";
+
 function record(value: unknown): Record<string, unknown> | null {
   return typeof value === "object" && value !== null && !Array.isArray(value) ? value as Record<string, unknown> : null;
 }
@@ -39,30 +52,49 @@ function parseJson(rawBody: Buffer): unknown {
   return JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(rawBody));
 }
 
-export function parseWebhookEnvelope(rawBody: Buffer, deliveryHeader: string | null, eventHeader: string | null): NauttWebhookEnvelope | null {
+export function parseWebhookEnvelope(
+  rawBody: Buffer,
+  deliveryHeader: string | null,
+  eventHeader: string | null,
+  onRejected?: (reason: WebhookEnvelopeRejectionReason) => void,
+): NauttWebhookEnvelope | null {
+  const reject = (reason: WebhookEnvelopeRejectionReason): null => {
+    onRejected?.(reason);
+    return null;
+  };
+  let decoded: string;
+  try {
+    decoded = new TextDecoder("utf-8", { fatal: true }).decode(rawBody);
+  } catch {
+    return reject("invalid_utf8");
+  }
   let payload: unknown;
   try {
-    payload = parseJson(rawBody);
+    payload = JSON.parse(decoded);
   } catch {
-    return null;
+    return reject("invalid_json");
   }
   const envelope = record(payload);
   const data = record(envelope?.data);
-  if (!envelope || !data || !isUuid(envelope.id) || typeof envelope.event !== "string" || !(NAUTT_WEBHOOK_EVENTS as readonly string[]).includes(envelope.event) || !isUuid(data.uuid)) return null;
-  if (deliveryHeader !== null && deliveryHeader !== envelope.id) return null;
-  if (eventHeader !== null && eventHeader !== envelope.event) return null;
+  if (!envelope || !data || !isUuid(envelope.id) || typeof envelope.event !== "string" || !(NAUTT_WEBHOOK_EVENTS as readonly string[]).includes(envelope.event) || !isUuid(data.uuid)) return reject("schema_invalid");
+  if (deliveryHeader !== null && deliveryHeader !== envelope.id) {
+    return reject(isUuid(deliveryHeader) ? "delivery_header_mismatch" : "delivery_header_invalid");
+  }
+  if (eventHeader !== null && eventHeader !== envelope.event) {
+    return reject((NAUTT_WEBHOOK_EVENTS as readonly string[]).includes(eventHeader) ? "event_header_mismatch" : "event_header_invalid");
+  }
   const createdAt = parseDate(envelope.created_at);
-  if (!createdAt) return null;
+  if (!createdAt) return reject("created_at_invalid");
   let providerAttemptNumber: number | null = null;
   if (data.webhook_deliveries !== undefined) {
-    if (!Array.isArray(data.webhook_deliveries)) return null;
+    if (!Array.isArray(data.webhook_deliveries)) return reject("webhook_deliveries_invalid");
     const matching = data.webhook_deliveries
       .map(record)
       .filter((item): item is Record<string, unknown> => item !== null)
       .find((item) => item.uuid === envelope.id);
     if (matching) {
-      if (!Number.isSafeInteger(matching.attempt_number) || (matching.attempt_number as number) <= 0) return null;
-      if (matching.order_uuid !== data.uuid || matching.event_type !== envelope.event) return null;
+      if (!Number.isSafeInteger(matching.attempt_number) || (matching.attempt_number as number) <= 0) return reject("attempt_number_invalid");
+      if (matching.order_uuid !== data.uuid || matching.event_type !== envelope.event) return reject("attempt_identity_mismatch");
       providerAttemptNumber = matching.attempt_number as number;
     }
   }
