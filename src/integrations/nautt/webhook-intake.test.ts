@@ -27,6 +27,10 @@ const order = "550e8400-e29b-41d4-a716-446655440012";
 const secret = "webhook-secret";
 const body = Buffer.from(JSON.stringify({ id: delivery, event: "order.paid", created_at: "2026-07-17T20:00:00Z", data: { uuid: order, status: "paid" } }));
 const validSignature = `sha256=${createHmac("sha256", secret).update(body).digest("hex")}`;
+const productionBody = Buffer.from('{"created_at":"2026-10-07T18:45:07.219896736+00:00","data":{"status":"finished","uuid":"4b72dc46-3335-4953-940d-0fc902505ce6"},"event":"order.completed","id":"53622c3f-f5ec-4ac0-95db-e7ea0edce2be"}');
+const productionDelivery = "53622c3f-f5ec-4ac0-95db-e7ea0edce2be";
+const productionOrder = "4b72dc46-3335-4953-940d-0fc902505ce6";
+const productionSignature = `sha256=${createHmac("sha256", secret).update(productionBody).digest("hex")}`;
 
 function harness(options: {
   reconcile?: WebhookOrderReconciler["reconcileWebhookOrder"];
@@ -89,6 +93,19 @@ describe("webhook intake authentication", () => {
     expect(logWebhookRejection).toHaveBeenCalledWith(reason, delivery, "order.paid");
   });
 
+  it.each([null, `sha256=${"0".repeat(64)}`])("rejects unauthenticated headerless production bytes before parse/write/GET: %s", async (signature) => {
+    const effects = harness();
+    await expect(effects.intake({ rawBody: productionBody, signature, delivery: null, event: null })).resolves.toEqual({ status: 401 });
+    expect(effects.parseEnvelope).not.toHaveBeenCalled();
+    expect(effects.parseRejectedIdentity).not.toHaveBeenCalled();
+    expect(effects.deliveryStore.claim).not.toHaveBeenCalled();
+    expect(effects.deliveryStore.bindOrder).not.toHaveBeenCalled();
+    expect(effects.deliveryStore.finalize).not.toHaveBeenCalled();
+    expect(effects.apiKeyDecrypt).not.toHaveBeenCalled();
+    expect(effects.providerFetch).not.toHaveBeenCalled();
+    expect(effects.reconcile).not.toHaveBeenCalled();
+  });
+
   it("rejects multiple matching owners without reconciliation", async () => {
     const effects = harness({ candidates: [{ ownerId, secret }, { ownerId: "550e8400-e29b-41d4-a716-446655440099", secret }] });
     const { intake, reconcile } = effects;
@@ -113,6 +130,85 @@ describe("webhook intake authentication", () => {
 });
 
 describe("webhook intake decisions, deadline, capacity, and cost", () => {
+describe("body-canonical production completion", () => {
+  it.each([
+    ["both absent", null, null],
+    ["delivery absent", null, "order.completed"],
+    ["event absent", productionDelivery, null],
+    ["both matching", productionDelivery, "order.completed"],
+  ])("accepts %s headers and durably deduplicates exact signed bytes", async (_name, deliveryHeader, eventHeader) => {
+    const effects = harness();
+    const request = { rawBody: productionBody, signature: productionSignature, delivery: deliveryHeader, event: eventHeader };
+    await expect(effects.intake(request)).resolves.toEqual({ status: 204 });
+    await expect(effects.intake(request)).resolves.toEqual({ status: 204 });
+    expect(effects.deliveryStore.claim).toHaveBeenCalledWith(expect.objectContaining({
+      deliveryUuid: productionDelivery, providerOrderUuid: productionOrder, eventType: "order.completed",
+      providerCreatedAt: new Date("2026-10-07T18:45:07.219Z"),
+    }));
+    expect(effects.deliveryStore.finalize).toHaveBeenCalledOnce();
+    expect(effects.reconcile).toHaveBeenCalledOnce();
+    expect(effects.reconcile).toHaveBeenCalledWith(ownerId, productionOrder);
+  });
+
+  it.each([
+    ["empty delivery", "", null],
+    ["invalid delivery", "not-a-uuid", null],
+    ["conflicting delivery", order, null],
+    ["empty event", null, ""],
+    ["invalid event", null, "order.unknown"],
+    ["conflicting event", null, "order.paid"],
+  ])("rejects present %s metadata", async (_name, deliveryHeader, eventHeader) => {
+    const effects = harness();
+    await expect(effects.intake({ rawBody: productionBody, signature: productionSignature, delivery: deliveryHeader, event: eventHeader })).resolves.toEqual({ status: 400 });
+    expect(effects.reconcile).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["invalid id", { id: "bad" }],
+    ["invalid event", { event: "order.unknown" }],
+    ["invalid order UUID", { data: { uuid: "bad", status: "finished" } }],
+    ["invalid date", { created_at: "not-a-date" }],
+    ["invalid attempt evidence", { data: { uuid: productionOrder, status: "finished", webhook_deliveries: [{ uuid: productionDelivery, order_uuid: productionOrder, event_type: "order.completed", attempt_number: 0 }] } }],
+  ])("rejects authenticated %s in the body without provider GET", async (_name, override) => {
+    const rawBody = Buffer.from(JSON.stringify({ created_at: "2026-10-07T18:45:07.219896736+00:00", data: { uuid: productionOrder, status: "finished" }, event: "order.completed", id: productionDelivery, ...override }));
+    const signature = `sha256=${createHmac("sha256", secret).update(rawBody).digest("hex")}`;
+    const effects = harness();
+    await expect(effects.intake({ rawBody, signature, delivery: null, event: null })).resolves.toEqual({ status: 400 });
+    expect(effects.reconcile).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    [null, null],
+    [productionDelivery, null],
+    [null, "order.completed"],
+  ])("durably rejects invalid attempt evidence with canonical absent-header identity", async (deliveryHeader, eventHeader) => {
+    const rawBody = Buffer.from(JSON.stringify({
+      id: productionDelivery, event: "order.completed", created_at: "2026-10-07T18:45:07.219896736+00:00",
+      data: { uuid: productionOrder, webhook_deliveries: [{ uuid: productionDelivery, order_uuid: productionOrder, event_type: "order.completed", attempt_number: 0 }] },
+    }));
+    const signature = `sha256=${createHmac("sha256", secret).update(rawBody).digest("hex")}`;
+    const effects = harness();
+    const request = { rawBody, signature, delivery: deliveryHeader, event: eventHeader };
+    await expect(effects.intake(request)).resolves.toEqual({ status: 400 });
+    await expect(effects.intake(request)).resolves.toEqual({ status: 400 });
+    expect(effects.deliveryStore.claim).toHaveBeenCalledWith(expect.objectContaining({
+      deliveryUuid: productionDelivery, eventType: "order.completed", providerOrderUuid: productionOrder,
+    }));
+    expect(effects.deliveryStore.finalize).toHaveBeenCalledOnce();
+    expect(effects.deliveryStore.finalize).toHaveBeenCalledWith(expect.objectContaining({ decision: "REJECTED" }));
+    expect(effects.reconcile).not.toHaveBeenCalled();
+  });
+
+  it("rejects a signature for altered bytes before parsing or mutating", async () => {
+    const effects = harness();
+    const altered = Buffer.from(productionBody.toString().replace('"finished"', '"processing"'));
+    await expect(effects.intake({ rawBody: altered, signature: productionSignature, delivery: null, event: null })).resolves.toEqual({ status: 401 });
+    expect(effects.parseEnvelope).not.toHaveBeenCalled();
+    expect(effects.deliveryStore.claim).not.toHaveBeenCalled();
+    expect(effects.reconcile).not.toHaveBeenCalled();
+  });
+});
+
   it("durably rejects an authenticated contradictory envelope without a provider read", async () => {
     const contradictory = Buffer.from(JSON.stringify({ id: "550e8400-e29b-41d4-a716-446655440099", event: "order.paid", created_at: "2026-07-17T20:00:00Z", data: { uuid: order } }));
     const contradictorySignature = `sha256=${createHmac("sha256", secret).update(contradictory).digest("hex")}`;
@@ -195,14 +291,14 @@ describe("webhook intake decisions, deadline, capacity, and cost", () => {
     expect(reconcile).toHaveBeenCalledOnce();
   });
 
-  it("excludes notification status from the authoritative reconciliation mutation", async () => {
+  it.each(["processing", "finished"] as const)("uses the owner-bound provider GET for authoritative %s state, never the notification", async (providerStatus) => {
     const quoteUuid = "550e8400-e29b-41d4-a716-446655440020";
     const providerStore = createInMemoryProviderOrderStore();
     await providerStore.register({ quoteUuid, ownerId, expiresAt: new Date("2026-07-17T21:00:00Z") });
     const claimed = await providerStore.claimForCreation({ quoteUuid, ownerId, now: new Date("2026-07-17T20:00:00Z") });
     if (claimed.kind !== "claimed") throw new Error("provider order fixture claim failed");
     const initial: NauttOrderView = {
-      orderUuid: order,
+      orderUuid: providerStatus === "finished" ? productionOrder : order,
       status: "new",
       fiatAmount: "100.00",
       cryptoAmount: "20.00",
@@ -213,7 +309,7 @@ describe("webhook intake decisions, deadline, capacity, and cost", () => {
     await providerStore.completeCreation(claimed.attempt, initial);
     const reconcileMutation = vi.fn(providerStore.reconcile.bind(providerStore));
     const observedStore = { ...providerStore, reconcile: reconcileMutation } satisfies ProviderOrderStore;
-    const authoritative = { ...initial, status: "processing" as const };
+    const authoritative = { ...initial, status: providerStatus };
     const getOrder = vi.fn().mockResolvedValue(authoritative);
     const apiKeyDecrypt = vi.fn().mockResolvedValue("owner-api-key");
     const service = createOwnerPricingOrdersService(
@@ -221,7 +317,7 @@ describe("webhook intake decisions, deadline, capacity, and cost", () => {
       { createQuote: vi.fn(), createOnrampOrder: vi.fn(), getOrder },
       observedStore,
     );
-    const notification = Buffer.from(JSON.stringify({
+    const notification = providerStatus === "finished" ? productionBody : Buffer.from(JSON.stringify({
       id: delivery,
       event: "order.completed",
       created_at: "2026-07-17T20:00:00Z",
@@ -230,12 +326,13 @@ describe("webhook intake decisions, deadline, capacity, and cost", () => {
     const notificationSignature = `sha256=${createHmac("sha256", secret).update(notification).digest("hex")}`;
     const effects = harness({ reconcile: service.reconcileWebhookOrder.bind(service) });
 
-    await expect(effects.intake({ rawBody: notification, signature: notificationSignature, delivery, event: "order.completed" })).resolves.toEqual({ status: 204 });
+    await expect(effects.intake({ rawBody: notification, signature: notificationSignature, delivery: providerStatus === "finished" ? null : delivery, event: providerStatus === "finished" ? null : "order.completed" })).resolves.toEqual({ status: 204 });
 
     expect(apiKeyDecrypt).toHaveBeenCalledOnce();
-    expect(getOrder).toHaveBeenCalledWith({ apiKey: "owner-api-key", orderUuid: order });
+    expect(getOrder).toHaveBeenCalledWith({ apiKey: "owner-api-key", orderUuid: initial.orderUuid });
     expect(reconcileMutation).toHaveBeenCalledWith(expect.objectContaining({ status: "new" }), authoritative);
-    expect(reconcileMutation).not.toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ status: "finished" }));
+    await expect(reconcileMutation.mock.results[0]?.value).resolves.toEqual(expect.objectContaining({ status: providerStatus }));
+    if (providerStatus === "processing") expect(reconcileMutation).not.toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ status: "finished" }));
   });
 
   it("marks a provider failure retryable and performs at most one reconciliation per attempt", async () => {

@@ -135,7 +135,11 @@ export function useCheckoutExperience<S extends string>(config: UseCheckoutExper
       try {
         const response = await fetch(`/api/payment-links/${identifier}/checkout/status`, { method: "POST", cache: "no-store", credentials: "omit", headers: { "content-type": "application/json" }, body: JSON.stringify({ statusCapability: capability }), signal });
         if (!isCurrent()) return;
-        if (response.status === 404) { setUnavailable(true); return; }
+        if (response.status === 404) {
+          setUnavailable(true);
+          polling.stop();
+          return;
+        }
         if (!response.ok) throw new Error("status-read-failed");
         const body: unknown = await response.json();
         if (!isCurrent()) return;
@@ -144,11 +148,13 @@ export function useCheckoutExperience<S extends string>(config: UseCheckoutExper
         setPayment(next);
         terminalRef.current = terminalStates.has(next.state);
         setStatusReadFailed(false);
-        if (!terminalRef.current) schedule(5_000);
+        if (terminalRef.current) polling.stop();
+        else schedule(5_000);
       } catch (error) {
-        // A failed read stops the loop (no reschedule, no backoff, no
-        // failure counter): the next 5 s tick never happens on its own.
-        if (isCurrent() && !(error instanceof DOMException && error.name === "AbortError")) setStatusReadFailed(true);
+        if (isCurrent() && !(error instanceof DOMException && error.name === "AbortError")) {
+          setStatusReadFailed(true);
+          polling.stop();
+        }
       }
     });
     polling.start();

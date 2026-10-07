@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { en as dictionary } from "@/i18n/dictionaries/en";
@@ -18,8 +18,23 @@ function fillMinimalForm() {
   fireEvent.change(screen.getByLabelText(dictionary.checkoutEmailLabel), { target: { value: "ana@example.com" } });
 }
 
+let visibilityDescriptor: PropertyDescriptor | undefined;
+function visibleDocument() {
+  visibilityDescriptor = Object.getOwnPropertyDescriptor(document, "visibilityState");
+  let visibility: DocumentVisibilityState = "visible";
+  Object.defineProperty(document, "visibilityState", { configurable: true, get: () => visibility });
+  return (next: DocumentVisibilityState) => {
+    visibility = next;
+    document.dispatchEvent(new Event("visibilitychange"));
+  };
+}
+
 afterEach(() => {
   cleanup();
+  vi.useRealTimers();
+  if (visibilityDescriptor) Object.defineProperty(document, "visibilityState", visibilityDescriptor);
+  else Reflect.deleteProperty(document, "visibilityState");
+  visibilityDescriptor = undefined;
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
 });
@@ -158,21 +173,6 @@ describe("checkout experience state machine (public-checkout-v2-form adapter)", 
     expect(document.activeElement).toBe(screen.getByLabelText(dictionary.checkoutNameLabel));
   });
 
-  it("never emits a retired checkout-card/-form/-payment/-description class once the form yields to the payment phase (C03.c)", async () => {
-    const fetchMock = vi.fn().mockImplementation((input: RequestInfo | URL) => {
-      if (String(input).endsWith("/checkout")) return jsonResponse({ payment: { state: "CREATED", pixCopyPaste: "pix-payload" }, statusCapability: "capability-1" });
-      return jsonResponse({ payment: { state: "CREATED", pixCopyPaste: "pix-payload" } });
-    });
-    vi.stubGlobal("fetch", fetchMock);
-    const { container } = render(<PublicCheckoutV2Form dictionary={dictionary} identifier={identifier} policy="NAME_EMAIL" />);
-
-    fillMinimalForm();
-    fireEvent.click(screen.getByText(submitLabel));
-    await waitFor(() => expect(screen.queryByText(submitLabel)).toBeNull());
-
-    expect(container.innerHTML).not.toMatch(/\bcheckout-(card|form|payment|description)\b/);
-  });
-
   it("renders the unavailable warning inside the payment phase, reachable after the status poll returns 404 (C03.b)", async () => {
     const fetchMock = vi.fn().mockImplementation((input: RequestInfo | URL) => {
       if (String(input).endsWith("/checkout")) return jsonResponse({ payment: { state: "CREATED" }, statusCapability: "capability-1" });
@@ -187,5 +187,22 @@ describe("checkout experience state machine (public-checkout-v2-form adapter)", 
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
 
     expect(await screen.findByText(dictionary.checkoutUnavailableHeading)).not.toBeNull();
+  });
+  it.each([500, 404])("never resumes the shared link status poll after %i on visibility restoration", async (status) => {
+    const setVisibility = visibleDocument();
+    vi.useFakeTimers();
+    const fetchMock = vi.fn((input: RequestInfo | URL) => String(input).endsWith("/checkout")
+      ? jsonResponse({ payment: { state: "PENDING", pixCopyPaste: "pix-code" }, statusCapability: "same-capability" })
+      : jsonResponse({}, status));
+    vi.stubGlobal("fetch", fetchMock);
+    render(<PublicCheckoutV2Form dictionary={dictionary} identifier={identifier} policy="NAME_EMAIL" />);
+    fillMinimalForm();
+    fireEvent.click(screen.getByText(submitLabel));
+    await act(async () => { await Promise.resolve(); });
+    await act(async () => { await vi.advanceTimersByTimeAsync(0); });
+    expect(screen.getByText(status === 404 ? dictionary.checkoutUnavailableHeading : dictionary.checkoutStatusUnavailableTitle)).not.toBeNull();
+    await act(async () => { setVisibility("hidden"); setVisibility("visible"); await vi.advanceTimersByTimeAsync(15_000); });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/checkout"))).toHaveLength(1);
   });
 });

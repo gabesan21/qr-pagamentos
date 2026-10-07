@@ -40,7 +40,6 @@ function parseJson(rawBody: Buffer): unknown {
 }
 
 export function parseWebhookEnvelope(rawBody: Buffer, deliveryHeader: string | null, eventHeader: string | null): NauttWebhookEnvelope | null {
-  if (!deliveryHeader || !isUuid(deliveryHeader) || !eventHeader || !(NAUTT_WEBHOOK_EVENTS as readonly string[]).includes(eventHeader)) return null;
   let payload: unknown;
   try {
     payload = parseJson(rawBody);
@@ -49,7 +48,9 @@ export function parseWebhookEnvelope(rawBody: Buffer, deliveryHeader: string | n
   }
   const envelope = record(payload);
   const data = record(envelope?.data);
-  if (!envelope || !data || envelope.id !== deliveryHeader || envelope.event !== eventHeader || !isUuid(data.uuid)) return null;
+  if (!envelope || !data || !isUuid(envelope.id) || typeof envelope.event !== "string" || !(NAUTT_WEBHOOK_EVENTS as readonly string[]).includes(envelope.event) || !isUuid(data.uuid)) return null;
+  if (deliveryHeader !== null && deliveryHeader !== envelope.id) return null;
+  if (eventHeader !== null && eventHeader !== envelope.event) return null;
   const createdAt = parseDate(envelope.created_at);
   if (!createdAt) return null;
   let providerAttemptNumber: number | null = null;
@@ -58,16 +59,16 @@ export function parseWebhookEnvelope(rawBody: Buffer, deliveryHeader: string | n
     const matching = data.webhook_deliveries
       .map(record)
       .filter((item): item is Record<string, unknown> => item !== null)
-      .find((item) => item.uuid === deliveryHeader);
+      .find((item) => item.uuid === envelope.id);
     if (matching) {
       if (!Number.isSafeInteger(matching.attempt_number) || (matching.attempt_number as number) <= 0) return null;
-      if (matching.order_uuid !== data.uuid || matching.event_type !== eventHeader) return null;
+      if (matching.order_uuid !== data.uuid || matching.event_type !== envelope.event) return null;
       providerAttemptNumber = matching.attempt_number as number;
     }
   }
   return {
-    deliveryUuid: deliveryHeader,
-    eventType: eventHeader as NauttWebhookEvent,
+    deliveryUuid: envelope.id,
+    eventType: envelope.event as NauttWebhookEvent,
     createdAt,
     providerOrderUuid: data.uuid,
     providerAttemptNumber,
@@ -75,7 +76,6 @@ export function parseWebhookEnvelope(rawBody: Buffer, deliveryHeader: string | n
 }
 
 export function parseRejectedWebhookIdentity(rawBody: Buffer, deliveryHeader: string | null, eventHeader: string | null): RejectedWebhookIdentity | null {
-  if (!deliveryHeader || !isUuid(deliveryHeader) || !eventHeader || !(NAUTT_WEBHOOK_EVENTS as readonly string[]).includes(eventHeader)) return null;
   let payload: unknown;
   try {
     payload = parseJson(rawBody);
@@ -85,10 +85,15 @@ export function parseRejectedWebhookIdentity(rawBody: Buffer, deliveryHeader: st
   const envelope = record(payload);
   const data = record(envelope?.data);
   const createdAt = parseDate(envelope?.created_at);
+  // Valid duplicate headers retain the existing rejection identity; absent ones
+  // use authenticated body metadata, never an invalid present header.
+  const deliveryUuid = deliveryHeader ?? envelope?.id;
+  const eventType = eventHeader ?? envelope?.event;
+  if (!isUuid(deliveryUuid) || typeof eventType !== "string" || !(NAUTT_WEBHOOK_EVENTS as readonly string[]).includes(eventType)) return null;
   if (!data || !isUuid(data.uuid) || !createdAt) return null;
   return {
-    deliveryUuid: deliveryHeader,
-    eventType: eventHeader as NauttWebhookEvent,
+    deliveryUuid,
+    eventType: eventType as NauttWebhookEvent,
     createdAt,
     providerOrderUuid: data.uuid,
   };

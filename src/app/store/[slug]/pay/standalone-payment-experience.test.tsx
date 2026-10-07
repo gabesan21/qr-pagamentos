@@ -1,5 +1,6 @@
 import { createRequire } from "node:module";
 import { renderToStaticMarkup } from "react-dom/server";
+import { act } from "react";
 import { afterAll, afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
@@ -21,7 +22,7 @@ import {
   type StandalonePaymentState,
 } from "./standalone-payment-experience";
 
-type JSDOMWindow = Readonly<{ document: Document; navigator: Navigator }>;
+type JSDOMWindow = Readonly<{ document: Document; navigator: Navigator; Event: typeof Event }>;
 type JSDOMConstructor = new (markup: string, options: Readonly<{ url: string }>) => Readonly<{ window: JSDOMWindow }>;
 const localRequire = createRequire(import.meta.url);
 const { JSDOM } = localRequire("jsdom") as Readonly<{ JSDOM: JSDOMConstructor }>;
@@ -29,12 +30,14 @@ const interactionDom = new JSDOM("<!doctype html><html><body></body></html>", { 
 const originalDocument = Object.getOwnPropertyDescriptor(globalThis, "document");
 const originalNavigator = Object.getOwnPropertyDescriptor(globalThis, "navigator");
 const originalWindow = Object.getOwnPropertyDescriptor(globalThis, "window");
+const originalActEnvironment = Object.getOwnPropertyDescriptor(globalThis, "IS_REACT_ACT_ENVIRONMENT");
 Object.defineProperty(globalThis, "document", { configurable: true, writable: true, value: interactionDom.window.document });
 Object.defineProperty(globalThis, "navigator", { configurable: true, writable: true, value: interactionDom.window.navigator });
 Object.defineProperty(globalThis, "window", { configurable: true, writable: true, value: interactionDom.window });
+Object.defineProperty(globalThis, "IS_REACT_ACT_ENVIRONMENT", { configurable: true, writable: true, value: true });
 const { cleanup, fireEvent, render, waitFor } = localRequire("@testing-library/react") as typeof import("@testing-library/react");
 
-function restoreGlobalDescriptor(name: "document" | "navigator" | "window", descriptor: PropertyDescriptor | undefined) {
+function restoreGlobalDescriptor(name: "document" | "navigator" | "window" | "IS_REACT_ACT_ENVIRONMENT", descriptor: PropertyDescriptor | undefined) {
   if (descriptor) Object.defineProperty(globalThis, name, descriptor);
   else Reflect.deleteProperty(globalThis, name);
 }
@@ -43,6 +46,7 @@ afterAll(() => {
   restoreGlobalDescriptor("document", originalDocument);
   restoreGlobalDescriptor("navigator", originalNavigator);
   restoreGlobalDescriptor("window", originalWindow);
+  restoreGlobalDescriptor("IS_REACT_ACT_ENVIRONMENT", originalActEnvironment);
 });
 
 const dictionary = getDictionary("en");
@@ -246,10 +250,25 @@ describe("standalonePaymentFromResponse", () => {
 });
 
 describe("standalone payment experience", () => {
+  let visibilityDescriptor: PropertyDescriptor | undefined;
   afterEach(() => {
     cleanup();
+    vi.useRealTimers();
+    if (visibilityDescriptor) Object.defineProperty(document, "visibilityState", visibilityDescriptor);
+    else Reflect.deleteProperty(document, "visibilityState");
+    visibilityDescriptor = undefined;
     vi.unstubAllGlobals();
   });
+
+  function visibleDocument() {
+    visibilityDescriptor = Object.getOwnPropertyDescriptor(document, "visibilityState");
+    let visibility: DocumentVisibilityState = "visible";
+    Object.defineProperty(document, "visibilityState", { configurable: true, get: () => visibility });
+    return (next: DocumentVisibilityState) => {
+      visibility = next;
+      document.dispatchEvent(new interactionDom.window.Event("visibilitychange"));
+    };
+  }
 
   it("formats BRL through exact string transformation and keeps non-BRL values unchanged", () => {
     expect(formatStandaloneBrl("1234567.123456")).toBe("R$ 1.234.567,123456");
@@ -479,4 +498,49 @@ describe("standalone payment experience", () => {
     ]);
     view.unmount();
   });
+  it("polls a submitted prefilled NONE payment every five seconds until confirmation, then never resumes", async () => {
+    const setVisibility = visibleDocument();
+    vi.useFakeTimers();
+    let reads = 0;
+    const fetchMock = vi.fn((url: string) => url.endsWith("/status")
+      ? Promise.resolve(new Response(JSON.stringify({ payment: reads++ < 2
+        ? { state: "PENDING", pixCopyPaste: "pix-code" }
+        : { state: "CONFIRMED" } }), { status: 200 }))
+      : Promise.resolve(new Response(JSON.stringify({ payment: { state: "PENDING", pixCopyPaste: "pix-code" }, statusCapability: "same-capability" }), { status: 201 })));
+    vi.stubGlobal("fetch", fetchMock);
+    const view = render(<StandalonePaymentExperience currencyCode="BRL" dictionary={dictionary} policy="NONE" prefillAmount="12.5" slug="ana-store" />);
+    expect(fetchMock).not.toHaveBeenCalled();
+    fireEvent.click(view.getByRole("button", { name: dictionary.checkoutSubmit }));
+    await act(async () => { await Promise.resolve(); });
+    await act(async () => { await vi.advanceTimersByTimeAsync(0); });
+    expect(view.getByRole("button", { name: dictionary.checkoutCopyPix })).toBeTruthy();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    for (let read = 2; read <= 3; read++) {
+      await act(async () => { await vi.advanceTimersByTimeAsync(5_000); });
+      expect(fetchMock).toHaveBeenCalledTimes(read + 1);
+    }
+    expect(view.getAllByText(dictionary.checkoutOutcomeConfirmedTitle).length).toBeGreaterThan(0);
+    expect(view.queryByRole("button", { name: dictionary.checkoutCopyPix })).toBeNull();
+    expect(fetchMock.mock.calls.filter(([url]) => url.endsWith("/checkout"))).toHaveLength(1);
+    await act(async () => { setVisibility("hidden"); setVisibility("visible"); await vi.advanceTimersByTimeAsync(15_000); });
+    expect(fetchMock).toHaveBeenCalledTimes(4);
+  });
+
+  it.each([500, 404])("stops standalone status reads after %i even across visibility changes", async (status) => {
+    const setVisibility = visibleDocument();
+    vi.useFakeTimers();
+    const fetchMock = vi.fn((url: string) => url.endsWith("/status")
+      ? Promise.resolve(new Response(null, { status }))
+      : Promise.resolve(new Response(JSON.stringify({ payment: { state: "PENDING", pixCopyPaste: "pix-code" }, statusCapability: "same-capability" }), { status: 201 })));
+    vi.stubGlobal("fetch", fetchMock);
+    const view = render(<StandalonePaymentExperience currencyCode="BRL" dictionary={dictionary} policy="NONE" prefillAmount="12.5" slug="ana-store" />);
+    fireEvent.click(view.getByRole("button", { name: dictionary.checkoutSubmit }));
+    await act(async () => { await Promise.resolve(); });
+    await act(async () => { await vi.advanceTimersByTimeAsync(0); });
+    expect(view.getByText(status === 404 ? dictionary.storefrontUnavailableHeading : dictionary.checkoutStatusUnavailableTitle)).toBeTruthy();
+    await act(async () => { setVisibility("hidden"); setVisibility("visible"); await vi.advanceTimersByTimeAsync(15_000); });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock.mock.calls.filter(([url]) => url.endsWith("/checkout"))).toHaveLength(1);
+  });
 });
+

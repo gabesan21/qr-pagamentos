@@ -674,10 +674,12 @@ them. Mark a state non-applicable instead of simulating it.
   the existing route contract.
 - Checkout and standalone payment cover initial form, policy-exact validation,
   submitting/disabled, reserved/creating/preparing, QR and copy, pending and
-  indeterminate waiting, visibility-aware polling, status error with manual
-  retry, retryable submit error, expired capability, opaque unavailable, and the
-  exact confirmed/rejected/cancelled/expired/refunded or paid terminal states
-  owned by the checkout spec.
+  indeterminate waiting, visibility-aware polling, PIX-unavailable, status-unavailable,
+  submit-failure, expired capability, opaque unavailable, and the exact
+  confirmed/rejected/cancelled/expired/refunded or paid terminal states owned by
+  the checkout spec. Failed status reads, `404`, and terminal results stop polling
+  without visibility restart; no automatic or manual retry is offered. The
+  spec-owned explicit start-over action discards the attempt and uses a fresh key.
 - Catalog, links, orders, dashboards, profiles, and settings also preserve their
   spec-owned archived/deleted, immutable-version, exact-period, empty-prerequisite,
   conflict, staged-media, credential, and provider-recovery states. Parity never

@@ -46,6 +46,7 @@
 
 - Bound the body at 256 KiB while streaming once; never parse, decode, concatenate an oversized stream, or call `arrayBuffer()`/`json()` before authentication.
 - Accept only one lowercase `sha256=<64 hex>` signature and compare the exact raw bytes against every active encrypted owner secret without early exit; zero or multiple matches disclose nothing and change no state.
+- After HMAC verification, use the signed body's canonical `id` for durable deduplication and `event` for notification identity. `X-Nautt-Delivery`/`X-Nautt-Event` are optional duplicates: absent is accepted, present must be valid, non-empty, and consistent with the body. Optional attempt checks use body identity; rejection evidence retains valid supplied header identity or valid body fallback when absent. Never infer current production headers from the secondary 2026-07-17 dispatcher source.
 - Persist normalized delivery/attempt evidence only after authentication. The processing lease must exceed the 14.5-second accepted-work budget with a safety margin; terminal replay, unknown/final order, and a live lease perform zero API-key decryption and provider GETs.
 - Treat notification status as untrusted. An actionable delivery performs at most one owner-bound `GET /orders/{uuid}` and reuses the shared versioned CAS before durable delivery finalization.
 - Return `204` only after a durable processed/ignored decision; malformed authenticated input is `400`, authentication is `401`, oversize is `413`, and busy/retryable work is `503`, always with an empty no-store body.
