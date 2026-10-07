@@ -1,27 +1,27 @@
 "use client";
 
-import { MinusIcon, PlusIcon, XIcon } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { LayoutGridIcon, ListIcon, XIcon, MinusIcon, PlusIcon } from "lucide-react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { MoneyText } from "@/components/ui/money-text";
+import { Pagination, PaginationContent, PaginationItem } from "@/components/ui/pagination";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { paginateStorefrontCatalog } from "@/storefront/catalog-page";
 import {
   STOREFRONT_CART_QUANTITY_MAXIMUM,
   hydrateStorefrontCart,
   isStorefrontCartAmount,
   serializeStorefrontCart,
-  setStorefrontCartCustomAmount,
   setStorefrontCartProductQuantity,
   storefrontCartStorageKey,
   storefrontCartTotals,
   type StorefrontCartItem,
-  type StorefrontCartProductItem,
 } from "@/storefront/cart";
 import type { PublicStorefrontCatalogGroup } from "@/storefront/public-storefront";
 import type { getDictionary } from "@/i18n/dictionaries";
@@ -29,7 +29,9 @@ import type { SupportedLocale } from "@/i18n/locales";
 import { formatPublicMoney } from "@/lib/public-money-display";
 import type { CheckoutDataPolicy } from "@/orders/order-v2-policies";
 
-import { canonicalStandaloneBrlInput, formatStandaloneBrl, StandaloneBrlAmountInput, StandalonePaymentExperience } from "./pay/standalone-payment-experience";
+import { canonicalStandaloneBrlInput, StandaloneBrlAmountInput, StandalonePaymentExperience } from "./pay/standalone-payment-experience";
+
+export type StorefrontView = "cards" | "list";
 
 export type StorefrontExperienceCopy = Readonly<{
   cartCheckout: string;
@@ -39,20 +41,25 @@ export type StorefrontExperienceCopy = Readonly<{
   cartRemove: string;
   cartTotalLabel: string;
   cartUpdated: string;
-  customAmountAdd: string;
   customAmountDescription: string;
   customAmountInvalid: string;
   customAmountLabel: string;
   customAmountPlaceholder: string;
   customAmountPay: string;
   customAmountTitle: string;
-  customAmountUpdate: string;
   decreaseQuantity: string;
   groupUncategorized: string;
   increaseQuantity: string;
+  paginationLabel: string;
+  paginationNext: string;
+  paginationPrevious: string;
+  paginationStatus: string;
   priceLabel: string;
   productsHeading: string;
   quantityLabel: string;
+  viewCards: string;
+  viewLabel: string;
+  viewList: string;
 }>;
 
 type QuantityCommit = (reference: string, quantity: number) => void;
@@ -97,14 +104,13 @@ export async function submitStorefrontCartCheckout(
   items: readonly StorefrontCartItem[],
   fetchImplementation: typeof fetch = fetch,
 ): Promise<StorefrontCartCheckoutOutcome> {
-  const productItems = items.filter((item): item is StorefrontCartProductItem => item.kind === "product");
-  if (productItems.length === 0 || productItems.length !== items.length) return { kind: "failed" };
+  if (items.length === 0) return { kind: "failed" };
   let response: Response;
   try {
     response = await fetchImplementation(`/api/store/${slug}/cart/checkout`, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ items: productItems.map((item) => ({ reference: item.reference, quantity: item.quantity })) }),
+      body: JSON.stringify({ items: items.map((item) => ({ reference: item.reference, quantity: item.quantity })) }),
     });
   } catch {
     return { kind: "failed" };
@@ -176,50 +182,56 @@ function QuantityStepper({ copy, onCommit, quantity }: Readonly<{
   );
 }
 
+// The free-amount field renders its label, the input and the submit action on
+// one row, with the validation error below; the surrounding form owns submit.
 function CustomAmountField({
+  action,
   amountDraft,
   amountInvalid,
   copy,
   currencyCode,
-  layout,
   onChange,
 }: Readonly<{
+  action: ReactNode;
   amountDraft: string;
   amountInvalid: boolean;
   copy: StorefrontExperienceCopy;
   currencyCode: string | null;
-  layout: string;
   onChange: (value: string) => void;
 }>) {
   return (
     <Field className="grid max-w-[var(--layout-max)] gap-2" data-invalid={amountInvalid || undefined}>
-      <FieldLabel className={layout === "table" ? "sr-only" : undefined} htmlFor="storefront-custom-amount">
+      <FieldLabel htmlFor="storefront-custom-amount">
         {copy.customAmountLabel}
         {currencyCode ? ` (${currencyCode})` : ""}
       </FieldLabel>
-      {layout !== "table" ? <FieldDescription>{copy.customAmountDescription}</FieldDescription> : null}
-      {currencyCode === "BRL" ? (
-        <StandaloneBrlAmountInput
-          amountInvalid={amountInvalid}
-          disabled={false}
-          errorId="storefront-custom-amount-error"
-          id="storefront-custom-amount"
-          name=""
-          onAmountChange={onChange}
-          placeholder={copy.customAmountPlaceholder}
-          value={amountDraft}
-        />
-      ) : (
-        <Input
-          aria-describedby={amountInvalid ? "storefront-custom-amount-error" : undefined}
-          aria-invalid={amountInvalid || undefined}
-          autoComplete="off"
-          id="storefront-custom-amount"
-          inputMode="decimal"
-          onChange={(event) => onChange(event.target.value)}
-          value={amountDraft}
-        />
-      )}
+      <div className="flex items-start gap-3">
+        <div className="min-w-0 flex-1">
+          {currencyCode === "BRL" ? (
+            <StandaloneBrlAmountInput
+              amountInvalid={amountInvalid}
+              disabled={false}
+              errorId="storefront-custom-amount-error"
+              id="storefront-custom-amount"
+              name=""
+              onAmountChange={onChange}
+              placeholder={copy.customAmountPlaceholder}
+              value={amountDraft}
+            />
+          ) : (
+            <Input
+              aria-describedby={amountInvalid ? "storefront-custom-amount-error" : undefined}
+              aria-invalid={amountInvalid || undefined}
+              autoComplete="off"
+              id="storefront-custom-amount"
+              inputMode="decimal"
+              onChange={(event) => onChange(event.target.value)}
+              value={amountDraft}
+            />
+          )}
+        </div>
+        {action}
+      </div>
       {amountInvalid ? (
         <FieldError id="storefront-custom-amount-error">{copy.customAmountInvalid}</FieldError>
       ) : null}
@@ -266,16 +278,18 @@ export function StorefrontExperienceView({
   copy,
   items,
   locale = "pt-BR",
-  layout,
   onAmountDraftChange,
   onAmountSubmit,
   onCheckout,
+  onPageChange,
   onQuantityCommit,
   onRemove,
-  payHref,
+  onViewChange,
+  page,
   recovered,
   standalonePaymentCurrencyCode,
   standalonePayments,
+  view,
 }: Readonly<{
   amountDraft: string;
   amountInvalid: boolean;
@@ -285,95 +299,83 @@ export function StorefrontExperienceView({
   copy: StorefrontExperienceCopy;
   locale?: SupportedLocale;
   items: readonly StorefrontCartItem[];
-  layout: string;
   onAmountDraftChange: (value: string) => void;
   onAmountSubmit: () => void;
   onCheckout: () => void;
+  onPageChange: (page: number) => void;
   onQuantityCommit: QuantityCommit;
   onRemove: (item: StorefrontCartItem) => void;
-  payHref: string;
+  onViewChange: (view: StorefrontView) => void;
+  page: number;
   recovered: boolean;
   standalonePaymentCurrencyCode: string | null;
   standalonePayments: boolean;
+  view: StorefrontView;
 }>) {
   const catalogProducts = catalog.flatMap((group) => group.products);
   const productByReference = new Map(catalogProducts.map((product) => [product.reference, product]));
-  const quantityFor = (reference: string) => {
-    const item = items.find((entry) => entry.kind === "product" && entry.reference === reference);
-    return item?.kind === "product" ? item.quantity : 0;
-  };
-  const customAmountInCart = items.some((item) => item.kind === "custom-amount");
-  const totals = storefrontCartTotals(items, catalogProducts, standalonePaymentCurrencyCode);
+  const quantityFor = (reference: string) => items.find((entry) => entry.reference === reference)?.quantity ?? 0;
+  const totals = storefrontCartTotals(items, catalogProducts);
+  const { groups, page: currentPage, pageCount } = paginateStorefrontCatalog(catalog, page);
 
-  const customAmountActions = (
-    <div className="flex flex-wrap gap-3">
-      <Button onClick={onAmountSubmit} type="button">
-        {customAmountInCart ? copy.customAmountUpdate : copy.customAmountAdd}
-      </Button>
-      {/* 9.2.2: the standalone-payment entry point; the amount rides the query
-          as prefill only and is revalidated by the pay page and by 9.2.1. */}
-      <Button asChild variant="outline">
-        <a href={payHref}>{copy.customAmountPay}</a>
-      </Button>
-    </div>
-  );
-
-  const customAmountField = (
-    <CustomAmountField
-      amountDraft={amountDraft}
-      amountInvalid={amountInvalid}
-      copy={copy}
-      currencyCode={standalonePaymentCurrencyCode}
-      layout={layout}
-      onChange={onAmountDraftChange}
-    />
-  );
-
+  // Below `lg` the DOM order is free amount, catalog, cart; at `lg`+ the catalog
+  // takes the left column and the free amount / cart stack on the right.
   return (
-    <div className="grid gap-8">
-      <section aria-label={copy.productsHeading} className="grid gap-5" data-layout={layout}>
-        <h2 className="m-0 font-display text-lg font-semibold leading-7">{copy.productsHeading}</h2>
-        {standalonePayments ? (
-          layout === "table" ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{copy.customAmountTitle}</TableHead>
-                  <TableHead>
-                    {copy.customAmountLabel}
-                    {standalonePaymentCurrencyCode ? ` (${standalonePaymentCurrencyCode})` : ""}
-                  </TableHead>
-                  <TableHead>
-                    <span className="sr-only">{copy.customAmountAdd}</span>
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <TableRow>
-                  <TableCell>
-                    <p className="m-0 font-semibold break-words">{copy.customAmountTitle}</p>
-                    <p className="m-0 max-w-[var(--layout-max)] whitespace-pre-wrap">{copy.customAmountDescription}</p>
-                  </TableCell>
-                  <TableCell>{customAmountField}</TableCell>
-                  <TableCell>{customAmountActions}</TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          ) : (
-            <Card className="w-full">
-              <CardHeader>
-                <CardTitle>{copy.customAmountTitle}</CardTitle>
-                <CardDescription className="max-w-[var(--layout-max)] whitespace-pre-wrap">{copy.customAmountDescription}</CardDescription>
-              </CardHeader>
-              <CardContent>{customAmountField}</CardContent>
-              <CardFooter>{customAmountActions}</CardFooter>
-            </Card>
-          )
-        ) : null}
-        {catalog.map((group) => (
+    <div
+      className={`grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_calc(var(--space-12)*8)] ${standalonePayments ? "lg:grid-rows-[auto_1fr]" : ""}`}
+    >
+      {standalonePayments ? (
+        <section aria-labelledby="storefront-custom-amount-heading" className="lg:col-start-2 lg:row-start-1">
+          <Card className="w-full">
+            <CardHeader>
+              <CardTitle id="storefront-custom-amount-heading">{copy.customAmountTitle}</CardTitle>
+              <CardDescription className="max-w-[var(--layout-max)] whitespace-pre-wrap">{copy.customAmountDescription}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {/* The amount never enters the cart: submitting navigates to the
+                  standalone pay page, which revalidates it as prefill only. */}
+              <form
+                noValidate
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  onAmountSubmit();
+                }}
+              >
+                <CustomAmountField
+                  action={<Button type="submit">{copy.customAmountPay}</Button>}
+                  amountDraft={amountDraft}
+                  amountInvalid={amountInvalid}
+                  copy={copy}
+                  currencyCode={standalonePaymentCurrencyCode}
+                  onChange={onAmountDraftChange}
+                />
+              </form>
+            </CardContent>
+          </Card>
+        </section>
+      ) : null}
+      <section
+        aria-labelledby="storefront-products-heading"
+        className={`grid min-w-0 gap-5 lg:col-start-1 lg:row-start-1 ${standalonePayments ? "lg:row-span-2" : ""}`}
+        data-view={view}
+      >
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="m-0 font-display text-lg font-semibold leading-7" id="storefront-products-heading">{copy.productsHeading}</h2>
+          <div aria-label={copy.viewLabel} className="flex gap-2" role="group">
+            <Button aria-pressed={view === "cards"} onClick={() => onViewChange("cards")} type="button" variant={view === "cards" ? "secondary" : "outline"}>
+              <LayoutGridIcon aria-hidden="true" data-icon="inline-start" />
+              {copy.viewCards}
+            </Button>
+            <Button aria-pressed={view === "list"} onClick={() => onViewChange("list")} type="button" variant={view === "list" ? "secondary" : "outline"}>
+              <ListIcon aria-hidden="true" data-icon="inline-start" />
+              {copy.viewList}
+            </Button>
+          </div>
+        </div>
+        {groups.map((group) => (
           <section className="grid gap-4" key={group.name ?? "uncategorized"}>
             <h3 className="m-0 break-words text-sm font-semibold">{group.name ?? copy.groupUncategorized}</h3>
-            {layout === "table" ? (
+            {view === "list" ? (
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -404,7 +406,7 @@ export function StorefrontExperienceView({
                 </TableBody>
               </Table>
             ) : (
-              <div className="grid gap-5">
+              <div className="grid gap-5 sm:grid-cols-2">
                 {group.products.map((product) => (
                   <Card className="w-full" key={product.reference}>
                     {product.imageMediaIdentifier ? (
@@ -438,99 +440,105 @@ export function StorefrontExperienceView({
             )}
           </section>
         ))}
+        {pageCount > 1 ? (
+          <Pagination label={copy.paginationLabel}>
+            <PaginationContent>
+              <PaginationItem>
+                <Button disabled={currentPage === 1} onClick={() => onPageChange(currentPage - 1)} type="button" variant="outline">
+                  {copy.paginationPrevious}
+                </Button>
+              </PaginationItem>
+              <PaginationItem>
+                <span aria-live="polite" className="text-sm tabular-nums text-muted-foreground">
+                  {copy.paginationStatus.replace("{page}", String(currentPage)).replace("{total}", String(pageCount))}
+                </span>
+              </PaginationItem>
+              <PaginationItem>
+                <Button disabled={currentPage === pageCount} onClick={() => onPageChange(currentPage + 1)} type="button" variant="outline">
+                  {copy.paginationNext}
+                </Button>
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        ) : null}
       </section>
-      <section aria-labelledby="storefront-cart-heading" className="grid gap-4 border-t border-border pt-6">
-        <h2 className="m-0 font-display text-lg font-semibold leading-7" id="storefront-cart-heading">{copy.cartHeading}</h2>
-        {recovered ? (
-          <Alert>
-            <AlertDescription>{copy.cartUpdated}</AlertDescription>
-          </Alert>
-        ) : null}
-        {checkoutFailed ? (
-          <Alert variant="destructive">
-            <AlertDescription>{copy.cartCheckoutFailed}</AlertDescription>
-          </Alert>
-        ) : null}
-        {items.length === 0 ? (
-          <EmptyState className="max-w-[var(--layout-max)] border-transparent py-6" illustration="products" kind="empty" title={copy.cartEmpty} />
-        ) : (
-          <>
-            <ul className="m-0 grid list-none gap-3 p-0">
-              {items.map((item) => {
-                if (item.kind === "product") {
-                  const product = productByReference.get(item.reference);
-                  if (!product) return null;
-                  return (
-                    <li className="flex flex-wrap items-center gap-3" key={item.reference}>
-                      <div className="grid min-w-[min(100%,var(--space-12))] flex-1 gap-1">
-                        <p className="m-0 font-semibold break-words">{product.title}</p>
-                        <p className="m-0 text-xs tabular-nums text-muted-foreground">
-                          {item.quantity} × {formatPublicMoney(product.price, product.currencyCode, locale)}
-                        </p>
-                      </div>
-                      <MoneyText
-                        className="font-semibold"
-                        value={formatPublicMoney(totals.lines.get(item) ?? "", product.currencyCode, locale)}
-                      />
-                      <Button
-                        aria-label={`${copy.cartRemove}: ${product.title}`}
-                        onClick={() => onRemove(item)}
-                        size="icon"
-                        type="button"
-                        variant="outline"
-                      >
-                        <XIcon aria-hidden="true" data-icon="inline-start" />
-                      </Button>
-                    </li>
-                  );
-                }
-                return (
-                  <li className="flex flex-wrap items-center gap-3" key="custom-amount">
-                    <div className="grid min-w-[min(100%,var(--space-12))] flex-1 gap-1">
-                      <p className="m-0 font-semibold break-words">{copy.customAmountTitle}</p>
-                    </div>
-                    <MoneyText
-                      className="font-semibold"
-                      value={formatPublicMoney(totals.lines.get(item) ?? "", standalonePaymentCurrencyCode, locale)}
-                    />
-                    <Button
-                      aria-label={`${copy.cartRemove}: ${copy.customAmountTitle}`}
-                      onClick={() => onRemove(item)}
-                      size="icon"
-                      type="button"
-                      variant="outline"
-                    >
-                      <XIcon aria-hidden="true" data-icon="inline-start" />
-                    </Button>
-                  </li>
-                );
-              })}
-            </ul>
-            <ul className="m-0 grid list-none gap-2 border-t border-border p-0 pt-4">
-              {totals.groups.map((group) => (
-                <li className="flex flex-wrap items-center justify-between gap-3 tabular-nums" key={group.currencyCode ?? "unlabeled"}>
-                  <span className="text-xs font-semibold text-muted-foreground">
-                    {copy.cartTotalLabel}
-                    {group.currencyCode ? ` (${group.currencyCode})` : ""}
-                  </span>
-                  <strong>
-                    <MoneyText value={formatPublicMoney(group.total, group.currencyCode, locale)} />
-                  </strong>
-                </li>
-              ))}
-            </ul>
-            {!customAmountInCart ? (
-              <Button
-                aria-busy={checkoutPending || undefined}
-                disabled={checkoutPending}
-                onClick={onCheckout}
-                type="button"
-              >
-                {copy.cartCheckout}
-              </Button>
+      <section
+        aria-labelledby="storefront-cart-heading"
+        className={`lg:col-start-2 ${standalonePayments ? "lg:row-start-2" : "lg:row-start-1"}`}
+      >
+        <Card className="w-full">
+          <CardHeader>
+            <CardTitle id="storefront-cart-heading">{copy.cartHeading}</CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-4">
+            {recovered ? (
+              <Alert>
+                <AlertDescription>{copy.cartUpdated}</AlertDescription>
+              </Alert>
             ) : null}
-          </>
-        )}
+            {checkoutFailed ? (
+              <Alert variant="destructive">
+                <AlertDescription>{copy.cartCheckoutFailed}</AlertDescription>
+              </Alert>
+            ) : null}
+            {items.length === 0 ? (
+              <EmptyState className="max-w-[var(--layout-max)] border-transparent py-6" illustration="products" kind="empty" title={copy.cartEmpty} />
+            ) : (
+              <>
+                <ul className="m-0 grid list-none gap-3 p-0">
+                  {items.map((item) => {
+                    const product = productByReference.get(item.reference);
+                    if (!product) return null;
+                    return (
+                      <li className="flex flex-wrap items-center gap-3" key={item.reference}>
+                        <div className="grid min-w-[min(100%,var(--space-12))] flex-1 gap-1">
+                          <p className="m-0 font-semibold break-words">{product.title}</p>
+                          <p className="m-0 text-xs tabular-nums text-muted-foreground">
+                            {item.quantity} × {formatPublicMoney(product.price, product.currencyCode, locale)}
+                          </p>
+                        </div>
+                        <MoneyText
+                          className="font-semibold"
+                          value={formatPublicMoney(totals.lines.get(item) ?? "", product.currencyCode, locale)}
+                        />
+                        <Button
+                          aria-label={`${copy.cartRemove}: ${product.title}`}
+                          onClick={() => onRemove(item)}
+                          size="icon"
+                          type="button"
+                          variant="outline"
+                        >
+                          <XIcon aria-hidden="true" data-icon="inline-start" />
+                        </Button>
+                      </li>
+                    );
+                  })}
+                </ul>
+                <ul className="m-0 grid list-none gap-2 border-t border-border p-0 pt-4">
+                  {totals.groups.map((group) => (
+                    <li className="flex flex-wrap items-center justify-between gap-3 tabular-nums" key={group.currencyCode ?? "unlabeled"}>
+                      <span className="text-xs font-semibold text-muted-foreground">
+                        {copy.cartTotalLabel}
+                        {group.currencyCode ? ` (${group.currencyCode})` : ""}
+                      </span>
+                      <strong>
+                        <MoneyText value={formatPublicMoney(group.total, group.currencyCode, locale)} />
+                      </strong>
+                    </li>
+                  ))}
+                </ul>
+                <Button
+                  aria-busy={checkoutPending || undefined}
+                  disabled={checkoutPending}
+                  onClick={onCheckout}
+                  type="button"
+                >
+                  {copy.cartCheckout}
+                </Button>
+              </>
+            )}
+          </CardContent>
+        </Card>
       </section>
     </div>
   );
@@ -564,15 +572,16 @@ export function StorefrontExperience({
   const [amountInvalid, setAmountInvalid] = useState(false);
   const [checkoutPending, setCheckoutPending] = useState(false);
   const [checkoutFailed, setCheckoutFailed] = useState(false);
+  // The owner's layout setting picks the starting view; the buyer's toggle is
+  // per-visit and never persisted.
+  const [view, setView] = useState<StorefrontView>(layout === "table" ? "list" : "cards");
+  const [page, setPage] = useState(1);
   const catalogProducts = useMemo(() => catalog.flatMap((group) => group.products), [catalog]);
   const storageKey = storefrontCartStorageKey(slug);
-  // The pay link carries the draft amount as prefill only, and only while it
-  // matches the canonical amount grammar; the pay page and 9.2.1 revalidate it.
   const canonicalAmount = canonicalCustomAmount(amountDraft, standalonePaymentCurrencyCode);
-  const payHref = `/store/${slug}/pay${isStorefrontCartAmount(canonicalAmount) ? `?amount=${encodeURIComponent(canonicalAmount)}` : ""}`;
 
   useEffect(() => {
-    const hydration = hydrateStorefrontCart(readStorage(storageKey), catalogProducts, standalonePayments);
+    const hydration = hydrateStorefrontCart(readStorage(storageKey), catalogProducts);
     if (hydration.recovered) writeStorage(storageKey, serializeStorefrontCart(hydration.items));
     // The stored cart is external state read once after mount; applying it in
     // a queued callback keeps the first client render identical to the server
@@ -580,10 +589,8 @@ export function StorefrontExperience({
     queueMicrotask(() => {
       setItems(hydration.items);
       setRecovered(hydration.recovered);
-      const storedAmount = hydration.items.find((item) => item.kind === "custom-amount");
-      if (storedAmount) setAmountDraft(standalonePaymentCurrencyCode === "BRL" ? formatStandaloneBrl(storedAmount.amount) : storedAmount.amount);
     });
-  }, [storageKey, catalogProducts, standalonePayments, standalonePaymentCurrencyCode]);
+  }, [storageKey, catalogProducts]);
 
   const persist = (next: readonly StorefrontCartItem[]) => {
     setItems(next);
@@ -608,18 +615,20 @@ export function StorefrontExperience({
       copy={copy}
       items={items}
       locale={locale}
-      layout={layout}
       onAmountDraftChange={(value) => {
         setAmountDraft(value);
         setAmountInvalid(false);
       }}
+      // "Pay now": the amount never enters the cart. It rides the query as
+      // prefill only and is revalidated by the pay page and by 9.2.1.
       onAmountSubmit={() => {
-        if (!isStorefrontCartAmount(canonicalAmount)) {
+        const href = standalonePaymentPrefillHref(slug, canonicalAmount);
+        if (!href) {
           setAmountInvalid(true);
           return;
         }
         setAmountInvalid(false);
-        persist(setStorefrontCartCustomAmount(items, canonicalAmount));
+        window.location.assign(href);
       }}
       onCheckout={() => {
         if (checkoutPending) return;
@@ -638,14 +647,18 @@ export function StorefrontExperience({
           setCheckoutFailed(true);
         });
       }}
+      onPageChange={(next) => {
+        setPage(next);
+        document.getElementById("storefront-products-heading")?.scrollIntoView({ block: "start" });
+      }}
       onQuantityCommit={(reference, quantity) => persist(setStorefrontCartProductQuantity(items, reference, quantity))}
-      onRemove={(item) => persist(item.kind === "product"
-        ? setStorefrontCartProductQuantity(items, item.reference, 0)
-        : setStorefrontCartCustomAmount(items, null))}
-      payHref={payHref}
+      onRemove={(item) => persist(setStorefrontCartProductQuantity(items, item.reference, 0))}
+      onViewChange={setView}
+      page={page}
       recovered={recovered}
       standalonePaymentCurrencyCode={standalonePaymentCurrencyCode}
       standalonePayments={standalonePayments}
+      view={view}
     />
   );
 }

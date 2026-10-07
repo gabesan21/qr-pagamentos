@@ -45,6 +45,9 @@ export default async function PublicStorefrontPage({ params }: Readonly<{ params
 
   const isEmpty = storefront.catalog.length === 0 && !storefront.standalonePayments;
   const isStandaloneOnly = storefront.catalog.length === 0 && storefront.standalonePayments;
+  // Only the catalog branch uses the wide two-column storefront shell; the
+  // empty and standalone-only branches keep the narrow checkout column.
+  const variant = isEmpty || isStandaloneOnly ? "checkout" : "storefront";
   const copy: StorefrontExperienceCopy = {
     cartCheckout: dictionary.storefrontCartCheckout,
     cartCheckoutFailed: dictionary.storefrontCartCheckoutFailed,
@@ -53,24 +56,29 @@ export default async function PublicStorefrontPage({ params }: Readonly<{ params
     cartRemove: dictionary.storefrontCartRemove,
     cartTotalLabel: dictionary.storefrontCartTotalLabel,
     cartUpdated: dictionary.storefrontCartUpdated,
-    customAmountAdd: dictionary.storefrontCustomAmountAdd,
     customAmountDescription: dictionary.storefrontCustomAmountDescription,
     customAmountInvalid: dictionary.storefrontCustomAmountInvalid,
     customAmountLabel: dictionary.storefrontCustomAmountLabel,
     customAmountPlaceholder: dictionary.storefrontCustomAmountPlaceholder,
     customAmountPay: dictionary.storefrontCustomAmountPay,
     customAmountTitle: dictionary.storefrontCustomAmountTitle,
-    customAmountUpdate: dictionary.storefrontCustomAmountUpdate,
     decreaseQuantity: dictionary.storefrontDecreaseQuantity,
     groupUncategorized: dictionary.storefrontGroupUncategorized,
     increaseQuantity: dictionary.storefrontIncreaseQuantity,
+    paginationLabel: dictionary.storefrontPaginationLabel,
+    paginationNext: dictionary.storefrontPaginationNext,
+    paginationPrevious: dictionary.storefrontPaginationPrevious,
+    paginationStatus: dictionary.storefrontPaginationStatus,
     priceLabel: dictionary.storefrontPriceLabel,
     productsHeading: dictionary.storefrontProductsHeading,
     quantityLabel: dictionary.storefrontQuantityLabel,
+    viewCards: dictionary.storefrontViewCards,
+    viewLabel: dictionary.storefrontViewLabel,
+    viewList: dictionary.storefrontViewList,
   };
 
   return (
-    <CheckoutShell branding={storefront} dictionary={dictionary} hidePrivacyStatement={isStandaloneOnly && storefront.checkoutDataPolicy === "NONE"} locale={locale}>
+    <CheckoutShell branding={storefront} dictionary={dictionary} hidePrivacyStatement={isStandaloneOnly && storefront.checkoutDataPolicy === "NONE"} locale={locale} variant={variant}>
       {isEmpty ? (
         <EmptyState
           action={

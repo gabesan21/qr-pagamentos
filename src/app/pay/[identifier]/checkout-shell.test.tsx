@@ -48,4 +48,23 @@ describe("checkout shell", () => {
     expect(markup).toContain('data-theme-preview="vault-blue"');
     expect(markup).toContain("--storefront-accent:#125448");
   });
+
+  it("widens the column and lays out a horizontal header for the storefront variant only", () => {
+    const branding: PublicCheckoutV2Branding = { displayName: "Ana's Shop", accentColor: null, themeId: "pix-paper", logoMediaIdentifier: null };
+    const storefront = renderToStaticMarkup(
+      <CheckoutShell branding={branding} dictionary={dictionary} locale="en" variant="storefront">
+        <p>content</p>
+      </CheckoutShell>,
+    );
+    expect(storefront).toContain("max-w-app");
+    expect(storefront).not.toContain("max-w-checkout");
+    expect(storefront).toContain("Ana&#x27;s Shop");
+    expect(storefront).toContain(dictionary.checkoutTrustLine);
+    expect(storefront).toContain("border-border");
+
+    const checkout = render(branding);
+    expect(checkout).toContain("max-w-checkout");
+    expect(checkout).not.toContain("max-w-app");
+    expect(checkout).not.toContain("border-border");
+  });
 });

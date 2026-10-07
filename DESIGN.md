@@ -347,7 +347,8 @@ storage]]; template assets do not bypass that lifecycle.
   V2 precedence. **Superseded by task 14.6.1 (2026-09-08):** the prior
   branded V2 two-column contract that widened to the application cap is
   retired; both eras now compose one shared `CheckoutShell` column capped at
-  `max-w-checkout` (560px, per the 2026-09-07 decision), never wider, with a
+  `max-w-checkout` (560px, per the 2026-09-07 decision), never wider (except the
+  storefront variant below), with a
   merchant header (logo or `Monogram` `xl`, display name, trust line, themed
   via `data-theme-preview`/`--storefront-accent`), a public footer
   (powered-by, privacy link opening a `Modal` notice, `LanguageSwitcher`),
@@ -358,6 +359,16 @@ storage]]; template assets do not bypass that lifecycle.
   expired) each with `ProviderStateBadge` and a non-color marker, the three
   failures alone offering start-over. The visual target must never collapse
   or reshape its business DTO.
+- **Storefront shell variant (M-23.1, 2026-10-07):** the one exception to the
+  `max-w-checkout` cap is `CheckoutShell variant="storefront"`, used only by the
+  `/store/[slug]` catalog branch: column and footer use `max-w-app`, and the
+  merchant header becomes a horizontal bordered card (circular logo or
+  `Monogram` left, display name and trust line right). The page is a
+  two-column grid at `lg`+ — catalog (client-side 12-per-page pagination,
+  cards/list toggle) left, free-amount pay form over the cart in a fixed
+  `calc(var(--space-12)*8)` right column — and one column below `lg` in the order
+  free amount, catalog, cart. `/pay/*`, the standalone-only flow, and the
+  unavailable/empty states stay at `max-w-checkout`.
 - `/store/[slug]` and `/store/[slug]/pay` are authorized extrapolations.
   **Converged by task 14.6.2 (2026-09-08):** both now compose 14.6.1's shared
   `CheckoutShell` directly (merchant header, `data-theme-preview`/
@@ -389,10 +400,11 @@ storage]]; template assets do not bypass that lifecycle.
 - Public storefront/cart and payment-link/standalone checkout display BRL
   amounts as exact `R$`-prefixed dot-grouped, comma-decimal strings with at
   least two fractional digits (including English UI), preserving up to six
-  fractional digits without rounding. The catalog custom-amount field and
+  fractional digits without rounding. The catalog free-amount field and
   standalone amount field use the same live digit-to-cents BRL mask and
-  `R$ 0,00` placeholder; only canonical exact decimals enter cart storage,
-  standalone prefill URLs, or payment submissions. Other resolved codes retain
+  `R$ 0,00` placeholder; only canonical exact decimals enter standalone
+  prefill URLs or payment submissions (the browser cart stores only product
+  references and quantities). Other resolved codes retain
   their own labels and exact values; unknown codes never imply BRL. Uploaded
   merchant logos in the shared header and checkout QR centre crop circularly;
   product images and official fallback identity retain their own treatments.

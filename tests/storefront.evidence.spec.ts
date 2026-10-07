@@ -265,24 +265,22 @@ test("creates the closed storefront evidence run", async ({ page }) => {
     const cart = page.locator('section[aria-labelledby="storefront-cart-heading"]');
     const increase = page.getByRole("button", { name: dictionary.storefrontIncreaseQuantity });
     await increase.first().click();
-    await page.locator("#storefront-custom-amount").fill("5");
-    await page.getByRole("button", { name: dictionary.storefrontCustomAmountAdd }).click();
     await expect(cart).toContainText(productTitle);
-    await expect(cart).toContainText("17.5");
+    await expect(cart).toContainText("12.5");
     await expect(cart).not.toContainText(dictionary.storefrontCartEmpty);
-    assertions.push({ state: `${locale}-cart-added`, cartLines: 2, customAmount: "5", productQuantity: 1, total: "17.5" });
+    assertions.push({ state: `${locale}-cart-added`, cartLines: 1, productQuantity: 1, total: "12.5" });
     await screenshot(`interaction-${locale}-cart-added`);
 
     await increase.first().click();
     await expect(cart).toContainText("2 × 12.5 BRL");
-    await expect(cart).toContainText("30");
-    assertions.push({ state: `${locale}-cart-quantity`, productQuantity: 2, total: "30", neverSummed: true });
+    await expect(cart).toContainText("25");
+    assertions.push({ state: `${locale}-cart-quantity`, productQuantity: 2, total: "25", neverSummed: true });
     await screenshot(`interaction-${locale}-cart-quantity`);
 
     await page.reload();
     await expect(cart).toContainText("2 × 12.5 BRL");
-    await expect(cart).toContainText("30");
-    assertions.push({ state: `${locale}-cart-reload`, persisted: true, productQuantity: 2, total: "30" });
+    await expect(cart).toContainText("25");
+    assertions.push({ state: `${locale}-cart-reload`, persisted: true, productQuantity: 2, total: "25" });
     await screenshot(`interaction-${locale}-cart-reload`);
 
     await page.evaluate(({ key, reference }) => {
@@ -303,20 +301,31 @@ test("creates the closed storefront evidence run", async ({ page }) => {
     await screenshot(`interaction-${locale}-cart-recovered`);
     await page.evaluate((key) => window.localStorage.removeItem(key), cartStorageKey);
 
+    // ---- Free amount: "Pay now" never touches the cart. An invalid amount
+    // stays on the page with the localized error; a valid one navigates to the
+    // standalone pay page with the amount as prefill only. ----
+    await openStore();
+    const payNow = page.getByRole("button", { name: dictionary.storefrontCustomAmountPay });
+    await payNow.click();
+    await expect(page.locator("#storefront-custom-amount-error")).toContainText(dictionary.storefrontCustomAmountInvalid);
+    expect(new URL(page.url()).pathname).toBe(`/store/${storefrontSlug}`);
+    await page.locator("#storefront-custom-amount").fill("1000");
+    await Promise.all([
+      page.waitForURL(new RegExp(`/store/${storefrontSlug}/pay\\?amount=10$`)),
+      payNow.click(),
+    ]);
+    expect(await page.evaluate((key) => window.localStorage.getItem(key), cartStorageKey)).toBeNull();
+    assertions.push({ state: `${locale}-pay-now`, invalidBlocked: true, navigatedToPay: true, cartUntouched: true });
+
     // ---- Cart checkout (9.1.3): a product-only cart shows the control, a
-    // custom-amount cart never does, a mixed-currency cart fails opaquely with
-    // the cart intact, and a successful issuance clears only this store's cart
-    // key before redirecting to /pay/[identifier]. ----
+    // mixed-currency cart fails opaquely with the cart intact, and a
+    // successful issuance clears only this store's cart key before
+    // redirecting to /pay/[identifier]. ----
     await openStore();
     const checkoutButton = page.getByRole("button", { name: dictionary.storefrontCartCheckout });
-    await increase.first().click();
-    await page.locator("#storefront-custom-amount").fill("5");
-    await page.getByRole("button", { name: dictionary.storefrontCustomAmountAdd }).click();
-    await expect(cart).toContainText(productTitle);
     await expect(checkoutButton).toHaveCount(0);
-    assertions.push({ state: `${locale}-cart-checkout-hidden`, customAmountPresent: true, controlAbsent: true });
-
-    await page.getByRole("button", { name: `${dictionary.storefrontCartRemove}: ${dictionary.storefrontCustomAmountTitle}` }).click();
+    await increase.first().click();
+    await expect(cart).toContainText(productTitle);
     await expect(checkoutButton).toBeVisible();
     assertions.push({ state: `${locale}-cart-checkout`, controlVisible: true, productOnly: true });
     await screenshot(`interaction-${locale}-cart-checkout`);
@@ -351,7 +360,7 @@ test("creates the closed storefront evidence run", async ({ page }) => {
     await setLocale(page, locale);
     await page.setViewportSize({ width: 375, height: 1000 });
     await openStore();
-    await expect(page.locator('section[data-layout="table"]')).toBeVisible();
+    await expect(page.locator('section[data-view="list"]')).toBeVisible();
     assertions.push({ state: `${locale}-table`, tableLayout: true });
     await screenshot(`interaction-${locale}-table`);
   }

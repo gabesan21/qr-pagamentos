@@ -91,7 +91,11 @@ describe("public storefront page", () => {
     expect(textContent(markup)).toContain("Valor livre");
     expect(textContent(markup)).toContain("Valor (BRL)");
     expect(markup).toContain('placeholder="R$ 0,00"');
-    expect(textContent(markup)).toContain("Adicionar ao carrinho");
+    expect(textContent(markup)).toContain("Pagar agora");
+    expect(textContent(markup)).not.toContain("Adicionar ao carrinho");
+    // The catalog branch uses the wide storefront shell with a horizontal header.
+    expect(markup).toContain("max-w-app");
+    expect(markup).not.toContain("max-w-checkout");
     expect(textContent(markup)).toContain("Carrinho");
     expect(textContent(markup)).toContain("Seu carrinho está vazio.");
     expect(markup).toContain('aria-label="Diminuir a quantidade"');
@@ -111,7 +115,7 @@ describe("public storefront page", () => {
 
     const markup = renderToStaticMarkup(await PublicStorefrontPage({ params: Promise.resolve({ slug: "ana-store" }) }));
 
-    expect(markup).toContain('data-layout="table"');
+    expect(markup).toContain('data-view="list"');
     expect(textContent(markup)).toContain("Quantidade");
     expect(markup).toContain("<table");
     expect(textContent(markup)).toContain("Chá verde.");
@@ -153,7 +157,9 @@ describe("public storefront page", () => {
     expect(standaloneOnly).not.toContain("/pay?amount=");
     expect(textContent(standaloneOnly)).not.toContain("Produtos");
     expect(textContent(standaloneOnly)).not.toContain("Carrinho");
-    expect(textContent(standaloneOnly)).not.toContain("Adicionar ao carrinho");
+    // Only the catalog branch widens the shell; the standalone-only flow keeps the narrow checkout column.
+    expect(standaloneOnly).toContain("max-w-checkout");
+    expect(standaloneOnly).not.toContain("max-w-app");
     expect(textContent(standaloneOnly)).not.toContain("Nenhum produto está disponível agora.");
 
     read.mockResolvedValueOnce({ ...storefront, catalog: [], standalonePayments: false });

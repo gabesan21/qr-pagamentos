@@ -30,20 +30,25 @@ const copy: StorefrontExperienceCopy = {
   cartRemove: storefrontPtBR.storefrontCartRemove,
   cartTotalLabel: storefrontPtBR.storefrontCartTotalLabel,
   cartUpdated: storefrontPtBR.storefrontCartUpdated,
-  customAmountAdd: storefrontPtBR.storefrontCustomAmountAdd,
   customAmountDescription: storefrontPtBR.storefrontCustomAmountDescription,
   customAmountInvalid: storefrontPtBR.storefrontCustomAmountInvalid,
   customAmountLabel: storefrontPtBR.storefrontCustomAmountLabel,
   customAmountPlaceholder: storefrontPtBR.storefrontCustomAmountPlaceholder,
   customAmountPay: storefrontPtBR.storefrontCustomAmountPay,
   customAmountTitle: storefrontPtBR.storefrontCustomAmountTitle,
-  customAmountUpdate: storefrontPtBR.storefrontCustomAmountUpdate,
   decreaseQuantity: storefrontPtBR.storefrontDecreaseQuantity,
   groupUncategorized: storefrontPtBR.storefrontGroupUncategorized,
   increaseQuantity: storefrontPtBR.storefrontIncreaseQuantity,
+  paginationLabel: storefrontPtBR.storefrontPaginationLabel,
+  paginationNext: storefrontPtBR.storefrontPaginationNext,
+  paginationPrevious: storefrontPtBR.storefrontPaginationPrevious,
+  paginationStatus: storefrontPtBR.storefrontPaginationStatus,
   priceLabel: storefrontPtBR.storefrontPriceLabel,
   productsHeading: storefrontPtBR.storefrontProductsHeading,
   quantityLabel: storefrontPtBR.storefrontQuantityLabel,
+  viewCards: storefrontPtBR.storefrontViewCards,
+  viewLabel: storefrontPtBR.storefrontViewLabel,
+  viewList: storefrontPtBR.storefrontViewList,
 };
 
 const catalog = [
@@ -77,6 +82,22 @@ const catalog = [
   },
 ] as const;
 
+// 13 products in one group: one more than a page.
+const manyProducts = [
+  {
+    name: "Lote",
+    products: Array.from({ length: 13 }, (_, index) => ({
+      reference: `00000000-0000-4000-8000-${String(index).padStart(12, "0")}`,
+      title: `Item ${String(index + 1).padStart(2, "0")}`,
+      description: "",
+      price: "1",
+      currencyCode: "BRL",
+      imageMediaIdentifier: null,
+      available: true,
+    })),
+  },
+];
+
 function renderView(overrides: Partial<Parameters<typeof StorefrontExperienceView>[0]> = {}) {
   return renderToStaticMarkup(
     <StorefrontExperienceView
@@ -87,84 +108,116 @@ function renderView(overrides: Partial<Parameters<typeof StorefrontExperienceVie
       checkoutPending={false}
       copy={copy}
       items={[]}
-      layout="boxed"
       onAmountDraftChange={vi.fn()}
       onAmountSubmit={vi.fn()}
       onCheckout={vi.fn()}
+      onPageChange={vi.fn()}
       onQuantityCommit={vi.fn()}
       onRemove={vi.fn()}
-      payHref="/store/ana-store/pay"
+      onViewChange={vi.fn()}
+      page={1}
       recovered={false}
       standalonePaymentCurrencyCode="BRL"
       standalonePayments
+      view="cards"
       {...overrides}
     />,
   );
 }
 
 describe("storefront experience view", () => {
-  it("renders the boxed catalog with the standalone item first, images, steppers, and the empty cart", () => {
+  it("renders the two-column grid with the free-amount card first, then the catalog and the cart", () => {
     const markup = renderView();
+    const text = textContent(markup);
 
-    expect(markup).toContain('data-layout="boxed"');
-    expect(textContent(markup).indexOf("Valor livre")).toBeLessThan(textContent(markup).indexOf("Cafés"));
+    expect(markup).toContain("lg:grid-cols-[minmax(0,1fr)_calc(var(--space-12)*8)]");
+    expect(markup).toContain('data-view="cards"');
+    expect(text.indexOf("Valor livre")).toBeLessThan(text.indexOf("Cafés"));
+    expect(text.indexOf("Cafés")).toBeLessThan(text.indexOf("Seu carrinho"));
     expect(markup).toContain(`src="/media/${"p".repeat(43)}"`);
-    expect(markup).toContain('placeholder="R$ 0,00"');
     expect(markup).toContain('value="0"');
     expect(markup).toContain('aria-label="Diminuir a quantidade"');
     expect(markup).toContain('aria-label="Aumentar a quantidade"');
-    expect(textContent(markup)).toContain("Seu carrinho está vazio.");
-    expect(textContent(markup)).not.toContain("Seu carrinho foi atualizado");
-    expect(textContent(markup)).toContain("Mais produtos");
+    expect(text).toContain("Seu carrinho está vazio.");
+    expect(text).not.toContain("Seu carrinho foi atualizado");
+    expect(text).toContain("Mais produtos");
   });
 
-  it("renders the standalone pay action linking to the pay page with the draft amount as prefill only", () => {
-    const markup = renderView({ payHref: "/store/ana-store/pay?amount=12.5" });
+  it("renders the free amount as a pay-now form that never adds to the cart", () => {
+    const markup = renderView();
 
-    expect(markup).toContain('href="/store/ana-store/pay?amount=12.5"');
-    expect(textContent(markup)).toContain("Pagar agora");
-    expect(textContent(markup)).toContain("Adicionar ao carrinho");
+    expect(markup).toMatch(/<form[^>]*>/);
+    expect(markup).toMatch(/<button[^>]*type="submit"[^>]*>Pagar agora<\/button>/);
+    expect(markup).toContain('placeholder="R$ 0,00"');
+    expect(textContent(markup)).not.toContain("Adicionar ao carrinho");
+    expect(textContent(markup)).not.toContain("Atualizar o carrinho");
   });
 
-  it("renders the table layout with ruled rows and the standalone row first", () => {
-    const markup = renderView({ layout: "table" });
+  it("switches between cards and list rendering and exposes the active toggle option", () => {
+    const cards = renderView({ view: "cards" });
+    expect(cards).toContain('data-view="cards"');
+    expect(cards).toContain("sm:grid-cols-2");
+    expect(cards).not.toContain("<table");
+    expect(cards).toMatch(/aria-pressed="true"[^>]*>(?:<svg[^>]*><\/svg>|<svg.*?<\/svg>)?Cartões/);
+    expect(cards).toMatch(/aria-pressed="false"[^>]*>(?:<svg.*?<\/svg>)?Lista/);
 
-    expect(markup).toContain('data-layout="table"');
-    expect(textContent(markup)).toContain("Quantidade");
-    expect(textContent(markup).indexOf("Valor livre")).toBeLessThan(textContent(markup).indexOf("Cafés"));
-    expect(textContent(markup)).toContain("Chá verde.");
+    const list = renderView({ view: "list" });
+    expect(list).toContain('data-view="list"');
+    expect(list).toContain("<table");
+    expect(list).not.toContain("sm:grid-cols-2");
+    expect(textContent(list)).toContain("Quantidade");
+    expect(textContent(list)).toContain("Chá verde.");
+    expect(list).toMatch(/aria-pressed="true"[^>]*>(?:<svg.*?<\/svg>)?Lista/);
   });
 
-  it("omits the standalone item when standalone payments are off", () => {
+  it("paginates a 13-product catalog at 12 per page with status and boundary controls", () => {
+    const pageOne = renderView({ catalog: manyProducts, page: 1 });
+    const titlesOne = textContent(pageOne).match(/Item \d{2}/g) ?? [];
+    expect(new Set(titlesOne).size).toBe(12);
+    expect(textContent(pageOne)).not.toContain("Item 13");
+    expect(textContent(pageOne)).toContain("Página 1 de 2");
+    expect(pageOne).toMatch(/<button[^>]*\sdisabled=""[^>]*>Anterior<\/button>/);
+    expect(pageOne).not.toMatch(/<button[^>]*\sdisabled=""[^>]*>Próxima<\/button>/);
+
+    const pageTwo = renderView({ catalog: manyProducts, page: 2 });
+    expect(textContent(pageTwo).match(/Item \d{2}/g)).toEqual(["Item 13"]);
+    expect(textContent(pageTwo)).toContain("Página 2 de 2");
+    expect(pageTwo).toMatch(/<button[^>]*\sdisabled=""[^>]*>Próxima<\/button>/);
+  });
+
+  it("renders no pagination navigation for a single page", () => {
+    const markup = renderView();
+    expect(markup).not.toContain('aria-label="Páginas de produtos"');
+    expect(textContent(markup)).not.toContain("Página 1 de");
+  });
+
+  it("omits the free-amount card when standalone payments are off", () => {
     const markup = renderView({ standalonePayments: false });
 
     expect(textContent(markup)).not.toContain("Valor livre");
+    expect(markup).not.toContain("lg:grid-rows-[auto_1fr]");
     expect(textContent(markup)).toContain("Cafés");
   });
 
-  it("renders the populated cart with exact line totals grouped per currency, never summed across", () => {
+  it("renders the populated product-only cart with exact line totals grouped per currency, never summed across", () => {
     const markup = renderView({
-      amountDraft: "R$ 5,00",
       items: [
-        { kind: "custom-amount", amount: "5" },
         { kind: "product", reference: coffeeReference, quantity: 2 },
         { kind: "product", reference: teaReference, quantity: 3 },
       ],
     });
 
-    expect(textContent(markup)).toContain("Atualizar o carrinho");
-    expect(markup).toContain('value="R$ 5,00"');
     expect(markup).toContain('value="2"');
     expect(textContent(markup)).toContain("2 × R$ 12,50");
     expect(textContent(markup)).toContain("3 × 9");
     expect(textContent(markup)).toContain("R$ 25,00");
     expect(textContent(markup)).toContain("Total (BRL)");
-    expect(textContent(markup)).toContain("R$ 30,00");
     expect(textContent(markup)).toContain("27");
-    expect(textContent(markup)).not.toContain("57");
+    expect(textContent(markup)).not.toContain("52");
     expect(markup).toContain('aria-label="Remover: Café"');
-    expect(markup).toContain('aria-label="Remover: Valor livre"');
+    expect(markup).not.toContain('aria-label="Remover: Valor livre"');
     expect(textContent(markup)).not.toContain("Seu carrinho está vazio.");
+    expect(textContent(markup)).toContain("Ir para o pagamento");
   });
 
   it("formats exact cart totals without relabeling a distinct currency as BRL", () => {
@@ -174,15 +227,12 @@ describe("storefront experience view", () => {
         ...catalog[0],
         products: [{ ...catalog[0].products[0], price: "1234.5", currencyCode: "USD" }],
       }],
-      items: [
-        { kind: "product", reference: coffeeReference, quantity: 2 },
-        { kind: "custom-amount", amount: "1234567890.000001" },
-      ],
+      items: [{ kind: "product", reference: coffeeReference, quantity: 2 }],
     });
 
     expect(textContent(markup)).toContain("2 × 1,234.50 USD");
     expect(textContent(markup)).toContain("2,469.00 USD");
-    expect(textContent(markup)).toContain("R$ 1.234.567.890,000001");
+    expect(textContent(markup)).not.toContain("R$");
   });
 
   it("announces the recovered-cart notice exactly once and flags an invalid custom amount", () => {
@@ -194,15 +244,10 @@ describe("storefront experience view", () => {
     expect(markup).toContain('aria-invalid="true"');
   });
 
-  it("renders the checkout control only for a populated product-only cart", () => {
-    const productOnly = renderView({ items: [{ kind: "product", reference: coffeeReference, quantity: 2 }] });
-    expect(textContent(productOnly)).toContain("Ir para o pagamento");
-    expect(textContent(productOnly).match(/Ir para o pagamento/g)).toHaveLength(1);
-
-    const withCustomAmount = renderView({
-      items: [{ kind: "custom-amount", amount: "5" }, { kind: "product", reference: coffeeReference, quantity: 2 }],
-    });
-    expect(textContent(withCustomAmount)).not.toContain("Ir para o pagamento");
+  it("renders the checkout control for any populated cart and never for an empty one", () => {
+    const populated = renderView({ items: [{ kind: "product", reference: coffeeReference, quantity: 2 }] });
+    expect(textContent(populated)).toContain("Ir para o pagamento");
+    expect(textContent(populated).match(/Ir para o pagamento/g)).toHaveLength(1);
 
     const empty = renderView();
     expect(textContent(empty)).not.toContain("Ir para o pagamento");
@@ -277,9 +322,8 @@ describe("submitStorefrontCartCheckout", () => {
     });
   });
 
-  it("refuses a custom-amount member or an empty cart without a request", async () => {
+  it("refuses an empty cart without a request", async () => {
     const fetchImplementation = vi.fn();
-    await expect(submitStorefrontCartCheckout(slug, [{ kind: "custom-amount", amount: "5" }, ...items], fetchImplementation)).resolves.toEqual({ kind: "failed" });
     await expect(submitStorefrontCartCheckout(slug, [], fetchImplementation)).resolves.toEqual({ kind: "failed" });
     expect(fetchImplementation).not.toHaveBeenCalled();
   });

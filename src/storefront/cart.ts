@@ -18,18 +18,13 @@ const MICRO_UNIT_SCALE = BigInt(1_000_000);
 const ZERO_MICRO_UNITS = BigInt(0);
 const MICRO_UNIT_DIGITS = 6;
 
-export type StorefrontCartProductItem = Readonly<{
+// Only products enter the cart; free-amount payments navigate straight to the
+// standalone pay page and never persist here.
+export type StorefrontCartItem = Readonly<{
   kind: "product";
   reference: string;
   quantity: number;
 }>;
-
-export type StorefrontCartCustomAmountItem = Readonly<{
-  kind: "custom-amount";
-  amount: string;
-}>;
-
-export type StorefrontCartItem = StorefrontCartProductItem | StorefrontCartCustomAmountItem;
 
 // The minimal catalog facts reconciliation and totals need; the server
 // projection already redacts everything else before it reaches the browser.
@@ -79,13 +74,12 @@ function catalogIndex(catalog: readonly StorefrontCartCatalogProduct[]): Map<str
 
 // Reconciles a stored envelope against the server-rendered catalog snapshot:
 // stale or unavailable references drop, quantities clamp to 1–9,999, duplicate
-// references keep the first entry, and the single custom amount survives only
-// while standalone payments stay enabled with a valid amount. The cart never
-// trusts stored data beyond item identity.
+// references keep the first entry, and any non-product entry (including the
+// retired custom-amount item) drops as a recovery. The cart never trusts
+// stored data beyond item identity.
 export function hydrateStorefrontCart(
   stored: string | null,
   catalog: readonly StorefrontCartCatalogProduct[],
-  standalonePayments: boolean,
 ): StorefrontCartHydration {
   if (stored === null) return { items: [], recovered: false };
   let envelope: unknown;
@@ -104,14 +98,13 @@ export function hydrateStorefrontCart(
   const seenReferences = new Set<string>();
   const items: StorefrontCartItem[] = [];
   let recovered = false;
-  let customAmountSeen = false;
 
   for (const entry of candidate.items as unknown[]) {
     if (typeof entry !== "object" || entry === null) {
       recovered = true;
       continue;
     }
-    const item = entry as { kind?: unknown; reference?: unknown; quantity?: unknown; amount?: unknown };
+    const item = entry as { kind?: unknown; reference?: unknown; quantity?: unknown };
     if (item.kind === "product") {
       const product = typeof item.reference === "string" ? products.get(item.reference) : undefined;
       if (!product || !product.available || seenReferences.has(product.reference)) {
@@ -126,15 +119,6 @@ export function hydrateStorefrontCart(
       const quantity = Math.min(item.quantity, STOREFRONT_CART_QUANTITY_MAXIMUM);
       if (quantity !== item.quantity) recovered = true;
       items.push({ kind: "product", reference: product.reference, quantity });
-      continue;
-    }
-    if (item.kind === "custom-amount") {
-      if (!standalonePayments || customAmountSeen || !isStorefrontCartAmount(item.amount)) {
-        recovered = true;
-        continue;
-      }
-      customAmountSeen = true;
-      items.push({ kind: "custom-amount", amount: item.amount });
       continue;
     }
     recovered = true;
@@ -157,52 +141,32 @@ export function setStorefrontCartProductQuantity(
   const index = items.findIndex((item) => item.kind === "product" && item.reference === reference);
   if (clamped === 0) return index === -1 ? [...items] : items.filter((_, position) => position !== index);
   const next = [...items];
-  const entry: StorefrontCartProductItem = { kind: "product", reference, quantity: clamped };
+  const entry: StorefrontCartItem = { kind: "product", reference, quantity: clamped };
   if (index === -1) next.push(entry);
   else next[index] = entry;
   return next;
 }
 
-// Adds, replaces, or removes (null) the single custom-amount item.
-export function setStorefrontCartCustomAmount(
-  items: readonly StorefrontCartItem[],
-  amount: string | null,
-): StorefrontCartItem[] {
-  const without = items.filter((item) => item.kind !== "custom-amount");
-  return amount === null ? without : [{ kind: "custom-amount", amount }, ...without];
-}
-
 // Exact line and grouped totals: product lines multiply their snapshotted
-// catalog price by quantity, the custom amount contributes its own value, and
-// groups never sum across currency codes. A null-code group renders without a
-// code label. Group order is first-seen cart order.
+// catalog price by quantity, and groups never sum across currency codes. A
+// null-code group renders without a code label. Group order is first-seen
+// cart order.
 export function storefrontCartTotals(
   items: readonly StorefrontCartItem[],
   catalog: readonly StorefrontCartCatalogProduct[],
-  standalonePaymentCurrencyCode: string | null,
 ): { lines: ReadonlyMap<StorefrontCartItem, string>; groups: readonly StorefrontCartTotal[] } {
   const products = catalogIndex(catalog);
   const lines = new Map<StorefrontCartItem, string>();
   const grouped = new Map<string | null, bigint>();
   const groupOrder: Array<string | null> = [];
 
-  const record = (currencyCode: string | null, microUnits: bigint) => {
-    if (!grouped.has(currencyCode)) groupOrder.push(currencyCode);
-    grouped.set(currencyCode, (grouped.get(currencyCode) ?? ZERO_MICRO_UNITS) + microUnits);
-  };
-
   for (const item of items) {
-    if (item.kind === "product") {
-      const product = products.get(item.reference);
-      if (!product) continue;
-      const lineMicroUnits = storefrontCartAmountToMicroUnits(product.price) * BigInt(item.quantity);
-      lines.set(item, storefrontCartMicroUnitsToAmount(lineMicroUnits));
-      record(product.currencyCode, lineMicroUnits);
-      continue;
-    }
-    const lineMicroUnits = storefrontCartAmountToMicroUnits(item.amount);
+    const product = products.get(item.reference);
+    if (!product) continue;
+    const lineMicroUnits = storefrontCartAmountToMicroUnits(product.price) * BigInt(item.quantity);
     lines.set(item, storefrontCartMicroUnitsToAmount(lineMicroUnits));
-    record(standalonePaymentCurrencyCode, lineMicroUnits);
+    if (!grouped.has(product.currencyCode)) groupOrder.push(product.currencyCode);
+    grouped.set(product.currencyCode, (grouped.get(product.currencyCode) ?? ZERO_MICRO_UNITS) + lineMicroUnits);
   }
 
   return {

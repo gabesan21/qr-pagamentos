@@ -4,7 +4,6 @@ import {
   hydrateStorefrontCart,
   isStorefrontCartAmount,
   serializeStorefrontCart,
-  setStorefrontCartCustomAmount,
   setStorefrontCartProductQuantity,
   storefrontCartAmountToMicroUnits,
   storefrontCartMicroUnitsToAmount,
@@ -41,21 +40,21 @@ describe("storefront cart storage envelope", () => {
 
   it("round-trips items through the versioned envelope", () => {
     const items: StorefrontCartItem[] = [
-      { kind: "custom-amount", amount: "5" },
+      { kind: "product", reference: tea.reference, quantity: 1 },
       { kind: "product", reference: coffee.reference, quantity: 3 },
     ];
     const stored = serializeStorefrontCart(items);
     expect(JSON.parse(stored)).toEqual({ version: 1, items });
-    expect(hydrateStorefrontCart(stored, catalog, true)).toEqual({ items, recovered: false });
+    expect(hydrateStorefrontCart(stored, catalog)).toEqual({ items, recovered: false });
   });
 
   it("discards unknown versions, unparseable payloads, and absent storage silently", () => {
-    expect(hydrateStorefrontCart(null, catalog, true)).toEqual({ items: [], recovered: false });
-    expect(hydrateStorefrontCart("not json", catalog, true)).toEqual({ items: [], recovered: false });
-    expect(hydrateStorefrontCart(JSON.stringify({ version: 2, items: [{ kind: "product", reference: coffee.reference, quantity: 1 }] }), catalog, true))
+    expect(hydrateStorefrontCart(null, catalog)).toEqual({ items: [], recovered: false });
+    expect(hydrateStorefrontCart("not json", catalog)).toEqual({ items: [], recovered: false });
+    expect(hydrateStorefrontCart(JSON.stringify({ version: 2, items: [{ kind: "product", reference: coffee.reference, quantity: 1 }] }), catalog))
       .toEqual({ items: [], recovered: false });
-    expect(hydrateStorefrontCart(JSON.stringify({ items: [] }), catalog, true)).toEqual({ items: [], recovered: false });
-    expect(hydrateStorefrontCart(JSON.stringify("v1"), catalog, true)).toEqual({ items: [], recovered: false });
+    expect(hydrateStorefrontCart(JSON.stringify({ items: [] }), catalog)).toEqual({ items: [], recovered: false });
+    expect(hydrateStorefrontCart(JSON.stringify("v1"), catalog)).toEqual({ items: [], recovered: false });
   });
 });
 
@@ -75,7 +74,7 @@ describe("storefront cart reconciliation", () => {
       null,
     ] as never);
 
-    const hydration = hydrateStorefrontCart(stored, [coffee, tea, stale], true);
+    const hydration = hydrateStorefrontCart(stored, [coffee, tea, stale]);
     expect(hydration).toEqual({
       items: [{ kind: "product", reference: coffee.reference, quantity: 2 }],
       recovered: true,
@@ -86,36 +85,28 @@ describe("storefront cart reconciliation", () => {
     const over = hydrateStorefrontCart(
       serializeStorefrontCart([{ kind: "product", reference: coffee.reference, quantity: 10_000 }]),
       catalog,
-      true,
     );
     expect(over).toEqual({ items: [{ kind: "product", reference: coffee.reference, quantity: 9_999 }], recovered: true });
 
     const exact = hydrateStorefrontCart(
       serializeStorefrontCart([{ kind: "product", reference: coffee.reference, quantity: 9_999 }]),
       catalog,
-      true,
     );
     expect(exact).toEqual({ items: [{ kind: "product", reference: coffee.reference, quantity: 9_999 }], recovered: false });
   });
 
-  it("keeps at most one custom amount and only while standalone payments stay enabled", () => {
-    const dropped = hydrateStorefrontCart(
-      serializeStorefrontCart([{ kind: "custom-amount", amount: "5" }]),
-      catalog,
-      false,
-    );
-    expect(dropped).toEqual({ items: [], recovered: true });
-
-    const duplicated = hydrateStorefrontCart(
-      serializeStorefrontCart([
+  it("drops a retired custom-amount entry while keeping the product", () => {
+    const stored = JSON.stringify({
+      version: 1,
+      items: [
         { kind: "custom-amount", amount: "5" },
-        { kind: "custom-amount", amount: "7" },
-        { kind: "custom-amount", amount: "0" },
-      ]),
-      catalog,
-      true,
-    );
-    expect(duplicated).toEqual({ items: [{ kind: "custom-amount", amount: "5" }], recovered: true });
+        { kind: "product", reference: coffee.reference, quantity: 1 },
+      ],
+    });
+    expect(hydrateStorefrontCart(stored, catalog)).toEqual({
+      items: [{ kind: "product", reference: coffee.reference, quantity: 1 }],
+      recovered: true,
+    });
   });
 });
 
@@ -158,22 +149,6 @@ describe("storefront cart mutations", () => {
     expect(items).toEqual([{ kind: "product", reference: tea.reference, quantity: 1 }]);
     expect(setStorefrontCartProductQuantity(items, coffee.reference, 0)).toEqual(items);
   });
-
-  it("adds, replaces, and removes the single custom amount", () => {
-    let items: StorefrontCartItem[] = [{ kind: "product", reference: coffee.reference, quantity: 1 }];
-    items = setStorefrontCartCustomAmount(items, "5");
-    expect(items).toEqual([
-      { kind: "custom-amount", amount: "5" },
-      { kind: "product", reference: coffee.reference, quantity: 1 },
-    ]);
-    items = setStorefrontCartCustomAmount(items, "7.25");
-    expect(items).toEqual([
-      { kind: "custom-amount", amount: "7.25" },
-      { kind: "product", reference: coffee.reference, quantity: 1 },
-    ]);
-    items = setStorefrontCartCustomAmount(items, null);
-    expect(items).toEqual([{ kind: "product", reference: coffee.reference, quantity: 1 }]);
-  });
 });
 
 describe("storefront cart totals", () => {
@@ -182,7 +157,7 @@ describe("storefront cart totals", () => {
       { kind: "product", reference: coffee.reference, quantity: 3 },
       { kind: "product", reference: tea.reference, quantity: 9_999 },
     ];
-    const { lines, groups } = storefrontCartTotals(items, catalog, "USD");
+    const { lines, groups } = storefrontCartTotals(items, catalog);
     expect(lines.get(items[0]!)).toBe("37.5");
     expect(lines.get(items[1]!)).toBe("0.009999");
     expect(groups).toEqual([
@@ -192,12 +167,18 @@ describe("storefront cart totals", () => {
   });
 
   it("groups per currency code and never sums across currencies", () => {
+    const usd: StorefrontCartCatalogProduct = {
+      reference: "44444444-4444-4444-8444-444444444444",
+      price: "5",
+      currencyCode: "USD",
+      available: true,
+    };
     const items: StorefrontCartItem[] = [
       { kind: "product", reference: coffee.reference, quantity: 1 },
-      { kind: "custom-amount", amount: "5" },
+      { kind: "product", reference: usd.reference, quantity: 1 },
       { kind: "product", reference: tea.reference, quantity: 1 },
     ];
-    const { groups } = storefrontCartTotals(items, catalog, "USD");
+    const { groups } = storefrontCartTotals(items, [...catalog, usd]);
     expect(groups).toEqual([
       { currencyCode: "BRL", total: "12.5" },
       { currencyCode: "USD", total: "5" },
@@ -206,15 +187,9 @@ describe("storefront cart totals", () => {
     expect(JSON.stringify(groups)).not.toContain("17.5");
   });
 
-  it("labels the custom amount with the standalone currency code, including null", () => {
-    const items: StorefrontCartItem[] = [{ kind: "custom-amount", amount: "5" }];
-    expect(storefrontCartTotals(items, catalog, "BRL").groups).toEqual([{ currencyCode: "BRL", total: "5" }]);
-    expect(storefrontCartTotals(items, catalog, null).groups).toEqual([{ currencyCode: null, total: "5" }]);
-  });
-
   it("skips catalog references that disappeared after hydration", () => {
     const items: StorefrontCartItem[] = [{ kind: "product", reference: stale.reference, quantity: 2 }];
-    const { lines, groups } = storefrontCartTotals(items, catalog, null);
+    const { lines, groups } = storefrontCartTotals(items, catalog);
     expect(lines.size).toBe(0);
     expect(groups).toEqual([]);
   });
