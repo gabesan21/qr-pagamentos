@@ -22,7 +22,7 @@ import type {
   DirectoryPageSizePolicy,
 } from "../data-directory/server/query-contract";
 import { getDatabaseClient } from "../db/client";
-import type { Prisma, PrismaClient } from "../generated/prisma/client";
+import { Prisma, type PrismaClient } from "../generated/prisma/client";
 import { PAYMENT_LINK_ORDER_STATES } from "./order-v2-policies";
 import type { OrderV2DirectoryUsdPair } from "./order-v2-directory";
 import {
@@ -142,6 +142,7 @@ export type AdminOrderV2DirectoryRead = Readonly<{
   where: Prisma.OrderV2WhereInput;
   ascending: boolean;
   take: number;
+  resolvedStatus?: string | null;
 }>;
 
 export type AdminOrderV2DirectoryStore = Readonly<{
@@ -177,9 +178,10 @@ async function readWindow(
   const source = input.filters.source;
   if (Array.isArray(source) && source.length === 1) and.push({ source: source[0] });
 
+  let resolvedStatus: string | null | undefined;
   const state = input.filters.state;
   if (Array.isArray(state) && state.length === 1) {
-    and.push({ state: state[0] === ADMIN_ORDER_V2_DIRECTORY_STATELESS_FILTER_VALUE ? null : state[0] });
+    resolvedStatus = state[0] === ADMIN_ORDER_V2_DIRECTORY_STATELESS_FILTER_VALUE ? null : state[0];
   }
 
   const merchant = textFilter(input.filters, "merchant");
@@ -232,7 +234,7 @@ async function readWindow(
   if (input.seek) and.push(keysetSeek(input.seek, input.direction));
 
   const where: Prisma.OrderV2WhereInput = and.length > 0 ? { AND: and } : {};
-  return store.readWindow({ where, ascending: input.direction === "backward", take: input.limit });
+  return store.readWindow({ where, ascending: input.direction === "backward", take: input.limit, resolvedStatus });
 }
 
 export type AdminOrderV2DirectoryResult =
@@ -318,8 +320,136 @@ function createPrismaAdminOrderV2DirectoryStore(prisma: PrismaClient): AdminOrde
       });
       return pointer?.pair ?? null;
     },
-    async readWindow({ where, ascending, take }) {
+    async readWindow({ where, ascending, take, resolvedStatus }) {
       const direction = ascending ? "asc" : "desc";
+      if (resolvedStatus !== undefined) {
+        const conditions: Prisma.Sql[] = [];
+        if (where.source) {
+          conditions.push(Prisma.sql`o."source" = ${where.source}`);
+        }
+        if (where.currencyUuid && where.exchangeCurrencyUuid) {
+          conditions.push(Prisma.sql`o."currency_uuid" = ${where.currencyUuid}::uuid AND o."exchange_currency_uuid" = ${where.exchangeCurrencyUuid}::uuid`);
+        }
+        if (where.NOT && typeof where.NOT === "object" && "currencyUuid" in where.NOT && "exchangeCurrencyUuid" in where.NOT) {
+          conditions.push(Prisma.sql`NOT (o."currency_uuid" = ${where.NOT.currencyUuid}::uuid AND o."exchange_currency_uuid" = ${where.NOT.exchangeCurrencyUuid}::uuid)`);
+        }
+        if (where.createdAt && typeof where.createdAt === "object") {
+          if ("gte" in where.createdAt && where.createdAt.gte) {
+            conditions.push(Prisma.sql`o."created_at" >= ${where.createdAt.gte}`);
+          }
+          if ("lt" in where.createdAt && where.createdAt.lt) {
+            conditions.push(Prisma.sql`o."created_at" < ${where.createdAt.lt}`);
+          }
+        }
+        if (where.paymentLink && typeof where.paymentLink === "object" && "is" in where.paymentLink && where.paymentLink.is?.identifier) {
+          const identifier = where.paymentLink.is.identifier;
+          conditions.push(Prisma.sql`EXISTS (SELECT 1 FROM "app"."payment_link_v2" pl WHERE pl."id" = o."payment_link_v2_id" AND pl."identifier" = ${identifier})`);
+        }
+        if (where.AND && Array.isArray(where.AND)) {
+          for (const andItem of where.AND) {
+            if ("source" in andItem && andItem.source) {
+              conditions.push(Prisma.sql`o."source" = ${andItem.source}`);
+            }
+            if ("owner" in andItem && andItem.owner && typeof andItem.owner === "object" && "is" in andItem.owner && andItem.owner.is && typeof andItem.owner.is === "object" && "username" in andItem.owner.is && andItem.owner.is.username && typeof andItem.owner.is.username === "object" && "equals" in andItem.owner.is.username) {
+              const merchantUsername = andItem.owner.is.username.equals as string;
+              conditions.push(Prisma.sql`EXISTS (SELECT 1 FROM "app"."user" u WHERE u."id" = o."owner_id" AND u."username" ILIKE ${merchantUsername})`);
+            }
+            if ("currencyUuid" in andItem && "exchangeCurrencyUuid" in andItem && andItem.currencyUuid && andItem.exchangeCurrencyUuid) {
+              conditions.push(Prisma.sql`o."currency_uuid" = ${andItem.currencyUuid}::uuid AND o."exchange_currency_uuid" = ${andItem.exchangeCurrencyUuid}::uuid`);
+            }
+            if ("NOT" in andItem && andItem.NOT && typeof andItem.NOT === "object" && "currencyUuid" in andItem.NOT && "exchangeCurrencyUuid" in andItem.NOT) {
+              conditions.push(Prisma.sql`NOT (o."currency_uuid" = ${andItem.NOT.currencyUuid}::uuid AND o."exchange_currency_uuid" = ${andItem.NOT.exchangeCurrencyUuid}::uuid)`);
+            }
+            if ("createdAt" in andItem && andItem.createdAt && typeof andItem.createdAt === "object") {
+              if ("gte" in andItem.createdAt && andItem.createdAt.gte) {
+                conditions.push(Prisma.sql`o."created_at" >= ${andItem.createdAt.gte}`);
+              }
+              if ("lt" in andItem.createdAt && andItem.createdAt.lt) {
+                conditions.push(Prisma.sql`o."created_at" < ${andItem.createdAt.lt}`);
+              }
+            }
+            if ("paymentLink" in andItem && andItem.paymentLink && typeof andItem.paymentLink === "object" && "is" in andItem.paymentLink && andItem.paymentLink.is?.identifier) {
+              const identifier = andItem.paymentLink.is.identifier;
+              conditions.push(Prisma.sql`EXISTS (SELECT 1 FROM "app"."payment_link_v2" pl WHERE pl."id" = o."payment_link_v2_id" AND pl."identifier" = ${identifier})`);
+            }
+            if ("OR" in andItem && Array.isArray(andItem.OR)) {
+              const orClauses = andItem.OR;
+              const seekClause = orClauses.find((clause) => "createdAt" in clause && clause.createdAt && typeof clause.createdAt === "object" && ("lt" in clause.createdAt || "gt" in clause.createdAt));
+              const textSearchClause = orClauses.find((clause) => "name" in clause);
+              const uuidSearchClause = orClauses.find((clause) => "id" in clause && typeof clause.id === "string");
+
+              if (seekClause) {
+                const c = seekClause as { createdAt: { lt?: Date; gt?: Date } };
+                const eqClause = orClauses.find((clause) => "id" in clause && clause.id && typeof clause.id === "object") as { createdAt: { equals: Date }; id: { lt?: string; gt?: string } } | undefined;
+                if (c.createdAt.lt && eqClause?.id.lt) {
+                  conditions.push(Prisma.sql`(o."created_at" < ${c.createdAt.lt} OR (o."created_at" = ${eqClause.createdAt.equals} AND o."id" < ${eqClause.id.lt}::uuid))`);
+                } else if (c.createdAt.gt && eqClause?.id.gt) {
+                  conditions.push(Prisma.sql`(o."created_at" > ${c.createdAt.gt} OR (o."created_at" = ${eqClause.createdAt.equals} AND o."id" > ${eqClause.id.gt}::uuid))`);
+                }
+              } else if (textSearchClause) {
+                const nameClause = orClauses.find((cl) => "name" in cl) as { name: { contains: string } } | undefined;
+                if (nameClause?.name.contains) {
+                  const term = `%${nameClause.name.contains}%`;
+                  conditions.push(Prisma.sql`(o."name" ILIKE ${term} OR o."email" ILIKE ${term} OR o."cpf" ILIKE ${term})`);
+                }
+              } else if (uuidSearchClause) {
+                const uuidVal = uuidSearchClause.id as string;
+                conditions.push(Prisma.sql`(o."id" = ${uuidVal}::uuid OR EXISTS (SELECT 1 FROM "app"."provider_order" po WHERE po."order_v2_id" = o."id" AND po."provider_order_uuid" = ${uuidVal}::uuid))`);
+              }
+            }
+          }
+        }
+
+        if (resolvedStatus === null) {
+          conditions.push(Prisma.sql`resolved."status" IS NULL`);
+        } else {
+          conditions.push(Prisma.sql`resolved."status" = ${resolvedStatus}`);
+        }
+
+        const whereClause = conditions.length > 0
+          ? Prisma.sql`WHERE ${Prisma.join(conditions, " AND ")}`
+          : Prisma.empty;
+        const orderClause = ascending
+          ? Prisma.sql`ORDER BY o."created_at" ASC, o."id" ASC`
+          : Prisma.sql`ORDER BY o."created_at" DESC, o."id" DESC`;
+
+        const idRows = await prisma.$queryRaw<Array<{ id: string }>>`
+          SELECT o."id"
+          FROM "app"."order_v2" o
+          LEFT JOIN LATERAL (
+            SELECT lo."outcome"
+            FROM "app"."order_local_outcome_v2" lo
+            WHERE lo."order_id" = o."id"
+            ORDER BY lo."created_at" DESC, lo."id" DESC
+            LIMIT 1
+          ) latest_outcome ON true
+          CROSS JOIN LATERAL (
+            SELECT CASE
+              WHEN latest_outcome."outcome" = 'LOCAL_CANCELLED' THEN 'CANCELLED'
+              ELSE o."state"
+            END AS "status"
+          ) resolved
+          ${whereClause}
+          ${orderClause}
+          LIMIT ${take}
+        `;
+
+        if (idRows.length === 0) return [];
+        const ids = idRows.map((r) => r.id);
+        const rows = await prisma.orderV2.findMany({
+          where: { id: { in: ids } },
+          select: {
+            ...orderV2SummarySelect,
+            owner: { select: { username: true, deletedAt: true } },
+          },
+        });
+        const summaryMap = new Map(rows.map((row) => [row.id, {
+          ...toOrderV2Summary(row as OrderV2SummaryRow),
+          owner: { username: row.owner.username, deletedAt: row.owner.deletedAt },
+        }]));
+        return ids.map((id) => summaryMap.get(id)!).filter(Boolean);
+      }
+
       const rows = await prisma.orderV2.findMany({
         where,
         orderBy: [{ createdAt: direction }, { id: direction }],

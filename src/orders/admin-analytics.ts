@@ -2,7 +2,7 @@ import "server-only";
 
 import { ForbiddenError, type Principal } from "../auth/authorization";
 import { getDatabaseClient } from "../db/client";
-import type { Prisma, PrismaClient } from "../generated/prisma/client";
+import { Prisma, type PrismaClient } from "../generated/prisma/client";
 import type { OrderV2Source, OrderV2State } from "./order-v2";
 import {
   accumulate,
@@ -49,7 +49,7 @@ export type AdminAnalyticsUserCounts = Readonly<{
 export type AdminAnalyticsOrderCounts = Readonly<{
   createdInPeriod: number;
   bySource: ReadonlyArray<Readonly<{ source: OrderV2Source; count: number }>>;
-  byState: ReadonlyArray<Readonly<{ state: OrderV2State | null; count: number }>>;
+  byStatus: ReadonlyArray<Readonly<{ state: OrderV2State | null; count: number }>>;
 }>;
 
 // The only per-owner identity the projection ever exposes; internal UUIDs,
@@ -202,7 +202,7 @@ export function createAdminAnalyticsService(store: AdminAnalyticsStore, dependen
         bySource: [...bySourceMap.entries()]
           .map(([source, count]) => ({ source, count }))
           .sort((a, b) => b.count - a.count || a.source.localeCompare(b.source)),
-        byState: [...byStateMap.entries()]
+        byStatus: [...byStateMap.entries()]
           .map(([state, count]) => ({ state, count }))
           .sort((a, b) => b.count - a.count || compareNullableState(a.state, b.state)),
       };
@@ -305,12 +305,30 @@ export function createPrismaAdminAnalyticsStore(prisma: PrismaClient): AdminAnal
       return { registeredTotal, activeNow, deletedTotal };
     },
     async countOrdersBySourceAndState(from, to) {
-      const rows = await prisma.orderV2.groupBy({
-        by: ["source", "state"],
-        where: { createdAt: { gte: from, lt: to } },
-        _count: true,
-      });
-      return rows.map((row) => ({ source: row.source as OrderV2Source, state: row.state as OrderV2State | null, count: row._count }));
+      const rows = await prisma.$queryRaw<Array<{ source: string; status: string | null; count: bigint | number }>>`
+        SELECT o."source", resolved."status", COUNT(*)::bigint AS "count"
+        FROM "app"."order_v2" o
+        LEFT JOIN LATERAL (
+          SELECT lo."outcome"
+          FROM "app"."order_local_outcome_v2" lo
+          WHERE lo."order_id" = o."id"
+          ORDER BY lo."created_at" DESC, lo."id" DESC
+          LIMIT 1
+        ) latest_outcome ON true
+        CROSS JOIN LATERAL (
+          SELECT CASE
+            WHEN latest_outcome."outcome" = 'LOCAL_CANCELLED' THEN 'CANCELLED'
+            ELSE o."state"
+          END AS "status"
+        ) resolved
+        WHERE o."created_at" >= ${from} AND o."created_at" < ${to}
+        GROUP BY o."source", resolved."status"
+      `;
+      return rows.map((row) => ({
+        source: row.source as OrderV2Source,
+        state: row.status as OrderV2State | null,
+        count: Number(row.count),
+      }));
     },
     async countLinks() {
       const [total, activeCount] = await Promise.all([

@@ -3,7 +3,7 @@ import Link from "next/link";
 
 import { ArrowRight } from "lucide-react";
 
-import { CompactOutcomeBadge, CompactProviderStateBadge, CompactSourceBadge } from "@/app/orders/order-badges";
+import { CompactOrderStatusBadge, CompactSourceBadge } from "@/app/orders/order-badges";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -157,7 +157,7 @@ function ByBreakdownCard({
   dictionary,
   view,
 }: Readonly<{ dictionary: Dictionary; view: MerchantAnalyticsView }>) {
-  const byState = view.byProviderState ?? [];
+  const byState = view.byStatus ?? [];
   const byOrigin = view.byOrigin ?? [];
   const stateCounts = new Map(byState.map((row) => [row.state, row.count]));
   const originCounts = new Map(byOrigin.map((row) => [row.source, row.count]));
@@ -191,7 +191,7 @@ function ByBreakdownCard({
                     {stateRows.map((row) => (
                       <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1.5" key={row.state ?? "none"}>
                         <div className="col-span-2 sm:col-span-1 sm:w-32">
-                          <CompactProviderStateBadge dictionary={dictionary} state={row.state} />
+                          <CompactOrderStatusBadge dictionary={dictionary} state={row.state} />
                         </div>
                         <div className="col-span-3 row-start-2 h-2 overflow-hidden rounded-full bg-surface-2 sm:col-span-1 sm:row-start-auto">
                           <div className={`h-full bg-primary transition-all ${progressWidthClass((row.count / stateMax) * 100)}`} />
@@ -384,19 +384,10 @@ function LeadingProductsCard({
 }
 
 function RecentOrderBadges({ dictionary, order }: Readonly<{ dictionary: Dictionary; order: MerchantAnalyticsRecentOrder }>) {
-  if (order.state === null && order.currentLocalOutcome === null) {
+  if (order.storeStatus === null) {
     return <span className="text-sm text-text-2">{dictionary.merchantDashboardStateUnavailable}</span>;
   }
-  return (
-    <>
-      {order.state !== null ? (
-        <CompactProviderStateBadge dictionary={dictionary} state={order.state} />
-      ) : null}
-      {order.currentLocalOutcome !== null ? (
-        <CompactOutcomeBadge dictionary={dictionary} outcome={order.currentLocalOutcome.outcome} />
-      ) : null}
-    </>
-  );
+  return <CompactOrderStatusBadge dictionary={dictionary} state={order.storeStatus} />;
 }
 
 function recentOrderKey(order: MerchantAnalyticsRecentOrder) {

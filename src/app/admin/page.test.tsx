@@ -32,7 +32,7 @@ function readyView(overrides: Partial<AdminAnalyticsView> = {}): AdminAnalyticsV
     orders: {
       createdInPeriod: 6,
       bySource: [{ source: "LINK", count: 4 }, { source: "AD_HOC", count: 2 }],
-      byState: [{ state: "CONFIRMED", count: 3 }, { state: null, count: 2 }, { state: "PENDING", count: 1 }],
+      byStatus: [{ state: "CONFIRMED", count: 3 }, { state: null, count: 2 }, { state: "PENDING", count: 1 }],
     },
     confirmedSales: [{ currency: brl, amount: "34.90", orderCount: 2 }],
     locallyFinalizedSales: [{ currency: brl, amount: "10", orderCount: 1 }],
@@ -135,7 +135,7 @@ describe("administrator dashboard", () => {
           { source: "STANDALONE", count: 1 },
           { source: "AD_HOC", count: 1 },
         ],
-        byState: [],
+        byStatus: [],
       },
     }));
 
@@ -193,7 +193,7 @@ describe("administrator dashboard", () => {
 
   it("renders every explicit empty state when there is no data", async () => {
     arrange("pt-BR", readyView({
-      orders: { createdInPeriod: 0, bySource: [], byState: [] },
+      orders: { createdInPeriod: 0, bySource: [], byStatus: [] },
       confirmedSales: [],
       locallyFinalizedSales: [],
       funnel: { attempts: 0, converted: 0, abandoned: 0, inProgress: 0, conversionRate: null, abandonmentRate: null },
@@ -243,7 +243,7 @@ describe("administrator dashboard", () => {
       orders: {
         createdInPeriod: 1234,
         bySource: [{ source: "LINK", count: 1000 }, { source: "AD_HOC", count: 234 }],
-        byState: [{ state: "CONFIRMED", count: 1234 }],
+        byStatus: [{ state: "CONFIRMED", count: 1234 }],
       },
       confirmedSales: [
         { currency: brl, amount: "1234.50", orderCount: 1234 },

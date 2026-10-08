@@ -67,12 +67,13 @@ function storeWith(overrides: Partial<OrderV2ViewStore> = {}): OrderV2ViewStore 
 }
 
 describe("order-v2 view service", () => {
-  it("exposes state and the current local outcome as separate fields", async () => {
+  it("exposes storeStatus resolved from state and the current local outcome", async () => {
     const service = createOrderV2ViewService(storeWith());
     const result = await service.getForOwner(owner, orderId);
     expect(result.kind).toBe("found");
     if (result.kind !== "found") return;
-    expect(result.order.state).toBeNull();
+    expect(result.order.storeStatus).toBeNull();
+    expect(result.order).not.toHaveProperty("state");
     expect(result.order.currentLocalOutcome).toEqual({ outcome: "LOCAL_FINALIZED", note: null, createdAt: new Date("2026-07-25T12:30:00.000Z") });
     expect(result.order.customer).toEqual({ name: "Ana", email: "ana@example.com", cpf: null, address: null });
     expect(result.order.payer).toEqual(result.order.customer);
@@ -124,7 +125,7 @@ describe("order-v2 view service", () => {
     expect(Object.keys(result.order).sort()).toEqual([
       "amount", "checkoutDataPolicy", "comments", "createdAt", "currencyUuid", "currentLocalOutcome", "customer",
       "descriptionEn", "descriptionPtBr", "exchangeCurrencyUuid", "id", "lifecycleVersion", "lines", "payer",
-      "paymentLinkV2Identifier", "paymentMethod", "settledAt", "source", "state", "updatedAt",
+      "paymentLinkV2Identifier", "paymentMethod", "settledAt", "source", "storeStatus", "updatedAt",
     ]);
     expect(result.order.paymentMethod).toBeNull();
     expect(Object.keys(result.order.customer).sort()).toEqual(["address", "cpf", "email", "name"]);
@@ -133,7 +134,7 @@ describe("order-v2 view service", () => {
     expect(Object.keys(list[0] ?? {}).sort()).toEqual([
       "amount", "checkoutDataPolicy", "createdAt", "currencyUuid", "currentLocalOutcome", "descriptionEn",
       "descriptionPtBr", "exchangeCurrencyUuid", "id", "payer", "paymentLinkV2Identifier", "settledAt", "source",
-      "state", "updatedAt",
+      "storeStatus", "updatedAt",
     ]);
   });
 
@@ -173,8 +174,31 @@ describe("order-v2 view service", () => {
     expect(summary).not.toHaveProperty("cpf");
     expect(summary).not.toHaveProperty("customer");
     expect(summary).not.toHaveProperty("lifecycleVersion");
+    expect(summary).not.toHaveProperty("state");
+    expect(summary.storeStatus).toBeNull();
   });
 
+  it("resolves storeStatus to CANCELLED when the latest local outcome is LOCAL_CANCELLED", () => {
+    const row = {
+      id: orderId,
+      source: "AD_HOC",
+      state: "PENDING",
+      amount: "10.25",
+      currencyUuid: "990e8400-e29b-41d4-a716-446655440099",
+      exchangeCurrencyUuid: "aa0e8400-e29b-41d4-a716-4466554400aa",
+      descriptionPtBr: "Doação",
+      descriptionEn: "Donation",
+      checkoutDataPolicy: "NONE",
+      createdAt: new Date("2026-07-25T12:00:00.000Z"),
+      updatedAt: new Date("2026-07-25T12:00:00.000Z"),
+      settledAt: null,
+      paymentLink: null,
+      localOutcomes: [{ outcome: "LOCAL_CANCELLED", note: "cancelled", createdAt: new Date("2026-07-25T12:30:00.000Z") }],
+    } satisfies OrderV2SummaryRow;
+
+    const summary = toOrderV2Summary(row);
+    expect(summary.storeStatus).toBe("CANCELLED");
+  });
   it("shares one opaque unavailable outcome for cross-owner, malformed, and missing identities", async () => {
     const store = storeWith({ findForOwner: vi.fn(async () => null) });
     const service = createOrderV2ViewService(store);

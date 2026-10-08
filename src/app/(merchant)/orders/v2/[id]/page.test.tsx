@@ -49,7 +49,7 @@ function order(overrides: Partial<OrderV2View> = {}): OrderV2View {
     exchangeCurrencyUuid: "aa0e8400-e29b-41d4-a716-4466554400aa",
     descriptionPtBr: "Doação mensal",
     descriptionEn: "Monthly donation",
-    state: "PENDING",
+    storeStatus: "PENDING",
     currentLocalOutcome: { outcome: "LOCAL_FINALIZED", note: "Entrega feita", createdAt: new Date("2026-07-03T12:00:00.000Z") },
     checkoutDataPolicy: "NAME_EMAIL",
     payer: { name: "Ana", email: "ana@example.com", cpf: null, address: null },
@@ -99,8 +99,6 @@ describe("merchant V2 order detail page", () => {
     expect(markup).toContain(">Waiting for payment</");
     expect(markup).toContain(">Link</");
     expect(markup).toContain(">Payment link</");
-    expect(markup).toContain(">Finalized</");
-    expect(markup).toContain(">Locally finalized</");
     expect(markup).toContain("Entrega feita");
     expect(markup).toContain("abcdefghijklmnopqrstuvwx");
     expect(markup).toContain("Ana");
@@ -198,7 +196,6 @@ describe("merchant V2 order detail page", () => {
     ready("en", { kind: "found", order: order({ comments: [], lines: [], currentLocalOutcome: null }) });
     const markup = renderToStaticMarkup(await OrderV2DetailPage({ params: Promise.resolve({ id: orderId }) }));
     expect(markup).toContain("No comments yet.");
-    expect(markup).toContain(">No local outcome</");
   });
 
   it("renders the resolved link's domain lifecycle badge and drill-down href, and omits both on a miss (14.5.2 F03)", async () => {

@@ -24,7 +24,7 @@ import type { SupportedLocale } from "@/i18n/locales";
 import type { OrderV2CommentView, OrderV2Summary, OrderV2View } from "@/orders/order-v2-view";
 import type { CheckoutDataPolicy, CustomerSnapshotV1 } from "@/orders/order-v2-policies";
 
-import { CompactOutcomeBadge, CompactProviderStateBadge, CompactSourceBadge } from "./order-badges";
+import { CompactOutcomeBadge, CompactOrderStatusBadge, CompactSourceBadge } from "./order-badges";
 import { orderV2OutcomeLabel, orderV2StateLabel, orderV2StateTone } from "./order-v2-labels";
 
 type Dictionary = ReturnType<typeof getDictionary>;
@@ -105,13 +105,13 @@ function buildTimeline(dictionary: Dictionary, locale: SupportedLocale, order: O
       tone: "info",
     },
   ];
-  if (order.state !== null) {
+  if (order.storeStatus !== null && order.currentLocalOutcome?.outcome !== "LOCAL_CANCELLED") {
     entries.push({
       id: "provider",
-      title: `${dictionary.orderV2DetailProviderState}: ${orderV2StateLabel(dictionary, order.state)}`,
+      title: `${dictionary.orderV2DetailProviderState}: ${orderV2StateLabel(dictionary, order.storeStatus)}`,
       formattedAt: formatOrderV2Instant(order.updatedAt, locale),
       dateTime: order.updatedAt.toISOString(),
-      tone: orderV2StateTone(order.state) === "success" ? "success" : orderV2StateTone(order.state) === "danger" ? "danger" : "default",
+      tone: orderV2StateTone(order.storeStatus) === "success" ? "success" : orderV2StateTone(order.storeStatus) === "danger" ? "danger" : "default",
     });
   }
   if (order.currentLocalOutcome !== null) {
@@ -296,25 +296,15 @@ export function OrderV2DetailCard({
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <p className="text-xs font-medium uppercase tracking-wide text-text-2">{dictionary.orderV2DetailProviderState}</p>
+                <p className="text-xs font-medium uppercase tracking-wide text-text-2">{dictionary.orderV2DirectoryColumnStatus}</p>
                 <div className="mt-1.5 flex items-center gap-2">
-                  <CompactProviderStateBadge dictionary={dictionary} state={order.state} />
+                  <CompactOrderStatusBadge dictionary={dictionary} state={order.storeStatus} />
                   <time className="font-mono text-xs text-text-2">{formatOrderV2Instant(order.updatedAt, locale)}</time>
                 </div>
               </div>
               <div>
                 <p className="text-xs font-medium uppercase tracking-wide text-text-2">{dictionary.orderV2DetailPaymentMethod}</p>
                 <p className="mt-1.5 text-sm">{order.paymentMethod ?? dictionary.orderV2DetailPaymentMethodNone}</p>
-              </div>
-              <Separator />
-              <div>
-                <p className="text-xs font-medium uppercase tracking-wide text-text-2">{dictionary.orderV2DetailLocalOutcome}</p>
-                <div className="mt-1.5">
-                  {order.currentLocalOutcome !== null
-                    ? <CompactOutcomeBadge dictionary={dictionary} outcome={order.currentLocalOutcome.outcome} />
-                    : <StatusBadge label={dictionary.orderV2DirectoryOutcomeNone} tone="neutral" />}
-                </div>
-                <p className="mt-1 text-xs text-text-2">{dictionary.orderV2DetailRecordedByMerchant}</p>
               </div>
               <Separator />
               <div>

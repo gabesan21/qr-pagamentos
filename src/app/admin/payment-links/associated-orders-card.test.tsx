@@ -30,7 +30,7 @@ function summary(overrides: Partial<AdminOrderV2Summary>): AdminOrderV2Summary {
     payer: { address: null, cpf: null, email: null, name: null },
     settledAt: null,
     source: "LINK",
-    state: "CONFIRMED",
+    storeStatus: "CONFIRMED",
     updatedAt: new Date("2026-01-01T00:00:00.000Z"),
     ...overrides,
   } as AdminOrderV2Summary;
@@ -68,7 +68,7 @@ describe("associated orders card", () => {
   it("renders a row with the provider state badge, formatted amount, and view-order link", async () => {
     queryDirectory.mockResolvedValueOnce({
       status: "ready",
-      rows: [summary({ amount: "1234.56", id: "order-confirmed", state: "CONFIRMED" })],
+      rows: [summary({ amount: "1234.56", id: "order-confirmed", storeStatus: "CONFIRMED" })],
     });
 
     const markup = renderToStaticMarkup(
@@ -83,7 +83,7 @@ describe("associated orders card", () => {
   it("renders the neutral state badge when the row's provider state is null", async () => {
     queryDirectory.mockResolvedValueOnce({
       status: "ready",
-      rows: [summary({ id: "order-stateless", state: null })],
+      rows: [summary({ id: "order-stateless", storeStatus: null })],
     });
 
     const markup = renderToStaticMarkup(
@@ -93,13 +93,14 @@ describe("associated orders card", () => {
     expect(markup).toContain(en.orderV2DirectoryStateNone);
   });
 
-  it("renders the danger local-outcome badge for a locally cancelled order", async () => {
+  it("renders the cancelled status badge for a locally cancelled order", async () => {
     queryDirectory.mockResolvedValueOnce({
       status: "ready",
       rows: [
         summary({
           currentLocalOutcome: { createdAt: new Date("2026-01-01T00:00:00.000Z"), note: null, outcome: "LOCAL_CANCELLED" },
           id: "order-local-cancelled",
+          storeStatus: "CANCELLED",
         }),
       ],
     });
@@ -108,7 +109,7 @@ describe("associated orders card", () => {
       await AssociatedOrdersCard({ dictionary: en, linkIdentifier: "abcdefghijklmnopqrstuvwx", locale: "en" }),
     );
 
-    expect(markup).toContain(en.orderV2DirectoryOutcomeCancelled);
+    expect(markup).toContain(en.orderV2DirectoryStateCancelledShort);
   });
 
   it("points the view-all link at the filtered admin orders directory", async () => {

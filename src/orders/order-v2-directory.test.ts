@@ -34,7 +34,7 @@ function summary(index: number): OrderV2Summary {
     exchangeCurrencyUuid: usdPair.exchangeCurrencyUuid,
     descriptionPtBr: "Doação",
     descriptionEn: "Donation",
-    state: null,
+    storeStatus: null,
     currentLocalOutcome: null,
     checkoutDataPolicy: "NAME_EMAIL",
     payer: { name: null, email: null, cpf: null, address: null },
@@ -209,6 +209,28 @@ describe("owner order V2 directory", () => {
     for (const call of readWindow.mock.calls) {
       expect(call[0].where.ownerId).toBe(ownerId);
     }
+  });
+  it("passes resolvedStatus to readWindow when filtering by state or STATELESS", async () => {
+    const { store, readWindow } = storeWith([summary(1)]);
+    const service = serviceWith(store);
+
+    await service.query(owner, "/orders?filter.state=CANCELLED");
+    expect(readWindow.mock.calls.at(-1)?.[0]).toMatchObject({
+      where: { ownerId },
+      resolvedStatus: "CANCELLED",
+    });
+
+    await service.query(owner, "/orders?filter.state=STATELESS");
+    expect(readWindow.mock.calls.at(-1)?.[0]).toMatchObject({
+      where: { ownerId },
+      resolvedStatus: null,
+    });
+
+    await service.query(owner, "/orders?filter.state=PENDING");
+    expect(readWindow.mock.calls.at(-1)?.[0]).toMatchObject({
+      where: { ownerId },
+      resolvedStatus: "PENDING",
+    });
   });
 
   it("returns an empty page without order I/O when USD is filtered but no USD mapping is active", async () => {

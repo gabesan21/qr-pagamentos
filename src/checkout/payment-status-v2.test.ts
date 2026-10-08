@@ -40,6 +40,19 @@ describe("public payment status V2", () => {
 
     await expect(service.read(bearer)).resolves.toEqual({ state: "CONFIRMED" });
   });
+  it("returns CANCELLED with no pixCopyPaste when current local outcome is LOCAL_CANCELLED", async () => {
+    const findByCapabilityVerifier = vi.fn().mockResolvedValue({
+      ...attempt,
+      order: {
+        state: "PENDING" as const,
+        localOutcomes: [{ outcome: "LOCAL_CANCELLED" as const }],
+        providerOrders: attempt.order.providerOrders,
+      },
+    });
+    const service = createPublicPaymentStatusV2Service({ findByCapabilityVerifier }, { now: () => new Date("2026-07-26T12:00:00Z"), capabilityKey: () => key });
+
+    await expect(service.read(bearer)).resolves.toEqual({ state: "CANCELLED" });
+  });
 
   describe("rotation window", () => {
     const previousKey = Buffer.from("98765432109876543210987654321098");

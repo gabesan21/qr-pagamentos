@@ -57,7 +57,7 @@ function order(overrides: Partial<OrderV2Summary> = {}): OrderV2Summary {
     exchangeCurrencyUuid: "440e8400-e29b-41d4-a716-446655440031",
     descriptionPtBr: "Doação mensal",
     descriptionEn: "Monthly donation",
-    state: "CONFIRMED",
+    storeStatus: "CONFIRMED",
     currentLocalOutcome: null,
     checkoutDataPolicy: "NONE",
     payer: { name: null, email: null, cpf: null, address: null },
@@ -137,7 +137,7 @@ describe("merchant V2 payment-link order drilldown list page", () => {
   it("renders only the returned rows", async () => {
     ready("en", [
       order(),
-      order({ id: "440e8400-e29b-41d4-a716-446655440021", descriptionPtBr: null, descriptionEn: null, state: null }),
+      order({ id: "440e8400-e29b-41d4-a716-446655440021", descriptionPtBr: null, descriptionEn: null, storeStatus: null }),
     ]);
     const markup = renderToStaticMarkup(await PaymentLinkV2OrdersPage(request()));
     expect(markup).toContain("440e8400-e29b-41d4-a716-446655440020");
@@ -200,7 +200,6 @@ describe("merchant V2 payment-link order drilldown list page", () => {
     expect(markup).toContain("Pedidos do link");
     expect(markup).toContain("440e8400-e29b-41d4-a716-446655440020");
     expect(markup).toContain("Pagamento confirmado");
-    expect(markup).toContain("Finalizado localmente");
     expect(markup).toContain("Voltar ao link de pagamento");
   });
 });

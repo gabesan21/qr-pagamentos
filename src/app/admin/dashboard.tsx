@@ -299,11 +299,11 @@ function OrdersCard({ dictionary, locale, view }: Readonly<{ dictionary: Diction
             </ul>
           </section>
         )}
-        {orders.byState.length === 0 ? null : (
+        {orders.byStatus.length === 0 ? null : (
           <section className="grid gap-3 border-t border-border pt-4">
-            <h3 className="m-0">{dictionary.adminDashboardByProviderState}</h3>
+            <h3 className="m-0">{dictionary.adminDashboardByStatus}</h3>
             <div className="flex flex-wrap gap-2">
-              {orders.byState.map((row) => (
+              {orders.byStatus.map((row) => (
                 <span className="inline-flex items-center gap-1.5" key={row.state ?? "none"}>
                   {row.state === null ? (
                     <StatusBadge label={stateLabel(dictionary, null)} tone="neutral" />

@@ -7,7 +7,7 @@ import { getDatabaseClient } from "@/db/client";
 import type { Prisma, PrismaClient } from "@/generated/prisma/client";
 import { loadEncryptionKey, loadPreviousEncryptionKey } from "@/lib/nautt-crypto";
 import { normalizeCustomerSnapshotV1, type CheckoutDataPolicy, type CustomerSnapshotV1 } from "@/orders/order-v2-policies";
-import { createOrderV2Service, createOrderV2Store, type StoredOrderV2 } from "@/orders/order-v2";
+import { createOrderV2Service, createOrderV2Store, type OrderV2LocalOutcome, type StoredOrderV2 } from "@/orders/order-v2";
 import { createOwnerPricingOrdersService } from "@/integrations/nautt/owner-pricing-orders";
 import { getPricingOrdersAdapter, NauttOrderCreationIndeterminateError, NauttOrderRefusedError } from "@/integrations/nautt/pricing-orders-client";
 import { createPrismaProviderOrderStore } from "@/integrations/nautt/provider-order-store";
@@ -31,7 +31,7 @@ type CheckoutAttemptState = "RESERVED" | "CREATING" | "PENDING" | "INDETERMINATE
 // payment-view vocabulary above, since a failed attempt answers the
 // existing redacted provider-unavailable outcome instead of a payment view.
 type AttemptState = CheckoutAttemptState | "FAILED";
-type PaymentView = Readonly<{ state: CheckoutAttemptState; pixCopyPaste?: string }>;
+type PaymentView = Readonly<{ state: CheckoutAttemptState | "CANCELLED"; pixCopyPaste?: string }>;
 export type PublicCheckoutV2Result =
   | Readonly<{ kind: "invalid" }>
   | Readonly<{ kind: "unavailable" }>
@@ -50,7 +50,10 @@ type AttemptRecord = Readonly<{
   capabilityRevokedAt: Date | null;
   state: AttemptState;
   paymentLink: Readonly<{ active: boolean; expiresAt: Date | null }>;
-  order: Readonly<{ providerOrders: ReadonlyArray<Readonly<{ status: string | null; pixCopyPaste: string | null }>> }>;
+  order: Readonly<{
+    localOutcomes?: ReadonlyArray<Readonly<{ outcome: OrderV2LocalOutcome }>>;
+    providerOrders: ReadonlyArray<Readonly<{ status: string | null; pixCopyPaste: string | null }>>;
+  }>;
 }>;
 
 type LockedLink = Readonly<{
@@ -116,6 +119,10 @@ function validCapability(keys: readonly Buffer[], attempt: AttemptRecord, now: D
   return null;
 }
 function paymentView(attempt: AttemptRecord): PaymentView {
+  const latestOutcome = attempt.order.localOutcomes?.[0]?.outcome ?? null;
+  if (latestOutcome === "LOCAL_CANCELLED") {
+    return { state: "CANCELLED" };
+  }
   const order = attempt.order.providerOrders[0];
   if (attempt.state === "PENDING" && order?.status) return { state: "PENDING", ...(order.pixCopyPaste ? { pixCopyPaste: order.pixCopyPaste } : {}) };
   // Callers never reach here with a FAILED attempt: the checkout flow answers
@@ -184,7 +191,7 @@ export function createPublicCheckoutV2Service(store: CheckoutV2Store, dependenci
 }
 
 export function createPrismaCheckoutV2Store(db = getDatabaseClient(), key = loadEncryptionKey(), createOrder: OrderFromLinkCreator = createOrderFromLink): CheckoutV2Store {
-  const record = { include: { paymentLink: { select: { active: true, expiresAt: true } }, order: { select: { providerOrders: { select: { status: true, pixCopyPaste: true } } } } } } as const;
+  const record = { include: { paymentLink: { select: { active: true, expiresAt: true } }, order: { select: { localOutcomes: { select: { outcome: true }, orderBy: [{ createdAt: "desc" as const }, { id: "desc" as const }] as Prisma.OrderLocalOutcomeV2OrderByWithRelationInput[], take: 1 }, providerOrders: { select: { status: true, pixCopyPaste: true } } } } } };
   const toAttempt = (value: unknown) => value as AttemptRecord;
   return {
     async reserve({ identifier, retryKey, customer, now }) {

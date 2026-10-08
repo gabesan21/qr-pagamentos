@@ -36,7 +36,7 @@ function row(overrides: Partial<OrderV2Summary> = {}): OrderV2Summary {
     exchangeCurrencyUuid: "aa0e8400-e29b-41d4-a716-4466554400aa",
     descriptionPtBr: "Doação mensal",
     descriptionEn: "Monthly donation",
-    state: "CONFIRMED",
+    storeStatus: "CONFIRMED",
     currentLocalOutcome: null,
     checkoutDataPolicy: "NAME_EMAIL",
     payer: { name: "Ana", email: "ana@example.com", cpf: null, address: null },
@@ -73,9 +73,9 @@ describe("merchant orders directory page", () => {
   it("renders the ready directory with payer facts, compact badges, currency-aware amounts and the compact UTC instant", async () => {
     ready("en", [
       row(),
-      row({ id: "440e8400-e29b-41d4-a716-446655440011", source: "AD_HOC", paymentLinkV2Identifier: null, state: null, currentLocalOutcome: { outcome: "LOCAL_FINALIZED", note: null, createdAt: new Date("2026-07-02T12:00:00.000Z") }, payer: { name: null, email: null, cpf: null, address: null } }),
-      row({ id: "440e8400-e29b-41d4-a716-446655440012", state: "REJECTED", currentLocalOutcome: { outcome: "LOCAL_CANCELLED", note: null, createdAt: new Date("2026-07-03T12:00:00.000Z") } }),
-      row({ id: "440e8400-e29b-41d4-a716-446655440013", source: "STANDALONE", paymentLinkV2Identifier: null, state: "PENDING", payer: { name: "Carlos", email: null, cpf: null, address: null } }),
+      row({ id: "440e8400-e29b-41d4-a716-446655440011", source: "AD_HOC", paymentLinkV2Identifier: null, storeStatus: null, currentLocalOutcome: { outcome: "LOCAL_FINALIZED", note: null, createdAt: new Date("2026-07-02T12:00:00.000Z") }, payer: { name: null, email: null, cpf: null, address: null } }),
+      row({ id: "440e8400-e29b-41d4-a716-446655440012", storeStatus: "CANCELLED", currentLocalOutcome: { outcome: "LOCAL_CANCELLED", note: null, createdAt: new Date("2026-07-03T12:00:00.000Z") } }),
+      row({ id: "440e8400-e29b-41d4-a716-446655440013", source: "STANDALONE", paymentLinkV2Identifier: null, storeStatus: "PENDING", payer: { name: "Carlos", email: null, cpf: null, address: null } }),
     ]);
 
     const markup = renderToStaticMarkup(await MerchantOrdersPage());
@@ -86,8 +86,8 @@ describe("merchant orders directory page", () => {
     // label remains the announced name.
     expect(markup).toContain(">Confirmed</");
     expect(markup).toContain(">Payment confirmed</");
-    expect(markup).toContain(">Rejected</");
-    expect(markup).toContain(">No payment</");
+    expect(markup).toContain(">Cancelled</");
+    expect(markup).toContain(">No status</");
     expect(markup).toContain(">Waiting</");
     // The local outcome is intentionally absent from this list.
     expect(markup).not.toContain("Locally finalized");

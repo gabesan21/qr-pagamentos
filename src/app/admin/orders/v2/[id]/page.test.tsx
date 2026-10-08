@@ -42,7 +42,7 @@ const order: OrderV2View = {
   exchangeCurrencyUuid: "aa0e8400-e29b-41d4-a716-4466554400aa",
   descriptionPtBr: "Doação mensal",
   descriptionEn: "Monthly donation",
-  state: "CONFIRMED",
+  storeStatus: "CONFIRMED",
   currentLocalOutcome: { outcome: "LOCAL_FINALIZED", note: "Entrega confirmada", createdAt: new Date("2026-07-03T12:00:00.000Z") },
   checkoutDataPolicy: "NAME_EMAIL",
   payer: { name: "Ana", email: "ana@example.com", cpf: null, address: null },
@@ -82,7 +82,6 @@ describe("administrator order V2 detail page", () => {
     expect(readOwnerAttribution).toHaveBeenCalledWith(admin, order.id);
     expect(markup).toContain("Monthly donation");
     expect(markup).toContain(">Payment confirmed</");
-    expect(markup).toContain(">Locally finalized</");
     expect(markup).toContain("Ana");
     expect(markup).toContain("abcdefghijklmnopqrstuvwx");
     expect(markup).toContain("Order owner");

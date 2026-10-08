@@ -41,7 +41,7 @@ function CompactBadge({ accessibleLabel, children }: Readonly<{ accessibleLabel:
   );
 }
 
-export function CompactProviderStateBadge({ dictionary, state }: Readonly<{ dictionary: Dictionary; state: OrderV2State | null }>) {
+export function CompactOrderStatusBadge({ dictionary, state }: Readonly<{ dictionary: Dictionary; state: OrderV2State | null }>) {
   if (state === null) {
     return (
       <CompactBadge accessibleLabel={dictionary.orderV2DirectoryStateNone}>

@@ -2,7 +2,7 @@ import "server-only";
 
 import { requireUserPrincipal, type Principal } from "../auth/authorization";
 import { getDatabaseClient } from "../db/client";
-import type { Prisma, PrismaClient } from "../generated/prisma/client";
+import { Prisma, type PrismaClient } from "../generated/prisma/client";
 import type { OrderV2LocalOutcome, OrderV2Source, OrderV2State } from "./order-v2";
 import { orderV2SummarySelect, toOrderV2Summary, type OrderV2Summary, type OrderV2SummaryRow } from "./order-v2-view";
 
@@ -93,7 +93,7 @@ export type MerchantAnalyticsRecentOrder = Readonly<{
   payerName?: string | null;
   amount: string;
   currency: MerchantAnalyticsCurrencyLabel;
-  state: OrderV2State | null;
+  storeStatus: OrderV2State | null;
   currentLocalOutcome: Readonly<{ outcome: OrderV2LocalOutcome; createdAt: Date }> | null;
   paymentLinkV2Identifier: string | null;
   createdAt: Date;
@@ -109,7 +109,7 @@ export type MerchantAnalyticsView = Readonly<{
   // extension — stays structurally valid; the production service always
   // supplies every one of them.
   ordersInPeriod?: number;
-  byProviderState?: ReadonlyArray<MerchantAnalyticsStateCount>;
+  byStatus?: ReadonlyArray<MerchantAnalyticsStateCount>;
   byOrigin?: ReadonlyArray<MerchantAnalyticsSourceCount>;
   confirmedSales: ReadonlyArray<MerchantAnalyticsSalesGroup>;
   locallyFinalizedSales: ReadonlyArray<MerchantAnalyticsSalesGroup>;
@@ -310,7 +310,7 @@ export function createMerchantAnalyticsService(store: MerchantAnalyticsStore, de
       const byOrigin = [...bySourceMap.entries()]
         .map(([source, count]) => ({ source, count }))
         .sort((a, b) => b.count - a.count || a.source.localeCompare(b.source));
-      const byProviderState = [...byStateMap.entries()]
+      const byStatus = [...byStateMap.entries()]
         .map(([state, count]) => ({ state, count }))
         .sort((a, b) => {
           if (a.count !== b.count) return b.count - a.count;
@@ -412,7 +412,7 @@ export function createMerchantAnalyticsService(store: MerchantAnalyticsStore, de
         payerName: order.payer.name ?? order.payer.email,
         amount: order.amount,
         currency: labelFor(labels, { currencyUuid: order.currencyUuid, exchangeCurrencyUuid: order.exchangeCurrencyUuid }),
-        state: order.state,
+        storeStatus: order.storeStatus,
         currentLocalOutcome: order.currentLocalOutcome
           ? { outcome: order.currentLocalOutcome.outcome, createdAt: order.currentLocalOutcome.createdAt }
           : null,
@@ -426,7 +426,7 @@ export function createMerchantAnalyticsService(store: MerchantAnalyticsStore, de
         view: {
           period: { id: periodId, from: bounds.from, to: bounds.to },
           ordersInPeriod,
-          byProviderState,
+          byStatus,
           byOrigin,
           confirmedSales,
           locallyFinalizedSales,
@@ -552,12 +552,30 @@ export function createPrismaMerchantAnalyticsStore(prisma: PrismaClient): Mercha
     // grouped by created-in-period `createdAt` (never `settledAt`), so an
     // in-flight order still counts toward `ordersInPeriod`.
     async countOrdersBySourceAndState(ownerId, from, to) {
-      const rows = await prisma.orderV2.groupBy({
-        by: ["source", "state"],
-        where: { ownerId, createdAt: { gte: from, lt: to } },
-        _count: true,
-      });
-      return rows.map((row) => ({ source: row.source as OrderV2Source, state: row.state as OrderV2State | null, count: row._count }));
+      const rows = await prisma.$queryRaw<Array<{ source: string; status: string | null; count: bigint | number }>>`
+        SELECT o."source", resolved."status", COUNT(*)::bigint AS "count"
+        FROM "app"."order_v2" o
+        LEFT JOIN LATERAL (
+          SELECT lo."outcome"
+          FROM "app"."order_local_outcome_v2" lo
+          WHERE lo."order_id" = o."id"
+          ORDER BY lo."created_at" DESC, lo."id" DESC
+          LIMIT 1
+        ) latest_outcome ON true
+        CROSS JOIN LATERAL (
+          SELECT CASE
+            WHEN latest_outcome."outcome" = 'LOCAL_CANCELLED' THEN 'CANCELLED'
+            ELSE o."state"
+          END AS "status"
+        ) resolved
+        WHERE o."owner_id" = ${ownerId}::uuid AND o."created_at" >= ${from} AND o."created_at" < ${to}
+        GROUP BY o."source", resolved."status"
+      `;
+      return rows.map((row) => ({
+        source: row.source as OrderV2Source,
+        state: row.status as OrderV2State | null,
+        count: Number(row.count),
+      }));
     },
     async countProducts(ownerId) {
       const [activeCount, archivedCount] = await Promise.all([

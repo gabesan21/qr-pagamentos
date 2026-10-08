@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { formatCatalogPrice } from "@/app/(merchant)/catalog/price-format";
-import { CompactOutcomeBadge, CompactProviderStateBadge } from "@/app/orders/order-badges";
+import { CompactOrderStatusBadge } from "@/app/orders/order-badges";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MoneyText } from "@/components/ui/money-text";
@@ -25,23 +25,6 @@ function isNextControlFlowError(error: unknown): boolean {
   return typeof digest === "string" && (digest.startsWith("NEXT_REDIRECT") || digest === "NEXT_NOT_FOUND");
 }
 
-function ProviderStateCell({ dictionary, order }: Readonly<{ dictionary: Dictionary; order: AdminOrderV2Summary }>) {
-  return <CompactProviderStateBadge dictionary={dictionary} state={order.state} />;
-}
-
-const localOutcomeLabels = (dictionary: Dictionary) =>
-  ({
-    finalized: dictionary.orderV2DirectoryOutcomeFinalized,
-    "in-progress": dictionary.orderV2DirectoryOutcomeNone,
-    none: dictionary.orderV2DirectoryOutcomeNone,
-  }) satisfies Readonly<Record<LocalOutcome, string>>;
-
-function LocalOutcomeCell({ dictionary, order }: Readonly<{ dictionary: Dictionary; order: AdminOrderV2Summary }>) {
-  if (order.currentLocalOutcome === null) {
-    return <LocalOutcomeBadge labels={localOutcomeLabels(dictionary)} outcome="none" />;
-  }
-  return <CompactOutcomeBadge dictionary={dictionary} outcome={order.currentLocalOutcome.outcome} />;
-}
 
 // Admin-local card, bound to a single payment link's identifier: it issues one
 // bounded read of the delivered administrator order directory (10.2.1)
@@ -81,8 +64,7 @@ export async function AssociatedOrdersCard({
                 <li className="flex items-center justify-between gap-3 rounded-md border border-border p-3" key={order.id}>
                   <div className="flex min-w-0 flex-col gap-1.5">
                     <div className="flex flex-wrap items-center gap-1.5">
-                      <ProviderStateCell dictionary={dictionary} order={order} />
-                      <LocalOutcomeCell dictionary={dictionary} order={order} />
+                      <CompactOrderStatusBadge dictionary={dictionary} state={order.storeStatus} />
                     </div>
                     <MoneyText value={formatCatalogPrice(order.amount, null, locale)} />
                   </div>

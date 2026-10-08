@@ -22,7 +22,7 @@ import type { OrderV2Summary } from "@/orders/order-v2-view";
 import { requireMerchantShellContext } from "../../../../shell-context";
 import type { LinksSearchParams } from "../../../directory-query";
 import { copyLabels, formatLinkInstant, LinkStateBadge, PaymentLinkV2UnavailableCard } from "../../../link-v2-views";
-import { OrderV2BreadcrumbTrail, OrderV2LocalOutcomeBadge, OrderV2StateBadge, payerColumnLabel } from "./order-v2-views";
+import { OrderV2BreadcrumbTrail, OrderV2StateBadge, payerColumnLabel } from "./order-v2-views";
 
 type Dictionary = ReturnType<typeof getDictionary>;
 
@@ -85,8 +85,7 @@ function LinkOrderDirectory({
     },
     { id: "payer", label: dictionary.paymentLinkOrdersColumnPayer, value: (row) => <span className="text-xs">{payerColumnLabel(dictionary, row.payer)}</span> },
     { id: "amount", label: dictionary.orderAmount, numeric: true, value: (row) => <span className="font-mono tabular-nums">{formatCatalogPrice(row.amount, null, locale)}</span> },
-    { id: "state", label: dictionary.orderState, value: (row) => <OrderV2StateBadge dictionary={dictionary} state={row.state} /> },
-    { id: "outcome", label: dictionary.paymentLinkOrderLocalOutcome, value: (row) => <OrderV2LocalOutcomeBadge dictionary={dictionary} outcome={row.currentLocalOutcome} /> },
+    { id: "state", label: dictionary.orderState, value: (row) => <OrderV2StateBadge dictionary={dictionary} state={row.storeStatus} /> },
     { id: "created", label: dictionary.orderCreated, value: (row) => <span className="text-xs">{formatLinkInstant(row.createdAt, locale)}</span> },
   ];
 

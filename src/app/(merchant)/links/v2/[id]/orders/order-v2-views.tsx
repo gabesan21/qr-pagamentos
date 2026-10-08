@@ -166,8 +166,7 @@ export function OrderV2DrilldownDetailCard({
 
       <div className="flex flex-wrap items-center gap-3">
         <CopyField labels={copyLabels(dictionary)} truncate={false} value={order.id} />
-        <OrderV2StateBadge dictionary={dictionary} state={order.state} />
-        <OrderV2LocalOutcomeBadge dictionary={dictionary} outcome={order.currentLocalOutcome} />
+        <OrderV2StateBadge dictionary={dictionary} state={order.storeStatus} />
         <Button asChild className="ml-auto" data-ds-hit-target size="sm" variant="outline">
           <Link href={backHref}>{dictionary.paymentLinkOrderBackToOrders}</Link>
         </Button>
@@ -254,15 +253,17 @@ export function OrderV2DrilldownDetailCard({
               <dl className="space-y-2 text-sm">
                 <div className="flex items-center justify-between gap-3">
                   <dt className="text-text-2">{dictionary.orderState}</dt>
-                  <dd><OrderV2StateBadge dictionary={dictionary} state={order.state} /></dd>
+                  <dd><OrderV2StateBadge dictionary={dictionary} state={order.storeStatus} /></dd>
                 </div>
-                <div className="flex items-center justify-between gap-3">
-                  <dt className="text-text-2">{dictionary.paymentLinkOrderLocalOutcome}</dt>
-                  <dd className="flex flex-wrap items-center gap-2">
-                    <OrderV2LocalOutcomeBadge dictionary={dictionary} outcome={order.currentLocalOutcome} />
-                    {order.currentLocalOutcome?.note ? <span className="text-sm">{order.currentLocalOutcome.note}</span> : null}
-                  </dd>
-                </div>
+                {order.currentLocalOutcome ? (
+                  <div className="flex items-center justify-between gap-3">
+                    <dt className="text-text-2">{dictionary.paymentLinkOrderLocalOutcome}</dt>
+                    <dd className="flex flex-wrap items-center gap-2">
+                      <OrderV2LocalOutcomeBadge dictionary={dictionary} outcome={order.currentLocalOutcome} />
+                      {order.currentLocalOutcome.note ? <span className="text-sm">{order.currentLocalOutcome.note}</span> : null}
+                    </dd>
+                  </div>
+                ) : null}
                 <div className="flex items-center justify-between gap-3">
                   <dt className="text-text-2">{dictionary.orderPaymentLink}</dt>
                   <dd className="flex items-center gap-2">

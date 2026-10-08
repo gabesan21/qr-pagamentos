@@ -115,6 +115,26 @@ describe("public checkout V2 orchestration", () => {
     expect(store.markCreating).not.toHaveBeenCalled();
     expect(store.markFailed).not.toHaveBeenCalled();
   });
+  it("returns CANCELLED without PIX on replay of an attempt whose order was locally cancelled", async () => {
+    const pendingAttempt = attempt("PENDING");
+    const cancelledAttempt = {
+      ...pendingAttempt,
+      order: {
+        localOutcomes: [{ outcome: "LOCAL_CANCELLED" as const }],
+        providerOrders: [{ status: "PENDING", pixCopyPaste: "000201" }],
+      },
+    };
+    const { service, provider } = harness({ kind: "replay", attempt: cancelledAttempt });
+
+    const result = await service.checkout(identifiers.link, validBody);
+    expect(result).toMatchObject({
+      kind: "accepted",
+      status: 201,
+      payment: { state: "CANCELLED" },
+    });
+    expect(result).not.toHaveProperty("payment.pixCopyPaste");
+    expect(provider.quote).not.toHaveBeenCalled();
+  });
 
   it.each([
     ["missing customer", { idempotencyKey: "retry-key-with-enough-entropy" }],

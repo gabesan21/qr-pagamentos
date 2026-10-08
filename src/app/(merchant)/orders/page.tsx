@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { dataDirectoryCopy, DirectoryInvalidFiltersNotice } from "@/app/directory-support";
-import { CompactProviderStateBadge, CompactSourceBadge } from "@/app/orders/order-badges";
+import { CompactOrderStatusBadge, CompactSourceBadge } from "@/app/orders/order-badges";
 import { OrderV2PayerFacts } from "@/app/orders/order-v2-views";
 import { orderStateLabel } from "@/app/orders/order-state-views";
 import { WorkspaceHeading } from "@/app-shell/workspace-heading";
@@ -107,7 +107,7 @@ function OrderV2Directory({
         ? <CopyField labels={copyLabels(dictionary)} value={row.paymentLinkV2Identifier} variant="compact" />
         : dictionary.orderV2DirectoryLinkNone,
     },
-    { id: "state", label: dictionary.orderV2DirectoryColumnStatus, value: (row) => <CompactProviderStateBadge dictionary={dictionary} state={row.state} /> },
+    { id: "state", label: dictionary.orderV2DirectoryColumnStatus, value: (row) => <CompactOrderStatusBadge dictionary={dictionary} state={row.storeStatus} /> },
     {
       id: "amount",
       label: dictionary.orderV2DirectoryColumnAmount,

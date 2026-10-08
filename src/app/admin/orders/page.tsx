@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { CompactOutcomeBadge, CompactProviderStateBadge, CompactSourceBadge } from "@/app/orders/order-badges";
+import { CompactOrderStatusBadge, CompactSourceBadge } from "@/app/orders/order-badges";
 import {
   formatOrderV2Instant,
   OrderV2PayerFacts,
@@ -92,15 +92,8 @@ function orderStateFilterLabel(
     : orderStateLabel(dictionary, value);
 }
 
-function ProviderStateCell({ dictionary, row }: Readonly<{ dictionary: Dictionary; row: AdminOrderV2Summary }>) {
-  return <CompactProviderStateBadge dictionary={dictionary} state={row.state} />;
-}
-
-function LocalOutcomeCell({ dictionary, row }: Readonly<{ dictionary: Dictionary; row: AdminOrderV2Summary }>) {
-  if (row.currentLocalOutcome === null) {
-    return <LocalOutcomeBadge labels={{ finalized: dictionary.orderV2DirectoryOutcomeFinalized, "in-progress": dictionary.orderV2DirectoryOutcomeNone, none: dictionary.orderV2DirectoryOutcomeNone } satisfies Readonly<Record<LocalOutcome, string>>} outcome="none" />;
-  }
-  return <CompactOutcomeBadge dictionary={dictionary} outcome={row.currentLocalOutcome.outcome} />;
+function OrderStatusCell({ dictionary, row }: Readonly<{ dictionary: Dictionary; row: AdminOrderV2Summary }>) {
+  return <CompactOrderStatusBadge dictionary={dictionary} state={row.storeStatus} />;
 }
 
 function AdminOrderV2Directory({
@@ -129,8 +122,7 @@ function AdminOrderV2Directory({
         ? <CopyField labels={copyLabels(dictionary)} value={row.paymentLinkV2Identifier} variant="compact" />
         : dictionary.orderV2DirectoryLinkNone,
     },
-    { id: "state", label: dictionary.orderV2DirectoryColumnState, value: (row) => <ProviderStateCell dictionary={dictionary} row={row} /> },
-    { id: "outcome", label: dictionary.orderV2DirectoryColumnOutcome, value: (row) => <LocalOutcomeCell dictionary={dictionary} row={row} /> },
+    { id: "state", label: dictionary.orderV2DirectoryColumnStatus, value: (row) => <OrderStatusCell dictionary={dictionary} row={row} /> },
     { id: "amount", label: dictionary.orderV2DirectoryColumnAmount, numeric: true, value: (row) => <MoneyText value={formatCatalogPrice(row.amount, null, locale)} /> },
     { id: "created", label: dictionary.orderV2DirectoryColumnCreated, numeric: true, value: (row) => formatOrderV2Instant(row.createdAt, locale) },
   ];

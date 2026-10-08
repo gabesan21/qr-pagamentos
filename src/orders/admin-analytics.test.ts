@@ -158,7 +158,7 @@ describe("admin analytics service", () => {
         { source: "AD_HOC", count: 2 },
         { source: "STANDALONE", count: 1 },
       ],
-      byState: [
+      byStatus: [
         { state: "CONFIRMED", count: 4 },
         { state: null, count: 2 },
         { state: "PENDING", count: 1 },

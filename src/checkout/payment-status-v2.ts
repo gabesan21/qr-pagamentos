@@ -5,6 +5,8 @@ import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 import { getDatabaseClient } from "@/db/client";
 import { loadEncryptionKey, loadPreviousEncryptionKey } from "@/lib/nautt-crypto";
 import type { PaymentLinkOrderState } from "@/orders/order-v2-policies";
+import type { OrderV2LocalOutcome } from "@/orders/order-v2";
+import { resolveOrderV2StoreStatus } from "@/orders/order-v2-status";
 
 // Sessionless Commerce V2 payment status (9.3.1): the same opaque
 // capability-only polling contract as the V1 status service, bound to
@@ -26,6 +28,7 @@ type StatusAttempt = Readonly<{
   capabilityRevokedAt: Date | null;
   order: Readonly<{
     state: PaymentLinkOrderState | null;
+    localOutcomes?: ReadonlyArray<Readonly<{ outcome: OrderV2LocalOutcome }>>;
     providerOrders: ReadonlyArray<Readonly<{ pixCopyPaste: string | null }>>;
   }>;
 }>;
@@ -42,11 +45,13 @@ function rederiveCapability(key: Buffer, attempt: Pick<StatusAttempt, "id" | "ca
 
 function statusView(attempt: StatusAttempt): PublicPaymentStatusV2 | null {
   const payment = attempt.order;
-  if (!payment.state) return null;
+  const latestOutcome = payment.localOutcomes?.[0]?.outcome ?? null;
+  const effectiveState = resolveOrderV2StoreStatus(payment.state, latestOutcome);
+  if (!effectiveState) return null;
   const providerOrder = payment.providerOrders[0];
   return {
-    state: payment.state,
-    ...(payment.state === "PENDING" && providerOrder?.pixCopyPaste ? { pixCopyPaste: providerOrder.pixCopyPaste } : {}),
+    state: effectiveState,
+    ...(effectiveState === "PENDING" && providerOrder?.pixCopyPaste ? { pixCopyPaste: providerOrder.pixCopyPaste } : {}),
   };
 }
 
@@ -104,7 +109,13 @@ function prismaStore(): PublicPaymentStatusV2Store {
         where: { capabilityVerifier },
         select: {
           id: true, capabilityNonce: true, capabilityKeyVersion: true, capabilityVerifier: true, capabilityExpiresAt: true, capabilityRevokedAt: true,
-          order: { select: { state: true, providerOrders: { select: { pixCopyPaste: true } } } },
+          order: {
+            select: {
+              state: true,
+              localOutcomes: { select: { outcome: true }, orderBy: [{ createdAt: "desc" as const }, { id: "desc" as const }], take: 1 },
+              providerOrders: { select: { pixCopyPaste: true } },
+            },
+          },
         },
       }) as Promise<StatusAttempt | null>;
     },

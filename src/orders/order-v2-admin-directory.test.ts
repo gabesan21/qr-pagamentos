@@ -36,7 +36,7 @@ function summary(index: number, owner: AdminOrderV2Owner = ownerAttribution): Ad
     exchangeCurrencyUuid: usdPair.exchangeCurrencyUuid,
     descriptionPtBr: "Doação",
     descriptionEn: "Donation",
-    state: null,
+    storeStatus: null,
     currentLocalOutcome: null,
     checkoutDataPolicy: "NAME_EMAIL",
     payer: { name: null, email: null, cpf: null, address: null },
@@ -136,7 +136,7 @@ describe("administrator order V2 directory", () => {
       "paymentLinkV2Identifier",
       "settledAt",
       "source",
-      "state",
+      "storeStatus",
       "updatedAt",
     ].sort());
     expect(Object.keys(result.rows[0].owner).sort()).toEqual(["deletedAt", "username"]);
@@ -233,6 +233,25 @@ describe("administrator order V2 directory", () => {
     for (const call of readWindow.mock.calls) {
       expect(call[0].where).not.toHaveProperty("ownerId");
     }
+  });
+  it("passes resolvedStatus to readWindow when filtering by state or STATELESS", async () => {
+    const { store, readWindow } = storeWith([summary(1)]);
+    const service = serviceWith(store);
+
+    await service.query(admin, "/admin/orders?filter.state=CANCELLED");
+    expect(readWindow.mock.calls.at(-1)?.[0]).toMatchObject({
+      resolvedStatus: "CANCELLED",
+    });
+
+    await service.query(admin, "/admin/orders?filter.state=STATELESS");
+    expect(readWindow.mock.calls.at(-1)?.[0]).toMatchObject({
+      resolvedStatus: null,
+    });
+
+    await service.query(admin, "/admin/orders?filter.state=PENDING");
+    expect(readWindow.mock.calls.at(-1)?.[0]).toMatchObject({
+      resolvedStatus: "PENDING",
+    });
   });
 
   it("returns an empty page without order I/O when USD is filtered but no USD mapping is active", async () => {

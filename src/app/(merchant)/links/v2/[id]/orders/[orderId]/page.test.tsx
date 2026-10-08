@@ -55,7 +55,7 @@ const order = {
   exchangeCurrencyUuid: "440e8400-e29b-41d4-a716-446655440031",
   descriptionPtBr: "Doação mensal",
   descriptionEn: "Monthly donation",
-  state: "CONFIRMED" as const,
+  storeStatus: "CONFIRMED" as const,
   currentLocalOutcome: { outcome: "LOCAL_FINALIZED" as const, note: "Checked in person", createdAt: new Date("2026-07-04T12:00:00.000Z") },
   checkoutDataPolicy: "NAME_EMAIL" as const,
   createdAt: new Date("2026-07-03T12:00:00.000Z"),

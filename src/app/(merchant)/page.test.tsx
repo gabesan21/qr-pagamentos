@@ -65,7 +65,7 @@ function readyView(overrides: Partial<MerchantAnalyticsView> = {}): MerchantAnal
       descriptionEn: "Monthly donation",
       amount: "34.90",
       currency: brl,
-      state: "CONFIRMED",
+      storeStatus: "CONFIRMED",
       currentLocalOutcome: null,
       paymentLinkV2Identifier: "abcdefghijklmnopqrstuvwx",
       createdAt: new Date("2026-07-20T12:00:00Z"),

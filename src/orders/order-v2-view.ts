@@ -3,8 +3,9 @@ import "server-only";
 import { ForbiddenError, requireUserPrincipal, type Principal } from "../auth/authorization";
 import { getDatabaseClient } from "../db/client";
 import type { Prisma, PrismaClient } from "../generated/prisma/client";
-import type { CheckoutDataPolicy, CustomerAddressV1, CustomerSnapshotV1 } from "./order-v2-policies";
+import type { CheckoutDataPolicy, CustomerAddressV1, CustomerSnapshotV1, PaymentLinkOrderState } from "./order-v2-policies";
 import type { OrderV2LineSnapshot, OrderV2LocalOutcome, OrderV2Source, OrderV2State } from "./order-v2";
+import { resolveOrderV2StoreStatus } from "./order-v2-status";
 
 // Bounded recent window; pagination beyond it is intentionally out of scope.
 export const ORDER_V2_VIEW_LIST_LIMIT = 50;
@@ -32,9 +33,9 @@ export type OrderV2Summary = Readonly<{
   exchangeCurrencyUuid: string;
   descriptionPtBr: string | null;
   descriptionEn: string | null;
-  // `state` and the current local outcome are separate fields: a local outcome
-  // never writes, masks, or shadows the authoritative payment state.
-  state: OrderV2State | null;
+  // Authoritative store order status derived from payment state and the current
+  // local outcome: local cancellation resolves to CANCELLED throughout store-facing views.
+  storeStatus: PaymentLinkOrderState | null;
   currentLocalOutcome: OrderV2LocalOutcomeView | null;
   checkoutDataPolicy: CheckoutDataPolicy;
   // Policy-exact payer snapshot (8.3.3): the same fail-closed mapping as the
@@ -76,7 +77,8 @@ type StoredCustomerColumns = Readonly<{
   complement: string | null;
 }>;
 
-export type StoredOrderV2View = Omit<OrderV2Summary, "currentLocalOutcome" | "payer"> & StoredCustomerColumns & Readonly<{
+export type StoredOrderV2View = Omit<OrderV2Summary, "storeStatus" | "currentLocalOutcome" | "payer"> & StoredCustomerColumns & Readonly<{
+  state: OrderV2State | null;
   lifecycleVersion: number;
   lines: ReadonlyArray<OrderV2LineSnapshot>;
   comments: ReadonlyArray<OrderV2CommentView>;
@@ -130,9 +132,10 @@ export function toPolicySnapshotV2(policy: CheckoutDataPolicy, stored: StoredCus
 }
 
 function toSummary(stored: StoredOrderV2View): OrderV2Summary {
-  const { name, email, cpf, street, number, district, city, stateUf, postalCode, country, complement, lifecycleVersion, lines, comments, latestLocalOutcome, paymentMethod, ...summary } = stored;
+  const { name, email, cpf, street, number, district, city, stateUf, postalCode, country, complement, lifecycleVersion, lines, comments, latestLocalOutcome, paymentMethod, state, ...summary } = stored;
   return {
     ...summary,
+    storeStatus: resolveOrderV2StoreStatus(state, latestLocalOutcome?.outcome ?? null),
     payer: toPolicySnapshotV2(stored.checkoutDataPolicy, stored),
     currentLocalOutcome: latestLocalOutcome,
   };

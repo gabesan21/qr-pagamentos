@@ -35,7 +35,7 @@ function row(overrides: Partial<AdminOrderV2Summary> = {}): AdminOrderV2Summary 
     exchangeCurrencyUuid: "aa0e8400-e29b-41d4-a716-4466554400aa",
     descriptionPtBr: "Doação mensal",
     descriptionEn: "Monthly donation",
-    state: "CONFIRMED",
+    storeStatus: "CONFIRMED",
     currentLocalOutcome: null,
     checkoutDataPolicy: "NAME_EMAIL",
     payer: { name: "Ana", email: "ana@example.com", cpf: null, address: null },
@@ -77,7 +77,7 @@ describe("administrator orders directory page", () => {
         id: "440e8400-e29b-41d4-a716-446655440011",
         source: "AD_HOC",
         paymentLinkV2Identifier: null,
-        state: null,
+        storeStatus: null,
         currentLocalOutcome: { outcome: "LOCAL_FINALIZED", note: null, createdAt: new Date("2026-07-02T12:00:00.000Z") },
         payer: { name: null, email: null, cpf: null, address: null },
         owner: { username: "gone.owner", deletedAt: new Date("2026-07-20T00:00:00.000Z") },
@@ -100,8 +100,7 @@ describe("administrator orders directory page", () => {
     expect(markup).toContain("ana@example.com");
     expect(markup).toContain("Not collected");
     expect(markup).toContain(">Payment confirmed</");
-    expect(markup).toContain(">No payment</");
-    expect(markup).toContain(">Locally finalized</");
+    expect(markup).toContain(">No status</");
     expect(markup).toContain("abcdefghijklmnopqrstuvwx");
     expect(markup).toContain(">No link</");
     expect(markup).toContain('href="/admin/orders/v2/440e8400-e29b-41d4-a716-446655440010"');
