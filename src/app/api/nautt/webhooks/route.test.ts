@@ -1,3 +1,4 @@
+import { createHmac } from "node:crypto";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const { handleNauttWebhook } = vi.hoisted(() => ({ handleNauttWebhook: vi.fn() }));
@@ -29,24 +30,6 @@ function requestFromChunks(chunks: Uint8Array[], headers: Record<string, string>
 }
 
 describe("POST /api/nautt/webhooks", () => {
-  it("preserves accepted multi-chunk bytes exactly and returns an empty no-store response", async () => {
-    const chunks = [Buffer.from("{\"a\":"), Buffer.from(" 1}\n")];
-    const { request } = requestFromChunks(chunks, { "x-nautt-signature": `sha256=${"a".repeat(64)}` });
-    const response = await POST(request);
-    expect(response.status).toBe(204);
-    expect(response.headers.get("cache-control")).toBe("no-store");
-    expect(await response.text()).toBe("");
-    expect(handleNauttWebhook.mock.calls[0][0].rawBody).toEqual(Buffer.concat(chunks));
-  });
-
-  it.each([undefined, "sha256=bad", `sha256=${"0".repeat(64)}`])("forwards missing or wrong signatures without rejecting at the route: %s", async (signature) => {
-    const headers: Record<string, string> = signature === undefined ? {} : { "x-nautt-signature": signature };
-    const { request } = requestFromChunks([Buffer.from("{}")], headers);
-    const response = await POST(request);
-    expect(response.status).toBe(204);
-    expect(handleNauttWebhook).toHaveBeenCalledWith(expect.objectContaining({ signature: signature ?? null }));
-  });
-
   it.each([400, 503] as const)("returns an empty no-store %i intake outcome", async (status) => {
     handleNauttWebhook.mockResolvedValueOnce({ status });
     const { request } = requestFromChunks([Buffer.from("{}")]);
@@ -88,7 +71,7 @@ describe("POST /api/nautt/webhooks", () => {
 });
 
 describe("POST /api/nautt/webhooks integrated intake seam", () => {
-  it("routes valid body data.uuid with null webhook_deliveries through real intake to 204", async () => {
+  it("authenticates exact multi-chunk bytes and deduplicates differing attempt headers through real intake", async () => {
     const orderUuid = "550e8400-e29b-41d4-a716-446655440012";
     const ownerId = "550e8400-e29b-41d4-a716-446655440010";
     const deliveryStore = createInMemoryWebhookDeliveryStore();
@@ -97,6 +80,7 @@ describe("POST /api/nautt/webhooks integrated intake seam", () => {
     const realIntake = createWebhookIntake({
       deliveryStore,
       resolveOrderOwner: vi.fn().mockResolvedValue(ownerId),
+      loadOwnerWebhookSecret: async () => Buffer.from("nautt_whsec_route-synthetic-secret"),
       orderReconciler: { reconcileWebhookOrder, repairWebhookSettlement },
     });
 
@@ -108,8 +92,9 @@ describe("POST /api/nautt/webhooks integrated intake seam", () => {
       created_at: "2026-07-17T20:00:00Z",
       data: { uuid: orderUuid, webhook_deliveries: null },
     }));
-    const { request } = requestFromChunks([body], {
-      "x-nautt-delivery": "mismatched-header",
+    const { request } = requestFromChunks([body.subarray(0, 37), body.subarray(37)], {
+      "x-nautt-signature": `sha256=${createHmac("sha256", "nautt_whsec_route-synthetic-secret").update(body).digest("hex")}`,
+      "x-nautt-delivery": "550e8400-e29b-41d4-a716-446655440021",
       "x-nautt-event": "mismatched-event",
     });
 
@@ -117,5 +102,25 @@ describe("POST /api/nautt/webhooks integrated intake seam", () => {
     expect(response.status).toBe(204);
     expect(response.headers.get("cache-control")).toBe("no-store");
     expect(reconcileWebhookOrder).toHaveBeenCalledWith(ownerId, orderUuid);
+    expect(await response.text()).toBe("");
+    const replay = requestFromChunks([body], {
+      "x-nautt-signature": `sha256=${createHmac("sha256", "nautt_whsec_route-synthetic-secret").update(body).digest("hex")}`,
+      "x-nautt-delivery": "550e8400-e29b-41d4-a716-446655440022",
+    });
+    const replayResponse = await POST(replay.request);
+    expect(replayResponse.status).toBe(204);
+    expect(replayResponse.headers.get("cache-control")).toBe("no-store");
+    expect(await replayResponse.text()).toBe("");
+    expect(reconcileWebhookOrder).toHaveBeenCalledOnce();
+    expect(repairWebhookSettlement).toHaveBeenCalledOnce();
+    for (const signature of [undefined, "sha256=bad", `sha256=${"0".repeat(64)}`]) {
+      const invalid = requestFromChunks([body], signature === undefined ? {} : { "x-nautt-signature": signature });
+      const rejected = await POST(invalid.request);
+      expect(rejected.status).toBe(401);
+      expect(rejected.headers.get("cache-control")).toBe("no-store");
+      expect(await rejected.text()).toBe("");
+    }
+    expect(reconcileWebhookOrder).toHaveBeenCalledOnce();
+    expect(repairWebhookSettlement).toHaveBeenCalledOnce();
   });
 });

@@ -8,6 +8,7 @@ import {
 } from "./webhook-envelope";
 import type { WebhookDeliveryStore } from "./webhook-delivery-store";
 import { logWebhookRejection } from "../../observability/webhook-rejection-log";
+import { parseWebhookSignature, verifyWebhookSignature } from "./webhook-signature";
 
 export const WEBHOOK_ACCEPTED_PROCESSING_BUDGET_MS = 14_500;
 export const WEBHOOK_LEASE_SAFETY_MARGIN_MS = 1_500;
@@ -26,6 +27,7 @@ export type WebhookOrderReconciler = {
 
 export type WebhookIntakeDependencies = {
   readonly resolveOrderOwner: (providerOrderUuid: string) => Promise<string | null>;
+  readonly loadOwnerWebhookSecret: (ownerId: string) => Promise<Buffer | null>;
   readonly deliveryStore: WebhookDeliveryStore;
   readonly orderReconciler: WebhookOrderReconciler;
   readonly now?: () => Date;
@@ -54,8 +56,27 @@ export function createWebhookIntake(dependencies: WebhookIntakeDependencies) {
     // Unknown provider orders cannot select a merchant or trigger provider requests.
     if (!ownerId) return { status: 204 };
 
-    // USER-AUTHORIZED TEMPORARY PRODUCTION TEST: signature enforcement is disabled.
-    // Restore only after UUID ownership resolution; never discover owners by HMAC matching.
+    const deliveryUuid = notification.envelope?.deliveryUuid ?? null;
+    const eventType = notification.envelope?.eventType ?? null;
+    if (input.signature === null) {
+      logWebhookRejection("missing", deliveryUuid, eventType);
+      return { status: 401 };
+    }
+    if (!parseWebhookSignature(input.signature)) {
+      logWebhookRejection("malformed", deliveryUuid, eventType);
+      return { status: 401 };
+    }
+    let authenticated: boolean;
+    try {
+      const secret = await dependencies.loadOwnerWebhookSecret(ownerId);
+      authenticated = secret !== null && verifyWebhookSignature(input.rawBody, input.signature, secret);
+    } catch {
+      return { status: 503 };
+    }
+    if (!authenticated) {
+      logWebhookRejection("unmatched", deliveryUuid, eventType);
+      return { status: 401 };
+    }
     const envelope = notification.envelope;
     if (!envelope) {
       try {
