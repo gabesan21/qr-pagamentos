@@ -186,7 +186,8 @@ function ProductPreview({
   price: string;
   title: string;
 }>) {
-  const formattedPrice = formatCatalogPrice(price, null, locale);
+  const localizedBrl = currencyCode === "BRL" && locale === "pt-BR";
+  const formattedPrice = formatCatalogPrice(price, localizedBrl ? currencyCode : null, locale);
   return (
     <div className="lg:col-span-4">
       <div className="sticky top-20 rounded-card border border-border bg-surface p-5 shadow-sm">
@@ -203,7 +204,7 @@ function ProductPreview({
             <p className="truncate text-sm font-medium text-text">
               {title || dictionary.catalogProductPreviewNoTitle}
             </p>
-            <MoneyText className="mt-0.5" pairLabel={currencyCode ?? undefined} value={formattedPrice} />
+            <MoneyText className="mt-0.5" pairLabel={localizedBrl ? undefined : currencyCode ?? undefined} value={formattedPrice} />
           </div>
         </div>
         {description ? <p className="mt-3 line-clamp-3 text-xs text-text-2">{description}</p> : null}
