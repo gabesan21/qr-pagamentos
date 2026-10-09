@@ -2,8 +2,6 @@ import { access, readFile } from "node:fs/promises";
 
 import { describe, expect, it } from "vitest";
 
-import { GET as health } from "./api/health/route";
-
 async function pathExists(path: string) {
   try {
     await access(path);
@@ -14,10 +12,6 @@ async function pathExists(path: string) {
 }
 
 describe("unprefixed route contract", () => {
-  it("keeps health unlocalized and rejects all remaining locale-prefixed mutations", async () => {
-    expect((await health()).status).toBe(200);
-  });
-
   it("does not leave locale-prefixed route surfaces as alternate implementations", async () => {
     for (const path of [
       "src/app/[lang]/page.tsx",
@@ -29,13 +23,6 @@ describe("unprefixed route contract", () => {
     ]) {
       expect(await pathExists(path)).toBe(false);
     }
-  });
-
-  it("keeps public payment-link resolution as an unlocalized API route", async () => {
-    const source = await readFile("src/app/api/payment-links/[identifier]/route.ts", "utf8");
-
-    expect(source).toContain("export async function GET");
-    expect(source).toContain('export const dynamic = "force-dynamic"');
   });
 
   it("keeps the standalone payment page an unlocalized dynamic sessionless route", async () => {

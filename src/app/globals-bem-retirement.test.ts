@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync, statSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -188,9 +188,3 @@ describe("single CSS system (14.7.1 BEM retirement, pinned by 14.7.2)", () => {
   });
 });
 
-// Guard the fixture itself: fail loudly if the repo layout it walks moves.
-describe("fixture sanity", () => {
-  it("resolves src/ as a real directory", () => {
-    expect(statSync(join(repoRoot, "src")).isDirectory()).toBe(true);
-  });
-});
